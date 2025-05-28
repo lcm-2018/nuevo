@@ -51,13 +51,17 @@ const Serializa = (...formularios) => {
                         datos.append(input.name, file);
                     } else if (input.type === 'password') {
                         datos.append(input.name, hex_sha512(input.value));
+                    } else if (input.type === 'checkbox') {
+                        if (input.checked) {
+                            datos.append(input.name, input.value);
+                        }
                     } else {
                         datos.append(input.name, input.value);
                     }
                 }
             }
         } else {
-            console.warn(`Formulario con ID '${formularioID}' no encontrado.`);
+            //console.log(`Formulario con ID '${formularioID}' no encontrado.`);
         }
     });
 

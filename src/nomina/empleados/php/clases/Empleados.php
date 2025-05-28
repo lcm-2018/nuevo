@@ -69,6 +69,7 @@ class Empleados
             'tipo_cta' => 1,
             'cuenta_bancaria' => '',
             'dependientes' => 0,
+            'bsp' => 1,
         ];
     }
 
@@ -301,56 +302,65 @@ class Empleados
     public function getFormulario($id)
     {
         $formEmpleado = $this->getFormularioEmpleado($id);
-        $formSalud = $this->getFormularioSalud();
-        $formPension = $this->getFormularioPension();
-        $formRiesgos = $this->getFormularioRiesgos();
-        $formCesantias = $this->getFormularioCesantias();
-
+        if ($id == 0) {
+            $formSalud = $this->getFormularioSalud();
+            $formPension = $this->getFormularioPension();
+            $formRiesgos = $this->getFormularioRiesgos();
+            $formCesantias = $this->getFormularioCesantias();
+            $cuerpo =
+                <<<HTML
+            <div class="p-3">
+                <ul class="nav nav-tabs" id="btnFormEmpleado" role="tablist">
+                    <li class="nav-item bg-sofia" role="presentation">
+                        <button data-id="emp" class="nav-link active" data-bs-toggle="tab" data-bs-target="#formEmpleado" type="button" role="tab" aria-selected="true">EMPLEADO</button>
+                    </li>
+                    <li class="nav-item bg-sofia" role="presentation">
+                        <button data-id="eps" class="nav-link" data-bs-toggle="tab" data-bs-target="#formSalud" type="button" role="tab" aria-selected="false">SALUD</button>
+                    </li>
+                    <li class="nav-item bg-sofia" role="presentation">
+                        <button data-id="afp" class="nav-link" data-bs-toggle="tab" data-bs-target="#formPension" type="button" role="tab" aria-selected="false">PENSION</button>
+                    </li>
+                    <li class="nav-item bg-sofia" role="presentation">
+                        <button data-id="arl" class="nav-link" data-bs-toggle="tab" data-bs-target="#formRiesgos" type="button" role="tab" aria-selected="false">RIESGOS</button>
+                    </li>
+                    <li class="nav-item bg-sofia" role="presentation">
+                        <button data-id="ces" class="nav-link" data-bs-toggle="tab" data-bs-target="#formCesantias" type="button" role="tab" aria-selected="false">CESANTÍAS</button>
+                    </li>
+                </ul>
+                <div class="tab-content pt-2" id="myTabContent">
+                    <div class="tab-pane fade show active" id="formEmpleado" role="tabpanel">
+                        {$formEmpleado}
+                    </div>
+                    <div class="tab-pane fade" id="formSalud" role="tabpanel">
+                        {$formSalud}
+                    </div>
+                    <div class="tab-pane fade" id="formPension" role="tabpanel">
+                        {$formPension}
+                    </div>
+                    <div class="tab-pane fade" id="formRiesgos" role="tabpanel">
+                        {$formRiesgos}
+                    </div>
+                    <div class="tab-pane fade" id="formCesantias" role="tabpanel">
+                        {$formCesantias}
+                    </div>
+                </div>
+            </div>
+            HTML;
+        } else {
+            $cuerpo = '<div class="p-3">' . $formEmpleado . '</div>';
+        }
         $html =
             <<<HTML
                 <div class="shadow text-center rounded">
                     <div class="rounded-top py-2" style="background-color: #16a085 !important;">
                         <h5 style="color: white;" class="mb-0">GESTIÓN EMPLEADO DE NÓMINA</h5>
                     </div>
-                    <div class="p-3">
-                        <ul class="nav nav-tabs" id="btnFormEmpleado" role="tablist">
-                            <li class="nav-item bg-sofia" role="presentation">
-                                <button data-id="emp" class="nav-link active" data-bs-toggle="tab" data-bs-target="#formEmpleado" type="button" role="tab" aria-selected="true">EMPLEADO</button>
-                            </li>
-                            <li class="nav-item bg-sofia" role="presentation">
-                                <button data-id="eps" class="nav-link" data-bs-toggle="tab" data-bs-target="#formSalud" type="button" role="tab" aria-selected="false">SALUD</button>
-                            </li>
-                            <li class="nav-item bg-sofia" role="presentation">
-                                <button data-id="afp" class="nav-link" data-bs-toggle="tab" data-bs-target="#formPension" type="button" role="tab" aria-selected="false">PENSION</button>
-                            </li>
-                            <li class="nav-item bg-sofia" role="presentation">
-                                <button data-id="arl" class="nav-link" data-bs-toggle="tab" data-bs-target="#formRiesgos" type="button" role="tab" aria-selected="false">RIESGOS</button>
-                            </li>
-                            <li class="nav-item bg-sofia" role="presentation">
-                                <button data-id="ces" class="nav-link" data-bs-toggle="tab" data-bs-target="#formCesantias" type="button" role="tab" aria-selected="false">CESANTÍAS</button>
-                            </li>
-                        </ul>
-                        <div class="tab-content pt-2" id="myTabContent">
-                            <div class="tab-pane fade show active" id="formEmpleado" role="tabpanel">
-                                {$formEmpleado}
-                            </div>
-                            <div class="tab-pane fade" id="formSalud" role="tabpanel">
-                                {$formSalud}
-                            </div>
-                            <div class="tab-pane fade" id="formPension" role="tabpanel">
-                                {$formPension}
-                            </div>
-                            <div class="tab-pane fade" id="formRiesgos" role="tabpanel">
-                                {$formRiesgos}
-                            </div>
-                            <div class="tab-pane fade" id="formCesantias" role="tabpanel">
-                                {$formCesantias}
-                            </div>
-                        </div>
-                        <div class="text-center pb-3">
-                            <button type="button" class="btn btn-primary btn-sm" id="btnGuardaEmpleado">Guardar</button>
-                            <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
-                        </div>
+                    <div>
+                        {$cuerpo}
+                    </div>
+                    <div class="text-center pb-3">
+                        <button type="button" class="btn btn-primary btn-sm" id="btnGuardaEmpleado">Guardar</button>
+                        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
                     </div>
                 </div>
             HTML;
@@ -396,14 +406,15 @@ class Empleados
         $tipo_cuenta_ahorro     =   ($res['tipo_cta'] == 1) ? 'checked' : '';
         $tipo_cuenta_corriente  =   ($res['tipo_cta'] == 2) ? 'checked' : '';
         $dependientes           =   ($res['dependientes'] == 1) ? 'checked' : '';
+        $bsp                    =   ($res['bsp'] == 1) ? 'checked' : '';
         $row_ccosto             =   '';
         if ($id == 0) {
             $op_ccosto              =   Combos::getCentrosCosto(0);
             $row_ccosto =
                 <<<HTML
                     <div class="col-md-2">
-                        <label for="slcCCostoEmp" class="small">Centro Costo</label>
-                        <select id="slcCCostoEmp" name="slcCCostoEmp" class="form-control form-control-sm" aria-label="Default select example">
+                        <label for="slcCCostoEmp" class="small text-muted">Centro Costo</label>
+                        <select id="slcCCostoEmp" name="slcCCostoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
                             {$op_ccosto}
                         </select>
                     </div>
@@ -415,161 +426,161 @@ class Empleados
                     <input type="hidden" id="id" name="id" value="{$id}">
                     <div class="row pb-2">
                         <div class="col-md-2">
-                            <label for="slcSedeEmp" class="small">Sede</label>
-                            <select id="slcSedeEmp" name="slcSedeEmp" class="form-control form-control-sm" aria-label="Default select example">
+                            <label for="slcSedeEmp" class="small text-muted">Sede</label>
+                            <select id="slcSedeEmp" name="slcSedeEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
                                 {$op_sedes}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="slcTipoEmp" class="small">Tipo de empleado</label>
-                            <select id="slcTipoEmp" name="slcTipoEmp" class="form-control form-control-sm" aria-label="Default select example">
+                            <label for="slcTipoEmp" class="small text-muted">Tipo de empleado</label>
+                            <select id="slcTipoEmp" name="slcTipoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
                                 {$op_tipo_empleado}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="slcSubTipoEmp" class="small">Subtipo de empleado</label>
-                            <select id="slcSubTipoEmp" name="slcSubTipoEmp" class="form-control form-control-sm" aria-label="Default select example">
+                            <label for="slcSubTipoEmp" class="small text-muted">Subtipo de empleado</label>
+                            <select id="slcSubTipoEmp" name="slcSubTipoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
                                 {$op_subtipo_empleado}
                             </select>
                         </div>
                         <div class="col-md-2 d-flex flex-column justify-content-center">
-                            <label for="radioNo" class="small text-center">Alto riesgo</label>
-                            <div class="d-flex justify-content-center gap-2 border rounded-1 pt-1">
+                            <label for="radioNo" class="small text-muted text-center">Alto riesgo</label>
+                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="slcAltoRiesgo" id="radioSi" value="1" {$riesgo_si}>
-                                    <label class="form-check-label small" for="radioSi">Sí</label>
+                                    <label class="form-check-label small text-muted" for="radioSi">Sí</label>
                                 </div>
                                 <div class="form-check form-check-inline me-0">
                                     <input class="form-check-input" type="radio" name="slcAltoRiesgo" id="radioNo" value="0" {$riesgo_no}>
-                                    <label class="form-check-label small" for="radioNo">No</label>
+                                    <label class="form-check-label small text-muted" for="radioNo">No</label>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <label for="slcTipoContratoEmp" class="small">Tipo de contrato</label>
-                            <select id="slcTipoContratoEmp" name="slcTipoContratoEmp" class="form-control form-control-sm" aria-label="Default select example">
+                            <label for="slcTipoContratoEmp" class="small text-muted">Tipo de contrato</label>
+                            <select id="slcTipoContratoEmp" name="slcTipoContratoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
                                 {$op_tipo_contrato}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="slcTipoDocEmp" class="small">Tipo de documento</label>
-                            <select id="slcTipoDocEmp" name="slcTipoDocEmp" class="form-control form-control-sm" aria-label="Default select example">
+                            <label for="slcTipoDocEmp" class="small text-muted">Tipo de documento</label>
+                            <select id="slcTipoDocEmp" name="slcTipoDocEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
                                 {$op_tipo_documento}
                             </select>
                         </div>
                     </div>
                     <div class="row pb-2">
                         <div class="col-md-2 d-flex flex-column justify-content-center">
-                            <label for="slcGeneroF" class="small">Género</label>
-                            <div class="d-flex justify-content-center gap-2 border rounded-1 pt-1" id="slcGenero">
+                            <label for="slcGeneroF" class="small text-muted">Género</label>
+                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1" id="slcGenero">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="slcGenero" id="slcGeneroM" value="M" title="Masculino" {$genero_m}>
-                                    <label class="form-check-label small" for="slcGeneroM">M</label>
+                                    <label class="form-check-label small text-muted" for="slcGeneroM">M</label>
                                 </div>
                                 <div class="form-check form-check-inline me-0">
                                     <input class="form-check-input" type="radio" name="slcGenero" id="slcGeneroF" value="F" title="Femenino" {$genero_f}>
-                                    <label class="form-check-label small" for="slcGeneroF">F</label>
+                                    <label class="form-check-label small text-muted" for="slcGeneroF">F</label>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <label for="txtCCempleado" class="small">Número de documento</label>
-                            <input type="text" class="form-control form-control-sm" id="txtCCempleado" name="txtCCempleado" placeholder="Identificación" value="{$res['no_documento']}">
+                            <label for="txtCCempleado" class="small text-muted">Número de documento</label>
+                            <input type="text" class="form-control form-control-sm bg-input" id="txtCCempleado" name="txtCCempleado" placeholder="Identificación" value="{$res['no_documento']}">
                         </div>
                         <div class="col-md-2">
-                            <label for="slcPaisExp" class="small">País Expide Doc.</label>
-                            <select id="slcPaisExp" name="slcPaisExp" class="form-control form-control-sm" aria-label="Default select example">
+                            <label for="slcPaisExp" class="small text-muted">País Expide Doc.</label>
+                            <select id="slcPaisExp" name="slcPaisExp" class="form-control form-control-sm bg-input" aria-label="Default select example">
                                 {$op_paises_exp}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="slcDptoExp" class="small">Departamento Expide Doc.</label>
-                            <select id="slcDptoExp" name="slcDptoExp" class="form-control form-control-sm" aria-label="Default select example" onchange="CargaCombos('slcMunicipioExp','mun',value)">
+                            <label for="slcDptoExp" class="small text-muted">Departamento Expide Doc.</label>
+                            <select id="slcDptoExp" name="slcDptoExp" class="form-control form-control-sm bg-input" aria-label="Default select example" onchange="CargaCombos('slcMunicipioExp','mun',value)">
                                 {$op_depto_exp}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="slcMunicipioExp" class="small">Municipio Expide Doc.</label>
-                            <select id="slcMunicipioExp" name="slcMunicipioExp" class="form-control form-control-sm" aria-label="Default select example" placeholder="elegir mes">
+                            <label for="slcMunicipioExp" class="small text-muted">Municipio Expide Doc.</label>
+                            <select id="slcMunicipioExp" name="slcMunicipioExp" class="form-control form-control-sm bg-input" aria-label="Default select example" placeholder="elegir mes">
                                 <option value="0">-- Seleccionar --</option>
                                 {$op_municipio_exp}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="datFecExp" class="small">Fecha Expide Doc.</label>
-                            <input type="date" class="form-control form-control-sm" id="datFecExp" name="datFecExp" value="{$res['fec_exp']}">
+                            <label for="datFecExp" class="small text-muted">Fecha Expide Doc.</label>
+                            <input type="date" class="form-control form-control-sm bg-input" id="datFecExp" name="datFecExp" value="{$res['fec_exp']}">
                         </div>
                     </div>
                     <div class="row pb-2">
                         <div class="col-md-2">
-                            <label for="slcPaisNac" class="small">País Nacimiento</label>
-                            <select id="slcPaisNac" name="slcPaisNac" class="form-control form-control-sm" aria-label="Default select example">
+                            <label for="slcPaisNac" class="small text-muted">País Nacimiento</label>
+                            <select id="slcPaisNac" name="slcPaisNac" class="form-control form-control-sm bg-input" aria-label="Default select example">
                                 {$op_paises_nac}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="slcDptoNac" class="small">Departamento Nacimiento</label>
-                            <select id="slcDptoNac" name="slcDptoNac" class="form-control form-control-sm" aria-label="Default select example" onchange="CargaCombos('slcMunicipioNac','mun',value)">
+                            <label for="slcDptoNac" class="small text-muted">Departamento Nacimiento</label>
+                            <select id="slcDptoNac" name="slcDptoNac" class="form-control form-control-sm bg-input" aria-label="Default select example" onchange="CargaCombos('slcMunicipioNac','mun',value)">
                                 {$op_depto_nac}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="slcMunicipioNac" class="small">Municipio Nacimiento</label>
-                            <select id="slcMunicipioNac" name="slcMunicipioNac" class="form-control form-control-sm" aria-label="Default select example" placeholder="elegir mes">
+                            <label for="slcMunicipioNac" class="small text-muted">Municipio Nacimiento</label>
+                            <select id="slcMunicipioNac" name="slcMunicipioNac" class="form-control form-control-sm bg-input" aria-label="Default select example" placeholder="elegir mes">
                                 <option value="0">-- Seleccionar --</option>    
                             {$op_municipio_nac}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="datFecNac" class="small">Fecha Nacimiento</label>
-                            <input type="date" class="form-control form-control-sm" id="datFecNac" name="datFecNac" value="{$res['fec_nac']}">
+                            <label for="datFecNac" class="small text-muted">Fecha Nacimiento</label>
+                            <input type="date" class="form-control form-control-sm bg-input" id="datFecNac" name="datFecNac" value="{$res['fec_nac']}">
                         </div>
                         <div class="col-md-2">
-                            <label for="txtNomb1Emp" class="small">Primer nombre</label>
-                            <input type="text" class="form-control form-control-sm" id="txtNomb1Emp" name="txtNomb1Emp" placeholder="Nombre" value="{$res['nombre1']}">
+                            <label for="txtNomb1Emp" class="small text-muted">Primer nombre</label>
+                            <input type="text" class="form-control form-control-sm bg-input" id="txtNomb1Emp" name="txtNomb1Emp" placeholder="Nombre" value="{$res['nombre1']}">
                         </div>
                         <div class="col-md-2">
-                            <label for="txtNomb2Emp" class="small">Segundo nombre</label>
-                            <input type="text" class="form-control form-control-sm" id="txtNomb2Emp" name="txtNomb2Emp" placeholder="Nombre" value="{$res['nombre2']}">
+                            <label for="txtNomb2Emp" class="small text-muted">Segundo nombre</label>
+                            <input type="text" class="form-control form-control-sm bg-input" id="txtNomb2Emp" name="txtNomb2Emp" placeholder="Nombre" value="{$res['nombre2']}">
                         </div>
                     </div>
                     <div class="row pb-2">
                         <div class="col-md-2">
-                            <label for="txtApe1Emp" class="small">Primer apellido</label>
-                            <input type="text" class="form-control form-control-sm" id="txtApe1Emp" name="txtApe1Emp" placeholder="Apellido" value="{$res['apellido1']}">
+                            <label for="txtApe1Emp" class="small text-muted">Primer apellido</label>
+                            <input type="text" class="form-control form-control-sm bg-input" id="txtApe1Emp" name="txtApe1Emp" placeholder="Apellido" value="{$res['apellido1']}">
                         </div>
                         <div class="col-md-2">
-                            <label for="txtApe2Emp" class="small">Segundo apellido</label>
-                            <input type="text" class="form-control form-control-sm" id="txtApe2Emp" name="txtApe2Emp" placeholder="Apellido" value="{$res['apellido2']}">
+                            <label for="txtApe2Emp" class="small text-muted">Segundo apellido</label>
+                            <input type="text" class="form-control form-control-sm bg-input" id="txtApe2Emp" name="txtApe2Emp" placeholder="Apellido" value="{$res['apellido2']}">
                         </div>
                         <div class="col-md-2 d-flex flex-column justify-content-center">
-                            <label for="slcSalIntegral0" class="small">Salario integral</label>
-                            <div class="d-flex justify-content-center gap-2 border rounded-1 pt-1" id="slcSalIntegral">
+                            <label for="slcSalIntegral0" class="small text-muted">Salario integral</label>
+                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1" id="slcSalIntegral">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="slcSalIntegral" id="slcSalIntegral1" value="1" {$salario_integral_si}>
-                                    <label class="form-check-label small" for="slcSalIntegral1">SI</label>
+                                    <label class="form-check-label small text-muted" for="slcSalIntegral1">SI</label>
                                 </div>
                                 <div class="form-check form-check-inline me-0">
                                     <input class="form-check-input" type="radio" name="slcSalIntegral" id="slcSalIntegral0" value="0" {$salario_integral_no}>
-                                    <label class="form-check-label small" for="slcSalIntegral0">NO</label>
+                                    <label class="form-check-label small text-muted" for="slcSalIntegral0">NO</label>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <label for="slcPaisEmp" class="small">País Reside</label>
-                            <select id="slcPaisEmp" name="slcPaisEmp" class="form-control form-control-sm" aria-label="Default select example">
+                            <label for="slcPaisEmp" class="small text-muted">País Reside</label>
+                            <select id="slcPaisEmp" name="slcPaisEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
                                 {$op_paises_res}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="slcDptoEmp" class="small">Departamento Reside</label>
-                            <select id="slcDptoEmp" name="slcDptoEmp" class="form-control form-control-sm" aria-label="Default select example" onchange="CargaCombos('slcMunicipioEmp','mun',value)">
+                            <label for="slcDptoEmp" class="small text-muted">Departamento Reside</label>
+                            <select id="slcDptoEmp" name="slcDptoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example" onchange="CargaCombos('slcMunicipioEmp','mun',value)">
                                 {$op_depto_res}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="slcMunicipioEmp" class="small">Municipio Reside</label>
-                            <select id="slcMunicipioEmp" name="slcMunicipioEmp" class="form-control form-control-sm" aria-label="Default select example" placeholder="elegir mes">
+                            <label for="slcMunicipioEmp" class="small text-muted">Municipio Reside</label>
+                            <select id="slcMunicipioEmp" name="slcMunicipioEmp" class="form-control form-control-sm bg-input" aria-label="Default select example" placeholder="elegir mes">
                                 <option value="0">-- Seleccionar --</option>
                                 {$op_municipio_res}
                             </select>
@@ -577,68 +588,72 @@ class Empleados
                     </div>
                     <div class="row pb-2">
                         <div class="col-md-2">
-                            <label for="txtDireccion" class="small">Dirección Reside</label>
-                            <input type="text" class="form-control form-control-sm" id="txtDireccion" name="txtDireccion" placeholder="Residencial" value="{$res['direccion']}">
+                            <label for="txtDireccion" class="small text-muted">Dirección Reside</label>
+                            <input type="text" class="form-control form-control-sm bg-input" id="txtDireccion" name="txtDireccion" placeholder="Residencial" value="{$res['direccion']}">
                         </div>
                         <div class="col-md-2">
-                            <label for="txtTelEmp" class="small">Contacto</label>
-                            <input type="text" class="form-control form-control-sm" id="txtTelEmp" name="txtTelEmp" placeholder="Teléfono/celular" value="{$res['telefono']}">
+                            <label for="txtTelEmp" class="small text-muted">Contacto</label>
+                            <input type="text" class="form-control form-control-sm bg-input" id="txtTelEmp" name="txtTelEmp" placeholder="Teléfono/celular" value="{$res['telefono']}">
                         </div>
                         <div class="col-md-4">
-                            <label for="mailEmp" class="small">Correo</label>
-                            <input type="email" class="form-control form-control-sm" id="mailEmp" name="mailEmp" placeholder="Correo electrónico" value="{$res['correo']}">
+                            <label for="mailEmp" class="small text-muted">Correo</label>
+                            <input type="email" class="form-control form-control-sm bg-input" id="mailEmp" name="mailEmp" placeholder="Correo electrónico" value="{$res['correo']}">
                         </div>
                         <div class="col-md-2">
-                            <label for="slcCargoEmp" class="small">Cargo</label>
-                            <select id="slcCargoEmp" name="slcCargoEmp" class="form-control form-control-sm" aria-label="Default select example">
+                            <label for="slcCargoEmp" class="small text-muted">Cargo</label>
+                            <select id="slcCargoEmp" name="slcCargoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
                                 {$op_cargos}
                             </select>
                         </div>
                         <div class="col-md-2 d-flex flex-column justify-content-center">
-                            <label for="slcTipoCargo1" class="small">Tipo de Cargo</label>
-                            <div class="d-flex justify-content-center gap-2 border rounded-1 pt-1" id="slcTipoCargo">
+                            <label for="slcTipoCargo1" class="small text-muted">Tipo de Cargo</label>
+                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1" id="slcTipoCargo">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="slcTipoCargo" id="slcTipoCargo1" value="1" {$tipo_cargo_admin}>
-                                    <label class="form-check-label small" for="slcTipoCargo1">Admin</label>
+                                    <label class="form-check-label small text-muted" for="slcTipoCargo1">Admin</label>
                                 </div>
                                 <div class="form-check form-check-inline me-0">
                                     <input class="form-check-input" type="radio" name="slcTipoCargo" id="slcTipoCargo2" value="2" {$tipo_cargo_opera}>
-                                    <label class="form-check-label small" for="slcTipoCargo2">Asistencial</label>
+                                    <label class="form-check-label small text-muted" for="slcTipoCargo2">Asistencial</label>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="row pb-2">
                         <div class="col-md-2">
-                            <label for="slcBancoEmp" class="small">Banco</label>
-                            <select id="slcBancoEmp" name="slcBancoEmp" class="form-control form-control-sm" aria-label="Default select example">
+                            <label for="slcBancoEmp" class="small text-muted">Banco</label>
+                            <select id="slcBancoEmp" name="slcBancoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
                                 {$op_bancos}
                             </select>
                         </div>
                         <div class="col-md-2 d-flex flex-column justify-content-center">
-                            <label for="selTipoCta2" class="small">Tipo de cuenta</label>
-                            <div class="d-flex justify-content-center gap-2 border rounded-1 pt-1" id="selTipoCta">
+                            <label for="selTipoCta2" class="small text-muted">Tipo de cuenta</label>
+                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1" id="selTipoCta">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="selTipoCta" id="selTipoCta1" value="1" {$tipo_cuenta_ahorro}>
-                                    <label class="form-check-label small" for="selTipoCta1">Ahorros</label>
+                                    <label class="form-check-label small text-muted" for="selTipoCta1">Ahorros</label>
                                 </div>
                                 <div class="form-check form-check-inline me-0">
                                     <input class="form-check-input" type="radio" name="selTipoCta" id="selTipoCta2" value="2" {$tipo_cuenta_corriente}>
-                                    <label class="form-check-label small" for="selTipoCta2">Corriente</label>
+                                    <label class="form-check-label small text-muted" for="selTipoCta2">Corriente</label>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <label for="txtCuentaBanc" class="small">Número de cuenta</label>
-                            <input type="text" class="form-control form-control-sm" id="txtCuentaBanc" name="txtCuentaBanc" placeholder="Sin espacios" value="{$res['cuenta_bancaria']}">
+                            <label for="txtCuentaBanc" class="small text-muted">Número de cuenta</label>
+                            <input type="text" class="form-control form-control-sm bg-input" id="txtCuentaBanc" name="txtCuentaBanc" placeholder="Sin espacios" value="{$res['cuenta_bancaria']}">
                         </div>
                         <div class="col-md-2">
                             <div>
-                                <label for="checkDependientes" class="small">Tiene</label>
-                                <div class="d-flex justify-content-center gap-2 border rounded-1 pt-1">
+                                <label for="checkDependientes" class="small text-muted">Tiene</label>
+                                <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1">
                                     <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="checkDependientes" name="checkDependientes" value="1" {$dependientes}>
+                                        <input type="checkbox" class="form-check-input" id="checkDependientes" name="checkDependientes" {$dependientes}>
                                         <label class="form-check-label" for="checkDependientes">Dependientes</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="checkBsp" name="checkBsp" {$bsp}>
+                                        <label class="form-check-label" for="checkBsp">BSP</label>
                                     </div>
                                 </div>
                             </div>
@@ -661,21 +676,21 @@ class Empleados
                 <form id="formGestSaludEmpleado">
                     <div class="row pb-2">
                         <div class="col-md-4">
-                            <label for="slcEps" class="small">EPS</label>
-                            <select id="slcEps" name="slcEps" class="form-control form-control-sm py-0" aria-label="Default select example">
+                            <label for="slcEps" class="small text-muted">EPS</label>
+                            <select id="slcEps" name="slcEps" class="form-control form-control-sm bg-input py-0" aria-label="Default select example">
                                 {$op_eps}
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="datFecAfilEps" class="small">Afilición</label>
+                            <label for="datFecAfilEps" class="small text-muted">Afilición</label>
                             <div class="form-group">
-                                <input type="date" class="form-control form-control-sm" id="datFecAfilEps" name="datFecAfilEps" value="{$hoy}">
+                                <input type="date" class="form-control form-control-sm bg-input" id="datFecAfilEps" name="datFecAfilEps" value="{$hoy}">
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <label for="datFecRetEps" class="small">Retiro</label>
+                            <label for="datFecRetEps" class="small text-muted">Retiro</label>
                             <div class="form-group">
-                                <input type="date" class="form-control form-control-sm" id="datFecRetEps" name="datFecRetEps" value="{$fin}">
+                                <input type="date" class="form-control form-control-sm bg-input" id="datFecRetEps" name="datFecRetEps" value="{$fin}">
                             </div>
                         </div>
                     </div>
@@ -694,21 +709,21 @@ class Empleados
                 <form id="formGestPensionEmpleado">
                     <div class="row pb-2">
                         <div class="col-md-4">
-                            <label for="slcAfp" class="small">Fondo Pensión</label>
-                            <select id="slcAfp" name="slcAfp" class="form-control form-control-sm py-0" aria-label="Default select example">
+                            <label for="slcAfp" class="small text-muted">Fondo Pensión</label>
+                            <select id="slcAfp" name="slcAfp" class="form-control form-control-sm bg-input py-0" aria-label="Default select example">
                                 {$op_afp} 
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="datFecAfilAfp" class="small">Afilición</label>
+                            <label for="datFecAfilAfp" class="small text-muted">Afilición</label>
                             <div class="form-group">
-                                <input type="date" class="form-control form-control-sm" id="datFecAfilAfp" name="datFecAfilAfp" value="{$hoy}">
+                                <input type="date" class="form-control form-control-sm bg-input" id="datFecAfilAfp" name="datFecAfilAfp" value="{$hoy}">
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <label for="datFecRetAfp" class="small">Retiro</label>
+                            <label for="datFecRetAfp" class="small text-muted">Retiro</label>
                             <div class="form-group">
-                                <input type="date" class="form-control form-control-sm" id="datFecRetAfp" name="datFecRetAfp" value="{$fin}">
+                                <input type="date" class="form-control form-control-sm bg-input" id="datFecRetAfp" name="datFecRetAfp" value="{$fin}">
                             </div>
                         </div>
                     </div>
@@ -728,26 +743,26 @@ class Empleados
                 <form id="formGestRiesgoEmpleado">
                     <div class="row pb-2">
                         <div class="col-md-4">
-                            <label for="slcArl" class="small">ARL</label>
-                            <select id="slcArl" id="slcArl" name="slcArl" class="form-control form-control-sm py-0" aria-label="Default select example">
+                            <label for="slcArl" class="small text-muted">ARL</label>
+                            <select id="slcArl" id="slcArl" name="slcArl" class="form-control form-control-sm bg-input py-0" aria-label="Default select example">
                                 {$op_arl}
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label for="datFecAfilArl" class="small">Afilición</label>
+                            <label for="datFecAfilArl" class="small text-muted">Afilición</label>
                             <div class="form-group">
-                                <input type="date" class="form-control form-control-sm" id="datFecAfilArl" name="datFecAfilArl" value="{$hoy}">
+                                <input type="date" class="form-control form-control-sm bg-input" id="datFecAfilArl" name="datFecAfilArl" value="{$hoy}">
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <label for="datFecRetArl" class="small">Retiro</label>
+                            <label for="datFecRetArl" class="small text-muted">Retiro</label>
                             <div class="form-group">
-                                <input type="date" class="form-control form-control-sm" id="datFecRetArl" name="datFecRetArl" value="{$fin}">
+                                <input type="date" class="form-control form-control-sm bg-input" id="datFecRetArl" name="datFecRetArl" value="{$fin}">
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <label for="slcRiesLab" class="small">Riesgo laboral</label>
-                            <select id="slcRiesLab" name="slcRiesLab" class="form-control form-control-sm py-0" aria-label="Default select example">
+                            <label for="slcRiesLab" class="small text-muted">Riesgo laboral</label>
+                            <select id="slcRiesLab" name="slcRiesLab" class="form-control form-control-sm bg-input py-0" aria-label="Default select example">
                                 {$op_nivel}
                             </select>
                         </div>
@@ -767,18 +782,18 @@ class Empleados
                 <form id="formGestCesantiaEmpleado">
                     <div class="row pb-2">
                         <div class="col-md-4">
-                            <label for="slcFc" class="small">Fondo cesantias</label>
-                            <select id="slcFc" name="slcFc" class="form-control form-control-sm py-0" aria-label="Default select example">
+                            <label for="slcFc" class="small text-muted">Fondo cesantias</label>
+                            <select id="slcFc" name="slcFc" class="form-control form-control-sm bg-input py-0" aria-label="Default select example">
                                 {$op_fc}
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="datFecAfilFc" class="small">Afilición</label>
-                            <input type="date" class="form-control form-control-sm" id="datFecAfilFc" name="datFecAfilFc" value="{$hoy}">
+                            <label for="datFecAfilFc" class="small text-muted">Afilición</label>
+                            <input type="date" class="form-control form-control-sm bg-input" id="datFecAfilFc" name="datFecAfilFc" value="{$hoy}">
                         </div>
                         <div class="col-md-4">
-                            <label for="datFecRetFc" class="small">Retiro</label>
-                            <input type="date" class="form-control form-control-sm" id="datFecRetFc" name="datFecRetFc" value="{$fin}">
+                            <label for="datFecRetFc" class="small text-muted">Retiro</label>
+                            <input type="date" class="form-control form-control-sm bg-input" id="datFecRetFc" name="datFecRetFc" value="{$fin}">
                         </div>
                     </div> 
                 </form>
@@ -821,15 +836,14 @@ class Empleados
      */
     public function addEmpleado($array)
     {
-        return json_encode($array);
         try {
             $sql = "INSERT INTO `ips_mun`.`nom_empleado`
                         (`sede_emp`,`tipo_empleado`,`subtipo_empleado`,`alto_riesgo_pension`,`tipo_contrato`,`tipo_doc`,
                         `no_documento`,`pais_exp`,`dpto_exp`,`city_exp`,`fec_exp`,`pais_nac`,`dpto_nac`,`city_nac`,`fec_nac`,`genero`,
-                        `apellido1`,`apellido2`,`nombre2`,`nombre1`,`salario_integral`,`correo`,`telefono`,`cargo`,`tipo_cargo`,
+                        `apellido1`,`apellido2`,`nombre1`,`nombre2`,`salario_integral`,`correo`,`telefono`,`cargo`,`tipo_cargo`,
                         `pais`,`departamento`,`municipio`,`direccion`,`id_banco`,`tipo_cta`,`cuenta_bancaria`,
-                        `estado`,`dependientes`,`fec_reg`)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                        `estado`,`dependientes`,`fec_reg`,`bsp`)
+                    VALUES (?, ?, ? , ?, ?, ?, ? , ?, ?, ?, ? , ?, ?, ?, ? , ?, ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['slcSedeEmp'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['slcTipoEmp'], PDO::PARAM_INT);
@@ -864,17 +878,42 @@ class Empleados
             $stmt->bindValue(31, $array['selTipoCta'], PDO::PARAM_INT);
             $stmt->bindValue(32, $array['txtCuentaBanc'], PDO::PARAM_STR);
             $stmt->bindValue(33, 1, PDO::PARAM_INT);
-            $stmt->bindValue(34, $array['checkDependientes'] ?? 0, PDO::PARAM_INT);
-            $stmt->bindValue(35, Sesion::IdUser(), PDO::PARAM_INT);
-            $stmt->bindValue(36, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(34, isset($array['checkDependientes']) ? 1 : 0, PDO::PARAM_INT);
+            $stmt->bindValue(35, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(36, isset($array['checkBsp']) ? 1 : 0, PDO::PARAM_INT);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
                 $data = ['id_empleado' => $id, 'slcCCostoEmp' => $array['slcCCostoEmp']];
                 $cc = $this->addCentroCosto($data);
                 if ($cc == 'si') {
-                    $data = ['id_empleado' => $id, 'slcEps' => $array['slcEps'], 'datFecAfilEps' => $array['datFecAfilEps'], 'datFecRetEps' => $array['datFecRetEps']];
-                    $eps = $this->addEPS($data);
+                    $data = [1 => $id, 2 => $array['slcEps'], 3 => $array['datFecAfilEps'], 4 => $array['datFecRetEps'], 5 => NULL];
+                    $eps = $this->addNovedad($data);
+                    if ($eps == 'si') {
+                        $data = [1 => $id, 2 => $array['slcAfp'], 3 => $array['datFecAfilAfp'], 4 => $array['datFecRetAfp'], 5 => NULL];
+                        $pension = $this->addNovedad($data);
+                        if ($pension == 'si') {
+                            $data = [1 => $id, 2 => $array['slcArl'], 3 => $array['datFecAfilArl'], 4 => $array['datFecRetArl'], 5 => $array['slcRiesLab']];
+                            $riesgo = $this->addNovedad($data);
+                            if ($riesgo == 'si') {
+                                $data = [1 => $id, 2 => $array['slcFc'], 3 => $array['datFecAfilFc'], 4 => $array['datFecRetFc'], 5 => NULL];
+                                $cesantias = $this->addNovedad($data);
+                                if ($cesantias == 'si') {
+                                    return 'si';
+                                } else {
+                                    return 'Error al agregar cesantías.' . $cesantias;
+                                }
+                            } else {
+                                return 'Error al agregar riesgo laboral.' . $riesgo;
+                            }
+                        } else {
+                            return 'Error al agregar pensión.' . $pension;
+                        }
+                    } else {
+                        return 'Error al agregar EPS.' . $eps;
+                    }
+                } else {
+                    return 'Error al agregar centro de costo.' . $cc;
                 }
             }
         } catch (PDOException $e) {
@@ -889,27 +928,59 @@ class Empleados
      */
     public function editEmpleado($array)
     {
-        return 'Falta programar la actualización de empleados.';
         try {
-            $sql = "UPDATE `nom_cargo_empleado` 
-                        SET `codigo` = ?, `descripcion_carg` = ?, `grado` = ?, `perfil_siho` = ?, `id_nombramiento` = ?
-                    WHERE (`id_cargo` = ?)";
+            $sql = "UPDATE `nom_empleado`
+                    SET `sede_emp` = ?, `tipo_empleado` = ?, `subtipo_empleado` = ?, `alto_riesgo_pension` = ?, `tipo_contrato` = ?
+                        , `tipo_doc` = ?,`no_documento` = ?, `pais_exp` = ?, `dpto_exp` = ?, `city_exp` = ?, `fec_exp` = ?
+                        , `pais_nac` = ?, `dpto_nac` = ?, `city_nac` = ?, `fec_nac` = ?, `genero` = ?, `apellido1` = ?
+                        , `apellido2` = ?, `nombre1` = ?, `nombre2` = ?, `salario_integral` = ?, `correo` = ?, `telefono` = ?
+                        , `cargo` = ?, `tipo_cargo` = ?, `pais` = ?, `departamento` = ?, `municipio` = ?, `direccion` = ?
+                        , `id_banco` = ?, `tipo_cta` = ?, `cuenta_bancaria` = ?, `dependientes` = ? , `bsp`= ?
+                    WHERE (`id_empleado` = ?)";
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['slcCodigo'] ?? NULL, PDO::PARAM_INT);
-            $stmt->bindValue(2, $array['txtNomCargo'], PDO::PARAM_STR);
-            $stmt->bindValue(3, $array['numGrado'] ?? NULL, PDO::PARAM_INT);
-            $stmt->bindValue(4, $array['txtPerfilSiho'] ?? NULL, PDO::PARAM_STR);
-            $stmt->bindValue(5, $array['slcNombramiento'] ?? NULL, PDO::PARAM_INT);
-            $stmt->bindValue(6, $array['id'], PDO::PARAM_INT);
+            $stmt->bindValue(1, $array['slcSedeEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['slcTipoEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $array['slcSubTipoEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(4, $array['slcAltoRiesgo'], PDO::PARAM_INT);
+            $stmt->bindValue(5, $array['slcTipoContratoEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(6, $array['slcTipoDocEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(7, $array['txtCCempleado'], PDO::PARAM_STR);
+            $stmt->bindValue(8, $array['slcPaisExp'], PDO::PARAM_INT);
+            $stmt->bindValue(9, $array['slcDptoExp'], PDO::PARAM_INT);
+            $stmt->bindValue(10, $array['slcMunicipioExp'], PDO::PARAM_INT);
+            $stmt->bindValue(11, $array['datFecExp'], PDO::PARAM_STR);
+            $stmt->bindValue(12, $array['slcPaisNac'], PDO::PARAM_INT);
+            $stmt->bindValue(13, $array['slcDptoNac'], PDO::PARAM_INT);
+            $stmt->bindValue(14, $array['slcMunicipioNac'], PDO::PARAM_INT);
+            $stmt->bindValue(15, $array['datFecNac'], PDO::PARAM_STR);
+            $stmt->bindValue(16, $array['slcGenero'], PDO::PARAM_STR);
+            $stmt->bindValue(17, $array['txtApe1Emp'], PDO::PARAM_STR);
+            $stmt->bindValue(18, $array['txtApe2Emp'], PDO::PARAM_STR);
+            $stmt->bindValue(19, $array['txtNomb1Emp'], PDO::PARAM_STR);
+            $stmt->bindValue(20, $array['txtNomb2Emp'], PDO::PARAM_STR);
+            $stmt->bindValue(21, $array['slcSalIntegral'], PDO::PARAM_INT);
+            $stmt->bindValue(22, $array['mailEmp'], PDO::PARAM_STR);
+            $stmt->bindValue(23, $array['txtTelEmp'], PDO::PARAM_STR);
+            $stmt->bindValue(24, $array['slcCargoEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(25, $array['slcTipoCargo'], PDO::PARAM_INT);
+            $stmt->bindValue(26, $array['slcPaisEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(27, $array['slcDptoEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(28, $array['slcMunicipioEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(29, $array['txtDireccion'], PDO::PARAM_STR);
+            $stmt->bindValue(30, $array['slcBancoEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(31, $array['selTipoCta'], PDO::PARAM_INT);
+            $stmt->bindValue(32, $array['txtCuentaBanc'], PDO::PARAM_STR);
+            $stmt->bindValue(33, isset($array['checkDependientes']) ? 1 : 0, PDO::PARAM_INT);
+            $stmt->bindValue(34, isset($array['checkBsp']) ? 1 : 0, PDO::PARAM_INT);
+            $stmt->bindValue(35, $array['id'], PDO::PARAM_INT);
             if (!($stmt->execute())) {
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {
                 if ($stmt->rowCount() > 0) {
-                    $consulta = "UPDATE `nom_cargo_empleado` SET `id_user_act` = ?, `fec_act` = ? WHERE (`id_cargo` = ?)";
+                    $consulta = "UPDATE `nom_empleado` SET `fec_actu` = ? WHERE (`id_empleado` = ?)";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::IdUser(), PDO::PARAM_INT);
-                    $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
-                    $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
+                    $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                    $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                     $stmt2->execute();
                     return 'si';
                 } else {
@@ -1050,7 +1121,7 @@ class Empleados
         try {
             $sql = "INSERT INTO `nom_ccosto_empleado`
                         (`id_empleado`,`id_ccosto`,`id_user_reg`,`fec_reg`)
-                    VALUES";
+                    VALUES (?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['slcCCostoEmp'], PDO::PARAM_INT);
@@ -1064,18 +1135,20 @@ class Empleados
         }
     }
 
-    public function addEPS($array)
+    public function addNovedad($array)
     {
         try {
-            $sql = "INSERT INTO `nom_eps_empleado`
-                        (`id_empleado`,`id_eps`,`fec_afiliacion`,`fec_retiro`,`estado`)
-                    VALUES (?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO `nom_terceros_novedad`
+                        (`id_empleado`,`id_tercero`,`fec_inicia`,`fec_fin`,`id_riesgo`,`id_user_reg`,`fec_reg`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
-            $stmt->bindValue(2, $array['slcEps'], PDO::PARAM_INT);
-            $stmt->bindValue(3, $array['datFecAfilEps'], PDO::PARAM_STR);
-            $stmt->bindValue(4, $array['datFecRetEps'], PDO::PARAM_STR);
-            $stmt->bindValue(5, 1, PDO::PARAM_INT);
+            $stmt->bindValue(1, $array[1], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array[2], PDO::PARAM_INT);
+            $stmt->bindValue(3, $array[3], PDO::PARAM_STR);
+            $stmt->bindValue(4, $array[4], PDO::PARAM_STR);
+            $stmt->bindValue(5, $array[5] ?? NULL, PDO::PARAM_INT);
+            $stmt->bindValue(6, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(7, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             return $id > 0 ? 'si' : 'No se insertó';
