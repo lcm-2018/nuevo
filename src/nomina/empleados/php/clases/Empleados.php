@@ -163,25 +163,32 @@ class Empleados
 
         $where = '';
         if (!empty($array)) {
-            if ($array['filter_Status'] == '2') {
-                $where .= ">= 0";
-            } else {
-                $where .= "= {$array['filter_Status']}";
+            if (isset($array['filter_Status'])) {
+                if ($array['filter_Status'] == '2') {
+                    $where .= ">= 0";
+                } else {
+                    $where .= "= {$array['filter_Status']}";
+                }
             }
-            if ($array['filter_Nodoc'] != '') {
+
+            if (isset($array['filter_Nodoc']) && $array['filter_Nodoc'] != '') {
                 $where .= " AND `no_documento` LIKE '%{$array['filter_Nodoc']}%'";
             }
 
-            if ($array['filter_Nombre'] != '') {
+            if (isset($array['filter_Nombre']) && $array['filter_Nombre'] != '') {
                 $where .= " AND `nombre` LIKE '%{$array['filter_Nombre']}%'";
             }
 
-            if ($array['filter_Correo'] != '') {
+            if (isset($array['filter_Correo']) && $array['filter_Correo'] != '') {
                 $where .= " AND `correo` LIKE '%{$array['filter_Correo']}%'";
             }
 
-            if ($array['filter_Tel'] != '') {
+            if (isset($array['filter_Tel']) && $array['filter_Tel'] != '') {
                 $where .= " AND `telefono` LIKE '%{$array['filter_Tel']}%'";
+            }
+
+            if (isset($array['filter_id']) && $array['filter_id'] != '') {
+                $where .= " AND `id_empleado` = {$array['filter_id']}";
             }
         }
 
@@ -191,7 +198,14 @@ class Empleados
                         , `no_documento`
                         , CONCAT_WS (' ',`nombre2`,`nombre1`,`apellido1`,`apellido2`) AS `nombre`
                         , `correo`,`telefono`,`direccion`,`estado`
-                    FROM `nom_empleado`) AS `t1`
+                        , `nom_municipio`
+                        , `nom_departamento`
+                        , `descripcion_carg` 
+                    FROM `nom_empleado`
+                        INNER JOIN `tb_municipios` ON (`nom_empleado`.`municipio` = `tb_municipios`.`id_municipio`)
+                        INNER JOIN `tb_departamentos` ON (`nom_empleado`.`departamento` = `tb_departamentos`.`id_departamento`)
+                        INNER JOIN `nom_cargo_empleado` ON (`nom_empleado`.`cargo` = `nom_cargo_empleado`.`id_cargo`)
+                    ) AS `t1`
                 WHERE (`t1`.`estado` $where)
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
@@ -837,7 +851,7 @@ class Empleados
     public function addEmpleado($array)
     {
         try {
-            $sql = "INSERT INTO `ips_mun`.`nom_empleado`
+            $sql = "INSERT INTO `nom_empleado`
                         (`sede_emp`,`tipo_empleado`,`subtipo_empleado`,`alto_riesgo_pension`,`tipo_contrato`,`tipo_doc`,
                         `no_documento`,`pais_exp`,`dpto_exp`,`city_exp`,`fec_exp`,`pais_nac`,`dpto_nac`,`city_nac`,`fec_nac`,`genero`,
                         `apellido1`,`apellido2`,`nombre1`,`nombre2`,`salario_integral`,`correo`,`telefono`,`cargo`,`tipo_cargo`,

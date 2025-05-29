@@ -17,3 +17,4 @@
 [2025-05-06 11:24:23] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_rel_rubro` WHERE `id_relacion` = 20
 [2025-05-06 16:30:01] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_causacion` WHERE `id_causacion` = 354
 [2025-05-06 17:19:36] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_causacion` WHERE `id_causacion` = 23
+[2025-05-29 14:36:53] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_contratos_empleados` WHERE `id_contrato_emp` = 54

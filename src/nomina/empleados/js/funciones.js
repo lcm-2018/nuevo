@@ -53,6 +53,7 @@ const tableEmpleados = crearDataTable(
 document.querySelector('#tableEmpleados').addEventListener('click', function (event) {
     const btnActualizar = event.target.closest('.actualizar');
     const btnEliminar = event.target.closest('.eliminar');
+    const btnDetalles = event.target.closest('.detalles');
 
     if (btnActualizar) {
         mostrarOverlay();
@@ -60,10 +61,16 @@ document.querySelector('#tableEmpleados').addEventListener('click', function (ev
         VerFomulario('../php/controladores/empleados.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-fullscreen');
     }
 
+    if (btnDetalles) {
+        const id = btnDetalles.dataset.id;
+        SubmitPost('detalles.php', 'id_empleado', id);
+    }
+
     if (btnEliminar) {
         const id = btnEliminar.dataset.id;
         EliminaRegistro('../php/controladores/empleados.php', id, tableEmpleados);
     }
+
 });
 
 document.getElementById('modalForms').addEventListener('click', function (event) {

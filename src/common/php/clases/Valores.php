@@ -9,4 +9,10 @@ class Valores
     {
         return '$ ' . number_format($valor, 2, ',', '.');
     }
+
+    public static function WordToNumber($valor)
+    {
+        $number = str_replace(',', '', $valor);
+        return floatval($number);
+    }
 }
