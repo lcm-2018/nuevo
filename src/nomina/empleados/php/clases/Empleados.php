@@ -7,6 +7,7 @@ use Config\Clases\Logs;
 use Config\Clases\Sesion;
 use Src\Common\Php\Clases\Combos;
 use Src\Nomina\Configuracion\Php\Clases\Cargos;
+use Src\Terceros\Php\Clases\Terceros;
 
 use PDO;
 use PDOException;
@@ -92,8 +93,13 @@ class Empleados
         return $Combos->setConsulta($sql, $id);
     }
 
-    public  static function getTerceroNomina($cod, $id)
+    public  static function getTerceroNomina($cod, $id, $tipo = 0)
     {
+        if ($tipo > 0) {
+            $where = " AND `nom_categoria_tercero`.`id_cat` = $tipo";
+        } else {
+            $where = " AND `nom_categoria_tercero`.`codigo` = '$cod'";
+        }
         $sql = "SELECT
                     `nom_terceros`.`id_tn`
                     , `tb_terceros`.`nom_tercero`
@@ -103,7 +109,7 @@ class Empleados
                         ON (`nom_terceros`.`id_tipo` = `nom_categoria_tercero`.`id_cat`)
                     INNER JOIN `tb_terceros` 
                         ON (`nom_terceros`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
-                WHERE (`nom_categoria_tercero`.`codigo` = '$cod' AND `tb_terceros`.`estado` = 1)";
+                WHERE (`tb_terceros`.`estado` = 1 $where)";
         $Combos = new Combos();
         return $Combos->setConsulta($sql, $id);
     }
@@ -848,89 +854,39 @@ class Empleados
      * @param array $array Datos del empleado a agregar
      * @return string Mensaje de éxito o error
      */
-    public function addEmpleado($array)
+    public function addEmpleadoFull($array)
     {
         try {
-            $sql = "INSERT INTO `nom_empleado`
-                        (`sede_emp`,`tipo_empleado`,`subtipo_empleado`,`alto_riesgo_pension`,`tipo_contrato`,`tipo_doc`,
-                        `no_documento`,`pais_exp`,`dpto_exp`,`city_exp`,`fec_exp`,`pais_nac`,`dpto_nac`,`city_nac`,`fec_nac`,`genero`,
-                        `apellido1`,`apellido2`,`nombre1`,`nombre2`,`salario_integral`,`correo`,`telefono`,`cargo`,`tipo_cargo`,
-                        `pais`,`departamento`,`municipio`,`direccion`,`id_banco`,`tipo_cta`,`cuenta_bancaria`,
-                        `estado`,`dependientes`,`fec_reg`,`bsp`)
-                    VALUES (?, ?, ? , ?, ?, ?, ? , ?, ?, ?, ? , ?, ?, ?, ? , ?, ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ?, ?, ?)";
-            $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['slcSedeEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(2, $array['slcTipoEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(3, $array['slcSubTipoEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(4, $array['slcAltoRiesgo'], PDO::PARAM_INT);
-            $stmt->bindValue(5, $array['slcTipoContratoEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(6, $array['slcTipoDocEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(7, $array['txtCCempleado'], PDO::PARAM_STR);
-            $stmt->bindValue(8, $array['slcPaisExp'], PDO::PARAM_INT);
-            $stmt->bindValue(9, $array['slcDptoExp'], PDO::PARAM_INT);
-            $stmt->bindValue(10, $array['slcMunicipioExp'], PDO::PARAM_INT);
-            $stmt->bindValue(11, $array['datFecExp'], PDO::PARAM_STR);
-            $stmt->bindValue(12, $array['slcPaisNac'], PDO::PARAM_INT);
-            $stmt->bindValue(13, $array['slcDptoNac'], PDO::PARAM_INT);
-            $stmt->bindValue(14, $array['slcMunicipioNac'], PDO::PARAM_INT);
-            $stmt->bindValue(15, $array['datFecNac'], PDO::PARAM_STR);
-            $stmt->bindValue(16, $array['slcGenero'], PDO::PARAM_STR);
-            $stmt->bindValue(17, $array['txtApe1Emp'], PDO::PARAM_STR);
-            $stmt->bindValue(18, $array['txtApe2Emp'], PDO::PARAM_STR);
-            $stmt->bindValue(19, $array['txtNomb1Emp'], PDO::PARAM_STR);
-            $stmt->bindValue(20, $array['txtNomb2Emp'], PDO::PARAM_STR);
-            $stmt->bindValue(21, $array['slcSalIntegral'], PDO::PARAM_INT);
-            $stmt->bindValue(22, $array['mailEmp'], PDO::PARAM_STR);
-            $stmt->bindValue(23, $array['txtTelEmp'], PDO::PARAM_STR);
-            $stmt->bindValue(24, $array['slcCargoEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(25, $array['slcTipoCargo'], PDO::PARAM_INT);
-            $stmt->bindValue(26, $array['slcPaisEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(27, $array['slcDptoEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(28, $array['slcMunicipioEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(29, $array['txtDireccion'], PDO::PARAM_STR);
-            $stmt->bindValue(30, $array['slcBancoEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(31, $array['selTipoCta'], PDO::PARAM_INT);
-            $stmt->bindValue(32, $array['txtCuentaBanc'], PDO::PARAM_STR);
-            $stmt->bindValue(33, 1, PDO::PARAM_INT);
-            $stmt->bindValue(34, isset($array['checkDependientes']) ? 1 : 0, PDO::PARAM_INT);
-            $stmt->bindValue(35, Sesion::Hoy(), PDO::PARAM_STR);
-            $stmt->bindValue(36, isset($array['checkBsp']) ? 1 : 0, PDO::PARAM_INT);
-            $stmt->execute();
+            $this->conexion->beginTransaction();
+            $this->addEmpleado($array);
             $id = $this->conexion->lastInsertId();
-            if ($id > 0) {
-                $data = ['id_empleado' => $id, 'slcCCostoEmp' => $array['slcCCostoEmp']];
-                $cc = $this->addCentroCosto($data);
-                if ($cc == 'si') {
-                    $data = [1 => $id, 2 => $array['slcEps'], 3 => $array['datFecAfilEps'], 4 => $array['datFecRetEps'], 5 => NULL];
-                    $eps = $this->addNovedad($data);
-                    if ($eps == 'si') {
-                        $data = [1 => $id, 2 => $array['slcAfp'], 3 => $array['datFecAfilAfp'], 4 => $array['datFecRetAfp'], 5 => NULL];
-                        $pension = $this->addNovedad($data);
-                        if ($pension == 'si') {
-                            $data = [1 => $id, 2 => $array['slcArl'], 3 => $array['datFecAfilArl'], 4 => $array['datFecRetArl'], 5 => $array['slcRiesLab']];
-                            $riesgo = $this->addNovedad($data);
-                            if ($riesgo == 'si') {
-                                $data = [1 => $id, 2 => $array['slcFc'], 3 => $array['datFecAfilFc'], 4 => $array['datFecRetFc'], 5 => NULL];
-                                $cesantias = $this->addNovedad($data);
-                                if ($cesantias == 'si') {
-                                    return 'si';
-                                } else {
-                                    return 'Error al agregar cesantías.' . $cesantias;
-                                }
-                            } else {
-                                return 'Error al agregar riesgo laboral.' . $riesgo;
-                            }
-                        } else {
-                            return 'Error al agregar pensión.' . $pension;
-                        }
-                    } else {
-                        return 'Error al agregar EPS.' . $eps;
-                    }
-                } else {
-                    return 'Error al agregar centro de costo.' . $cc;
-                }
+            $data = ['id_empleado' => $id, 'slcCCostoEmp' => $array['slcCCostoEmp']];
+            $this->addCentroCosto($data);
+            $data = [1 => $id, 2 => $array['slcEps'], 3 => $array['datFecAfilEps'], 4 => $array['datFecRetEps'], 5 => NULL];
+            $this->addNovedad($data);
+            $data = [1 => $id, 2 => $array['slcAfp'], 3 => $array['datFecAfilAfp'], 4 => $array['datFecRetAfp'], 5 => NULL];
+            $this->addNovedad($data);
+            $data = [1 => $id, 2 => $array['slcArl'], 3 => $array['datFecAfilArl'], 4 => $array['datFecRetArl'], 5 => $array['slcRiesLab']];
+            $this->addNovedad($data);
+            $data = [1 => $id, 2 => $array['slcFc'], 3 => $array['datFecAfilFc'], 4 => $array['datFecRetFc'], 5 => NULL];
+            $this->addNovedad($data);
+
+            $Terceros = new Terceros($this->conexion);
+            $Tercero = $Terceros->getRegistroApiCedula($array['txtCCempleado']);
+            if (!empty($Tercero)) {
+                $id_tercero_api = $Tercero['id_tercero'];
+            } else {
+                $id_tercero_api = $Terceros->addTerceroApi($array);
             }
-        } catch (PDOException $e) {
+            $array['id_tercero_api'] = $id_tercero_api;
+            $Terceros->addTercero($array);
+            $Terceros->addTipoRelacion($array);
+            $this->conexion->commit();
+            return 'si';
+        } catch (PDOException | Exception $e) {
+            if ($this->conexion->inTransaction()) {
+                $this->conexion->rollBack();
+            }
             return 'Error SQL: ' . $e->getMessage();
         }
     }
@@ -940,6 +896,56 @@ class Empleados
      * @param array $array Datos del empleado a actualizar
      * @return string Mensaje de éxito o error
      */
+
+    public function addEmpleado($array)
+    {
+        $sql = "INSERT INTO `nom_empleado`
+                        (`sede_emp`,`tipo_empleado`,`subtipo_empleado`,`alto_riesgo_pension`,`tipo_contrato`,`tipo_doc`,
+                        `no_documento`,`pais_exp`,`dpto_exp`,`city_exp`,`fec_exp`,`pais_nac`,`dpto_nac`,`city_nac`,`fec_nac`,`genero`,
+                        `apellido1`,`apellido2`,`nombre1`,`nombre2`,`salario_integral`,`correo`,`telefono`,`cargo`,`tipo_cargo`,
+                        `pais`,`departamento`,`municipio`,`direccion`,`id_banco`,`tipo_cta`,`cuenta_bancaria`,
+                        `estado`,`dependientes`,`fec_reg`,`bsp`)
+                    VALUES (?, ?, ? , ?, ?, ?, ? , ?, ?, ?, ? , ?, ?, ?, ? , ?, ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ?, ?, ?)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(1, $array['slcSedeEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(2, $array['slcTipoEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(3, $array['slcSubTipoEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(4, $array['slcAltoRiesgo'], PDO::PARAM_INT);
+        $stmt->bindValue(5, $array['slcTipoContratoEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(6, $array['slcTipoDocEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(7, $array['txtCCempleado'], PDO::PARAM_STR);
+        $stmt->bindValue(8, $array['slcPaisExp'], PDO::PARAM_INT);
+        $stmt->bindValue(9, $array['slcDptoExp'], PDO::PARAM_INT);
+        $stmt->bindValue(10, $array['slcMunicipioExp'], PDO::PARAM_INT);
+        $stmt->bindValue(11, $array['datFecExp'], PDO::PARAM_STR);
+        $stmt->bindValue(12, $array['slcPaisNac'], PDO::PARAM_INT);
+        $stmt->bindValue(13, $array['slcDptoNac'], PDO::PARAM_INT);
+        $stmt->bindValue(14, $array['slcMunicipioNac'], PDO::PARAM_INT);
+        $stmt->bindValue(15, $array['datFecNac'], PDO::PARAM_STR);
+        $stmt->bindValue(16, $array['slcGenero'], PDO::PARAM_STR);
+        $stmt->bindValue(17, $array['txtApe1Emp'], PDO::PARAM_STR);
+        $stmt->bindValue(18, $array['txtApe2Emp'], PDO::PARAM_STR);
+        $stmt->bindValue(19, $array['txtNomb1Emp'], PDO::PARAM_STR);
+        $stmt->bindValue(20, $array['txtNomb2Emp'], PDO::PARAM_STR);
+        $stmt->bindValue(21, $array['slcSalIntegral'], PDO::PARAM_INT);
+        $stmt->bindValue(22, $array['mailEmp'], PDO::PARAM_STR);
+        $stmt->bindValue(23, $array['txtTelEmp'], PDO::PARAM_STR);
+        $stmt->bindValue(24, $array['slcCargoEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(25, $array['slcTipoCargo'], PDO::PARAM_INT);
+        $stmt->bindValue(26, $array['slcPaisEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(27, $array['slcDptoEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(28, $array['slcMunicipioEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(29, $array['txtDireccion'], PDO::PARAM_STR);
+        $stmt->bindValue(30, $array['slcBancoEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(31, $array['selTipoCta'], PDO::PARAM_INT);
+        $stmt->bindValue(32, $array['txtCuentaBanc'], PDO::PARAM_STR);
+        $stmt->bindValue(33, 1, PDO::PARAM_INT);
+        $stmt->bindValue(34, isset($array['checkDependientes']) ? 1 : 0, PDO::PARAM_INT);
+        $stmt->bindValue(35, Sesion::Hoy(), PDO::PARAM_STR);
+        $stmt->bindValue(36, isset($array['checkBsp']) ? 1 : 0, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
     public function editEmpleado($array)
     {
         try {
@@ -1132,42 +1138,30 @@ class Empleados
      */
     public function addCentroCosto($array)
     {
-        try {
-            $sql = "INSERT INTO `nom_ccosto_empleado`
-                        (`id_empleado`,`id_ccosto`,`id_user_reg`,`fec_reg`)
-                    VALUES (?, ?, ?, ?)";
-            $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
-            $stmt->bindValue(2, $array['slcCCostoEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(3, Sesion::IdUser(), PDO::PARAM_INT);
-            $stmt->bindValue(4, Sesion::Hoy(), PDO::PARAM_STR);
-            $stmt->execute();
-            $id = $this->conexion->lastInsertId();
-            return $id > 0 ? 'si' : 'No se insertó';
-        } catch (PDOException $e) {
-            return 'Error SQL: ' . $e->getMessage();
-        }
+        $sql = "INSERT INTO `nom_ccosto_empleado`
+                    (`id_empleado`,`id_ccosto`,`id_user_reg`,`fec_reg`)
+                VALUES (?, ?, ?, ?)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+        $stmt->bindValue(2, $array['slcCCostoEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(3, Sesion::IdUser(), PDO::PARAM_INT);
+        $stmt->bindValue(4, Sesion::Hoy(), PDO::PARAM_STR);
+        $stmt->execute();
     }
 
     public function addNovedad($array)
     {
-        try {
-            $sql = "INSERT INTO `nom_terceros_novedad`
+        $sql = "INSERT INTO `nom_terceros_novedad`
                         (`id_empleado`,`id_tercero`,`fec_inicia`,`fec_fin`,`id_riesgo`,`id_user_reg`,`fec_reg`)
                     VALUES (?, ?, ?, ?, ?, ?, ?)";
-            $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array[1], PDO::PARAM_INT);
-            $stmt->bindValue(2, $array[2], PDO::PARAM_INT);
-            $stmt->bindValue(3, $array[3], PDO::PARAM_STR);
-            $stmt->bindValue(4, $array[4], PDO::PARAM_STR);
-            $stmt->bindValue(5, $array[5] ?? NULL, PDO::PARAM_INT);
-            $stmt->bindValue(6, Sesion::IdUser(), PDO::PARAM_INT);
-            $stmt->bindValue(7, Sesion::Hoy(), PDO::PARAM_STR);
-            $stmt->execute();
-            $id = $this->conexion->lastInsertId();
-            return $id > 0 ? 'si' : 'No se insertó';
-        } catch (PDOException $e) {
-            return 'Error SQL: ' . $e->getMessage();
-        }
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(1, $array[1], PDO::PARAM_INT);
+        $stmt->bindValue(2, $array[2], PDO::PARAM_INT);
+        $stmt->bindValue(3, $array[3], PDO::PARAM_STR);
+        $stmt->bindValue(4, $array[4], PDO::PARAM_STR);
+        $stmt->bindValue(5, $array[5] ?? NULL, PDO::PARAM_INT);
+        $stmt->bindValue(6, Sesion::IdUser(), PDO::PARAM_INT);
+        $stmt->bindValue(7, Sesion::Hoy(), PDO::PARAM_STR);
+        $stmt->execute();
     }
 }

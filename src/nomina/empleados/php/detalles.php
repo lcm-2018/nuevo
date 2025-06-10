@@ -10,6 +10,7 @@ $id_empleado = isset($_POST['id_empleado']) ? $_POST['id_empleado'] : exit('Acce
 include_once '../../../../config/autoloader.php';
 
 use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Combos;
 use Src\Nomina\Empleados\Php\Clases\Empleados;
 use Src\Common\Php\Clases\Permisos;
 
@@ -21,6 +22,7 @@ $permisos = new Permisos();
 $obj = $empleados->getEmpleadosDT(1, -1, ['filter_id' => $id_empleado, 'filter_Status' => '2'], 1, 'ASC')[0];
 $opciones = $permisos->PermisoOpciones($id_user);
 $registrar = ($permisos->PermisosUsuario($opciones, 5101, 2) || $id_rol == 1) ? 1 : 0;
+$categoria = Combos::getCategoriaTercero();
 
 $host = Plantilla::getHost();
 
@@ -111,40 +113,51 @@ $content = <<<HTML
             </div>
              <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button" type="button" data-bs-toggle="collapse" data-bs-target="#divSegSoc" aria-expanded="false" aria-controls="divSegSoc">
+                    <button class="accordion-button collapsed bg-head-button" type="button" data-bs-toggle="collapse" data-bs-target="#divSegSocial" aria-expanded="false" aria-controls="divSegSocial">
                         <span class="text-info"><i class="fas fa-hospital-user me-2 fa-lg"></i>VIÑETA. Seguridad Social.</span>
                     </button>
                 </h2>
-                <div id="divSegSoc" class="accordion-collapse collapse">
+                <div id="divSegSocial" class="accordion-collapse collapse">
                     <div class="accordion-body bg-wiev">
-                        <div class="accordion" id="accDetallesEmpleado">
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed bg-head-button" type="button" data-bs-toggle="collapse" data-bs-target="#divDeducidos" aria-expanded="false" aria-controls="divDeducidos">
-                                        <span class="text-primary">EACII. Salud.</span>
-                                    </button>
-                                </h2>
-                                <div id="divDeducidos" class="accordion-collapse collapse">
-                                    <div class="accordion-body bg-wiev">
-                                        <table id="tableDeducidosNom" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
-                                            <thead>
-                                                <tr>
-                                                    <th class="text-center">#</th>
-                                                    <th class="text-center">CÓDIGO</th>
-                                                    <th class="text-center">CARGO</th>
-                                                    <th class="text-center">GRADO</th>
-                                                    <th class="text-center">PERFÍL SIHO</th>
-                                                    <th class="text-center">NOMBRAMIENTO</th>
-                                                    <th class="text-center">ACCIONES</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="modificaCargoNom">
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <table id="tableSegSocial" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
+                            <thead>
+                                <tr id="filterRow" class="bg-light">
+                                    <th class="text-center">
+                                        <button class="btn btn-sm btn-outline-secondary" type="button" onclick="LimpiarFiltro(tableSegSocial);" title="Limpiar Filtros">
+                                            <i class="fas fa-eraser"></i>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        <select id="filter_tipo" class="form-select form-select-sm">
+                                            {$categoria}
+                                        </select>
+                                    </th>
+                                    <th><input type="text" class="form-control form-control-sm" placeholder="Nombre" id="filter_nombre"></th>
+                                    <th><input type="text" class="form-control form-control-sm" placeholder="NIT" id="filter_nit"></th>
+                                    <th><input type="text" class="form-control form-control-sm" placeholder="Fecha de afiliación" id="filter_afiliacion"></th>
+                                    <th><input type="text" class="form-control form-control-sm" placeholder="Fecha de retiro" id="filter_retiro"></th>
+                                    <th><input type="text" class="form-control form-control-sm" placeholder="Riesgo Laboral" id="filter_riesgo"></th>
+                                    <th>
+                                        <button class="btn btn-sm btn-outline-warning" type="button" onclick="FiltraDatos(tableSegSocial);" title="Filtrar">
+                                            <i class="fas fa-filter"></i>
+                                        </button>
+                                    </th>
+
+                                </tr>
+                                <tr>
+                                    <th class="text-center bg-sofia">#</th>
+                                    <th class="text-center bg-sofia">TIPO</th>
+                                    <th class="text-center bg-sofia">NOMBRE</th>
+                                    <th class="text-center bg-sofia">NIT</th>
+                                    <th class="text-center bg-sofia">AFILIACIÓN</th>
+                                    <th class="text-center bg-sofia">RETIRO</th>
+                                    <th class="text-center bg-sofia">RIESGO</th>
+                                    <th class="text-center bg-sofia">ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modificaSegSocial">
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

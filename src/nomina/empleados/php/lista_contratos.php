@@ -49,6 +49,9 @@ if (!empty($obj)) {
             $actualizar = $eliminar = '';
         }
         $estado = $o['estado'] == 1 ? '<i class="fas fa-toggle-on fa-lg text-success" title="Activo"></i>' : '<i class="fas fa-toggle-off fa-lg text-secondary" title="Inactivo"></i>';
+        if ($o['estado'] == 1) {
+            $estado .= '<input type="hidden" class="ValNewReg" value="1">';
+        }
         $datos[] = [
             'id'      => $id,
             'inicia'   => $o['fec_inicio'],

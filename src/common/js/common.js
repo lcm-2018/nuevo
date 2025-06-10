@@ -365,6 +365,14 @@ function CargaCombos(input, combo, id = 0) {
     });
 }
 
+const HiddenInputs = (input) => {
+    document.getElementById(input).classList.add('d-none');
+}
+
+const ShowInputs = (input) => {
+    document.getElementById(input).classList.remove('d-none');
+}
+
 function ActivarTab(panelId) {
     const selectorBoton = `[data-bs-target="#${panelId}"]`;
     const botonPestanaEl = document.querySelector(selectorBoton);
