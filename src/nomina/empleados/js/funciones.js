@@ -53,17 +53,24 @@ const tableEmpleados = crearDataTable(
 document.querySelector('#tableEmpleados').addEventListener('click', function (event) {
     const btnActualizar = event.target.closest('.actualizar');
     const btnEliminar = event.target.closest('.eliminar');
+    const btnDetalles = event.target.closest('.detalles');
 
     if (btnActualizar) {
         mostrarOverlay();
         const id = btnActualizar.dataset.id;
-        VerFomulario('../php/controladores/parametros.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+        VerFomulario('../php/controladores/empleados.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-fullscreen');
+    }
+
+    if (btnDetalles) {
+        const id = btnDetalles.dataset.id;
+        SubmitPost('detalles.php', 'id_empleado', id);
     }
 
     if (btnEliminar) {
         const id = btnEliminar.dataset.id;
-        EliminaRegistro('../php/controladores/parametros.php', id, tableEmpleados);
+        EliminaRegistro('../php/controladores/empleados.php', id, tableEmpleados);
     }
+
 });
 
 document.getElementById('modalForms').addEventListener('click', function (event) {
@@ -145,34 +152,34 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                 } else if (ValueInput('txtCuentaBanc') === '') {
                     ActivarTab('formEmpleado');
                     MuestraError('txtCuentaBanc', 'Ingrese el número de cuenta bancaria');
-                } else if (ValueInput('slcCCostoEmp') === '0') {
+                } else if (ValueInput('id') === '0' && ValueInput('slcCCostoEmp') === '0') {
                     ActivarTab('formEmpleado');
                     MuestraError('slcCCostoEmp', 'Seleccione un centro de costo');
-                } else if (ValueInput('slcEps') === '0') {
+                } else if (ValueInput('id') === '0' && ValueInput('slcEps') === '0') {
                     ActivarTab('formSalud');
                     MuestraError('slcEps', 'Seleccione una EPS');
-                } else if (ValueInput('datFecAfilEps') === '') {
+                } else if (ValueInput('id') === '0' && ValueInput('datFecAfilEps') === '') {
                     ActivarTab('formSalud');
                     MuestraError('datFecAfilEps', 'Ingrese la fecha de afiliación a la EPS');
-                } else if (ValueInput('slcAfp') === '0') {
+                } else if (ValueInput('id') === '0' && ValueInput('slcAfp') === '0') {
                     ActivarTab('formPension');
                     MuestraError('slcAfp', 'Seleccione un Fondo de pensiones');
-                } else if (ValueInput('datFecAfilAfp') === '') {
+                } else if (ValueInput('id') === '0' && ValueInput('datFecAfilAfp') === '') {
                     ActivarTab('formPension');
                     MuestraError('datFecAfilAfp', 'Ingrese la fecha de afiliación al Fondo de pensiones');
-                } else if (ValueInput('slcArl') === '0') {
+                } else if (ValueInput('id') === '0' && ValueInput('slcArl') === '0') {
                     ActivarTab('formRiesgos');
                     MuestraError('slcArl', 'Seleccione una ARL');
-                } else if (ValueInput('datFecAfilArl') === '') {
+                } else if (ValueInput('id') === '0' && ValueInput('datFecAfilArl') === '') {
                     ActivarTab('formRiesgos');
                     MuestraError('datFecAfilArl', 'Ingrese la fecha de afiliación a la ARL');
-                } else if (ValueInput('slcRiesLab') === '0') {
+                } else if (ValueInput('id') === '0' && ValueInput('slcRiesLab') === '0') {
                     ActivarTab('formRiesgos');
                     MuestraError('slcRiesLab', 'Seleccione un riesgo laboral');
-                } else if (ValueInput('slcFc') === '0') {
+                } else if (ValueInput('id') === '0' && ValueInput('slcFc') === '0') {
                     ActivarTab('formCesantias');
                     MuestraError('slcFc', 'Seleccione un fondo de cesantías');
-                } else if (ValueInput('datFecAfilFc') === '') {
+                } else if (ValueInput('id') === '0' && ValueInput('datFecAfilFc') === '') {
                     ActivarTab('formCesantias');
                     MuestraError('datFecAfilFc', 'Ingrese la fecha de afiliación al fondo de cesantías');
                 } else {
@@ -184,6 +191,9 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                             mje('Guardado correctamente!');
                             tableEmpleados.ajax.reload(null, false);
                             $('#modalForms').modal('hide');
+                            if (data.get('id') != '0') {
+                                VerFomulario('../php/controladores/empleados.php', 'form', data.get('id'), 'modalForms', 'bodyModal', 'tamModalForms', 'modal-fullscreen');
+                            }
                         } else {
                             mjeError('Error!', response.msg);
                         }

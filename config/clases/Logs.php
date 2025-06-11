@@ -31,7 +31,7 @@ class Logs
         // Construir ruta del archivo usando '/'
         $archivo = $url2 . $fecha->format('Y') . $fecha->format('m') . '.log';
 
-        $cadena = "[{$fecha->format('Y-m-d H:i:s')}] Usuario: $id_user-$usuario, 127.0.0.1, SQL: $sql" . PHP_EOL;
+        $cadena = "[{$fecha->format('Y-m-d H:i:s')}] Usuario: $id_user-$usuario, 127.0.0.1, SQL: $sql;" . PHP_EOL;
 
         // Intentar escribir al archivo con manejo de errores
         try {

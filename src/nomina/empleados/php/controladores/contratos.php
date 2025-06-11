@@ -7,23 +7,22 @@ if (!isset($_SESSION['user'])) {
 
 $action = isset($_POST['action']) ? $_POST['action'] : exit('Acción no definida.');
 $id = $_POST['id'];
-$_POST['id_vigencia'] = $_SESSION['id_vigencia'];
 
 include_once '../../../../../config/autoloader.php';
 
-use Src\Nomina\Empleados\Php\Clases\Empleados;
+use Src\Nomina\Empleados\Php\Clases\Contratos;
 
 
-$Empleados = new Empleados();
+$Contratos = new Contratos();
 $res['status'] = ' error';
 $res['msg'] = 'Acción no válida.';
 switch ($action) {
     case 'form':
         $res['status'] = 'ok';
-        $res['msg'] = $Empleados->getFormulario($id);
+        $res['msg'] = $Contratos->getFormulario($id);
         break;
     case 'add':
-        $data = $Empleados->addEmpleadoFull($_POST);
+        $data = $Contratos->addContrato($_POST);
         if ($data == 'si') {
             $res['status'] = 'ok';
         } else {
@@ -31,7 +30,7 @@ switch ($action) {
         }
         break;
     case 'edit':
-        $data = $Empleados->editEmpleado($_POST);
+        $data = $Contratos->editContrato($_POST);
         if ($data == 'si') {
             $res['status'] = 'ok';
         } else {
@@ -39,7 +38,7 @@ switch ($action) {
         }
         break;
     case 'del':
-        $data = $Empleados->delEmpleado($_POST['id']);
+        $data = $Contratos->delContrato($_POST['id']);
         if ($data == 'si') {
             $res['status'] = 'ok';
         } else {
@@ -49,7 +48,7 @@ switch ($action) {
     case 'close':
         break;
     case 'annul':
-        $data = $Empleados->annulEmpleado($_POST);
+        $data = $Contratos->annulContrato($_POST);
         if ($data == 'si') {
             $res['status'] = 'ok';
         } else {

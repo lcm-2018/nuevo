@@ -68,6 +68,19 @@ class Combos
                 ORDER BY `nom_centro` ASC ";
         return (new self())->setConsulta($sql, $id);
     }
+    public  static function getCategoriaTercero($id = 0, $cat = '')
+    {
+        $where = '';
+        if ($cat != '') {
+            $where = " AND `tipo` = '$cat'";
+        }
+        $sql = "SELECT
+                    `id_cat`,`descripcion`
+                FROM `nom_categoria_tercero`
+                WHERE 1 = 1 $where
+                ORDER BY `descripcion` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
 
     public function setConsulta($sql, $id)
     {

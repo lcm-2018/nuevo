@@ -45,12 +45,15 @@ $datos = [];
 if (!empty($obj)) {
     foreach ($obj as $o) {
         $id = $o['id_empleado'];
-        $actualizar = $eliminar = '';
+        $actualizar = $eliminar = $detalles = '';
+        if ($permisos->PermisosUsuario($opciones, 5101, 1) || $id_rol == 1) {
+            $detalles = '<button data-id="' . $id . '" class="btn btn-outline-warning btn-xs rounded-circle shadow me-1 detalles" title="Ver detalles"><span class="fas fa-eye fa-sm"></span></button>';
+        }
         if ($permisos->PermisosUsuario($opciones, 5101, 3) || $id_rol == 1) {
-            $actualizar = '<button data-id="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle shadow me-1 actualizar" title="Actualizar valor concepto"><span class="fas fa-pencil-alt"></span></button>';
+            $actualizar = '<button data-id="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle shadow me-1 actualizar" title="Actualizar Empleado"><span class="fas fa-pencil-alt fa-sm"></span></button>';
         }
         if ($permisos->PermisosUsuario($opciones, 5101, 4) || $id_rol == 1) {
-            $eliminar = '<button data-id="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 eliminar" title="Eliminar concepto"><span class="fas fa-trash-alt"></span></button>';
+            $eliminar = '<button data-id="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 eliminar" title="Eliminar Empleado"><span class="fas fa-trash-alt fa-sm"></span></button>';
         }
         $nombre = $tercero->setNombre($o['nombre']);
         $estado = $o['estado'] == 1 ? '<a href="javascript:CambiaEstadoEmpleado(' . $id . ',0);" title="Inactivar"><i class="fas fa-toggle-on fa-lg text-success"></i></a>' : '<a href="javascript:CambiaEstadoEmpleado(' . $id . ',1)" title="Activar"><i class="fas fa-toggle-off fa-lg text-secondary"></i></a>';
@@ -61,7 +64,7 @@ if (!empty($obj)) {
             'correo'  => $o['correo'],
             'tel'     => $o['telefono'],
             'estado'  => '<div class="text-center">' . $estado . '</div>',
-            'acciones' => '<div class="text-center">' . $actualizar . $eliminar . '</div>',
+            'acciones' => '<div class="text-center">' . $actualizar . $detalles . $eliminar . '</div>',
         ];
     }
 }

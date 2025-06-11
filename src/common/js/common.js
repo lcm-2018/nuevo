@@ -13,6 +13,25 @@ function ocultarOverlay() {
     if (overlay) overlay.classList.add('d-none');
 }
 
+function NumberMiles(inputElement) {
+    inputElement.addEventListener('focus', function (e) {
+        e.target.select();
+    });
+
+    inputElement.addEventListener('input', function (e) {
+        e.target.value = e.target.value
+            .replace(/\D/g, "")
+            .replace(/([0-9])([0-9]{2})$/, "$1.$2")
+            .replace(/\B(?=(\d{3})+(?!\d)\.?)/g, ",");
+    });
+}
+
+function CleanNumber(valor) {
+    valor = valor.replace(/\./g, '');
+    valor = valor.replace(',', '.');
+    return valor;
+}
+
 const MuestraError = (campo, mensaje) => {
     var input = document.getElementById(campo);
     input.focus();
@@ -51,13 +70,17 @@ const Serializa = (...formularios) => {
                         datos.append(input.name, file);
                     } else if (input.type === 'password') {
                         datos.append(input.name, hex_sha512(input.value));
+                    } else if (input.type === 'checkbox') {
+                        if (input.checked) {
+                            datos.append(input.name, input.value);
+                        }
                     } else {
                         datos.append(input.name, input.value);
                     }
                 }
             }
         } else {
-            console.warn(`Formulario con ID '${formularioID}' no encontrado.`);
+            //console.log(`Formulario con ID '${formularioID}' no encontrado.`);
         }
     });
 
@@ -131,6 +154,22 @@ const Confir = {
     cancelButtonColor: "#d33",
     confirmButtonText: "Si!",
     cancelButtonText: "NO",
+}
+
+const SubmitPost = (url, name, valor) => {
+    var form = document.createElement("form");
+    form.action = url;
+    form.method = "POST";
+
+    var input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = valor;
+
+    form.appendChild(input);
+
+    document.body.appendChild(form);
+    form.submit();
 }
 /**
 * @param { string } selector - Selector de la tabla a inicializar.
@@ -324,6 +363,14 @@ function CargaCombos(input, combo, id = 0) {
             mjeError('Error!', response.msg);
         }
     });
+}
+
+const HiddenInputs = (input) => {
+    document.getElementById(input).classList.add('d-none');
+}
+
+const ShowInputs = (input) => {
+    document.getElementById(input).classList.remove('d-none');
 }
 
 function ActivarTab(panelId) {

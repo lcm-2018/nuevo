@@ -37,6 +37,11 @@ class Conexion
         return self::$instancia->conexion;
     }
 
+    public static function Api()
+    {
+        return "http://200.7.102.155/api_terceros/";
+    }
+
     public function __destruct()
     {
         if (self::$instancia !== null) {

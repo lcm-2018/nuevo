@@ -331,8 +331,10 @@ class Plantilla
                     <input type="hidden" id="opc_pto_js" value="{$pto}">
                     <div id="loadingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex justify-content-center align-items-center" style="z-index: 2000;">
                         <div class="text-center text-white">
-                            <div class="spinner-grow text-light" role="status"></div>
-                            <div class="mt-2 text-light">Procesando...</div>
+                            <div class="spinner-grow text-light" role="status">
+                                <img src="{$host}/assets/images/favicon.png" alt="logo sistema financiero">
+                            </div>
+                            <div>Procesando...</div>
                         </div>
                     </div>
                     $plantilla

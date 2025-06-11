@@ -7,23 +7,21 @@ if (!isset($_SESSION['user'])) {
 
 $action = isset($_POST['action']) ? $_POST['action'] : exit('Acción no definida.');
 $id = $_POST['id'];
-$_POST['id_vigencia'] = $_SESSION['id_vigencia'];
 
 include_once '../../../../../config/autoloader.php';
 
-use Src\Nomina\Empleados\Php\Clases\Empleados;
+use Src\Nomina\Empleados\Php\Clases\Seguridad_Social;
 
-
-$Empleados = new Empleados();
+$SeguridadSocial = new Seguridad_Social();
 $res['status'] = ' error';
 $res['msg'] = 'Acción no válida.';
 switch ($action) {
     case 'form':
         $res['status'] = 'ok';
-        $res['msg'] = $Empleados->getFormulario($id);
+        $res['msg'] = $SeguridadSocial->getFormulario($id);
         break;
     case 'add':
-        $data = $Empleados->addEmpleadoFull($_POST);
+        $data = $SeguridadSocial->addRegistro($_POST);
         if ($data == 'si') {
             $res['status'] = 'ok';
         } else {
@@ -31,7 +29,7 @@ switch ($action) {
         }
         break;
     case 'edit':
-        $data = $Empleados->editEmpleado($_POST);
+        $data = $SeguridadSocial->editRegistro($_POST);
         if ($data == 'si') {
             $res['status'] = 'ok';
         } else {
@@ -39,7 +37,7 @@ switch ($action) {
         }
         break;
     case 'del':
-        $data = $Empleados->delEmpleado($_POST['id']);
+        $data = $SeguridadSocial->delRegistro($_POST['id']);
         if ($data == 'si') {
             $res['status'] = 'ok';
         } else {
@@ -49,7 +47,7 @@ switch ($action) {
     case 'close':
         break;
     case 'annul':
-        $data = $Empleados->annulEmpleado($_POST);
+        $data = $SeguridadSocial->annulRegistro($_POST);
         if ($data == 'si') {
             $res['status'] = 'ok';
         } else {
