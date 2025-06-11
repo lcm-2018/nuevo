@@ -125,6 +125,7 @@ class Plantilla
                                             </ul>
                                         </div>
                                     </li>
+
                                     <li>
                                         <a href="#terceros-collapse" class="nav-link d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
                                             <span class="d-flex align-items-center text-success">
@@ -193,6 +194,54 @@ class Plantilla
                                                         <i class="fas fa-caret-right me-2 fa-fw"></i> Subopcion 4
                                                     </a>
                                                 </li>
+                                            </ul>
+                                        </div>
+                                    </li>
+
+                                    <li>
+                                        <a href="#dash-collapse" class="nav-link d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center text-primary">
+                                                <i class="fas fa-table fa-lg me-2"></i> Dashboard
+                                            </span>
+                                            <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                        </a>
+                                        <div class="collapse" id="dash-collapse">
+                                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                <li>
+                                                    <a href="#dash_general-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-primary">
+                                                            <i class="fas fa-tags fa-sm me-2"></i> General
+                                                        </span>
+                                                        <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                                    </a>
+                                                </li>
+                                                <div class="collapse" id="dash_general-collapse">
+                                                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                        <li>
+                                                            <a href="{$host}/src/configuracion/php/index.php" class="nav-link text-primary p-1 sombra">
+                                                                <i class="fas fa-cogs me-2 fa-fw"></i> Configuración
+                                                            </a>
+                                                        </li>                                                        
+                                                    </ul>
+                                                </div>
+                                                <li>
+                                                    <a href="#dash_ejecucion-collapse" class="nav-link d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-success">
+                                                            <i class="fas fa-file-invoice-dollar fa-sm me-2"></i> Ejecución
+                                                        </span>
+                                                        <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                                    </a>
+                                                </li>
+                                                <div class="collapse" id="dash_ejecucion-collapse">
+                                                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                        <li>
+                                                            <a href="{$host}/src/personalizados/php/index.php" class="nav-link text-success p-1 sombra">
+                                                                <i class="fas fa-cogs me-2 fa-fw"></i> Personalizados
+                                                            </a>
+                                                        </li>                                                        
+                                                    </ul>
+                                                </div>
+
                                             </ul>
                                         </div>
                                     </li>

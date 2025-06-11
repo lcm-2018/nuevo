@@ -12,7 +12,7 @@ class Conexion
 
     private $bd_driver = "mysql";
     private $bd_servidor = "localhost";
-    private $bd_base = "ips_mun";
+    private $bd_base = "bd_cronhis_af";
     private $bd_usuario = "root";
     private $bd_clave = "12345";
     private $charset = "charset=utf8";
