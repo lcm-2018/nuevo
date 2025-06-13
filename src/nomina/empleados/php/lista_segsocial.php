@@ -18,15 +18,11 @@ $id_user = $_SESSION['id_user'];
 
 
 use Src\Nomina\Empleados\Php\Clases\Seguridad_Social;
-use Src\Common\Php\Clases\Terceros;
 use Src\Common\Php\Clases\Permisos;
-use Src\Common\Php\Clases\Valores;
 
 
 $sql        = new Seguridad_Social();
 $permisos   = new Permisos();
-$pesos      = new Valores();
-$tercero    = new Terceros();
 
 $filtros = [];
 

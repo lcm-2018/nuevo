@@ -383,3 +383,11 @@ function ActivarTab(panelId) {
         console.error(`Error: No se encontró el botón de la pestaña para el panel con ID "${panelId}".`);
     }
 }
+
+const DiasRangoFechas = (fechaInicio, fechaFin, input) => {
+    var dias = 0;
+    if (fechaInicio && fechaFin && fechaFin != '' && fechaInicio != '' && fechaInicio <= fechaFin) {
+        dias = Math.ceil((new Date(fechaFin) - new Date(fechaInicio)) / (1000 * 60 * 60 * 24)) + 1;
+    }
+    document.getElementById(input).value = dias;
+}

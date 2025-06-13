@@ -38,7 +38,7 @@ class Usuario
     public function getEmpresa()
     {
         $sql = "SELECT
-                    `nit_ips` AS `nit` , `razon_social_ips` AS `nombre` , `caracter` , `tiene_pto`
+                    `nit_ips` AS `nit` , `dv`, `razon_social_ips` AS `nombre` , `caracter` , `tiene_pto`
                 FROM
                     `tb_datos_ips`";
         $stmt = $this->conexion->prepare($sql);

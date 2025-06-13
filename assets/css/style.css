@@ -213,13 +213,30 @@ body {
 }
 
 .sombra:hover {
-    -webkit-transform: scale(1.05);
-    -moz-transform: scale(1.05);
-    -ms-transform: scale(1.05);
-    -o-transform: scale(1.05);
-    transform: scale(1.05);
+    -webkit-transform: scale(1.01);
+    -moz-transform: scale(1.01);
+    -ms-transform: scale(1.01);
+    -o-transform: scale(1.01);
+    transform: scale(1.01);
     box-shadow: 0.3rem 0.3rem 0.3rem #16a08566 !important;
     background-color: #48c9afd1;
     /*#F39C12CC*/
     border-radius: 7px;
+}
+
+.accordion-button {
+    padding: 0.5rem 1rem;
+    /* Por defecto es 1rem 1.25rem */
+    font-size: 0.9rem;
+    /* Opcional: reduce el tamaño del texto */
+}
+
+.accordion-body {
+    padding: 0.5rem 1rem;
+    /* Reduce el espacio interno del cuerpo */
+}
+
+.accordion-item {
+    margin-bottom: 0.05rem;
+    /* Reduce el espacio entre items si es necesario */
 }
