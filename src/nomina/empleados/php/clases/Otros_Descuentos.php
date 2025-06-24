@@ -8,12 +8,13 @@ use Config\Clases\Sesion;
 
 use PDO;
 use PDOException;
+use Src\Common\Php\Clases\Combos;
 
 /**
- * Clase para gestionar las indenminzaciones por vacaciones de los empleados.
+ * Clase para gestionar otros descuentos de los empleados.
  *
- * Esta clase permite realizar operaciones CRUD sobre las indenminzaciones por vacaciones de los empleados,
- * incluyendo la obtención de registros, adición, edición y eliminación de indeminaciones.
+ * Esta clase permite realizar operaciones CRUD sobre otros descuentos de los empleados,
+ * incluyendo la obtención de registros, adición, edición y eliminación de otros descuentos.
  */
 class Otros_Descuentos
 {
@@ -44,20 +45,40 @@ class Otros_Descuentos
         $where = '';
         if (!empty($array)) {
             if (isset($array['value']) && $array['value'] != '') {
-                $where .= " AND (`fec_inica` LIKE '%{$array['value']}%' 
-                            OR `fec_fin` LIKE '%{$array['value']}%'
-                            OR `cant_dias` LIKE '%{$array['value']}%'
-                            OR `estado` LIKE '%{$array['value']}%')";
+                $where .= " AND (`nom_tipo_descuentos`.`descripcion` LIKE '%{$array['value']}%'
+                            OR `nom_otros_descuentos`.`concepto` LIKE '%{$array['value']}%'
+                            OR `nom_otros_descuentos`.`fecha` LIKE '%{$array['value']}%'
+                            OR `nom_otros_descuentos`.`fecha_fin` LIKE '%{$array['value']}%'
+                            OR `nom_otros_descuentos`.`valor` LIKE '%{$array['value']}%')";
             }
 
             if (isset($array['id']) && $array['id'] > 0) {
-                $where .= " AND `id_empleado` = {$array['id']}";
+                $where .= " AND `nom_otros_descuentos`.`id_empleado` = {$array['id']}";
             }
         }
 
         $sql = "SELECT
-                    `id_indemniza`,`fec_inica`,`fec_fin`,`cant_dias`,`estado`
-                FROM `nom_indemniza_vac`
+                    `nom_otros_descuentos`.`id_dcto`
+                    , `nom_otros_descuentos`.`id_empleado`
+                    , `nom_otros_descuentos`.`id_tipo_dcto`
+                    , `nom_tipo_descuentos`.`descripcion`
+                    , `nom_otros_descuentos`.`fecha`
+                    , `nom_otros_descuentos`.`fecha_fin`
+                    , `nom_otros_descuentos`.`concepto`
+                    , `nom_otros_descuentos`.`valor`
+                    , `nom_otros_descuentos`.`estado`
+                    , IFNULL(`aportado`.`valor`, 0) AS `aportado`
+                FROM
+                    `nom_otros_descuentos`
+                    INNER JOIN `nom_tipo_descuentos` 
+                        ON (`nom_otros_descuentos`.`id_tipo_dcto` = `nom_tipo_descuentos`.`id_tipo`)
+                    LEFT JOIN 
+                        (SELECT
+                            `id_dcto`, SUM(`valor`) AS `valor`
+                        FROM
+                            `nom_liq_descuento`
+                        GROUP BY `id_dcto`) AS `aportado`
+                        ON (`nom_otros_descuentos`.`id_dcto` = `aportado`.`id_dcto`)
                 WHERE (1 = 1 $where)
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
@@ -76,20 +97,24 @@ class Otros_Descuentos
         $where = '';
         if (!empty($array)) {
             if (isset($array['value']) && $array['value'] != '') {
-                $where .= " AND (`fec_inica` LIKE '%{$array['value']}%' 
-                            OR `fec_fin` LIKE '%{$array['value']}%'
-                            OR `cant_dias` LIKE '%{$array['value']}%'
-                            OR `estado` LIKE '%{$array['value']}%')";
+                $where .= " AND (`nom_tipo_descuentos`.`descripcion` LIKE '%{$array['value']}%'
+                            OR `nom_otros_descuentos`.`concepto` LIKE '%{$array['value']}%'
+                            OR `nom_otros_descuentos`.`fecha` LIKE '%{$array['value']}%'
+                            OR `nom_otros_descuentos`.`fecha_fin` LIKE '%{$array['value']}%'
+                            OR `nom_otros_descuentos`.`valor` LIKE '%{$array['value']}%')";
             }
 
             if (isset($array['id']) && $array['id'] > 0) {
-                $where .= " AND `id_empleado` = {$array['id']}";
+                $where .= " AND `nom_otros_descuentos`.`id_empleado` = {$array['id']}";
             }
         }
 
         $sql = "SELECT
-                     COUNT(*) AS `total`
-                FROM `nom_indemniza_vac`
+                    COUNT(*) AS `total`
+                FROM
+                    `nom_otros_descuentos`
+                    INNER JOIN `nom_tipo_descuentos` 
+                        ON (`nom_otros_descuentos`.`id_tipo_dcto` = `nom_tipo_descuentos`.`id_tipo`)
                 WHERE (1 = 1 $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
@@ -106,14 +131,16 @@ class Otros_Descuentos
         $where = '';
         if (!empty($array)) {
             if (isset($array['id']) && $array['id'] > 0) {
-                $where .= " AND `id_empleado` = {$array['id']}";
+                $where .= " AND `nom_otros_descuentos`.`id_empleado` = {$array['id']}";
             }
         }
 
         $sql = "SELECT
-                   COUNT(*) AS `total`
+                    COUNT(*) AS `total`
                 FROM
-                    `nom_indemniza_vac`
+                    `nom_otros_descuentos`
+                    INNER JOIN `nom_tipo_descuentos` 
+                        ON (`nom_otros_descuentos`.`id_tipo_dcto` = `nom_tipo_descuentos`.`id_tipo`)
                 WHERE (1 = 1 $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
@@ -130,20 +157,23 @@ class Otros_Descuentos
     public function getRegistro($id)
     {
         $sql = "SELECT
-                    `id_indemniza`,`fec_inica`,`fec_fin`,`cant_dias`,`estado`
-                FROM `nom_indemniza_vac`
-                WHERE `id_indemniza` = ?";
+                    `id_dcto`,`id_empleado`,`id_tipo_dcto`,`fecha`,`fecha_fin`,`concepto`,`valor`,`estado`
+                FROM `nom_otros_descuentos`
+                WHERE `id_dcto` = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         if (empty($registro)) {
             $registro = [
-                'id_indemniza' => 0,
-                'fec_inica' => Sesion::_Hoy(),
-                'fec_fin' => '',
-                'cant_dias' => 0,
-                'estado' => 0,
+                'id_dcto' => 0,
+                'id_empleado' => 0,
+                'id_tipo_dcto' => 0,
+                'fecha' => Sesion::_Hoy(),
+                'fecha_fin' => '',
+                'concepto' => '',
+                'valor' => 0,
+                'estado' => 1
             ];
         }
         return $registro;
@@ -159,35 +189,48 @@ class Otros_Descuentos
     public function getFormulario($id)
     {
         $registro = $this->getRegistro($id);
+        $tipo = $this->getTiposDescuentos($registro['id_tipo_dcto']);
         $html =
             <<<HTML
                 <div class="shadow text-center rounded">
                     <div class="rounded-top py-2" style="background-color: #16a085 !important;">
-                        <h5 style="color: white;" class="mb-0">GESTIÓN DE INDEMNIZACIÓN POR VACACIONES</h5>
+                        <h5 style="color: white;" class="mb-0">GESTIÓN DE OTROS DESCUENTOS</h5>
                     </div>
                     <div class="p-3">
-                        <form id="formIndemnizaVacacion">
+                        <form id="formOtroDescuento">
                             <input type="hidden" id="id" name="id" value="{$id}">
                             <div class="row mb-2">
-                                <div class="col-md-12">
-                                    <label for="diasInactivo" class="small text-muted">Días Indemnizar</label>
-                                    <input type="number" class="form-control form-control-sm bg-input text-end" id="diasInactivo" name="diasInactivo" value="{$registro['cant_dias']}" min="0">
+                                <div class="col-md-6">
+                                    <label for="slcTipoDcto" class="small text-muted">TIPO</label>
+                                    <select class="form-select form-select-sm bg-input" id="slcTipoDcto" name="slcTipoDcto">
+                                        {$tipo}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="numValor" class="small text-muted">Valor</label>
+                                    <input type="number" class="form-control form-control-sm bg-input text-end" id="numValor" name="numValor" value="{$registro['valor']}">
                                 </div>
                             </div>
                             <div class="row mb-2">
                                 <div class="col-md-6">
                                     <label for="datFecInicia" class="small text-muted">Inicia</label>
-                                    <input type="date" class="form-control form-control-sm bg-input" id="datFecInicia" name="datFecInicia" value="{$registro['fec_inica']}" onchange="DiasInactivo()">
+                                    <input type="date" class="form-control form-control-sm bg-input" id="datFecInicia" name="datFecInicia" value="{$registro['fecha']}">
                                 </div>
                                 <div class="col-md-6">
                                     <label for="datFecFin" class="small text-muted">Termina</label>
-                                    <input type="date" class="form-control form-control-sm bg-input" id="datFecFin" name="datFecFin" value="{$registro['fec_fin']}" onchange="DiasInactivo()">
+                                    <input type="date" class="form-control form-control-sm bg-input" id="datFecFin" name="datFecFin" value="{$registro['fecha_fin']}">
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-12">
+                                    <label for="txtDescribe" class="small text-muted">Descripción</label>
+                                    <textarea class="form-control form-control-sm bg-input" id="txtDescribe" name="txtDescribe">{$registro['concepto']}</textarea>
                                 </div>
                             </div>
                         </form>
                     </div>
                     <div class="text-center pb-3">
-                        <button type="button" class="btn btn-primary btn-sm" id="btnGuardarIndemnizaVacacion">Guardar</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="btnGuardarOtroDescuento">Guardar</button>
                         <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
                     </div>
                 </div>
@@ -205,8 +248,8 @@ class Otros_Descuentos
     public function delRegistro($id)
     {
         try {
-            $sql = "DELETE FROM `nom_indemniza_vac` WHERE `id_indemniza` = ?";
-            $consulta  = "DELETE FROM `nom_indemniza_vac` WHERE `id_indemniza` = $id";
+            $sql = "DELETE FROM `nom_otros_descuentos` WHERE `id_dcto` = ?";
+            $consulta  = "DELETE FROM `nom_otros_descuentos` WHERE `id_dcto` = $id";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->execute();
@@ -230,17 +273,19 @@ class Otros_Descuentos
     public function addRegistro($array)
     {
         try {
-            $sql = "INSERT INTO `nom_indemniza_vac`
-                        (`id_empleado`,`fec_inica`,`fec_fin`,`cant_dias`,`estado`,`fec_reg`,`id_user_reg`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO `nom_otros_descuentos`
+                        (`id_empleado`,`id_tipo_dcto`,`fecha`,`fecha_fin`,`concepto`,`valor`,`estado`,`id_user_reg`,`fec_reg`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
-            $stmt->bindValue(2, $array['datFecInicia'], PDO::PARAM_STR);
-            $stmt->bindValue(3, $array['datFecFin'], PDO::PARAM_STR);
-            $stmt->bindValue(4, $array['diasInactivo'], PDO::PARAM_INT);
-            $stmt->bindValue(5, 1, PDO::PARAM_INT);
-            $stmt->bindValue(6, Sesion::Hoy(), PDO::PARAM_STR);
-            $stmt->bindValue(7, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['slcTipoDcto'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $array['datFecInicia'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $array['datFecFin'] == '' ? NULL : $array['datFecFin'], PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['txtDescribe'], PDO::PARAM_STR);
+            $stmt->bindValue(6, $array['numValor'], PDO::PARAM_STR);
+            $stmt->bindValue(7, 1, PDO::PARAM_INT);
+            $stmt->bindValue(8, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(9, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
@@ -261,20 +306,23 @@ class Otros_Descuentos
     public function editRegistro($array)
     {
         try {
-            $sql = "UPDATE `nom_indemniza_vac`
-                        SET `fec_inica` = ?, `fec_fin` = ?, `cant_dias` = ?
-                    WHERE `id_indemniza` = ?";
+            $sql = "UPDATE `nom_otros_descuentos`
+                        SET `id_tipo_dcto` = ?, `fecha` = ?, `fecha_fin` = ?, `concepto` = ?, `valor` = ?
+                    WHERE `id_dcto` = ?";
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['datFecInicia'], PDO::PARAM_STR);
-            $stmt->bindValue(2, $array['datFecFin'], PDO::PARAM_STR);
-            $stmt->bindValue(3, $array['diasInactivo'], PDO::PARAM_INT);
-            $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
+            $stmt->bindValue(1, $array['slcTipoDcto'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['datFecInicia'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $array['datFecFin'] == '' ? NULL : $array['datFecFin'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $array['txtDescribe'], PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['numValor'], PDO::PARAM_STR);
+            $stmt->bindValue(6, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
-                $consulta = "UPDATE `nom_indemniza_vac` SET `fec_act` = ? WHERE `id_indemniza` = ?";
+                $consulta = "UPDATE `nom_otros_descuentos` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_dcto` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
                 $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
+                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
                 return 'si';
             } else {
@@ -287,6 +335,34 @@ class Otros_Descuentos
 
     public function annulRegistro($array)
     {
-        return 'Falta programar la anulación de registro de seguridad social.';
+        try {
+            $sql = "UPDATE `nom_otros_descuentos`
+                        SET `estado` = ?
+                    WHERE `id_dcto` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['estado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['id'], PDO::PARAM_INT);
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                return 'si';
+            } else {
+                return 'No se hizo el cambio de estado.' . $stmt->errorInfo()[2];
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+    /**
+     * Obtiene los tipos de descuentos.
+     *
+     * @return string HTML con las opciones de tipo de descuento
+     */
+    public function getTiposDescuentos($id)
+    {
+        $sql = "SELECT
+                    `id_tipo`, `descripcion`
+                FROM
+                    `nom_tipo_descuentos` 
+                    ORDER BY `descripcion`";
+        return (new Combos)->setConsulta($sql, $id);
     }
 }

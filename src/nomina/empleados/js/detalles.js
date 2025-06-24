@@ -280,9 +280,14 @@ const tableLibranzas = crearDataTable(
     'lista_libranzas.php',
     [
         { data: 'id' },
+        { data: 'entidad' },
+        { data: 'total' },
+        { data: 'val_mes' },
+        { data: 'pagado' },
+        { data: 'cuotas' },
         { data: 'inicia' },
         { data: 'termina' },
-        { data: 'dias' },
+        { data: 'estado' },
         { data: 'acciones' }
     ],
     [
@@ -292,7 +297,7 @@ const tableLibranzas = crearDataTable(
             titleAttr: 'Agregar nueva libranza de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/libranzas.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFomulario('../php/controladores/libranzas.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
             }
         }
     ],
@@ -310,9 +315,13 @@ const tableEmbargos = crearDataTable(
     'lista_embargos.php',
     [
         { data: 'id' },
+        { data: 'entidad' },
+        { data: 'total' },
+        { data: 'val_mes' },
+        { data: 'pagado' },
         { data: 'inicia' },
         { data: 'termina' },
-        { data: 'dias' },
+        { data: 'estado' },
         { data: 'acciones' }
     ],
     [
@@ -339,9 +348,13 @@ const tableSindicatos = crearDataTable(
     'lista_sindicatos.php',
     [
         { data: 'id' },
+        { data: 'sindicato' },
+        { data: 'porcentaje' },
+        { data: 'aportado' },
         { data: 'inicia' },
         { data: 'termina' },
-        { data: 'dias' },
+        { data: 'sindicalizacion' },
+        { data: 'estado' },
         { data: 'acciones' }
     ],
     [
@@ -368,13 +381,12 @@ const tableOtroDescuento = crearDataTable(
     'lista_otros_descuentos.php',
     [
         { data: 'id' },
-        { data: 'entidad' },
-        { data: 'total' },
-        { data: 'val_mes' },
-        { data: 'pagado' },
-        { data: 'cuotas' },
+        { data: 'tipo' },
+        { data: 'concepto' },
+        { data: 'valor' },
         { data: 'inicia' },
-        { data: 'termina' },
+        { data: 'fin' },
+        { data: 'aportado' },
         { data: 'estado' },
         { data: 'acciones' }
     ],
@@ -385,7 +397,65 @@ const tableOtroDescuento = crearDataTable(
             titleAttr: 'Agregar nuevo descuento de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/otro_descuento.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFomulario('../php/controladores/otros_descuentos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            }
+        }
+    ],
+    {
+        pageLength: 10,
+        order: [[0, 'desc']],
+    },
+    function (d) {
+        d.id_empleado = document.querySelector('#id_empleado').value;
+    },
+);
+
+const tableCcosto = crearDataTable(
+    '#tableCcosto',
+    'lista_ccostos.php',
+    [
+        { data: 'id' },
+        { data: 'nombre' },
+        { data: 'fecha' },
+        { data: 'acciones' }
+    ],
+    [
+        {
+            text: plus,
+            className: 'btn btn-success btn-sm shadow',
+            titleAttr: 'Agregar nuevo centro de costo de empleado',
+            action: function (e, dt, node, config) {
+                mostrarOverlay();
+                VerFomulario('../php/controladores/ccostos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            }
+        }
+    ],
+    {
+        pageLength: 10,
+        order: [[0, 'desc']],
+    },
+    function (d) {
+        d.id_empleado = document.querySelector('#id_empleado').value;
+    },
+);
+
+const tableIvivienda = crearDataTable(
+    '#tableIvivienda',
+    'lista_ivivienda.php',
+    [
+        { data: 'id' },
+        { data: 'fecha' },
+        { data: 'valor' },
+        { data: 'acciones' }
+    ],
+    [
+        {
+            text: plus,
+            className: 'btn btn-success btn-sm shadow',
+            titleAttr: 'Agregar nuevo interes de vivienda de empleado',
+            action: function (e, dt, node, config) {
+                mostrarOverlay();
+                VerFomulario('../php/controladores/ivivienda.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-sm');
             }
         }
     ],
@@ -424,15 +494,27 @@ tableIndemnizaVacacion.on('init', function () {
 tableLibranzas.on('init', function () {
     BuscaDataTable(tableLibranzas);
 });
+
 tableEmbargos.on('init', function () {
     BuscaDataTable(tableEmbargos);
 });
+
 tableSindicatos.on('init', function () {
     BuscaDataTable(tableSindicatos);
 });
+
 tableOtroDescuento.on('init', function () {
     BuscaDataTable(tableOtroDescuento);
 });
+
+tableCcosto.on('init', function () {
+    BuscaDataTable(tableCcosto);
+});
+
+tableIvivienda.on('init', function () {
+    BuscaDataTable(tableIvivienda);
+});
+
 
 if (document.querySelector('#tableContratosEmpleado')) {
     document.querySelector('#tableContratosEmpleado').addEventListener('click', function (event) {
@@ -593,7 +675,7 @@ if (document.querySelector('#tableLibranzas')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/libranzas.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFomulario('../php/controladores/libranzas.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
         }
 
         if (btnEliminar) {
@@ -644,15 +726,52 @@ if (document.querySelector('#tableOtroDescuento')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/otro_descuento.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFomulario('../php/controladores/otros_descuentos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
 
         if (btnEliminar) {
             const id = btnEliminar.dataset.id;
-            EliminaRegistro('../php/controladores/otro_descuento.php', id, tableOtroDescuento);
+            EliminaRegistro('../php/controladores/otros_descuentos.php', id, tableOtroDescuento);
         }
     });
 }
+
+if (document.querySelector('#tableCcosto')) {
+    document.querySelector('#tableCcosto').addEventListener('click', function (event) {
+        const btnActualizar = event.target.closest('.actualizar');
+        const btnEliminar = event.target.closest('.eliminar');
+
+        if (btnActualizar) {
+            mostrarOverlay();
+            const id = btnActualizar.dataset.id;
+            VerFomulario('../php/controladores/ccostos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+        }
+
+        if (btnEliminar) {
+            const id = btnEliminar.dataset.id;
+            EliminaRegistro('../php/controladores/ccostos.php', id, tableCcosto);
+        }
+    });
+}
+
+if (document.querySelector('#tableIvivienda')) {
+    document.querySelector('#tableIvivienda').addEventListener('click', function (event) {
+        const btnActualizar = event.target.closest('.actualizar');
+        const btnEliminar = event.target.closest('.eliminar');
+
+        if (btnActualizar) {
+            mostrarOverlay();
+            const id = btnActualizar.dataset.id;
+            VerFomulario('../php/controladores/ivivienda.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-sm');
+        }
+
+        if (btnEliminar) {
+            const id = btnEliminar.dataset.id;
+            EliminaRegistro('../php/controladores/ivivienda.php', id, tableIvivienda);
+        }
+    });
+}
+
 document.getElementById('modalForms').addEventListener('click', function (event) {
     const boton = event.target;
     if (boton) {
@@ -879,17 +998,178 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                 }
                 break;
             case 'btnGuardarLibranza':
-                alert('Guardar libranza');
+                if (ValueInput('slcEntFinanciera') === '0') {
+                    MuestraError('slcEntFinanciera', 'Seleccione una entidad financiera');
+                } else if (Number(ValueInput('numTotLib')) <= 0) {
+                    MuestraError('numTotLib', 'Ingrese el total de la libranza');
+                } else if (Number(ValueInput('numCuotasLib')) <= 0) {
+                    MuestraError('numCuotasLib', 'Ingrese el número de cuotas de la libranza');
+                } else if (Number(ValueInput('numValMes')) <= 0) {
+                    MuestraError('numValMes', 'Ingrese el valor mensual de la libranza');
+                } else if (Number(ValueInput('numPorcentaje')) <= 0) {
+                    MuestraError('numPorcentaje', 'Ingrese el porcentaje de la libranza');
+                } else if (ValueInput('datFecInicia') === '') {
+                    MuestraError('datFecInicia', 'Ingrese la fecha de inicio de la libranza');
+                } else if (ValueInput('datFecFin') === '') {
+                    MuestraError('datFecFin', 'Ingrese la fecha de finalización de la libranza');
+                } else if (ValueInput('datFecInicia') > ValueInput('datFecFin')) {
+                    MuestraError('datFecFin', 'La fecha de inicio no puede ser mayor a la fecha de finalización');
+                } else if (ValueInput('txtDescripcion') === '') {
+                    MuestraError('txtDescripcion', 'Ingrese una descripción para la libranza');
+                } else {
+                    mostrarOverlay();
+                    var data = Serializa('formLibranza');
+                    data.append('action', data.get('id') == '0' ? 'add' : 'edit');
+                    data.append('id_empleado', ValueInput('id_empleado'));
+                    SendPost('../php/controladores/libranzas.php', data).then((response) => {
+                        if (response.status === 'ok') {
+                            mje('Guardado correctamente!');
+                            tableLibranzas.ajax.reload(null, false);
+                            $('#modalForms').modal('hide');
+                        } else {
+                            mjeError('Error!', response.msg);
+                        }
+                    }).finally(() => {
+                        ocultarOverlay();
+                    });
+                }
                 break;
             case 'btnGuardarEmbargo':
-                alert('Guardar embargo');
+                if (ValueInput('slcJuzgado') === '0') {
+                    MuestraError('slcJuzgado', 'Seleccione un juzgado');
+                } else if (ValueInput('slcTpEmbargo') === '0') {
+                    MuestraError('slcTpEmbargo', 'Seleccione un tipo de embargo');
+                } else if (Number(ValueInput('numTotLib')) <= 0) {
+                    MuestraError('numTotLib', 'Ingrese el total del embargo');
+                } else if (Number(ValueInput('numDctoMax')) <= 0) {
+                    MuestraError('numDctoMax', 'Ingrese el descuento máximo del embargo');
+                } else if (Number(ValueInput('numValMes')) <= 0) {
+                    MuestraError('numValMes', 'Ingrese el valor mensual del embargo');
+                } else if (Number(ValueInput('numPorcentaje')) <= 0) {
+                    MuestraError('numPorcentaje', 'Ingrese el porcentaje del embargo');
+                } else if (ValueInput('datFecInicia') === '') {
+                    MuestraError('datFecInicia', 'Ingrese la fecha de inicio del embargo');
+                } else if (ValueInput('datFecFin') === '') {
+                    MuestraError('datFecFin', 'Ingrese la fecha de finalización del embargo');
+                } else if (ValueInput('datFecInicia') > ValueInput('datFecFin')) {
+                    MuestraError('datFecFin', 'La fecha de inicio no puede ser mayor a la fecha de finalización');
+                } else if (Number(ValueInput('numValMes')) > Number(ValueInput('numDctoMax'))) {
+                    MuestraError('numValMes', 'El valor mensual no puede ser mayor al descuento máximo del embargo');
+                } else {
+                    mostrarOverlay();
+                    var data = Serializa('formEmbargo');
+                    data.append('action', data.get('id') == '0' ? 'add' : 'edit');
+                    data.append('id_empleado', ValueInput('id_empleado'));
+                    SendPost('../php/controladores/embargos.php', data).then((response) => {
+                        if (response.status === 'ok') {
+                            mje('Guardado correctamente!');
+                            tableEmbargos.ajax.reload(null, false);
+                            $('#modalForms').modal('hide');
+                        } else {
+                            mjeError('Error!', response.msg);
+                        }
+                    }).finally(() => {
+                        ocultarOverlay();
+                    });
+                }
                 break;
             case 'btnGuardarSindicato':
-                alert('Guardar sindicato');
+                if (ValueInput('slcSindicato') === '0') {
+                    MuestraError('slcSindicato', 'Seleccione un sindicato');
+                } else if (Number(ValueInput('numValSind')) < 0) {
+                    MuestraError('numValSind', 'Ingrese el valor de sindicalización');
+                } else if (Number(ValueInput('numPorcentaje')) <= 0) {
+                    MuestraError('numPorcentaje', 'Ingrese el porcentaje del embargo');
+                } else if (ValueInput('datFecInicia') === '') {
+                    MuestraError('datFecInicia', 'Ingrese la fecha de inicio del embargo');
+                } else if (ValueInput('datFecFin') != '' && ValueInput('datFecInicia') > ValueInput('datFecFin')) {
+                    MuestraError('datFecFin', 'La fecha de inicio no puede ser mayor a la fecha de finalización');
+                } else {
+                    mostrarOverlay();
+                    var data = Serializa('formSindicatos');
+                    data.append('action', data.get('id') == '0' ? 'add' : 'edit');
+                    data.append('id_empleado', ValueInput('id_empleado'));
+                    SendPost('../php/controladores/sindicatos.php', data).then((response) => {
+                        if (response.status === 'ok') {
+                            mje('Guardado correctamente!');
+                            tableSindicatos.ajax.reload(null, false);
+                            $('#modalForms').modal('hide');
+                        } else {
+                            mjeError('Error!', response.msg);
+                        }
+                    }).finally(() => {
+                        ocultarOverlay();
+                    });
+                }
                 break;
             case 'btnGuardarOtroDescuento':
-                alert('Guardar otro descuento');
+                if (ValueInput('slcTipoDcto') === '0') {
+                    MuestraError('slcTipoDcto', 'Seleccione un tipo de descuento');
+                } else if (Number(ValueInput('numValor')) <= 0) {
+                    MuestraError('numValor', 'Ingrese un valor para el descuento');
+                } else if (ValueInput('datFecInicia') === '') {
+                    MuestraError('datFecInicia', 'Ingrese la fecha de inicio del descuento');
+                } else if (ValueInput('datFecFin') != '' && ValueInput('datFecInicia') > ValueInput('datFecFin')) {
+                    MuestraError('datFecFin', 'La fecha de inicio no puede ser mayor a la fecha de finalización');
+                } else {
+                    mostrarOverlay();
+                    var data = Serializa('formOtroDescuento');
+                    data.append('action', data.get('id') == '0' ? 'add' : 'edit');
+                    data.append('id_empleado', ValueInput('id_empleado'));
+                    SendPost('../php/controladores/otros_descuentos.php', data).then((response) => {
+                        if (response.status === 'ok') {
+                            mje('Guardado correctamente!');
+                            tableOtroDescuento.ajax.reload(null, false);
+                            $('#modalForms').modal('hide');
+                        } else {
+                            mjeError('Error!', response.msg);
+                        }
+                    }).finally(() => {
+                        ocultarOverlay();
+                    });
+                }
                 break;
+            case 'btnGuardarCcostos':
+                if (ValueInput('slcCcosto') === '0') {
+                    MuestraError('slcCcosto', 'Seleccione un centro de costo');
+                } else {
+                    mostrarOverlay();
+                    var data = Serializa('formCcostos');
+                    data.append('action', data.get('id') == '0' ? 'add' : 'edit');
+                    data.append('id_empleado', ValueInput('id_empleado'));
+                    SendPost('../php/controladores/ccostos.php', data).then((response) => {
+                        if (response.status === 'ok') {
+                            mje('Guardado correctamente!');
+                            tableCcosto.ajax.reload(null, false);
+                            $('#modalForms').modal('hide');
+                        } else {
+                            mjeError('Error!', response.msg);
+                        }
+                    }).finally(() => {
+                        ocultarOverlay();
+                    });
+                }
+                break;
+            case 'btnGuardarIvivienda':
+                if (Number(ValueInput('numValor')) <= 0) {
+                    MuestraError('numValor', 'Ingrese un valor para de interés de vivienda');
+                } else {
+                    mostrarOverlay();
+                    var data = Serializa('formIvivienda');
+                    data.append('action', data.get('id') == '0' ? 'add' : 'edit');
+                    data.append('id_empleado', ValueInput('id_empleado'));
+                    SendPost('../php/controladores/ivivienda.php', data).then((response) => {
+                        if (response.status === 'ok') {
+                            mje('Guardado correctamente!');
+                            tableIvivienda.ajax.reload(null, false);
+                            $('#modalForms').modal('hide');
+                        } else {
+                            mjeError('Error!', response.msg);
+                        }
+                    }).finally(() => {
+                        ocultarOverlay();
+                    });
+                }
         }
     }
 });
@@ -900,4 +1180,80 @@ function DiasIncapacidad() {
 
 function DiasInactivo() {
     DiasRangoFechas(ValueInput('datFecInicia'), ValueInput('datFecFin'), 'diasInactivo');
+}
+
+function CambiaEstadoDeducido(id, estado, opcion) {
+    mostrarOverlay();
+    var data = new FormData();
+    data.append('action', 'annul');
+    data.append('id', id);
+    data.append('estado', estado);
+    SendPost('../php/controladores/' + opcion + '.php', data).then((response) => {
+        if (response.status === 'ok') {
+            var tablas = {
+                libranzas: tableLibranzas,
+                embargos: tableEmbargos,
+                sindicatos: tableSindicatos,
+                otros_descuentos: tableOtroDescuento
+            };
+            tablas[opcion].ajax.reload(null, false);
+        } else {
+            mjeError('Error!', response.msg);
+        }
+    }).finally(() => {
+        ocultarOverlay();
+    });
+}
+
+function CalcValorPorcentaje() {
+    var total = Number(ValueInput('numTotLib'));
+    var valMes = Number(ValueInput('numValMes'));
+
+    var porcentaje = (valMes * 100) / total;
+    InputValue('numPorcentaje', porcentaje);
+}
+
+function CalcValorMes() {
+    var total = Number(ValueInput('numTotLib'));
+    var porcentaje = Number(ValueInput('numPorcentaje'));
+
+    var valMes = (total * porcentaje) / 100;
+    InputValue('numValMes', valMes);
+}
+
+function LiberaTotal(valor) {
+    var input = document.getElementById('numTotLib');
+    if (Number(valor) > 0) {
+        input.disabled = false;
+        input.readOnly = false;
+    } else {
+        input.disabled = true;
+        input.readOnly = true;
+    }
+}
+
+function CalcDctoMax() {
+    var valor = Number(ValueInput('numTotLib'));
+    var tipo = Number(ValueInput('slcTpEmbargo'));
+    if (valor > 0 && tipo > 0) {
+        var data = new FormData();
+        data.append('action', 'dcto');
+        data.append('valor', valor);
+        data.append('tipo', tipo);
+        data.append('id_empleado', ValueInput('id_empleado'));
+        data.append('id', 0);
+        mostrarOverlay();
+        SendPost('../php/controladores/embargos.php', data).then((response) => {
+            if (response.status === 'ok') {
+                InputValue('numDctoMax', response.valor);
+            } else {
+                mjeError('Error!', response.msg);
+            }
+        }).finally(() => {
+            ocultarOverlay();
+        });
+    } else {
+        InputValue('numDctoMax', 0);
+    }
+
 }

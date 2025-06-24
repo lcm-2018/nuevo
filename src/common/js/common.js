@@ -48,9 +48,15 @@ const LimpiaInvalid = () => {
 
 const ValueInput = (campo) => {
     var input = document.getElementById(campo);
+    if (!input) {
+        console.log(`Input con ID '${campo}' no encontrado.`);
+    }
     return input.value;
 };
 
+const InputValue = (campo, valor) => {
+    document.getElementById(campo).value = valor;
+};
 const Serializa = (...formularios) => {
     const datos = new FormData();
 
@@ -58,7 +64,7 @@ const Serializa = (...formularios) => {
         const form = document.getElementById(formularioID);
 
         if (form) {
-            const inputs = form.querySelectorAll('input, select');
+            const inputs = form.querySelectorAll('input, select, textarea');
 
             for (const input of inputs) {
                 if (!input.name) continue;
@@ -264,10 +270,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const inputTercero = document.getElementById('buscaTercero');
             const inputsRubro = document.querySelectorAll('.buscaRubro');
             const inputCuenta = document.getElementById('buscaCuenta');
+            const txtBuscaEmpleado = document.getElementById('txtBuscaEmpleado');
 
             if (inputTercero) {
                 clearInterval(intervalId);
-                inicializarAwesomplete(inputTercero, 'consultaTercero.php', '#id_tercero', true);
+                inicializarAwesomplete(inputTercero, ValueInput('host') + '/src/common/php/controladores/consultaTercero.php', '#id_tercero', true);
             }
 
             if (inputsRubro.length > 0) {
@@ -275,19 +282,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 inputsRubro.forEach(input => {
                     const idTarget = input.getAttribute('data-target');
                     const tipoTarget = input.getAttribute('data-tipo-target');
-                    inicializarAwesomplete(input, 'consultaRubro.php', idTarget, false, tipoTarget);
+                    inicializarAwesomplete(input, ValueInput('host') + '/src/common/php/controladores/consultaRubro.php', idTarget, false, tipoTarget);
                 });
             }
 
             if (inputCuenta) {
                 clearInterval(intervalId);
-                inicializarAwesomplete(inputCuenta, 'consultaCuenta.php', '#idCtaCtb', false, '#tipoCta');
+                inicializarAwesomplete(inputCuenta, ValueInput('host') + '/src/common/php/controladores/consultaCuenta.php', '#idCtaCtb', false, '#tipoCta');
             }
+
+            if (txtBuscaEmpleado) {
+                clearInterval(intervalId);
+                inicializarAwesomplete(txtBuscaEmpleado, ValueInput('host') + '/src/nomina/horas_extra/php/controladores/horas_extra.php', '#id_empleado', false, null, 'list');
+            }
+
         }, 100);
     });
 });
 
-function inicializarAwesomplete(inputElement, endpoint, idTargetSelector, incluirCedula = false, tipoTargetSelector = null) {
+function inicializarAwesomplete(inputElement, endpoint, idTargetSelector, incluirCedula = false, tipoTargetSelector = null, action = '') {
     const awesomplete = new Awesomplete(inputElement, {
         autoFirst: true,
         minChars: 2
@@ -300,10 +313,10 @@ function inicializarAwesomplete(inputElement, endpoint, idTargetSelector, inclui
         const query = inputElement.value.trim();
         if (query.length < 2) return;
 
-        fetch(ValueInput('host') + `/src/common/php/controladores/${endpoint}`, {
+        fetch(`${endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ search: query })
+            body: new URLSearchParams({ search: query, action: action })
         })
             .then(res => res.json())
             .then(data => {
@@ -317,7 +330,7 @@ function inicializarAwesomplete(inputElement, endpoint, idTargetSelector, inclui
                 });
                 awesomplete.list = opciones;
             })
-            .catch(error => console.error(`Error en la búsqueda (${endpoint}):`, error));
+            .catch(error => console.log(`Error en la búsqueda (${endpoint}):`, error));
     });
 
     inputElement.addEventListener('awesomplete-selectcomplete', event => {

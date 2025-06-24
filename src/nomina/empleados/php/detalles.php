@@ -29,6 +29,7 @@ $host = Plantilla::getHost();
 $content = <<<HTML
 <div class="card w-100">
     <div class="card-header bg-sofia text-white">
+        <button class="btn btn-xs me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
         <b>DETALLES DE EMPLEADOS</b>
     </div>
     <div class="card-body p-2 bg-wiev">
@@ -173,7 +174,7 @@ $content = <<<HTML
                             <div class="accordion-item">
                                 <h2 class="accordion-header sombra">
                                     <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divIncapacidades" aria-expanded="false" aria-controls="divIncapacidades">
-                                        <span class="text-primary"></i>EACII. Incapacidades.</span>
+                                        <span class="text-primary">EACII. Incapacidades.</span>
                                     </button>
                                 </h2>
                                 <div id="divIncapacidades" class="accordion-collapse collapse">
@@ -199,7 +200,7 @@ $content = <<<HTML
                             <div class="accordion-item">
                                 <h2 class="accordion-header sombra">
                                     <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divVacaciones" aria-expanded="false" aria-controls="divVacaciones">
-                                        <span class="text-success"></i>EACII. Vacaciones.</span>
+                                        <span class="text-success">EACII. Vacaciones.</span>
                                     </button>
                                 </h2>
                                 <div id="divVacaciones" class="accordion-collapse collapse">
@@ -227,7 +228,7 @@ $content = <<<HTML
                             <div class="accordion-item">
                                 <h2 class="accordion-header sombra">
                                     <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divLicenciaMoP" aria-expanded="false" aria-controls="divLicenciaMoP">
-                                        <span class="text-info"></i>EACII. Licencia Manterna o Paterna.</span>
+                                        <span class="text-info">EACII. Licencia Manterna o Paterna.</span>
                                     </button>
                                 </h2>
                                 <div id="divLicenciaMoP" class="accordion-collapse collapse">
@@ -252,7 +253,7 @@ $content = <<<HTML
                             <div class="accordion-item">
                                 <h2 class="accordion-header sombra">
                                     <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divLicenciaLuto" aria-expanded="false" aria-controls="divLicenciaLuto">
-                                        <span class="text-secondary"></i>EACII. Licencia Por Luto.</span>
+                                        <span class="text-secondary">EACII. Licencia Por Luto.</span>
                                     </button>
                                 </h2>
                                 <div id="divLicenciaLuto" class="accordion-collapse collapse">
@@ -277,7 +278,7 @@ $content = <<<HTML
                             <div class="accordion-item">
                                 <h2 class="accordion-header sombra">
                                     <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divLicenciaNoRem" aria-expanded="false" aria-controls="divLicenciaNoRem">
-                                        <span class="text-warning"></i>EACII. Licencia No Remunerada.</span>
+                                        <span class="text-warning">EACII. Licencia No Remunerada.</span>
                                     </button>
                                 </h2>
                                 <div id="divLicenciaNoRem" class="accordion-collapse collapse">
@@ -302,7 +303,7 @@ $content = <<<HTML
                             <div class="accordion-item">
                                 <h2 class="accordion-header sombra">
                                     <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divIndemnizaVacacion" aria-expanded="false" aria-controls="divIndemnizaVacacion">
-                                        <span class="text-muted"></i>EACII. Indemnización Por Vacacion.</span>
+                                        <span class="text-muted">EACII. Indemnización Por Vacacion.</span>
                                     </button>
                                 </h2>
                                 <div id="divIndemnizaVacacion" class="accordion-collapse collapse">
@@ -339,7 +340,7 @@ $content = <<<HTML
                             <div class="accordion-item">
                                 <h2 class="accordion-header sombra">
                                     <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divLibranzas" aria-expanded="false" aria-controls="divLibranzas">
-                                        <span class="text-primary"></i>EACII. Libranzas.</span>
+                                        <span class="text-primary">EACII. Libranzas.</span>
                                     </button>
                                 </h2>
                                 <div id="divLibranzas" class="accordion-collapse collapse">
@@ -368,7 +369,7 @@ $content = <<<HTML
                             <div class="accordion-item">
                                 <h2 class="accordion-header sombra">
                                     <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divEmbargos" aria-expanded="false" aria-controls="divEmbargos">
-                                        <span class="text-success"></i>EACII. Embargos.</span>
+                                        <span class="text-success">EACII. Embargos.</span>
                                     </button>
                                 </h2>
                                 <div id="divEmbargos" class="accordion-collapse collapse">
@@ -377,9 +378,13 @@ $content = <<<HTML
                                             <thead>
                                                 <tr>
                                                     <th class="text-center bg-sofia">#</th>
-                                                    <th class="text-center bg-sofia">TIPO</th>
+                                                    <th class="text-center bg-sofia">JUZGADO</th>
+                                                    <th class="text-center bg-sofia">TOTAL</th>
+                                                    <th class="text-center bg-sofia">VAL. MES</th>
+                                                    <th class="text-center bg-sofia">PAGADO</th>
                                                     <th class="text-center bg-sofia">INICIA</th>
-                                                    <th class="text-center bg-sofia">DÍAS</th>
+                                                    <th class="text-center bg-sofia">TERMINA</th>
+                                                    <th class="text-center bg-sofia">ESTADO</th>
                                                     <th class="text-center bg-sofia">ACCIONES</th>
                                                 </tr>
                                             </thead>
@@ -392,7 +397,7 @@ $content = <<<HTML
                             <div class="accordion-item">
                                 <h2 class="accordion-header sombra">
                                     <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divSindicatos" aria-expanded="false" aria-controls="divSindicatos">
-                                        <span class="text-info"></i>EACII. Sindicatos.</span>
+                                        <span class="text-info">EACII. Sindicatos.</span>
                                     </button>
                                 </h2>
                                 <div id="divSindicatos" class="accordion-collapse collapse">
@@ -401,9 +406,13 @@ $content = <<<HTML
                                             <thead>
                                                 <tr>
                                                     <th class="text-center bg-sofia">#</th>
-                                                    <th class="text-center bg-sofia">TIPO</th>
+                                                    <th class="text-center bg-sofia">SINDICATO</th>
+                                                    <th class="text-center bg-sofia">PORCENTAJE</th>
+                                                    <th class="text-center bg-sofia">APORTADO</th>
                                                     <th class="text-center bg-sofia">INICIA</th>
-                                                    <th class="text-center bg-sofia">DÍAS</th>
+                                                    <th class="text-center bg-sofia">TERMINA</th>
+                                                    <th class="text-center bg-sofia">SINDICALIZACIÓN</th>
+                                                    <th class="text-center bg-sofia">ESTADO</th>
                                                     <th class="text-center bg-sofia">ACCIONES</th>
                                                 </tr>
                                             </thead>
@@ -416,7 +425,7 @@ $content = <<<HTML
                             <div class="accordion-item">
                                 <h2 class="accordion-header sombra">
                                     <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divOtroDescuento" aria-expanded="false" aria-controls="divOtroDescuento">
-                                        <span class="text-secondary"></i>EACII. Otros Descuentos.</span>
+                                        <span class="text-secondary">EACII. Otros Descuentos.</span>
                                     </button>
                                 </h2>
                                 <div id="divOtroDescuento" class="accordion-collapse collapse">
@@ -426,12 +435,75 @@ $content = <<<HTML
                                                 <tr>
                                                     <th class="text-center bg-sofia">#</th>
                                                     <th class="text-center bg-sofia">TIPO</th>
+                                                    <th class="text-center bg-sofia">CONCEPTO</th>
+                                                    <th class="text-center bg-sofia">VALOR</th>
                                                     <th class="text-center bg-sofia">INICIA</th>
-                                                    <th class="text-center bg-sofia">DÍAS</th>
+                                                    <th class="text-center bg-sofia">TERMINA</th>
+                                                    <th class="text-center bg-sofia">APORTADO</th>
+                                                    <th class="text-center bg-sofia">ESTADO</th>
                                                     <th class="text-center bg-sofia">ACCIONES</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="modificaOtroDescuento">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header sombra">
+                    <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divOtros" aria-expanded="false" aria-controls="divOtros">
+                        <span class="text-secondary"><i class="fas fa-user-tag me-2 fa-lg"></i>VIÑETA. Otros.</span>
+                    </button>
+                </h2>
+                <div id="divOtros" class="accordion-collapse collapse">
+                    <div class="accordion-body bg-wiev">
+                        <div class="accordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header sombra">
+                                    <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divCcosto" aria-expanded="false" aria-controls="divCcosto">
+                                        <span class="text-primary">EACII. Centro de Costo.</span>
+                                    </button>
+                                </h2>
+                                <div id="divCcosto" class="accordion-collapse collapse">
+                                    <div class="accordion-body bg-wiev">
+                                        <table id="tableCcosto" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center bg-sofia">#</th>
+                                                    <th class="text-center bg-sofia">NOMBRE</th>
+                                                    <th class="text-center bg-sofia">FECHA</th>
+                                                    <th class="text-center bg-sofia">ACCIONES</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="modificaCcosto">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header sombra">
+                                    <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divIvivienda" aria-expanded="false" aria-controls="divIvivienda">
+                                        <span class="text-success">EACII. Interés de Vivienda.</span>
+                                    </button>
+                                </h2>
+                                <div id="divIvivienda" class="accordion-collapse collapse">
+                                    <div class="accordion-body bg-wiev">
+                                        <table id="tableIvivienda" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center bg-sofia">#</th>
+                                                    <th class="text-center bg-sofia">FECHA</th>
+                                                    <th class="text-center bg-sofia">VALOR</th>
+                                                    <th class="text-center bg-sofia">ACCIONES</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="modificaIvivienda">
                                             </tbody>
                                         </table>
                                     </div>

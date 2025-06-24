@@ -68,6 +68,16 @@ class Combos
                 ORDER BY `nom_centro` ASC ";
         return (new self())->setConsulta($sql, $id);
     }
+
+    public  static function getMeses($id = 0)
+    {
+        $sql = "SELECT
+                    `codigo`,`nom_mes`
+                FROM `nom_meses`
+                ORDER BY `codigo` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
+
     public  static function getCategoriaTercero($id = 0, $cat = '')
     {
         $where = '';

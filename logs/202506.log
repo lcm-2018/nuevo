@@ -8,3 +8,8 @@
 [2025-06-11 17:29:44] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_licencia_luto` WHERE `id_licluto` = 2;
 [2025-06-11 17:36:10] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_licenciasnr` WHERE `id_licnr` = 1;
 [2025-06-12 09:58:42] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_indemniza_vac` WHERE `id_indemniza` = 3;
+[2025-06-16 17:44:37] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_libranzas` WHERE `id_libranza` = 12;
+[2025-06-17 11:57:40] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_embargos` WHERE `id_embargo` = 5;
+[2025-06-17 14:44:06] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_cuota_sindical` WHERE `id_cuota_sindical` = 26;
+[2025-06-18 10:20:35] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_ccosto_empleado` WHERE `id_cc_emp` = 66;
+[2025-06-18 11:10:42] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_intereses_vivienda` WHERE `id_intv` = 1;

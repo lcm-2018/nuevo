@@ -88,4 +88,12 @@ class Sesion
         $date = new DateTime('now', new DateTimeZone('America/Bogota'));
         return $date->format('Y-m-d');
     }
+
+    public static function FechaFinal($mes)
+    {
+        $year = self::Vigencia();
+        $fecha = new DateTime("$year-$mes-01");
+        $fecha->modify('last day of this month');
+        return $fecha->format('Y-m-d');
+    }
 }

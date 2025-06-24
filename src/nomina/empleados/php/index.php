@@ -15,6 +15,7 @@ $host = Plantilla::getHost();
 $content = <<<HTML
 <div class="card w-100">
     <div class="card-header bg-sofia text-white">
+        <button class="btn btn-xs me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
         <b>GESTIÓN DE EMPLEADOS</b>
     </div>
     <div class="card-body p-2 bg-wiev">
@@ -42,7 +43,6 @@ $content = <<<HTML
                             <i class="fas fa-filter"></i>
                         </button>
                     </th>
-
                 </tr>
                 <tr>
                     <th class="bg-sofia text-muted">ID</th>

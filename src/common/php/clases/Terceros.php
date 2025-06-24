@@ -19,13 +19,28 @@ class Terceros
      * @param int $busca El valor a buscar en la base de datos
      * @return array Retorna un array con los datos del formulario
      */
-    public function getTerceros($busca)
+    public function getTerceros($busca, $tipo = NULL)
     {
-        $sql = "SELECT `id_tercero_api` AS `id`, `nom_tercero` AS `value`, `nit_tercero` AS `cedula` FROM `tb_terceros` 
-                WHERE (`id_tercero_api` LIKE :busca OR `nom_tercero` LIKE :busca  OR `nit_tercero` LIKE :busca ) AND `estado` = 1 AND `id_tercero_api` IS NOT NULL
+        $where = '';
+
+        if ($tipo !== NULL) {
+            $where = " AND `tb_rel_tercero`.`id_tipo_tercero` = :tipo ";
+        }
+        $sql = "SELECT 
+                    `tb_terceros`.`id_tercero_api` AS `id`
+                    , `tb_terceros`.`nom_tercero` AS `value`
+                    , `tb_terceros`.`nit_tercero` AS `cedula` 
+                FROM `tb_terceros`
+                    LEFT JOIN `tb_rel_tercero` 
+                        ON (`tb_terceros`.`id_tercero_api` = `tb_rel_tercero`.`id_tercero_api`)
+                WHERE (`id_tercero_api` LIKE :busca OR `nom_tercero` LIKE :busca  OR `nit_tercero` LIKE :busca ) 
+                    AND `estado` = 1 AND `id_tercero_api` IS NOT NULL $where
                 ORDER BY `nom_tercero` ASC";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(':busca', '%' . $busca . '%', PDO::PARAM_STR);
+        if ($tipo !== NULL) {
+            $stmt->bindValue(':tipo', $tipo, PDO::PARAM_INT);
+        }
         $stmt->execute();
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $resultado = [];

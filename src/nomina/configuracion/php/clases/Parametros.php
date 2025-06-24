@@ -241,7 +241,8 @@ class Parametros
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->bindValue(2, Sesion::IdVigencia(), PDO::PARAM_INT);
             $stmt->execute();
-            return $stmt->fetch(PDO::FETCH_ASSOC)['valor'] ?: 0;
+            $valor = $stmt->fetch(PDO::FETCH_ASSOC);
+            return !empty($valor) ? $valor['valor'] : 0;
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }

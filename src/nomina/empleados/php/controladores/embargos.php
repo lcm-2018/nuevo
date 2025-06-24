@@ -10,7 +10,10 @@ $id = $_POST['id'];
 
 include_once '../../../../../config/autoloader.php';
 
+use Config\Clases\Sesion;
 use Src\Nomina\Empleados\Php\Clases\Embargos;
+use Src\Nomina\Configuracion\Php\Clases\Parametros;
+use Src\Nomina\Empleados\Php\Clases\Empleados;
 
 $Embargos = new Embargos();
 $res['status'] = ' error';
@@ -58,7 +61,25 @@ switch ($action) {
         $res['status'] = 'ok';
         $res['msg'] = 'Mensaje a imprimir';
         break;
+    case 'dcto':
+        $smmlv = Parametros::Smmlv();
+        $salario = Empleados::getSalarioBasico($_POST['id_empleado']);
+        $valor = 0;
+        if ($_POST['tipo'] == '1') {
+            $saldo = $salario - $smmlv;
+            if ($saldo <= 0) {
+                $res['msg'] = 'Salario no embargable';
+            } else {
+                $res['status'] = 'ok';
+                $valor = $saldo * 0.2;
+            }
+        } else {
+            $res['status'] = 'ok';
+            $valor = $salario * 0.5;
+        }
+        $res['valor'] = $valor;
     default:
+
         break;
 }
 

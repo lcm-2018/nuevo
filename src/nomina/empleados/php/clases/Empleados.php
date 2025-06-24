@@ -1164,4 +1164,10 @@ class Empleados
         $stmt->bindValue(7, Sesion::Hoy(), PDO::PARAM_STR);
         $stmt->execute();
     }
+
+    public static function getSalarioBasico($id)
+    {
+        $Instance = new self();
+        return $Instance->getSalario($Instance->getContratoActivo($id));
+    }
 }

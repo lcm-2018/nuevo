@@ -84,7 +84,7 @@ class Plantilla
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="#" class="nav-link text-info p-1 sombra">
+                                                            <a href="{$host}/src/nomina/horas_extra/php/index.php" class="nav-link text-info p-1 sombra">
                                                                 <i class="fas fa-user-clock me-2 fa-fw"></i> Horas Extra
                                                             </a>
                                                         </li>

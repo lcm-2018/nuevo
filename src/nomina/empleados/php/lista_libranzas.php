@@ -21,10 +21,12 @@ $id_user = $_SESSION['id_user'];
 
 use Src\Nomina\Empleados\Php\Clases\Libranzas;
 use Src\Common\Php\Clases\Permisos;
+use Src\Common\Php\Clases\Valores;
 
 
 $sql        = new Libranzas();
 $permisos   = new Permisos();
+$Valores    = new Valores();
 
 $opciones =             $permisos->PermisoOpciones($id_user);
 $obj =                  $sql->getRegistrosDT($start, $length, $busca, $col, $dir);
@@ -34,7 +36,7 @@ $totalRecords =         $sql->getRegistrosTotal($busca);
 $datos = [];
 if (!empty($obj)) {
     foreach ($obj as $o) {
-        $id = $o['id_indemniza'];
+        $id = $o['id_libranza'];
         $actualizar = $eliminar = '';
         if ($permisos->PermisosUsuario($opciones, 5101, 3) || $id_rol == 1) {
             $actualizar = '<button data-id="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle shadow me-1 actualizar" title="Actualizar"><span class="fas fa-pencil-alt fa-sm"></span></button>';
@@ -42,21 +44,22 @@ if (!empty($obj)) {
         if ($permisos->PermisosUsuario($opciones, 5101, 4) || $id_rol == 1) {
             $eliminar = '<button data-id="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 eliminar" title="Eliminar"><span class="fas fa-trash-alt fa-sm"></span></button>';
         }
-        if ($o['estado'] == '2') {
+        if ($o['estado'] == '0') {
             $actualizar = $eliminar = '';
         }
+        $estado = $o['estado'] == 1 ? '<a href="javascript:CambiaEstadoDeducido(' . $id . ',0,\'libranzas\');" title="Inactivar"><i class="fas fa-toggle-on fa-lg text-success"></i></a>' : '<a href="javascript:CambiaEstadoDeducido(' . $id . ',1,\'libranzas\');" title="Activar"><i class="fas fa-toggle-off fa-lg text-secondary"></i></a>';
 
         $datos[] = [
             'id'      => $id,
-            'entidad' => $o['id_libranza'],
-            'total'   => $o['nom_banco'],
-            'val_mes' => $o['valor_total'],
-            'pagado'  => $o['cuotas'],
-            'cuotas'  => $o['val_mes'],
-            'inicia'  => $o['fec_inica'],
-            'termina' => $o['fec_fin'],
-            'estado'  => $o['cant_dias'],
-            'accione' => '<div class="text-center">' . $actualizar . $eliminar . '</div>',
+            'entidad' => $o['nom_banco'],
+            'total'   => $Valores->Pesos($o['valor_total']),
+            'val_mes' => $Valores->Pesos($o['val_mes']),
+            'pagado'  => $Valores->Pesos($o['pagado']),
+            'cuotas'  => $o['cuotas'],
+            'inicia'  => $o['fecha_inicio'],
+            'termina' => $o['fecha_fin'],
+            'estado'  => '<div class="text-center">' . $estado . '</div>',
+            'acciones' => '<div class="text-center">' . $actualizar . $eliminar . '</div>',
         ];
     }
 }
