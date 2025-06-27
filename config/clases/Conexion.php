@@ -11,8 +11,8 @@ class Conexion
     private $conexion;
 
     private $bd_driver = "mysql";
-    private $bd_servidor = "localhost";
-    private $bd_base = "ips_mun";
+    private $bd_servidor = "localhost:3308";
+    private $bd_base = "bd_cronhis";
     private $bd_usuario = "root";
     private $bd_clave = "12345";
     private $charset = "charset=utf8";

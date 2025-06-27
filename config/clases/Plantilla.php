@@ -101,27 +101,84 @@ class Plantilla
                                                 <div class="collapse" id="liquidacion-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
-                                                            <a href="{$host}/src/nomina/configuracion/php/index.php" class="nav-link text-success p-1 sombra">
-                                                                <i class="fas fa-cogs me-2 fa-fw"></i> Configuración
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="{$host}/src/nomina/empleados/php/index.php" class="nav-link text-warning p-1 sombra">
-                                                                <i class="fas fa-users me-2 fa-fw"></i> Empleados
-                                                            </a>
-                                                        </li>
-                                                        <li>
                                                             <a href="#" class="nav-link text-primary p-1 sombra">
-                                                                <i class="fas fa-user-clock me-2 fa-fw"></i> Horas Extra
+                                                                <i class="fas fa-suitcase-rolling me-2 fa-fw"></i> Viáticos
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="{$host}/src/nomina/liquidacion/php/index.php" class="nav-link text-success p-1 sombra">
+                                                                <i class="far fa-calendar-alt me-2 fa-fw"></i> Mensual
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="#" class="nav-link text-info p-1 sombra">
+                                                                <i class="fas fa-clone me-2 fa-fw"></i> Retroactivo
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="#" class="nav-link text-muted p-1 sombra">
+                                                                <i class="fas fa-umbrella-beach me-2 fa-fw"></i> Vacaciones
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="#" class="nav-link text-warning p-1 sombra">
+                                                                <i class="fas fa-people-arrows me-2 fa-fw"></i> Prestaciones
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="#" class="nav-link text-secondary p-1 sombra">
+                                                                <i class="fas fa-money-check-alt me-2 fa-fw"></i> Prima Servicios
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="#" class="nav-link text-primary-emphasis p-1 sombra">
+                                                                <i class="fas fa-candy-cane me-2 fa-fw"></i> Prima Navidad
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="#" class="nav-link text-success-emphasis p-1 sombra">
+                                                                <i class="fas fa-piggy-bank me-2 fa-fw"></i> Cesantías
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="#" class="nav-link text-info-emphasis p-1 sombra">
+                                                                <i class="fas fa-check-double me-2 fa-fw"></i> Liquidación Final
                                                             </a>
                                                         </li>
                                                     </ul>
                                                 </div>
                                                 <li>
-                                                    <a href="#" class="nav-link text-info p-1 sombra">
-                                                        <i class="fas fa-caret-right me-2 fa-fw"></i> Subopcion 4
+                                                    <a href="#reporte-collapse" class="nav-link d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-info">
+                                                            <i class="fas fa-file-invoice-dollar fa-sm me-2"></i> Reportes
+                                                        </span>
+                                                        <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
                                                     </a>
                                                 </li>
+                                                <div class="collapse" id="reporte-collapse">
+                                                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                        <li>
+                                                            <a href="#" class="nav-link text-primary p-1 sombra">
+                                                                <i class="fas fa-cogs me-2 fa-fw"></i> Soporte NE
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="#" class="nav-link text-success p-1 sombra">
+                                                                <i class="fas fa-users me-2 fa-fw"></i> Certificados
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="#" class="nav-link text-info p-1 sombra">
+                                                                <i class="fas fa-user-clock me-2 fa-fw"></i> Informes
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="#" class="nav-link text-muted p-1 sombra">
+                                                                <i class="fas fa-cogs me-2 fa-fw"></i> Inf. Personalizados
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
                                             </ul>
                                         </div>
                                     </li>

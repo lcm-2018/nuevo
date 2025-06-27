@@ -5,6 +5,7 @@ namespace Src\Nomina\Empleados\Php\Clases;
 use Config\Clases\Conexion;
 use Config\Clases\Logs;
 use Config\Clases\Sesion;
+use Src\Nomina\Empleados\Php\Clases\Novedades;
 
 use PDO;
 use PDOException;
@@ -57,10 +58,21 @@ class Incapacidades
                     , `nom_incapacidad`.`fec_fin`
                     , `nom_incapacidad`.`can_dias`
                     , IF(`nom_incapacidad`.`categoria` = 1, 'INICIAL','PRORROGA') AS `categoria`
+                    , IFNULL(`liq`.`id_incapacidad`, 0) AS `liq`
                 FROM
                     `nom_incapacidad`
                     INNER JOIN `nom_tipo_incapacidad` 
                         ON (`nom_incapacidad`.`id_tipo` = `nom_tipo_incapacidad`.`id_tipo`)
+                    LEFT JOIN
+                        (SELECT
+                            `li`.`id_incapacidad`
+                        FROM
+                            `nom_liq_incap` AS `li`
+                            INNER JOIN `nom_nominas` AS `n` 
+                                ON (`li`.`id_nomina` = `n`.`id_nomina`)
+                        WHERE (`n`.`estado` > 0)
+                        GROUP BY `li`.`id_incapacidad`) AS `liq`
+                        ON (`nom_incapacidad`.`id_incapacidad` = `liq`.`id_incapacidad`)
                 WHERE (1 = 1 $where)
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
@@ -252,6 +264,7 @@ class Incapacidades
             $stmt->execute();
             if ($stmt->rowCount() > 0) {
                 Logs::guardaLog($consulta);
+                (new Novedades())->delRegistro(1, $id); // Elimina la novedad asociada a la incapacidad
                 return 'si';
             } else {
                 return 'No se eliminó el registro.';
@@ -270,9 +283,11 @@ class Incapacidades
     public function addRegistro($array)
     {
         try {
+            $this->conexion->beginTransaction();
+
             $sql = "INSERT INTO `nom_incapacidad`
-                        (`id_empleado`,`id_tipo`,`fec_inicio`,`fec_fin`,`can_dias`,`categoria`,`fec_reg`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+                    (`id_empleado`,`id_tipo`,`fec_inicio`,`fec_fin`,`can_dias`,`categoria`,`fec_reg`)
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['slcTipo'], PDO::PARAM_INT);
@@ -282,16 +297,32 @@ class Incapacidades
             $stmt->bindValue(6, $array['slcCategoria'], PDO::PARAM_INT);
             $stmt->bindValue(7, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->execute();
+
             $id = $this->conexion->lastInsertId();
+
             if ($id > 0) {
-                return 'si';
+                $array['novedad'] = $id;
+                $array['tipo'] = 1;
+                $Novedad = new Novedades($this->conexion);
+                $resultado = $Novedad->addRegistro($array);
+
+                if ($resultado === 'si') {
+                    $this->conexion->commit();
+                    return 'si';
+                } else {
+                    $this->conexion->rollBack();
+                    return $resultado;
+                }
             } else {
-                return 'No se insertó el registro';
+                $this->conexion->rollBack();
+                return 'No se insertó el registro.';
             }
         } catch (PDOException $e) {
+            $this->conexion->rollBack();
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+
     /**
      * Actualiza los datos de un registro.
      *
@@ -301,6 +332,7 @@ class Incapacidades
     public function editRegistro($array)
     {
         try {
+            $this->conexion->beginTransaction();
             $sql = "UPDATE `nom_incapacidad`
                     SET `id_tipo` = ?, `fec_inicio` = ?, `fec_fin` = ?, `can_dias` = ?, `categoria` = ?
                 WHERE `id_incapacidad` = ?";
@@ -317,11 +349,24 @@ class Incapacidades
                 $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
                 $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
-                return 'si';
+                $Novedad = new Novedades($this->conexion);
+                $Novedad->delRegistro(1, $array['id']);
+                $array['novedad'] = $array['id'];
+                $array['tipo'] = 1; // Tipo de novedad para incapacidades
+                $resultado = $Novedad->addRegistro($array);
+                if ($resultado === 'si') {
+                    $this->conexion->commit();
+                    return 'si';
+                } else {
+                    $this->conexion->rollBack();
+                    return $resultado;
+                }
             } else {
+                $this->conexion->rollBack();
                 return 'No se actualizó el registro.';
             }
         } catch (PDOException $e) {
+            $this->conexion->rollBack();
             return 'Error SQL: ' . $e->getMessage();
         }
     }

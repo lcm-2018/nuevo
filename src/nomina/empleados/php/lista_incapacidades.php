@@ -18,7 +18,6 @@ $busca =                    $_POST['search'];
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 
-use Config\Clases\Sesion;
 use Src\Nomina\Empleados\Php\Clases\Incapacidades;
 use Src\Common\Php\Clases\Permisos;
 
@@ -42,8 +41,8 @@ if (!empty($obj)) {
         if ($permisos->PermisosUsuario($opciones, 5101, 4) || $id_rol == 1) {
             $eliminar = '<button data-id="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 eliminar" title="Eliminar"><span class="fas fa-trash-alt fa-sm"></span></button>';
         }
-        $hoy = Sesion::_Hoy();
-        if ($hoy > $o['fec_fin']) {
+
+        if ($o['liq'] > 0) {
             $eliminar = $actualizar = '';
         }
         $color = $o['categoria'] == 'INICIAL' ? 'info' : 'primary';

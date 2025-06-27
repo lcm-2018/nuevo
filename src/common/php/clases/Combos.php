@@ -92,6 +92,17 @@ class Combos
         return (new self())->setConsulta($sql, $id);
     }
 
+    public  static function getTipoLiquidacion($id = 2)
+    {
+        $sql = "SELECT
+                    `id_tipo`,`descripcion`
+                FROM `nom_tipo_liquidacion`
+                WHERE `id_tipo` > 1
+                ORDER BY 
+                    (`descripcion` = 'MENSUAL EMPLEADOS') DESC, `descripcion`";
+        return (new self())->setConsulta($sql, $id);
+    }
+
     public function setConsulta($sql, $id)
     {
         $sql = $sql;
