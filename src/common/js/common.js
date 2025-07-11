@@ -79,6 +79,8 @@ const Serializa = (...formularios) => {
                     } else if (input.type === 'checkbox') {
                         if (input.checked) {
                             datos.append(input.name, input.value);
+                        } else {
+                            console.log(`Checkbox con nombre '${input.name}' no está seleccionado.`);
                         }
                     } else {
                         datos.append(input.name, input.value);
@@ -188,12 +190,24 @@ const SubmitPost = (url, name, valor) => {
 * @returns { DataTable } - Instancia de DataTable inicializada.
 */
 function crearDataTable(selector, urlDatos, columnas, botones, otros, data = {}, busca = true) {
+    const tableElement = typeof selector === 'string' ? document.querySelector(selector) : selector;
+    if ($.fn.DataTable.isDataTable(selector)) {
+        $(selector).DataTable().destroy();
+    }
+    if (tableElement && !tableElement.parentElement.classList.contains('table-responsive')) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'table-responsive';
+        tableElement.parentElement.insertBefore(wrapper, tableElement);
+        wrapper.appendChild(tableElement);
+    }
+
     return new DataTable(selector, {
         language: dataTable_es,
         serverSide: true,
         processing: true,
         searching: busca,
         searchDelay: 1000000,
+        scrollX: true,
         ajax: {
             url: urlDatos,
             type: 'POST',
@@ -209,6 +223,7 @@ function crearDataTable(selector, urlDatos, columnas, botones, otros, data = {},
             "<'row'<'col-sm-6'i><'col-sm-6 d-flex justify-content-end'p>>",
         buttons: botones,
         order: [[0, "desc"]],
+        orderCellsTop: true,
         lengthMenu: [
             [10, 25, 50, 100, -1],
             [10, 25, 50, 100, 'TODO'],
@@ -404,3 +419,11 @@ const DiasRangoFechas = (fechaInicio, fechaFin, input) => {
     }
     document.getElementById(input).value = dias;
 }
+
+const SelectAll = (maestro) => {
+    const estado = maestro.checked ? 'checked' : '';
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.checked = estado;
+    });
+};

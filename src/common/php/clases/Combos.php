@@ -102,6 +102,11 @@ class Combos
                     (`descripcion` = 'MENSUAL EMPLEADOS') DESC, `descripcion`";
         return (new self())->setConsulta($sql, $id);
     }
+    public  static function getMetodoPago($id = 47)
+    {
+        $sql = "SELECT `codigo`,`metodo` FROM `nom_metodo_pago` ORDER BY `metodo` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
 
     public function setConsulta($sql, $id)
     {

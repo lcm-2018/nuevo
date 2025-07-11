@@ -48,10 +48,10 @@ class Liquidacion
         $where = '';
         if (!empty($array)) {
             if (isset($array['filter_nodoc']) && $array['filter_nodoc'] != '') {
-                $where .= " AND `tt`.`no_documento` LIKE '%{$array['filter_nodoc']}%'";
+                $where .= " AND `taux`.`no_documento` LIKE '%{$array['filter_nodoc']}%'";
             }
             if (isset($array['filter_nombre']) && $array['filter_nombre'] != '') {
-                $where .= " AND `tt`.`nombre` LIKE '%{$array['filter_nombre']}%'";
+                $where .= " AND `taux`.`nombre` LIKE '%{$array['filter_nombre']}%'";
             }
         }
         $mes = $array['filter_mes'];
@@ -60,24 +60,63 @@ class Liquidacion
         $fec_fin = date('Y-m-t', strtotime($fec_inicio));
 
         $sql = "SELECT 
-                    `ctt`.`id_empleado`
-                    , `e`.`no_documento`
-                    , CONCAT_WS(' ',`e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`
+                    `taux`.`id_empleado`
+                    , `taux`.`no_documento`
+                    , `taux`.`nombre`
+                    , IFNULL(`tt`.`inc`,0) AS `inc`
+                    , IFNULL(`tt`.`lic`,0) AS `lic`
+                    , IFNULL(`tt`.`vac`,0) AS `vac`
+                    , DATEDIFF('$fec_fin', '$fec_inicio') + 1 AS `dias_mes`
+                    , IF(`obs`.`corte` > 0,  DATEDIFF('$fec_fin', `obs`.`corte`), 0) AS `observacion`
                 FROM
-                    (SELECT
-                        `id_empleado`
-                        , `fec_inicio`
-                        , IFNULL(`fec_fin`,'2999-12-31') AS `fec_fin`
+                    (SELECT 
+                        `ctt`.`id_empleado`,
+                        `e`.`no_documento`,
+                        CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`
                     FROM
-                        `nom_contratos_empleados`
-                    WHERE (`id_contrato_emp` 
-                        IN (SELECT MAX(`id_contrato_emp`) AS `id` 
-                        FROM `nom_contratos_empleados` 
-                        WHERE (`estado` = 1) GROUP BY `id_empleado`))) AS `ctt`
-                    INNER JOIN `nom_empleado` `e` 
-                        ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
-                WHERE '2025-06-01' BETWEEN `ctt`.`fec_inicio` AND `ctt`.`fec_fin`
-                ORDER BY `e`.`no_documento`, `nombre`  
+                        (SELECT
+                            `id_empleado`,
+                            `fec_inicio`,
+                            IFNULL(`fec_fin`, '2999-12-31') AS `fec_fin`
+                        FROM
+                            `nom_contratos_empleados`
+                        WHERE `id_contrato_emp` IN (
+                            SELECT MAX(`id_contrato_emp`) 
+                            FROM `nom_contratos_empleados` 
+                            WHERE `estado` = 1 
+                            GROUP BY `id_empleado`)
+                        ) AS `ctt`
+                        INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
+                    WHERE  '$fec_fin' >= `ctt`.`fec_inicio` AND '$fec_inicio' <= `ctt`.`fec_fin`
+                    ORDER BY `e`.`no_documento`, `nombre`) AS `taux`
+                    LEFT JOIN
+                        (SELECT 
+                            `id_empleado`
+                            , SUM(CASE WHEN `id_tipo` = 1 THEN 1 ELSE 0 END) AS `inc`
+                            , SUM(CASE WHEN `id_tipo` = 2 THEN 1 ELSE 0 END) AS `vac`
+                            , SUM(CASE WHEN `id_tipo` = 3 THEN 1 ELSE 0 END) AS `lic`
+                        FROM 
+                            `nom_calendar_novedad`
+                        WHERE 
+                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3)
+                        GROUP BY `id_empleado`) AS `tt`
+                        ON (`taux`.`id_empleado` = `tt`.`id_empleado`) 
+                    LEFT JOIN
+                        (SELECT
+                            `id_empleado`,IFNULL(`corte`,0) AS `corte`
+                        FROM `nom_vacaciones`
+                        WHERE `id_vac` IN
+                            (SELECT
+                                MAX(`nom_vacaciones`.`id_vac`) AS `id`
+                            FROM
+                                `nom_liq_vac`
+                                INNER JOIN `nom_vacaciones` 
+                                ON (`nom_liq_vac`.`id_vac` = `nom_vacaciones`.`id_vac`)
+                                INNER JOIN `nom_nominas` 
+                                ON (`nom_liq_vac`.`id_nomina` = `nom_nominas`.`id_nomina`)
+                            WHERE (`nom_nominas`.`estado` = 5)
+                            GROUP BY `nom_vacaciones`.`id_empleado`)) AS `obs`
+                        ON (`taux`.`id_empleado` = `obs`.`id_empleado`)
                 WHERE (1 = 1 $where)
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
@@ -287,68 +326,6 @@ class Liquidacion
             }
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
-        }
-    }
-
-    public function addMasivo($files, $post)
-    {
-        if (!isset($files['fileHE']) || $files['fileHE']['error'] !== UPLOAD_ERR_OK) {
-            return 'Error al subir el archivo CSV.';
-        }
-        $csvFile = $files['fileHE']['tmp_name'];
-        $handle = fopen($csvFile, 'r');
-        if (!$handle) {
-            return 'No se pudo abrir el archivo.';
-        }
-        $empleados = (new Empleados())->getEmpleados();
-        $this->conexion->beginTransaction();
-        try {
-            $rowIndex = 0;
-            while (($row = fgetcsv($handle, 1000, ";")) !== false) {
-                // Omitir encabezado
-                if ($rowIndex++ === 0) continue;
-
-                // Validar cantidad de columnas
-                if (count($row) !== 10) {
-                    throw new Exception("Fila $rowIndex: número de columnas incorrecto.");
-                }
-                // en un array colocar todos los datos del csv de la fila 
-                $cedula = trim($row[0]);
-                $key = array_search($cedula, array_column($empleados, 'no_documento'));
-                if ($key === false) {
-                    throw new Exception("Fila $rowIndex: cédula no encontrada.");
-                } else {
-                    $array = [
-                        'id_empleado' => $empleados[$key]['id_empleado'],
-                        'datFecInicia' => $this->normalizarFecha($row[1]) . 'T07:00',
-                        'datFecFin' => $this->normalizarFecha($row[2]) . 'T23:59',
-                        'slcTipoLiq' => $post['slcTipo'],
-                    ];
-                    for ($i = 3; $i <= 9; $i++) {
-                        if ($row[$i] > 0) {
-                            $array['slcTipoHora'] = $i - 2;
-                            $array['numCantidad'] = intval($row[$i]);
-
-                            // Agregar registro
-                            $result = self::addRegistro($array);
-                            if ($result !== 'si') {
-                                throw new Exception("Fila $rowIndex: error al agregar registro - " . $result);
-                            }
-                        } else {
-                            continue;
-                        }
-                    }
-                }
-            }
-
-            fclose($handle);
-            $this->conexion->commit();
-
-            return 'si';
-        } catch (Exception $e) {
-            $this->conexion->rollBack();
-            fclose($handle);
-            return 'Error al procesar el archivo: ' . $e->getMessage();
         }
     }
 

@@ -24,7 +24,7 @@ foreach ($_POST as $clave => $valor) {
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 
-
+use Src\Common\Php\Clases\Combos;
 use Src\Nomina\Liquidacion\Php\Clases\Liquidacion;
 use Src\Common\Php\Clases\Permisos;
 use Src\Common\Php\Clases\Valores;
@@ -37,25 +37,26 @@ $opciones =             $permisos->PermisoOpciones($id_user);
 $obj =                  $sql->getRegistrosDT($start, $length, $filtros, $col, $dir);
 $totalRecordsFilter =   $sql->getRegistrosFilter($filtros);
 $totalRecords =         $sql->getRegistrosTotal($filtros);
+$mp =                   Combos::getMetodoPago();
 
 $datos = [];
 if (!empty($obj)) {
     foreach ($obj as $o) {
         $id = $o['id_empleado'];
-        $detalles =  '';
-        if ($permisos->PermisosUsuario($opciones, 5101, 1) || $id_rol == 1) {
-            $detalles = '<button data-id="' . $id . '" class="btn btn-outline-warning btn-xs rounded-circle shadow me-1 detalles" title="Ver detalles"><div class="fas fa-eye fa-sm"></div></button>';
-        }
+        $laborado = 30 - $o['inc'] - $o['lic'] - $o['vac'];
+        $input = '<input type="number" style="height: auto !important;" class="no-focus text-end border-0 rounded p-0 w-100" name="lab[' . $id . ']" value="' . $laborado . '" min="0" max="' . $laborado . '" step="1">';
+        $metodo = '<select style="height:auto !important; max-width: 110px;" class="no-focus border-0 rounded p-0 w-100" name="metodo[' . $id . ']">' . $mp . '</select>';
         $datos[] = [
-            'check'        => $id,
-            'doc'          => '',
-            'nombre'       => '',
-            'observacion'  => '',
-            'laborado'     => '',
-            'incapacidad'  => '',
-            'licencia'     => '',
-            'vacacion'     => '',
-            'otro'         => '',
+            'check'        => '<div class="text-center"><input type="checkbox" name="chk_liquidacion[]" value="' . $id . '" checked></div>',
+            'doc'          => $o['no_documento'],
+            'nombre'       => mb_strtoupper($o['nombre']),
+            'observacion'  => $o['observacion'] >= 365 ? '<span class="text-danger"><b>Vacaciones: ' . ($o['observacion']) . ' días</b></span>' :  '',
+            'laborado'     => $input,
+            'incapacidad'  => $o['inc'],
+            'licencia'     => $o['lic'],
+            'vacacion'     => $o['vac'],
+            'otro'         => 0,
+            'pago'         => $metodo,
         ];
     }
 }

@@ -216,6 +216,7 @@ class Licencias_Luto
             $stmt->execute();
             if ($stmt->rowCount() > 0) {
                 Logs::guardaLog($consulta);
+                (new Novedades())->delRegistro(3, $id);
                 return 'si';
             } else {
                 return 'No se eliminó el registro.';
@@ -248,11 +249,23 @@ class Licencias_Luto
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
-                return 'si';
+                $array['novedad'] = $id;
+                $array['tipo'] = 3;
+                $Novedad = new Novedades($this->conexion);
+                $resultado = $Novedad->addRegistro($array);
+                if ($resultado === 'si') {
+                    $this->conexion->commit();
+                    return 'si';
+                } else {
+                    $this->conexion->rollBack();
+                    return $resultado;
+                }
             } else {
+                $this->conexion->rollBack();
                 return 'No se insertó el registro';
             }
         } catch (PDOException $e) {
+            $this->conexion->rollBack();
             return 'Error SQL: ' . $e->getMessage();
         }
     }
@@ -281,17 +294,30 @@ class Licencias_Luto
                 $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
                 $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
-                return 'si';
+                $Novedad = new Novedades($this->conexion);
+                $Novedad->delRegistro(3, $array['id']);
+                $array['novedad'] = $array['id'];
+                $array['tipo'] = 3;
+                $resultado = $Novedad->addRegistro($array);
+                if ($resultado === 'si') {
+                    $this->conexion->commit();
+                    return 'si';
+                } else {
+                    $this->conexion->rollBack();
+                    return $resultado;
+                }
             } else {
+                $this->conexion->rollBack();
                 return 'No se actualizó el registro.';
             }
         } catch (PDOException $e) {
+            $this->conexion->rollBack();
             return 'Error SQL: ' . $e->getMessage();
         }
     }
 
     public function annulRegistro($array)
     {
-        return 'Falta programar la anulación de registro de seguridad social.';
+        return 'Falta programar la anulación de registro.';
     }
 }

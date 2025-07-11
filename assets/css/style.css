@@ -71,6 +71,12 @@ body {
     background-color: #48C9B066;
 }
 
+.no-focus:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
+}
+
 .btn-xs {
     width: 1.5rem;
     height: 1.5rem;

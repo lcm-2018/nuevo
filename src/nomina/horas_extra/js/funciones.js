@@ -85,7 +85,7 @@ if (document.querySelector('#tableHorasExtra tbody')) {
             input.addEventListener('blur', function () {
                 const nuevoValor = input.value;
                 btnActualizar.textContent = nuevoValor;
-                if (nuevoValor !== valor) {
+                if (nuevoValor !== valor && nuevoValor >= 0) {
                     mostrarOverlay();
                     const data = new FormData();
                     data.append('id', id);
@@ -108,6 +108,7 @@ if (document.querySelector('#tableHorasExtra tbody')) {
             input.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     input.blur();
+                    tableHorasExtra.ajax.reload(null, false);
                 }
             });
         }
