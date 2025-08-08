@@ -287,29 +287,30 @@ class Empleados
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
     }
 
-    public function getRegistro($id)
+    public function getRegistro()
     {
-        return 'Falta programar la obtención de registros.';
         $sql = "SELECT
-                `id_cargo`, `codigo`, `descripcion_carg`, `grado`, `perfil_siho`, `id_nombramiento`
-            FROM
-                `nom_cargo_empleado`
-            WHERE (`id_cargo` = $id)";
+                    IF(`nom_terceros`.`id_tipo` = 3, CONCAT_WS('|',`nom_terceros_novedad`.`id_tercero`,`nom_riesgos_laboral`.`cotizacion`),`nom_terceros_novedad`.`id_tercero`) AS `id_tercero`
+                    , `nom_terceros_novedad`.`id_empleado`
+                    , `nom_terceros`.`id_tipo`
+                FROM
+                    `nom_terceros_novedad`
+                    INNER JOIN `nom_terceros` 
+                        ON (`nom_terceros_novedad`.`id_tercero` = `nom_terceros`.`id_tn`)
+                    LEFT JOIN `nom_riesgos_laboral`
+                    ON (`nom_terceros_novedad`.`id_riesgo` = `nom_riesgos_laboral`.`id_rlab`)
+                WHERE `nom_terceros_novedad`.`id_novedad` IN
+                    (SELECT
+                        MAX(`nom_terceros_novedad`.`id_novedad`) AS `novedad`
+                    FROM
+                        `nom_terceros_novedad`
+                        INNER JOIN `nom_terceros` 
+                        ON (`nom_terceros_novedad`.`id_tercero` = `nom_terceros`.`id_tn`)
+                    GROUP BY `nom_terceros_novedad`.`id_tercero`, `nom_terceros_novedad`.`id_empleado`, `nom_terceros`.`id_tipo`)";
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
-        $cargo = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (empty($cargo)) {
-            $cargo = [
-                'id_cargo' => 0,
-                'codigo' => 0,
-                'descripcion_carg' => '',
-                'grado' => '',
-                'perfil_siho' => '',
-                'id_nombramiento' => 0
-            ];
-        }
-        return $cargo;
+        $novedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return !empty($novedades) ? $novedades : [];
     }
 
 
@@ -1078,6 +1079,48 @@ class Empleados
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+
+    public function getSalarioMasivo($mes)
+    {
+        $inicia = Sesion::Vigencia() . '-' . $mes . '-01';
+        $fin = date('Y-m-t', strtotime($inicia));
+        try {
+            $sql = "SELECT 
+                        `ctt`.`id_empleado`
+                        , IFNULL(`salario`.`salario_basico`,0) AS `basico`
+                    FROM
+                        (SELECT
+                            `id_empleado`
+                            , `fec_inicio`
+                            , IFNULL(`fec_fin`, '2999-12-31') AS `fec_fin`
+                            , `id_contrato_emp`
+                        FROM
+                            `nom_contratos_empleados`
+                        WHERE `id_contrato_emp` IN 
+                            (SELECT MAX(`id_contrato_emp`) 
+                            FROM `nom_contratos_empleados` 
+                            WHERE `estado` = 1 GROUP BY `id_empleado`)) AS `ctt`
+                        INNER JOIN 
+                            (SELECT
+                                `id_contrato`, `salario_basico`
+                            FROM
+                                `nom_salarios_basico`
+                            WHERE `id_salario` IN 
+                                (SELECT MAX(`id_salario`) 
+                                FROM `nom_salarios_basico`
+                                GROUP BY `id_contrato`)) AS `salario`
+                            ON (`ctt`.`id_contrato_emp` = `salario`.`id_contrato`)
+                    WHERE  ? >= `ctt`.`fec_inicio` AND ? <= `ctt`.`fec_fin`";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $inicia, PDO::PARAM_STR);
+            $stmt->bindValue(2, $fin, PDO::PARAM_STR);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
     public function addSalario($array)
     {
         try {

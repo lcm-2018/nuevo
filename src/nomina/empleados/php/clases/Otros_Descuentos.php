@@ -178,6 +178,17 @@ class Otros_Descuentos
         }
         return $registro;
     }
+    public function getRegistroPorEmpleado()
+    {
+        $sql = "SELECT
+                    `id_dcto`,`id_empleado`,`id_tipo_dcto`,`fecha_fin`,`concepto`,`valor`
+                FROM `nom_otros_descuentos`
+                WHERE `estado`  = 1";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $registro;
+    }
 
 
     /**

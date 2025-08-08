@@ -199,11 +199,38 @@ class Horas_Extra
     }
 
     /**
+     * Obtiene las horas extras por mes.
+     *
+     * @param string $inicia Fecha de inicio
+     * @param string $fin Fecha de fin
+     * @return array|[] Retorna un array con las horas extras o un mensaje de error
+     */
+    public function getHorasPorMes($inicia, $fin)
+    {
+        try {
+            $sql = "SELECT 
+                    `id_he_trab`, `id_empleado`, `nom_horas_ex_trab`.`id_he`, `cantidad_he`, `factor`
+                FROM
+                    `nom_horas_ex_trab`
+                    INNER JOIN `nom_tipo_horaex`
+                        ON (`nom_horas_ex_trab`.`id_he` = `nom_tipo_horaex`.`id_he`)
+                WHERE `fec_inicio` BETWEEN '$inicia' AND '$fin' AND `tipo` = 1";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->execute();
+            $horas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return !empty($horas) ? $horas : [];
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    /**
      * Obtiene el formulario para agregar o editar un registro.
      *
      * @param int $id ID del registro (0 para nuevo)
      * @return string HTML del formulario
      */
+
     public function getFormulario($id)
     {
         $tipo = self::getTipoHoraExtra(0);

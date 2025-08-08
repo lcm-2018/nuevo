@@ -183,6 +183,17 @@ class Sindicatos
         return $registro;
     }
 
+    public function getRegistroPorEmpleado()
+    {
+        $sql = "SELECT
+                    `id_cuota_sindical`,`id_sindicato`,`porcentaje_cuota`,`val_fijo`,`estado`,  `fec_fin`, `val_sidicalizacion`
+                FROM `nom_cuota_sindical`
+                WHERE `estado` = 1";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $registro;
+    }
 
     /**
      * Obtiene el formulario para agregar o editar un registro.

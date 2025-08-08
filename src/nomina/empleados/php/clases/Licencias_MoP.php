@@ -150,6 +150,40 @@ class Licencias_MoP
         return $registro;
     }
 
+    public function getRegistroPorEmpleado($inicia, $fin)
+    {
+        $sql = "SELECT
+                    `nom_licenciasmp`.`id_licmp`
+                    , `nom_licenciasmp`.`id_empleado`
+                    , `nom_licenciasmp`.`fec_inicio`
+                    , `nom_licenciasmp`.`fec_fin`
+                    , `nom_licenciasmp`.`dias_inactivo`
+                    , `nom_licenciasmp`.`dias_habiles`
+                    , IFNULL(`liquidado`.`dias_liqs`,0) AS `liq`
+                    , IFNULL(`calendario`.`dias`,0) AS `dias`
+                FROM `nom_licenciasmp`
+                    LEFT JOIN 
+                        (SELECT
+                            `id_licmp`, `dias_liqs`
+                        FROM
+                            `nom_liq_licmp`
+                        WHERE (`estado` = 1)) AS `liquidado`
+                        ON (`liquidado`.`id_licmp` = `nom_licenciasmp`.`id_licmp`)
+                    LEFT JOIN
+                        (SELECT
+                            `id_novedad`, COUNT(`id_novedad`) AS `dias`
+                        FROM
+                            `nom_calendar_novedad`
+                        WHERE (`id_tipo` = 3 AND `fecha` BETWEEN ? AND ?)
+                        GROUP BY `id_novedad`, `id_empleado`) AS `calendario`
+                        ON (`nom_licenciasmp`.`id_licmp` = `calendario`.`id_novedad`)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
+        $stmt->bindParam(2, $fin, PDO::PARAM_STR);
+        $stmt->execute();
+        $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $registro;
+    }
 
     /**
      * Obtiene el formulario para agregar o editar un registro.
@@ -240,6 +274,7 @@ class Licencias_MoP
         $tipo = $empleado['genero'] == 'F' ? '1' : '0';
 
         try {
+            $this->conexion->beginTransaction();
             $sql = "INSERT INTO `nom_licenciasmp`
                         (`id_empleado`,`fec_inicio`,`fec_fin`,`tipo`,`dias_inactivo`,`dias_habiles`,`fec_reg`)
                     VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -284,6 +319,7 @@ class Licencias_MoP
     public function editRegistro($array)
     {
         try {
+            $this->conexion->beginTransaction();
             $sql = "UPDATE `nom_licenciasmp`
                         SET `fec_inicio` = ?, `fec_fin` = ?, `dias_inactivo` = ?, `dias_habiles` = ?
                     WHERE `id_licmp` = ?";

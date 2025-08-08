@@ -22,8 +22,7 @@ switch ($action) {
         $res['msg'] = 'Sin formulario definido.';
         break;
     case 'add':
-        $data = json_encode($_POST);
-        //$Liquidacion->addRegistro($_POST);
+        $data = $Liquidacion->addRegistro($_POST);
         if ($data == 'si') {
             $res['status'] = 'ok';
         } else {

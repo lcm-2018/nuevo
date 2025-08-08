@@ -154,6 +154,45 @@ class Vacaciones
         return $registro;
     }
 
+    public function getRegistroPorEmpleado($inicia, $fin)
+    {
+        $sql = "SELECT
+                    `nom_vacaciones`.`id_vac`
+                    , `nom_vacaciones`.`id_empleado`
+                    , `nom_vacaciones`.`fec_inicial`
+                    , `nom_vacaciones`.`fec_inicio`
+                    , `nom_vacaciones`.`fec_fin`
+                    , `nom_vacaciones`.`dias_inactivo`
+                    , `nom_vacaciones`.`dias_habiles`
+                    , `nom_vacaciones`.`corte`
+                    , `nom_vacaciones`.`dias_liquidar`
+                    , IFNULL(`liquidado`.`dias_liqs`,0) AS `liq`
+                    , IFNULL(`calendario`.`dias`,0) AS `dias`
+                FROM `nom_vacaciones`
+                    LEFT JOIN 
+                        (SELECT
+                            `id_vac`, `dias_liqs`
+                        FROM
+                            `nom_liq_vac`
+                        WHERE (estado = 1)) AS `liquidado`
+                        ON (`liquidado`.`id_vac` = `nom_vacaciones`.`id_vac`)
+                    LEFT JOIN
+                        (SELECT
+                            `id_novedad`
+                            , COUNT(`id_novedad`) AS `dias`
+                        FROM
+                            `nom_calendar_novedad`
+                        WHERE (`id_tipo` = 2 AND `fecha` BETWEEN ? AND ?)
+                        GROUP BY `id_novedad`, `id_empleado`) AS `calendario`
+                        ON (`nom_vacaciones`.`id_vac` = `calendario`.`id_novedad`) 
+                WHERE `estado` = 1";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
+        $stmt->bindParam(2, $fin, PDO::PARAM_STR);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 
     /**
      * Obtiene el formulario para agregar o editar un registro.
@@ -161,6 +200,7 @@ class Vacaciones
      * @param int $id ID del registro (0 para nuevo)
      * @return string HTML del formulario
      */
+
     public function getFormulario($id)
     {
         $registro = $this->getRegistro($id);

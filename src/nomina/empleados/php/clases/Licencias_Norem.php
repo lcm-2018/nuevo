@@ -148,7 +148,47 @@ class Licencias_Norem
         }
         return $registro;
     }
-
+    /**
+     * Obtiene los registros de licencia no remunerada por empleado.
+     *
+     * @param string $inicia Fecha de inicio
+     * @param string $fin Fecha de fin
+     * @return array Registro de licencia no remunerada
+     */
+    public function getRegistroPorEmpleado($inicia, $fin)
+    {
+        $sql = "SELECT
+                    `nom_licenciasnr`.`id_licnr`
+                    , `nom_licenciasnr`.`id_empleado`
+                    , `nom_licenciasnr`.`fec_inicio`
+                    , `nom_licenciasnr`.`fec_fin`
+                    , `nom_licenciasnr`.`dias_inactivo`
+                    , `nom_licenciasnr`.`dias_habiles`
+                    , IFNULL(`liquidado`.`dias_licnr`,0) AS `liq`
+                    , IFNULL(`calendario`.`dias`,0) AS `dias`
+                FROM `nom_licenciasnr`
+                    LEFT JOIN
+                    (SELECT
+                        `id_licnr`, `dias_licnr`
+                    FROM
+                        `nom_liq_licnr`
+                    WHERE (`estado` = 1)) AS `liquidado`
+                    ON (`liquidado`.`id_licnr` = `nom_licenciasnr`.`id_licnr`)
+                    LEFT JOIN
+                    (SELECT
+                        `id_novedad`, COUNT(`id_novedad`) AS `dias`
+                    FROM
+                        `nom_calendar_novedad`
+                    WHERE (`id_tipo` = 4 AND `fecha` BETWEEN ? AND ?)
+                    GROUP BY `id_novedad`, `id_empleado`) AS `calendario`
+                    ON (`nom_licenciasnr`.`id_licnr` = `calendario`.`id_novedad`)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
+        $stmt->bindParam(2, $fin, PDO::PARAM_STR);
+        $stmt->execute();
+        $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $registro;
+    }
 
     /**
      * Obtiene el formulario para agregar o editar un registro.
@@ -216,7 +256,7 @@ class Licencias_Norem
             $stmt->execute();
             if ($stmt->rowCount() > 0) {
                 Logs::guardaLog($consulta);
-                (new Novedades())->delRegistro(3, $id);
+                (new Novedades())->delRegistro(4, $id);
                 return 'si';
             } else {
                 return 'No se eliminó el registro.';
@@ -235,6 +275,7 @@ class Licencias_Norem
     public function addRegistro($array)
     {
         try {
+            $this->conexion->beginTransaction();
             $sql = "INSERT INTO `nom_licenciasnr`
                         (`id_empleado`,`fec_inicio`,`fec_fin`,`dias_inactivo`,`dias_habiles`,`fec_reg`,`id_user_reg`)
                     VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -250,7 +291,7 @@ class Licencias_Norem
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
                 $array['novedad'] = $id;
-                $array['tipo'] = 3;
+                $array['tipo'] = 4;
                 $Novedad = new Novedades($this->conexion);
                 $resultado = $Novedad->addRegistro($array);
                 if ($resultado === 'si') {
@@ -278,6 +319,7 @@ class Licencias_Norem
     public function editRegistro($array)
     {
         try {
+            $this->conexion->beginTransaction();
             $sql = "UPDATE `nom_licenciasnr`
                         SET `fec_inicio` = ?, `fec_fin` = ?, `dias_inactivo` = ?, `dias_habiles` = ?
                     WHERE `id_licnr` = ?";
@@ -295,9 +337,9 @@ class Licencias_Norem
                 $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
                 $Novedad = new Novedades($this->conexion);
-                $Novedad->delRegistro(3, $array['id']);
+                $Novedad->delRegistro(4, $array['id']);
                 $array['novedad'] = $array['id'];
-                $array['tipo'] = 3;
+                $array['tipo'] = 4;
                 $resultado = $Novedad->addRegistro($array);
                 if ($resultado === 'si') {
                     $this->conexion->commit();

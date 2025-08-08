@@ -199,6 +199,16 @@ class Libranzas
         return $registro;
     }
 
+    public function getLibranzasPorEmpleado()
+    {
+        $sql = "SELECT
+                    `id_libranza`,`id_banco`,`id_empleado`,`val_mes`,`porcentaje`, `fecha_fin`
+                FROM `nom_libranzas`
+                WHERE `estado` = 1";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     /**
      * Obtiene el formulario para agregar o editar un registro.

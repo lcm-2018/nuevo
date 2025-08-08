@@ -8,28 +8,17 @@ use Config\Clases\Sesion;
 
 use PDO;
 use PDOException;
-use Src\Nomina\Empleados\Php\Clases\Contratos;
-use Src\Nomina\Empleados\Php\Clases\Embargos;
-use Src\Nomina\Empleados\Php\Clases\Empleados;
-use Src\Nomina\Empleados\Php\Clases\Incapacidades;
-use Src\Nomina\Empleados\Php\Clases\Indemniza_Vacacion;
-use Src\Nomina\Empleados\Php\Clases\Libranzas;
-use Src\Nomina\Empleados\Php\Clases\Licencias_Luto;
-use Src\Nomina\Empleados\Php\Clases\Licencias_MoP;
-use Src\Nomina\Empleados\Php\Clases\Licencias_Norem;
-use Src\Nomina\Empleados\Php\Clases\Otros_Descuentos;
-use Src\Nomina\Empleados\Php\Clases\Sindicatos;
-use Src\Nomina\Empleados\Php\Clases\Vacaciones;
-use Src\Nomina\Horas_extra\Php\Clases\Horas_Extra;
-use Src\Usuarios\Login\Php\Clases\Usuario;
+use Src\Common\Php\Clases\Combos;
+use DateTime;
+use Exception;
 
 /**
- * Clase para gestionar liquidacion de nomina de los empleados.
+ * Clase para gestionar nominas de los empleados.
  *
- * Esta clase permite realizar operaciones CRUD sobre liquidacion de nomina de los empleados,
- * incluyendo la obtención de registros, adición, edición y eliminación de liquidacion de nomina.
+ * Esta clase permite realizar operaciones CRUD sobre nominas de los empleados,
+ * incluyendo la obtención de registros, adición, edición y eliminación de nominas.
  */
-class Liquidacion
+class Nomina
 {
     private $conexion;
 
@@ -104,11 +93,11 @@ class Liquidacion
                             `id_empleado`
                             , SUM(CASE WHEN `id_tipo` = 1 THEN 1 ELSE 0 END) AS `inc`
                             , SUM(CASE WHEN `id_tipo` = 2 THEN 1 ELSE 0 END) AS `vac`
-                            , SUM(CASE WHEN `id_tipo` IN (3, 4, 5) THEN 1 ELSE 0 END) AS `lic`
+                            , SUM(CASE WHEN `id_tipo` = 3 THEN 1 ELSE 0 END) AS `lic`
                         FROM 
                             `nom_calendar_novedad`
                         WHERE 
-                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3, 4, 5)
+                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3)
                         GROUP BY `id_empleado`) AS `tt`
                         ON (`taux`.`id_empleado` = `tt`.`id_empleado`) 
                     LEFT JOIN
@@ -187,11 +176,11 @@ class Liquidacion
                             `id_empleado`
                             , SUM(CASE WHEN `id_tipo` = 1 THEN 1 ELSE 0 END) AS `inc`
                             , SUM(CASE WHEN `id_tipo` = 2 THEN 1 ELSE 0 END) AS `vac`
-                            , SUM(CASE WHEN `id_tipo` IN (3, 4, 5) THEN 1 ELSE 0 END) AS `lic`
+                            , SUM(CASE WHEN `id_tipo` = 3 THEN 1 ELSE 0 END) AS `lic`
                         FROM 
                             `nom_calendar_novedad`
                         WHERE 
-                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3, 4, 5)
+                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3)
                         GROUP BY `id_empleado`) AS `tt`
                         ON (`taux`.`id_empleado` = `tt`.`id_empleado`) 
                     LEFT JOIN
@@ -260,11 +249,11 @@ class Liquidacion
                             `id_empleado`
                             , SUM(CASE WHEN `id_tipo` = 1 THEN 1 ELSE 0 END) AS `inc`
                             , SUM(CASE WHEN `id_tipo` = 2 THEN 1 ELSE 0 END) AS `vac`
-                            , SUM(CASE WHEN `id_tipo` IN (3, 4, 5) THEN 1 ELSE 0 END) AS `lic`
+                            , SUM(CASE WHEN `id_tipo` = 3 THEN 1 ELSE 0 END) AS `lic`
                         FROM 
                             `nom_calendar_novedad`
                         WHERE 
-                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3, 4, 5)
+                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3)
                         GROUP BY `id_empleado`) AS `tt`
                         ON (`taux`.`id_empleado` = `tt`.`id_empleado`) 
                     LEFT JOIN
@@ -302,8 +291,8 @@ class Liquidacion
     public function delRegistro($id)
     {
         try {
-            $sql = "DELETE FROM `nom_horas_ex_trab` WHERE `id_intv` = ?";
-            $consulta  = "DELETE FROM `nom_horas_ex_trab` WHERE `id_intv` = $id";
+            $sql = "DELETE FROM `nom_nominas` WHERE `id_nomina` = ?";
+            $consulta  = "DELETE FROM `nom_nominas` WHERE `id_nomina` = $id";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->execute();
@@ -324,84 +313,37 @@ class Liquidacion
      * @param array $array Datos del registro a agregar
      * @return string Mensaje de éxito o error
      */
-    public function addRegistro($array)
+    public static function addRegistro($mes, $tipo, $incremento = NULL)
     {
-        $empleados =    $array['chk_liquidacion'];
-        $laborado =     $array['lab'];
-        $mpago =        $array['metodo'];
-        $tipo =         $array['tipo'];
-        $mes =          $array['mes'];
-        $incremento =   isset($array['incremento']) ? $array['incremento'] : NULL;
-        $nomina =       Nomina::getIDNomina($mes, $tipo);
-
-        if (($nomina['id_nomina'] > 0 && $nomina['estado'] >= 2) || $nomina['id_nomina'] == 0) {
-            $res = Nomina::addRegistro($mes, $tipo, $incremento);
-            if ($res['status'] == 'si') {
-                $id_nomina = $res['id'];
+        $res['status'] = 'error';
+        $data = self::getTipoNomina($tipo);
+        $estado = 1;
+        try {
+            $sql = "INSERT INTO `nom_nominas`
+                        (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`id_incremento`,`fec_reg`,`id_user_reg`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = Conexion::getConexion()->prepare($sql);
+            $stmt->bindValue(1, 'LIQUIDACIÓN ' . $data['descripcion'], PDO::PARAM_STR);
+            $stmt->bindValue(2, $mes, PDO::PARAM_STR);
+            $stmt->bindValue(3, Sesion::Vigencia(), PDO::PARAM_STR);
+            $stmt->bindValue(4, $data['codigo'], PDO::PARAM_STR);
+            $stmt->bindValue(5, $estado, PDO::PARAM_INT);
+            $stmt->bindValue(6, $estado, PDO::PARAM_INT);
+            $stmt->bindValue(7, $incremento, PDO::PARAM_INT);
+            $stmt->bindValue(8, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(9, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->execute();
+            $id = Conexion::getConexion()->lastInsertId();
+            if ($id > 0) {
+                $res['status'] = 'si';
+                $res['id'] = $id;
             } else {
-                return $res['msg'];
+                $res['msg'] = 'No se insertó el registro.';
             }
-        } else {
-            $id_nomina = $nomina['id_nomina'];
+        } catch (PDOException $e) {
+            $res['msg'] = 'Error SQL: ' . $e->getMessage();
         }
-
-        $data = Nomina::getParamLiq();
-        if (empty($data)) {
-            return 'No se han configurado los parámetros de liquidación.';
-        }
-
-        $param = array_column($data, 'valor', 'id_concepto');
-
-        if (empty($param[1]) || empty($param[6])) {
-            return 'No se han Configurado los parámetros de liquidación.';
-        }
-
-        $inicia = Sesion::Vigencia() . '-' . $mes . '-01';
-        $fin = date('Y-m-t', strtotime($inicia));
-
-        $Empleado =     new Empleados();
-        $empleados =    $Empleado->getEmpleados();
-        $salarios =     $Empleado->getSalarioMasivo($mes);
-        $salarios =     array_column($salarios, 'basico', 'id_empleado');
-        $terceros_ss =  $Empleado->getRegistro();
-        $empresa =      (new Usuario())->getEmpresa();
-        //Devengados
-        $horas =            (new Horas_Extra())->getHorasPorMes($inicia, $fin);
-        $incapacidades =    (new Incapacidades())->getRegistroPorEmpleado($inicia, $fin);
-        $vacaciones =       (new Vacaciones())->getRegistroPorEmpleado($inicia, $fin);
-        $licenciasMP =      (new Licencias_MoP())->getRegistroPorEmpleado($inicia, $fin);
-        $licenciaNR =       (new Licencias_Norem())->getRegistroPorEmpleado($inicia, $fin);
-        $licenciaLuto =     (new Licencias_Luto())->getRegistroPorEmpleado($inicia, $fin);
-        $indemVacaciones =  (new Indemniza_Vacacion())->getRegistroPorEmpleado($inicia, $fin);
-
-        //Deducidos
-        $libranzas =    (new Libranzas())->getLibranzasPorEmpleado();
-        $embargos =     (new Embargos())->getRegistroPorEmpleado();
-        $sindicatos =   (new Sindicatos())->getRegistroPorEmpleado();
-        $otrosDctos =   (new Otros_Descuentos())->getRegistroPorEmpleado();
-
-        $error = '';
-        foreach ($empleados as $id_empleado) {
-            if (!(self::getEmpleadoLiq($id_nomina, $id_empleado)) && isset($salarios[$id_empleado])) {
-                $filtro = [];
-                $filtro = array_filter($terceros_ss, function ($terceros_ss) use ($id_empleado) {
-                    return $terceros_ss["id_empleado"] == $id_empleado;
-                });
-                $novedad = array_column($filtro, 'id_tercero', 'id_tipo');
-                if (!(isset($novedad[1]) && isset($novedad[2]) && isset($novedad[3]) && isset($novedad[4]))) {
-                    $error .= "El empleado con ID $id_empleado no tiene todas las novedades registradas. Debe tener EPS, AFP, ARL y CES.\n";
-                    continue;
-                }
-                //$this->conexion->beginTransaction();
-
-
-            }
-        }
-        if ($error != '') {
-            return $error;
-        } else {
-            return 'Todos los empleados tienen las novedades registradas correctamente.';
-        }
+        return $res;
     }
     /**
      * Actualiza los datos de un registro.
@@ -411,73 +353,51 @@ class Liquidacion
      */
     public function editRegistro($array)
     {
-        $data = self::getIdHoraExtra($array);
-        $id = $data['id_he_trab'];
-        $estado = $data['estado'];
-        if ($estado == 0) {
-            return 'no';
-        }
+        return 'No se ha definido la edición de registros.';
+    }
+
+    public static function getTipoNomina($id)
+    {
+        $sql = "SELECT `codigo`,`descripcion` FROM `nom_tipo_liquidacion` WHERE `id_tipo` = ?";
+        $stmt = Conexion::getConexion()->prepare($sql);
+        $stmt->bindParam(1, $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        return !empty($data) ? $data : ['codigo' => '', 'descripcion' => ''];
+    }
+
+    public static function getIDNomina($mes, $tipo)
+    {
         try {
-            if ($id > 0) {
-
-                $sql = "UPDATE `nom_horas_ex_trab`
-                        SET `cantidad_he` = ?
-                    WHERE `id_he_trab` = ?";
-                $stmt = $this->conexion->prepare($sql);
-                $stmt->bindValue(1, $array['valor'], PDO::PARAM_INT);
-                $stmt->bindValue(2, $id, PDO::PARAM_INT);
-
-                if ($stmt->execute() && $stmt->rowCount() > 0) {
-                    $consulta = "UPDATE `nom_horas_ex_trab` 
-                                SET `fec_actu` = ? 
-                            WHERE `id_he_trab` = ?";
-                    $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                    $stmt2->bindValue(2, $id, PDO::PARAM_INT);
-                    $stmt2->execute();
-                    return 'si';
-                } else {
-                    return 'No se actualizó el registro.';
-                }
-            } else {
-                $datos = base64_decode($array['id']);
-                $datos = explode('|', $datos);
-                $id_empleado = $datos[0];
-                $tipo_hora = $datos[1];
-                $mes = $array['mes'];
-                $fec_inicio = Sesion::Vigencia() . '-' . $mes . '-01';
-
-                $data = [
-                    'id_empleado' => $id_empleado,
-                    'datFecInicia' => $fec_inicio . 'T07:00',
-                    'datFecFin' => date('Y-m-t', strtotime($fec_inicio)) . 'T23:59',
-                    'slcTipoHora' => $tipo_hora,
-                    'numCantidad' => $array['valor'],
-                    'slcTipoLiq' => $array['tipo'],
-                ];
-                return self::addRegistro($data);
-            }
+            $sql = "SELECT
+                    MAX(`nom_nominas`.`id_nomina`) AS `id_nomina`, `nom_nominas`.`estado`
+                FROM
+                    `nom_nominas`
+                    INNER JOIN `nom_tipo_liquidacion` 
+                        ON (`nom_nominas`.`tipo` = `nom_tipo_liquidacion`.`codigo`)
+                WHERE (`nom_tipo_liquidacion`.`id_tipo` = ? AND `nom_nominas`.`mes` = ?
+                    AND `nom_nominas`.`vigencia` = ? AND `nom_nominas`.`estado` > 0)
+                GROUP BY `nom_tipo_liquidacion`.`id_tipo`, `nom_nominas`.`mes`";
+            $stmt = Conexion::getConexion()->prepare($sql);
+            $stmt->bindParam(1, $tipo, PDO::PARAM_INT);
+            $stmt->bindParam(2, $mes, PDO::PARAM_STR);
+            $stmt->bindValue(3, Sesion::Vigencia(), PDO::PARAM_STR);
+            $stmt->execute();
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            return !empty($data) ? $data : ['id_nomina' => 0, 'estado' => 0];
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
     }
-
-    public function getIdHoraExtra($array) {}
-
-    public static function getEmpleadoLiq($id_nomina, $id_empleado)
+    public static function getParamLiq()
     {
-        try {
-            $sql = "SELECT `id_sal_liq`
-                    FROM `nom_liq_salario`
-                    WHERE (`id_nomina` = ? AND `id_empleado` = ?)";
-            $stmt = Conexion::getConexion()->prepare($sql);
-            $stmt->bindParam(1, $id_nomina, PDO::PARAM_INT);
-            $stmt->bindParam(2, $id_empleado, PDO::PARAM_INT);
-            $stmt->execute();
-            $res  = $stmt->fetch(PDO::FETCH_ASSOC);
-            return !empty($res) ? true : false;
-        } catch (PDOException $e) {
-            return 'Error SQL: ' . $e->getMessage();
-        }
+        $sql = "SELECT
+                    `id_concepto`, `valor` 
+                FROM `nom_valxvigencia` WHERE (`id_vigencia` = ?) 
+                ORDER BY `id_concepto` ASC";
+        $stmt = Conexion::getConexion()->prepare($sql);
+        $stmt->bindValue(1, Sesion::IdVigencia(), PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

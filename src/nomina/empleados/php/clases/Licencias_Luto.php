@@ -149,6 +149,40 @@ class Licencias_Luto
         return $registro;
     }
 
+    public function getRegistroPorEmpleado($inicia, $fin)
+    {
+        $sql = "SELECT
+                    `nom_licencia_luto`.`id_licluto`
+                    , `nom_licencia_luto`.`id_empleado`
+                    , `nom_licencia_luto`.`fec_inicio`
+                    , `nom_licencia_luto`.`fec_fin`
+                    , `nom_licencia_luto`.`dias_inactivo`
+                    , `nom_licencia_luto`.`dias_habiles`
+                    , IFNULL(`liquidado`.`dias_licluto`,0) AS `liq`
+                    , IFNULL(`calendario`.`dias`,0) AS `dias`
+                FROM `nom_licencia_luto`
+                    LEFT JOIN
+                        (SELECT
+                            `id_licluto`, `dias_licluto`
+                        FROM
+                            `nom_liq_licluto`
+                        WHERE (`estado` = 1)) AS `liquidado`
+                        ON (`liquidado`.`id_licluto` = `nom_licencia_luto`.`id_licluto`)
+                    LEFT JOIN
+                        (SELECT
+                            `id_novedad`, COUNT(`id_novedad`) AS `dias`
+                        FROM
+                            `nom_calendar_novedad`
+                        WHERE (`id_tipo` = 5 AND `fecha` BETWEEN ? AND ?)
+                        GROUP BY `id_novedad`, `id_empleado`) AS `calendario`
+                        ON (`nom_licencia_luto`.`id_licluto` = `calendario`.`id_novedad`)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
+        $stmt->bindParam(2, $fin, PDO::PARAM_STR);
+        $stmt->execute();
+        $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $registro;
+    }
 
     /**
      * Obtiene el formulario para agregar o editar un registro.
@@ -216,7 +250,7 @@ class Licencias_Luto
             $stmt->execute();
             if ($stmt->rowCount() > 0) {
                 Logs::guardaLog($consulta);
-                (new Novedades())->delRegistro(3, $id);
+                (new Novedades())->delRegistro(5, $id);
                 return 'si';
             } else {
                 return 'No se eliminó el registro.';
@@ -235,6 +269,7 @@ class Licencias_Luto
     public function addRegistro($array)
     {
         try {
+            $this->conexion->beginTransaction();
             $sql = "INSERT INTO `nom_licencia_luto`
                         (`id_empleado`,`fec_inicio`,`fec_fin`,`dias_inactivo`,`dias_habiles`,`fec_reg`,`id_user_reg`)
                     VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -250,7 +285,7 @@ class Licencias_Luto
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
                 $array['novedad'] = $id;
-                $array['tipo'] = 3;
+                $array['tipo'] = 5;
                 $Novedad = new Novedades($this->conexion);
                 $resultado = $Novedad->addRegistro($array);
                 if ($resultado === 'si') {
@@ -278,6 +313,7 @@ class Licencias_Luto
     public function editRegistro($array)
     {
         try {
+            $this->conexion->beginTransaction();
             $sql = "UPDATE `nom_licencia_luto`
                         SET `fec_inicio` = ?, `fec_fin` = ?, `dias_inactivo` = ?, `dias_habiles` = ?
                     WHERE `id_licluto` = ?";
@@ -295,9 +331,9 @@ class Licencias_Luto
                 $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
                 $Novedad = new Novedades($this->conexion);
-                $Novedad->delRegistro(3, $array['id']);
+                $Novedad->delRegistro(5, $array['id']);
                 $array['novedad'] = $array['id'];
-                $array['tipo'] = 3;
+                $array['tipo'] = 5;
                 $resultado = $Novedad->addRegistro($array);
                 if ($resultado === 'si') {
                     $this->conexion->commit();

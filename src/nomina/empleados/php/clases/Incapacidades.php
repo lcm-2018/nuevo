@@ -147,6 +147,7 @@ class Incapacidades
      * @return array  datos del registro
      */
 
+
     public function getRegistro($id)
     {
         $sql = "SELECT
@@ -171,6 +172,40 @@ class Incapacidades
         return $registro;
     }
 
+    public function getRegistroPorEmpleado($inicia, $fin)
+    {
+        $sql = "SELECT
+                    `nom_incapacidad`.`id_incapacidad`
+                    , `nom_incapacidad`.`id_empleado`
+                    , `nom_incapacidad`.`can_dias`
+                    , `nom_incapacidad`.`categoria`
+                    , IFNULL(`liquidado`.`dias_liq`,0) AS `liq`
+                    , IFNULL(`calendario`.`dias`,0) AS `dias`
+                FROM
+                    `nom_incapacidad`
+                    LEFT JOIN 
+                        (SELECT
+                            `id_incapacidad`, `dias_liq`
+                        FROM
+                            `nom_liq_incap`
+                        WHERE (`estado` = 1)) AS `liquidado`
+                        ON (`liquidado`.`id_incapacidad` = `nom_incapacidad`.`id_incapacidad`)
+                    LEFT JOIN
+                        (SELECT
+                            `id_novedad`
+                            , COUNT(`id_novedad`) AS `dias`
+                        FROM
+                            `nom_calendar_novedad`
+                        WHERE (`id_tipo` = 1 AND `fecha` BETWEEN ? AND ?)
+                        GROUP BY `id_novedad`, `id_empleado`) AS `calendario`
+                        ON (`nom_incapacidad`.`id_incapacidad` = `calendario`.`id_novedad`)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
+        $stmt->bindParam(2, $fin, PDO::PARAM_STR);
+        $stmt->execute();
+        $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $registro;
+    }
 
     /**
      * Obtiene el formulario para agregar o editar un registro.

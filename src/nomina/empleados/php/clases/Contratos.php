@@ -62,6 +62,31 @@ class Contratos
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $datos ?: null;
     }
+
+    public function getContratoEmpleados($ids)
+    {
+        $ids = implode(',', $ids);
+        $sql = "SELECT
+                    `nom_contratos_empleados`.`fec_inicio`
+                    , `nom_contratos_empleados`.`fec_fin`
+                    , `nom_contratos_empleados`.`vigencia`
+                    , `nom_contratos_empleados`.`estado`
+                    , `nom_salarios_basico`.`id_salario`
+                    , `nom_salarios_basico`.`salario_basico`
+                    , `nom_contratos_empleados`.`id_contrato_emp`
+                FROM
+                    `nom_salarios_basico`
+                    INNER JOIN `nom_contratos_empleados` 
+                        ON (`nom_salarios_basico`.`id_contrato` = `nom_contratos_empleados`.`id_contrato_emp`)
+                WHERE (`nom_contratos_empleados`.`id_empleado` IN (?))";
+        echo $ids;
+        echo $sql;
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $ids, PDO::PARAM_STR);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $datos ?: [];
+    }
     /**
      * Obtiene el total de registros filtrados.
      * 

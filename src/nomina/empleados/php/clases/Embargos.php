@@ -198,6 +198,17 @@ class Embargos
         return $registro;
     }
 
+    public function getRegistroPorEmpleado()
+    {
+        $sql = "SELECT
+                    `id_embargo`, `tipo_embargo`,`valor_mes`, `porcentaje`, `fec_inicio`, `fec_fin`
+                FROM `nom_embargos`
+                WHERE `estado` = 1";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $registro;
+    }
 
     /**
      * Obtiene el formulario para agregar o editar un registro.
