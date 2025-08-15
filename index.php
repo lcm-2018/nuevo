@@ -45,15 +45,25 @@ $content = <<<HTML
     const pssClave = document.getElementById('pssClave');
     const eyeIcon = togglePassword.querySelector('i');
 
-    togglePassword.addEventListener('click', function () {
-        // Toggle the type attribute
-        const type = pssClave.getAttribute('type') === 'password' ? 'text' : 'password';
-        pssClave.setAttribute('type', type);
-
-        // Toggle the eye icon class
-        eyeIcon.classList.toggle('fa-eye');
-        eyeIcon.classList.toggle('fa-eye-slash');
+    // Cuando mantienes presionado
+    togglePassword.addEventListener('mousedown', function () {
+        pssClave.setAttribute('type', 'text');
+        eyeIcon.classList.remove('fa-eye');
+        eyeIcon.classList.add('fa-eye-slash');
     });
+
+    // Cuando sueltas el botón o el mouse sale del área
+    togglePassword.addEventListener('mouseup', function () {
+        pssClave.setAttribute('type', 'password');
+        eyeIcon.classList.remove('fa-eye-slash');
+        eyeIcon.classList.add('fa-eye');
+    });
+
+    togglePassword.addEventListener('mouseleave', function () {
+        pssClave.setAttribute('type', 'password');
+        eyeIcon.classList.remove('fa-eye-slash');
+        eyeIcon.classList.add('fa-eye');
+});
 </script>
 HTML;
 $plantilla = new Plantilla($content, 1);

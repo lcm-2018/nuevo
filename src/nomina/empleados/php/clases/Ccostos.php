@@ -177,7 +177,7 @@ class Ccostos
                             <input type="hidden" id="id" name="id" value="{$id}">
                             <div class="row mb-2">
                                 <div class="col-md-12">
-                                    <label for="slcCcosto" class="small text-muted">TIPO</label>
+                                    <label for="slcCcosto" class="small text-muted">Centro de Costo</label>
                                     <select class="form-select form-select-sm bg-input" id="slcCcosto" name="slcCcosto">
                                         {$ccosto}
                                     </select>

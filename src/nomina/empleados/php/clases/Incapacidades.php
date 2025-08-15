@@ -176,6 +176,7 @@ class Incapacidades
     {
         $sql = "SELECT
                     `nom_incapacidad`.`id_incapacidad`
+                    , `nom_incapacidad`.`id_tipo`
                     , `nom_incapacidad`.`id_empleado`
                     , `nom_incapacidad`.`can_dias`
                     , `nom_incapacidad`.`categoria`
@@ -198,7 +199,8 @@ class Incapacidades
                             `nom_calendar_novedad`
                         WHERE (`id_tipo` = 1 AND `fecha` BETWEEN ? AND ?)
                         GROUP BY `id_novedad`, `id_empleado`) AS `calendario`
-                        ON (`nom_incapacidad`.`id_incapacidad` = `calendario`.`id_novedad`)";
+                        ON (`nom_incapacidad`.`id_incapacidad` = `calendario`.`id_novedad`)
+                WHERE `calendario`.`dias` > 0";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
         $stmt->bindParam(2, $fin, PDO::PARAM_STR);

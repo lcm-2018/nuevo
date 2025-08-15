@@ -214,7 +214,7 @@ class Horas_Extra
                     `nom_horas_ex_trab`
                     INNER JOIN `nom_tipo_horaex`
                         ON (`nom_horas_ex_trab`.`id_he` = `nom_tipo_horaex`.`id_he`)
-                WHERE `fec_inicio` BETWEEN '$inicia' AND '$fin' AND `tipo` = 1";
+                WHERE `fec_inicio` BETWEEN '$inicia' AND '$fin' AND `tipo` = 1 AND `estado` = 1";
             $stmt = $this->conexion->prepare($sql);
             $stmt->execute();
             $horas = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -420,6 +420,45 @@ class Horas_Extra
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+
+    public function addRegistroLiq($array)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_horex` 
+                        (`id_he_lab`, `val_liq`, `id_user_reg`,`fec_reg`, `id_nomina`) 
+                    VALUES (?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['valor'], PDO::PARAM_STR);
+            $stmt->bindValue(3, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(4, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                $this->setEstado($array['id'], 2);
+                return 'si';
+            } else {
+                return $stmt->errorInfo()[2];
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function setEstado($id, $estado)
+    {
+        try {
+            $sql = "UPDATE `nom_horas_ex_trab` SET `estado` = ? WHERE `id_he_trab` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $estado, PDO::PARAM_INT);
+            $stmt->bindValue(2, $id, PDO::PARAM_INT);
+            $stmt->execute();
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
     /**
      * Actualiza los datos de un registro.
      *

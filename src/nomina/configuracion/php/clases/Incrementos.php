@@ -110,11 +110,11 @@ class Incrementos
                                 <div class="row mb-2">
                                     <div class="col-md-6">
                                         <label for="numPorcIncSal" class="small">PORCENTAJE</label>
-                                        <input type="number" id="numPorcIncSal" name="numPorcIncSal" class="form-control form-control-sm text-end" value="{$fila['porcentaje']}">
+                                        <input type="number" id="numPorcIncSal" name="numPorcIncSal" class="form-control form-control-sm bg-input text-end" value="{$fila['porcentaje']}">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="datFechaInSal" class="small">FECHA</label>
-                                        <input type="date" id="datFechaInSal" name="datFechaInSal" class="form-control form-control-sm text-end" value="{$fila['fecha']}">
+                                        <input type="date" id="datFechaInSal" name="datFechaInSal" class="form-control form-control-sm bg-input text-end" value="{$fila['fecha']}">
                                     </div>
                                 </div>
                             </form>

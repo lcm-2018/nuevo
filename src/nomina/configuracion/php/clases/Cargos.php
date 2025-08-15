@@ -193,14 +193,14 @@ class Cargos
                 <<<HTML
                 <div class="col-md-4">
                     <label for="slcCodigo" class="small">CÓDIGO</label>
-                    <select name="slcCodigo" id="slcCodigo" class="form-control form-control-sm">
+                    <select name="slcCodigo" id="slcCodigo" class="form-control form-control-sm bg-input">
                         <option value="0">--Seleccione--</option>
                         {$opt_cods}
                     </select>
                 </div>
                 <div class="col-md-4">
                     <label for="numGrado" class="small">GRADO</label>
-                    <input type="number" id="numGrado" name="numGrado" class="form-control form-control-sm" value="{$fila['grado']}">
+                    <input type="number" id="numGrado" name="numGrado" class="form-control form-control-sm bg-input" value="{$fila['grado']}">
                 </div>
             HTML;
             $linea2 =
@@ -208,14 +208,14 @@ class Cargos
                 <div class="row">
                     <div class="col-md-6">
                         <label for="slcNombramiento" class="small">NOMBRAMIENTO</label>
-                        <select name="slcNombramiento" id="slcNombramiento" class="form-control form-control-sm">
+                        <select name="slcNombramiento" id="slcNombramiento" class="form-control form-control-sm bg-input">
                             <option value="0">--Seleccione--</option>
                             {$opt_noms}
                         </select>
                     </div>
                     <div class="col-md-6">
                         <label for="txtPerfilSiho" class="small">PERFÍL SIHO</label>
-                        <input type="text" id="txtPerfilSiho" name="txtPerfilSiho" class="form-control form-control-sm" value="{$fila['perfil_siho']}">
+                        <input type="text" id="txtPerfilSiho" name="txtPerfilSiho" class="form-control form-control-sm bg-input" value="{$fila['perfil_siho']}">
                     </div>
                 </div>
             HTML;
@@ -237,7 +237,7 @@ class Cargos
                                 <div class="row mb-2">
                                     <div class="col-md-{$tam}">
                                         <label for="txtNomCargo" class="small">NOMBRE</label>
-                                        <input type="text" id="txtNomCargo" name="txtNomCargo" class="form-control form-control-sm" value="{$fila['descripcion_carg']}">
+                                        <input type="text" id="txtNomCargo" name="txtNomCargo" class="form-control form-control-sm bg-input" value="{$fila['descripcion_carg']}">
                                     </div>
                                     {$linea1}
                                 </div>

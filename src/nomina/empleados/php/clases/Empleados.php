@@ -1110,10 +1110,10 @@ class Empleados
                                 FROM `nom_salarios_basico`
                                 GROUP BY `id_contrato`)) AS `salario`
                             ON (`ctt`.`id_contrato_emp` = `salario`.`id_contrato`)
-                    WHERE  ? >= `ctt`.`fec_inicio` AND ? <= `ctt`.`fec_fin`";
+                    WHERE  `ctt`.`fec_inicio` <= ? AND `ctt`.`fec_fin` >= ?";
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $inicia, PDO::PARAM_STR);
-            $stmt->bindValue(2, $fin, PDO::PARAM_STR);
+            $stmt->bindValue(1, $fin, PDO::PARAM_STR);
+            $stmt->bindValue(2, $inicia, PDO::PARAM_STR);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {

@@ -28,7 +28,7 @@ if (($obj != null) && $obj['login'] === $usuario && ($obj['clave'] === $clave)) 
         $_SESSION['pto'] = $empresa['tiene_pto'];
         $res['status'] = 'ok';
     } else if ($obj['estado'] == 0) {
-        $res['msg'] = 'Usuario inactivo, por favor comuniquese con el administrador del sistema.';
+        $res['msg'] = 'Usuario inactivo, por favor comuníquese con el administrador del sistema.';
     }
 } else {
     $res['msg'] = 'Usuario o contraseña incorrectos.';

@@ -25,13 +25,13 @@ if (Sesion::Caracter() == 2) {
                 <div id="divIncrementoSal" class="accordion-collapse collapse">
                     <div class="accordion-body bg-wiev">
                         <table id="tableIncSalario" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
-                            <thead>
+                            <thead class="text-center">
                                 <tr>
-                                    <th class="text-center">ID</th>
-                                    <th class="text-center">PORCENTAJE</th>
-                                    <th class="text-center">INICIA</th>
-                                    <th class="text-center">ESTADO</th>
-                                    <th class="text-center">ACCIONES</th>
+                                    <th class="bg-sofia">ID</th>
+                                    <th class="bg-sofia">PORCENTAJE</th>
+                                    <th class="bg-sofia">INICIA</th>
+                                    <th class="bg-sofia">ESTADO</th>
+                                    <th class="bg-sofia">ACCIONES</th>
                                 </tr>
                             </thead>
                             <tbody id="modificaIncSalario"></tbody>
@@ -54,19 +54,19 @@ if (Sesion::Pto() == 1) {
             <div id="divRubroPto" class="accordion-collapse collapse">
                 <div class="accordion-body bg-wiev">
                     <table id="tableRubroPto" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
-                        <thead>
+                        <thead class="text-center">
                             <tr>
-                                <th rowspan="2">ID</th>
-                                <th rowspan="2">TIPO</th>
-                                <th colspan="2">RUBRO ADMINISTRATIVO</th>
-                                <th colspan="2">RUBRO OPERATIBO</th>
-                                <th rowspan="2">ACCIONES</th>
+                                <th rowspan="2" class="bg-sofia">ID</th>
+                                <th rowspan="2" class="bg-sofia">TIPO</th>
+                                <th colspan="2" class="bg-sofia">RUBRO ADMINISTRATIVO</th>
+                                <th colspan="2" class="bg-sofia">RUBRO OPERATIBO</th>
+                                <th rowspan="2" class="bg-sofia">ACCIONES</th>
                             </tr>
                             <tr>
-                                <th>CÓDIGO</th>
-                                <th>NOMBRE</th>
-                                <th>CÓDIGO</th>
-                                <th>NOMBRE</th>
+                                <th class="bg-sofia">CÓDIGO</th>
+                                <th class="bg-sofia">NOMBRE</th>
+                                <th class="bg-sofia">CÓDIGO</th>
+                                <th class="bg-sofia">NOMBRE</th>
                             </tr>
                         </thead>
                         <tbody id="modificaRubroPto"></tbody>
@@ -93,12 +93,12 @@ $content = <<<HTML
                 <div id="divParamsLiq" class="accordion-collapse collapse">
                     <div class="accordion-body bg-wiev">
                         <table id="tableParamLiq" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
-                            <thead>
+                            <thead class="text-center">
                                 <tr>
-                                    <th class="text-center">ID</th>
-                                    <th class="text-center">CONCEPTO</th>
-                                    <th class="text-center">VALOR</th>
-                                    <th class="text-center">ACCIONES</th>
+                                    <th class="bg-sofia">ID</th>
+                                    <th class="bg-sofia">CONCEPTO</th>
+                                    <th class="bg-sofia">VALOR</th>
+                                    <th class="bg-sofia">ACCIONES</th>
                                 </tr>
                             </thead>
                             <tbody id="modificaParamLiq">
@@ -116,15 +116,15 @@ $content = <<<HTML
                 <div id="divCargos" class="accordion-collapse collapse">
                     <div class="accordion-body bg-wiev">
                         <table id="tableCargosNom" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
-                            <thead>
+                            <thead class="text-center">
                                 <tr>
-                                    <th class="text-center">#</th>
-                                    <th class="text-center">CÓDIGO</th>
-                                    <th class="text-center">CARGO</th>
-                                    <th class="text-center">GRADO</th>
-                                    <th class="text-center">PERFÍL SIHO</th>
-                                    <th class="text-center">NOMBRAMIENTO</th>
-                                    <th class="text-center">ACCIONES</th>
+                                    <th class="bg-sofia">#</th>
+                                    <th class="bg-sofia">CÓDIGO</th>
+                                    <th class="bg-sofia">CARGO</th>
+                                    <th class="bg-sofia">GRADO</th>
+                                    <th class="bg-sofia">PERFÍL SIHO</th>
+                                    <th class="bg-sofia">NOMBRAMIENTO</th>
+                                    <th class="bg-sofia">ACCIONES</th>
                                 </tr>
                             </thead>
                             <tbody id="modificaCargoNom">
@@ -173,9 +173,11 @@ $content = <<<HTML
                                 <table id="tableTerceroNom" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
                                     <thead class="text-center">
                                         <tr>
-                                            <th>ID</th>
-                                            <th>NOMBRE</th>
-                                            <th>NIT</th>
+                                            <th class="bg-sofia">ID</th>
+                                            <th class="bg-sofia">NOMBRE</th>
+                                            <th class="bg-sofia">NIT</th>
+                                            <th class="bg-sofia">DIRECCIÓN</th>
+                                            <th class="bg-sofia">TELÉFONO</th>
                                         </tr>
                                     </thead>
                                     <tbody id="modificaTerceroNom"></tbody>
@@ -198,13 +200,13 @@ $content = <<<HTML
                         <table id="tableCtaCtbNom" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
                             <thead class="text-center">
                                 <tr>
-                                    <th>ID</th>
-                                    <th>CENTRO COSTO</th>
-                                    <th>TIPO</th>
-                                    <th>NOMBRE</th>
-                                    <th>CUENTA</th>
-                                    <th>NOMBRE</th>
-                                    <th>ACCIONES</th>
+                                    <th class="bg-sofia">ID</th>
+                                    <th class="bg-sofia">CENTRO COSTO</th>
+                                    <th class="bg-sofia">TIPO</th>
+                                    <th class="bg-sofia">NOMBRE</th>
+                                    <th class="bg-sofia">CUENTA</th>
+                                    <th class="bg-sofia">NOMBRE</th>
+                                    <th class="bg-sofia">ACCIONES</th>
                                 </tr>
                             </thead>
                             <tbody id="modificaCtaCtbNom">

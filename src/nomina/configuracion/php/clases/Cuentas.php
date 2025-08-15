@@ -142,13 +142,13 @@ class Cuentas
                                 <div class="row mb-2">
                                     <div class="col-md-6">
                                         <label for="slcCcosto" class="small">CENTRO COSTO</label>
-                                        <select name="slcCcosto" id="slcCcosto" class="form-control form-control-sm" {$ver}>
+                                        <select name="slcCcosto" id="slcCcosto" class="form-control form-control-sm bg-input" {$ver}>
                                             {$lst2}
                                         </select>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="slcTipo" class="small">TIPO</label>
-                                        <select name="slcTipo" id="slcTipo" class="form-control form-control-sm" {$ver}>
+                                        <select name="slcTipo" id="slcTipo" class="form-control form-control-sm bg-input" {$ver}>
                                             <option value="0">--Seleccione--</option>
                                             {$lst}
                                         </select>
@@ -157,7 +157,7 @@ class Cuentas
                                 <div class="row">
                                     <div class="col-md-12">
                                         <label for="buscaCuenta" class="small">CUENTA CONTABLE</label>
-                                        <input type="text" id="buscaCuenta" class="form-control form-control-sm awesomplete"
+                                        <input type="text" id="buscaCuenta" class="form-control form-control-sm bg-input awesomplete"
                                             data-target="#idCtaCtb" data-tipo-target="#tipoCta"
                                             value="{$fila['nom_cta']}" placeholder="Buscar cuenta...">
                                         <input type="hidden" id="idCtaCtb" name="idCtaCtb" value="{$fila['id_cuenta']}">

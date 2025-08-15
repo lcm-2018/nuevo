@@ -22,7 +22,7 @@ const tableEmpleados = crearDataTable(
         }
     ],
     {
-        pageLength: 25,
+        pageLength: -1,
         order: [[0, 'desc']],
         columnDefs: [
             { "orderable": false, "targets": [0, 6] }

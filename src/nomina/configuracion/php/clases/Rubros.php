@@ -144,7 +144,7 @@ class Rubros
                                 <div class="row mb-2">
                                     <div class="col-md-12">
                                         <label for="slcTipo" class="small">TIPO</label>
-                                        <select name="slcTipo" id="slcTipo" class="form-control form-control-sm">
+                                        <select name="slcTipo" id="slcTipo" class="form-control form-control-sm bg-input">
                                             <option value="0">--Seleccione--</option>
                                             {$lst}
                                         </select>
@@ -153,7 +153,7 @@ class Rubros
                                 <div class="row">
                                     <div class="col-md-6">
                                         <label for="txtRubroAdmin" class="small">RUBRO ADMINISTRATIVO</label>
-                                        <input type="text" id="txtRubroAdmin" class="form-control form-control-sm buscaRubro"
+                                        <input type="text" id="txtRubroAdmin" class="form-control form-control-sm bg-input buscaRubro"
                                             data-target="#idRubroAdmin" data-tipo-target="#tp_dato_radm"
                                             value="{$fila['nom_admin']}">
                                         <input type="hidden" id="idRubroAdmin" name="idRubroAdmin" value="{$fila['r_admin']}">
@@ -161,7 +161,7 @@ class Rubros
                                     </div>
                                     <div class="col-md-6">
                                         <label for="txtRubroOpera" class="small">RUBRO OPERATIVO</label>
-                                        <input type="text" id="txtRubroOpera" class="form-control form-control-sm buscaRubro"
+                                        <input type="text" id="txtRubroOpera" class="form-control form-control-sm bg-input buscaRubro"
                                             data-target="#idRubroOpera" data-tipo-target="#tp_dato_rope"
                                             value="{$fila['nom_operativo']}">
                                         <input type="hidden" id="idRubroOpera" name="idRubroOpera" value="{$fila['r_operativo']}">

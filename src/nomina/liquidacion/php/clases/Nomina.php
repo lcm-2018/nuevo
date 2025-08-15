@@ -370,14 +370,14 @@ class Nomina
     {
         try {
             $sql = "SELECT
-                    MAX(`nom_nominas`.`id_nomina`) AS `id_nomina`, `nom_nominas`.`estado`
-                FROM
-                    `nom_nominas`
-                    INNER JOIN `nom_tipo_liquidacion` 
-                        ON (`nom_nominas`.`tipo` = `nom_tipo_liquidacion`.`codigo`)
-                WHERE (`nom_tipo_liquidacion`.`id_tipo` = ? AND `nom_nominas`.`mes` = ?
-                    AND `nom_nominas`.`vigencia` = ? AND `nom_nominas`.`estado` > 0)
-                GROUP BY `nom_tipo_liquidacion`.`id_tipo`, `nom_nominas`.`mes`";
+                        MAX(`nom_nominas`.`id_nomina`) AS `id_nomina`, `nom_nominas`.`estado`
+                    FROM
+                        `nom_nominas`
+                        INNER JOIN `nom_tipo_liquidacion` 
+                            ON (`nom_nominas`.`tipo` = `nom_tipo_liquidacion`.`codigo`)
+                    WHERE (`nom_tipo_liquidacion`.`id_tipo` = ? AND `nom_nominas`.`mes` = ?
+                        AND `nom_nominas`.`vigencia` = ? AND `nom_nominas`.`estado` > 0)
+                    GROUP BY `nom_tipo_liquidacion`.`id_tipo`, `nom_nominas`.`mes`";
             $stmt = Conexion::getConexion()->prepare($sql);
             $stmt->bindParam(1, $tipo, PDO::PARAM_INT);
             $stmt->bindParam(2, $mes, PDO::PARAM_STR);

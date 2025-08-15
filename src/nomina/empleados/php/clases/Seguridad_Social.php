@@ -202,7 +202,8 @@ class Seguridad_Social
                     `nom_terceros_novedad`.`id_empleado`
                     , `nom_terceros_novedad`.`id_tercero`
                     , `nom_terceros_novedad`.`fec_inicia`
-                    , `nom_terceros_novedad`.`fec_fin`, `id_riesgo`
+                    , `nom_terceros_novedad`.`fec_fin`
+                    , `nom_terceros_novedad`.`id_riesgo`
                     , CONCAT(`tb_terceros`.`nom_tercero`, ' - ', `tb_terceros`.`nit_tercero`) AS `tercero`
                     , `nom_terceros`.`id_tipo`
                 FROM `nom_terceros_novedad`

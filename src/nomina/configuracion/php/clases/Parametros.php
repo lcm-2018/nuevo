@@ -166,7 +166,7 @@ class Parametros
                                 <div class=" form-row">
                                     <div class="form-group col-md-12">
                                         <label for="concepto" class="small">CONCEPTO</label>
-                                        <select class="form-control form-control-sm" id="concepto" name="concepto">
+                                        <select class="form-control form-control-sm bg-input" id="concepto" name="concepto">
                                             <option value="0">--Seleccione--</option>
                                             $options
                                         </select>
@@ -175,7 +175,7 @@ class Parametros
                                 <div class=" form-row">
                                     <div class="form-group col-md-12">
                                         <label for="valor" class="small">VALOR</label>
-                                        <input type="number" class="form-control form-control-sm text-end" id="valor" name="valor" placeholder="Valor" value="{$fila['valor']}" required>
+                                        <input type="number" class="form-control form-control-sm bg-input text-end" id="valor" name="valor" placeholder="Valor" value="{$fila['valor']}" required>
                                     </div>
                                 </div>
                             </form>

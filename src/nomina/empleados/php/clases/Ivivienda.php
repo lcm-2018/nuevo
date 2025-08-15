@@ -166,7 +166,7 @@ class Ivivienda
                             <input type="hidden" id="id" name="id" value="{$id}">
                             <div class="row mb-2">
                                 <div class="col-md-12">
-                                    <label for="numValor" class="small text-muted">TIPO</label>
+                                    <label for="numValor" class="small text-muted">Valor</label>
                                     <input type="number" class="form-control form-control-sm bg-input text-end" id="numValor" name="numValor" value="{$registro['valor']}">
                                 </div>
                             </div>
@@ -265,5 +265,25 @@ class Ivivienda
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
+    }
+
+    public function getIviviendaEmpleados($ids)
+    {
+        if (empty($ids)) {
+            return [];
+        } else {
+            $ids = implode(',', $ids);
+        }
+        $sql = "SELECT 
+                `id_empleado`,`valor`
+            FROM `nom_intereses_vivienda` 
+            WHERE `id_intv` IN 
+                (SELECT MAX(`id_intv`) 
+                FROM `nom_intereses_vivienda` 
+                GROUP BY `id_empleado`)
+                AND `id_empleado` IN ($ids)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

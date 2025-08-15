@@ -123,7 +123,7 @@ class Terceros
                                 <div class="row mb-2">
                                     <div class="col-md-12">
                                         <label for="buscaTercero" class="small">NOMBRE</label> <br>
-                                        <input type="text" id="buscaTercero" name="buscaTercero" class="form-control form-control-sm awesomplete">
+                                        <input type="text" id="buscaTercero" name="buscaTercero" class="form-control form-control-sm bg-input awesomplete">
                                         <input type="hidden" id="id_tercero" name="id_tercero" value="0">
                                     </div>
                                 </div>
