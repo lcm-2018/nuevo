@@ -155,19 +155,22 @@ class Licencias_MoP
         $sql = "SELECT
                     `nom_licenciasmp`.`id_licmp`
                     , `nom_licenciasmp`.`id_empleado`
+                    , `nom_licenciasmp`.`tipo`
                     , `nom_licenciasmp`.`fec_inicio`
                     , `nom_licenciasmp`.`fec_fin`
                     , `nom_licenciasmp`.`dias_inactivo`
                     , `nom_licenciasmp`.`dias_habiles`
                     , IFNULL(`liquidado`.`dias_liqs`,0) AS `liq`
                     , IFNULL(`calendario`.`dias`,0) AS `dias`
+                    , IFNULL(`cotizado`.`dias`,0) AS `dias_cot`
                 FROM `nom_licenciasmp`
                     LEFT JOIN 
                         (SELECT
-                            `id_licmp`, `dias_liqs`
+                            `id_licmp`, SUM(`dias_liqs`) AS `dias_liqs`
                         FROM
                             `nom_liq_licmp`
-                        WHERE (`estado` = 1)) AS `liquidado`
+                        WHERE (`estado` = 1)
+                        GROUP BY `id_licmp`) AS `liquidado`
                         ON (`liquidado`.`id_licmp` = `nom_licenciasmp`.`id_licmp`)
                     LEFT JOIN
                         (SELECT
@@ -176,13 +179,34 @@ class Licencias_MoP
                             `nom_calendar_novedad`
                         WHERE (`id_tipo` = 3 AND `fecha` BETWEEN ? AND ?)
                         GROUP BY `id_novedad`, `id_empleado`) AS `calendario`
-                        ON (`nom_licenciasmp`.`id_licmp` = `calendario`.`id_novedad`)";
+                        ON (`nom_licenciasmp`.`id_licmp` = `calendario`.`id_novedad`)
+                    LEFT JOIN 
+                        (SELECT
+                            `nom_liq_dias_lab`.`id_empleado`
+                            , SUM(`nom_liq_dias_lab`.`cant_dias`) AS `dias`
+                        FROM
+                            `nom_liq_dias_lab`
+                            INNER JOIN `nom_nominas` 
+                            ON (`nom_liq_dias_lab`.`id_nomina` = `nom_nominas`.`id_nomina`)
+                        WHERE (`nom_nominas`.`estado` = 5)
+                        GROUP BY `nom_liq_dias_lab`.`id_empleado`) AS `cotizado`
+                        ON (`nom_licenciasmp`.`id_empleado` = `cotizado`.`id_empleado`)
+                WHERE  `calendario`.`dias` > 0";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
         $stmt->bindParam(2, $fin, PDO::PARAM_STR);
         $stmt->execute();
         $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $registro;
+
+        $stmt->closeCursor();
+        unset($stmt);
+
+        $index = [];
+        foreach ($registro as $row) {
+            $index[$row['id_empleado']][] = $row;
+        }
+
+        return $index;
     }
 
     /**
@@ -307,6 +331,35 @@ class Licencias_MoP
             }
         } catch (PDOException $e) {
             $this->conexion->rollBack();
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function addRegistroLiq($array)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_licmp`
+                        (`id_licmp`,`id_eps`,`dias_liqs`,`val_liq`,`val_dialc`,`id_user_reg`,`fec_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_licmp'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['id_eps'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $array['dias_liqs'], PDO::PARAM_INT);
+            $stmt->bindValue(4, $array['val_liq'], PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['val_dialc'], PDO::PARAM_STR);
+            $stmt->bindValue(6, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(7, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(8, $array['id_nomina'], PDO::PARAM_INT);
+
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+
+            if ($id > 0) {
+                return 'si';
+            } else {
+                return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
     }

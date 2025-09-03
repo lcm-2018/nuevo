@@ -163,10 +163,11 @@ class Licencias_Luto
                 FROM `nom_licencia_luto`
                     LEFT JOIN
                         (SELECT
-                            `id_licluto`, `dias_licluto`
+                            `id_licluto`, SUM(`dias_licluto`) AS `dias_licluto`
                         FROM
                             `nom_liq_licluto`
-                        WHERE (`estado` = 1)) AS `liquidado`
+                        WHERE (`estado` = 1)
+                        GROUP BY `id_licluto`) AS `liquidado`
                         ON (`liquidado`.`id_licluto` = `nom_licencia_luto`.`id_licluto`)
                     LEFT JOIN
                         (SELECT
@@ -175,13 +176,23 @@ class Licencias_Luto
                             `nom_calendar_novedad`
                         WHERE (`id_tipo` = 5 AND `fecha` BETWEEN ? AND ?)
                         GROUP BY `id_novedad`, `id_empleado`) AS `calendario`
-                        ON (`nom_licencia_luto`.`id_licluto` = `calendario`.`id_novedad`)";
+                        ON (`nom_licencia_luto`.`id_licluto` = `calendario`.`id_novedad`)
+                WHERE  `calendario`.`dias` > 0";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
         $stmt->bindParam(2, $fin, PDO::PARAM_STR);
         $stmt->execute();
         $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $registro;
+
+        $stmt->closeCursor();
+        unset($stmt);
+
+        $index = [];
+        foreach ($registro as $row) {
+            $index[$row['id_empleado']][] = $row;
+        }
+
+        return $index;
     }
 
     /**
@@ -301,6 +312,30 @@ class Licencias_Luto
             }
         } catch (PDOException $e) {
             $this->conexion->rollBack();
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+    public function addRegistroLiq($array)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_licluto`
+                        (`id_licluto`,`dias_licluto`,`val_liq`,`id_user_reg`,`fec_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_licluto'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['dias'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $array['valor'], PDO::PARAM_STR);
+            $stmt->bindValue(4, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(6, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                return 'si';
+            } else {
+                return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
     }

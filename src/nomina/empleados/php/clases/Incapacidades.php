@@ -186,10 +186,11 @@ class Incapacidades
                     `nom_incapacidad`
                     LEFT JOIN 
                         (SELECT
-                            `id_incapacidad`, `dias_liq`
+                            `id_incapacidad`, SUM(`dias_liq`) AS `dias_liq`
                         FROM
                             `nom_liq_incap`
-                        WHERE (`estado` = 1)) AS `liquidado`
+                        WHERE (`estado` = 1)
+                        GROUP BY `id_incapacidad`) AS `liquidado`
                         ON (`liquidado`.`id_incapacidad` = `nom_incapacidad`.`id_incapacidad`)
                     LEFT JOIN
                         (SELECT
@@ -206,7 +207,16 @@ class Incapacidades
         $stmt->bindParam(2, $fin, PDO::PARAM_STR);
         $stmt->execute();
         $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $registro;
+
+        $stmt->closeCursor();
+        unset($stmt);
+
+        $index = [];
+        foreach ($registro as $row) {
+            $index[$row['id_empleado']][] = $row;
+        }
+
+        return $index;
     }
 
     /**
@@ -356,6 +366,36 @@ class Incapacidades
             }
         } catch (PDOException $e) {
             $this->conexion->rollBack();
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function addRegistroLiq($array)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_incap` 
+                        (`id_incapacidad`, `id_eps`, `id_arl`, `dias_liq`, `pago_empresa`, `pago_eps`, `pago_arl`, `id_user_reg`,`fec_reg`, `id_nomina`) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['id_eps'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $array['id_arl'], PDO::PARAM_INT);
+            $stmt->bindValue(4, $array['dias'], PDO::PARAM_INT);
+            $stmt->bindValue(5, $array['p_empresa'], PDO::PARAM_STR);
+            $stmt->bindValue(6, $array['p_eps'], PDO::PARAM_STR);
+            $stmt->bindValue(7, $array['p_arl'], PDO::PARAM_STR);
+            $stmt->bindValue(8, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(9, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(10, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                return 'si';
+            } else {
+                return 'No se insertó el registro.';
+            }
+        } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
     }

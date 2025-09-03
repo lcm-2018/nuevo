@@ -207,6 +207,8 @@ class Embargos
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return $registro;
     }
 

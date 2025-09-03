@@ -43,7 +43,20 @@ $datos = [];
 if (!empty($obj)) {
     foreach ($obj as $o) {
         $id = $o['id_empleado'];
-        $laborado = 30 - $o['inc'] - $o['lic'] - $o['vac'];
+        if ($_POST['filter_mes'] == '02' && $o['inc'] >= 28 || $o['inc'] > 30) {
+            $o['inc'] = 30;
+        }
+        if ($_POST['filter_mes'] == '02' && $o['lic'] >= 28 || $o['lic'] > 30) {
+            $o['lic'] = 30;
+        }
+        if ($_POST['filter_mes'] == '02' && $o['vac'] >= 28 || $o['vac'] > 30) {
+            $o['vac'] = 30;
+        }
+        if ($_POST['filter_mes'] && $o['dias_mes'] || $o['dias_mes'] > 30) {
+            $o['dias_mes'] = 30;
+        }
+
+        $laborado = $o['dias_mes'] - $o['inc'] - $o['lic'] - $o['vac'] + $o['ivac'];
         $input = '<input type="number" style="height: auto !important;" class="no-focus text-end border-0 rounded p-0 w-100" name="lab[' . $id . ']" value="' . $laborado . '" min="0" max="' . $laborado . '" step="1">';
         $metodo = '<select style="height:auto !important; max-width: 110px;" class="no-focus border-0 rounded p-0 w-100" name="metodo[' . $id . ']">' . $mp . '</select>';
         $datos[] = [

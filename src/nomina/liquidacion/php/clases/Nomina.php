@@ -340,6 +340,8 @@ class Nomina
             } else {
                 $res['msg'] = 'No se insertó el registro.';
             }
+            $stmt->closeCursor();
+            unset($stmt);
         } catch (PDOException $e) {
             $res['msg'] = 'Error SQL: ' . $e->getMessage();
         }
@@ -398,6 +400,9 @@ class Nomina
         $stmt = Conexion::getConexion()->prepare($sql);
         $stmt->bindValue(1, Sesion::IdVigencia(), PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return $result;
     }
 }

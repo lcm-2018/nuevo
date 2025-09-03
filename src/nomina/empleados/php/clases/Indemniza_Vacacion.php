@@ -162,10 +162,11 @@ class Indemniza_Vacacion
                 FROM `nom_indemniza_vac`
                     LEFT JOIN
                         (SELECT
-                            `id_indemnizacion`, `dias_liq`
+                            `id_indemnizacion`, SUM(`dias_liq`) AS `dias_liq`
                         FROM
                             `nom_liq_indemniza_vac`
-                        WHERE (`estado` = 1)) AS `liquidado`
+                        WHERE (`estado` = 1)
+                        GROUP BY `id_indemnizacion`) AS `liquidado`
                         ON (`liquidado`.`id_indemnizacion` = `nom_indemniza_vac`.`id_indemniza`)
                     LEFT JOIN
                         (SELECT
@@ -174,13 +175,23 @@ class Indemniza_Vacacion
                             `nom_calendar_novedad`
                         WHERE (`id_tipo` = 6 AND `fecha` BETWEEN ? AND ?)
                         GROUP BY `id_novedad`, `id_empleado`) AS `calendario`
-                        ON (`nom_indemniza_vac`.`id_indemniza` = `calendario`.`id_novedad`)";
+                        ON (`nom_indemniza_vac`.`id_indemniza` = `calendario`.`id_novedad`)
+                WHERE  `calendario`.`dias` > 0";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
         $stmt->bindParam(2, $fin, PDO::PARAM_STR);
         $stmt->execute();
         $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $registro;
+
+        $stmt->closeCursor();
+        unset($stmt);
+
+        $index = [];
+        foreach ($registro as $row) {
+            $index[$row['id_empleado']][] = $row;
+        }
+
+        return $index;
     }
     /**
      * Obtiene el formulario para agregar o editar un registro.
@@ -244,6 +255,7 @@ class Indemniza_Vacacion
             $stmt->execute();
             if ($stmt->rowCount() > 0) {
                 Logs::guardaLog($consulta);
+                (new Novedades())->delRegistro(6, $id);
                 return 'si';
             } else {
                 return 'No se eliminó el registro.';
@@ -262,6 +274,7 @@ class Indemniza_Vacacion
     public function addRegistro($array)
     {
         try {
+            $this->conexion->beginTransaction();
             $sql = "INSERT INTO `nom_indemniza_vac`
                         (`id_empleado`,`fec_inica`,`fec_fin`,`cant_dias`,`estado`,`fec_reg`,`id_user_reg`)
                     VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -273,6 +286,43 @@ class Indemniza_Vacacion
             $stmt->bindValue(5, 1, PDO::PARAM_INT);
             $stmt->bindValue(6, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->bindValue(7, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                $array['novedad'] = $id;
+                $array['tipo'] = 6;
+                $Novedad = new Novedades($this->conexion);
+                $resultado = $Novedad->addRegistro($array);
+                if ($resultado === 'si') {
+                    $this->conexion->commit();
+                    return 'si';
+                } else {
+                    $this->conexion->rollBack();
+                    return $resultado;
+                }
+            } else {
+                $this->conexion->rollBack();
+                return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            $this->conexion->rollBack();
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function addRegistroLiq($array)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_indemniza_vac`
+                        (`id_indemnizacion`,`dias_liq`,`val_liq`,`id_user_reg`,`fec_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_indemniza'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['dias'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $array['valor'], PDO::PARAM_STR);
+            $stmt->bindValue(4, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(6, $array['id_nomina'], PDO::PARAM_INT);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
@@ -293,6 +343,7 @@ class Indemniza_Vacacion
     public function editRegistro($array)
     {
         try {
+            $this->conexion->beginTransaction();
             $sql = "UPDATE `nom_indemniza_vac`
                         SET `fec_inica` = ?, `fec_fin` = ?, `cant_dias` = ?
                     WHERE `id_indemniza` = ?";
@@ -303,16 +354,29 @@ class Indemniza_Vacacion
             $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
-                $consulta = "UPDATE `nom_indemniza_vac` SET `fec_act` = ? WHERE `id_indemniza` = ?";
+                $consulta = "UPDATE `nom_indemniza_vac` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_indemniza` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
                 $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
+                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
-                return 'si';
+                $Novedad = new Novedades($this->conexion);
+                $Novedad->delRegistro(6, $array['id']);
+                $array['novedad'] = $array['id'];
+                $array['tipo'] = 6;
+                $resultado = $Novedad->addRegistro($array);
+                if ($resultado === 'si') {
+                    $this->conexion->commit();
+                    return 'si';
+                } else {
+                    $this->conexion->rollBack();
+                    return $resultado;
+                }
             } else {
                 return 'No se actualizó el registro.';
             }
         } catch (PDOException $e) {
+            $this->conexion->rollBack();
             return 'Error SQL: ' . $e->getMessage();
         }
     }

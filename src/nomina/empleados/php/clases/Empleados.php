@@ -142,9 +142,15 @@ class Empleados
             $stmt = $this->conexion->prepare($sql);
             $stmt->execute();
             if ($id > 0) {
-                return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+                unset($stmt);
+                return $result;
             } else {
-                return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: null;
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+                unset($stmt);
+                return $result;
             }
         } catch (Exception $e) {
             return 'Error SQL: ' . $e->getMessage();
@@ -310,6 +316,8 @@ class Empleados
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $novedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($novedades) ? $novedades : [];
     }
 
@@ -1115,7 +1123,10 @@ class Empleados
             $stmt->bindValue(1, $fin, PDO::PARAM_STR);
             $stmt->bindValue(2, $inicia, PDO::PARAM_STR);
             $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            unset($stmt);
+            return $result;
         } catch (Exception $e) {
             return 'Error SQL: ' . $e->getMessage();
         }

@@ -284,6 +284,9 @@ class Ivivienda
                 AND `id_empleado` IN ($ids)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return $result;
     }
 }

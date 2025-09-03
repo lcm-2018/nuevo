@@ -44,7 +44,10 @@ class Usuario
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return $result;
     }
 
     public function getvigencia()

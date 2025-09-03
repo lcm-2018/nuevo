@@ -168,26 +168,37 @@ class Licencias_Norem
                     , IFNULL(`calendario`.`dias`,0) AS `dias`
                 FROM `nom_licenciasnr`
                     LEFT JOIN
-                    (SELECT
-                        `id_licnr`, `dias_licnr`
-                    FROM
-                        `nom_liq_licnr`
-                    WHERE (`estado` = 1)) AS `liquidado`
-                    ON (`liquidado`.`id_licnr` = `nom_licenciasnr`.`id_licnr`)
+                        (SELECT
+                            `id_licnr`, SUM(`dias_licnr`) AS `dias_licnr`
+                        FROM
+                            `nom_liq_licnr`
+                        WHERE (`estado` = 1)
+                        GROUP BY `id_licnr`) AS `liquidado`
+                        ON (`liquidado`.`id_licnr` = `nom_licenciasnr`.`id_licnr`)
                     LEFT JOIN
-                    (SELECT
-                        `id_novedad`, COUNT(`id_novedad`) AS `dias`
-                    FROM
-                        `nom_calendar_novedad`
-                    WHERE (`id_tipo` = 4 AND `fecha` BETWEEN ? AND ?)
-                    GROUP BY `id_novedad`, `id_empleado`) AS `calendario`
-                    ON (`nom_licenciasnr`.`id_licnr` = `calendario`.`id_novedad`)";
+                        (SELECT
+                            `id_novedad`, COUNT(`id_novedad`) AS `dias`
+                        FROM
+                            `nom_calendar_novedad`
+                        WHERE (`id_tipo` = 4 AND `fecha` BETWEEN ? AND ?)
+                        GROUP BY `id_novedad`, `id_empleado`) AS `calendario`
+                        ON (`nom_licenciasnr`.`id_licnr` = `calendario`.`id_novedad`)
+                WHERE  `calendario`.`dias` > 0";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
         $stmt->bindParam(2, $fin, PDO::PARAM_STR);
         $stmt->execute();
         $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $registro;
+
+        $stmt->closeCursor();
+        unset($stmt);
+
+        $index = [];
+        foreach ($registro as $row) {
+            $index[$row['id_empleado']][] = $row;
+        }
+
+        return $index;
     }
 
     /**
@@ -307,6 +318,30 @@ class Licencias_Norem
             }
         } catch (PDOException $e) {
             $this->conexion->rollBack();
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function addRegistroLiq($array)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_licnr`
+                        (`id_licnr`,`dias_licnr`,`id_user_reg`,`fec_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_licnr'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['dias_licnr'], PDO::PARAM_INT);
+            $stmt->bindValue(3, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(4, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                return 'si';
+            } else {
+                return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
     }

@@ -11,7 +11,7 @@ use Src\Common\Php\Clases\Valores;
 use PDO;
 use PDOException;
 
-class Contratos
+class Valores_Liquidacion
 {
     private $conexion;
 
@@ -21,7 +21,7 @@ class Contratos
     }
 
     /**
-     * Obtiene los datos de los contratos para la DataTabl.
+     * Obtiene los datos de los valores usados como base para liquidar para la DataTabl.
      *
      * @param int $start Índice de inicio para la paginación
      * @param int $length Número de registros a mostrar
@@ -44,17 +44,6 @@ class Contratos
         }
 
         $sql = "SELECT
-                    `nom_contratos_empleados`.`fec_inicio`
-                    , `nom_contratos_empleados`.`fec_fin`
-                    , `nom_contratos_empleados`.`vigencia`
-                    , `nom_contratos_empleados`.`estado`
-                    , `nom_salarios_basico`.`id_salario`
-                    , `nom_salarios_basico`.`salario_basico`
-                    , `nom_contratos_empleados`.`id_contrato_emp`
-                FROM
-                    `nom_salarios_basico`
-                    INNER JOIN `nom_contratos_empleados` 
-                        ON (`nom_salarios_basico`.`id_contrato` = `nom_contratos_empleados`.`id_contrato_emp`)
                 WHERE (`nom_contratos_empleados`.`id_empleado` = $id_empleado $where)
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
@@ -66,19 +55,7 @@ class Contratos
     public function getContratoEmpleados($ids)
     {
         $ids = implode(',', $ids);
-        $sql = "SELECT
-                    `nom_contratos_empleados`.`fec_inicio`
-                    , `nom_contratos_empleados`.`fec_fin`
-                    , `nom_contratos_empleados`.`vigencia`
-                    , `nom_contratos_empleados`.`estado`
-                    , `nom_salarios_basico`.`id_salario`
-                    , `nom_salarios_basico`.`salario_basico`
-                    , `nom_contratos_empleados`.`id_contrato_emp`
-                FROM
-                    `nom_salarios_basico`
-                    INNER JOIN `nom_contratos_empleados` 
-                        ON (`nom_salarios_basico`.`id_contrato` = `nom_contratos_empleados`.`id_contrato_emp`)
-                WHERE (`nom_contratos_empleados`.`id_empleado` IN (?))";
+        $sql = "";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $ids, PDO::PARAM_STR);
         $stmt->execute();
@@ -130,37 +107,19 @@ class Contratos
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
     }
 
-    public function getRegistro($id)
+    public function getRegistro($id_nomina, $id_empleado)
     {
         $sql = "SELECT
-                    `nom_contratos_empleados`.`fec_inicio`
-                    , `nom_contratos_empleados`.`fec_fin`
-                    , `nom_contratos_empleados`.`vigencia`
-                    , `nom_contratos_empleados`.`estado`
-                    , `nom_salarios_basico`.`id_salario`
-                    , `nom_salarios_basico`.`salario_basico`
-                    , `nom_contratos_empleados`.`id_contrato_emp`
-                FROM
-                    `nom_salarios_basico`
-                    INNER JOIN `nom_contratos_empleados` 
-                        ON (`nom_salarios_basico`.`id_contrato` = `nom_contratos_empleados`.`id_contrato_emp`)
-                WHERE (`nom_salarios_basico`.`id_salario` = ?)";
+                    `id_empleado`,`smmlv`,`aux_trans`,`aux_alim`,`uvt`,`base_bsp`,`base_alim`,`min_vital`,`salario`,`tiene_grep`,`prom_horas`,`bsp_ant`,`pri_ser_ant`,`pri_vac_ant`,`pri_nav_ant`,`id_nomina`
+                FROM `nom_valores_liquidacion` WHERE `id_nomina` = ? AND `id_empleado` = ?";
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bindParam(1, $id, PDO::PARAM_INT);
+        $stmt->bindParam(1, $id_nomina, PDO::PARAM_INT);
+        $stmt->bindParam(2, $id_empleado, PDO::PARAM_INT);
         $stmt->execute();
-        $contrato = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (empty($contrato)) {
-            $contrato = [
-                'fec_inicio' => date('Y-m-d'),
-                'fec_fin' => '',
-                'vigencia' => '',
-                'estado' => 0,
-                'id_salario' => 0,
-                'salario_basico' => 0,
-                'id_contrato_emp' => 0
-            ];
-        }
-        return $contrato;
+        $valores = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($valores) ? $valores : [];
     }
 
 
@@ -172,43 +131,7 @@ class Contratos
      */
     public function getFormulario($id)
     {
-        $contrato = $this->getRegistro($id);
-        $salario = str_replace('.', ',', $contrato['salario_basico']);
-        $html =
-            <<<HTML
-                <div class="shadow text-center rounded">
-                    <div class="rounded-top py-2" style="background-color: #16a085 !important;">
-                        <h5 style="color: white;" class="mb-0">GESTIÓN CONTRATOS EMPLEADOS</h5>
-                    </div>
-                    <div class="p-3">
-                        <form id="formContratoEmpleado">
-                            <input type="hidden" id="id" name="id" value="{$id}">
-                            <input type="hidden" id="id_contrato_emp" name="id_contrato_emp" value="{$contrato['id_contrato_emp']}">
-                            <div class="row mb-2">
-                                <div class="col-md-6">
-                                    <label for="datFecInicia" class="small text-muted">Inicia</label>
-                                    <input type="date" class="form-control form-control-sm bg-input" id="datFecInicia" name="datFecInicia" value="{$contrato['fec_inicio']}">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="datFecFin" class="small text-muted">Fin</label>
-                                    <input type="date" class="form-control form-control-sm bg-input" id="datFecFin" name="datFecFin" value="{$contrato['fec_fin']}">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <label for="txtSalarioBasico" class="small text-muted">Salario Básico</label>
-                                    <input type="text" class="form-control form-control-sm bg-input text-end" id="txtSalarioBasico" name="txtSalarioBasico" value="{$contrato['salario_basico']}" placeholder="Salario Básico" oninput="NumberMiles(this)">
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="text-center pb-3">
-                        <button type="button" class="btn btn-primary btn-sm" id="btnGuardaContratoEmpleado">Guardar</button>
-                        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
-                    </div>
-                </div>
-            HTML;
-        return $html;
+        return 'Falta programar el formulario.';
     }
 
     /**
@@ -218,7 +141,7 @@ class Contratos
      * @return string Mensaje de éxito o error
      */
 
-    public function delContrato($id)
+    public function delRegistro($id)
     {
         try {
             $sql = "DELETE FROM `nom_contratos_empleados` WHERE `id_contrato_emp` = ?";
@@ -243,34 +166,38 @@ class Contratos
      * @param array $array Datos del contrato a agregar
      * @return string Mensaje de éxito o error
      */
-    public function addContrato($array)
+    public function addRegistro($l)
     {
         try {
-            $sql = "INSERT INTO `nom_contratos_empleados`
-                        (`id_empleado`,`fec_inicio`,`fec_fin`,`vigencia`,`estado`,`id_user_reg`,`fec_reg`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO `nom_valores_liquidacion`
+                        (`id_empleado`,`smmlv`,`aux_trans`,`aux_alim`,`uvt`,`base_bsp`,`base_alim`,`min_vital`,`salario`,`tiene_grep`,`prom_horas`,`bsp_ant`,`pri_ser_ant`,`pri_vac_ant`,`pri_nav_ant`,`id_user_reg`,`fec_reg`,`id_nomina`,`grep`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
-            $stmt->bindValue(2, $array['datFecInicia'], PDO::PARAM_STR);
-            $stmt->bindValue(3, $array['datFecFin'] != '' ? $array['datFecFin'] : NULL, PDO::PARAM_STR);
-            $stmt->bindValue(4, Sesion::Vigencia(), PDO::PARAM_INT);
-            $stmt->bindValue(5, 1, PDO::PARAM_INT);
-            $stmt->bindValue(6, Sesion::IdUser(), PDO::PARAM_INT);
-            $stmt->bindValue(7, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(1, $l['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $l['smmlv'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $l['aux_trans'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $l['aux_alim'], PDO::PARAM_STR);
+            $stmt->bindValue(5, $l['uvt'], PDO::PARAM_STR);
+            $stmt->bindValue(6, $l['base_bsp'], PDO::PARAM_STR);
+            $stmt->bindValue(7, $l['base_alim'], PDO::PARAM_STR);
+            $stmt->bindValue(8, $l['min_vital'], PDO::PARAM_STR);
+            $stmt->bindValue(9, $l['salario'], PDO::PARAM_STR);
+            $stmt->bindValue(10, $l['tiene_grep'], PDO::PARAM_INT);
+            $stmt->bindValue(11, $l['prom_horas'], PDO::PARAM_STR);
+            $stmt->bindValue(12, $l['bsp_ant'], PDO::PARAM_STR);
+            $stmt->bindValue(13, $l['pri_ser_ant'], PDO::PARAM_STR);
+            $stmt->bindValue(14, $l['pri_vac_ant'], PDO::PARAM_STR);
+            $stmt->bindValue(15, $l['pri_nav_ant'], PDO::PARAM_STR);
+            $stmt->bindValue(16, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(17, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(18, $l['id_nomina'], PDO::PARAM_INT);
+            $stmt->bindValue(19, $l['grep'], PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
-                $sql = "INSERT INTO `nom_salarios_basico`
-                            (`id_empleado`,`id_contrato`,`vigencia`,`salario_basico`,`fec_reg`)
-                        VALUES (?, ?, ?, ?, ?)";
-                $stmt = $this->conexion->prepare($sql);
-                $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
-                $stmt->bindValue(2, $id, PDO::PARAM_INT);
-                $stmt->bindValue(3, Sesion::Vigencia(), PDO::PARAM_INT);
-                $stmt->bindValue(4, Valores::WordToNumber($array['txtSalarioBasico']), PDO::PARAM_STR);
-                $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt->execute();
-                return $this->conexion->lastInsertId() > 0 ? 'si' : 'No se insertó el registro';
+                $stmt->closeCursor();
+                unset($stmt);
+                return  'si';
             } else {
                 return 'No se insertó el registro';
             }
@@ -284,7 +211,7 @@ class Contratos
      * @param array $array Datos del contrato a actualizar
      * @return string Mensaje de éxito o error
      */
-    public function editContrato($array)
+    public function editRegistro($array)
     {
         $cambio = 0;
         try {
@@ -336,7 +263,7 @@ class Contratos
         }
     }
 
-    public function annulContrato($array)
+    public function annulRegistro($array)
     {
         return 'Falta programar la anulación de contrato.';
     }

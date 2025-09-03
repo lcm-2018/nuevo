@@ -218,7 +218,16 @@ class Horas_Extra
             $stmt = $this->conexion->prepare($sql);
             $stmt->execute();
             $horas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            return !empty($horas) ? $horas : [];
+
+            $stmt->closeCursor();
+            unset($stmt);
+
+            $index = [];
+            foreach ($horas as $row) {
+                $index[$row['id_empleado']][] = $row;
+            }
+
+            return $index;
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }

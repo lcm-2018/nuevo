@@ -171,10 +171,11 @@ class Vacaciones
                 FROM `nom_vacaciones`
                     LEFT JOIN 
                         (SELECT
-                            `id_vac`, `dias_liqs`
+                            `id_vac`, SUM(`dias_liqs`) AS `dias_liqs`
                         FROM
                             `nom_liq_vac`
-                        WHERE (estado = 1)) AS `liquidado`
+                        WHERE (`estado` = 1)
+                        GROUP BY `id_vac`) AS `liquidado`
                         ON (`liquidado`.`id_vac` = `nom_vacaciones`.`id_vac`)
                     LEFT JOIN
                         (SELECT
@@ -190,7 +191,17 @@ class Vacaciones
         $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
         $stmt->bindParam(2, $fin, PDO::PARAM_STR);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmt->closeCursor();
+        unset($stmt);
+
+        $index = [];
+        foreach ($data as $row) {
+            $index[$row['id_empleado']][] = $row;
+        }
+
+        return $index;
     }
 
 
@@ -345,6 +356,41 @@ class Vacaciones
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+
+    public function addRegistroLiq($d)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_vac`
+                        (`id_vac`,`sal_base`,`g_rep`,`aux_tra`,`aux_alim`,`bsp_ant`,`psv_ant`,`dias_liqs`,`val_liq`,`val_prima_vac`,`val_bon_recrea`,`id_user_reg`,`fec_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $d['idvac'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $d['salbas'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $d['grepre'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $d['auxtra'], PDO::PARAM_STR);
+            $stmt->bindValue(5, $d['auxali'], PDO::PARAM_STR);
+            $stmt->bindValue(6, $d['bspant'], PDO::PARAM_STR);
+            $stmt->bindValue(7, $d['psvant'], PDO::PARAM_STR);
+            $stmt->bindValue(8, $d['dhabiles'], PDO::PARAM_STR);
+            $stmt->bindValue(9, $d['vacacion'], PDO::PARAM_STR);
+            $stmt->bindValue(10, $d['prima_vac'], PDO::PARAM_STR);
+            $stmt->bindValue(11, $d['bonrecrea'], PDO::PARAM_STR);
+            $stmt->bindValue(12, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(13, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(14, $d['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                $up = $this->upEstado($d['idvac'], 2);
+                return $up !== 'si' ? $up : 'si';
+            } else {
+                return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
     /**
      * Actualiza los datos de un registro.
      *
@@ -399,5 +445,30 @@ class Vacaciones
     public function annulRegistro($array)
     {
         return 'Falta programar la anulación de registro.';
+    }
+    public function upEstado($id, $estado = 2)
+    {
+        try {
+            $sql = "UPDATE `nom_liq_vac`
+                        SET `estado` = ?
+                    WHERE `id_vac` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $estado, PDO::PARAM_INT);
+            $stmt->bindValue(2, $id, PDO::PARAM_INT);
+            $stmt->execute();
+            if ($stmt->rowCount() > 0) {
+                $consulta = "UPDATE `nom_liq_vac` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_vac` = ?";
+                $stmt2 = $this->conexion->prepare($consulta);
+                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmt2->bindValue(3, $id, PDO::PARAM_INT);
+                $stmt2->execute();
+                return 'si';
+            } else {
+                return 'No se actualizó el registro.';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
     }
 }

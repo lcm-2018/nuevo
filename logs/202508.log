@@ -1,0 +1,1 @@
+[2025-08-25 11:33:05] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_incapacidad` WHERE `id_incapacidad` = 40;

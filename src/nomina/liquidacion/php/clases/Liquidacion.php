@@ -5,7 +5,7 @@ namespace Src\Nomina\Liquidacion\Php\Clases;
 use Config\Clases\Conexion;
 use Config\Clases\Logs;
 use Config\Clases\Sesion;
-
+use Exception;
 use PDO;
 use PDOException;
 use Src\Nomina\Empleados\Php\Clases\Contratos;
@@ -21,6 +21,7 @@ use Src\Nomina\Empleados\Php\Clases\Licencias_Norem;
 use Src\Nomina\Empleados\Php\Clases\Otros_Descuentos;
 use Src\Nomina\Empleados\Php\Clases\Sindicatos;
 use Src\Nomina\Empleados\Php\Clases\Vacaciones;
+use Src\Nomina\Empleados\Php\Clases\Valores_Liquidacion;
 use Src\Nomina\Horas_extra\Php\Clases\Horas_Extra;
 use Src\Usuarios\Login\Php\Clases\Usuario;
 
@@ -77,13 +78,18 @@ class Liquidacion
                     , IFNULL(`tt`.`inc`,0) AS `inc`
                     , IFNULL(`tt`.`lic`,0) AS `lic`
                     , IFNULL(`tt`.`vac`,0) AS `vac`
-                    , DATEDIFF('$fec_fin', '$fec_inicio') + 1 AS `dias_mes`
+                    , IFNULL(`tt`.`ivac`,0) AS `ivac`
+                    , DATEDIFF(
+                        LEAST('$fec_fin', `taux`.`fec_fin`),
+                        GREATEST('$fec_inicio', `taux`.`fec_inicio`)) + 1 AS `dias_mes`
                     , IF(`obs`.`corte` > 0,  DATEDIFF('$fec_fin', `obs`.`corte`), 0) AS `observacion`
                 FROM
                     (SELECT 
-                        `ctt`.`id_empleado`,
-                        `e`.`no_documento`,
-                        CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`
+                        `ctt`.`id_empleado`
+                        , `e`.`no_documento`
+                        , CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`
+                        , `ctt`.`fec_fin`
+                        , `ctt`.`fec_inicio`
                     FROM
                         (SELECT
                             `id_empleado`,
@@ -106,10 +112,11 @@ class Liquidacion
                             , SUM(CASE WHEN `id_tipo` = 1 THEN 1 ELSE 0 END) AS `inc`
                             , SUM(CASE WHEN `id_tipo` = 2 THEN 1 ELSE 0 END) AS `vac`
                             , SUM(CASE WHEN `id_tipo` IN (3, 4, 5) THEN 1 ELSE 0 END) AS `lic`
+                            , SUM(CASE WHEN `id_tipo` = 6 THEN 1 ELSE 0 END) AS `ivac`
                         FROM 
                             `nom_calendar_novedad`
                         WHERE 
-                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3, 4, 5)
+                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3, 4, 5, 6)
                         GROUP BY `id_empleado`) AS `tt`
                         ON (`taux`.`id_empleado` = `tt`.`id_empleado`) 
                     LEFT JOIN
@@ -325,8 +332,9 @@ class Liquidacion
      * @param array $array Datos del registro a agregar
      * @return string Mensaje de éxito o error
      */
-    public function addRegistro($array)
+    public function addRegistro($array, $opcion = 0)
     {
+        ini_set('memory_limit', '1024M');
         $ids =          $array['chk_liquidacion'];
         $laborado =     $array['lab'];
         $mpago =        $array['metodo'];
@@ -351,9 +359,9 @@ class Liquidacion
             return 'No se han configurado los parámetros de liquidación.';
         }
 
-        $param = array_column($data, 'valor', 'id_concepto');
+        $parametro = array_column($data, 'valor', 'id_concepto');
 
-        if (empty($param[1]) || empty($param[6])) {
+        if (empty($parametro[1]) || empty($parametro[6])) {
             return 'No se han Configurado los parámetros de liquidación.';
         }
 
@@ -382,58 +390,154 @@ class Liquidacion
         $otrosDctos =   (new Otros_Descuentos())->getRegistroPorEmpleado();
 
         //otros 
-        $cortes =       (self::getCortes($ids));
+        $cortes =       (self::getCortes($ids, $fin));
         $iVivienda =    (new Ivivienda())->getIviviendaEmpleados($ids);
         $liquidados =   (self::getEmpleadosLiq($id_nomina, $ids));
         $liquidados =   array_column($liquidados, 'id_sal_liq', 'id_empleado');
         $error = '';
 
+        if ($opcion == 0) {
+            $param['smmlv'] =           $parametro[1];
+            $param['aux_trans'] =       $parametro[2];
+            $param['aux_alim'] =        $parametro[3];
+            $param['uvt'] =             $parametro[6];
+            $param['base_bsp'] =        $parametro[7];
+            $param['grep'] =            $parametro[8];
+            $param['base_alim'] =       $parametro[9];
+            $param['min_vital'] =       $parametro[10];
+            $param['id_nomina'] =       $id_nomina;
+        }
+
         foreach ($ids as $id_empleado) {
             if (!(isset($liquidados[$id_empleado]) && isset($salarios[$id_empleado]))) {
-                $filtro = [];
-                $filtro = array_filter($terceros_ss, function ($terceros_ss) use ($id_empleado) {
-                    return $terceros_ss["id_empleado"] == $id_empleado;
-                });
+                try {
+                    $filtro = [];
+                    $filtro = array_filter($terceros_ss, function ($terceros_ss) use ($id_empleado) {
+                        return $terceros_ss["id_empleado"] == $id_empleado;
+                    });
 
-                $novedad = array_column($filtro, 'id_tercero', 'id_tipo');
-                if (!(isset($novedad[1]) && isset($novedad[2]) && isset($novedad[3]) && isset($novedad[4]))) {
-                    $error .= "<p>ID: $id_empleado, no tiene registrado seguridad social</p>";
-                    continue;
-                }
-
-                //$this->conexion->beginTransaction();
-
-                $insert = true;
-
-                //liquidar Horas extras
-                $filtro = [];
-                $filtro = array_filter($horas, function ($horas) use ($id_empleado) {
-                    return $horas["id_empleado"] == $id_empleado;
-                });
-                $valHora = $salarios[$id_empleado] / 230;
-                $valTotalHe = 0;
-                if (!empty($filtro)) {
-                    $response = $this->LiquidaHorasExtra($filtro, $id_nomina, $valHora);
-                    $insert = $response['insert'];
-                    $valTotalHe = $response['valor'];
-                    if (!$insert) {
-                        $error .= "<p>ID: $id_empleado, Error al liquidar horas extras: {$response['msg']}</p>";
+                    $novedad = array_column($filtro, 'id_tercero', 'id_tipo');
+                    if (!(isset($novedad[1]) && isset($novedad[2]) && isset($novedad[3]) && isset($novedad[4]))) {
+                        throw new Exception("No tiene registrado novedades de seguridad social");
                     }
-                }
 
-                if (!$insert) {
-                    $this->conexion->rollBack();
+                    $key = array_search($id_empleado, array_column($cortes, 'id_empleado'));
+                    $cortes_empleado =  $cortes[$key] ?? [];
+
+                    $this->conexion->beginTransaction();
+
+                    if ($opcion == 0) {
+                        $param['id_empleado'] =     $id_empleado;
+                        $param['salario'] =         $salarios[$id_empleado];
+                        $param['tiene_grep'] =      $cortes_empleado['tiene_grep'] ?? 0;
+                        $param['bsp_ant'] =         $cortes_empleado['val_bsp'] ?? 0;
+                        $param['pri_ser_ant'] =     $cortes_empleado['val_liq_ps'] ?? 0;
+                        $param['pri_vac_ant'] =     $cortes_empleado['val_liq_pv'] ?? 0;
+                        $param['pri_nav_ant'] =     $cortes_empleado['val_liq'] ?? 0;
+                        $param['val_prima_vac'] =   $cortes_empleado['val_prima_vac'] ?? 0;
+                        $param['prom_horas'] =      $cortes_empleado['prom'] ?? 0;
+                    } else if ($opcion == 1) {
+                        $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
+                    }
+
+                    if ($opcion == 0) {
+                        $res = (new Valores_Liquidacion($this->conexion))->addRegistro($param);
+                        if ($res != 'si') {
+                            throw new Exception("Valores de liquidación: $res");
+                        }
+                    }
+
+                    //liquidar Horas extras
+                    $valTotalHe = 0;
+                    $filtro = $horas[$id_empleado] ?? [];
+                    if (!empty($filtro)) {
+                        $response = $this->LiquidaHorasExtra($filtro, $param);
+                        $valTotalHe = $response['valor'];
+                        if (!$response['insert']) {
+                            throw new Exception("Horas extras: {$response['msg']}");
+                        }
+                    }
+
+                    //liquidar incapacidades
+                    $valTotIncap = 0;
+                    $filtro = $incapacidades[$id_empleado] ?? [];
+                    if (!empty($filtro)) {
+                        $response = $this->LiquidaIncapacidad($filtro, $param, $novedad);
+                        $valTotIncap = $response['valor'];
+                        if (!$response['insert']) {
+                            throw new Exception("Incapacidades: {$response['msg']}");
+                        }
+                    }
+
+                    //liquidar vacaciones
+                    $valTotVac =        0;
+                    $valTotPrimVac =    0;
+                    $valBonRec =        0;
+
+                    $filtro = $vacaciones[$id_empleado][0] ?? [];
+                    if (!empty($filtro)) {
+                        $response =         $this->LiquidaVacaciones($filtro, $param);
+                        $valTotVac =        $response['valor'];
+                        $valTotPrimVac =    $response['prima'];
+                        $valBonRec =        $response['bono'];
+                        if (!$response['insert']) {
+                            throw new Exception("Vacaciones: {$response['msg']}");
+                        }
+                    }
+
+                    //liquidar licencias mop
+                    $valTotLicMP = 0;
+                    $filtro = $licenciasMP[$id_empleado][0] ?? [];
+                    if (!empty($filtro)) {
+                        $filtro['id_eps'] = $novedad[1];
+                        $filtro['mes'] = $mes;
+                        $response = $this->LiquidaLicenciaMOP($filtro, $param);
+                        $valTotLicMP = $response['valor'];
+
+                        if (!$response['insert']) {
+                            throw new Exception("Licencias MoP: {$response['msg']}");
+                        }
+                    }
+
+                    //liquidar licencias no remuneradas
+                    $filtro = $licenciaNR[$id_empleado] ?? [];
+                    if (!empty($filtro)) {
+                        $response = $this->LiquidaLicenciaNoRem($filtro, $param, $mes);
+                        if (!$response['insert']) {
+                            throw new Exception("Licencias no remuneradas: {$response['msg']}");
+                        }
+                    }
+
+                    //liquidar licencia por luto
+                    $valTotLicLuto = 0;
+                    $filtro = $licenciaLuto[$id_empleado] ?? [];
+                    if (!empty($filtro)) {
+                        $response = $this->LiquidaLicenciaLuto($filtro, $param);
+                        $valTotLicLuto = $response['valor'];
+                        if (!$response['insert']) {
+                            throw new Exception("Licencias por luto: {$response['msg']}");
+                        }
+                    }
+
+                    //liquidar indemnización por vacaciones
+                    $filtro = $indemVacaciones[$id_empleado][0] ?? [];
+                    if (!empty($filtro)) {
+                        $response = $this->LiquidaIndemnizaVacaciones($filtro, $param);
+                        if (!$response['insert']) {
+                            throw new Exception("Indemnización por vacaciones: {$response['msg']}");
+                        }
+                    }
+
+                    $this->conexion->commit();
+
+                    unset($filtro, $response);
+                    gc_collect_cycles();
+                } catch (Exception $e) {
+                    if ($this->conexion->inTransaction()) {
+                        $this->conexion->rollBack();
+                    }
+                    $error .= "<p>ID: $id_empleado, {$e->getMessage()}</p>";
                     continue;
-                }
-
-                //liquidar incapacidades
-                $valorDia = $salarios[$id_empleado] / 30;
-                $valTotIncap = 0;
-                $filtro = [];
-                $filtro = array_filter($incapacidades, function ($incapacidades) use ($id_empleado) {
-                    return $incapacidades["id_empleado"] == $id_empleado;
-                });
-                if (!empty($filtro)) {
                 }
             }
         }
@@ -514,17 +618,19 @@ class Liquidacion
         try {
             $sql = "SELECT `id_empleado`,`id_sal_liq`
                     FROM `nom_liq_salario`
-                    WHERE (`id_nomina` = ? AND `id_empleado` IN ($ids))";
+                    WHERE (`id_nomina` = ? AND `nom_liq_salario`.`estado` = 1 AND `id_empleado` IN ($ids))";
             $stmt = Conexion::getConexion()->prepare($sql);
             $stmt->bindParam(1, $id_nomina, PDO::PARAM_INT);
             $stmt->execute();
             $res  = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            unset($stmt);
             return !empty($res) ? $res : [];
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
     }
-    public static function getCortes($empleados)
+    public static function getCortes($empleados, $ffin)
     {
         if (empty($empleados)) {
             return [];
@@ -532,231 +638,232 @@ class Liquidacion
             $empleados = implode(',', $empleados);
         }
         try {
-            $sql = "SELECT 
-                        `nom_empleado`.`id_empleado`
-                        , `nom_empleado`.`representacion`
-                        , `t1`.`val_bsp`
-                        , `t1`.`mes`
-                        , `t1`.`anio`
-                        , `t2`.`corte_ces`
-                        , `t3`.`val_liq_ps`
-                        , `t3`.`corte_prim_sv`
-                        , `t4`.`val_liq_pv`
-                        , `t4`.`corte_prim_nav`
-                        , `t5`.`corte` AS `corte_vac`
-                        , `t5`.`val_liq`
-                        , `t5`.`val_prima_vac`
-                        , `t5`.`val_bon_recrea`
-                    FROM
-                        `nom_empleado`
-                        LEFT JOIN  
+            $sql = "WITH
+                        `ctt` AS
                             (SELECT
-                                `tbsp`.`id_empleado`
-                                , CASE
-                                    WHEN `tbsp`.`fec_comp1` > IFNULL(`tbspra`.`fec_comp2`,'1900-01-01') THEN `tbsp`.`val_bsp`
-                                    ELSE IFNULL(`tbsp`.`val_bsp`,0) + IFNULL(`tbspra`.`val_bsp_ra`,0)
-                                END AS `val_bsp`
-                                , RIGHT(`tbsp`.`fec_comp1`, 2) AS `mes` 
-                                , LEFT(`tbsp`.`fec_comp1`, 4) AS `anio`
-                            FROM	
-                                (SELECT
-                                    `id_empleado`
-                                    , `val_bsp`
-                                    , CONCAT(`anio`,`mes`) AS `fec_comp1` 
-                                FROM `nom_liq_bsp`
-                                WHERE `id_bonificaciones` IN
-                                    (SELECT
-                                        MAX(`nom_liq_bsp`.`id_bonificaciones`)
-                                    FROM
-                                        `nom_liq_bsp`
-                                        INNER JOIN `nom_nominas` 
-                                        ON (`nom_liq_bsp`.`id_nomina` = `nom_nominas`.`id_nomina`)
-                                    WHERE (`nom_nominas`.`vigencia` <= :vigencia AND `nom_nominas`.`estado` = 5 AND `nom_nominas`.`tipo` = 'N')
-                                    GROUP BY `nom_liq_bsp`.`id_empleado`)) AS `tbsp`
-                                LEFT JOIN
-                                    (SELECT
-                                        `nom_liq_bsp`.`id_empleado`
-                                        , `nom_liq_bsp`.`val_bsp` AS `val_bsp_ra`
-                                        , DATE_FORMAT(`nom_retroactivos`.`fec_final`, '%Y%m') AS `fec_comp2`
-                                    FROM `nom_liq_bsp`
-                                        INNER JOIN `nom_nominas`
-                                            ON(`nom_liq_bsp`.`id_nomina` = `nom_nominas`.`id_nomina`)
-                                        LEFT JOIN `nom_retroactivos`
-                                            ON(`nom_retroactivos`.`id_incremento` = `nom_nominas`.`id_incremento`)
-                                    WHERE `nom_liq_bsp`.`id_bonificaciones` IN
-                                        (SELECT
-                                            MAX(`nom_liq_bsp`.`id_bonificaciones`)
-                                        FROM
-                                            `nom_liq_bsp`
-                                            INNER JOIN `nom_nominas` 
-                                            ON (`nom_liq_bsp`.`id_nomina` = `nom_nominas`.`id_nomina`)
-                                        WHERE (`nom_nominas`.`vigencia` <= :vigencia AND `nom_nominas`.`estado` = 5 AND `nom_nominas`.`tipo` = 'RA')
-                                        GROUP BY `nom_liq_bsp`.`id_empleado`)) `tbspra`
-                                    ON(`tbsp`.`id_empleado` = `tbspra`.`id_empleado`)) AS `t1`
-                            ON (`t1`.`id_empleado` = `nom_empleado`.`id_empleado`)
-                        LEFT JOIN 
-                            (SELECT 
-                                `id_empleado`,`corte` AS `corte_ces`
-                            FROM `nom_liq_cesantias`
-                            WHERE `id_liq_cesan`  IN 
-                                (SELECT 
-                                    MAX(`id_liq_cesan`) 
-                                FROM `nom_liq_cesantias`
-                                    INNER JOIN `nom_nominas`
-                                        ON (`nom_liq_cesantias`.`id_nomina` = `nom_nominas`.`id_nomina`)
-                                WHERE `nom_nominas`.`tipo` = 'CE' AND `nom_nominas`.`vigencia` <= :vigencia AND `nom_nominas`.`estado` = 5
-                                GROUP BY `id_empleado`)) AS `t2`
-                                ON (`nom_empleado`.`id_empleado` = `t2`.`id_empleado`)
-                        LEFT JOIN
-                            (SELECT 
-                                `tpv`.`id_empleado`
-                                , CASE 
-                                    WHEN `tpv`.`corte_pv` > IFNULL(`tra`.`corte_ra`,'1900-01-01') THEN IFNULL(`tpv`.`val_liq_pv`,0)
-                                    ELSE IFNULL(`tpv`.`val_liq_pv`,0) + IFNULL(`tra`.`val_liq_ra`,0)
-                                END AS `val_liq_ps`
-                                , `tpv`.`corte_pv` AS `corte_prim_sv`
+                                `id_empleado`, MAX(`id_contrato_emp`) AS `contrato`
                             FROM
-                                (SELECT   
-                                    `id_empleado`
-                                    , `val_liq_ps` AS `val_liq_pv`
-                                    , `corte` AS `corte_pv`
-                                FROM `nom_liq_prima` 
-                                WHERE `id_liq_prima` IN 
-                                    (SELECT
-                                        MAX(`id_liq_prima`) AS `id_lp`
-                                    FROM
-                                        `nom_liq_prima`
-                                        INNER JOIN `nom_nominas`
-                                            ON (`nom_liq_prima`.`id_nomina` = `nom_nominas`.`id_nomina`)
-                                    WHERE `nom_nominas`.`tipo` = 'PV' AND `nom_nominas`.`vigencia` <= :vigencia AND `nom_nominas`.`estado` = 5
-                                    GROUP BY `id_empleado`)) AS `tpv`
-                                LEFT JOIN 
-                                    (SELECT   
-                                        `id_empleado`
-                                        , `val_liq_ps` AS `val_liq_ra`
-                                        , `nom_retroactivos`.`fec_final` AS `corte_ra`
-                                    FROM `nom_liq_prima` 
-                                        INNER JOIN `nom_nominas`
-                                            ON(`nom_liq_prima`.`id_nomina` = `nom_nominas`.`id_nomina`)
-                                        LEFT JOIN `nom_retroactivos`
-                                            ON(`nom_retroactivos`.`id_incremento` = `nom_nominas`.`id_incremento`)
-                                    WHERE `id_liq_prima` IN 
-                                            (SELECT
-                                                MAX(`id_liq_prima`) AS `id_lp`
-                                            FROM
-                                                `nom_liq_prima`
-                                                INNER JOIN `nom_nominas`
-                                                    ON (`nom_liq_prima`.`id_nomina` = `nom_nominas`.`id_nomina`)
-                                            WHERE `nom_nominas`.`tipo` = 'RA' AND `nom_nominas`.`vigencia` <= :vigencia AND `nom_nominas`.`estado` = 5
-                                            GROUP BY `id_empleado`)) AS `tra`
-                                            ON (`tpv`.`id_empleado` = `tra`.`id_empleado`)) AS `t3`
-                                ON (`nom_empleado`.`id_empleado` = `t3`.`id_empleado`)
-                        LEFT JOIN 
-                            (SELECT 
-                                `id_empleado`,`val_liq_pv`,`corte` AS `corte_prim_nav`
-                            FROM `nom_liq_prima_nav`
-                            WHERE `id_liq_privac` IN 
-                                    (SELECT 
-                                        MAX(`id_liq_privac`) 
-                                    FROM `nom_liq_prima_nav` 
-                                        INNER JOIN `nom_nominas` 
-                                            ON (`nom_liq_prima_nav`.`id_nomina` = `nom_nominas`.`id_nomina`)
-                                    WHERE `nom_nominas`.`tipo` = 'PN' AND `nom_nominas`.`vigencia` <= :vigencia AND `nom_nominas`.`estado` = 5
-                                    GROUP BY `id_empleado`)) AS `t4`
-                                ON (`nom_empleado`.`id_empleado` = `t4`.`id_empleado`)
-                        LEFT JOIN 
-                            (SELECT 
-                                `tvc`.`id_empleado`
-                                , CASE
-                                    WHEN `tvc`.`corte` > IFNULL(`travc`.`fec_final`,'1900-01-01') THEN IFNULL(`tvc`.`val_prima_vac`,0)
-                                                    ELSE IFNULL(`tvc`.`val_prima_vac`,0) + IFNULL(`travc`.`val_prima_vac_racv`,0)
-                                                END AS `val_prima_vac`
-                                    , CASE
-                                    WHEN `tvc`.`corte` > IFNULL(`travc`.`fec_final`,'1900-01-01') THEN IFNULL(`tvc`.`val_liq`,0)
-                                                    ELSE IFNULL(`tvc`.`val_liq`,0) + IFNULL(`travc`.`val_liq_racv`,0)
-                                                END AS `val_liq`
-                                    , CASE
-                                    WHEN `tvc`.`corte` > IFNULL(`travc`.`fec_final`,'1900-01-01') THEN IFNULL(`tvc`.`val_bon_recrea`,0)
-                                                    ELSE IFNULL(`tvc`.`val_bon_recrea`,0) + IFNULL(`travc`.`val_bon_recrea_racv`,0)
-                                                END AS `val_bon_recrea`
-                                    , `tvc`.`corte`
-                            FROM 
+                                `nom_contratos_empleados`
+                            WHERE (`estado` = 1)
+                            GROUP BY `id_empleado`),
+                        `nominas_contrato_activo` AS
+                            (SELECT DISTINCT
+                                `nls`.`id_nomina`
+                            FROM `nom_liq_salario` `nls`
+                                INNER JOIN `ctt` ON `nls`.`id_empleado` = `ctt`.`id_empleado` AND `nls`.`id_contrato` = `ctt`.`contrato`
+                                INNER JOIN `nom_nominas` `nn` ON `nls`.`id_nomina` = `nn`.`id_nomina`
+                            WHERE `nn`.`estado` = 5 AND `nls`.`id_contrato` IS NOT NULL
+                            ),
+                        `bsp_n` AS
+                            (SELECT
+                                `id_empleado`, `val_bsp`, `fec_corte`
+                            FROM `nom_liq_bsp`
+                            WHERE `id_bonificaciones` IN
                                 (SELECT
-                                    `nom_vacaciones`.`id_empleado`
-                                    , `nom_liq_vac`.`val_prima_vac`
-                                    , `nom_liq_vac`.`val_liq`
-                                    , `nom_liq_vac`.`val_bon_recrea`
-                                    , `nom_vacaciones`.`corte` 
-                                FROM
-                                    `nom_liq_vac`
-                                    INNER JOIN `nom_nominas` 
-                                        ON (`nom_liq_vac`.`id_nomina` = `nom_nominas`.`id_nomina`)
-                                    INNER JOIN `nom_vacaciones` 
-                                        ON (`nom_liq_vac`.`id_vac` = `nom_vacaciones`.`id_vac`)
-                                WHERE `nom_liq_vac`.`id_liq_vac` IN
-                                        (SELECT
-                                            MAX(`nom_liq_vac`.`id_liq_vac`) 
-                                        FROM
-                                            `nom_liq_vac`
-                                            INNER JOIN `nom_nominas` 
-                                            ON (`nom_liq_vac`.`id_nomina` = `nom_nominas`.`id_nomina`)
-                                            INNER JOIN `nom_vacaciones` 
-                                            ON (`nom_liq_vac`.`id_vac` = `nom_vacaciones`.`id_vac`)
-                                        WHERE `nom_nominas`.`vigencia` <= :vigencia AND (`nom_nominas`.`tipo` = 'VC' OR `nom_nominas`.`tipo` = 'N') AND `nom_nominas`.`estado` = 5
-                                        GROUP BY `nom_vacaciones`.`id_empleado`)) AS `tvc` 
-                                LEFT JOIN
-                                    (SELECT
-                                        `nom_vacaciones`.`id_empleado`
-                                        , `nom_liq_vac`.`val_prima_vac` AS `val_prima_vac_racv`
-                                        , `nom_liq_vac`.`val_liq` AS `val_liq_racv`
-                                        , `nom_liq_vac`.`val_bon_recrea` AS `val_bon_recrea_racv`
-                                        , `nom_retroactivos`.`fec_final`
-                                    FROM
-                                        `nom_liq_vac`
-                                        INNER JOIN `nom_nominas` 
-                                            ON (`nom_liq_vac`.`id_nomina` = `nom_nominas`.`id_nomina`)
-                                        INNER JOIN `nom_vacaciones` 
-                                            ON (`nom_liq_vac`.`id_vac` = `nom_vacaciones`.`id_vac`)
-                                        LEFT JOIN `nom_retroactivos`
-                                            ON(`nom_retroactivos`.`id_incremento` = `nom_nominas`.`id_incremento`)
-                                    WHERE `nom_liq_vac`.`id_liq_vac` IN
-                                        (SELECT
-                                            MAX(`nom_liq_vac`.`id_liq_vac`) 
-                                        FROM
-                                            `nom_liq_vac`
-                                            INNER JOIN `nom_nominas` 
-                                            ON (`nom_liq_vac`.`id_nomina` = `nom_nominas`.`id_nomina`)
-                                            INNER JOIN `nom_vacaciones` 
-                                            ON (`nom_liq_vac`.`id_vac` = `nom_vacaciones`.`id_vac`)
-                                        WHERE `nom_nominas`.`vigencia` <= :vigencia AND `nom_nominas`.`tipo` = 'RA' AND `nom_nominas`.`estado` = 5
-                                        GROUP BY `nom_vacaciones`.`id_empleado`)) AS `travc`
-                                    ON(`travc`.`id_empleado` = `tvc`.`id_empleado`)) AS `t5`
-                                ON (`nom_empleado`.`id_empleado` = `t5`.`id_empleado`)
-                    WHERE `nom_empleado`.`id_empleado` IN ($empleados)";
+                                    MAX(`nlb`.`id_bonificaciones`)
+                                FROM `nom_liq_bsp` `nlb`
+                                    INNER JOIN `nom_nominas` `nn` ON `nlb`.`id_nomina` = `nn`.`id_nomina`
+                                WHERE `nn`.`vigencia` <= :vigencia AND `nn`.`tipo` = 'N' AND  `nlb`.`estado` = 1
+                                AND `nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
+                                GROUP BY `nlb`.`id_empleado`)),
+                        `bsp_ra` AS
+                            (SELECT
+                                `nlb`.`id_empleado`, `nlb`.`val_bsp` AS `val_bsp_ra`,`nr`.`fec_final`
+                            FROM `nom_liq_bsp` `nlb`
+                                INNER JOIN `nom_nominas` `nn` ON `nlb`.`id_nomina` = `nn`.`id_nomina`
+                                LEFT JOIN `nom_retroactivos` `nr` ON `nr`.`id_incremento` = `nn`.`id_incremento`
+                            WHERE `nlb`.`id_bonificaciones` IN
+                                (SELECT
+                                    MAX(`sub_nlb`.`id_bonificaciones`)
+                                FROM `nom_liq_bsp` `sub_nlb`
+                                    INNER JOIN `nom_nominas` `sub_nn` ON `sub_nlb`.`id_nomina` = `sub_nn`.`id_nomina`
+                                WHERE `sub_nn`.`vigencia` <= :vigencia AND `sub_nn`.`tipo` = 'RA' AND  `sub_nlb`.`estado` = 1
+                                AND `sub_nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
+                                GROUP BY `sub_nlb`.`id_empleado`)),
+                        `t1` AS
+                            (SELECT
+                                `n`.`id_empleado`,
+                                CASE
+                                    WHEN `n`.`fec_corte` > IFNULL(`r`.`fec_final`, '1900-01-01') THEN `n`.`val_bsp`
+                                    ELSE IFNULL(`n`.`val_bsp`, 0) + IFNULL(`r`.`val_bsp_ra`, 0)
+                                END AS `val_bsp`,
+                                `n`.`fec_corte`
+                            FROM `bsp_n` `n`
+                            LEFT JOIN `bsp_ra` `r` ON (`n`.`id_empleado` = `r`.`id_empleado`)),
+                        `t2` AS
+                            (SELECT
+                                `id_empleado`, `corte` AS `corte_ces`
+                            FROM `nom_liq_cesantias`
+                            WHERE `id_liq_cesan` IN
+                                (SELECT MAX(`nlc`.`id_liq_cesan`)
+                                FROM `nom_liq_cesantias` `nlc`
+                                    INNER JOIN `nom_nominas` `nn` ON `nlc`.`id_nomina` = `nn`.`id_nomina`
+                                WHERE `nn`.`tipo` = 'CE' AND `nn`.`vigencia` <= :vigencia AND `nlc`.`estado` = 1
+                                AND `nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
+                                GROUP BY `nlc`.`id_empleado`)),
+                        `prima_pv` AS
+                            (SELECT
+                                `id_empleado`, `val_liq_ps` AS `val_liq_pv`, `corte` AS `corte_pv`
+                            FROM `nom_liq_prima`
+                            WHERE `id_liq_prima` IN
+                                (SELECT MAX(`nlp`.`id_liq_prima`)
+                                FROM `nom_liq_prima` `nlp`
+                                    INNER JOIN `nom_nominas` `nn` ON `nlp`.`id_nomina` = `nn`.`id_nomina`
+                                WHERE `nn`.`tipo` = 'PV' AND `nn`.`vigencia` <= :vigencia AND `nlp`.`estado` = 1
+                                AND `nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
+                                GROUP BY `nlp`.`id_empleado`)),
+                        `prima_ra` AS
+                            (SELECT
+                                `nlp`.`id_empleado`,
+                                `nlp`.`val_liq_ps` AS `val_liq_ra`,
+                                `nr`.`fec_final` AS `corte_ra`
+                            FROM `nom_liq_prima` `nlp`
+                                INNER JOIN `nom_nominas` `nn` ON `nlp`.`id_nomina` = `nn`.`id_nomina`
+                                LEFT JOIN `nom_retroactivos` `nr` ON `nr`.`id_incremento` = `nn`.`id_incremento`
+                            WHERE `nlp`.`id_liq_prima` IN
+                                (SELECT MAX(`sub_nlp`.`id_liq_prima`)
+                                FROM `nom_liq_prima` `sub_nlp`
+                                    INNER JOIN `nom_nominas` `sub_nn` ON `sub_nlp`.`id_nomina` = `sub_nn`.`id_nomina`
+                                WHERE `sub_nn`.`tipo` = 'RA' AND `sub_nn`.`vigencia` <= :vigencia AND `sub_nlp`.`estado` = 1
+                                AND `sub_nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
+                                GROUP BY `sub_nlp`.`id_empleado`)),
+                        `t3` AS
+                            (SELECT
+                                `pv`.`id_empleado`,
+                                CASE
+                                    WHEN `pv`.`corte_pv` > IFNULL(`ra`.`corte_ra`, '1900-01-01') THEN IFNULL(`pv`.`val_liq_pv`, 0)
+                                    ELSE IFNULL(`pv`.`val_liq_pv`, 0) + IFNULL(`ra`.`val_liq_ra`, 0)
+                                END AS `val_liq_ps`,
+                                `pv`.`corte_pv` AS `corte_prim_sv`
+                            FROM `prima_pv` `pv`
+                            LEFT JOIN `prima_ra` `ra` ON (`pv`.`id_empleado` = `ra`.`id_empleado`)),
+                        `t4` AS
+                            (SELECT
+                                `id_empleado`, `val_liq_pv`, `corte` AS `corte_prim_nav`
+                            FROM `nom_liq_prima_nav`
+                            WHERE `id_liq_privac` IN (
+                                SELECT MAX(`nlpn`.`id_liq_privac`)
+                                FROM `nom_liq_prima_nav` `nlpn`
+                                    INNER JOIN `nom_nominas` `nn` ON `nlpn`.`id_nomina` = `nn`.`id_nomina`
+                                WHERE `nn`.`tipo` = 'PN' AND `nn`.`vigencia` <= :vigencia AND `nlpn`.`estado` = 1
+                                AND `nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
+                                GROUP BY `nlpn`.`id_empleado`)),
+                        `vac_n` AS
+                            (SELECT
+                                `nv`.`id_empleado`, `nlv`.`val_prima_vac`, `nlv`.`val_liq`, `nlv`.`val_bon_recrea`,`nv`.`corte`
+                            FROM `nom_liq_vac` `nlv`
+                                INNER JOIN `nom_nominas` `nn` ON `nlv`.`id_nomina` = `nn`.`id_nomina`
+                                INNER JOIN `nom_vacaciones` `nv` ON `nlv`.`id_vac` = `nv`.`id_vac`
+                            WHERE `nlv`.`id_liq_vac` IN
+                                (SELECT MAX(`sub_nlv`.`id_liq_vac`)
+                                FROM `nom_liq_vac` `sub_nlv`
+                                    INNER JOIN `nom_nominas` `sub_nn` ON `sub_nlv`.`id_nomina` = `sub_nn`.`id_nomina`
+                                    INNER JOIN `nom_vacaciones` `sub_nv` ON `sub_nlv`.`id_vac` = `sub_nv`.`id_vac`
+                                WHERE `sub_nn`.`vigencia` <= :vigencia AND `sub_nlv`.`estado` = 1
+                                AND (`sub_nn`.`tipo` = 'VC' OR `sub_nn`.`tipo` = 'N')
+                                AND `sub_nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
+                                GROUP BY `sub_nv`.`id_empleado`)),
+                        `vac_ra` AS
+                            (SELECT
+                                `nv`.`id_empleado`,
+                                `nlv`.`val_prima_vac` AS `val_prima_vac_racv`,
+                                `nlv`.`val_liq` AS `val_liq_racv`,
+                                `nlv`.`val_bon_recrea` AS `val_bon_recrea_racv`,
+                                `nr`.`fec_final`
+                            FROM `nom_liq_vac` `nlv`
+                                INNER JOIN `nom_nominas` `nn` ON `nlv`.`id_nomina` = `nn`.`id_nomina`
+                                INNER JOIN `nom_vacaciones` `nv` ON `nlv`.`id_vac` = `nv`.`id_vac`
+                                LEFT JOIN `nom_retroactivos` `nr` ON `nr`.`id_incremento` = `nn`.`id_incremento`
+                            WHERE `nlv`.`id_liq_vac` IN
+                                (SELECT MAX(`sub_nlv`.`id_liq_vac`)
+                                FROM `nom_liq_vac` `sub_nlv`
+                                    INNER JOIN `nom_nominas` `sub_nn` ON `sub_nlv`.`id_nomina` = `sub_nn`.`id_nomina`
+                                    INNER JOIN `nom_vacaciones` `sub_nv` ON `sub_nlv`.`id_vac` = `sub_nv`.`id_vac`
+                                WHERE `sub_nn`.`vigencia` <= :vigencia AND `sub_nn`.`tipo` = 'RA' AND `sub_nlv`.`estado` = 1
+                                AND `sub_nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
+                                GROUP BY `sub_nv`.`id_empleado`)),
+                        `t5` AS
+                            (SELECT
+                                `n`.`id_empleado`,
+                                CASE
+                                    WHEN `n`.`corte` > IFNULL(`r`.`fec_final`, '1900-01-01') THEN IFNULL(`n`.`val_prima_vac`, 0)
+                                    ELSE IFNULL(`n`.`val_prima_vac`, 0) + IFNULL(`r`.`val_prima_vac_racv`, 0)
+                                END AS `val_prima_vac`,
+                                CASE
+                                    WHEN `n`.`corte` > IFNULL(`r`.`fec_final`, '1900-01-01') THEN IFNULL(`n`.`val_liq`, 0)
+                                    ELSE IFNULL(`n`.`val_liq`, 0) + IFNULL(`r`.`val_liq_racv`, 0)
+                                END AS `val_liq`,
+                                CASE
+                                    WHEN `n`.`corte` > IFNULL(`r`.`fec_final`, '1900-01-01') THEN IFNULL(`n`.`val_bon_recrea`, 0)
+                                    ELSE IFNULL(`n`.`val_bon_recrea`, 0) + IFNULL(`r`.`val_bon_recrea_racv`, 0)
+                                END AS `val_bon_recrea`,
+                                `n`.`corte`
+                            FROM `vac_n` `n`
+                            LEFT JOIN `vac_ra` `r` ON `n`.`id_empleado` = `r`.`id_empleado`),
+                        `t6` AS
+                            (SELECT
+                                `h`.`id_empleado`,
+                                SUM(`l`.`val_liq`) / COUNT(DISTINCT `l`.`id_nomina`) AS `prom`
+                            FROM `nom_liq_horex` `l`
+                                INNER JOIN `nom_horas_ex_trab` `h` ON `l`.`id_he_lab` = `h`.`id_he_trab`
+                                INNER JOIN `nom_nominas` `n` ON `l`.`id_nomina` = `n`.`id_nomina`
+                                INNER JOIN `t2` ON `h`.`id_empleado` = `t2`.`id_empleado`
+                            WHERE `l`.`estado` = 1 AND `n`.`estado` = 5 AND `h`.`fec_inicio` BETWEEN `t2`.`corte_ces` AND '$ffin'
+                            AND `n`.`id_nomina` AND `l`.`estado` = 1
+                            IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
+                            GROUP BY `h`.`id_empleado`)
+                    SELECT
+                        `e`.`id_empleado`,
+                        `e`.`representacion`,
+                        `t1`.`val_bsp`,
+                        `t1`.`fec_corte` AS `corte_bsp`,
+                        `t2`.`corte_ces`,
+                        `t3`.`val_liq_ps`,
+                        `t3`.`corte_prim_sv`,
+                        `t4`.`val_liq_pv`,
+                        `t4`.`corte_prim_nav`,
+                        `t5`.`corte` AS `corte_vac`,
+                        `t5`.`val_liq`,
+                        `t5`.`val_prima_vac`,
+                        `t5`.`val_bon_recrea`,
+                        `t6`.`prom`
+                    FROM `nom_empleado` `e`
+                        LEFT JOIN `t1` ON `t1`.`id_empleado` = `e`.`id_empleado`
+                        LEFT JOIN `t2` ON `t2`.`id_empleado` = `e`.`id_empleado`
+                        LEFT JOIN `t3` ON `t3`.`id_empleado` = `e`.`id_empleado`
+                        LEFT JOIN `t4` ON `t4`.`id_empleado` = `e`.`id_empleado`
+                        LEFT JOIN `t5` ON `t5`.`id_empleado` = `e`.`id_empleado`
+                        LEFT JOIN `t6` ON `t6`.`id_empleado` = `e`.`id_empleado`
+                    WHERE `e`.`id_empleado` IN ($empleados)";
             $stmt = Conexion::getConexion()->prepare($sql);
             $stmt->bindValue(':vigencia', Sesion::Vigencia());
             $stmt->execute();
             $res  = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            unset($stmt);
             return !empty($res) ? $res : [];
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
     }
 
-    public function LiquidaHorasExtra($filtro, $id_nomina, $valHora)
+    public function LiquidaHorasExtra($filtro, $param)
     {
         $response = [
             'msg' => '',
             'insert' => true,
             'valor' => 0
         ];
+
+        $valHora = $param['salario'] / 230;
+
         foreach ($filtro as $f) {
             $idHe =     $f['id_he_trab'];
             $valhe =    $valHora * $f['factor'] * $f['cantidad_he'];
             $data = [
                 'id' => $idHe,
                 'valor' => $valhe,
-                'id_nomina' => $id_nomina
+                'id_nomina' => $param['id_nomina']
             ];
             $res = (new Horas_Extra($this->conexion))->addRegistroLiq($data);
             if ($res != 'si') {
@@ -770,34 +877,219 @@ class Liquidacion
         return $response;
     }
 
-    public function LiquidaIncapacidad($filtro, $id_nomina, $valDia)
+    public function LiquidaIncapacidad($filtro, $param, $novedad)
     {
         $response = [
             'msg' => '',
             'insert' => true,
             'valor' => 0
         ];
+
+        $valDia = $param['salario'] / 30;
+
         foreach ($filtro as $f) {
             $idIncap =     $f['id_incapacidad'];
             $idTipo =      $f['id_tipo'];
             $categoria =   $f['categoria'];
             $liquidado =   $f['liq'];
             $dias =        $f['dias'];
-
+            $pEmpresa = $pEps = $pArl = 0;
+            if ($idTipo == 2 || $idTipo == 3) {
+                $pArl = $valDia * $dias;
+            } else if ($idTipo == 1) {
+                if ($categoria == 2) {
+                    $pEps = ($valDia * (2 / 3)) * $dias;
+                } else if ($categoria == 1) {
+                    $diasEmpresaRestantes =     max(0, 2 - $liquidado); // Cuántos días le faltan a la empresa pagar
+                    $diasEmpresaMes =           min($dias, $diasEmpresaRestantes); // Solo los que caben en este mes
+                    $diasEpsMes =               $dias - $diasEmpresaMes; // El resto es EPS
+                    $pEmpresa =                 $valDia * $diasEmpresaMes;
+                    $pEps =                     ($valDia * (2 / 3)) * $diasEpsMes;
+                }
+            }
+            // se debe sacar los id_arl e id_eps
             $data = [
-                'id' => $idIncap,
-                'valor' => '',
-                'id_nomina' => $id_nomina
+                'id' =>         $idIncap,
+                'valor' =>      '',
+                'id_nomina' =>  $param['id_nomina'],
+                'p_empresa' =>  $pEmpresa,
+                'p_eps' =>      $pEps,
+                'p_arl' =>      $pArl,
+                'dias' =>       $dias,
+                'id_arl' =>     $novedad[1],
+                'id_eps' =>     explode('|', $novedad[3])[0]
             ];
-            $res = (new Horas_Extra($this->conexion))->addRegistroLiq($data);
+
+            $res = (new Incapacidades($this->conexion))->addRegistroLiq($data);
             if ($res != 'si') {
                 $response['insert'] = false;
                 $response['msg'] = "<p>$res</p>";
                 break;
             } else {
-                $response['valor'] += '';
+                $response['valor'] += ($pEmpresa + $pEps + $pArl);
             }
         }
         return $response;
     }
+    public function LiquidaVacaciones($filtro, $param)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0,
+            'prima' => 0,
+            'bono' => 0
+        ];
+
+        $salbas =   $param['salario'];
+        $grepre =   ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
+        $auxtra =   $param['aux_trans'];
+        $auxali =   $param['aux_alim'];
+        $bspant =   $param['val_bsp'] ?? 0;
+        $psvant =   $param['val_liq_ps'] ?? 0;
+        $base =     $salbas + $grepre + $auxtra + $auxali + $bspant  / 12 + $psvant / 12;
+        $idvac =    $filtro['id_vac'];
+        $dhabiles = $filtro['dias_habiles'];
+        $dinactiv = $filtro['dias_inactivo'];
+        $dliq =     $filtro['dias_liquidar'];
+        $corte =    $filtro['corte'];
+        $id_nomina = $param['id_nomina'];
+
+        $prima_vac_dia = ($base * $dhabiles) / (30 * 360);
+        $prima_vac = $prima_vac_dia * $dliq;
+
+        $vac_dia = ($base * $dinactiv) / (30 * 360);
+        $vacacion = $vac_dia * $dliq;
+
+        $bonrecrea = (($salbas / 30) * (2 * $dliq / 360));
+
+        $data = compact('idvac', 'corte', 'vacacion', 'prima_vac', 'bonrecrea', 'id_nomina', 'salbas', 'grepre', 'auxtra', 'auxali', 'bspant', 'psvant', 'dhabiles');
+
+        $res = (new Vacaciones($this->conexion))->addRegistroLiq($data);
+        if ($res != 'si') {
+            $response['insert'] = false;
+            $response['msg'] =  "<p>$res</p>";
+        } else {
+            $response['valor'] =    $vacacion;
+            $response['prima'] =    $prima_vac;
+            $response['bono'] =     $bonrecrea;
+        }
+        return $response;
+    }
+
+    public function LiquidaLicenciaMOP($filtro, $param)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0
+        ];
+        $tipo = $filtro['tipo'];
+        $dias = $filtro['mes'] == '02' && $filtro['dias'] >= 28 ? 30 : $filtro['dias'];
+        $valdialc = ($tipo == '1' && $filtro['dias_cot'] < 270) ? ($filtro['dias_cot'] * $param['salario']) / (30 * 270) : $param['salario'] / 30;
+        $valor = $valdialc * $dias;
+        $data = [
+            'id_licmp' =>   $filtro['id_licmp'],
+            'id_eps' =>     $filtro['id_eps'],
+            'dias_liqs' =>  $dias,
+            'val_liq' =>    $valor,
+            'val_dialc' =>  $valdialc,
+            'id_nomina' =>  $param['id_nomina']
+        ];
+        $res = (new Licencias_MoP($this->conexion))->addRegistroLiq($data);
+        if ($res != 'si') {
+            $response['insert'] = false;
+            $response['msg'] = "<p>$res</p>";
+        } else {
+            $response['valor'] = $valor;
+        }
+        return $response;
+    }
+
+    public function LiquidaLicenciaNoRem($filtro, $param, $mes)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+        ];
+        foreach ($filtro as $f) {
+            $dias = $mes == '02' && $f['dias'] >= 28 ? 30 : $f['dias'];
+            $data = [
+                'id_licnr' =>   $f['id_licnr'],
+                'dias_licnr' => $dias,
+                'id_nomina' =>  $param['id_nomina']
+            ];
+
+            $res = (new Licencias_Norem($this->conexion))->addRegistroLiq($data);
+            if ($res != 'si') {
+                $response['insert'] = false;
+                $response['msg'] = "<p>$res</p>";
+                break;
+            }
+        }
+        return $response;
+    }
+
+    public function LiquidaLicenciaLuto($filtro, $param)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0
+        ];
+        $valor_dia = $param['salario'] / 30;
+        foreach ($filtro as $f) {
+            $valor = $valor_dia * $f['dias'];
+            $data = [
+                'id_licluto' =>   $f['id_licluto'],
+                'dias' => $f['dias'],
+                'valor' => $valor,
+                'id_nomina' =>  $param['id_nomina']
+            ];
+
+            $res = (new Licencias_Luto($this->conexion))->addRegistroLiq($data);
+            if ($res != 'si') {
+                $response['insert'] = false;
+                $response['msg'] = "<p>$res</p>";
+                break;
+            } else {
+                $response['valor'] += $valor;
+            }
+        }
+        return $response;
+    }
+
+    public function LiquidaIndemnizaVacaciones($filtro, $param)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0
+        ];
+        $valor_dia = $param['salario'] / 30;
+        $valor = $valor_dia * $filtro['dias'];
+        $data = [
+            'id_indemniza' =>   $filtro['id_indemniza'],
+            'dias' =>         $filtro['dias'],
+            'valor' =>        $valor,
+            'id_nomina' =>    $param['id_nomina']
+        ];
+
+        $res = (new Indemniza_Vacacion($this->conexion))->addRegistroLiq($data);
+        if ($res != 'si') {
+            $response['insert'] = false;
+            $response['msg'] = "<p>$res</p>";
+        } else {
+            $response['valor'] = $valor;
+        }
+        return $response;
+    }
+
+    public function LiquidaLibranzas() {}
+
+    public function LiquidaEmbargos() {}
+
+    public function LiquidaSindicato() {}
+
+    public function LiquidaOtrosDctos() {}
 }

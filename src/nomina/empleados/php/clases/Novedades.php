@@ -65,10 +65,9 @@ class Novedades
             $stmt->bindValue(3, $array['novedad'], PDO::PARAM_INT);
             $stmt->bindValue(5, Sesion::IdUser(), PDO::PARAM_INT);
             $stmt->bindValue(6, Sesion::Hoy(), PDO::PARAM_STR);
-
             while ($fecha_inicio <= $fecha_fin) {
                 // Verificar si ya existe un cruce de fechas
-                if (($this->getCruceFechas($array['id_empleado'], $fecha_inicio->format('Y-m-d'))) == 1) {
+                if (($this->getCruceFechas($array['id_empleado'], $fecha_inicio->format('Y-m-d'))) == 1 && $array['tipo'] != 6) {
                     return 'Existe cruce de fecha: ' . $fecha_inicio->format('Y-m-d');
                 }
                 $stmt->bindValue(4, $fecha_inicio->format('Y-m-d'), PDO::PARAM_STR);
