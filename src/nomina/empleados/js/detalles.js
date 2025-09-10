@@ -274,6 +274,35 @@ const tableIndemnizaVacacion = crearDataTable(
         d.id_empleado = document.querySelector('#id_empleado').value;
     },
 );
+const tableBsp = crearDataTable(
+    '#tableBsp',
+    'lista_bsp.php',
+    [
+        { data: 'id' },
+        { data: 'corte' },
+        { data: 'valor' },
+        { data: 'tipo' },
+        { data: 'acciones' }
+    ],
+    [
+        {
+            text: plus,
+            className: 'btn btn-success btn-sm shadow',
+            titleAttr: 'Agregar nueva bonificación por servicios prestados de empleado',
+            action: function (e, dt, node, config) {
+                mostrarOverlay();
+                VerFomulario('../php/controladores/bsp.php', 'form', { id: 0, id_empleado: ValueInput('id_empleado') }, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-sm');
+            }
+        }
+    ],
+    {
+        pageLength: 10,
+        order: [[0, 'desc']],
+    },
+    function (d) {
+        d.id_empleado = document.querySelector('#id_empleado').value;
+    },
+);
 
 const tableLibranzas = crearDataTable(
     '#tableLibranzas',
@@ -491,6 +520,10 @@ tableIndemnizaVacacion.on('init', function () {
     BuscaDataTable(tableIndemnizaVacacion);
 });
 
+tableBsp.on('init', function () {
+    BuscaDataTable(tableBsp);
+});
+
 tableLibranzas.on('init', function () {
     BuscaDataTable(tableLibranzas);
 });
@@ -664,6 +697,23 @@ if (document.querySelector('#tableIndemnizaVacacion')) {
         if (btnEliminar) {
             const id = btnEliminar.dataset.id;
             EliminaRegistro('../php/controladores/indemniza_vacacion.php', id, tableIndemnizaVacacion);
+        }
+    });
+}
+if (document.querySelector('#tableBsp')) {
+    document.querySelector('#tableBsp').addEventListener('click', function (event) {
+        const btnActualizar = event.target.closest('.actualizar');
+        const btnEliminar = event.target.closest('.eliminar');
+
+        if (btnActualizar) {
+            mostrarOverlay();
+            const id = btnActualizar.dataset.id;
+            VerFomulario('../php/controladores/bsp.php', 'form', { id: id, id_empleado: ValueInput('id_empleado') }, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-sm');
+        }
+
+        if (btnEliminar) {
+            const id = btnEliminar.dataset.id;
+            EliminaRegistro('../php/controladores/bsp.php', id, tableBsp);
         }
     });
 }
@@ -988,6 +1038,30 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                         if (response.status === 'ok') {
                             mje('Guardado correctamente!');
                             tableIndemnizaVacacion.ajax.reload(null, false);
+                            $('#modalForms').modal('hide');
+                        } else {
+                            mjeError('Error!', response.msg);
+                        }
+                    }).finally(() => {
+                        ocultarOverlay();
+                    });
+                }
+                break;
+            case 'btnGuardarBsp':
+                if (ValueInput('datFecCorte') === '') {
+                    MuestraError('datFecCorte', 'Ingrese la fecha de corte de la Bonificación');
+                } else if (Number(ValueInput('numValor')) <= 0) {
+                    MuestraError('numValor', 'Ingrese el valor de la Bonificación');
+                } else {
+                    mostrarOverlay();
+                    var data = Serializa('formBsp');
+                    data.append('action', data.get('id') == '0' ? 'add' : 'edit');
+                    data.append('id_empleado', ValueInput('id_empleado'));
+                    data.append('tipo', 'M');
+                    SendPost('../php/controladores/bsp.php', data).then((response) => {
+                        if (response.status === 'ok') {
+                            mje('Guardado correctamente!');
+                            tableBsp.ajax.reload(null, false);
                             $('#modalForms').modal('hide');
                         } else {
                             mjeError('Error!', response.msg);

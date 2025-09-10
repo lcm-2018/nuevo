@@ -324,6 +324,30 @@ $content = <<<HTML
                                     </div>
                                 </div>
                             </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header sombra">
+                                    <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divBsp" aria-expanded="false" aria-controls="divBsp">
+                                        <span class="text-primary-emphasis">EACII. Bonificación Por Servicios Prestados.</span>
+                                    </button>
+                                </h2>
+                                <div id="divBsp" class="accordion-collapse collapse">
+                                    <div class="accordion-body bg-wiev">
+                                        <table id="tableBsp" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center bg-sofia">#</th>
+                                                    <th class="text-center bg-sofia">CORTE</th>
+                                                    <th class="text-center bg-sofia">VALOR</th>
+                                                    <th class="text-center bg-sofia">TIPO</th>
+                                                    <th class="text-center bg-sofia">ACCIONES</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="modificaBsp">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

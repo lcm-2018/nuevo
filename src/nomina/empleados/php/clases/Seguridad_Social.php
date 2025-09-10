@@ -357,6 +357,66 @@ class Seguridad_Social
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+
+    public function addRegistroLiq($array)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_segsocial_empdo`
+                    (`id_empleado`,`id_eps`,`id_arl`,`id_afp`,`aporte_salud_emp`,`aporte_pension_emp`,`aporte_solidaridad_pensional`,`porcentaje_ps`,`aporte_salud_empresa`,`aporte_pension_empresa`,`aporte_rieslab`,`id_user_reg`,`fec_reg`,`id_nomina`)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['id_eps'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $array['id_arl'], PDO::PARAM_INT);
+            $stmt->bindValue(4, $array['id_afp'], PDO::PARAM_INT);
+            $stmt->bindValue(5, $array['aporte_salud_emp'], PDO::PARAM_STR);
+            $stmt->bindValue(6, $array['aporte_pension_emp'], PDO::PARAM_STR);
+            $stmt->bindValue(7, $array['aporte_solidaridad_pensional'], PDO::PARAM_STR);
+            $stmt->bindValue(8, $array['porcentaje_ps'], PDO::PARAM_STR);
+            $stmt->bindValue(9, $array['aporte_salud_empresa'], PDO::PARAM_STR);
+            $stmt->bindValue(10, $array['aporte_pension_empresa'], PDO::PARAM_STR);
+            $stmt->bindValue(11, $array['aporte_rieslab'], PDO::PARAM_STR);
+            $stmt->bindValue(12, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(13, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(14, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                return 'si';
+            } else {
+                return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function addRegistroLiq2($array)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_parafiscales`
+                        (`id_empleado`,`val_sena`,`val_icbf`,`val_comfam`,`fec_reg`,`id_user_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['val_sena'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $array['val_icbf'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $array['val_comfam'], PDO::PARAM_STR);
+            $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(6, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(7, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                return 'si';
+            } else {
+                return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
     /**
      * Actualiza los datos de un registro.
      *

@@ -111,10 +111,29 @@ const SendPost = async (url, data) => {
     }
 };
 
-const VerFomulario = (url, accion, id, modal, body, idTam, tam) => {
+/**
+ * 
+ * @param {string} url Ruta del servidor
+ * @param {string} accion Opcion para nuevo o actualizar
+ * @param {number} datos  ID de registro o array de datos
+ * @param {string} modal Nombre del modal
+ * @param {string} body  Nombre del body del modal
+ * @param {string} idTam  Nombre del contenedor del modal para cambiar tamaño
+ * @param {string} tam Tamaño definido para el modal
+ */
+
+const VerFomulario = (url, accion, datos, modal, body, idTam, tam) => {
     var data = new FormData();
     data.append('action', accion);
-    data.append('id', id);
+    if (typeof datos === 'object') {
+        for (const key in datos) {
+            if (datos.hasOwnProperty(key)) {
+                data.append(key, datos[key]);
+            }
+        }
+    } else {
+        data.append('id', datos);
+    }
     SendPost(url, data).then((response) => {
         if (response.status === 'ok') {
             const dialog = document.getElementById(idTam);
@@ -255,23 +274,23 @@ function BuscaDataTable(tabla) {
     }
 }
 
-function mje(titulo, html) {
+function mje(titulo, html, timer = 2000) {
     Swal.fire({
         title: titulo,
         icon: "success",
         showConfirmButton: true,
-        timer: 2000,
+        timer: timer,
         html: html,
     });
 }
 
-function mjeError(titulo, texto, html) {
+function mjeError(titulo, texto, html, timer = 2000) {
     Swal.fire({
         title: titulo,
         text: texto,
         icon: "error",
         showConfirmButton: true,
-        timer: 2000,
+        timer: timer,
         html: html,
     });
 }

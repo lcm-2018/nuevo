@@ -8,6 +8,8 @@ use Config\Clases\Sesion;
 use Exception;
 use PDO;
 use PDOException;
+use Src\Common\Php\Clases\Valores;
+use Src\Nomina\Empleados\Php\Clases\Bsp;
 use Src\Nomina\Empleados\Php\Clases\Contratos;
 use Src\Nomina\Empleados\Php\Clases\Embargos;
 use Src\Nomina\Empleados\Php\Clases\Empleados;
@@ -19,6 +21,7 @@ use Src\Nomina\Empleados\Php\Clases\Licencias_Luto;
 use Src\Nomina\Empleados\Php\Clases\Licencias_MoP;
 use Src\Nomina\Empleados\Php\Clases\Licencias_Norem;
 use Src\Nomina\Empleados\Php\Clases\Otros_Descuentos;
+use Src\Nomina\Empleados\Php\Clases\Seguridad_Social;
 use Src\Nomina\Empleados\Php\Clases\Sindicatos;
 use Src\Nomina\Empleados\Php\Clases\Vacaciones;
 use Src\Nomina\Empleados\Php\Clases\Valores_Liquidacion;
@@ -334,7 +337,6 @@ class Liquidacion
      */
     public function addRegistro($array, $opcion = 0)
     {
-        ini_set('memory_limit', '1024M');
         $ids =          $array['chk_liquidacion'];
         $laborado =     $array['lab'];
         $mpago =        $array['metodo'];
@@ -369,7 +371,7 @@ class Liquidacion
         $fin = date('Y-m-t', strtotime($inicia));
 
         $Empleado =     new Empleados();
-        $empleados =    $Empleado->getEmpleados();
+        $empleados =    array_column($Empleado->getEmpleados(), null, 'id_empleado');
         $salarios =     $Empleado->getSalarioMasivo($mes);
         $salarios =     array_column($salarios, 'basico', 'id_empleado');
         $terceros_ss =  $Empleado->getRegistro();
@@ -382,6 +384,7 @@ class Liquidacion
         $licenciaNR =       (new Licencias_Norem())->getRegistroPorEmpleado($inicia, $fin);
         $licenciaLuto =     (new Licencias_Luto())->getRegistroPorEmpleado($inicia, $fin);
         $indemVacaciones =  (new Indemniza_Vacacion())->getRegistroPorEmpleado($inicia, $fin);
+        $bonificaciones =   (new Bsp())->getRegistroPorEmpleado();
 
         //Deducidos
         $libranzas =    (new Libranzas())->getLibranzasPorEmpleado();
@@ -390,7 +393,7 @@ class Liquidacion
         $otrosDctos =   (new Otros_Descuentos())->getRegistroPorEmpleado();
 
         //otros 
-        $cortes =       (self::getCortes($ids, $fin));
+        $cortes =       array_column((self::getCortes($ids, $fin)), null, 'id_empleado');
         $iVivienda =    (new Ivivienda())->getIviviendaEmpleados($ids);
         $liquidados =   (self::getEmpleadosLiq($id_nomina, $ids));
         $liquidados =   array_column($liquidados, 'id_sal_liq', 'id_empleado');
@@ -398,8 +401,6 @@ class Liquidacion
 
         if ($opcion == 0) {
             $param['smmlv'] =           $parametro[1];
-            $param['aux_trans'] =       $parametro[2];
-            $param['aux_alim'] =        $parametro[3];
             $param['uvt'] =             $parametro[6];
             $param['base_bsp'] =        $parametro[7];
             $param['grep'] =            $parametro[8];
@@ -421,8 +422,17 @@ class Liquidacion
                         throw new Exception("No tiene registrado novedades de seguridad social");
                     }
 
-                    $key = array_search($id_empleado, array_column($cortes, 'id_empleado'));
-                    $cortes_empleado =  $cortes[$key] ?? [];
+                    $param['aux_trans'] =   $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
+                    $param['aux_alim'] =    $salarios[$id_empleado] <= $param['base_alim'] ? $parametro[3] : 0;
+                    $tipo_emp =             $empleados[$id_empleado]['tipo_empleado'];
+                    $subtipo_emp =          $empleados[$id_empleado]['subtipo_empleado'];
+
+                    if ($tipo_emp == 12 || $tipo_emp == 8) {
+                        $param['aux_trans'] =   0;
+                        $param['aux_alim'] =    0;
+                    }
+
+                    $cortes_empleado =  $cortes[$id_empleado] ?? [];
 
                     $this->conexion->beginTransaction();
 
@@ -528,6 +538,76 @@ class Liquidacion
                         }
                     }
 
+                    //liquidar BSP
+                    // verificar que tenga  1 en tiene bps
+                    $valTotalBSP = 0;
+                    if ($empleados[$id_empleado]['bsp'] == 1) {
+                        if (isset($bonificaciones[$id_empleado])) {
+                            $valTotalBSP = $bonificaciones[$id_empleado];
+                        } else {
+                            $fecha_corte = $cortes_empleado['val_bsp']  == '' ? $cortes_empleado['inicia_ctt'] : $cortes_empleado['corte_bsp'];
+                            //verificar si hay 360 día para la bonificiacion sacandolo los dias entre fecha_corte y fecha_fin
+                            $tiene_bsp = (strtotime($fin) - strtotime($fecha_corte)) / (60 * 60 * 24) >= 360;
+                            if ($tiene_bsp) {
+                                $param['corte'] = $fecha_corte;
+                                $response = $this->LiquidaBSP($param);
+                                $valTotalBSP = $response['valor'];
+                                if (!$response['insert']) {
+                                    throw new Exception("BSP: {$response['msg']}");
+                                }
+                            }
+                        }
+                    }
+
+                    //laborado 
+                    $valTotalLab = $laborado[$id_empleado] * ($param['salario'] / 30);
+                    $valAuxTrans = $laborado[$id_empleado] * ($param['aux_trans'] / 30);
+                    $valAuxAlim = $laborado[$id_empleado] * ($param['aux_alim'] / 30);
+
+                    //Seguridad social
+                    $grepre = $empleados[$id_empleado]['representacion'] == 1 ? $parametro[8] : 0;
+                    if ($empleados[$id_empleado]['salario_integral'] == 1) {
+                        $ibc = $valTotalLab * 0.7;
+                    } else {
+                        $ibc = $valTotalLab + $valTotalHe + $valTotIncap + $valTotalBSP + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVac;
+                    }
+
+                    $response = $this->LiquidaSeguridadSocial($param, $novedad, $ibc, $tipo_emp, $subtipo_emp, $laborado[$id_empleado]);
+                    $valTotSegSoc = $response['valor'];
+                    if (!$response['insert']) {
+                        throw new Exception("Seguridad social: {$response['msg']}");
+                    }
+
+                    //Parafiscales
+                    $response = $this->LiquidaParafiscales($param, $ibc, $empresa['exonera_aportes'], $tipo_emp);
+                    $valTotParaf = $response['valor'];
+                    if (!$response['insert']) {
+                        throw new Exception("Parafiscales: {$response['msg']}");
+                    }
+
+                    //Apropiaciones: Vacaciones, Prima de Vacaciones, bonificacion de recreacion, Prima de Servicios, Prima de navidad, Cesantias, Int. Cesantias.
+                    //Reserva vacaciones
+
+                    $filtro = [
+                        'id_vac' => 0,
+                        'dias_habiles'  => 15,
+                        'dias_inactivo' => 22,
+                        'dias_liquidar' => $laborado[$id_empleado],
+                        'corte' => '',
+                        'id_nomina' => 0,
+                    ];
+                    $response       =   $this->LiquidaVacaciones($filtro, $param);
+                    $valMesVac      =   $response['valor'];
+                    $valMesPrimVac  =   $response['prima'];
+                    $valMesBonRec   =   $response['bono'];
+                    if (!$response['insert']) {
+                        throw new Exception("Vacaciones Mes: {$response['msg']}");
+                    }
+                    //Reserva Prima de Servicios
+
+                    $response = $this->LiquidaPrimaServicios($param, $laborado[$id_empleado], 0);
+
+                    throw new Exception("TODO CORRECTO");
                     $this->conexion->commit();
 
                     unset($filtro, $response);
@@ -536,7 +616,7 @@ class Liquidacion
                     if ($this->conexion->inTransaction()) {
                         $this->conexion->rollBack();
                     }
-                    $error .= "<p>ID: $id_empleado, {$e->getMessage()}</p>";
+                    $error .= "<p>ID: $id_empleado ({$empleados[$id_empleado]['no_documento']}), {$e->getMessage()}</p>";
                     continue;
                 }
             }
@@ -814,6 +894,8 @@ class Liquidacion
                             GROUP BY `h`.`id_empleado`)
                     SELECT
                         `e`.`id_empleado`,
+                        `ctt`.`contrato`,
+	                    `ct`.`fec_inicio` AS `inicia_ctt`,
                         `e`.`representacion`,
                         `t1`.`val_bsp`,
                         `t1`.`fec_corte` AS `corte_bsp`,
@@ -834,6 +916,8 @@ class Liquidacion
                         LEFT JOIN `t4` ON `t4`.`id_empleado` = `e`.`id_empleado`
                         LEFT JOIN `t5` ON `t5`.`id_empleado` = `e`.`id_empleado`
                         LEFT JOIN `t6` ON `t6`.`id_empleado` = `e`.`id_empleado`
+                        LEFT JOIN `ctt` ON `ctt`.`id_empleado` = `e`.`id_empleado`
+	                    LEFT JOIN `nom_contratos_empleados` `ct` ON `ct`.`id_contrato_emp` = `ctt`.`contrato`
                     WHERE `e`.`id_empleado` IN ($empleados)";
             $stmt = Conexion::getConexion()->prepare($sql);
             $stmt->bindValue(':vigencia', Sesion::Vigencia());
@@ -931,7 +1015,7 @@ class Liquidacion
         }
         return $response;
     }
-    public function LiquidaVacaciones($filtro, $param)
+    public function LiquidaVacaciones($filtro, $param, $opcion = 1)
     {
         $response = [
             'msg' => '',
@@ -949,8 +1033,8 @@ class Liquidacion
         $psvant =   $param['val_liq_ps'] ?? 0;
         $base =     $salbas + $grepre + $auxtra + $auxali + $bspant  / 12 + $psvant / 12;
         $idvac =    $filtro['id_vac'];
-        $dhabiles = $filtro['dias_habiles'];
-        $dinactiv = $filtro['dias_inactivo'];
+        $dhabiles = $filtro['dias_habiles'] ?? 15;
+        $dinactiv = $filtro['dias_inactivo'] ?? 22;
         $dliq =     $filtro['dias_liquidar'];
         $corte =    $filtro['corte'];
         $id_nomina = $param['id_nomina'];
@@ -962,18 +1046,62 @@ class Liquidacion
         $vacacion = $vac_dia * $dliq;
 
         $bonrecrea = (($salbas / 30) * (2 * $dliq / 360));
+        if ($opcion == 1) {
+            $data = compact('idvac', 'corte', 'vacacion', 'prima_vac', 'bonrecrea', 'id_nomina', 'salbas', 'grepre', 'auxtra', 'auxali', 'bspant', 'psvant', 'dhabiles');
+            $res = (new Vacaciones($this->conexion))->addRegistroLiq($data);
 
-        $data = compact('idvac', 'corte', 'vacacion', 'prima_vac', 'bonrecrea', 'id_nomina', 'salbas', 'grepre', 'auxtra', 'auxali', 'bspant', 'psvant', 'dhabiles');
-
-        $res = (new Vacaciones($this->conexion))->addRegistroLiq($data);
-        if ($res != 'si') {
-            $response['insert'] = false;
-            $response['msg'] =  "<p>$res</p>";
-        } else {
-            $response['valor'] =    $vacacion;
-            $response['prima'] =    $prima_vac;
-            $response['bono'] =     $bonrecrea;
+            if ($res != 'si') {
+                $response['insert'] = false;
+                $response['msg'] = "<p>$res</p>";
+                return $response;
+            }
         }
+
+        $response['valor']  =   $vacacion;
+        $response['prima']  =   $prima_vac;
+        $response['bono']   =   $bonrecrea;
+
+        return $response;
+    }
+
+    public function LiquidaPrimaServicios($filtro, $param, $opcion = 1)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0,
+        ];
+
+        $salbas =   $param['salario'];
+        $grepre =   ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
+        $auxtra =   $param['aux_trans'];
+        $auxali =   $param['aux_alim'];
+        $bspant =   $param['val_bsp'] ?? 0;
+        $psvant =   $param['val_liq_ps'] ?? 0;
+        $base =     $salbas + $grepre + $auxtra + $auxali + $bspant  / 12;
+        $idvac =    $filtro['id_vac'];
+        $dhabiles = $filtro['dias_habiles'] ?? 15;
+        $dinactiv = $filtro['dias_inactivo'] ?? 22;
+        $dliq =     $filtro['dias_liquidar'];
+        $corte =    $filtro['corte'];
+        $id_nomina = $param['id_nomina'];
+
+        $prima_dia = $base  / 720;
+        $prima = $prima_dia * $dliq;
+
+        if ($opcion == 1) {
+            $data = compact('idvac', 'corte', 'vacacion', 'prima_vac', 'bonrecrea', 'id_nomina', 'salbas', 'grepre', 'auxtra', 'auxali', 'bspant', 'psvant', 'dhabiles');
+            $res = (new Primas($this->conexion))->addRegistroLiq($data);
+
+            if ($res != 'si') {
+                $response['insert'] = false;
+                $response['msg'] = "<p>$res</p>";
+                return $response;
+            }
+        }
+
+        $response['valor']  =   $prima;
+
         return $response;
     }
 
@@ -1069,10 +1197,10 @@ class Liquidacion
         $valor_dia = $param['salario'] / 30;
         $valor = $valor_dia * $filtro['dias'];
         $data = [
-            'id_indemniza' =>   $filtro['id_indemniza'],
-            'dias' =>         $filtro['dias'],
-            'valor' =>        $valor,
-            'id_nomina' =>    $param['id_nomina']
+            'id_indemniza'  => $filtro['id_indemniza'],
+            'dias'          => $filtro['dias'],
+            'valor'         => $valor,
+            'id_nomina'     => $param['id_nomina']
         ];
 
         $res = (new Indemniza_Vacacion($this->conexion))->addRegistroLiq($data);
@@ -1082,6 +1210,160 @@ class Liquidacion
         } else {
             $response['valor'] = $valor;
         }
+        return $response;
+    }
+
+    public function LiquidaBSP($param)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0
+        ];
+        $val_grep = $param['tiene_grep'] == 1 ? $param['greps'] : 0;
+        $bsp = (($param['salario'] + $val_grep) <= $param['base_bsp'] ? ($param['salario'] + $val_grep) * 0.5 : ($param['salario'] + $val_grep) * 0.35);
+        $data = [
+            'id_empleado' =>   $param['id_empleado'],
+            'corte' =>         $param['corte'],
+            'valor' =>         $bsp,
+            'id_nomina' =>     $param['id_nomina'],
+            'tipo' =>          'S'
+        ];
+
+        $res = (new Bsp($this->conexion))->addRegistro($data);
+        if ($res != 'si') {
+            $response['insert'] =   false;
+            $response['msg'] =      "<p>$res</p>";
+        } else {
+            $response['valor']      = $bsp;
+        }
+        return $response;
+    }
+    /**
+     * Liquida la seguridad social de un empleado.
+     * @param array $param Parámetros necesarios para la liquidación
+     * @param array $novedad Novedades del empleado
+     * @param float $ibc Ingreso Base de Cotización
+     * @param string $tipo Tipo de empleado
+     * @param string $subtipo Subtipo de empleado
+     * @return array Resultado de la liquidación con mensaje, estado de inserción y valor
+     */
+    public function LiquidaSeguridadSocial($param, $novedad, $ibc, $tipo, $subtipo, $diaslab)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0
+        ];
+
+        $ibc = Valores::Redondear($ibc, 1);
+        $smmlv = $param['smmlv'];
+
+        // Ajustar IBC entre mínimo y máximo permitido
+        $ibc = max($smmlv, min($ibc, $smmlv * 25));
+
+        // Cálculos base
+        $saludTotal      = Valores::Redondear($ibc * 0.125, 100);
+        $pensionTotal    = Valores::Redondear($ibc * 0.16, 100);
+        $saludEmpleado   = Valores::Redondear($ibc * 0.04, 1);
+        $pensionEmpleado = $saludEmpleado;
+        $pSol = $pSub = $porPS = 0;
+
+        // Aportes de solidaridad si aplica
+        if ($ibc >= $smmlv * 4 && $ibc < $smmlv * 16) {
+            $pSol = $pSub = Valores::Redondear($ibc * 0.005, 100);
+            $porPS = 1;
+        }
+
+        // Ajustes según tipo
+        if ($tipo == 12) {
+            $saludEmpleado = $pensionEmpleado = $pSol = $pSub = $porPS = 0;
+            $saludTotal = $pensionTotal = 0;
+        } else if ($tipo == 8) {
+            $saludEmpleado = $pensionEmpleado = $pSol = $pSub = $porPS = 0;
+            $saludTotal = (($param['salario'] / 30) * $diaslab) * 0.125;
+            $pensionTotal = 0;
+        }
+
+        // Ajustes según subtipo
+        if ($subtipo == 2) {
+            $pensionEmpleado = $pSol = $pSub = $porPS = $pensionTotal = 0;
+        }
+
+        // Cálculo ARL
+        [$idArl, $porcentajeArl] = explode('|', $novedad[3]);
+        $riesgos = $ibc * ($porcentajeArl / 100);
+
+        // Datos a guardar
+        $data = [
+            'id_empleado'                   => $param['id_empleado'],
+            'id_eps'                        => $novedad[1],
+            'id_arl'                        => $idArl,
+            'id_afp'                        => $novedad[2],
+            'aporte_salud_emp'              => $saludEmpleado,
+            'aporte_pension_emp'            => $pensionEmpleado,
+            'aporte_solidaridad_pensional'  => $pSol + $pSub,
+            'porcentaje_ps'                 => $porPS,
+            'aporte_salud_empresa'          => $saludTotal - $saludEmpleado,
+            'aporte_pension_empresa'        => $pensionTotal - $pensionEmpleado,
+            'aporte_rieslab'                => $riesgos,
+            'id_nomina'                     => $param['id_nomina'],
+        ];
+
+        // Insertar y generar respuesta
+        $res = (new Seguridad_Social($this->conexion))->addRegistroLiq($data);
+
+        if ($res != 'si') {
+            $response['insert'] =   false;
+            $response['msg'] =      "<p>$res</p>";
+        } else {
+            $response['valor'] = $saludEmpleado + $pensionEmpleado + $pSol + $pSub;
+        }
+        return $response;
+    }
+
+    /**
+     * Liquida los aportes parafiscales de un empleado.
+     * @param array $param Parámetros necesarios para la liquidación
+     * @param float $ibc Ingreso Base de Cotización
+     * @param bool $exonerado Indica si el empleado está exonerado de aportes
+     * @param int $tipo_emp Tipo de empleado
+     * @return array Resultado de la liquidación con mensaje, estado de inserción y valor
+     */
+    public function LiquidaParafiscales($param, $ibc, $exonerado, $tipo_emp)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0
+        ];
+
+        // Si el tipo de empleado es 12 o 8, no aplica ningún aporte
+        if (in_array($tipo_emp, [12, 8])) {
+            $sena = $icbf = $comfam = 0;
+        } else {
+            $sena   = $exonerado ? 0 : $ibc * 0.02;
+            $icbf   = $exonerado ? 0 : $ibc * 0.03;
+            $comfam = $ibc * 0.04;
+        }
+
+        $data = [
+            'id_empleado' => $param['id_empleado'],
+            'val_sena'    => Valores::Redondear($sena, 100),
+            'val_icbf'    => Valores::Redondear($icbf, 100),
+            'val_comfam'  => Valores::Redondear($comfam, 100),
+            'id_nomina'   => $param['id_nomina'],
+        ];
+
+        $res = (new Seguridad_Social($this->conexion))->addRegistroLiq2($data);
+
+        if ($res !== 'si') {
+            $response['insert'] = false;
+            $response['msg'] = "<p>$res</p>";
+        } else {
+            $response['valor'] = $sena + $icbf + $comfam;
+        }
+
         return $response;
     }
 

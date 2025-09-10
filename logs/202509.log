@@ -1,0 +1,2 @@
+[2025-09-03 15:04:28] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_liq_bsp` WHERE `id_bonificaciones` = 139;
+[2025-09-03 15:05:40] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_liq_bsp` WHERE `id_bonificaciones` = 140;
