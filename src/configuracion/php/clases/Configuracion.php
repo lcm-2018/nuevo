@@ -63,6 +63,8 @@ class Configuracion
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return $datos ?: null;
     }
 
@@ -80,7 +82,7 @@ class Configuracion
             $where = "AND `tb_consultas_sql`.`nom_consulta` LIKE '%$val_busca%'";
         }
 
-         $sql = "SELECT
+        $sql = "SELECT
                     COUNT(*) as total                 
                 FROM
                     `tb_consultas_sql`                    
@@ -96,8 +98,8 @@ class Configuracion
      */
 
     public function getRegistrosTotal()
-    {        
-         $sql = "SELECT
+    {
+        $sql = "SELECT
                     COUNT(*) as total                 
                 FROM
                     `tb_consultas_sql`                    
@@ -138,7 +140,10 @@ class Configuracion
                     `tb_consultas_sql` ORDER BY `id_consulta` ASC";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $registros =  $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return $registros;
     }
 
     public function getFormulario($id)

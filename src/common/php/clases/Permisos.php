@@ -27,6 +27,8 @@ class Permisos
         $stmt->bindParam(1, $iduser, PDO::PARAM_INT);
         $stmt->execute();
         $modulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return $modulos;
     }
 
@@ -46,6 +48,8 @@ class Permisos
         $stmt->bindParam(1, $id_user, PDO::PARAM_INT);
         $stmt->execute();
         $opciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return $opciones;
     }
 

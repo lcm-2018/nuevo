@@ -10,7 +10,6 @@ use PDO;
 use PDOException;
 use Src\Common\Php\Clases\Valores;
 use Src\Nomina\Empleados\Php\Clases\Bsp;
-use Src\Nomina\Empleados\Php\Clases\Contratos;
 use Src\Nomina\Empleados\Php\Clases\Embargos;
 use Src\Nomina\Empleados\Php\Clases\Empleados;
 use Src\Nomina\Empleados\Php\Clases\Incapacidades;
@@ -21,6 +20,8 @@ use Src\Nomina\Empleados\Php\Clases\Licencias_Luto;
 use Src\Nomina\Empleados\Php\Clases\Licencias_MoP;
 use Src\Nomina\Empleados\Php\Clases\Licencias_Norem;
 use Src\Nomina\Empleados\Php\Clases\Otros_Descuentos;
+use Src\Nomina\Empleados\Php\Clases\Prestaciones_Sociales;
+use Src\Nomina\Empleados\Php\Clases\Primas;
 use Src\Nomina\Empleados\Php\Clases\Seguridad_Social;
 use Src\Nomina\Empleados\Php\Clases\Sindicatos;
 use Src\Nomina\Empleados\Php\Clases\Vacaciones;
@@ -143,6 +144,8 @@ class Liquidacion
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if ($mes == '0') {
             $datos = [];
         }
@@ -387,14 +390,15 @@ class Liquidacion
         $bonificaciones =   (new Bsp())->getRegistroPorEmpleado();
 
         //Deducidos
-        $libranzas =    (new Libranzas())->getLibranzasPorEmpleado();
-        $embargos =     (new Embargos())->getRegistroPorEmpleado();
-        $sindicatos =   (new Sindicatos())->getRegistroPorEmpleado();
-        $otrosDctos =   (new Otros_Descuentos())->getRegistroPorEmpleado();
+        $libranzas =    (new Libranzas())->getLibranzasPorEmpleado($inicia);
+        $embargos =     (new Embargos())->getRegistroPorEmpleado($inicia);
+        $sindicatos =   (new Sindicatos())->getRegistroPorEmpleado($inicia);
+        $otrosDctos =   (new Otros_Descuentos())->getRegistroPorEmpleado($inicia, $fin);
 
         //otros 
         $cortes =       array_column((self::getCortes($ids, $fin)), null, 'id_empleado');
         $iVivienda =    (new Ivivienda())->getIviviendaEmpleados($ids);
+        $iVivienda =    array_column($iVivienda, 'valor', 'id_empleado');
         $liquidados =   (self::getEmpleadosLiq($id_nomina, $ids));
         $liquidados =   array_column($liquidados, 'id_sal_liq', 'id_empleado');
         $error = '';
@@ -405,10 +409,11 @@ class Liquidacion
             $param['base_bsp'] =        $parametro[7];
             $param['grep'] =            $parametro[8];
             $param['base_alim'] =       $parametro[9];
-            $param['min_vital'] =       $parametro[10];
+            $param['min_vital'] =       $parametro[10] ?? 0;
             $param['id_nomina'] =       $id_nomina;
         }
 
+        $inserts = 0;
         foreach ($ids as $id_empleado) {
             if (!(isset($liquidados[$id_empleado]) && isset($salarios[$id_empleado]))) {
                 try {
@@ -531,8 +536,10 @@ class Liquidacion
 
                     //liquidar indemnización por vacaciones
                     $filtro = $indemVacaciones[$id_empleado][0] ?? [];
+                    $valTotIndemVac = 0;
                     if (!empty($filtro)) {
                         $response = $this->LiquidaIndemnizaVacaciones($filtro, $param);
+                        $valTotIndemVac = $response['valor'];
                         if (!$response['insert']) {
                             throw new Exception("Indemnización por vacaciones: {$response['msg']}");
                         }
@@ -571,13 +578,13 @@ class Liquidacion
                     } else {
                         $ibc = $valTotalLab + $valTotalHe + $valTotIncap + $valTotalBSP + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVac;
                     }
-
+                    /*
                     $response = $this->LiquidaSeguridadSocial($param, $novedad, $ibc, $tipo_emp, $subtipo_emp, $laborado[$id_empleado]);
                     $valTotSegSoc = $response['valor'];
                     if (!$response['insert']) {
                         throw new Exception("Seguridad social: {$response['msg']}");
                     }
-
+*/
                     //Parafiscales
                     $response = $this->LiquidaParafiscales($param, $ibc, $empresa['exonera_aportes'], $tipo_emp);
                     $valTotParaf = $response['valor'];
@@ -596,7 +603,7 @@ class Liquidacion
                         'corte' => '',
                         'id_nomina' => 0,
                     ];
-                    $response       =   $this->LiquidaVacaciones($filtro, $param);
+                    $response       =   $this->LiquidaVacaciones($filtro, $param, 0);
                     $valMesVac      =   $response['valor'];
                     $valMesPrimVac  =   $response['prima'];
                     $valMesBonRec   =   $response['bono'];
@@ -605,11 +612,123 @@ class Liquidacion
                     }
                     //Reserva Prima de Servicios
 
-                    $response = $this->LiquidaPrimaServicios($param, $laborado[$id_empleado], 0);
+                    $response = $this->LiquidaPrimaServicios($param, $cortes_empleado, $laborado[$id_empleado], 0);
+                    $valMesPriSer = $response['valor'];
+                    if (!$response['insert']) {
+                        throw new Exception("Prima de Servicios Mes: {$response['msg']}");
+                    }
 
-                    throw new Exception("TODO CORRECTO");
+                    //Reserva Prima de Navidad
+                    $response = $this->LiquidaPrimaNavidad($param, $cortes_empleado, $laborado[$id_empleado], 0);
+                    $valMesPriNav = $response['valor'];
+                    if (!$response['insert']) {
+                        throw new Exception("Prima de Navidad Mes: {$response['msg']}");
+                    }
+
+                    //Reserva Cesantias
+                    $response = $this->LiquidaCesantias($param, $cortes_empleado, $laborado[$id_empleado], 0);
+                    $valMesCes = $response['valor'];
+                    $valMesIntCes = $response['interes'];
+                    if (!$response['insert']) {
+                        throw new Exception("Cesantias Mes: {$response['msg']}");
+                    }
+                    $data = [
+                        'id_empleado'           =>  $id_empleado,
+                        'id_nomina'             =>  $id_nomina,
+                        'val_vacacion'          =>  $valMesVac,
+                        'val_cesantia'          =>  $valMesCes,
+                        'val_interes_cesantia'  =>  $valMesIntCes,
+                        'val_prima'             =>  $valMesPriSer,
+                        'val_prima_vac'         =>  $valMesPrimVac,
+                        'val_prima_nav'         =>  $valMesPriNav,
+                        'val_bonifica_recrea'   =>  $valMesBonRec,
+                    ];
+                    $response = (new Prestaciones_Sociales($this->conexion))->addRegistroLiq($data);
+                    if ($response != 'si') {
+                        throw new Exception("Prestaciones sociales: $response");
+                    }
+
+                    $baseDctos = $valTotalLab + $valAuxTrans + $valAuxAlim + $valTotalHe + $valTotIncap + $valTotVac + $valTotLicMP + $valTotLicLuto + $valTotalBSP + $valTotPrimVac + $valBonRec + $grepre + $valTotIndemVac - ($valTotSegSoc ?? 0);
+
+                    //Deducciones
+
+                    //embargos
+                    $filtro = $embargos[$id_empleado] ?? [];
+                    if (!empty($filtro)) {
+                        $response = $this->LiquidaEmbargos($filtro, $param, $baseDctos);
+                        $baseDctos  = $baseDctos - $response['valor'];
+                        if (!$response['insert']) {
+                            throw new Exception("Embargos: {$response['msg']}");
+                        }
+                    }
+
+                    //sindicatos
+                    $filtro = $sindicatos[$id_empleado][0] ?? [];
+                    if (!empty($filtro)) {
+                        $response = $this->LiquidaSindicato($filtro, $param, $baseDctos);
+                        $baseDctos  = $baseDctos - $response['valor'];
+                        if (!$response['insert']) {
+                            throw new Exception("Sindicatos: {$response['msg']}");
+                        }
+                    }
+                    //libranzas
+                    $filtro = $libranzas[$id_empleado] ?? [];
+                    if (!empty($filtro)) {
+                        $response = $this->LiquidaLibranzas($filtro, $param, $baseDctos);
+                        $baseDctos  = $baseDctos - $response['valor'];
+                        if (!$response['insert']) {
+                            throw new Exception("Libranzas: {$response['msg']}");
+                        }
+                    }
+
+                    //otros descuentos
+                    $filtro = $otrosDctos[$id_empleado] ?? [];
+                    if (!empty($filtro)) {
+                        $response = $this->LiquidaOtrosDctos($filtro, $param, $baseDctos);
+                        $baseDctos  = $baseDctos - $response['valor'];;
+                        if (!$response['insert']) {
+                            throw new Exception("Otros descuentos: {$response['msg']}");
+                        }
+                    }
+
+                    $baseDep = $valTotalLab + $valTotalBSP + $valTotalHe + $valTotVac + $valTotPrimVac + $valBonRec + $grepre;
+                    $pagoxdependiente = $empleados[$id_empleado]['dependientes'] == 0 ? 0 : $baseDep * 0.1;
+                    $valIntViv = $iVivienda[$id_empleado] ?? 0;
+                    $valrf = $baseDep + $valTotIndemVac + $valTotLicLuto - ($valTotSegSoc ?? 0) - $pagoxdependiente - $valIntViv;
+                    $valdpurado =  $valrf * 0.75;
+                    $uvt = $param['uvt'];
+                    $ingLabUvt = $empleados[$id_empleado]['salario_integral'] == 1 ? $valTotalLab * 0.75 / $uvt :  $valdpurado / $uvt;
+
+                    $totValRetFte = 0;
+                    $data = [
+                        'id_empleado'   =>  $id_empleado,
+                        'id_nomina'     =>  $id_nomina,
+                        'base'          =>  $valdpurado,
+                        'ing_uvt'       =>  $ingLabUvt,
+                        'uvt'           =>  $uvt,
+                    ];
+                    $response = $this->LiquidaRetencionFuente($data);
+                    $totValRetFte = $response['valor'];
+                    if (!$response['insert']) {
+                        throw new Exception("Retención en la fuente: {$response['msg']}");
+                    }
+
+                    $neto = $baseDctos - $totValRetFte;
+                    $data = [
+                        'id_empleado'   =>  $id_empleado,
+                        'id_nomina'     =>  $id_nomina,
+                        'metodo_pago'   =>  $mpago[$id_empleado],
+                        'val_liq'       =>  $neto,
+                        'forma_pago'    =>  1,
+                        'sal_base'      =>  $salarios[$id_empleado],
+                    ];
+                    $response = $this->LiquidaSalarioNeto($data);
+                    if (!$response['insert']) {
+                        throw new Exception("Salario neto: {$response['msg']}");
+                    }
+
                     $this->conexion->commit();
-
+                    $inserts++;
                     unset($filtro, $response);
                     gc_collect_cycles();
                 } catch (Exception $e) {
@@ -623,8 +742,10 @@ class Liquidacion
         }
         if ($error != '') {
             return $error;
+        } else if ($inserts == 0) {
+            return 'No se liquidó ningún empleado.';
         } else {
-            return 'Todos los empleados tienen las novedades registradas correctamente.';
+            return 'Liquidación realizada con éxito.';
         }
     }
     /**
@@ -1064,7 +1185,7 @@ class Liquidacion
         return $response;
     }
 
-    public function LiquidaPrimaServicios($filtro, $param, $opcion = 1)
+    public function LiquidaPrimaServicios($param, $cortes, $dliq, $opcion = 1)
     {
         $response = [
             'msg' => '',
@@ -1072,26 +1193,25 @@ class Liquidacion
             'valor' => 0,
         ];
 
-        $salbas =   $param['salario'];
-        $grepre =   ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
-        $auxtra =   $param['aux_trans'];
-        $auxali =   $param['aux_alim'];
-        $bspant =   $param['val_bsp'] ?? 0;
-        $psvant =   $param['val_liq_ps'] ?? 0;
-        $base =     $salbas + $grepre + $auxtra + $auxali + $bspant  / 12;
-        $idvac =    $filtro['id_vac'];
-        $dhabiles = $filtro['dias_habiles'] ?? 15;
-        $dinactiv = $filtro['dias_inactivo'] ?? 22;
-        $dliq =     $filtro['dias_liquidar'];
-        $corte =    $filtro['corte'];
-        $id_nomina = $param['id_nomina'];
+        $salbas         =   $param['salario'];
+        $id_empleado    =   $param['id_empleado'];
+        $cant_dias      =   $dliq;
+        $val_liq_pns    =   0;
+        $periodo        =   1;
+        $grepre         =   ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
+        $auxtra         =   $param['aux_trans'];
+        $auxali         =   $param['aux_alim'];
+        $bspant         =   $param['val_bsp'] ?? 0;
+        $base           =   $salbas + $grepre + $auxtra + $auxali + $bspant  / 12;
+        $corte          =   $param['corte_prim_sv'] ?? NULL;
+        $id_nomina      =   $param['id_nomina'];
 
-        $prima_dia = $base  / 720;
-        $prima = $prima_dia * $dliq;
+        $prima_dia      =   $base  / 720;
+        $val_liq_ps          =   $prima_dia * $dliq;
 
         if ($opcion == 1) {
-            $data = compact('idvac', 'corte', 'vacacion', 'prima_vac', 'bonrecrea', 'id_nomina', 'salbas', 'grepre', 'auxtra', 'auxali', 'bspant', 'psvant', 'dhabiles');
-            $res = (new Primas($this->conexion))->addRegistroLiq($data);
+            $data = compact('id_empleado', 'cant_dias', 'val_liq_ps', 'val_liq_pns', 'periodo', 'corte', 'id_nomina');
+            $res = (new Primas($this->conexion))->addRegistroLiq1($data);
 
             if ($res != 'si') {
                 $response['insert'] = false;
@@ -1100,7 +1220,93 @@ class Liquidacion
             }
         }
 
-        $response['valor']  =   $prima;
+        $response['valor']  =   $val_liq_ps;
+
+        return $response;
+    }
+
+    public function LiquidaPrimaNavidad($param, $cortes, $dliq, $opcion = 1)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0,
+        ];
+
+        $salbas         =   $param['salario'];
+        $id_empleado    =   $param['id_empleado'];
+        $cant_dias      =   $dliq;
+        $val_liq_pnv    =   0;
+        $periodo        =   2;
+        $grepre         =   ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
+        $auxtra         =   $param['aux_trans'];
+        $auxali         =   $param['aux_alim'];
+        $bspant         =   $param['val_bsp'] ?? 0;
+        $prima_ant      =   $param['val_liq_ps'] ?? 0;
+        $vac_ant        =   $param['val_prima_vac'] ?? 0;
+        $base           =   $salbas + $grepre + $auxtra + $auxali + ($bspant  / 12) + ($prima_ant / 12) + ($vac_ant / 12);
+        $corte          =   $param['corte_psv'] ?? NULL;
+        $id_nomina      =   $param['id_nomina'];
+
+        $prima_dia      =   $base  / 320;
+        $val_liq_pv     =   $prima_dia * $dliq;
+
+        if ($opcion == 1) {
+            $data = compact('id_empleado', 'cant_dias', 'val_liq_pv', 'val_liq_pnv', 'periodo', 'corte', 'id_nomina');
+            $res = (new Primas($this->conexion))->addRegistroLiq2($data);
+
+            if ($res != 'si') {
+                $response['insert'] = false;
+                $response['msg'] = "<p>$res</p>";
+                return $response;
+            }
+        }
+
+        $response['valor']  =   $val_liq_pv;
+
+        return $response;
+    }
+
+    public function LiquidaCesantias($param, $cortes, $dliq, $opcion = 1)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0,
+        ];
+
+        $salbas         =   $param['salario'];
+        $id_empleado    =   $param['id_empleado'];
+        $cant_dias      =   $dliq;
+        $grepre         =   ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
+        $auxtra         =   $param['aux_trans'];
+        $auxali         =   $param['aux_alim'];
+        $bspant         =   $param['val_bsp'] ?? 0;
+        $prima_ant      =   $param['val_liq_ps'] ?? 0;
+        $vac_ant        =   $param['val_prima_vac'] ?? 0;
+        $prima_nav_ant  =   $param['val_liq_pv'] ?? 0;
+        $promHoEx       =   $param['prom'] ?? 0;
+        $base           =   $salbas + $grepre + $auxtra + $auxali + ($bspant  / 12) + ($prima_ant / 12) + ($vac_ant / 12) + ($prima_nav_ant / 12) + $promHoEx;
+        $corte          =   $param['corte_psv'] ?? NULL;
+        $id_nomina      =   $param['id_nomina'];
+
+        $cesantia_dia   =   $base  / 320;
+        $val_cesantias  =   $cesantia_dia * $dliq;
+        $val_icesantias =   $val_cesantias * 0.12;
+
+        if ($opcion == 1) {
+            $data = compact('id_empleado', 'cant_dias', 'val_cesantias', 'val_icesantias', 'corte', 'id_nomina');
+            $res = (new Primas($this->conexion))->addRegistroLiq2($data);
+
+            if ($res != 'si') {
+                $response['insert'] = false;
+                $response['msg'] = "<p>$res</p>";
+                return $response;
+            }
+        }
+
+        $response['valor']      =   $val_cesantias;
+        $response['interes']    =   $val_icesantias;
 
         return $response;
     }
@@ -1367,11 +1573,229 @@ class Liquidacion
         return $response;
     }
 
-    public function LiquidaLibranzas() {}
+    public function LiquidaLibranzas($filtro, $param, $base)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0,
+        ];
+        $smmlv = $param['smmlv'];
+        $minVital = $param['min_vital'] > 0 ? $param['min_vital'] : $smmlv;
 
-    public function LiquidaEmbargos() {}
+        foreach ($filtro as $f) {
+            $base -= $f['val_mes'];
+            if ($base  > $f['val_mes'] && $base > $minVital) {
+                $data = [
+                    'id_libranza'   =>   $f['id_libranza'],
+                    'val_mes'       =>   $f['val_mes'],
+                    'id_nomina'     =>   $param['id_nomina']
+                ];
 
-    public function LiquidaSindicato() {}
+                $res = (new Libranzas($this->conexion))->addRegistroLiq($data);
+                if ($res != 'si') {
+                    $response['insert'] = false;
+                    $response['msg'] = "<p>$res</p>";
+                    break;
+                } else {
+                    $response['valor'] += $f['val_mes'];
+                }
+            } else {
+                continue;
+            }
+        }
+        return $response;
+    }
 
-    public function LiquidaOtrosDctos() {}
+    public function LiquidaEmbargos($filtro, $param, $base)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0,
+        ];
+
+        $smmlv = $param['smmlv'];
+        $minVital = $param['min_vital'] > 0 ? $param['min_vital'] : $smmlv;
+
+        foreach ($filtro as $f) {
+            $base -= $f['val_mes'];
+            if ($base  > $f['val_mes'] && $base > $minVital) {
+                $data = [
+                    'id_embargo'   =>   $f['id_embargo'],
+                    'val_mes'      =>   $f['val_mes'],
+                    'id_nomina'    =>   $param['id_nomina']
+                ];
+
+                $res = (new Embargos($this->conexion))->addRegistroLiq($data);
+                if ($res != 'si') {
+                    $response['insert'] = false;
+                    $response['msg'] = "<p>$res</p>";
+                    break;
+                } else {
+                    $response['valor'] += $f['val_mes'];
+                }
+            } else {
+                continue;
+            }
+        }
+        return $response;
+    }
+
+    public function LiquidaSindicato($filtro, $param, $base)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0,
+        ];
+        $data = [
+            'id_sindicato'  =>  $filtro['id_cuota_sindical'],
+            'id_nomina'     =>  $param['id_nomina']
+        ];
+
+        $smmlv = $param['smmlv'];
+        $minVital = $param['min_vital'] > 0 ? $param['min_vital'] : $smmlv;
+
+        $sindicalizacion = !empty((new Sindicatos($this->conexion))->getRegistroLiq($filtro['id_sindicato'])) ? 0 : $filtro['val_sidicalizacion'];
+        $dcto = $filtro['val_fijo'] + $sindicalizacion;
+        $data['valor_fijo']    =  $dcto;
+
+        if ($base  > $dcto && $base > $minVital) {
+            $res = (new Sindicatos($this->conexion))->addRegistroLiq($data);
+            if ($res != 'si') {
+                $response['insert'] =   false;
+                $response['msg']    =   "<p>$res</p>";
+            } else {
+                $response['valor']  =   $dcto;
+            }
+        }
+        return $response;
+    }
+
+    public function LiquidaOtrosDctos($filtro, $param, $base)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0,
+        ];
+
+        $smmlv = $param['smmlv'];
+        $minVital = $param['min_vital'] > 0 ? $param['min_vital'] : $smmlv;
+
+        foreach ($filtro as $f) {
+            $base -= $f['valor'];
+            if ($base  > $f['valor'] && $base > $minVital) {
+                $data = [
+                    'id_dcto'   =>   $f['id_dcto'],
+                    'valor'     =>   $f['valor'],
+                    'id_nomina' =>   $param['id_nomina']
+                ];
+
+                $res = (new Otros_Descuentos($this->conexion))->addRegistroLiq($data);
+                if ($res != 'si') {
+                    $response['insert'] = false;
+                    $response['msg'] = "<p>$res</p>";
+                    break;
+                } else {
+                    $response['valor'] += $f['valor'];
+                }
+            } else {
+                continue;
+            }
+        }
+        return $response;
+    }
+
+    public function LiquidaRetencionFuente($array)
+    {
+        $response = [
+            'msg'       =>    '',
+            'insert'    =>    false,
+            'valor'     =>    0
+        ];
+        $ingLabUvt  =    $array['ing_uvt'];
+        $uvt        =    $array['uvt'];
+        $retencion  =    0;
+
+        if ($ingLabUvt >= 95 && $ingLabUvt < 150) {
+            $uvtx = $ingLabUvt - 95;
+            $retencion = $uvt * $uvtx * 0.19;
+        } else if ($ingLabUvt >= 150 && $ingLabUvt < 360) {
+            $uvtx = $ingLabUvt - 150;
+            $retencion = ($uvt * $uvtx * 0.28) + (10 * $uvt);
+        } else if ($ingLabUvt >= 360 && $ingLabUvt < 640) {
+            $uvtx = $ingLabUvt - 360;
+            $retencion = ($uvt * $uvtx * 0.33) + (69 * $uvt);
+        } else if ($ingLabUvt >= 640 && $ingLabUvt < 945) {
+            $uvtx = $ingLabUvt - 640;
+            $retencion = ($uvt * $uvtx * 0.35) +  (162 * $uvt);
+        } else if ($ingLabUvt >= 945 && $ingLabUvt < 2300) {
+            $uvtx = $ingLabUvt - 945;
+            $retencion = ($uvt * $uvtx * 0.37) + (268 * $uvt);
+        } else if ($ingLabUvt >= 2300) {
+            $uvtx = $ingLabUvt - 2300;
+            $retencion = ($uvt * $uvtx * 0.39) + (770 * $uvt);
+        }
+        try {
+            $sql = "INSERT INTO `nom_retencion_fte`
+                        (`id_empleado`,`base`,`val_ret`,`id_user_reg`,`fec_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['base'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $retencion, PDO::PARAM_INT);
+            $stmt->bindValue(4, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(6, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                $response['insert'] = true;
+                $response['msg'] = 'si';
+                $response['valor'] = $retencion;
+            } else {
+                $response['msg'] = 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            $response['msg'] = 'Error SQL: ' . $e->getMessage();
+        }
+        return $response;
+    }
+    public function LiquidaSalarioNeto($array)
+    {
+        $response = [
+            'msg'       =>    '',
+            'insert'    =>    false,
+            'valor'     =>    0
+        ];
+
+        try {
+            $sql = "INSERT INTO `nom_liq_salario`
+                        (`id_empleado`,`sal_base`,`forma_pago`,`metodo_pago`,`val_liq`,`fec_reg`,`id_user_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['sal_base'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $array['forma_pago'], PDO::PARAM_INT);
+            $stmt->bindValue(4, $array['metodo_pago'], PDO::PARAM_INT);
+            $stmt->bindValue(5, $array['val_liq'], PDO::PARAM_STR);
+            $stmt->bindValue(6, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(7, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(8, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                $response['insert'] = true;
+                $response['msg'] = 'si';
+                $response['valor'] = $array['val_liq'];
+            } else {
+                $response['msg'] = 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            $response['msg'] = 'Error SQL: ' . $e->getMessage();
+        }
+        return $response;
+    }
 }

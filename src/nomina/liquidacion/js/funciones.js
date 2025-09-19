@@ -65,7 +65,7 @@ const tableLiqMesEmpleados = crearDataTable(
                             tableLiqMesEmpleados.ajax.reload(null, false);
                             $('#modalForms').modal('hide');
                         } else {
-                            mjeError('Error!', '', response.msg);
+                            mjeAlert('', '', response.msg);
                         }
                     }).finally(() => {
                         ocultarOverlay();

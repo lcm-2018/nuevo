@@ -84,7 +84,9 @@ class Otros_Descuentos
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $datos ?: null;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $datos ?: [];
     }
     /**
      * Obtiene el total de registros filtrados.
@@ -178,18 +180,26 @@ class Otros_Descuentos
         }
         return $registro;
     }
-    public function getRegistroPorEmpleado()
+    public function getRegistroPorEmpleado($i, $f)
     {
         $sql = "SELECT
                     `id_dcto`,`id_empleado`,`id_tipo_dcto`,`fecha_fin`,`concepto`,`valor`
                 FROM `nom_otros_descuentos`
-                WHERE `estado`  = 1";
+                WHERE `estado`  = 1 AND `fecha` BETWEEN ? AND ?";
         $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $i, PDO::PARAM_STR);
+        $stmt->bindParam(2, $f, PDO::PARAM_STR);
         $stmt->execute();
         $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return $registro;
+
+        $index = [];
+        foreach ($registro as $row) {
+            $index[$row['id_empleado']][] = $row;
+        }
+
+        return $index;
     }
 
 
@@ -299,6 +309,30 @@ class Otros_Descuentos
             $stmt->bindValue(7, 1, PDO::PARAM_INT);
             $stmt->bindValue(8, Sesion::IdUser(), PDO::PARAM_INT);
             $stmt->bindValue(9, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                return 'si';
+            } else {
+                return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function addRegistroLiq($array)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_descuento`
+                        (`id_dcto`,`valor`,`id_nomina`,`id_user_reg`,`fec_reg`)
+                    VALUES (?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_dcto'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['valor'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->bindValue(4, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {

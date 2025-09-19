@@ -114,6 +114,8 @@ class Combos
         $stmt = Conexion::getConexion()->prepare($sql);
         $stmt->execute();
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         $resultado = '';
         if (!empty($data)) {
             return (new self())->setOption($data, $id);

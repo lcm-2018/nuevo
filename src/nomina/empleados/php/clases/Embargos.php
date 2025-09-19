@@ -94,7 +94,9 @@ class Embargos
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $datos ?: null;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $datos ?: [];
     }
     /**
      * Obtiene el total de registros filtrados.
@@ -198,18 +200,25 @@ class Embargos
         return $registro;
     }
 
-    public function getRegistroPorEmpleado()
+    public function getRegistroPorEmpleado($inicia)
     {
         $sql = "SELECT
                     `id_embargo`, `tipo_embargo`,`valor_mes`, `porcentaje`, `fec_inicio`, `fec_fin`
                 FROM `nom_embargos`
-                WHERE `estado` = 1";
+                WHERE `estado` = 1 AND (`fec_fin` >= ? OR `fec_fin` IS NULL)";
         $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
         $stmt->execute();
         $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return $registro;
+
+        $index = [];
+        foreach ($registro as $row) {
+            $index[$row['id_empleado']][] = $row;
+        }
+
+        return $index;
     }
 
     /**
@@ -337,6 +346,30 @@ class Embargos
             $stmt->bindValue(9, $array['datFecFin'], PDO::PARAM_STR);
             $stmt->bindValue(10, 1, PDO::PARAM_INT);
             $stmt->bindValue(11, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                return 'si';
+            } else {
+                return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function addRegistroLiq($array)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_embargo`
+                        (`id_embargo`,`val_mes_embargo`,`fec_reg`,`id_user_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_embargo'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['val_mes'], PDO::PARAM_STR);
+            $stmt->bindValue(3, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(4, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(5, $array['id_nomina'], PDO::PARAM_INT);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {

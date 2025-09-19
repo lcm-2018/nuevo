@@ -295,6 +295,17 @@ function mjeError(titulo, texto, html, timer = 2000) {
     });
 }
 
+function mjeAlert(titulo, texto, html, timer = 2000) {
+    Swal.fire({
+        title: titulo,
+        text: texto,
+        icon: "warning",
+        showConfirmButton: true,
+        timer: timer,
+        html: html,
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('modalForms');
     if (!modal) return;

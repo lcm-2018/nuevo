@@ -89,6 +89,8 @@ class Horas_Extra
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if ($mes == '0') {
             $datos = [];
         }

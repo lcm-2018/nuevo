@@ -328,3 +328,82 @@ ALTER TABLE `nom_liq_prestaciones_sociales`
   DROP COLUMN `tipo_liq`, 
   ADD COLUMN `id_user_reg` INT UNSIGNED NULL AFTER `val_bonifica_recrea`,
   ADD COLUMN `id_user_act` INT UNSIGNED NULL AFTER `fec_reg`;
+  
+ALTER TABLE `nom_liq_prima`   
+  CHANGE `val_liq_ps` `val_liq_ps` DECIMAL(15,2) NULL  COMMENT 'prima servicios salaraial',
+  CHANGE `val_liq_pns` `val_liq_pns` DECIMAL(15,2) NULL  COMMENT 'prima no salarial',
+  ADD COLUMN `id_user_reg` INT UNSIGNED NULL AFTER `anio`,
+  ADD COLUMN `id_user_act` INT UNSIGNED NULL AFTER `fec_reg`,
+  ADD FOREIGN KEY (`id_user_reg`) REFERENCES `seg_usuarios_sistema`(`id_usuario`),
+  ADD FOREIGN KEY (`id_user_act`) REFERENCES `seg_usuarios_sistema`(`id_usuario`);
+
+ALTER TABLE `nom_liq_prima_nav`   
+  CHANGE `val_liq_pv` `val_liq_pv` DECIMAL(15,2) NULL  COMMENT 'prima de navidad',
+  CHANGE `val_liq_pnv` `val_liq_pnv` DECIMAL(15,2) NULL  COMMENT 'prima no salarial',
+  ADD COLUMN `id_user_reg` INT UNSIGNED NULL AFTER `anio`,
+  ADD COLUMN `id_user_act` INT UNSIGNED NULL AFTER `fec_reg`,
+  ADD FOREIGN KEY (`id_user_reg`) REFERENCES `seg_usuarios_sistema`(`id_usuario`),
+  ADD FOREIGN KEY (`id_user_act`) REFERENCES `seg_usuarios_sistema`(`id_usuario`);
+
+ALTER TABLE `nom_liq_cesantias`   
+  DROP COLUMN `anio`, 
+  DROP COLUMN `salbase`, 
+  DROP COLUMN `gasrep`, 
+  DROP COLUMN `auxt`, 
+  DROP COLUMN `auxali`, 
+  DROP COLUMN `promHorExt`, 
+  DROP COLUMN `bspant`, 
+  DROP COLUMN `primserant`, 
+  DROP COLUMN `primavacant`, 
+  DROP COLUMN `primanavant`, 
+  DROP COLUMN `diasToCes`, 
+  ADD COLUMN `id_user_reg` INT UNSIGNED NULL AFTER `corte`,
+  ADD COLUMN `id_user_act` INT UNSIGNED NULL AFTER `fec_reg`,
+  ADD FOREIGN KEY (`id_user_reg`) REFERENCES `seg_usuarios_sistema`(`id_usuario`),
+  ADD FOREIGN KEY (`id_user_act`) REFERENCES `seg_usuarios_sistema`(`id_usuario`);
+  
+ALTER TABLE `nom_liq_libranza`   
+  DROP COLUMN `mes_lib`, 
+  DROP COLUMN `anio_lib`, 
+  ADD COLUMN `id_user_reg` INT UNSIGNED NULL AFTER `val_mes_lib`,
+  ADD COLUMN `id_user_act` INT UNSIGNED NULL AFTER `fec_reg`;
+
+ALTER TABLE `nom_liq_embargo`   
+  DROP COLUMN `mes_embargo`, 
+  DROP COLUMN `anio_embargo`, 
+  ADD COLUMN `id_user_reg` INT UNSIGNED NULL AFTER `fec_reg`,
+  ADD COLUMN `id_user_act` INT UNSIGNED NULL AFTER `fec_act`;
+
+ALTER TABLE `nom_cuota_sindical`   
+  ADD COLUMN `primera_vez` TINYINT(1) DEFAULT 1  NULL  COMMENT 'Cobrar sindicalización 1:Si 0:No' AFTER `estado`,
+  ADD COLUMN `id_user_reg` INT UNSIGNED NULL AFTER `primera_vez`,
+  ADD COLUMN `id_user_act` INT UNSIGNED NULL AFTER `fec_reg`,
+  ADD FOREIGN KEY (`id_user_reg`) REFERENCES `seg_usuarios_sistema`(`id_usuario`),
+  ADD FOREIGN KEY (`id_user_act`) REFERENCES `seg_usuarios_sistema`(`id_usuario`),
+  CHARSET=utf8mb4, COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `nom_liq_sindicato_aportes`   
+  DROP COLUMN `mes_aporte`, 
+  DROP COLUMN `anio_aporte`, 
+  DROP COLUMN `tipo_liq`, 
+  ADD COLUMN `id_user_reg` INT UNSIGNED NULL AFTER `val_aporte`,
+  ADD COLUMN `id_user_act` INT UNSIGNED NULL AFTER `fec_reg`,
+  ADD FOREIGN KEY (`id_user_reg`) REFERENCES `seg_usuarios_sistema`(`id_usuario`),
+  ADD FOREIGN KEY (`id_user_act`) REFERENCES `seg_usuarios_sistema`(`id_usuario`);
+
+ALTER TABLE `nom_retencion_fte`   
+  DROP COLUMN `mes`, 
+  DROP COLUMN `anio`, 
+  ADD COLUMN `id_user_act` INT UNSIGNED NULL AFTER `fec_reg`,
+  ADD COLUMN `fec_act` DATETIME NULL AFTER `id_user_act`,
+  ADD FOREIGN KEY (`id_user_act`) REFERENCES `seg_usuarios_sistema`(`id_usuario`),
+  CHARSET=utf8mb4, COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `nom_liq_salario`   
+  DROP COLUMN `mes`, 
+  DROP COLUMN `anio`, 
+  DROP COLUMN `tipo_liq`, 
+  ADD COLUMN `id_user_reg` INT UNSIGNED NULL AFTER `fec_reg`,
+  ADD COLUMN `id_user_act` INT UNSIGNED NULL AFTER `fec_act`,
+  ADD FOREIGN KEY (`id_user_reg`) REFERENCES `seg_usuarios_sistema`(`id_usuario`),
+  ADD FOREIGN KEY (`id_user_act`) REFERENCES `seg_usuarios_sistema`(`id_usuario`);

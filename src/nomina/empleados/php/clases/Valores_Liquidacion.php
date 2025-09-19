@@ -49,7 +49,9 @@ class Valores_Liquidacion
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $datos ?: null;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $datos ?: [];
     }
 
     public function getContratoEmpleados($ids)
@@ -60,6 +62,8 @@ class Valores_Liquidacion
         $stmt->bindParam(1, $ids, PDO::PARAM_STR);
         $stmt->execute();
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return $datos ?: [];
     }
     /**

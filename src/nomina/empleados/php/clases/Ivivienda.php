@@ -63,7 +63,9 @@ class Ivivienda
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $datos ?: null;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $datos ?: [];
     }
     /**
      * Obtiene el total de registros filtrados.
@@ -275,13 +277,13 @@ class Ivivienda
             $ids = implode(',', $ids);
         }
         $sql = "SELECT 
-                `id_empleado`,`valor`
-            FROM `nom_intereses_vivienda` 
-            WHERE `id_intv` IN 
-                (SELECT MAX(`id_intv`) 
+                    `id_empleado`,`valor`
                 FROM `nom_intereses_vivienda` 
-                GROUP BY `id_empleado`)
-                AND `id_empleado` IN ($ids)";
+                WHERE `id_intv` IN 
+                    (SELECT MAX(`id_intv`) 
+                    FROM `nom_intereses_vivienda` 
+                    GROUP BY `id_empleado`)
+                    AND `id_empleado` IN ($ids)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);

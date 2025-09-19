@@ -95,7 +95,9 @@ class Libranzas
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $datos ?: null;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $datos ?: [];
     }
     /**
      * Obtiene el total de registros filtrados.
@@ -199,18 +201,25 @@ class Libranzas
         return $registro;
     }
 
-    public function getLibranzasPorEmpleado()
+    public function getLibranzasPorEmpleado($inicia)
     {
         $sql = "SELECT
                     `id_libranza`,`id_banco`,`id_empleado`,`val_mes`,`porcentaje`, `fecha_fin`
                 FROM `nom_libranzas`
-                WHERE `estado` = 1";
+                WHERE `estado` = 1 AND (`fecha_fin` >= ? OR `fecha_fin` IS NULL)";
         $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
         $stmt->execute();
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return $result;
+
+        $index = [];
+        foreach ($result as $row) {
+            $index[$row['id_empleado']][] = $row;
+        }
+
+        return $index;
     }
 
     /**
@@ -344,6 +353,31 @@ class Libranzas
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+
+    public function addRegistroLiq($array)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_libranza`
+                        (`id_libranza`,`val_mes_lib`,`id_user_reg`,`fec_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_libranza'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['val_mes'], PDO::PARAM_INT);
+            $stmt->bindValue(3, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(4, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                return 'si';
+            } else {
+                return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
     /**
      * Actualiza los datos de un registro.
      *

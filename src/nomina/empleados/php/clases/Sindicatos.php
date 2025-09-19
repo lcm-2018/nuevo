@@ -86,7 +86,9 @@ class Sindicatos
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $datos ?: null;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $datos ?: [];
     }
     /**
      * Obtiene el total de registros filtrados.
@@ -183,18 +185,36 @@ class Sindicatos
         return $registro;
     }
 
-    public function getRegistroPorEmpleado()
+    public function getRegistroLiq($id)
+    {
+        $sql = "SELECT * FROM `nom_cuota_sindical` WHERE `estado` = 1 AND `id_sindicato` = ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $registro;
+    }
+
+    public function getRegistroPorEmpleado($inicia)
     {
         $sql = "SELECT
-                    `id_cuota_sindical`,`id_sindicato`,`porcentaje_cuota`,`val_fijo`,`estado`,  `fec_fin`, `val_sidicalizacion`
+                    `id_cuota_sindical`,`id_sindicato`,`porcentaje_cuota`,`val_fijo`,`estado`,  `fec_fin`, `val_sidicalizacion`, `id_empleado`, `primera_vez` 
                 FROM `nom_cuota_sindical`
-                WHERE `estado` = 1";
+                WHERE `estado` = 1 AND (`fec_fin` >= ? OR `fec_fin` IS NULL)";
         $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
         $stmt->execute();
-        $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         $stmt->closeCursor();
         unset($stmt);
-        return $registro;
+
+        $index = [];
+        foreach ($result as $row) {
+            $index[$row['id_empleado']][] = $row;
+        }
+
+        return $index;
     }
 
     /**
@@ -206,7 +226,7 @@ class Sindicatos
     public function getFormulario($id)
     {
         $registro = $this->getRegistro($id);
-        $sindicatos = Empleados::getTerceroNomina('juz', $registro['id_sindicato']);
+        $sindicatos = Empleados::getTerceroNomina('sin', $registro['id_sindicato']);
         $html =
             <<<HTML
                 <div class="shadow text-center rounded">
@@ -225,13 +245,17 @@ class Sindicatos
                                 </div>
                             </div>
                             <div class="row mb-2">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label for="numValSind" class="small text-muted">Val. Sindicalización</label>
                                     <input type="number" class="form-control form-control-sm bg-input text-end" id="numValSind" name="numValSind" value="{$registro['val_sidicalizacion']}" min="0">
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label for="numPorcentaje" class="small text-muted">Porcentaje</label>
                                     <input type="number" class="form-control form-control-sm bg-input text-end" id="numPorcentaje" name="numPorcentaje" value="{$registro['porcentaje_cuota']}" min="0">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="numValor" class="small text-muted">Valor</label>
+                                    <input type="number" class="form-control form-control-sm bg-input text-end" id="numValor" name="numValor" value="{$registro['val_fijo']}" min="0">
                                 </div>
                             </div>
                             <div class="row mb-2">
@@ -289,7 +313,7 @@ class Sindicatos
      */
     public function addRegistro($array)
     {
-        $valor = Empleados::getSalarioBasico($_POST['id_empleado']) * ($_POST['numPorcentaje'] / 100);
+        $valor = $array['numValor'] > 0 ? $array['numValor'] : Empleados::getSalarioBasico($array['id_empleado']) * ($array['numPorcentaje'] / 100);
         try {
             $sql = "INSERT INTO `nom_cuota_sindical`
                         (`id_sindicato`,`id_empleado`,`porcentaje_cuota`,`val_fijo`,`fec_inicio`,`fec_fin`,`val_sidicalizacion`,`estado`,`fec_reg`)
@@ -315,6 +339,30 @@ class Sindicatos
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+
+    public function addRegistroLiq($array)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_sindicato_aportes`
+                        (`id_cuota_sindical`,`val_aporte`,`id_user_reg`,`fec_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_sindicato'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['valor_fijo'], PDO::PARAM_INT);
+            $stmt->bindValue(3, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(4, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                return 'si';
+            } else {
+                return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
     /**
      * Actualiza los datos de un registro.
      *
@@ -323,7 +371,7 @@ class Sindicatos
      */
     public function editRegistro($array)
     {
-        $valor = Empleados::getSalarioBasico($_POST['id_empleado']) * ($_POST['numPorcentaje'] / 100);
+        $valor = $array['numValor'] > 0 ? $array['numValor'] : Empleados::getSalarioBasico($array['id_empleado']) * ($array['numPorcentaje'] / 100);
         try {
             $sql = "UPDATE `nom_cuota_sindical`
                         SET `id_sindicato` = ?, `porcentaje_cuota` = ?, `val_fijo` = ?, `fec_inicio` = ?, `fec_fin` = ?, `val_sidicalizacion` = ?

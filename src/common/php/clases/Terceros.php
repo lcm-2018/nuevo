@@ -33,8 +33,8 @@ class Terceros
                 FROM `tb_terceros`
                     LEFT JOIN `tb_rel_tercero` 
                         ON (`tb_terceros`.`id_tercero_api` = `tb_rel_tercero`.`id_tercero_api`)
-                WHERE (`id_tercero_api` LIKE :busca OR `nom_tercero` LIKE :busca  OR `nit_tercero` LIKE :busca ) 
-                    AND `estado` = 1 AND `id_tercero_api` IS NOT NULL $where
+                WHERE (`tb_terceros`.`id_tercero_api` LIKE :busca OR `nom_tercero` LIKE :busca  OR `nit_tercero` LIKE :busca ) 
+                    AND `estado` = 1 AND `tb_terceros`.`id_tercero_api` IS NOT NULL $where
                 ORDER BY `nom_tercero` ASC";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(':busca', '%' . $busca . '%', PDO::PARAM_STR);
@@ -43,6 +43,8 @@ class Terceros
         }
         $stmt->execute();
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         $resultado = [];
         if (!empty($data)) {
             foreach ($data as $row) {

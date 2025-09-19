@@ -72,6 +72,8 @@ class Cargos
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return $datos ?: null;
     }
 
@@ -155,7 +157,10 @@ class Cargos
                     `nom_cargo_codigo` ORDER BY `nivel`,`denominacion` ASC";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $registros = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $registros;
     }
 
     public function getNombramientos($id)
@@ -166,7 +171,10 @@ class Cargos
                     `nom_cargo_nombramiento`; ORDER BY `tipo` ASC";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $registros = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $registros;
     }
 
     public function getFormulario($id)

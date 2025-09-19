@@ -51,8 +51,10 @@ class Incrementos
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $datos ?: null;
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $datos;
     }
 
     /**

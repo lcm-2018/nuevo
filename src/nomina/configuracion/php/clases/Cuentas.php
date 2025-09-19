@@ -63,6 +63,8 @@ class Cuentas
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return $datos ?: null;
     }
 
@@ -241,7 +243,10 @@ class Cuentas
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $caracter, PDO::PARAM_STR);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $registros = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $registros;
     }
 
     public function delCuenta($id)

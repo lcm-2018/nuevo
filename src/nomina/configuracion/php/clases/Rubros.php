@@ -65,8 +65,10 @@ class Rubros
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return $datos ?: null;
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $datos;
     }
 
     /**
@@ -246,7 +248,10 @@ class Rubros
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $caracter, PDO::PARAM_STR);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return $registros ?: [];
     }
 
     public function delRubroPto($id)

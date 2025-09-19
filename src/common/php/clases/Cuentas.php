@@ -31,6 +31,8 @@ class Cuentas
         $stmt->bindValue(':busca', '%' . $busca . '%', PDO::PARAM_STR);
         $stmt->execute();
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         $resultado = [];
         if (!empty($data)) {
             foreach ($data as $row) {

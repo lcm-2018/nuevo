@@ -41,6 +41,8 @@ class Rubros
         $stmt->bindValue(':tpr', $tipo, PDO::PARAM_INT);
         $stmt->execute();
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         $resultado = [];
         if (!empty($data)) {
             foreach ($data as $row) {
