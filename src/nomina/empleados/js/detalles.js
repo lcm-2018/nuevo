@@ -834,6 +834,8 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                     MuestraError('datFecInicia', 'La fecha de inicio no puede ser mayor a la fecha de terminación');
                 } else if (ValueInput('txtSalarioBasico') === '' || Number(CleanNumber(ValueInput('txtSalarioBasico'))) <= 0) {
                     MuestraError('txtSalarioBasico', 'Ingrese el salario del empleado');
+                } else if (ValueInput('slcCargo') === '0') {
+                    MuestraError('slcCargo', 'Seleccione un cargo');
                 } else {
                     mostrarOverlay();
                     var data = Serializa('formContratoEmpleado');

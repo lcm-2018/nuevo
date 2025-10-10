@@ -449,7 +449,6 @@ class Liquidacion
                         $param['pri_ser_ant'] =     $cortes_empleado['val_liq_ps'] ?? 0;
                         $param['pri_vac_ant'] =     $cortes_empleado['val_liq_pv'] ?? 0;
                         $param['pri_nav_ant'] =     $cortes_empleado['val_liq'] ?? 0;
-                        $param['val_prima_vac'] =   $cortes_empleado['val_prima_vac'] ?? 0;
                         $param['prom_horas'] =      $cortes_empleado['prom'] ?? 0;
                     } else if ($opcion == 1) {
                         $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
@@ -570,24 +569,39 @@ class Liquidacion
                     $valTotalLab = $laborado[$id_empleado] * ($param['salario'] / 30);
                     $valAuxTrans = $laborado[$id_empleado] * ($param['aux_trans'] / 30);
                     $valAuxAlim = $laborado[$id_empleado] * ($param['aux_alim'] / 30);
+                    $grepre = $empleados[$id_empleado]['representacion'] == 1 ? $parametro[8] : 0;
+
+                    $data = [
+                        'id_empleado'       =>  $id_empleado,
+                        'dias_laborados'    =>  $laborado[$id_empleado],
+                        'val_laborado'      =>  $valTotalLab,
+                        'val_aux_trans'     =>  $valAuxTrans,
+                        'val_aux_alim'      =>  $valAuxAlim,
+                        'val_grep'          =>  $grepre,
+                        'val_horas_ex'      =>  $valTotalHe,
+                        'id_nomina'         =>  $id_nomina,
+                    ];
+                    $response = $this->LiquidaLaborado($data);
+                    if (!$response['insert']) {
+                        throw new Exception("Laborado: {$response['msg']}");
+                    }
 
                     //Seguridad social
-                    $grepre = $empleados[$id_empleado]['representacion'] == 1 ? $parametro[8] : 0;
                     if ($empleados[$id_empleado]['salario_integral'] == 1) {
                         $ibc = $valTotalLab * 0.7;
                     } else {
                         $ibc = $valTotalLab + $valTotalHe + $valTotIncap + $valTotalBSP + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVac;
                     }
-                    /*
+
                     $response = $this->LiquidaSeguridadSocial($param, $novedad, $ibc, $tipo_emp, $subtipo_emp, $laborado[$id_empleado]);
                     $valTotSegSoc = $response['valor'];
                     if (!$response['insert']) {
                         throw new Exception("Seguridad social: {$response['msg']}");
                     }
-*/
+
                     //Parafiscales
+                    $ibc = $ibc - $valTotIncap;
                     $response = $this->LiquidaParafiscales($param, $ibc, $empresa['exonera_aportes'], $tipo_emp);
-                    $valTotParaf = $response['valor'];
                     if (!$response['insert']) {
                         throw new Exception("Parafiscales: {$response['msg']}");
                     }
@@ -1150,8 +1164,8 @@ class Liquidacion
         $grepre =   ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
         $auxtra =   $param['aux_trans'];
         $auxali =   $param['aux_alim'];
-        $bspant =   $param['val_bsp'] ?? 0;
-        $psvant =   $param['val_liq_ps'] ?? 0;
+        $bspant =   $param['bsp_ant'] ?? 0;
+        $psvant =   $param['pri_ser_ant'] ?? 0;
         $base =     $salbas + $grepre + $auxtra + $auxali + $bspant  / 12 + $psvant / 12;
         $idvac =    $filtro['id_vac'];
         $dhabiles = $filtro['dias_habiles'] ?? 15;
@@ -1281,11 +1295,11 @@ class Liquidacion
         $grepre         =   ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
         $auxtra         =   $param['aux_trans'];
         $auxali         =   $param['aux_alim'];
-        $bspant         =   $param['val_bsp'] ?? 0;
-        $prima_ant      =   $param['val_liq_ps'] ?? 0;
-        $vac_ant        =   $param['val_prima_vac'] ?? 0;
-        $prima_nav_ant  =   $param['val_liq_pv'] ?? 0;
-        $promHoEx       =   $param['prom'] ?? 0;
+        $bspant         =   $param['bsp_ant'] ?? 0;
+        $prima_ant      =   $param['pri_ser_ant'] ?? 0;
+        $vac_ant        =   $param['pri_vac_ant'] ?? 0;
+        $prima_nav_ant  =   $param['pri_nav_ant'] ?? 0;
+        $promHoEx       =   $param['prom_horas'] ?? 0;
         $base           =   $salbas + $grepre + $auxtra + $auxali + ($bspant  / 12) + ($prima_ant / 12) + ($vac_ant / 12) + ($prima_nav_ant / 12) + $promHoEx;
         $corte          =   $param['corte_psv'] ?? NULL;
         $id_nomina      =   $param['id_nomina'];
@@ -1543,7 +1557,7 @@ class Liquidacion
             'insert' => true,
             'valor' => 0
         ];
-
+        $ibc = Valores::Redondear($ibc, 1);
         // Si el tipo de empleado es 12 o 8, no aplica ningún aporte
         if (in_array($tipo_emp, [12, 8])) {
             $sena = $icbf = $comfam = 0;
@@ -1790,6 +1804,41 @@ class Liquidacion
                 $response['insert'] = true;
                 $response['msg'] = 'si';
                 $response['valor'] = $array['val_liq'];
+            } else {
+                $response['msg'] = 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            $response['msg'] = 'Error SQL: ' . $e->getMessage();
+        }
+        return $response;
+    }
+    public function LiquidaLaborado($array)
+    {
+        $response = [
+            'msg'       =>    '',
+            'insert'    =>    false,
+        ];
+
+        try {
+            $sql = "INSERT INTO `nom_liq_dlab_auxt`
+                        (`id_empleado`,`dias_liq`,`val_liq_dias`,`val_liq_auxt`,`aux_alim`,`g_representa`,`horas_ext`,`id_user_reg`,`fec_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['dias_laborados'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $array['val_laborado'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $array['val_aux_trans'], PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['val_aux_alim'], PDO::PARAM_STR);
+            $stmt->bindValue(6, $array['val_grep'], PDO::PARAM_STR);
+            $stmt->bindValue(7, $array['val_horas_ex'], PDO::PARAM_STR);
+            $stmt->bindValue(8, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(9, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(10, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                $response['insert'] = true;
+                $response['msg'] = 'Correcto';
             } else {
                 $response['msg'] = 'No se insertó el registro';
             }

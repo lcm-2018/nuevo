@@ -447,7 +447,7 @@ class Horas_Extra
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
-                $this->setEstado($array['id'], 2);
+                //$this->setEstado($array['id'], 2);
                 return 'si';
             } else {
                 return $stmt->errorInfo()[2];

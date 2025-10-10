@@ -61,7 +61,7 @@ class Plantilla
                                             </span>
                                             <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
                                         </a>
-                                        <div class="collapse" id="nomina-collapse">
+                                        <div class="collapse shadow" id="nomina-collapse">
                                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                 <li>
                                                     <a href="#general-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
@@ -71,7 +71,7 @@ class Plantilla
                                                         <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
                                                     </a>
                                                 </li>
-                                                <div class="collapse" id="general-collapse">
+                                                <div class="collapse shadow" id="general-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
                                                             <a href="{$host}/src/nomina/configuracion/php/index.php" class="nav-link text-primary p-1 sombra">
@@ -98,51 +98,16 @@ class Plantilla
                                                         <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
                                                     </a>
                                                 </li>
-                                                <div class="collapse" id="liquidacion-collapse">
+                                                <div class="collapse shadow" id="liquidacion-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
-                                                            <a href="#" class="nav-link text-primary p-1 sombra">
-                                                                <i class="fas fa-suitcase-rolling me-2 fa-fw"></i> Viáticos
+                                                            <a href="{$host}/src/nomina/liquidacion/php/index.php" class="nav-link text-primary p-1 sombra">
+                                                                <i class="far fa-calendar-alt me-2 fa-fw"></i> Liquidar
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="{$host}/src/nomina/liquidacion/php/index.php" class="nav-link text-success p-1 sombra">
-                                                                <i class="far fa-calendar-alt me-2 fa-fw"></i> Mensual
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#" class="nav-link text-info p-1 sombra">
-                                                                <i class="fas fa-clone me-2 fa-fw"></i> Retroactivo
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#" class="nav-link text-muted p-1 sombra">
-                                                                <i class="fas fa-umbrella-beach me-2 fa-fw"></i> Vacaciones
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#" class="nav-link text-warning p-1 sombra">
-                                                                <i class="fas fa-people-arrows me-2 fa-fw"></i> Prestaciones
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#" class="nav-link text-secondary p-1 sombra">
-                                                                <i class="fas fa-money-check-alt me-2 fa-fw"></i> Prima Servicios
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#" class="nav-link text-primary-emphasis p-1 sombra">
-                                                                <i class="fas fa-candy-cane me-2 fa-fw"></i> Prima Navidad
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#" class="nav-link text-success-emphasis p-1 sombra">
-                                                                <i class="fas fa-piggy-bank me-2 fa-fw"></i> Cesantías
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#" class="nav-link text-info-emphasis p-1 sombra">
-                                                                <i class="fas fa-check-double me-2 fa-fw"></i> Liquidación Final
+                                                            <a href="{$host}/src/nomina/liquidado/php/index.php" class="nav-link text-success p-1 sombra">
+                                                                <i class="fas fa-check-double me-2 fa-fw"></i> Liquidado
                                                             </a>
                                                         </li>
                                                     </ul>
@@ -155,7 +120,7 @@ class Plantilla
                                                         <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
                                                     </a>
                                                 </li>
-                                                <div class="collapse" id="reporte-collapse">
+                                                <div class="collapse shadow" id="reporte-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
                                                             <a href="#" class="nav-link text-primary p-1 sombra">
@@ -190,7 +155,7 @@ class Plantilla
                                             </span>
                                             <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
                                         </a>
-                                        <div class="collapse" id="terceros-collapse">
+                                        <div class="collapse shadow" id="terceros-collapse">
                                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                 <li>
                                                     <a href="#otro-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
@@ -200,7 +165,7 @@ class Plantilla
                                                         <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
                                                     </a>
                                                 </li>
-                                                <div class="collapse" id="otro-collapse">
+                                                <div class="collapse shadow" id="otro-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
                                                             <a href="{$host}/src/nomina/configuracion/php/index.php" class="nav-link text-success p-1 sombra">
@@ -227,7 +192,7 @@ class Plantilla
                                                         <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-primary"></i> 
                                                     </a>
                                                 </li>
-                                                <div class="collapse" id="sd-collapse">
+                                                <div class="collapse shadow" id="sd-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
                                                             <a href="{$host}/src/nomina/configuracion/php/index.php" class="nav-link text-success p-1 sombra">
@@ -254,7 +219,33 @@ class Plantilla
                                             </ul>
                                         </div>
                                     </li>
-
+                                    <li>
+                                        <a href="#contratacion-collapse" class="nav-link d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center text-info">
+                                                <i class="fas fa-users fa-lg me-2"></i> Contratación
+                                            </span>
+                                            <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                        </a>
+                                        <div class="collapse shadow" id="contratacion-collapse">
+                                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                <li>
+                                                    <a href="{$host}/src/contratacion/gestion/lista_tipos.php" class="nav-link text-primary p-1 sombra">
+                                                        <i class="fas fa-cogs me-2 fa-fw"></i> Configuración
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="{$host}/src/contratacion/adquisiciones/lista_adquisiciones.php" class="nav-link text-success p-1 sombra">
+                                                        <i class="fas fa-shopping-bag me-2 fa-fw"></i> Compras
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="nav-link text-info p-1 sombra">
+                                                        <i class="fas fa-ticket-alt me-2 fa-fw"></i> No obligados
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </li>
                                     <li>
                                         <a href="#dash-collapse" class="nav-link d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
                                             <span class="d-flex align-items-center text-primary">
@@ -289,7 +280,7 @@ class Plantilla
                                                         <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
                                                     </a>
                                                 </li>
-                                                <div class="collapse" id="dash_ejecucion-collapse">
+                                                <div class="collapse shadow" id="dash_ejecucion-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
                                                             <a href="{$host}/src/personalizados/php/index.php" class="nav-link text-success p-1 sombra">

@@ -1,0 +1,3 @@
+[2025-10-10 11:53:10] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM ctt_modalidad  WHERE id_modalidad = 5;
+[2025-10-10 12:02:10] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM tb_tipo_bien_servicio  WHERE id_tipo_b_s = 19;
+[2025-10-10 14:20:29] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_formatos_doc_rel`  WHERE `id_relacion` = 1;

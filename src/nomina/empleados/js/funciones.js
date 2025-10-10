@@ -143,9 +143,6 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                 } else if (ValueInput('mailEmp') === '') {
                     ActivarTab('formEmpleado');
                     MuestraError('mailEmp', 'Ingrese el correo electrónico');
-                } else if (ValueInput('slcCargoEmp') === '0') {
-                    ActivarTab('formEmpleado');
-                    MuestraError('slcCargoEmp', 'Seleccione un cargo');
                 } else if (ValueInput('slcBancoEmp') === '0') {
                     ActivarTab('formEmpleado');
                     MuestraError('slcBancoEmp', 'Seleccione un banco');

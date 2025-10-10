@@ -31,4 +31,15 @@ class Valores
     {
         return ceil($numero / $multiplo) * $multiplo;
     }
+
+    //metodo para formatear un numero a 2 decimales solo con . decimal 
+    public static function formatNumber($number)
+    {
+        return number_format((float)$number, 2, '.', '');
+    }
+
+    public static function TextFormat($string)
+    {
+        return trim(preg_replace(['/[.,-]/', '/\r|\n/', '/\s+/'], ['', ' ', ' '], $string));
+    }
 }

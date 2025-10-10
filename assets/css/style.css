@@ -1,3 +1,34 @@
+/* Ajustes para DataTables FixedColumns para evitar cruce visual */
+#tableDetallesNomina {
+    width: 100% !important;
+    table-layout: fixed;
+}
+
+.DTFC_LeftWrapper, .DTFC_RightWrapper {
+    background: #fff;
+    z-index: 2;
+}
+
+table.dataTable tbody tr td, table.dataTable thead tr th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Evita que las columnas fijas se superpongan visualmente */
+/* Solo encabezados fijos */
+table.dataTable thead .dtfc-fixed-start, table.dataTable thead .dtfc-fixed-end {
+    background: #48C9B0 !important;
+    color: #fff !important;
+}
+/* Celdas fijas del cuerpo mantienen fondo blanco */
+table.dataTable tbody .dtfc-fixed-start, table.dataTable tbody .dtfc-fixed-end {
+    background: #fff !important;
+    color: inherit !important;
+}
+table.dataTable .dtfc-fixed-start, table.dataTable .dtfc-fixed-end {
+    box-shadow: 2px 0 5px -2px #ccc;
+}
 body {
     font-family: 'Roboto', sans-serif;
     font-size: 14px;
@@ -69,6 +100,11 @@ body {
 .table-hover tbody tr:hover td,
 .table-hover tbody tr:hover th {
     background-color: #48C9B066;
+}
+
+tr.row-selected td,
+tr.row-selected th {
+    background-color: #48C9B066 !important;
 }
 
 .no-focus:focus {

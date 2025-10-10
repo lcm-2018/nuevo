@@ -13,13 +13,16 @@ use Config\Clases\Plantilla;
 use Src\Common\Php\Clases\Combos;
 use Src\Nomina\Empleados\Php\Clases\Empleados;
 use Src\Common\Php\Clases\Permisos;
+use Src\Nomina\Configuracion\Php\Clases\Cargos;
 
 $id_user = $_SESSION['id_user'];
 $id_rol = $_SESSION['rol'];
 
 $empleados = new Empleados();
 $permisos = new Permisos();
+$cargos = new Cargos();
 $obj = $empleados->getEmpleadosDT(1, -1, ['filter_id' => $id_empleado, 'filter_Status' => '2'], 1, 'ASC')[0];
+$cargo = $cargos->getCargoEmpleado($id_empleado);
 $opciones = $permisos->PermisoOpciones($id_user);
 $registrar = ($permisos->PermisosUsuario($opciones, 5101, 2) || $id_rol == 1) ? 1 : 0;
 $categoria = Combos::getCategoriaTercero();
@@ -79,7 +82,7 @@ $content = <<<HTML
                                     </div>
                                     <div class="col-md-3">
                                         <span class="text-muted small">CARGO ACTUAL</span><br>
-                                        <span class="fw-bold">{$obj['descripcion_carg']}</span>
+                                        <span class="fw-bold">{$cargo}</span>
                                     </div>
                                 </div>
                             </div>

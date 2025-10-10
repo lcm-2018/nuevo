@@ -184,8 +184,8 @@ class Configuracion
     public function delCargo($id)
     {
         try {
-            $sql = "DELETE FROM `tb_consultas_sql` WHERE `id_consulta` = ?";
-            $consulta  = "DELETE FROM `tb_consultas_sql` WHERE `id_consulta` = $id";
+            $sql = "DELETE FROM `nom_cargo_empleado` WHERE `id_cargo` = ?";
+            $consulta  = "DELETE FROM `nom_cargo_empleado` WHERE `id_cargo` = $id";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->execute();

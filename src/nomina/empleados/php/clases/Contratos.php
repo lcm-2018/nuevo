@@ -10,6 +10,7 @@ use Src\Common\Php\Clases\Valores;
 
 use PDO;
 use PDOException;
+use Src\Nomina\Configuracion\Php\Clases\Cargos;
 
 class Contratos
 {
@@ -144,6 +145,7 @@ class Contratos
                     , `nom_salarios_basico`.`id_salario`
                     , `nom_salarios_basico`.`salario_basico`
                     , `nom_contratos_empleados`.`id_contrato_emp`
+                    , `nom_contratos_empleados`.`id_cargo`
                 FROM
                     `nom_salarios_basico`
                     INNER JOIN `nom_contratos_empleados` 
@@ -176,8 +178,9 @@ class Contratos
      */
     public function getFormulario($id)
     {
-        $contrato = $this->getRegistro($id);
-        $salario = str_replace('.', ',', $contrato['salario_basico']);
+        $contrato   =   $this->getRegistro($id);
+        $salario    =   str_replace('.', ',', $contrato['salario_basico']);
+        $op_cargo   =   Cargos::_getCargos($contrato['id_cargo'] ?? 0);
         $html =
             <<<HTML
                 <div class="shadow text-center rounded">
@@ -199,9 +202,15 @@ class Contratos
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-12">
+                                <div class="col-md-6">
                                     <label for="txtSalarioBasico" class="small text-muted">Salario Básico</label>
                                     <input type="text" class="form-control form-control-sm bg-input text-end" id="txtSalarioBasico" name="txtSalarioBasico" value="{$contrato['salario_basico']}" placeholder="Salario Básico" oninput="NumberMiles(this)">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="slcCargo" class="small text-muted">Cargo</label>
+                                    <select class="form-select form-select-sm bg-input" id="slcCargo" name="slcCargo">
+                                        $op_cargo
+                                    </select>
                                 </div>
                             </div>
                         </form>
@@ -251,13 +260,14 @@ class Contratos
     {
         try {
             $sql = "INSERT INTO `nom_contratos_empleados`
-                        (`id_empleado`,`fec_inicio`,`fec_fin`,`vigencia`,`estado`,`id_user_reg`,`fec_reg`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+                        (`id_empleado`,`fec_inicio`,`fec_fin`,`vigencia`,`id_cargo`,`estado`,`id_user_reg`,`fec_reg`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['datFecInicia'], PDO::PARAM_STR);
             $stmt->bindValue(3, $array['datFecFin'] != '' ? $array['datFecFin'] : NULL, PDO::PARAM_STR);
             $stmt->bindValue(4, Sesion::Vigencia(), PDO::PARAM_INT);
+            $stmt->bindValue(5, $array['slcCargo'], PDO::PARAM_INT);
             $stmt->bindValue(5, 1, PDO::PARAM_INT);
             $stmt->bindValue(6, Sesion::IdUser(), PDO::PARAM_INT);
             $stmt->bindValue(7, Sesion::Hoy(), PDO::PARAM_STR);
@@ -293,12 +303,13 @@ class Contratos
         $cambio = 0;
         try {
             $sql = "UPDATE `nom_contratos_empleados`
-                        SET `fec_inicio` = ?, `fec_fin` = ?
+                        SET `fec_inicio` = ?, `fec_fin` = ?, `id_cargo` = ?
                     WHERE (`id_contrato_emp` = ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['datFecInicia'], PDO::PARAM_STR);
             $stmt->bindValue(2, $array['datFecFin'] != '' ? $array['datFecFin'] : NULL, PDO::PARAM_STR);
-            $stmt->bindValue(3, $array['id_contrato_emp'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $array['slcCargo'], PDO::PARAM_INT);
+            $stmt->bindValue(4, $array['id_contrato_emp'], PDO::PARAM_INT);
             if (!($stmt->execute())) {
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {

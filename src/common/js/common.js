@@ -2,6 +2,10 @@ const plus = '<i class="fa-solid fa-plus fa-lg"></i>';
 const modales = document.querySelectorAll('.modal');
 const opCaracterJS = Number(document.getElementById('opc_caracter_js').value);
 const opPtoJS = Number(document.getElementById('opc_pto_js').value);
+const setdom =
+    "<'row mb-1'<'col-sm-4'l><'col-sm-4 text-center btn-reg'B><'col-sm-4'f>>" +
+    "t" +
+    "<'row'<'col-sm-6'i><'col-sm-6 d-flex justify-content-end'p>>";
 
 function mostrarOverlay() {
     const overlay = document.getElementById('loadingOverlay');
@@ -142,6 +146,7 @@ const VerFomulario = (url, accion, datos, modal, body, idTam, tam) => {
                 dialog.classList.add(tam);
             }
 
+            document.getElementById(body).innerHTML = '';
             document.getElementById(body).innerHTML = response.msg;
             const modalInstance = new bootstrap.Modal('#' + modal);
             modalInstance.show();
@@ -457,3 +462,20 @@ const SelectAll = (maestro) => {
         cb.checked = estado;
     });
 };
+
+// funcion que al hacer click sobre una tabla de clase table, se marque toda la fila con un color diferente y desmarcar las otras que esten marcadas. el color debe #48C9B066 
+
+document.addEventListener('click', function (e) {
+    if (e.target && e.target.closest('table.table')) {
+        const fila = e.target.closest('tr');
+        if (fila) {
+            // Quitar la clase de todas las filas
+            const filas = fila.parentElement.querySelectorAll('tr');
+            filas.forEach(f => {
+                f.classList.remove('row-selected');
+            });
+            // Agregar la clase solo a la fila clickeada
+            fila.classList.add('row-selected');
+        }
+    }
+});

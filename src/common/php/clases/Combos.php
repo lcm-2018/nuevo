@@ -78,6 +78,24 @@ class Combos
         return (new self())->setConsulta($sql, $id);
     }
 
+    public  static function getModalidad($id = 0)
+    {
+        $sql = "SELECT 
+                    `id_modalidad`, `modalidad`
+                FROM `ctt_modalidad`    
+                ORDER BY `modalidad`";
+        return (new self())->setConsulta($sql, $id);
+    }
+    public  static function getEstadoAdq($id = 0)
+    {
+        $sql = "SELECT
+                    `id`,`descripcion`
+                FROM `ctt_estado_adq`
+                WHERE `filtro` = 1
+                ORDER BY `descripcion` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
+
     public  static function getCategoriaTercero($id = 0, $cat = '')
     {
         $where = '';

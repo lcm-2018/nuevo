@@ -1,0 +1,1 @@
+{"rerror":90014,"smessage":"Taxxa - Documento NO Generado, intente de nuevo."}

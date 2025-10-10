@@ -43,7 +43,7 @@ const tableCargosNom = crearDataTable(
             titleAttr: 'Agregar nuevo cargo de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/cargos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', opCaracterJS === 2 ? 'modal-lg' : '');
+                VerFomulario('../php/controladores/cargos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', opCaracterJS == 2 ? 'modal-lg' : '');
             }
         }
     ],
@@ -52,7 +52,7 @@ const tableCargosNom = crearDataTable(
         order: [[0, 'desc']],
         columnDefs: [
             {
-                targets: opCaracterJS === 2 ? [] : [1, 3, 4, 5],
+                targets: opCaracterJS == 2 ? [] : [1, 3, 4, 5],
                 visible: false
             }
         ],
@@ -212,6 +212,9 @@ document.querySelector('#tableCargosNom').addEventListener('click', function (ev
     const btnEliminar = event.target.closest('.eliminar');
 
     if (btnActualizar) {
+        event.preventDefault();
+        event.stopPropagation();
+        alert
         mostrarOverlay();
         const id = btnActualizar.dataset.id;
         VerFomulario('../php/controladores/cargos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', opCaracterJS === 2 ? 'modal-lg' : '');

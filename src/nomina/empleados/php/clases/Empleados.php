@@ -62,7 +62,6 @@ class Empleados
             'departamento' => 0,
             'municipio' => 0,
             'cargo' => 0,
-            'tipo_cargo' => 1,
             'alto_riesgo_pension' => 0,
             'genero' => 'F',
             'salario_integral' => 0,
@@ -211,12 +210,10 @@ class Empleados
                         , CONCAT_WS (' ',`nombre2`,`nombre1`,`apellido1`,`apellido2`) AS `nombre`
                         , `correo`,`telefono`,`direccion`,`estado`
                         , `nom_municipio`
-                        , `nom_departamento`
-                        , `descripcion_carg` 
+                        , `nom_departamento` 
                     FROM `nom_empleado`
                         INNER JOIN `tb_municipios` ON (`nom_empleado`.`municipio` = `tb_municipios`.`id_municipio`)
                         INNER JOIN `tb_departamentos` ON (`nom_empleado`.`departamento` = `tb_departamentos`.`id_departamento`)
-                        INNER JOIN `nom_cargo_empleado` ON (`nom_empleado`.`cargo` = `nom_cargo_empleado`.`id_cargo`)
                     ) AS `t1`
                 WHERE (`t1`.`estado` $where)
                 ORDER BY $col $dir $limit";
@@ -406,7 +403,7 @@ class Empleados
     public function getFormularioEmpleado($id)
     {
         if ($id > 0) {
-            $res                 =   $this->getEmpleados($id);
+            $res =   $this->getEmpleados($id);
         } else {
             $res = self::getEmpleadoNull();
         }
@@ -424,7 +421,6 @@ class Empleados
         $op_paises_res          =   Combos::getPaises($res['pais'] ?? 0);
         $op_depto_res           =    Combos::getDepartamentos($res['departamento'] ?? 0);
         $op_municipio_res       =   Combos::getMunicipios($res['departamento'] ?? 0, $res['municipio'] ?? 0);
-        $op_cargos              =   Cargos::_getCargos($res['cargo'] ?? 0);
         $op_bancos              =   Combos::getBancos($res['id_banco'] ?? 0);
         $riesgo_si              =   ($res['alto_riesgo_pension'] == 1) ? 'checked' : '';
         $riesgo_no              =   ($res['alto_riesgo_pension'] == 0) ? 'checked' : '';
@@ -432,8 +428,6 @@ class Empleados
         $genero_f               =   ($res['genero'] == 'F') ? 'checked' : '';
         $salario_integral_si    =   ($res['salario_integral'] == 1) ? 'checked' : '';
         $salario_integral_no    =   ($res['salario_integral'] == 0) ? 'checked' : '';
-        $tipo_cargo_admin       =   ($res['tipo_cargo'] == 1) ? 'checked' : '';
-        $tipo_cargo_opera       =   ($res['tipo_cargo'] == 2) ? 'checked' : '';
         $tipo_cuenta_ahorro     =   ($res['tipo_cta'] == 1) ? 'checked' : '';
         $tipo_cuenta_corriente  =   ($res['tipo_cta'] == 2) ? 'checked' : '';
         $dependientes           =   ($res['dependientes'] == 1) ? 'checked' : '';
@@ -631,24 +625,21 @@ class Empleados
                             <input type="email" class="form-control form-control-sm bg-input" id="mailEmp" name="mailEmp" placeholder="Correo electrónico" value="{$res['correo']}">
                         </div>
                         <div class="col-md-2">
-                            <label for="slcCargoEmp" class="small text-muted">Cargo</label>
-                            <select id="slcCargoEmp" name="slcCargoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
-                                {$op_cargos}
-                            </select>
-                        </div>
-                        <div class="col-md-2 d-flex flex-column justify-content-center">
-                            <label for="slcTipoCargo1" class="small text-muted">Tipo de Cargo</label>
-                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1" id="slcTipoCargo">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="slcTipoCargo" id="slcTipoCargo1" value="1" {$tipo_cargo_admin}>
-                                    <label class="form-check-label small text-muted" for="slcTipoCargo1">Admin</label>
-                                </div>
-                                <div class="form-check form-check-inline me-0">
-                                    <input class="form-check-input" type="radio" name="slcTipoCargo" id="slcTipoCargo2" value="2" {$tipo_cargo_opera}>
-                                    <label class="form-check-label small text-muted" for="slcTipoCargo2">Asistencial</label>
+                            <div>
+                                <label for="checkDependientes" class="small text-muted">Tiene</label>
+                                <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="checkDependientes" name="checkDependientes" {$dependientes}>
+                                        <label class="form-check-label" for="checkDependientes">Dependientes</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="checkBsp" name="checkBsp" {$bsp}>
+                                        <label class="form-check-label" for="checkBsp">BSP</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    {$row_ccosto}
                     </div>
                     <div class="row pb-2">
                         <div class="col-md-2">
@@ -674,22 +665,6 @@ class Empleados
                             <label for="txtCuentaBanc" class="small text-muted">Número de cuenta</label>
                             <input type="text" class="form-control form-control-sm bg-input" id="txtCuentaBanc" name="txtCuentaBanc" placeholder="Sin espacios" value="{$res['cuenta_bancaria']}">
                         </div>
-                        <div class="col-md-2">
-                            <div>
-                                <label for="checkDependientes" class="small text-muted">Tiene</label>
-                                <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="checkDependientes" name="checkDependientes" {$dependientes}>
-                                        <label class="form-check-label" for="checkDependientes">Dependientes</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="checkBsp" name="checkBsp" {$bsp}>
-                                        <label class="form-check-label" for="checkBsp">BSP</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {$row_ccosto}
                     </div>
                 </form>
 
@@ -913,10 +888,10 @@ class Empleados
         $sql = "INSERT INTO `nom_empleado`
                         (`sede_emp`,`tipo_empleado`,`subtipo_empleado`,`alto_riesgo_pension`,`tipo_contrato`,`tipo_doc`,
                         `no_documento`,`pais_exp`,`dpto_exp`,`city_exp`,`fec_exp`,`pais_nac`,`dpto_nac`,`city_nac`,`fec_nac`,`genero`,
-                        `apellido1`,`apellido2`,`nombre1`,`nombre2`,`salario_integral`,`correo`,`telefono`,`cargo`,`tipo_cargo`,
+                        `apellido1`,`apellido2`,`nombre1`,`nombre2`,`salario_integral`,`correo`,`telefono`,
                         `pais`,`departamento`,`municipio`,`direccion`,`id_banco`,`tipo_cta`,`cuenta_bancaria`,
                         `estado`,`dependientes`,`fec_reg`,`bsp`)
-                    VALUES (?, ?, ? , ?, ?, ?, ? , ?, ?, ?, ? , ?, ?, ?, ? , ?, ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ?, ?, ?)";
+                    VALUES (? , ?, ?, ?, ? , ?, ?, ?, ? , ?, ?, ?, ? , ?, ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ? , ?, ?, ?, ?)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(1, $array['slcSedeEmp'], PDO::PARAM_INT);
         $stmt->bindValue(2, $array['slcTipoEmp'], PDO::PARAM_INT);
@@ -941,19 +916,17 @@ class Empleados
         $stmt->bindValue(21, $array['slcSalIntegral'], PDO::PARAM_INT);
         $stmt->bindValue(22, $array['mailEmp'], PDO::PARAM_STR);
         $stmt->bindValue(23, $array['txtTelEmp'], PDO::PARAM_STR);
-        $stmt->bindValue(24, $array['slcCargoEmp'], PDO::PARAM_INT);
-        $stmt->bindValue(25, $array['slcTipoCargo'], PDO::PARAM_INT);
-        $stmt->bindValue(26, $array['slcPaisEmp'], PDO::PARAM_INT);
-        $stmt->bindValue(27, $array['slcDptoEmp'], PDO::PARAM_INT);
-        $stmt->bindValue(28, $array['slcMunicipioEmp'], PDO::PARAM_INT);
-        $stmt->bindValue(29, $array['txtDireccion'], PDO::PARAM_STR);
-        $stmt->bindValue(30, $array['slcBancoEmp'], PDO::PARAM_INT);
-        $stmt->bindValue(31, $array['selTipoCta'], PDO::PARAM_INT);
-        $stmt->bindValue(32, $array['txtCuentaBanc'], PDO::PARAM_STR);
-        $stmt->bindValue(33, 1, PDO::PARAM_INT);
-        $stmt->bindValue(34, isset($array['checkDependientes']) ? 1 : 0, PDO::PARAM_INT);
-        $stmt->bindValue(35, Sesion::Hoy(), PDO::PARAM_STR);
-        $stmt->bindValue(36, isset($array['checkBsp']) ? 1 : 0, PDO::PARAM_INT);
+        $stmt->bindValue(24, $array['slcPaisEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(25, $array['slcDptoEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(26, $array['slcMunicipioEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(27, $array['txtDireccion'], PDO::PARAM_STR);
+        $stmt->bindValue(28, $array['slcBancoEmp'], PDO::PARAM_INT);
+        $stmt->bindValue(29, $array['selTipoCta'], PDO::PARAM_INT);
+        $stmt->bindValue(30, $array['txtCuentaBanc'], PDO::PARAM_STR);
+        $stmt->bindValue(31, 1, PDO::PARAM_INT);
+        $stmt->bindValue(32, isset($array['checkDependientes']) ? 1 : 0, PDO::PARAM_INT);
+        $stmt->bindValue(33, Sesion::Hoy(), PDO::PARAM_STR);
+        $stmt->bindValue(34, isset($array['checkBsp']) ? 1 : 0, PDO::PARAM_INT);
         $stmt->execute();
     }
 
@@ -965,7 +938,7 @@ class Empleados
                         , `tipo_doc` = ?,`no_documento` = ?, `pais_exp` = ?, `dpto_exp` = ?, `city_exp` = ?, `fec_exp` = ?
                         , `pais_nac` = ?, `dpto_nac` = ?, `city_nac` = ?, `fec_nac` = ?, `genero` = ?, `apellido1` = ?
                         , `apellido2` = ?, `nombre1` = ?, `nombre2` = ?, `salario_integral` = ?, `correo` = ?, `telefono` = ?
-                        , `cargo` = ?, `tipo_cargo` = ?, `pais` = ?, `departamento` = ?, `municipio` = ?, `direccion` = ?
+                        , `pais` = ?, `departamento` = ?, `municipio` = ?, `direccion` = ?
                         , `id_banco` = ?, `tipo_cta` = ?, `cuenta_bancaria` = ?, `dependientes` = ? , `bsp`= ?
                     WHERE (`id_empleado` = ?)";
             $stmt = $this->conexion->prepare($sql);
@@ -992,18 +965,16 @@ class Empleados
             $stmt->bindValue(21, $array['slcSalIntegral'], PDO::PARAM_INT);
             $stmt->bindValue(22, $array['mailEmp'], PDO::PARAM_STR);
             $stmt->bindValue(23, $array['txtTelEmp'], PDO::PARAM_STR);
-            $stmt->bindValue(24, $array['slcCargoEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(25, $array['slcTipoCargo'], PDO::PARAM_INT);
-            $stmt->bindValue(26, $array['slcPaisEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(27, $array['slcDptoEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(28, $array['slcMunicipioEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(29, $array['txtDireccion'], PDO::PARAM_STR);
-            $stmt->bindValue(30, $array['slcBancoEmp'], PDO::PARAM_INT);
-            $stmt->bindValue(31, $array['selTipoCta'], PDO::PARAM_INT);
-            $stmt->bindValue(32, $array['txtCuentaBanc'], PDO::PARAM_STR);
-            $stmt->bindValue(33, isset($array['checkDependientes']) ? 1 : 0, PDO::PARAM_INT);
-            $stmt->bindValue(34, isset($array['checkBsp']) ? 1 : 0, PDO::PARAM_INT);
-            $stmt->bindValue(35, $array['id'], PDO::PARAM_INT);
+            $stmt->bindValue(24, $array['slcPaisEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(25, $array['slcDptoEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(26, $array['slcMunicipioEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(27, $array['txtDireccion'], PDO::PARAM_STR);
+            $stmt->bindValue(28, $array['slcBancoEmp'], PDO::PARAM_INT);
+            $stmt->bindValue(29, $array['selTipoCta'], PDO::PARAM_INT);
+            $stmt->bindValue(30, $array['txtCuentaBanc'], PDO::PARAM_STR);
+            $stmt->bindValue(31, isset($array['checkDependientes']) ? 1 : 0, PDO::PARAM_INT);
+            $stmt->bindValue(32, isset($array['checkBsp']) ? 1 : 0, PDO::PARAM_INT);
+            $stmt->bindValue(33, $array['id'], PDO::PARAM_INT);
             if (!($stmt->execute())) {
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {

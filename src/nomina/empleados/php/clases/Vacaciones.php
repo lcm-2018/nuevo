@@ -384,8 +384,7 @@ class Vacaciones
 
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
-                $up = $this->upEstado($d['idvac'], 2);
-                return $up !== 'si' ? $up : 'si';
+                return 'si';
             } else {
                 return 'No se insertó el registro';
             }

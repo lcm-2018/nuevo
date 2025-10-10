@@ -24,7 +24,7 @@ class Cargos
     public static function _getCargos($id)
     {
         $combos = new Combos();
-        $sql = "SELECT `id_cargo`,CONCAT(`descripcion_carg`,' - ',`grado`) FROM `nom_cargo_empleado`
+        $sql = "SELECT `id_cargo`, CONCAT_WS(' - ', `grado`, `descripcion_carg`) AS `cargo`  FROM `nom_cargo_empleado`
                 ORDER BY `descripcion_carg`,`grado` ASC";
         return $combos->setConsulta($sql, $id);
     }
@@ -125,10 +125,26 @@ class Cargos
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
     }
 
+    public function getCargoEmpleado($id)
+    {
+        $sql = "SELECT
+                    `nom_cargo_empleado`.`descripcion_carg`
+                FROM
+                    `nom_contratos_empleados`
+                    INNER JOIN `nom_cargo_empleado` 
+                        ON (`nom_contratos_empleados`.`id_cargo` = `nom_cargo_empleado`.`id_cargo`)
+                WHERE (`nom_contratos_empleados`.`id_contrato_emp`  = 
+                    (SELECT MAX(`id_contrato_emp`) FROM `nom_contratos_empleados` WHERE (`id_empleado` = ? AND `estado` = 1)))";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $cargo = $stmt->fetch(PDO::FETCH_ASSOC);
+        return !empty($cargo) ? $cargo['descripcion_carg'] : '';
+    }
     public function getRegistro($id)
     {
         $sql = "SELECT
-                `id_cargo`, `codigo`, `descripcion_carg`, `grado`, `perfil_siho`, `id_nombramiento`
+                `id_cargo`, `codigo`, `descripcion_carg`, `grado`, `perfil_siho`, `id_nombramiento`, `tipo_cargo`
             FROM
                 `nom_cargo_empleado`
             WHERE (`id_cargo` = $id)";
@@ -143,7 +159,8 @@ class Cargos
                 'descripcion_carg' => '',
                 'grado' => '',
                 'perfil_siho' => '',
-                'id_nombramiento' => 0
+                'id_nombramiento' => 0,
+                'tipo_cargo' => 1
             ];
         }
         return $cargo;
@@ -196,7 +213,8 @@ class Cargos
                 $slc = $fila['id_nombramiento'] == $n['id'] ? 'selected' : '';
                 $opt_noms .= '<option value="' . $n['id'] . '" ' . $slc . '>' . mb_strtoupper($n['tipo']) . '</option>';
             }
-
+            $tipo_cargo_admin       =   ($fila['tipo_cargo'] == 1) ? 'checked' : '';
+            $tipo_cargo_opera       =   ($fila['tipo_cargo'] == 2) ? 'checked' : '';
             $linea1 =
                 <<<HTML
                 <div class="col-md-4">
@@ -213,7 +231,7 @@ class Cargos
             HTML;
             $linea2 =
                 <<<HTML
-                <div class="row">
+                <div class="row mb-2">
                     <div class="col-md-6">
                         <label for="slcNombramiento" class="small">NOMBRAMIENTO</label>
                         <select name="slcNombramiento" id="slcNombramiento" class="form-control form-control-sm bg-input">
@@ -224,6 +242,21 @@ class Cargos
                     <div class="col-md-6">
                         <label for="txtPerfilSiho" class="small">PERFÍL SIHO</label>
                         <input type="text" id="txtPerfilSiho" name="txtPerfilSiho" class="form-control form-control-sm bg-input" value="{$fila['perfil_siho']}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 d-flex flex-column justify-content-center">
+                        <label for="slcTipoCargo1" class="small">TIPO DE CARGO</label>
+                        <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1" id="slcTipoCargo">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="slcTipoCargo" id="slcTipoCargo1" value="1" {$tipo_cargo_admin}>
+                                <label class="form-check-label small text-muted" for="slcTipoCargo1">Administrativo</label>
+                            </div>
+                            <div class="form-check form-check-inline me-0">
+                                <input class="form-check-input" type="radio" name="slcTipoCargo" id="slcTipoCargo2" value="2" {$tipo_cargo_opera}>
+                                <label class="form-check-label small text-muted" for="slcTipoCargo2">Asistencial</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             HTML;
@@ -254,7 +287,7 @@ class Cargos
                         </div>
                         <div class="text-right pb-3">
                             <button type="button" class="btn btn-primary btn-sm" id="btnGuardaCargo">Guardar</button>
-                            <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
+                            <button type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</button>
                         </div>
                     </div>
                 </div>
@@ -285,16 +318,17 @@ class Cargos
     {
         try {
             $sql = "INSERT INTO `nom_cargo_empleado`
-                        (`codigo`,`descripcion_carg`,`grado`,`perfil_siho`,`id_nombramiento`,`id_user_reg`,`fec_reg`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+                        (`codigo`,`descripcion_carg`,`grado`,`perfil_siho`,`id_nombramiento`, `tipo_cargo`,`id_user_reg`,`fec_reg`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['slcCodigo'] ?? NULL, PDO::PARAM_INT);
             $stmt->bindValue(2, $array['txtNomCargo'], PDO::PARAM_STR);
             $stmt->bindValue(3, $array['numGrado'] ?? NULL, PDO::PARAM_INT);
             $stmt->bindValue(4, $array['txtPerfilSiho'] ?? NULL, PDO::PARAM_STR);
             $stmt->bindValue(5, $array['slcNombramiento'] ?? NULL, PDO::PARAM_INT);
-            $stmt->bindValue(6, Sesion::IdUser(), PDO::PARAM_INT);
-            $stmt->bindValue(7, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(6, $array['slcTipoCargo'] ?? 1, PDO::PARAM_INT);
+            $stmt->bindValue(7, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(8, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             return $id > 0 ? 'si' : 'No se insertó';
@@ -307,7 +341,7 @@ class Cargos
     {
         try {
             $sql = "UPDATE `nom_cargo_empleado` 
-                        SET `codigo` = ?, `descripcion_carg` = ?, `grado` = ?, `perfil_siho` = ?, `id_nombramiento` = ?
+                        SET `codigo` = ?, `descripcion_carg` = ?, `grado` = ?, `perfil_siho` = ?, `id_nombramiento` = ?, `tipo_cargo` = ?
                     WHERE (`id_cargo` = ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['slcCodigo'] ?? NULL, PDO::PARAM_INT);
@@ -315,9 +349,10 @@ class Cargos
             $stmt->bindValue(3, $array['numGrado'] ?? NULL, PDO::PARAM_INT);
             $stmt->bindValue(4, $array['txtPerfilSiho'] ?? NULL, PDO::PARAM_STR);
             $stmt->bindValue(5, $array['slcNombramiento'] ?? NULL, PDO::PARAM_INT);
-            $stmt->bindValue(6, $array['id'], PDO::PARAM_INT);
+            $stmt->bindValue(6, $array['slcTipoCargo'] ?? 1, PDO::PARAM_INT);
+            $stmt->bindValue(7, $array['id'], PDO::PARAM_INT);
             if (!($stmt->execute())) {
-                return 'Errado: ' . $stmt->errorInfo()[2];
+                return 'Error: ' . $stmt->errorInfo()[2];
             } else {
                 if ($stmt->rowCount() > 0) {
                     $consulta = "UPDATE `nom_cargo_empleado` SET `id_user_act` = ?, `fec_act` = ? WHERE (`id_cargo` = ?)";
