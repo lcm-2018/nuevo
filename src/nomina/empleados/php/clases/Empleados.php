@@ -439,7 +439,7 @@ class Empleados
                 <<<HTML
                     <div class="col-md-2">
                         <label for="slcCCostoEmp" class="small text-muted">Centro Costo</label>
-                        <select id="slcCCostoEmp" name="slcCCostoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
+                        <select id="slcCCostoEmp" name="slcCCostoEmp" class="form-select form-select-sm bg-input" aria-label="Default select example">
                             {$op_ccosto}
                         </select>
                     </div>
@@ -452,25 +452,25 @@ class Empleados
                     <div class="row pb-2">
                         <div class="col-md-2">
                             <label for="slcSedeEmp" class="small text-muted">Sede</label>
-                            <select id="slcSedeEmp" name="slcSedeEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
+                            <select id="slcSedeEmp" name="slcSedeEmp" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_sedes}
                             </select>
                         </div>
                         <div class="col-md-2">
                             <label for="slcTipoEmp" class="small text-muted">Tipo de empleado</label>
-                            <select id="slcTipoEmp" name="slcTipoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
+                            <select id="slcTipoEmp" name="slcTipoEmp" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_tipo_empleado}
                             </select>
                         </div>
                         <div class="col-md-2">
                             <label for="slcSubTipoEmp" class="small text-muted">Subtipo de empleado</label>
-                            <select id="slcSubTipoEmp" name="slcSubTipoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
+                            <select id="slcSubTipoEmp" name="slcSubTipoEmp" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_subtipo_empleado}
                             </select>
                         </div>
                         <div class="col-md-2 d-flex flex-column justify-content-center">
                             <label for="radioNo" class="small text-muted text-center">Alto riesgo</label>
-                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1">
+                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 py-1">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="slcAltoRiesgo" id="radioSi" value="1" {$riesgo_si}>
                                     <label class="form-check-label small text-muted" for="radioSi">Sí</label>
@@ -483,13 +483,13 @@ class Empleados
                         </div>
                         <div class="col-md-2">
                             <label for="slcTipoContratoEmp" class="small text-muted">Tipo de contrato</label>
-                            <select id="slcTipoContratoEmp" name="slcTipoContratoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
+                            <select id="slcTipoContratoEmp" name="slcTipoContratoEmp" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_tipo_contrato}
                             </select>
                         </div>
                         <div class="col-md-2">
                             <label for="slcTipoDocEmp" class="small text-muted">Tipo de documento</label>
-                            <select id="slcTipoDocEmp" name="slcTipoDocEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
+                            <select id="slcTipoDocEmp" name="slcTipoDocEmp" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_tipo_documento}
                             </select>
                         </div>
@@ -497,7 +497,7 @@ class Empleados
                     <div class="row pb-2">
                         <div class="col-md-2 d-flex flex-column justify-content-center">
                             <label for="slcGeneroF" class="small text-muted">Género</label>
-                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1" id="slcGenero">
+                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 py-1" id="slcGenero">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="slcGenero" id="slcGeneroM" value="M" title="Masculino" {$genero_m}>
                                     <label class="form-check-label small text-muted" for="slcGeneroM">M</label>
@@ -514,19 +514,19 @@ class Empleados
                         </div>
                         <div class="col-md-2">
                             <label for="slcPaisExp" class="small text-muted">País Expide Doc.</label>
-                            <select id="slcPaisExp" name="slcPaisExp" class="form-control form-control-sm bg-input" aria-label="Default select example">
+                            <select id="slcPaisExp" name="slcPaisExp" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_paises_exp}
                             </select>
                         </div>
                         <div class="col-md-2">
                             <label for="slcDptoExp" class="small text-muted">Departamento Expide Doc.</label>
-                            <select id="slcDptoExp" name="slcDptoExp" class="form-control form-control-sm bg-input" aria-label="Default select example" onchange="CargaCombos('slcMunicipioExp','mun',value)">
+                            <select id="slcDptoExp" name="slcDptoExp" class="form-select form-select-sm bg-input" aria-label="Default select example" onchange="CargaCombos('slcMunicipioExp','mun',value)">
                                 {$op_depto_exp}
                             </select>
                         </div>
                         <div class="col-md-2">
                             <label for="slcMunicipioExp" class="small text-muted">Municipio Expide Doc.</label>
-                            <select id="slcMunicipioExp" name="slcMunicipioExp" class="form-control form-control-sm bg-input" aria-label="Default select example" placeholder="elegir mes">
+                            <select id="slcMunicipioExp" name="slcMunicipioExp" class="form-select form-select-sm bg-input" aria-label="Default select example" placeholder="elegir mes">
                                 <option value="0">-- Seleccionar --</option>
                                 {$op_municipio_exp}
                             </select>
@@ -539,19 +539,19 @@ class Empleados
                     <div class="row pb-2">
                         <div class="col-md-2">
                             <label for="slcPaisNac" class="small text-muted">País Nacimiento</label>
-                            <select id="slcPaisNac" name="slcPaisNac" class="form-control form-control-sm bg-input" aria-label="Default select example">
+                            <select id="slcPaisNac" name="slcPaisNac" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_paises_nac}
                             </select>
                         </div>
                         <div class="col-md-2">
                             <label for="slcDptoNac" class="small text-muted">Departamento Nacimiento</label>
-                            <select id="slcDptoNac" name="slcDptoNac" class="form-control form-control-sm bg-input" aria-label="Default select example" onchange="CargaCombos('slcMunicipioNac','mun',value)">
+                            <select id="slcDptoNac" name="slcDptoNac" class="form-select form-select-sm bg-input" aria-label="Default select example" onchange="CargaCombos('slcMunicipioNac','mun',value)">
                                 {$op_depto_nac}
                             </select>
                         </div>
                         <div class="col-md-2">
                             <label for="slcMunicipioNac" class="small text-muted">Municipio Nacimiento</label>
-                            <select id="slcMunicipioNac" name="slcMunicipioNac" class="form-control form-control-sm bg-input" aria-label="Default select example" placeholder="elegir mes">
+                            <select id="slcMunicipioNac" name="slcMunicipioNac" class="form-select form-select-sm bg-input" aria-label="Default select example" placeholder="elegir mes">
                                 <option value="0">-- Seleccionar --</option>    
                             {$op_municipio_nac}
                             </select>
@@ -580,7 +580,7 @@ class Empleados
                         </div>
                         <div class="col-md-2 d-flex flex-column justify-content-center">
                             <label for="slcSalIntegral0" class="small text-muted">Salario integral</label>
-                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1" id="slcSalIntegral">
+                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 py-1" id="slcSalIntegral">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="slcSalIntegral" id="slcSalIntegral1" value="1" {$salario_integral_si}>
                                     <label class="form-check-label small text-muted" for="slcSalIntegral1">SI</label>
@@ -593,19 +593,19 @@ class Empleados
                         </div>
                         <div class="col-md-2">
                             <label for="slcPaisEmp" class="small text-muted">País Reside</label>
-                            <select id="slcPaisEmp" name="slcPaisEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
+                            <select id="slcPaisEmp" name="slcPaisEmp" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_paises_res}
                             </select>
                         </div>
                         <div class="col-md-2">
                             <label for="slcDptoEmp" class="small text-muted">Departamento Reside</label>
-                            <select id="slcDptoEmp" name="slcDptoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example" onchange="CargaCombos('slcMunicipioEmp','mun',value)">
+                            <select id="slcDptoEmp" name="slcDptoEmp" class="form-select form-select-sm bg-input" aria-label="Default select example" onchange="CargaCombos('slcMunicipioEmp','mun',value)">
                                 {$op_depto_res}
                             </select>
                         </div>
                         <div class="col-md-2">
                             <label for="slcMunicipioEmp" class="small text-muted">Municipio Reside</label>
-                            <select id="slcMunicipioEmp" name="slcMunicipioEmp" class="form-control form-control-sm bg-input" aria-label="Default select example" placeholder="elegir mes">
+                            <select id="slcMunicipioEmp" name="slcMunicipioEmp" class="form-select form-select-sm bg-input" aria-label="Default select example" placeholder="elegir mes">
                                 <option value="0">-- Seleccionar --</option>
                                 {$op_municipio_res}
                             </select>
@@ -627,7 +627,7 @@ class Empleados
                         <div class="col-md-2">
                             <div>
                                 <label for="checkDependientes" class="small text-muted">Tiene</label>
-                                <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1">
+                                <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 py-1">
                                     <div class="form-check">
                                         <input type="checkbox" class="form-check-input" id="checkDependientes" name="checkDependientes" {$dependientes}>
                                         <label class="form-check-label" for="checkDependientes">Dependientes</label>
@@ -644,13 +644,13 @@ class Empleados
                     <div class="row pb-2">
                         <div class="col-md-2">
                             <label for="slcBancoEmp" class="small text-muted">Banco</label>
-                            <select id="slcBancoEmp" name="slcBancoEmp" class="form-control form-control-sm bg-input" aria-label="Default select example">
+                            <select id="slcBancoEmp" name="slcBancoEmp" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_bancos}
                             </select>
                         </div>
                         <div class="col-md-2 d-flex flex-column justify-content-center">
                             <label for="selTipoCta2" class="small text-muted">Tipo de cuenta</label>
-                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1" id="selTipoCta">
+                            <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 py-1" id="selTipoCta">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="selTipoCta" id="selTipoCta1" value="1" {$tipo_cuenta_ahorro}>
                                     <label class="form-check-label small text-muted" for="selTipoCta1">Ahorros</label>
@@ -683,7 +683,7 @@ class Empleados
                     <div class="row pb-2">
                         <div class="col-md-4">
                             <label for="slcEps" class="small text-muted">EPS</label>
-                            <select id="slcEps" name="slcEps" class="form-control form-control-sm bg-input py-0" aria-label="Default select example">
+                            <select id="slcEps" name="slcEps" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_eps}
                             </select>
                         </div>
@@ -716,7 +716,7 @@ class Empleados
                     <div class="row pb-2">
                         <div class="col-md-4">
                             <label for="slcAfp" class="small text-muted">Fondo Pensión</label>
-                            <select id="slcAfp" name="slcAfp" class="form-control form-control-sm bg-input py-0" aria-label="Default select example">
+                            <select id="slcAfp" name="slcAfp" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_afp} 
                             </select>
                         </div>
@@ -750,7 +750,7 @@ class Empleados
                     <div class="row pb-2">
                         <div class="col-md-4">
                             <label for="slcArl" class="small text-muted">ARL</label>
-                            <select id="slcArl" id="slcArl" name="slcArl" class="form-control form-control-sm bg-input py-0" aria-label="Default select example">
+                            <select id="slcArl" id="slcArl" name="slcArl" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_arl}
                             </select>
                         </div>
@@ -768,7 +768,7 @@ class Empleados
                         </div>
                         <div class="col-md-4">
                             <label for="slcRiesLab" class="small text-muted">Riesgo laboral</label>
-                            <select id="slcRiesLab" name="slcRiesLab" class="form-control form-control-sm bg-input py-0" aria-label="Default select example">
+                            <select id="slcRiesLab" name="slcRiesLab" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_nivel}
                             </select>
                         </div>
@@ -789,7 +789,7 @@ class Empleados
                     <div class="row pb-2">
                         <div class="col-md-4">
                             <label for="slcFc" class="small text-muted">Fondo cesantias</label>
-                            <select id="slcFc" name="slcFc" class="form-control form-control-sm bg-input py-0" aria-label="Default select example">
+                            <select id="slcFc" name="slcFc" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                 {$op_fc}
                             </select>
                         </div>

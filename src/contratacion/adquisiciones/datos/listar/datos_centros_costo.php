@@ -18,7 +18,9 @@ try {
             WHERE `far_centrocosto_area`.`id_sede` = '$id_sede' 
             ORDER BY `tb_centrocostos`.`nom_centro` ASC";
     $rs = $cmd->query($sql);
-    $centros_costo = $rs->fetchAll();
+    $centros_costo = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

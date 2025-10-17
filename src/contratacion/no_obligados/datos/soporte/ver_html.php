@@ -4,16 +4,18 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 if (!isset($_SESSION['user'])) {
-    header('Location: ../../../../index.php');
+    header('Location: ../../../../../index.php');
     exit();
 }
 $data = json_decode(file_get_contents('php://input'), true);
 $id_soporte = isset($data['id']) ? $data['id'] : exit('Acción no permitida');
 $reponse = [];
-include '../../../../conexion.php';
+
+include_once '../../../../../config/autoloader.php';
+
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `id_soporte`, `id_factura_no`, `shash`
             FROM

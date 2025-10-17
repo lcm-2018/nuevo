@@ -1,17 +1,17 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header('Location: ../../../../index.php');
+    header('Location: ../../../../../index.php');
     exit();
 }
-include '../../../../conexion.php';
-include '../../../../permisos.php';
+
+include_once '../../../../../config/autoloader.php';
 
 $doc = $_POST['noDoc'];
 $res = [];
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `tb_terceros`.`nit_tercero`
                 , `tb_terceros`.`nom_tercero`

@@ -15,19 +15,9 @@ $opciones = $permisos->PermisoOpciones($iduser);
 $error = "Debe diligenciar este campo";
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
-                `id_adquisicion`
-                , `id_modalidad`
-                , `id_area`
-                , `fecha_adquisicion`
-                , `val_contrato`
-                , `id_tipo_bn_sv`
-                , `vigencia`
-                , `obligaciones`
-                , `objeto`
-                , `id_tercero`
-                , `estado`
+                `id_adquisicion`, `id_modalidad`, `id_area`, `fecha_adquisicion`, `val_contrato`, `id_tipo_bn_sv`, `vigencia`, `obligaciones`, `objeto`, `id_tercero`, `estado`
             FROM
                 `ctt_adquisiciones`
             WHERE (`id_adquisicion` = $id_aquisicion)";
@@ -39,7 +29,7 @@ try {
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `ctt_adquisiciones`.`id_adquisicion`
                 , `ctt_adquisiciones`.`id_modalidad`
@@ -62,14 +52,16 @@ try {
             INNER JOIN `ctt_adquisiciones`
                 ON (`ctt_orden_compra`.`id_adq` = `ctt_adquisiciones`.`id_adquisicion`)
             WHERE (`ctt_orden_compra`.`id_adq` = $id_aquisicion)";
-    $detalles = $rs->fetchAll();
+    $detalles = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT 
                 `id_adquisicion`,`id_area_cc` AS `id_centro_costo`,`horas_mes`, `id_sede`
             FROM `ctt_destino_contrato` 
@@ -77,103 +69,98 @@ try {
                 ON (`ctt_destino_contrato`.`id_area_cc` = `far_centrocosto_area`.`id_area`)
             WHERE `id_adquisicion` = $id_aquisicion";
     $rs = $cmd->query($sql);
-    $destino = $rs->fetchAll();
+    $destino = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
-                `id_est_prev`,
-                `id_compra`,
-                `fec_ini_ejec`,
-                `fec_fin_ejec`,
-                `val_contrata`,
-                `id_forma_pago`,
-                `id_supervisor`,
-                `necesidad`,
-                `act_especificas`,
-                `prod_entrega`,
-                `obligaciones`,
-                `forma_pago`,
-                `num_ds`,
-                `requisitos`,
-                `garantia`,
-                `describe_valor`
+                `id_est_prev`, `id_compra`, `fec_ini_ejec`, `fec_fin_ejec`, `val_contrata`, `id_forma_pago`, `id_supervisor`, `necesidad`, `act_especificas`, `prod_entrega`, `obligaciones`, `forma_pago`, `num_ds`, `requisitos`, `garantia`, `describe_valor`
             FROM `ctt_estudios_previos`
             WHERE `id_compra` = $id_aquisicion";
     $rs = $cmd->query($sql);
-    $estudios = $rs->fetch();
+    $estudios = $rs->fetch(PDO::FETCH_ASSOC);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
-    $sql = "SELECT * FROM ctt_modalidad ORDER BY modalidad ASC";
+
+    $sql = "SELECT * FROM `ctt_modalidad` ORDER BY `modalidad` ASC";
     $rs = $cmd->query($sql);
-    $modalidad = $rs->fetchAll();
+    $modalidad = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT `id_area`, `area` FROM `tb_area_c` ORDER BY `area` ASC";
     $rs = $cmd->query($sql);
-    $areas = $rs->fetchAll();
+    $areas = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT 
-                id_tipo_b_s, tipo_compra, tipo_contrato, tipo_bn_sv
+                `id_tipo_b_s`, `tipo_compra`, `tipo_bn_sv`
             FROM
-                tb_tipo_bien_servicio
-            INNER JOIN tb_tipo_contratacion 
-                ON (tb_tipo_bien_servicio.id_tipo = tb_tipo_contratacion.id_tipo)
-            INNER JOIN tb_tipo_compra 
-                ON (tb_tipo_contratacion.id_tipo_compra = tb_tipo_compra.id_tipo)
-            ORDER BY tipo_compra, tipo_contrato, tipo_bn_sv";
+                `tb_tipo_bien_servicio`
+            INNER JOIN `tb_tipo_compra` 
+                ON (`tb_tipo_bien_servicio`.`id_tipo` = `tb_tipo_compra`.`id_tipo`)
+            ORDER BY `tipo_compra`, `tipo_bn_sv`";
     $rs = $cmd->query($sql);
-    $tbnsv = $rs->fetchAll();
+    $tbnsv = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT `id_sede`,`nom_sede` AS `nombre` FROM `tb_sedes`";
     $rs = $cmd->query($sql);
-    $sedes = $rs->fetchAll();
+    $sedes = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `id_form_pago`, `descripcion`
             FROM
                 `tb_forma_pago_compras` ORDER BY `descripcion` ASC ";
     $rs = $cmd->query($sql);
-    $forma_pago = $rs->fetchAll();
+    $forma_pago = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `tb_terceros`.`id_tercero`
                 , `tb_rel_tercero`.`id_tercero_api`
@@ -185,13 +172,16 @@ try {
                     ON (`tb_rel_tercero`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
             WHERE `tb_terceros`.`estado` = 1 AND `tb_rel_tercero`.`id_tipo_tercero` = 3";
     $rs = $cmd->query($sql);
-    $supervisor = $rs->fetchAll();
+    $supervisor = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
+    $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
             `id_poliza`
             , `descripcion`
@@ -199,7 +189,9 @@ try {
         FROM
             `tb_polizas` ORDER BY `descripcion` ASC";
     $rs = $cmd->query($sql);
-    $polizas = $rs->fetchAll();
+    $polizas = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -207,14 +199,16 @@ try {
 $est_prev = $estudios['id_est_prev'];
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `id_garantia`, `id_est_prev`, `id_poliza`
             FROM
                 `seg_garantias_compra`
             WHERE `id_est_prev`  = $est_prev";
     $rs = $cmd->query($sql);
-    $garantias = $rs->fetchAll();
+    $garantias = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -222,7 +216,7 @@ try {
 ?>
 <div class="px-0">
     <div class="shadow">
-         <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+        <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
             <h5 style="color: white;">DUPLICAR ADQUISICIÓN</h5>
         </div>
         <form id="formDuplicaAdq">
@@ -234,8 +228,8 @@ try {
                 </div>
                 <input type="hidden" name="datFecVigencia" value="<?php echo $_SESSION['vigencia'] ?>">
                 <div class="col-md-3 mb-3">
-                    <label for="slcModalidad" class="small">MODALIDAD CONTRATACIÓN</label> 
-                    <select id="slcModalidad" name="slcModalidad" class="form-control form-control-sm py-0 sm bg-input" aria-label="Default select example">
+                    <label for="slcModalidad" class="small">MODALIDAD CONTRATACIÓN</label>
+                    <select id="slcModalidad" name="slcModalidad" class="form-select form-select-sm bg-input" aria-label="Default select example">
                         <?php
                         foreach ($modalidad as $mo) {
                             $slc = $mo['id_modalidad'] == $adquisicion['id_modalidad'] ? 'selected' : '';
@@ -247,10 +241,10 @@ try {
                 <div class="form-group col-md-3">
                     <label for="numTotalContrato" class="small">VALOR ESTIMADO</label>
                     <input type="number" name="numTotalContrato" id="numTotalContrato" class="form-control form-control-sm bg-input" value="<?php echo $adquisicion['val_contrato'] ?>">
-                </div> 
+                </div>
                 <div class="col-md-3 mb-3">
-                    <label for="slcAreaSolicita" class="small">ÁREA SOLICITANTE</label> 
-                    <select id="slcAreaSolicita" name="slcAreaSolicita" class="form-control form-control-sm py-0 sm bg-input" aria-label="Default select example">
+                    <label for="slcAreaSolicita" class="small">ÁREA SOLICITANTE</label>
+                    <select id="slcAreaSolicita" name="slcAreaSolicita" class="form-select form-select-sm bg-input" aria-label="Default select example">
                         <?php
                         foreach ($areas as $ar) {
                             $slc = $ar['id_area'] == $adquisicion['id_area'] ? 'selected' : '';
@@ -262,12 +256,12 @@ try {
             </div>
             <div class="row px-4">
                 <div class="col-md-12 mb-3">
-                    <label for="slcTipoBnSv" class="small">TIPO DE BIEN O SERVICIO</label> 
-                    <select id="slcTipoBnSv" name="slcTipoBnSv" class="form-control form-control-sm py-0 sm bg-input" aria-label="Default select example">
+                    <label for="slcTipoBnSv" class="small">TIPO DE BIEN O SERVICIO</label>
+                    <select id="slcTipoBnSv" name="slcTipoBnSv" class="form-select form-select-sm bg-input" aria-label="Default select example">
                         <?php
                         foreach ($tbnsv as $tbs) {
                             $slc = $tbs['id_tipo_b_s'] == $adquisicion['id_tipo_bn_sv'] ? 'selected' : '';
-                            echo '<option value="' . $tbs['id_tipo_b_s'] . '" ' . $slc . '>' . $tbs['tipo_compra'] . ' || ' . $tbs['tipo_contrato'] . ' || ' . $tbs['tipo_bn_sv'] . '</option>';
+                            echo '<option value="' . $tbs['id_tipo_b_s'] . '" ' . $slc . '>' . $tbs['tipo_compra'] . ' || ' . $tbs['tipo_bn_sv'] . '</option>';
                         }
                         ?>
                     </select>
@@ -275,11 +269,10 @@ try {
             </div>
             <div class="row px-4 pt-2">
                 <div class="col-md-12 mb-3">
-                    <label for="txtObjeto" class="small">OBJETO</label>
-                    <textarea id="txtObjeto" type="text" name="txtObjeto" class="form-control form-control-sm py-0 sm bg-input" aria-label="Default select example" rows="3"><?php echo $adquisicion['objeto'] ?></textarea>
+                    <textarea id="txtObjeto" type="text" name="txtObjeto" class="form-control form-control-sm bg-input" aria-label="Default select example" rows="3"><?php echo $adquisicion['objeto'] ?></textarea>
                 </div>
             </div>
-            <div id="contenedor">
+            <div id="contenedor" class="px-4">
                 <?php
                 $num = 1;
                 foreach ($destino as $des) {
@@ -287,7 +280,7 @@ try {
                     $id_sede = $des['id_sede'];
                     try {
                         $cmd = \Config\Clases\Conexion::getConexion();
-                        
+
                         $sql = "SELECT
                                     `far_centrocosto_area`.`id_area` AS `id_sede`
                                     , `tb_centrocostos`.`nom_centro` AS `descripcion`
@@ -299,17 +292,19 @@ try {
                                         ON (`far_centrocosto_area`.`id_centrocosto` = `tb_centrocostos`.`id_centro`)
                                 WHERE `far_centrocosto_area`.`id_sede` = $id_sede ORDER BY `descripcion` ASC";
                         $rs = $cmd->query($sql);
-                        $centros = $rs->fetchAll();
+                        $centros = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
                         $cmd = null;
                     } catch (PDOException $e) {
                         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
                     }
                     if ($num == 1) {
                 ?>
-                        <div class="row px-4 pt-2">
+                        <div class="row pt-2">
                             <div class="col-md-4 mb-2">
                                 <label class="small">SEDE</label>
-                                <select name="slcSedeAC[]" class="form-control form-control-sm slcSedeAC bg-input">
+                                <select name="slcSedeAC[]" class="form-select form-select-sm slcSedeAC bg-input">
                                     <?php
                                     foreach ($sedes as $s) {
                                         $slc = $s['id_sede'] == $id_sede ? 'selected' : '';
@@ -320,7 +315,7 @@ try {
                             </div>
                             <div class="col-md-4 mb-2">
                                 <label class="small">CENTRO DE COSTO</label>
-                                <select name="slcCentroCosto[]" class="form-control form-control-sm slcCentroCosto bg-input">
+                                <select name="slcCentroCosto[]" class="form-select form-select-sm slcCentroCosto bg-input">
                                     <?php
                                     foreach ($centros as $c) {
                                         $slc = $c['id_sede'] == $des['id_centro_costo'] ? 'selected' : '';
@@ -333,28 +328,28 @@ try {
                                 <label for="numHorasMes" class="small">Horas asignadas / mes</label>
                                 <div class="input-group input-group-sm">
                                     <input type="number" name="numHorasMes[]" class="form-control bg-input" value="<?php echo $des['horas_mes'] ?>">
-                                    
-                                        <button class="btn btn-outline-success" type="button" id="addRowSedes"><i class="fas fa-plus"></i></button>
-                                    
+
+                                    <button class="btn btn-outline-success" type="button" id="addRowSedes"><i class="fas fa-plus"></i></button>
+
                                 </div>
                             </div>
                         </div>
                     <?php
                     } else {
                     ?>
-                        <div class="row px-4 pt-2">
+                        <div class="row pt-2">
                             <div class="col-md-4 mb-2">
-                                <select name="slcSedeAC[]" class="form-control form-control-sm slcSedeAC bg-input">
+                                <select name="slcSedeAC[]" class="form-select form-select-sm slcSedeAC bg-input">
                                     <?php
                                     foreach ($sedes as $s) {
                                         $slc = $s['id_sede'] == $id_sede ? 'selected' : '';
                                         echo '<option value="' . $s['id_sede'] . '" ' . $slc . '>' . $s['nombre'] . '</option>';
                                     }
-                                    ?> 
+                                    ?>
                                 </select>
                             </div>
                             <div class="col-md-4 mb-2">
-                                <select name="slcCentroCosto[]" class="form-control form-control-sm slcCentroCosto bg-input">
+                                <select name="slcCentroCosto[]" class="form-select form-select-sm slcCentroCosto bg-input">
                                     <?php
                                     foreach ($centros as $c) {
                                         $slc = $c['id_sede'] == $des['id_centro_costo'] ? 'selected' : '';
@@ -366,9 +361,9 @@ try {
                             <div class="col-md-4 mb-2">
                                 <div class="input-group input-group-sm">
                                     <input type="number" name="numHorasMes[]" class="form-control bg-input" value="<?php echo $des['horas_mes'] ?>">
-                                    
-                                        <button class="btn btn-outline-danger delRowSedes" type="button"><i class="fas fa-minus"></i></button>
-                                    
+
+                                    <button class="btn btn-outline-danger delRowSedes" type="button"><i class="fas fa-minus"></i></button>
+
                                 </div>
                             </div>
                         </div>
@@ -381,30 +376,30 @@ try {
             <?php if (true) { ?>
                 <div class="row px-4 pt-2">
                     <div class="col-md-12 mb-3">
-                        <label for="ccnit" class="small">TERCERO</label>
-                        <input type="text" id="SeaTercer" class="form-control form-control-sm bg-input">
+                        <label for="buscaTercero" class="small">TERCERO</label>
+                        <input type="text" id="buscaTercero" class="form-control form-control-sm bg-input">
                         <input type="hidden" id="id_tercero" name="id_tercero" value="0">
                     </div>
                 </div>
             <?php } ?>
             <div class="row px-4 pt-2">
                 <div class="col-md-4 mb-3">
-                    <label for="datFecIniEjec" class="small">FECHA INICIAL</label> 
+                    <label for="datFecIniEjec" class="small">FECHA INICIAL</label>
                     <input type="date" name="datFecIniEjec" id="datFecIniEjec" class="form-control form-control-sm bg-input" value="<?php echo $estudios['fec_ini_ejec'] ?>">
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="datFecFinEjec" class="small">FECHA FINAL</label> 
+                    <label for="datFecFinEjec" class="small">FECHA FINAL</label>
                     <input type="date" name="datFecFinEjec" id="datFecFinEjec" class="form-control form-control-sm bg-input" value="<?php echo $estudios['fec_fin_ejec'] ?>">
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="numValContrata" class="small">Valor total contrata</label> 
+                    <label for="numValContrata" class="small">Valor total contrata</label>
                     <input type="number" name="numValContrata" id="numValContrata" class="form-control form-control-sm bg-input" value="<?php echo $estudios['val_contrata'] ?>">
                 </div>
             </div>
             <div class="row px-4">
                 <div class="col-md-4 mb-3">
-                    <label for="slcFormPago" class="small">FORMA DE PAGO</label> 
-                    <select id="slcFormPago" name="slcFormPago" class="form-control form-control-sm py-0 sm bg-input" aria-label="Default select example">
+                    <label for="slcFormPago" class="small">FORMA DE PAGO</label>
+                    <select id="slcFormPago" name="slcFormPago" class="form-select form-select-sm bg-input" aria-label="Default select example">
                         <?php
                         foreach ($forma_pago as $fp) {
                             $slc = $fp['id_form_pago'] == $estudios['id_forma_pago'] ? 'selected' : '';
@@ -414,8 +409,8 @@ try {
                     </select>
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="slcSupervisor" class="small">SUPERVISOR</label> 
-                    <select id="slcSupervisor" name="slcSupervisor" class="form-control form-control-sm py-0 sm bg-input" aria-label="Default select example">
+                    <label for="slcSupervisor" class="small">SUPERVISOR</label>
+                    <select id="slcSupervisor" name="slcSupervisor" class="form-select form-select-sm bg-input" aria-label="Default select example">
                         <option value="A">PENDIENTE</option>
                         <?php
                         foreach ($supervisor as $s) {
@@ -426,13 +421,17 @@ try {
                     </select>
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="numDS" class="small">Número DC</label> 
+                    <label for="numDS" class="small">Número DC</label>
                     <input type="number" name="numDS" id="numDS" class="form-control form-control-sm bg-input" value="<?php echo $estudios['num_ds'] ?>">
                 </div>
             </div>
-            <span class="small">PÓLIZAS</span>
             <div class="row px-4 pt-2">
                 <?php
+                if (count($polizas) > 0) {
+                ?>
+                    <span class="small">PÓLIZAS</span>
+                <?php
+                }
                 $cant = 1;
                 foreach ($polizas as $pz) {
                     $chequeado = '';
@@ -445,7 +444,8 @@ try {
                     <div class="col-md-4 mb-3">
                         <div class="input-group input-group-sm">
                             <div class="input-group-text">
-                                <input class="form-check-input mt-0" type="checkbox" aria-label="Checkbox for following text input" id="check_<?php echo $cant; $cant++ ?>" name="check[]" value="<?php echo $pz['id_poliza'] ?>" <?php echo $chequeado ?>>
+                                <input class="form-check-input mt-0" type="checkbox" aria-label="Checkbox for following text input" id="check_<?php echo $cant;
+                                                                                                                                                $cant++ ?>" name="check[]" value="<?php echo $pz['id_poliza'] ?>" <?php echo $chequeado ?>>
                             </div>
                             <div class="form-control form-control-sm" aria-label="Text input with checkbox" style="font-size: 55%;"><?php echo $pz['descripcion'] . ' ' . $pz['porcentaje'] . '%' ?> </div>
                         </div>

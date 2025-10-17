@@ -239,7 +239,7 @@ class Plantilla
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a href="#" class="nav-link text-info p-1 sombra">
+                                                    <a href="{$host}/src/contratacion/no_obligados/listar_facturas.php" class="nav-link text-info p-1 sombra">
                                                         <i class="fas fa-ticket-alt me-2 fa-fw"></i> No obligados
                                                     </a>
                                                 </li>

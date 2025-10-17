@@ -1,11 +1,21 @@
 <?php
+
+use Src\Common\Php\Clases\Permisos;
+
 session_start();
 if (!isset($_SESSION['user'])) {
-    header('Location: ../../../../index.php');
+    header('Location: ../../../../../index.php');
     exit();
 }
-include '../../../../conexion.php';
-include '../../../../permisos.php';
+
+require_once '../../../../../config/autoloader.php';
+
+$permisos = new Permisos();
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+$opciones = $permisos->PermisoOpciones($id_user);
+
 $id_ct = isset($_POST['id_csp']) ? $_POST['id_csp'] : exit('Acción no permitida');
 $id_ct = $id_ct == '' ? 0 : $id_ct;
 function pesos($valor)
@@ -14,7 +24,7 @@ function pesos($valor)
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT 
                 *
             FROM 
@@ -64,7 +74,9 @@ try {
             INNER JOIN `ctt_tipo_novedad`
                 ON(`t`.`id_tip_nov` = `ctt_tipo_novedad`.`id_novedad`)";
     $rs = $cmd->query($sql);
-    $novedades = $rs->fetchAll();
+    $novedades = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -73,17 +85,17 @@ $data = [];
 if (!empty($novedades)) {
     foreach ($novedades as $nv) {
         $id_nov = $nv['id_nov_con'] . '|' . $nv['id_tip_nov'];
-        if( $permisos->PermisosUsuario($opciones, 5302, 3) || $id_rol == 1) {
-            $editar = '<a value="' . $id_nov . '" class="btn btn-outline-primary btn-sm btn-circle shadow-gb editar" title="Editar"><span class="fas fa-pencil-alt fa-lg"></span></a>';
+        if ($permisos->PermisosUsuario($opciones, 5302, 3) || $id_rol == 1) {
+            $editar = '<a value="' . $id_nov . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow editar" title="Editar"><span class="fas fa-pencil-alt"></span></a>';
         }
-        if( $permisos->PermisosUsuario($opciones, 5302, 4) || $id_rol == 1) {
-            $borrar = '<a value="' . $id_nov . '" class="btn btn-outline-danger btn-sm btn-circle shadow-gb borrar" title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+        if ($permisos->PermisosUsuario($opciones, 5302, 4) || $id_rol == 1) {
+            $borrar = '<a value="' . $id_nov . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow borrar" title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
         }
         $data[] = [
             't_novedad' => $nv['descripcion'],
             'fecha' => $nv['fecha'],
-            'valor1' => '<div class="text-right">' . pesos($nv['valor1']) . '</div>',
-            'valor2' => '<div class="text-right">' . pesos($nv['valor2']) . '</div>',
+            'valor1' => '<div class="text-end">' . pesos($nv['valor1']) . '</div>',
+            'valor2' => '<div class="text-end">' . pesos($nv['valor2']) . '</div>',
             'inicia' => $nv['inicia'],
             'fin' => $nv['fin'],
             'observacion' => $nv['observacion'],

@@ -312,9 +312,14 @@ function mjeAlert(titulo, texto, html, timer = 2000) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const modal = document.getElementById('modalForms');
-    if (!modal) return;
+    var modal = document.getElementById('modalForms');
+    if (!modal) {
+        modal = document.getElementById('divModalForms');
+        if (!modal) {
+            return;
+        }
 
+    }
     modal.addEventListener('shown.bs.modal', () => {
         const intervalId = setInterval(() => {
             const inputTercero = document.getElementById('buscaTercero');

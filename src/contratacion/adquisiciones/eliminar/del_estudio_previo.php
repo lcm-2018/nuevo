@@ -1,30 +1,33 @@
 <?php
+
+use Config\Clases\Logs;
+
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
+    header("Location: ../../../../index.php");
     exit();
 }
-$id_ep = isset($_SESSION['del']) ? $_SESSION['del'] : exit('Acción no permitida');
-$id_compra = $_POST['id_c'];
-include_once '../../../../../config/autoloader.php';
-$id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
+include_once '../../../../config/autoloader.php';
+
+$id = isset($_POST['id']) ? $_POST['id'] : exit('Acción no permitida');
+$id_compra = $_POST['id_compra'];
 $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
-$permisos = new \Src\Common\Php\Clases\Permisos();
-$opciones = $permisos->PermisoOpciones($id_user);
+
 $cmd = \Config\Clases\Conexion::getConexion();
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
-    $sql = "DELETE FROM ctt_estudios_previos  WHERE id_est_prev = ?";
+
+    $sql = "DELETE FROM `ctt_estudios_previos`  WHERE `id_est_prev` = ?";
+    $consulta = "DELETE FROM `seg_garantias_compra` WHERE `id_est_prev` = $id";
     $sql = $cmd->prepare($sql);
-    $sql->bindParam(1, $id_ep, PDO::PARAM_INT);
+    $sql->bindParam(1, $id, PDO::PARAM_INT);
     $sql->execute();
     if ($sql->rowCount() > 0) {
         try {
             $estado = 5;
             $cmd = \Config\Clases\Conexion::getConexion();
-            
+
             $sql = "UPDATE `ctt_adquisiciones` SET `estado`= ?, `id_user_act` = ?, `fec_act` = ? WHERE `id_adquisicion` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $estado, PDO::PARAM_INT);
@@ -35,7 +38,8 @@ try {
             if (!($sql->rowCount() > 0)) {
                 echo $sql->errorInfo()[2];
             } else {
-                echo 1;
+                Logs::guardaLog($consulta);
+                echo 'ok';
             }
             $cmd = null;
         } catch (PDOException $e) {

@@ -58,7 +58,9 @@ try {
                     ON (`ctt_orden_compra_detalle`.`id_oc` = `ctt_orden_compra`.`id_oc`)
             WHERE (`ctt_orden_compra`.`id_adq` = $id_compra)";
     $rs = $cmd->query($sql);
-    $detalles = $rs->fetchAll();
+    $detalles = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

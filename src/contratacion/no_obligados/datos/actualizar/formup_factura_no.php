@@ -29,7 +29,9 @@ try {
                 `ctt_fact_noobligado_det`
             WHERE `id_fno` = '$id_fno'";
     $rs = $cmd->query($sql);
-    $detailsfno = $rs->fetchAll();
+    $detailsfno = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -42,7 +44,9 @@ try {
             FROM
                 `nom_metodo_pago` ORDER BY `metodo` ASC";
     $rs = $cmd->query($sql);
-    $metodop = $rs->fetchAll();
+    $metodop = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -55,7 +59,9 @@ try {
             FROM
                 `fac_e_responsabilidades` ORDER BY `descripcion` ASC";
     $rs = $cmd->query($sql);
-    $rep_fiscal = $rs->fetchAll();
+    $rep_fiscal = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -68,7 +74,9 @@ try {
             FROM
                 `tb_tipos_documento` ORDER BY `descripcion` ASC";
     $rs = $cmd->query($sql);
-    $tip_doc = $rs->fetchAll();
+    $tip_doc = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -81,7 +89,9 @@ try {
             FROM
                 `tb_paises`";
     $rs = $cmd->query($sql);
-    $pais = $rs->fetchAll();
+    $pais = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -94,7 +104,9 @@ try {
             FROM
                 `tb_departamentos` ORDER BY `nom_departamento` ASC";
     $rs = $cmd->query($sql);
-    $dpto = $rs->fetchAll();
+    $dpto = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -110,7 +122,9 @@ try {
                 `tb_municipios` 
             WHERE  `id_departamento` = '$depart'";
     $rs = $cmd->query($sql);
-    $municipios = $rs->fetchAll();
+    $municipios = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -123,7 +137,9 @@ try {
             FROM 
                 `tb_codificacion_unspsc` ORDER BY `descripcion` ASC";
     $rs = $cmd->query($sql);
-    $codificacion = $rs->fetchAll();
+    $codificacion = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -240,7 +256,7 @@ try {
                 </div>
                 <div class="form-group col-md-2">
                     <label for="slcPaisEmp" class="small">País</label>
-                    <select id="slcPaisEmp" name="slcPaisEmp" class="form-control form-control-sm py-0 sm" aria-label="Default select example">
+                    <select id="slcPaisEmp" name="slcPaisEmp" class="form-select form-select-sm" aria-label="Default select example">
                         <?php
                         foreach ($pais as $p) {
                             $slc = $fact_no['pais'] == $p['id'] ? 'selected' : null;
@@ -251,7 +267,7 @@ try {
                 </div>
                 <div class="form-group col-md-3">
                     <label for="slcDptoEmp" class="small">Departamento</label>
-                    <select id="slcDptoEmp" name="slcDptoEmp" class="form-control form-control-sm py-0 sm" aria-label="Default select example">
+                    <select id="slcDptoEmp" name="slcDptoEmp" class="form-select form-select-sm" aria-label="Default select example">
                         <?php
                         foreach ($dpto as $d) {
                             $slc = $fact_no['dpto'] == $d['id_dpto'] ? 'selected' : null;
@@ -262,7 +278,7 @@ try {
                 </div>
                 <div class="form-group col-md-3">
                     <label for="slcMunicipioEmp" class="small">Municipio</label>
-                    <select id="slcMunicipioEmp" name="slcMunicipioEmp" class="form-control form-control-sm py-0 sm" aria-label="Default select example" placeholder="elegir mes">
+                    <select id="slcMunicipioEmp" name="slcMunicipioEmp" class="form-select form-select-sm" aria-label="Default select example" placeholder="elegir mes">
                         <?php
                         foreach ($municipios as $m) {
                             $slc = $fact_no['ciudad'] == $m['id_municipio'] ? 'selected' : null;
@@ -314,7 +330,7 @@ try {
                                 <input type="number" class="form-control form-control-sm" id="numValIva" name="numValIva" value="<?php echo $fact_no['val_iva'] ?>">
                             </div>
                         </div>
-                        <div class="text-left form-row">
+                        <div class="text-start form-row">
                             <div class="form-group col-md-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="retefuente" <?php echo $fact_no['val_retefuente'] > 0 ? 'checked' : null ?>>
@@ -376,7 +392,7 @@ try {
                                 </div>
                             </div>
                         </div>
-                        <div class="text-left form-row">
+                        <div class="text-start form-row">
                             <div class="form-group col-md-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="ic" <?php echo  $fact_no['val_ic'] > 0 ? 'checked' : null ?>>

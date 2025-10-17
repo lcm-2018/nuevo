@@ -49,7 +49,7 @@ if (!empty($tbnsv)) {
                 <div class="row px-4 pt-2">
                     <div class="col-md-4 mb-3">
                         <label for="slcTipoContrato" class="small">TIPO DE BIEN O SERVICIO</label>
-                        <select id="slcTipoContrato" name="slcTipoContrato" class="form-control form-control-sm py-0 sm bg-input" aria-label="Default select example">
+                        <select id="slcTipoContrato" name="slcTipoContrato" class="form-select form-select-sm bg-input" aria-label="Default select example">
                             <?php
                             foreach ($tipo as $tp) {
                                 if ($tp['id_tipo'] !== $tbnsv['id_tipo']) {
@@ -61,15 +61,13 @@ if (!empty($tbnsv)) {
                             ?>
                         </select>
                     </div>
-                    <div class="col-md-8 mb-3">
-                        <label for="txtTipoBnSv" class="small">NOMBRE TIPO DE BIEN O SERVICIO</label>
-                        <input id="txtTipoBnSv" type="text" name="txtTipoBnSv" class="form-control form-control-sm py-0 sm bg-input" aria-label="Default select example" value="<?= $tbnsv['tipo_bn_sv'] ?>">
+                    <div class="col-md-8 mb-3">                        <label for="txtTipoBnSv" class="small">NOMBRE TIPO DE BIEN O SERVICIO</label>
+                        <input id="txtTipoBnSv" type="text" name="txtTipoBnSv" class="form-control form-control-sm bg-input" aria-label="Default select example" value="<?= $tbnsv['tipo_bn_sv'] ?>">
                     </div>
                 </div>
                 <div class="row px-4 pt-2">
-                    <div class="col-md-12 mb-3">
-                        <label for="txtObjPre" class="small">OBJETO PREDEFINIDO</label>
-                        <textarea id="txtObjPre" type="text" name="txtObjPre" class="form-control form-control-sm py-0 sm bg-input" aria-label="Default select example" rows="3" placeholder="Objeto predefinido del contrato"><?= $tbnsv['objeto_definido'] ?></textarea>
+                    <div class="col-md-12 mb-3">                        <label for="txtObjPre" class="small">OBJETO PREDEFINIDO</label>
+                        <textarea id="txtObjPre" type="text" name="txtObjPre" class="form-control form-control-sm bg-input" aria-label="Default select example" rows="3" placeholder="Objeto predefinido del contrato"><?= $tbnsv['objeto_definido'] ?></textarea>
                     </div>
                 </div>
                 <div class="text-center py-3">

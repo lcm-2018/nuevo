@@ -46,7 +46,7 @@ if (!empty($obj)) {
         $datos[] = array(
             'id' => $cp['id_concepto'],
             'concepto' => mb_strtoupper($cp['concepto']),
-            'valor' => '<div class="text-right">' . $pesos->Pesos($cp['valor']) . '</div>',
+            'valor' => '<div class="text-end">' . $pesos->Pesos($cp['valor']) . '</div>',
             'botones' => '<div class="text-center">' . $actualizar . $eliminar . '</div>'
         );
     }

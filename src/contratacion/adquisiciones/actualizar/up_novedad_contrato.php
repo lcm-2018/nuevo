@@ -1,19 +1,18 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
+    header("Location: ../../../../index.php");
     exit();
 }
+
+include_once '../../../../config/autoloader.php';
+
 $novedad = isset($_POST['slcTipoNovedad']) ? $_POST['slcTipoNovedad'] : exit('Accion no permitida');
 $id_novedad = $_POST['id_novendad'];
 $observacion = $_POST['txtAObservaNov'];
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
-include_once '../../../../../config/autoloader.php';
-$id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
-$id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
-$permisos = new \Src\Common\Php\Clases\Permisos();
-$opciones = $permisos->PermisoOpciones($id_user);
+
 $cmd = \Config\Clases\Conexion::getConexion();
 switch ($novedad) {
     case 1:
@@ -39,7 +38,7 @@ switch ($novedad) {
             } else {
                 if ($sql->rowCount() > 0) {
                     $cmd = \Config\Clases\Conexion::getConexion();
-                    
+
                     $sql = "UPDATE `ctt_novedad_adicion_prorroga` SET  `id_user_act` = ?, `fec_act` = ? WHERE `id_nov_con` = ?";
                     $sql = $cmd->prepare($sql);
                     $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -83,7 +82,7 @@ switch ($novedad) {
             } else {
                 if ($sql->rowCount() > 0) {
                     $cmd = \Config\Clases\Conexion::getConexion();
-                    
+
                     $sql = "UPDATE `ctt_novedad_adicion_prorroga` SET  `id_user_act` = ?, `fec_act` = ? WHERE `id_nov_con` = ?";
                     $sql = $cmd->prepare($sql);
                     $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -127,7 +126,7 @@ switch ($novedad) {
             } else {
                 if ($sql->rowCount() > 0) {
                     $cmd = \Config\Clases\Conexion::getConexion();
-                    
+
                     $sql = "UPDATE `ctt_novedad_adicion_prorroga` SET  `id_user_act` = ?, `fec_act` = ? WHERE `id_nov_con` = ?";
                     $sql = $cmd->prepare($sql);
                     $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -166,7 +165,7 @@ switch ($novedad) {
             } else {
                 if ($sql->rowCount() > 0) {
                     $cmd = \Config\Clases\Conexion::getConexion();
-                    
+
                     $sql = "UPDATE `ctt_novedad_cesion` SET  `id_user_act` = ?, `fec_act` = ? WHERE `id_cesion` = ?";
                     $sql = $cmd->prepare($sql);
                     $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -205,7 +204,7 @@ switch ($novedad) {
             } else {
                 if ($sql->rowCount() > 0) {
                     $cmd = \Config\Clases\Conexion::getConexion();
-                    
+
                     $sql = "UPDATE `ctt_novedad_suspension` SET  `id_user_act` = ?, `fec_act` = ? WHERE `id_suspension` = ?";
                     $sql = $cmd->prepare($sql);
                     $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -242,7 +241,7 @@ switch ($novedad) {
             } else {
                 if ($sql->rowCount() > 0) {
                     $cmd = \Config\Clases\Conexion::getConexion();
-                    
+
                     $sql = "UPDATE `ctt_novedad_reinicio` SET  `id_user_act` = ?, `fec_act` = ? WHERE `id_reinicio` = ?";
                     $sql = $cmd->prepare($sql);
                     $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -279,7 +278,7 @@ switch ($novedad) {
             } else {
                 if ($sql->rowCount() > 0) {
                     $cmd = \Config\Clases\Conexion::getConexion();
-                    
+
                     $sql = "UPDATE `ctt_novedad_terminacion` SET  `id_user_act` = ?, `fec_act` = ? WHERE `id_terminacion` = ?";
                     $sql = $cmd->prepare($sql);
                     $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -322,7 +321,7 @@ switch ($novedad) {
             } else {
                 if ($sql->rowCount() > 0) {
                     $cmd = \Config\Clases\Conexion::getConexion();
-                    
+
                     $sql = "UPDATE `ctt_novedad_liquidacion` SET  `id_user_act` = ?, `fec_act` = ? WHERE `id_liquidacion` = ?";
                     $sql = $cmd->prepare($sql);
                     $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -347,117 +346,3 @@ switch ($novedad) {
         exit('Acción no permitida');
         break;
 }
-        
-
-
-
-/*$observacion = $_POST['txtAObservaNov'];
-$iduser = $_SESSION['id_user'];
-$tipouser = 'user';
-$endp = 'adicion_prorroga';
-$val_adicion = NULL;
-$fec_adicion = NULL;
-$cdp = NULL;
-$fini_pro = NULL;
-$ffin_pro = NULL;
-switch ($novedad) {
-    case '1':
-        $val_adicion = $_POST['numValAdicion'];
-        $fec_adicion = $_POST['datFecAdicion'];
-        //$cdp = $_POST['slcCDP'];
-        break;
-    case '2':
-        $fini_pro = $_POST['datFecIniProrroga'];
-        $ffin_pro = $_POST['datFecFinProrroga'];
-        break;
-    case '3':
-        $val_adicion = $_POST['numValAdicion'];
-        $fec_adicion = $_POST['datFecAdicion'];
-        $cdp = $_POST['slcCDP'];
-        $fini_pro = $_POST['datFecIniProrroga'];
-        $ffin_pro = $_POST['datFecFinProrroga'];
-        break;
-    case '4':
-        $fec_cesion = $_POST['datFecCesion'];
-        $id_tercero = $_POST['id_tercero'];
-        $id_contrato = $_POST['id_contrato'];
-        $endp = 'cesion';
-        $data = [
-            "id_contrato" => $id_contrato,
-            "id_novedad" => $id_novedad,
-            "fec_cesion" => $fec_cesion,
-            "id_tercero" => $id_tercero,
-            "observacion" => $observacion,
-            "iduser" => $iduser,
-            "tipouser" => $tipouser,
-        ];
-        break;
-    case '5':
-        $fini_susp = $_POST['datFecIniSuspencion'];
-        $ffin_susp = $_POST['datFecFinSuspencion'];
-        $id_contrato = $_POST['id_contrato'];
-        $endp = 'suspension';
-        $data = [
-            "id_contrato" => $id_contrato,
-            "id_novedad" => $id_novedad,
-            "fini_susp" => $fini_susp,
-            "ffin_susp" => $ffin_susp,
-            "observacion" => $observacion,
-            "iduser" => $iduser,
-            "tipouser" => $tipouser,
-        ];
-        break;
-    case '6':
-        $frein = $_POST['datFecReinicio'];
-        $endp = 'reinicio';
-        $data = [
-            "id_novedad" => $id_novedad,
-            "frein" => $frein,
-            "observacion" => $observacion,
-            "iduser" => $iduser,
-            "tipouser" => $tipouser,
-        ];
-        break;
-    case '7':
-        $id_tt = $_POST['slcTipTerminacion'];
-        $endp = 'terminacion';
-        $data = [
-            "id_novedad" => $id_novedad,
-            "id_tt" => $id_tt,
-            "observacion" => $observacion,
-            "iduser" => $iduser,
-            "tipouser" => $tipouser,
-        ];
-        break;
-    case '8':
-        $fec_liq = $_POST['datFecLiq'];
-        $tip_liq = $_POST['slcTipLiquidacion'];
-        $val_ctte = $_POST['numValFavorCtrate'];
-        $val_ctta = $_POST['numValFavorCtrista'];
-        $endp = 'liquidacion';
-        $data = [
-            "id_novedad" => $id_novedad,
-            "fec_liq" => $fec_liq,
-            "tip_liq" => $tip_liq,
-            "val_ctte" => $val_ctte,
-            "val_ctta" => $val_ctta,
-            "observacion" => $observacion,
-            "iduser" => $iduser,
-            "tipouser" => $tipouser,
-        ];
-        break;
-}
-if ($novedad == '1' || $novedad == '2' || $novedad == '3') {
-    $data = [
-        "id_novedad" => $id_novedad,
-        "tip_novedad" => $novedad,
-        "val_adicion" => $val_adicion,
-        "fec_adicion" => $fec_adicion,
-        "cdp" => $cdp,
-        "fini_pro" => $fini_pro,
-        "ffin_pro" => $ffin_pro,
-        "observacion" => $observacion,
-        "iduser" => $iduser,
-        "tipouser" => $tipouser,
-    ];
-}*/

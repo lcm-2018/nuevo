@@ -1,11 +1,12 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
+    header("Location: ../../../../index.php");
     exit();
 }
+include_once '../../../../config/autoloader.php';
+
 $id_est_prev = isset($_POST['id_est_prev']) ? $_POST['id_est_prev'] : exit('Acción no permitida');
-include_once '../../../../../config/autoloader.php';
 $id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
 $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
 $permisos = new \Src\Common\Php\Clases\Permisos();
@@ -29,7 +30,7 @@ $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "UPDATE `ctt_estudios_previos` SET `fec_ini_ejec` = ?, `fec_fin_ejec` = ?, `val_contrata` = ?, `id_forma_pago` = ?, `id_supervisor` = ?
                     ,`necesidad` = ? ,`act_especificas` = ? ,`prod_entrega` = ? ,`obligaciones` = ? ,`forma_pago` = ?, `num_ds` = ?, `requisitos` = ?, `garantia` = ?, `describe_valor` = ?
                     WHERE `id_est_prev` = ?";
@@ -56,7 +57,7 @@ try {
         $cambio = $sql->rowCount();
         try {
             $cmd = \Config\Clases\Conexion::getConexion();
-            
+
             $sql = "DELETE FROM `seg_garantias_compra` WHERE `id_est_prev` = '$id_est_prev'";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $id_est_prev, PDO::PARAM_INT);
@@ -64,14 +65,14 @@ try {
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
         }
-        $polizas = isset($_REQUEST['check']) ? $_REQUEST['check'] : '';
+        $polizas = isset($_POST['check']) ? $_POST['check'] : '';
         $cant = 0;
         if ($polizas == '') {
             $cant = 1;
         } else {
             try {
                 $cmd = \Config\Clases\Conexion::getConexion();
-                
+
                 $sql = "INSERT INTO `seg_garantias_compra`(`id_est_prev`,`id_poliza`,`id_user_reg`,`fec_reg`) VALUES (?, ?, ?, ?)";
                 $sql = $cmd->prepare($sql);
                 $sql->bindParam(1, $id_est_prev, PDO::PARAM_INT);
@@ -95,7 +96,7 @@ try {
         }
         if ($cambio > 0) {
             $cmd = \Config\Clases\Conexion::getConexion();
-            
+
             $sql = "UPDATE  `ctt_estudios_previos` SET  `id_user_act` = ? , `fec_act` = ? WHERE `id_est_prev` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -103,7 +104,7 @@ try {
             $sql->bindParam(3, $id_est_prev, PDO::PARAM_INT);
             $sql->execute();
             if ($sql->rowCount() > 0) {
-                echo '1';
+                echo 'ok';
             } else {
                 echo $sql->errorInfo()[2];
             }

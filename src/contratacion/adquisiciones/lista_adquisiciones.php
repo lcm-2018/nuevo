@@ -66,7 +66,7 @@ $content = <<<HTML
                     <th class="bg-sofia">Modalidad</th>
                     <th class="bg-sofia">Valor</th>
                     <th class="bg-sofia">Fecha</th>
-                    <th class="bg-sofia">Objeto</th>
+                    <th class="bg-sofia" style="max-width: 400px;">Objeto</th>
                     <th class="bg-sofia">Tercero</th>
                     <th class="bg-sofia">Estado</th>
                     <th class="bg-sofia">Acción</th>
@@ -83,6 +83,8 @@ $content = preg_replace_callback('/VIÑETA/', function () use (&$numeral) {
 }, $content);
 
 $plantilla = new Plantilla($content, 2);
+$plantilla->addCssFile("{$host}/assets/css/jquery-ui.css?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/assets/js/jquery-ui.js?v=" . date("YmdHis"));
 $plantilla->addScriptFile("{$host}/src/contratacion/adquisiciones/js/funciones_adquisiciones.js?v=" . date("YmdHis"));
 $modal = $plantilla->getModal('divModalForms', 'divTamModalForms', 'divForms');
 $plantilla->addModal($modal);

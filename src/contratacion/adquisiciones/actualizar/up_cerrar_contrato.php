@@ -1,19 +1,19 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
+    header("Location: ../../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include_once '../../../../config/autoloader.php';
+
 $id_adq = isset($_POST['id_adq']) ? $_POST['id_adq'] : exit('Accion no permitida');
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
+$estado = 9;
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
-
 try {
-    $estado = 9;
     $query = "UPDATE `ctt_adquisiciones` SET `estado` = ? WHERE `id_adquisicion` = ?";
     $query = $cmd->prepare($query);
     $query->bindParam(1, $estado, PDO::PARAM_INT);

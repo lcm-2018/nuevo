@@ -1,10 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
+    header("Location: ../../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+
+include_once '../../../../config/autoloader.php';
 
 $valfac = isset($_POST['valfac']) ? $_POST['valfac'] : exit('Acción no permitida');
 $id_fno = $_POST['id_fno'];
@@ -52,7 +53,6 @@ $vigencia = $_SESSION['vigencia'];
 $inserta = 0;
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
     $sql = "UPDATE `tb_terceros` SET `procedencia` = ?, `tipo_org` = ?, `reg_fiscal` = ?, `resp_fiscal` = ? WHERE `id_tercero_api` = ?";
     $sql = $cmd->prepare($sql);
     $sql->bindParam(1, $procede, PDO::PARAM_INT);
@@ -70,7 +70,7 @@ try {
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     if ($id_fno == 0) {
         $sql = "INSERT INTO `ctt_fact_noobligado`
                 (`id_tercero_no`, `fec_compra`, `fec_vence`, `met_pago`, `forma_pago`, `val_retefuente`, `porc_retefuente`, `val_reteiva`, `porc_reteiva`, `val_iva`, `porc_iva`, `val_dcto`, `porc_dcto`, `observaciones`, `vigencia`, `id_user_reg`, `fec_reg`)
@@ -125,7 +125,7 @@ try {
     }
     if ($id_fno > 0) {
         $cmd = \Config\Clases\Conexion::getConexion();
-        
+
         $query = "INSERT INTO `ctt_fact_noobligado_det`
                     (`id_fno`, `codigo`, `detalle`, `val_unitario`, `cantidad`, `p_iva`, `val_iva`, `p_dcto`, `val_dcto`, `id_user_reg`, `fec_reg`) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";

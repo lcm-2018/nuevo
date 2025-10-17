@@ -26,7 +26,9 @@ try {
     
     $sql = "SELECT * FROM ctt_adquisicion_detalles WHERE id_adquisicion = '$id_adq'";
     $rs = $cmd->query($sql);
-    $listBnSv = $rs->fetchAll();
+    $listBnSv = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -47,7 +49,9 @@ try {
             WHERE id_tipo_b_s = '$idtbnsv'
             ORDER BY tipo_compra,tipo_contrato, tipo_bn_sv, bien_servicio";
     $rs = $cmd->query($sql);
-    $bnsv = $rs->fetchAll();
+    $bnsv = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -59,7 +63,9 @@ if (!empty($adq_compra)) {
             
             $sql = "SELECT * FROM ctt_modalidad ORDER BY modalidad ASC";
             $rs = $cmd->query($sql);
-            $modalidad = $rs->fetchAll();
+            $modalidad = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
             $cmd = null;
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -77,7 +83,9 @@ if (!empty($adq_compra)) {
                     ON (tb_tipo_contratacion.id_tipo_compra = tb_tipo_compra.id_tipo)
                 ORDER BY tipo_compra, tipo_contrato, tipo_bn_sv";
             $rs = $cmd->query($sql);
-            $tbnsv = $rs->fetchAll();
+            $tbnsv = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
             $cmd = null;
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -125,7 +133,7 @@ if (!empty($adq_compra)) {
                                                             </div>
                                                             <div class="col-md-4 mb-3">
                                                                 <label for="slcModalidad" class="small">MODALIDAD CONTRATACIÓN</label>
-                                                                <select id="slcModalidad" name="slcModalidad" class="form-control form-control-sm py-0 sm bg-input" aria-label="Default select example">
+                                                                <select id="slcModalidad" name="slcModalidad" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                                                     <?php
                                                                     foreach ($modalidad as $mo) {
                                                                         if ($mo['id_modalidad'] !== $adq_compra['id_modalidad']) {
@@ -146,7 +154,7 @@ if (!empty($adq_compra)) {
                                                             <div class="col-md-12 mb-3">
                                                                 <input type="hidden" name="tpBnSv" value="<?php echo $adq_compra['id_tipo_bn_sv'] ?>">
                                                                 <label for="slcTipoBnSv" class="small">TIPO DE BIEN O SERVICIO</label> 
-                                                                <select id="slcTipoBnSv" name="slcTipoBnSv" class="form-control form-control-sm py-0 sm bg-input" aria-label="Default select example">
+                                                                <select id="slcTipoBnSv" name="slcTipoBnSv" class="form-select form-select-sm bg-input" aria-label="Default select example">
                                                                     <?php
                                                                     foreach ($tbnsv as $tbs) {
                                                                         if ($tbs['id_tipo_b_s'] !== $adq_compra['id_tipo_bn_sv']) {
@@ -162,7 +170,7 @@ if (!empty($adq_compra)) {
                                                         <div class="row pt-2">
                                                             <div class="col-md-12 mb-3">
                                                                 <label for="txtObjeto" class="small">OBJETO</label>
-                                                                <textarea id="txtObjeto" type="text" name="txtObjeto" class="form-control form-control-sm py-0 sm bg-input" aria-label="Default select example" rows="3" placeholder="Objeto del contrato"><?php echo $adq_compra['objeto'] ?></textarea>
+                                                                <textarea id="txtObjeto" type="text" name="txtObjeto" class="form-control form-control-sm bg-input" aria-label="Default select example" rows="3" placeholder="Objeto del contrato"><?php echo $adq_compra['objeto'] ?></textarea>
                                                             </div>
                                                         </div>
                                                     </form>
@@ -217,7 +225,7 @@ if (!empty($adq_compra)) {
                                                                                         <input type="checkbox" name="check[]" value="<?php echo $bs['id_b_s'] ?>" <?php echo $check ?>>
                                                                                     </div>
                                                                                 </td>
-                                                                                <td class="text-left"><i><?php echo $bs['bien_servicio'] ?></i></td>
+                                                                                <td class="text-start"><i><?php echo $bs['bien_servicio'] ?></i></td>
                                                                                 <td><input type="number" name="bnsv_<?php echo $bs['id_b_s'] ?>" id="bnsv_<?php echo $bs['id_b_s'] ?>" class="form-control altura bg-input" value="<?php echo $cant ?>"></td>
                                                                                 <td><input type="number" name="val_bnsv_<?php echo $bs['id_b_s'] ?>" id="val_bnsv_<?php echo $bs['id_b_s'] ?>" class="form-control altura bg-input" value="<?php echo $val_c ?>"></td>
                                                                             </tr>
@@ -263,7 +271,7 @@ if (!empty($adq_compra)) {
                                                                                         <input type="checkbox" name="check[]" value="<?php echo $bs['id_b_s'] ?>">
                                                                                     </div>
                                                                                 </td>
-                                                                                <td class="text-left"><i><?php echo $bs['bien_servicio'] ?></i></td>
+                                                                                <td class="text-start"><i><?php echo $bs['bien_servicio'] ?></i></td>
                                                                                 <td><input type="number" name="bnsv_<?php echo $bs['id_b_s'] ?>" id="bnsv_<?php echo $bs['id_b_s'] ?>" class="form-control altura"></td>
                                                                                 <td><input type="number" name="val_bnsv_<?php echo $bs['id_b_s'] ?>" id="val_bnsv_<?php echo $bs['id_b_s'] ?>" class="form-control altura"></td>
                                                                             </tr>

@@ -28,21 +28,18 @@ if ($area == 0) {
 
         $sql = "SELECT
                     `tb_tipo_compra`.`tipo_compra`
-                    , `tb_tipo_contratacion`.`tipo_contrato`
                     , `tb_tipo_bien_servicio`.`tipo_bn_sv`
                     , `tb_tipo_bien_servicio`.`id_tipo_b_s`
                 FROM
                     `tb_tipo_bien_servicio`
-                    INNER JOIN `tb_tipo_contratacion` 
-                        ON (`tb_tipo_bien_servicio`.`id_tipo` = `tb_tipo_contratacion`.`id_tipo`)
                     INNER JOIN `tb_tipo_compra` 
-                        ON (`tb_tipo_contratacion`.`id_tipo_compra` = `tb_tipo_compra`.`id_tipo`)
+                        ON (`tb_tipo_bien_servicio`.`id_tipo` = `tb_tipo_compra`.`id_tipo`)
                 WHERE (`tb_tipo_bien_servicio`.`filtro_adq` = $area)";
         $rs = $cmd->query($sql);
         $valores = $rs->fetch();
         if (!empty($valores)) {
             $response['id'] = $valores['id_tipo_b_s'];
-            $response['nombre'] = $valores['tipo_compra'] . ' -> ' . $valores['tipo_contrato'] . ' -> ' . $valores['tipo_bn_sv'];
+            $response['nombre'] = $valores['tipo_compra'] . ' -> ' . $valores['tipo_bn_sv'];
             $response['filtro'] = $area;
         } else {
             $response['status'] = 'error';

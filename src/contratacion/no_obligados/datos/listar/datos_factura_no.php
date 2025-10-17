@@ -1,11 +1,20 @@
 <?php
+
+
 session_start();
 if (!isset($_SESSION['user'])) {
-    header('Location: ../../../../index.php');
+    header('Location: ../../../../../index.php');
     exit();
 }
-include '../../../../conexion.php';
-include '../../../../permisos.php';
+
+include_once '../../../../../config/autoloader.php';
+
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+$opciones = $permisos->PermisoOpciones($id_user);
 function pesos($valor)
 {
     return '$' . number_format($valor, 2, ",", ".");
@@ -14,7 +23,6 @@ function pesos($valor)
 $vigencia = $_SESSION['vigencia'];
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
     $sql = "SELECT
                 `ctt_fact_noobligado`.`id_facturano`
                 , `tb_tipos_documento`.`codigo_ne` AS `tipo_documento`
@@ -39,7 +47,9 @@ try {
                     ON (`tb_terceros`.`tipo_doc` = `tb_tipos_documento`.`id_tipodoc`)
             WHERE `ctt_fact_noobligado`.`vigencia` = '$vigencia'";
     $rs = $cmd->query($sql);
-    $facturas_no = $rs->fetchAll();
+    $facturas_no = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -53,13 +63,14 @@ $soportes = [];
 if (!empty($ids)) {
     try {
         $cmd = \Config\Clases\Conexion::getConexion();
-        
         $sql = "SELECT 
                 `id_factura_no`,`shash`,`referencia` 
             FROM `seg_soporte_fno`
             WHERE `tipo` = 1 AND `id_factura_no` IN ($ids_fno) AND `shash` IS NOT NULL";
         $rs = $cmd->query($sql);
-        $soportes = $rs->fetchAll();
+        $soportes = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $rs->closeCursor();
+        unset($rs);
         $cmd = null;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -70,14 +81,15 @@ $detailsfno = [];
 if (!empty($ids)) {
     try {
         $cmd = \Config\Clases\Conexion::getConexion();
-        
         $sql = "SELECT
                 `id_detail`, `id_fno`, `codigo`, `detalle`, `val_unitario`, `cantidad`, `p_iva`, `val_iva`, `p_dcto`, `val_dcto`
             FROM
                 `ctt_fact_noobligado_det`
             WHERE `id_fno` IN ($ids_fno)";
         $rs = $cmd->query($sql);
-        $detailsfno = $rs->fetchAll();
+        $detailsfno = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $rs->closeCursor();
+        unset($rs);
         $cmd = null;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -89,19 +101,19 @@ if (!empty($facturas_no)) {
         $editar = $borrar = $ver = $estado = $tipo = $anular = null;
         $key = array_search($id_fno, array_column($soportes, 'id_factura_no'));
         if ($key === false) {
-            $enviar = '<button value="' . $id_fno . '" onclick="EnviaDocSoporte2(this,' . $fn['tipo_doc'] . ')" class="btn btn-outline-info btn-sm btn-circle shadow-gb enviar" title="Reportar Factura"><span class="fas fa-paper-plane fa-lg"></span></button>';
-            $estado = '<span class="badge badge-info badge-pill">Pendiente</span>';
-            if( $permisos->PermisosUsuario($opciones, 5303, 3) || $id_rol == 1) {
-                $editar = '<button value="' . $id_fno . '" class="btn btn-outline-primary btn-sm btn-circle shadow-gb modificar" title="Modificar"><span class="fas fa-pencil-alt fa-lg"></span></button>';
+            $enviar = '<button value="' . $id_fno . '" onclick="EnviaDocSoporte2(this,' . $fn['tipo_doc'] . ')" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 enviar" title="Reportar Factura"><span class="fas fa-paper-plane"></span></button>';
+            $estado = '<span class="badge text-bg-info rounded-pill">Pendiente</span>';
+            if ($permisos->PermisosUsuario($opciones, 5303, 3) || $id_rol == 1) {
+                $editar = '<button value="' . $id_fno . '" class="btn btn-outline-primary btn-xs rounded-circle shadow me-1 modificar" title="Modificar"><span class="fas fa-pencil-alt"></span></button>';
             }
-            if( $permisos->PermisosUsuario($opciones, 5303, 4) || $id_rol == 1) {
-                $borrar = '<button value="' . $id_fno . '" class="btn btn-outline-danger btn-sm btn-circle shadow-gb borrar" title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></button>';
+            if ($permisos->PermisosUsuario($opciones, 5303, 4) || $id_rol == 1) {
+                $borrar = '<button value="' . $id_fno . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 borrar" title="Eliminar"><span class="fas fa-trash-alt"></span></button>';
             }
         } else {
-            $enviar = '<button onclick="VerSoporteElectronico2(' . $id_fno . ')" class="btn btn-outline-warning btn-sm btn-circle shadow-gb verSoporte" title="Soporte Documento equivalente"><span class="fab fa-wpforms fa-lg"></span></button>';
-            $anular = '<button onclick="AnulaDocSoporte(' . $id_fno . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb anular" title="Anular"><span class="fas fa-ban fa-lg"></span></button>';
-            $ver = '<button value="' . $id_fno . '" class="btn btn-outline-primary btn-sm btn-circle shadow-gb verDocumento" title="Ver datos"><span class="fas fa-file-invoice fa-lg"></span></button>';
-            $estado = '<span class="badge badge-success  badge-pill">Enviado</span>';
+            $enviar = '<button onclick="VerSoporteElectronico2(' . $id_fno . ')" class="btn btn-outline-warning btn-xs rounded-circle shadow me-1 verSoporte" title="Soporte Documento equivalente"><span class="fab fa-wpforms"></span></button>';
+            $anular = '<button onclick="AnulaDocSoporte(' . $id_fno . ')" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 anular" title="Anular"><span class="fas fa-ban"></span></button>';
+            $ver = '<button value="' . $id_fno . '" class="btn btn-outline-primary btn-xs rounded-circle shadow me-1 verDocumento" title="Ver datos"><span class="fas fa-file-invoice"></span></button>';
+            $estado = '<span class="badge text-bg-success  rounded-pill">Enviado</span>';
         }
         //detalles
         $detalles = '';
@@ -111,13 +123,13 @@ if (!empty($facturas_no)) {
             }
         }
         if ($fn['id_doc_anula'] > 0) {
-            $estado = '<span class="badge badge-secondary  badge-pill">Anulado</span>';
+            $estado = '<span class="badge text-bg-secondary rounded-pill">Anulado</span>';
             $anular = null;
         }
         if ($fn['tipo_doc'] == '0') {
-            $tipo = '<h6 class="mb-0 text-center" title="Documento Soporte Equivalente"><span class="badge badge-primary">DS</span></h6>';
+            $tipo = '<h6 class="mb-0 text-center" title="Documento Soporte Equivalente"><span class="badge text-bg-primary">DS</span></h6>';
         } else {
-            $tipo = '<h6 class="mb-0 text-center" title="Nota de Ajuste - Anulación"><span class="badge badge-secondary">NC</span></h6>';
+            $tipo = '<h6 class="mb-0 text-center" title="Nota de Ajuste - Anulación"><span class="badge text-bg-secondary">NC</span></h6>';
             $anular = null;
         }
         $detalles = $detalles != '' ? '<ul class="mb-0">' . $detalles . '</ul>' : null;

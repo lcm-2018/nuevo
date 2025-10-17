@@ -1,19 +1,16 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
+    header("Location: ../../../../index.php");
     exit();
 }
-include_once '../../../../../config/autoloader.php';
-$id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
-$id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
-$permisos = new \Src\Common\Php\Clases\Permisos();
-$opciones = $permisos->PermisoOpciones($id_user);
-$cmd = \Config\Clases\Conexion::getConexion();
+include_once '../../../../config/autoloader.php';
+
 $id_adq = isset($_POST['id_adq']) ? $_POST['id_adq'] : exit('Accion no permitida');
 $id_orden = $_POST['id_orden'];
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
+
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "UPDATE `ctt_adquisiciones` SET

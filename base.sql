@@ -407,3 +407,64 @@ ALTER TABLE `nom_liq_salario`
   ADD COLUMN `id_user_act` INT UNSIGNED NULL AFTER `fec_act`,
   ADD FOREIGN KEY (`id_user_reg`) REFERENCES `seg_usuarios_sistema`(`id_usuario`),
   ADD FOREIGN KEY (`id_user_act`) REFERENCES `seg_usuarios_sistema`(`id_usuario`);
+
+ALTER TABLE `nom_retencion_fte`   
+  ADD COLUMN `estado` TINYINT(1) DEFAULT 1  NULL  COMMENT '1:Válido, 0:Anulado' AFTER `id_nomina`;
+
+ALTER TABLE `nom_liq_dlab_auxt`   
+  DROP COLUMN `mes_liq`, 
+  DROP COLUMN `anio_liq`, 
+  DROP COLUMN `tipo_liq`, 
+  ADD COLUMN `id_user_reg` INT UNSIGNED NULL AFTER `horas_ext`,
+  ADD COLUMN `id_user_act` INT UNSIGNED NULL AFTER `fec_reg`;
+
+ALTER TABLE `nom_liq_segsocial_empdo`  
+  DROP FOREIGN KEY `nom_liq_segsocial_empdo_ibfk_1`,
+  DROP FOREIGN KEY `nom_liq_segsocial_empdo_ibfk_2`,
+  DROP FOREIGN KEY `nom_liq_segsocial_empdo_ibfk_3`;
+
+ALTER TABLE `nom_liq_segsocial_empdo`  
+  ADD FOREIGN KEY (`id_eps`) REFERENCES `nom_terceros`(`id_tn`),
+  ADD FOREIGN KEY (`id_afp`) REFERENCES `nom_terceros`(`id_tn`),
+  ADD FOREIGN KEY (`id_arl`) REFERENCES `nom_terceros`(`id_tn`);
+
+ALTER TABLE `nom_cargo_empleado`   
+  ADD COLUMN `tipo_cargo` INT NULL  COMMENT '1=Administrativo, 2=operativo' AFTER `id_nombramiento`;
+
+ALTER TABLE `nom_empleado`   
+  DROP COLUMN `cargo`, 
+  DROP COLUMN `tipo_cargo`, 
+  DROP INDEX `FK_CARGOEMPLEADO`,
+  DROP FOREIGN KEY `nom_empleado_ibfk_1`;
+
+ALTER TABLE `nom_contratos_empleados`   
+  CHANGE `id_salario` `id_cargo` INT NULL,
+  DROP FOREIGN KEY `nom_contratos_empleados_ibfk_4`,
+  ADD FOREIGN KEY (`id_cargo`) REFERENCES `nom_cargo_empleado`(`id_cargo`);
+
+ALTER TABLE `tb_tipo_bien_servicio`   
+  CHANGE `id_tipo_cotrato` `id_tipo` INT NULL,
+  DROP FOREIGN KEY `tb_tipo_bien_servicio_ibfk_1`;
+  
+/* OJO PARA ACTUALIZAR LOS TIPO DE CONTRATO POR TIPO DE COMPRA
+UPDATE tb_tipo_bien_servicio AS tbs
+INNER JOIN tb_tipo_contratacion AS tc
+    ON tbs.id_tipo = tc.id_tipo
+SET tbs.id_tipo = tc.id_tipo_compra;
+*/
+
+ALTER TABLE `tb_tipo_bien_servicio`  
+  ADD FOREIGN KEY (`id_tipo`) REFERENCES `otra`.`tb_tipo_compra`(`id_tipo`);
+
+ALTER TABLE `ctt_estado_adq`   
+  ADD COLUMN `filtro` TINYINT(1) DEFAULT 0  NULL  COMMENT '0:No, 1:Si. Para que en le listado solo salgan los que se requieran' AFTER `descripcion`;
+
+CREATE TABLE `ctt_tipo_terminacion` (
+  `id_tipo_term` INT NOT NULL AUTO_INCREMENT,
+  `descripcion` VARCHAR(100) DEFAULT NULL,
+  PRIMARY KEY (`id_tipo_term`)
+) ENGINE=INNODB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
+
+INSERT  INTO `ctt_tipo_terminacion`
+	(`id_tipo_term`,`descripcion`) 
+VALUES (1,'ANTICIPADA'),(2,'UNILATERAL'),(3,'CADUCIDAD'),(4,'BILATERAL ');

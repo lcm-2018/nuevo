@@ -40,8 +40,8 @@
         });
         return false;
     };
-    function FormDocSoporte(id) {
-        $.post("datos/registrar/formadd_factura_no.php", { id: id }, function (he) {
+    function FormDocSoporte(id, ver = null) {
+        $.post("datos/registrar/formadd_factura_no.php", { id: id, ver: ver }, function (he) {
             $('#divTamModalForms').removeClass('modal-lg');
             $('#divTamModalForms').removeClass('modal-sm');
             $('#divTamModalForms').addClass('modal-xl');
@@ -53,9 +53,11 @@
     $(document).ready(function () {
         //dataTable facturas no obligados
         $('#tableFacurasNoObligados').DataTable({
-            dom : setdom,
+            dom: setdom,
             buttons: [{
                 //Registar nueva factura no obligado
+                text: '<span class="fa-solid fa-plus fa-lg"></span>',
+                className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     FormDocSoporte(0);
                 }
@@ -93,7 +95,6 @@
             "pageLength": -1
         });
         $('#tableFacurasNoObligados').wrap('<div class="overflow" />');
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle fa-lg"></span>');
     });
     //Agregar detalles de factura no obligado
     $('#divForms').on('click', '#btnMasDetalleFactura', function () {
@@ -120,8 +121,6 @@
     $('#divForms').on('click', '#btnFacturaNO', function () {
         var opcion = $(this).attr('value');
         var aprobar = 1;
-        var btn = $(this).attr('id');
-        InactivaBoton(btn);
         $(".form-control").removeClass('is-invalid');
         if ($('#fecCompraNO').val() == '') {
             $('#fecCompraNO').addClass('is-invalid');
@@ -205,10 +204,6 @@
                     $(row.find('input[name="numCantidad[]"]')).addClass('is-invalid');
                     mjeError('Cantidad debe ser mayor a cero');
                 }
-                if (aprobar == 0) {
-                    ActivaBoton(btn);
-                    return false;
-                }
             });
             if (aprobar == 1) {
                 let val_fac = $('input[name="valfac"]').val();
@@ -224,25 +219,26 @@
                     } else {
                         estado = 'Actualizada';
                     }
+                    mostrarOverlay();
                     $.ajax({
                         type: 'POST',
                         url: url,
                         data: datos,
                         success: function (r) {
                             if (r == '1') {
-                                let id = 'tableFacurasNoObligados';
-                                reloadtable(id);
+                                $('#tableFacurasNoObligados').DataTable().ajax.reload(null, false);
                                 $('#divModalForms').modal('hide');
                                 mje('Documento ' + estado + ' correctamente');
                             } else {
                                 mjeError(r);
                             }
                         }
+                    }).always(function () {
+                        ocultarOverlay();
                     });
                 }
             }
         }
-        ActivaBoton(btn);
         return false;
     });
     //actualizar factura no obligado
@@ -404,11 +400,7 @@
     });
     $('#tableFacurasNoObligados').on('click', '.verDocumento', function () {
         var id = $(this).attr('value');
-        FormDocSoporte(id);
-        $('#divModalForms').on('shown.bs.modal', function () {
-            $('#btnFacturaNO').remove();
-
-        });
+        FormDocSoporte(id, 'ver');
     });
     $('#tableFacurasNoObligados').on('click', '.borrar', function () {
         var id = $(this).attr('value');
@@ -499,7 +491,7 @@
             '</td>' +
             '<td class="border text-center" colspan="1">' +
             '<button type="button" class="btn btn-sm btn-outline-danger btnDelRowFNO"  title="Eliminar fila de este producto">' +
-            '<span class="fas fa-minus-square fa-lg"></span>' +
+            '<span class="fas fa-minus fa-lg"></span>' +
             '</button>' +
             '</td>' +
             '</tr>';
@@ -646,15 +638,12 @@
                     $('#id_tercero_api').val(r.id_tercero_api);
                     var dpto = r.id_dpto;
                     var city = r.id_municipio;
-                    $.ajax({
-                        type: 'POST',
-                        url: window.urlin + '/nomina/empleados/registrar/slcmunicipio.php',
-                        data: { dpto: dpto },
-                        success: function (data) {
-                            $('#slcMunicipioEmp').html(data);
-                            $('#slcMunicipioEmp').val(city);
-                        }
-                    });
+                    console.log(dpto, city);
+                    CargaCombos('slcMunicipioEmp', 'mun', dpto)
+                    //esperar 1 segundo para cargar el municipio
+                    setTimeout(() => {
+                        $('#slcMunicipioEmp').val(city);
+                    }, 500);
                 }
             }
         });
@@ -713,14 +702,12 @@
 
 function EnviaDocSoporte2(boton, tipo) {
     var id = boton.value;
-    boton.disabled = true;
-    boton.value = "";
-    boton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
     if (tipo == '1') {
         url = 'datos/soporte/anula_factura_no.php';
     } else {
         url = 'datos/soporte/enviar_factura_no.php';
     }
+    mostrarOverlay();
     $.ajax({
         type: "POST",
         url: url,
@@ -728,13 +715,9 @@ function EnviaDocSoporte2(boton, tipo) {
         dataType: "json",
         success: function (response) {
             if (response[0].value == "ok") {
-                boton.innerHTML = '<span class="fas fa-thumbs-up fa-lg"></span>';
                 $('#tableFacurasNoObligados').DataTable().ajax.reload();
                 mje("Documento enviado correctamente");
             } else {
-                boton.disabled = false;
-                boton.value = id;
-                boton.innerHTML = '<span class="fas fa-paper-plane fa-lg"></span>';
                 function mjeError(titulo, mensaje) {
                     Swal.fire({
                         title: titulo,
@@ -748,8 +731,9 @@ function EnviaDocSoporte2(boton, tipo) {
         error: function (xhr, status, error) {
             console.error("Error en la solicitud AJAX:", error);
         }
+    }).always(function () {
+        ocultarOverlay();
     });
-    ActivaBoton(boton);
     return false
 };
 

@@ -1,3 +1,9 @@
 [2025-10-10 11:53:10] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM ctt_modalidad  WHERE id_modalidad = 5;
 [2025-10-10 12:02:10] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM tb_tipo_bien_servicio  WHERE id_tipo_b_s = 19;
 [2025-10-10 14:20:29] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_formatos_doc_rel`  WHERE `id_relacion` = 1;
+[2025-10-14 12:20:42] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_productos_adq` WHERE `id_adquisicion` = 501;
+[2025-10-15 11:16:25] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_orden_compra_detalle`  WHERE `id_detalle` = 487;
+[2025-10-15 16:32:15] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_garantias_compra` WHERE `id_est_prev` = 482;
+[2025-10-16 15:54:24] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_garantias_compra` WHERE `id_est_prev` = 484;
+[2025-10-16 19:17:00] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_fact_noobligado`  WHERE `id_facturano`  = 1;
+[2025-10-16 19:32:40] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_fact_noobligado`  WHERE `id_facturano`  = 3;

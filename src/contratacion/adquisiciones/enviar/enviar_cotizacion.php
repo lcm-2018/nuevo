@@ -33,7 +33,9 @@ if (isset($_REQUEST['check'])) {
                     WHERE 
                         `ctt_adquisicion_detalles`.`id_adquisicion` = '$id_cotiza'";
             $rs = $cmd->query($sql);
-            $productos = $rs->fetchAll();
+            $productos = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
             $cmd = null;
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

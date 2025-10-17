@@ -1,10 +1,12 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
+    header("Location: ../../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+
+include_once "../../../../config/autoloader.php";
+
 $id_detalle = isset($_POST['id_detalle']) ? $_POST['id_detalle'] : exit('Accion no permitida');
 $cantidad = $_POST['numCantidad'];
 $val_unid = $_POST['numValUnid'];

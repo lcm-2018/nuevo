@@ -1,10 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
+    header("Location: ../../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+
+include_once '../../../../config/autoloader.php';
 
 $id_fno = $_POST['id'] ? $_POST['id'] : exit('Acción no permitida');
 $iduser = $_SESSION['id_user'];
@@ -14,7 +15,7 @@ $fecha = $date->format('Y-m-d H:i:s');
 $vigencia = $_SESSION['vigencia'];
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "INSERT INTO `ctt_fact_noobligado`
                     (`id_tercero_no`, `fec_compra`, `fec_vence`, `met_pago`, `forma_pago`, `val_retefuente`
                     , `porc_retefuente`, `val_reteiva`, `porc_reteiva`, `val_iva`, `porc_iva`, `val_dcto`
@@ -33,7 +34,7 @@ try {
     if ($idF > 0) {
         $cmd = null;
         $cmd = \Config\Clases\Conexion::getConexion();
-        
+
         $sql = "INSERT INTO `ctt_fact_noobligado_det`
                     (`id_fno`,`codigo`,`detalle`,`val_unitario`,`cantidad`,
                     `p_iva`,`val_iva`,`p_dcto`,`val_dcto`,`id_user_reg`,`fec_reg`)
@@ -48,7 +49,7 @@ try {
         if ($ids > 0) {
             $cmd = null;
             $cmd = \Config\Clases\Conexion::getConexion();
-            
+
             $sql = "UPDATE `ctt_fact_noobligado`
                     SET `id_doc_anula` = ?
                     WHERE `id_facturano` = ?";

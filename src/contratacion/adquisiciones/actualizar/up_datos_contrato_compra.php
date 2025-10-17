@@ -1,20 +1,12 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
+    header("Location: ../../../../index.php");
     exit();
 }
-include_once '../../../../../config/autoloader.php';
-$id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
-$id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
-$permisos = new \Src\Common\Php\Clases\Permisos();
-$opciones = $permisos->PermisoOpciones($id_user);
-$sessionStarted = false;
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-    $sessionStarted = true;
-}
-$id_cc = isset($_POST['id_cc']) ? $_POST['id_cc'] : exit('Acci3n no permitida');
+include_once '../../../../config/autoloader.php';
+
+$id_cc = isset($_POST['id_cc']) ? $_POST['id_cc'] : exit('Acción no permitida');
 $fec_ini =  date('Y-m-d', strtotime($_POST['datFecIniEjec']));
 $fec_fin = date('Y-m-d', strtotime($_POST['datFecFinEjec']));
 $forma_pago = $_POST['slcFormPago'];
@@ -27,8 +19,6 @@ $change = 0;
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
-
     $sql = "UPDATE `ctt_adquisiciones` SET `id_tercero` = ? WHERE `id_adquisicion` = ?";
     $sql = $cmd->prepare($sql);
     $sql->bindParam(1, $id_tercero, PDO::PARAM_INT);
@@ -43,7 +33,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
-    
+
     $sql1 = "UPDATE `ctt_contratos` 
             SET `fec_ini` = ?, `fec_fin` = ?, `id_forma_pago` = ?, `id_supervisor` = ? 
             WHERE `id_contrato_compra` = ?";
@@ -58,8 +48,7 @@ try {
         exit();
     } else {
         try {
-            
-            $query = "DELETE FROM `ctt_garantias_compra` WHERE `id_contrato_compra` = '$id_cc'";
+            $query = "DELETE FROM `ctt_garantias_compra` WHERE `id_contrato_compra` = ?";
             $query = $cmd->prepare($query);
             $query->bindParam(1, $id_cc, PDO::PARAM_INT);
             $query->execute();
@@ -73,7 +62,7 @@ try {
             $cant = 1;
         } else {
             try {
-                
+
                 $sql = "INSERT INTO `ctt_garantias_compra`(`id_contrato_compra`,`id_poliza`,`id_user_reg`,`fec_reg`) VALUES (?, ?, ?, ?)";
                 $sql = $cmd->prepare($sql);
                 $sql->bindParam(1, $id_cc, PDO::PARAM_INT);
@@ -96,7 +85,7 @@ try {
             }
         }
         if ($sql1->rowCount() > 0 || $cant > 0) {
-            
+
             $sql = "UPDATE  `ctt_contratos` SET  `id_user_act` = ? , `fec_act` = ? WHERE `id_contrato_compra` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -111,7 +100,7 @@ try {
         }
     }
     if ($change == 1) {
-        echo '1';
+        echo 'ok';
     } else {
         echo 'No se ha realizado ningun cambio';
     }

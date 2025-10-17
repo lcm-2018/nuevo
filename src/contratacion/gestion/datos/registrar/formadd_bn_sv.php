@@ -21,7 +21,9 @@ try {
                 ON (`tb_tipo_bien_servicio`.`id_tipo` = `tb_tipo_compra`.`id_tipo`)
             ORDER BY `tipo_compra`, `tipo_bn_sv`";
     $rs = $cmd->query($sql);
-    $tbnsv = $rs->fetchAll();
+    $tbnsv = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
@@ -35,7 +37,7 @@ try {
             <div class="row px-4 pt-2">
                 <div class="col-md-12 mb-3">
                     <label for="slcTipoBnSv" class="small">TIPO DE BIEN O SERVICIO</label>
-                    <select id="slcTipoBnSv" name="slcTipoBnSv" class="form-control form-control-sm py-0 sm bg-input" aria-label="Default select example">
+                    <select id="slcTipoBnSv" name="slcTipoBnSv" class="form-select form-select-sm bg-input" aria-label="Default select example">
                         <option value="0">-- Seleccionar --</option>
                         <?php
                         foreach ($tbnsv as $tbs) {
@@ -46,12 +48,9 @@ try {
                 </div>
             </div>
             <div class="row px-4">
-                <div class="col-md-12 mb-3">
-                    <label for="txtBnSv" class="small">NOMBRE DE BIEN O SERVICIO</label>
-                    <div class="input-group input-group-sm" id="celdaPR">
-                        <input id="txtBnSv" type="text" name="txtBnSv[]" class="form-control py-0 sm bg-input" aria-label="Default select example">
-                        <button class="btn btn-success btn-circle shadow-gb btn_addBnSv" type="button"><span class="fas fa-plus fa-lg"></span></button>
-                    </div>
+                <div class="col-md-12 mb-3">                    <label for="txtBnSv" class="small">NOMBRE DE BIEN O SERVICIO</label>
+                    <div class="input-group input-group-sm" id="celdaPR">                        <input id="txtBnSv" type="text" name="txtBnSv[]" class="form-control form-control-sm bg-input" aria-label="Default select example">
+                        <button class="btn btn-success btn-circle shadow-gb btn_addBnSv" type="button"><span class="fas fa-plus fa-lg"></span></button>                    </div>
                 </div>
             </div>
             <div id="content_inputs" class="px-4">

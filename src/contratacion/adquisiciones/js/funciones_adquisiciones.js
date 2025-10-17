@@ -29,9 +29,9 @@ const tableAdquisiciones = crearDataTable(
     ],
     {
         pageLength: 50,
-        order: [[0, 'desc']],
+        order: [0, 'asc'],
         columnDefs: [
-            { "orderable": false, "targets": [0, 6] },
+            { "orderable": false, "targets": [1, 2, 3, 4, 5, 6, 7] },
             { class: 'text-wrap', targets: [1, 4, 5, 6] }
         ],
         initComplete: function () {
@@ -112,7 +112,7 @@ const tableAdquisiciones = crearDataTable(
 
         $('.tableCotRecibidas').DataTable({
             dom: setdom,
-            buttons: [{
+            buttons: $('#peReg').val() == 1 ? [{
                 text: '<span class="fa-solid fa-plus fa-lg"></span>',
                 className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
@@ -124,7 +124,7 @@ const tableAdquisiciones = crearDataTable(
                         $("#divForms").html(he);
                     });
                 }
-            }],
+            }] : [],
             language: dataTable_es,
             "lengthMenu": [
                 [10, 25, 50, -1],
@@ -134,7 +134,7 @@ const tableAdquisiciones = crearDataTable(
                 class: 'text-wrap',
                 targets: [1]
             }],
-            "pageLength": -1
+            "pageLength": 10,
         });
         $('.tableCotRecibidas').wrap('<div class="overflow" />');
         //tabla lista de compra recibida
@@ -260,6 +260,8 @@ const tableAdquisiciones = crearDataTable(
                         $('#txtBuscarTipoBnSv').val('');
                         $('#txtBuscarTipoBnSv').attr('disabled', false);
                         $('#txtBuscarTipoBnSv').attr('readonly', false);
+                        $('#slcTipoBnSv').val(0);
+                        $('#txtBuscarTipoBnSv').val('');
                     } else {
                         $('#txtBuscarTipoBnSv').attr('disabled', true);
                         $('#txtBuscarTipoBnSv').attr('readonly', true);
@@ -268,6 +270,8 @@ const tableAdquisiciones = crearDataTable(
                     }
                 } else {
                     mjeError(r.msg);
+                    $('#slcTipoBnSv').val(0);
+                    $('#txtBuscarTipoBnSv').val('');
                 }
             }
         });
@@ -340,22 +344,62 @@ const tableAdquisiciones = crearDataTable(
         });
 
     });
-    $('#tableAdqBnSv input[type=checkbox]').on('change', function () {
-        if ($('#tipo_contrato').val() == '1') {
-            var id = $(this).attr('value');
-            var tipo = $('#tipo_' + id).val();
-            if ($(this).is(':checked')) {
-                $.post("datos/listar/val_honorarios.php", { id: id, tipo: tipo }, function (data) {
-                    $('#val_bnsv_' + id).val(data);
-                    $('#bnsv_' + id).val('1');
-                });
-            } else {
-                $('#val_bnsv_' + id).val('0');
-                $('#bnsv_' + id).val('');
-            }
+    function SetValor(element, soloCalcular = false) {
+        var fila = $(this).closest('tr');
+        var celdaAprobado = fila.find('.aprobado');
+
+        if (!celdaAprobado.is(':checked')) {
+            return;
+        }
+
+        const calcularYMostrarTotal = (valorUnitario) => {
+            let cantidad = Number(fila.find('.cantidad').val()) || 0;
+            let valor = cantidad * Number(valorUnitario);
+            let valorFormateado = valor.toLocaleString('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 2
+            });
+            fila.find('.total').html(valorFormateado);
+        };
+
+        if (soloCalcular) {
+            let valorActual = fila.find('.val_bnsv').val();
+            calcularYMostrarTotal(valorActual);
+        } else {
+            var id = $(this).attr('text');
+            var elementoInput = fila.find('.val_bnsv');
+
+            $.ajax({
+                type: 'POST',
+                url: 'datos/listar/valor_servicio.php',
+                data: { id: id },
+                success: function (valorServidor) {
+                    elementoInput.val(valorServidor);
+                    calcularYMostrarTotal(valorServidor);
+                }
+            });
+        }
+    }
+    $('#divModalForms').off('focus', '.val_bnsv');
+    $('#divModalForms').on('focus', '.val_bnsv', function () {
+        SetValor.call(this);
+        return false;
+    });
+    $('#divModalForms').on('input', '#tableAdqBnSv .val_bnsv', function () {
+        SetValor.call(this, null, true);
+    });
+    $('#divModalForms').on('change', '#tableAdqBnSv .aprobado', function () {
+        if ($(this).is(':checked')) {
+            SetValor.call(this);
         }
     });
-    $('#tableAdqBnSv').on('input', '.cantidad', function () {
+    $('#divModalForms').on('input', '#tableAdqBnSv .cantidad', function () {
+        SetValor.call(this);
+        return false;
+    });
+    $('#divModalForms #tableAdqBnSv').on('input', '.cantidad', function () {
+        alert('hola');
         if ($('#tipo_contrato').val() == '1') {
             var id = $(this).attr('id').split('_')[1];
             var tipo = $('#tipo_' + id).val();
@@ -363,11 +407,9 @@ const tableAdquisiciones = crearDataTable(
             $.post("datos/listar/val_honorarios.php", { id: id, tipo: tipo }, function (data) {
                 $('#val_bnsv_' + id).val(cantidad * Number(data));
             });
-
         }
     });
     $('#btnDestContra').on('click', function () {
-        let accion = $(this).attr('value');
         let id_adq = $('#id_compra').val();
         var validar = true;
         var centros = [];
@@ -407,17 +449,14 @@ const tableAdquisiciones = crearDataTable(
         });
         if (validar) {
             mostrarOverlay();
-            let datos = $('#formDestContra').serialize() + '&id_adq=' + id_adq + '&accion=' + accion;
+            let datos = $('#formDestContra').serialize() + '&id_adq=' + id_adq;
             $.ajax({
                 type: 'POST',
                 url: 'registrar/new_dest_contra.php',
                 data: datos,
                 success: function (r) {
-                    if (r == 1) {
-
-                        $('#divModalDone a').attr('data-dismiss', '');
-                        $('#divModalDone a').attr('href', 'javascript:location.reload()');
-                        $('#divModalForms').modal('hide');
+                    if (r == 'ok') {
+                        location.reload();
                         mje('Destino de contrato guardado con éxito');
                     } else {
                         mjeError(r);
@@ -509,27 +548,31 @@ const tableAdquisiciones = crearDataTable(
     //Borrar modalidad confirmar
     $('#modificarAdquisiciones').on('click', '.borrar', function () {
         let id = $(this).attr('value');
-        let tip = 'Adquisicion';
-        confdel(id, tip);
-    });
-    //Eliminar adquisicion
-    $("#divBtnsModalDel").on('click', '#btnConfirDelAdquisicion', function () {
-        $('#divModalConfDel').modal('hide');
-        $.ajax({
-            type: 'POST',
-            url: 'eliminar/del_adquisicion.php',
-            data: {},
-            success: function (r) {
-                if (r === '1') {
-                    let id = 'tableAdquisiciones';
-                    reloadtable(id);
-                    mje("Orden de compra eliminada correctamente");
-                } else {
-                    mjeError(r);
-                }
+        Swal.fire({
+            title: "¿Confirma eliminar registro?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#00994C",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si!",
+            cancelButtonText: "NO",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: 'POST',
+                    url: 'eliminar/del_adquisicion.php',
+                    data: { id: id },
+                    success: function (r) {
+                        if (r === '1') {
+                            $('#tableAdquisiciones').DataTable().ajax.reload(null, false);
+                            mje("Registro eliminado correctamente");
+                        } else {
+                            mjeError(r);
+                        }
+                    }
+                });
             }
         });
-        return false;
     });
     $('.listOrdenes').on('click', function () {
         let tipo = $(this).attr('text');
@@ -587,7 +630,7 @@ const tableAdquisiciones = crearDataTable(
                     url: 'datos/actualizar/anula_adq.php',
                     data: { id: id },
                     success: function (r) {
-                        if (r == 1) {
+                        if (r == 'ok') {
                             $('#tableAdquisiciones').DataTable().ajax.reload(null, false);
                             mje('Adquisición anulada correctamente');
                         } else {
@@ -898,7 +941,8 @@ const tableAdquisiciones = crearDataTable(
             });
         }
     });
-    $("#divModalForms").on('input', '#SeaTercer', function () {
+    $("#divModalForms").on('input', '#SeaTercer', function (e) {
+        e.preventDefault();
         $(this).autocomplete({
             source: function (request, response) {
                 $.ajax({
@@ -990,9 +1034,8 @@ const tableAdquisiciones = crearDataTable(
                     url: 'registrar/new_estudio_previo.php',
                     data: datos,
                     success: function (r) {
-                        if (r == 1) {
-                            $('#divModalDone a').attr('data-dismiss', '');
-                            $('#divModalDone a').attr('href', 'javascript:location.reload()');
+                        if (r == 'ok') {
+                            location.reload();
                             mje("Datos registrados correctamente");
                         } else {
                             mjeError(r);
@@ -1049,9 +1092,8 @@ const tableAdquisiciones = crearDataTable(
                     url: 'actualizar/up_datos_estudio_previo.php',
                     data: datos,
                     success: function (r) {
-                        if (r == 1) {
-                            $('#divModalDone a').attr('data-dismiss', '');
-                            $('#divModalDone a').attr('href', 'javascript:location.reload()');
+                        if (r == 'ok') {
+                            location.reload();
                             mje("Datos registrados correctamente");
                         } else {
                             mjeError(r);
@@ -1113,27 +1155,35 @@ const tableAdquisiciones = crearDataTable(
 
     $('#modificarEstPrev').on('click', '.borrar', function () {
         let id = $(this).attr('value');
-        let tip = 'EstudPrevio';
-        confdel(id, tip);
-    });
-    $("#divBtnsModalDel").on('click', '#btnConfirDelEstudPrevio', function () {
-        $('#divModalConfDel').modal('hide');
-        let id_c = $('#id_compra').val();
-        $.ajax({
-            type: 'POST',
-            url: 'eliminar/del_estudio_previo.php',
-            data: { id_c: id_c },
-            success: function (r) {
-                if (r === '1') {
-                    $('#divModalDone a').attr('data-dismiss', '');
-                    $('#divModalDone a').attr('href', 'javascript:location.reload()');
-                    mje("Estudio Previo eliminado correctamente");
-                } else {
-                    mjeError(r);
-                }
+        let id_compra = $('#id_compra').val();
+        Swal.fire({
+            title: "¿Confirma eliminar registro?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#00994C",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si!",
+            cancelButtonText: "NO",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'eliminar/del_estudio_previo.php',
+                    data: { id: id, id_compra: id_compra },
+                    success: function (r) {
+                        if (r === 'ok') {
+                            location.reload();
+                            mje("Estudio Previo eliminado correctamente");
+                        } else {
+                            mjeError(r);
+                        }
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
         });
-        return false;
     });
     $('#btnAddContrato').on('click', function () {
         let id = $('#id_compra').val();
@@ -1221,9 +1271,8 @@ const tableAdquisiciones = crearDataTable(
                     url: 'registrar/new_contrato_compra.php',
                     data: datos,
                     success: function (r) {
-                        if (r == '1') {
-                            $('#divModalDone a').attr('data-dismiss', '');
-                            $('#divModalDone a').attr('href', 'javascript:location.reload()');
+                        if (r == 'ok') {
+                            location.reload();
                             mje("Datos registrados correctamente");
                         } else {
                             mjeError(r);
@@ -1276,9 +1325,8 @@ const tableAdquisiciones = crearDataTable(
                     url: 'actualizar/up_datos_contrato_compra.php',
                     data: datos,
                     success: function (r) {
-                        if (r == 1) {
-                            $('#divModalDone a').attr('data-dismiss', '');
-                            $('#divModalDone a').attr('href', 'javascript:location.reload()');
+                        if (r == 'ok') {
+                            location.reload();
                             mje("Datos registrados correctamente");
                         } else {
                             mjeError(r);
@@ -1293,28 +1341,37 @@ const tableAdquisiciones = crearDataTable(
     });
     $('#modificarContraCompra').on('click', '.borrar', function () {
         let id = $(this).attr('value');
-        let tip = 'ContraCompra';
-        confdel(id, tip);
-    });
-    $("#divBtnsModalDel").on('click', '#btnConfirDelContraCompra', function () {
-        $('#divModalConfDel').modal('hide');
-        let id_c = $('#id_compra').val();
-        $.ajax({
-            type: 'POST',
-            url: 'eliminar/del_contrato_compra.php',
-            data: { id_c: id_c },
-            success: function (r) {
-                if (r === '1') {
-                    $('#divModalDone a').attr('data-dismiss', '');
-                    $('#divModalDone a').attr('href', 'javascript:location.reload()');
-                    mje("Contrato de Compra eliminado correctamente");
-                } else {
-                    mjeError(r);
-                }
+        let id_compra = $('#id_compra').val();
+        Swal.fire({
+            title: "¿Confirma eliminar registro?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#00994C",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si!",
+            cancelButtonText: "NO",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'eliminar/del_contrato_compra.php',
+                    data: { id: id, id_compra: id_compra },
+                    success: function (r) {
+                        if (r === 'ok') {
+                            location.reload();
+                            mje("Registro eliminado correctamente");
+                        } else {
+                            mjeError(r);
+                        }
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
         });
-        return false;
     });
+
     $('#btnCerrarContrato').on('click', function () {
         var id_adq = $('#id_compra').val();
         Swal.fire({
@@ -1544,8 +1601,8 @@ const tableAdquisiciones = crearDataTable(
         let id = $(this).attr('value');
         $.post("datos/registrar/form_duplica_est_prev.php", { id: id }, function (he) {
             $('#divTamModalForms').removeClass('modal-sm');
-            $('#divTamModalForms').removeClass('modal-xl');
-            $('#divTamModalForms').addClass('modal-lg');
+            $('#divTamModalForms').removeClass('modal-lg');
+            $('#divTamModalForms').addClass('modal-xl');
             $('#divModalForms').modal('show');
             $("#divForms").html(he);
         });
@@ -1738,26 +1795,40 @@ const tableAdquisiciones = crearDataTable(
     //confirmar eliminar novedades de conrtato
     $('#tableNovedadesContrato').on('click', '.borrar', function () {
         let id = $(this).attr('value');
-        let tip = 'NovContrato';
-        popdel(id, tip);
+        Swal.fire({
+            title: "¿Confirma eliminar detalle de orden?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#00994C",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si!",
+            cancelButtonText: "NO",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'eliminar/del_novedad_contrato.php',
+                    data: { id: id },
+                    success: function (r) {
+                        if (r == 'ok') {
+                            $('#tableNovedadesContrato').DataTable().ajax.reload(null, false);
+                            mje("Novedad eliminada correctamente");
+                        } else {
+                            mjeError(r);
+                        }
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
+            }
+        });
+        return false;
     });
     $("#divBtnsModalDel").on('click', '#btnConfirDelNovContrato', function () {
         $('#divModalConfDel').modal('hide');
         let id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: 'eliminar/del_novedad_contrato.php',
-            data: { id: id },
-            success: function (r) {
-                if (r == '1') {
-                    let id = 'tableNovedadesContrato';
-                    reloadtable(id);
-                    mje("Novedad eliminada correctamente");
-                } else {
-                    mjeError(r);
-                }
-            }
-        });
+
         return false;
     });
     $('#tableNovedadesContrato').on('click', '.editar', function () {
@@ -1939,24 +2010,26 @@ const tableAdquisiciones = crearDataTable(
         }
         return false;
     });
-    $('#addRowSedes').on('click', function () {
+    $('#addRowSedes').on('click', function (e) {
+        e.preventDefault();
         $.post("datos/listar/new_fila.php", function (he) {
             $('#contenedor').append(he);
         });
         return false;
     });
-    $('#divModalForms').on('click', '#addRowSedes', function () {
+    $('#divModalForms').on('click', '#addRowSedes', function (e) {
+        e.preventDefault
         $.post("datos/listar/new_fila.php", function (he) {
             $('#contenedor').append(he);
         });
         return false;
     });
     $('#contenedor').on('click', '.delRowSedes', function () {
-        let fila = $(this).parent().parent().parent().parent();
+        let fila = $(this).parent().parent().parent();
         fila.remove();
     });
     $('#divModalForms').on('click', '.delRowSedes', function () {
-        let fila = $(this).parent().parent().parent().parent();
+        let fila = $(this).parent().parent().parent();
         fila.remove();
     });
     $('#guardarOrden').on('click', function () {
@@ -2000,7 +2073,8 @@ const tableAdquisiciones = crearDataTable(
             });
         }
     });
-    $('#divModalForms').on('click', '#btnGuardarOrden', function () {
+    $('#divModalForms').on('click', '#btnGuardarOrden', function (e) {
+        e.preventDefault();
         var next = true;
         var c = 0;
         $('.is-invalid').removeClass('is-invalid');
@@ -2045,7 +2119,8 @@ const tableAdquisiciones = crearDataTable(
             });
         }
     });
-    $('.modificarCotizaciones').on('click', '.editar', function () {
+    $('.modificarCotizaciones').on('click', '.editar', function (e) {
+        e.preventDefault();
         let id = $(this).attr('value');
         $.post("datos/actualizar/formup_detalle_orden.php", { id: id }, function (he) {
             $('#divTamModalForms').removeClass('modal-sm');
@@ -2055,7 +2130,8 @@ const tableAdquisiciones = crearDataTable(
             $("#divForms").html(he);
         });
     });
-    $('.modificarCotizaciones').on('click', '.borrar', function () {
+    $('.modificarCotizaciones').on('click', '.borrar', function (e) {
+        e.preventDefault();
         let id = $(this).attr('value');
         Swal.fire({
             title: "¿Confirma eliminar detalle de orden?",
@@ -2083,7 +2159,8 @@ const tableAdquisiciones = crearDataTable(
             }
         });
     });
-    $('#divModalForms').on('click', '#btnUpDetalleOrdnen', function () {
+    $('#divModalForms').on('click', '#btnUpDetalleOrdnen', function (e) {
+        e.preventDefault();
         $('.is-invalid').removeClass('is-invalid');
         if (Number($('#numCantidad').val()) <= 0) {
             $('#numCantidad').addClass('is-invalid');

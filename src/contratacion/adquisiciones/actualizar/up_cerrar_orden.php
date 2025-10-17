@@ -1,14 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
+    header("Location: ../../../../index.php");
     exit();
 }
-include_once '../../../../../config/autoloader.php';
-$id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
-$id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
-$permisos = new \Src\Common\Php\Clases\Permisos();
-$opciones = $permisos->PermisoOpciones($id_user);
+include_once '../../../../config/autoloader.php';
+
 $cmd = \Config\Clases\Conexion::getConexion();
 $id_orden = isset($_POST['id_orden']) ? $_POST['id_orden'] : exit('Accion no permitida');
 $id_adq = $_POST['id_adq'];

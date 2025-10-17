@@ -17,7 +17,9 @@ try {
                 `variable`, `tipo`, `contexto`, `ejemplo`
             FROM `ctt_variables_forms`";
     $rs = $cmd->query($sql);
-    $variables = $rs->fetchAll();
+    $variables = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

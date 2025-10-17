@@ -1,80 +1,67 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header('Location: ../../index.php');
+    header("Location: ../../../index.php");
     exit();
 }
-function pesos($valor)
-{
-    return '$' . number_format($valor, 2, ",", ".");
-}
 
-include '../../conexion.php';
-include '../../permisos.php';
-$key = array_search('53', array_column($perm_modulos, 'id_modulo'));
-if ($key === false) {
-    echo 'Usuario no autorizado';
-    exit();
-}
-$vigencia = $_SESSION['vigencia'];
-?>
-<!DOCTYPE html>
-<html lang="es">
-<?php include '../../head.php' ?>
+include_once '../../../config/autoloader.php';
 
-<body class="sb-nav-fixed <?= $_SESSION['navarlat'] == '1' ? 'sb-sidenav-toggled' : ''; ?>">
-    <?php include '../../navsuperior.php' ?>
-    <div id="layoutSidenav">
-        <?php include '../../navlateral.php' ?>
-        <div id="layoutSidenav_content">
-            <main>
-                <div class="container-fluid p-2">
-                    <div class="card mb-4">
-                        <div class="card-header" id="divTituloPag">
-                            <div class="row">
-                                <div class="col-md-11">
-                                    <i class="fas fa-ticket-alt fa-lg" style="color:#1D80F7"></i>
-                                    LISTA DE FACTURAS DE ADQUISICIONES CON NO OBLIGADOS.
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body" id="divCuerpoPag">
-                            <?php
-                            if( $permisos->PermisosUsuario($opciones, 5303, 2) || $id_rol == 1) {
-                                echo '<input type="hidden" id="peReg" value="1">';
-                            } else {
-                                echo '<input type="hidden" id="peReg" value="0">';
-                            }
-                            ?>
-                            <table id="tableFacurasNoObligados" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
-                                <thead>
-                                    <tr class="text-center">
-                                        <th>ID</th>
-                                        <th>Tipo</th>
-                                        <th>Estado</th>
-                                        <th>Fecha</th>
-                                        <th>Vence</th>
-                                        <th>Método<br>Pago</th>
-                                        <th>Forma Pago</th>
-                                        <th>Tipo</th>
-                                        <th>No. Doc.</th>
-                                        <th>Nombre y/o Razón social</th>
-                                        <th style="min-width: 300px;">Detalles</th>
-                                        <th>Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="modificarFacturaNoObligados">
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </main>
-            <?php include '../../footer.php' ?>
-        </div>
-        <?php include '../../modales.php' ?>
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Combos;
+use Src\Common\Php\Clases\Permisos;
+
+
+$host = Plantilla::getHost();
+$numeral = 1;
+$permisos = new Permisos();
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+$opciones = $permisos->PermisoOpciones($id_user);
+$peReg =  $permisos->PermisosUsuario($opciones, 5302, 0) || $id_rol == 1 ? 1 : 0;
+
+
+$content = <<<HTML
+
+<div class="card w-100">
+    <div class="card-header bg-sofia text-white">
+        <button class="btn btn-xs me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
+        <b>LISTA DE FACTURAS DE ADQUISICIONES CON NO OBLIGADOS.</b>
     </div>
-    <?php include '../../scripts.php' ?>
-</body>
+    <div class="card-body p-2 bg-wiev">
+        <input type="hidden" id="peReg" value="{$peReg}">
+        <table id="tableFacurasNoObligados" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle w-100">
+            <thead>
+                <tr class="text-center">
+                    <th class="bg-sofia">ID</th>
+                    <th class="bg-sofia">Tipo</th>
+                    <th class="bg-sofia">Estado</th>
+                    <th class="bg-sofia">Fecha</th>
+                    <th class="bg-sofia">Vence</th>
+                    <th class="bg-sofia">Método<br>Pago</th>
+                    <th class="bg-sofia">Forma Pago</th>
+                    <th class="bg-sofia">Tipo</th>
+                    <th class="bg-sofia">No. Doc.</th>
+                    <th class="bg-sofia">Nombre y/o Razón social</th>
+                    <th class="bg-sofia" style="min-width: 300px;">Detalles</th>
+                    <th class="bg-sofia">Acción</th>
+                </tr>
+            </thead>
+            <tbody id="modificarFacturaNoObligados">
+            </tbody>
+        </table>
+    </div>
+</div>
+HTML;
+$content = preg_replace_callback('/VIÑETA/', function () use (&$numeral) {
+    return $numeral++;
+}, $content);
 
-</html>
+$plantilla = new Plantilla($content, 2);
+$plantilla->addCssFile("{$host}/assets/css/jquery-ui.css?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/assets/js/jquery-ui.js?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/src/contratacion/no_obligados/js/funciones_no_obligados.js?v=" . date("YmdHis"));
+$modal = $plantilla->getModal('divModalForms', 'divTamModalForms', 'divForms');
+$plantilla->addModal($modal);
+echo $plantilla->render();

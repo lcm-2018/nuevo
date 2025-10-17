@@ -1,15 +1,16 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header('Location: ../../../../index.php');
+    header('Location: ../../../../../index.php');
     exit();
 }
-include '../../../../conexion.php';
+
 $id_b_s = isset($_POST['id']) ? $_POST['id'] : exit('Acción no permitida');
+include_once '../../../../../config/autoloader.php';
 $vigencia = $_SESSION['vigencia'];
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT `honorarios` FROM `ctt_clasificacion_bn_sv`
             WHERE `id_b_s` = $id_b_s AND `vigencia` = $vigencia LIMIT 1";
     $rs = $cmd->query($sql);

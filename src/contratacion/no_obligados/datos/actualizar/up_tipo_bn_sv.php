@@ -28,7 +28,9 @@ if (!empty($tbnsv)) {
                     ON (tb_tipo_contratacion.id_tipo_compra = tb_tipo_compra.id_tipo)
                 ORDER BY tipo_compra";
         $rs = $cmd->query($sql);
-        $tcontrato = $rs->fetchAll();
+        $tcontrato = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
         $cmd = null;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

@@ -15,8 +15,8 @@ $id_rol = $_SESSION['rol'];
 
 $start = $_POST['start'] ?? 0;
 $length = $_POST['length'] ?? 10;
-$col = $_POST['col'] ?? 0;
-$dir = $_POST['dir'] ?? 'asc';
+$col =    $_POST['order'][0]['column'] + 1;
+$dir =    $_POST['order'][0]['dir'];
 $length = $_POST['length'] ?? 10;
 
 $limit = "";
@@ -53,14 +53,15 @@ $permisos = new \Src\Common\Php\Clases\Permisos();
 $opciones = $permisos->PermisoOpciones($iduser);
 
 $vigencia = $_SESSION['vigencia'];
-$anulados = $_POST['anulados'] ?? 0;
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
     $sql = "SELECT `id`, `descripcion` FROM `ctt_estado_adq`";
     $rs = $cmd->query($sql);
-    $estado_adq = $rs->fetchAll();
+    $estado_adq = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -113,7 +114,8 @@ try {
                 ON (`ctt_adquisiciones`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
             LEFT JOIN `pto_cdp`
                 ON (`pto_cdp`.`id_pto_cdp` = `ctt_adquisiciones`.`id_cdp`)
-            WHERE `vigencia` = '$vigencia' $usuario $where";
+            WHERE `vigencia` = '$vigencia' $usuario $where
+            ORDER BY `ctt_adquisiciones`.`id_adquisicion` DESC $limit";
     $rs = $cmd->query($sql);
     $ladquis = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
@@ -189,28 +191,10 @@ if (!empty($ladquis)) {
             $duplicar = '<a value="' . $id_adq . '" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 duplicar" title="Duplicar"><span class="fas fa-clone"></span></a>';
         }
         $accion = null;
-        switch ($la['estado']) {
-            case 0:
-                $accion = '<a class="btn btn-outline-secondary btn-xs rounded-circle shadow me-1 disabled" title="Orden sin productos"><span class="fas fa-sign-out-alt"></span></a>';
-                break;
-                /*
-        case 1:
+        if ($la['estado'] == 0) {
             $accion = '<a class="btn btn-outline-secondary btn-xs rounded-circle shadow me-1 disabled" title="Orden sin productos"><span class="fas fa-sign-out-alt"></span></a>';
-            break;
-        case 2:
-            $accion = '<a value="' . $id_adq . '" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 enviar" title="Enviar cotización"><span class="fas fa-sign-out-alt"></span></a>';
-            break;
-        case 3:
-            $accion = '<a value="' . $id_adq . '" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 bajar" title="Bajar cotización"><span class="fas fa-chevron-circle-down"></span></a>';
-            break;
-        case 4:
-            $accion = '<a value="' . $id_adq . '" class="btn btn-outline-warning btn-xs rounded-circle shadow me-1 comprobar" title="Ver cotización de terceros"><span class="fas fa-clipboard-check"></span></a>';
-            break;
-        case 7:
-            $accion = '<a value="' . $id_adq . '" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 envContrato" title="Enviar Contrato"><span class="fas fa-file-upload"></span></a>';
-            break;
-        */
         }
+
         if (($permisos->PermisosUsuario($opciones, 5302, 4) || $id_rol == 1) && $la['estado'] <= 2) {
             $borrar = '<a value="' . $id_adq . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 borrar" title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
         } else {
@@ -219,7 +203,7 @@ if (!empty($ladquis)) {
         if ($la['estado'] == '99') {
             $borrar = null;
             $editar = null;
-            $detalles = '<span class="badge badge-secondary">ANULADO</span>';
+            $detalles = '<span class="badge text-bg-secondary me-1">ANULADO</span>';
             $accion = null;
             $anular = null;
         }
@@ -231,12 +215,12 @@ if (!empty($ladquis)) {
             'id' => $id_adq,
             'modalidad' => $la['modalidad'],
             'adquisicion' => 'ADQ-' . $id_adq,
-            'valor' => '<div class="text-right">' . pesos($la['val_contrato']) . '</div>',
+            'valor' => '<div class="text-end">' . pesos($la['val_contrato']) . '</div>',
             'fecha' => $la['fecha_adquisicion'],
             'objeto' => $la['objeto'],
             'tercero' => $tercer,
             'estado' => $estd,
-            'botones' => '<div class="text-center">' . $editar . $borrar . $detalles . $accion . $anular . $duplicar . '</div>',
+            'botones' => '<div class="text-center">' . $editar . $detalles . $anular . $accion . $borrar . $duplicar . '</div>',
         ];
     }
 } else {

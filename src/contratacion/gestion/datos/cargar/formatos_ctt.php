@@ -13,7 +13,9 @@ try {
                 `id_fdoc`,`descripcion`
             FROM `ctt_formatos_doc`";
     $rs = $cmd->query($sql);
-    $formatos = $rs->fetchAll();
+    $formatos = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
@@ -27,7 +29,9 @@ try {
                 INNER JOIN `tb_tipo_compra` 
                     ON (`tb_tipo_bien_servicio`.`id_tipo` = `tb_tipo_compra`.`id_tipo`)";
     $rs = $cmd->query($sql);
-    $tipos = $rs->fetchAll();
+    $tipos = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }

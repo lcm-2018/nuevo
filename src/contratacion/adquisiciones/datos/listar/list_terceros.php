@@ -19,7 +19,9 @@ try {
                 `tb_terceros`
             WHERE `tb_terceros`.`estado` = 1";
     $rs = $cmd->query($sql);
-    $terceros_api = $rs->fetchAll();
+    $terceros_api = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
@@ -44,7 +46,7 @@ if (!empty($terceros_api)) { ?>
             <form id="formListTerc">
                 <input type="hidden" name="id_cotizacion" value="<?php echo $id_cot ?>">
                 <div class="px-4 pt-4">
-                    <table id="tableLisTerCot" class="table table-striped table-bordered table-sm nowrap shadow text-left" style="width:100%">
+                    <table id="tableLisTerCot" class="table table-striped table-bordered table-sm nowrap shadow text-start" style="width:100%">
                         <thead>
                             <tr>
                                 <th>Elegir</th>

@@ -1,18 +1,13 @@
 <?php
-$sessionStarted = false;
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-    $sessionStarted = true;
-}
+session_start();
+
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../../index.php");
     exit();
 }
 include_once '../../../../config/autoloader.php';
-$id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
-$id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
-$permisos = new \Src\Common\Php\Clases\Permisos();
-$opciones = $permisos->PermisoOpciones($id_user);
+
+$id_compra = isset($_POST['id_cc']) ? $_POST['id_cc'] : exit('Acción no permitida');
 $fec_ini =  date('Y-m-d', strtotime($_POST['datFecIniEjec']));
 $fec_fin = date('Y-m-d', strtotime($_POST['datFecFinEjec']));
 $val_contrata = $_POST['numValContrata'];
@@ -25,7 +20,6 @@ $id_user = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-
     $sql = "UPDATE `ctt_adquisiciones` SET `id_tercero` = ? WHERE `id_adquisicion` = ?";
     $sql = $cmd->prepare($sql);
     $sql->bindParam(1, $id_tercero, PDO::PARAM_INT);
@@ -99,7 +93,7 @@ try {
                 if (!($sql->rowCount() > 0)) {
                     echo $sql->errorInfo()[2];
                 } else {
-                    echo '1';
+                    echo 'ok';
                 }
                 $cmd = null;
             } catch (PDOException $e) {

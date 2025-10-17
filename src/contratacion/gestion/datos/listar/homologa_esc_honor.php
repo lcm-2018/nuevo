@@ -32,7 +32,9 @@ try {
                 ON(`ctt_escala_honorarios`.`cod_pptal` = `pto_cargue`.`id_cargue`)
             ORDER BY `tb_tipo_compra`.`tipo_compra`, `tb_tipo_bien_servicio`.`tipo_bn_sv` ASC";
     $rs = $cmd->query($sql);
-    $tipo = $rs->fetchAll();
+    $tipo = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

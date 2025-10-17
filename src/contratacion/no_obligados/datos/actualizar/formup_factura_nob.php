@@ -54,7 +54,9 @@ try {
                 `ctt_fact_noobligado_det`
             WHERE `id_fno` = '$id_fno'";
     $rs = $cmd->query($sql);
-    $detalles = $rs->fetchAll();
+    $detalles = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -67,7 +69,9 @@ try {
             FROM
                 `nom_metodo_pago` ORDER BY `metodo` ASC";
     $rs = $cmd->query($sql);
-    $metodop = $rs->fetchAll();
+    $metodop = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -80,7 +84,9 @@ try {
             FROM
                 `fac_e_responsabilidades` ORDER BY `descripcion` ASC";
     $rs = $cmd->query($sql);
-    $rep_fiscal = $rs->fetchAll();
+    $rep_fiscal = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -93,7 +99,9 @@ try {
             FROM
                 `tb_tipos_documento` ORDER BY `descripcion` ASC";
     $rs = $cmd->query($sql);
-    $tip_doc = $rs->fetchAll();
+    $tip_doc = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -106,7 +114,9 @@ try {
             FROM
                 `tb_paises`";
     $rs = $cmd->query($sql);
-    $pais = $rs->fetchAll();
+    $pais = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -119,7 +129,9 @@ try {
             FROM
                 `tb_departamentos` ORDER BY `nom_departamento` ASC";
     $rs = $cmd->query($sql);
-    $dpto = $rs->fetchAll();
+    $dpto = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -134,7 +146,9 @@ try {
                 `tb_municipios`
             WHERE `id_departamento` = $dptoter ";
     $rs = $cmd->query($sql);
-    $municipios = $rs->fetchAll();
+    $municipios = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -147,7 +161,9 @@ try {
             FROM 
                 `tb_codificacion_unspsc` ORDER BY `descripcion` ASC";
     $rs = $cmd->query($sql);
-    $codificacion = $rs->fetchAll();
+    $codificacion = $rs->fetchAll(PDO::FETCH_ASSOC);
+$rs->closeCursor();
+unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -162,7 +178,7 @@ try {
             <input type="hidden" name="id_factura" value="<?php echo $id_fno; ?>">
             <div class="overflow p-3">
                 <div style="overflow-y: scroll;height: 70vh; width: 100%;">
-                    <table class="w-100 table-sm text-left bg-light" id="tableFacNoObliga" style="font-size:85%; white-space: nowrap;">
+                    <table class="w-100 table-sm text-start bg-light" id="tableFacNoObliga" style="font-size:85%; white-space: nowrap;">
                         <!-- background-color:#D1F2EB -->
                         <tr class="p-0">
                             <?php for ($i = 0; $i < 20; $i++) { ?><td class="w-5 border-0 p-0"></td><?php } ?>
@@ -394,7 +410,7 @@ try {
                                 <td colspan="14" class="border"><b>OBSERVACIONES:</b></td>
                                 <td colspan="2" class="border"><b>SUBTOTAL</b></td>
                                 <td colspan="4" class="border">
-                                    <div class=" text-right form-control form-control-sm bg-plain valSubTotal"><?php echo pesos($subtotal) ?></div>
+                                    <div class=" text-end form-control form-control-sm bg-plain valSubTotal"><?php echo pesos($subtotal) ?></div>
                                     <input type="hidden" name="valSubTotal" value="<?php echo $subtotal ?>">
                                 </td>
                             </tr>
@@ -414,12 +430,12 @@ try {
                                     </div>
                                 </td>
                                 <td colspan="2" class="border">
-                                    <div class="text-right form-control form-control-sm bg-plain valIVAfno"><?php echo pesos($v_iva) ?></div>
+                                    <div class="text-end form-control form-control-sm bg-plain valIVAfno"><?php echo pesos($v_iva) ?></div>
                                     <input type="hidden" name="valIVAfno" value="<?php echo $v_iva ?>">
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="2" class="border py-0 text-left">
+                                <td colspan="2" class="border py-0 text-start">
                                     <b>DESCUENTOS</b>
                                     <div class="form-check" title="Descuentos a nivel de pie de documento soporte">
                                         <input class="form-check-input" type="checkbox" value="" name="dctoCondicionado" id="dctoCondicionado" <?php echo $factura['porc_dcto'] > 0 ? 'checked' : '' ?>>
@@ -437,7 +453,7 @@ try {
                                     </div>
                                 </td>
                                 <td colspan="2" class="border">
-                                    <div class=" text-right form-control form-control-sm bg-plain valDctofno">-<?php echo pesos($factura['val_dcto'] > 0 ? $factura['val_dcto'] : $descuento) ?></div>
+                                    <div class=" text-end form-control form-control-sm bg-plain valDctofno">-<?php echo pesos($factura['val_dcto'] > 0 ? $factura['val_dcto'] : $descuento) ?></div>
                                     <input type="hidden" name="valDctofno" value="<?php echo $factura['porc_dcto'] > 0 ? $factura['val_dcto'] : $descuento ?>">
                                 </td>
                             </tr>
@@ -462,7 +478,7 @@ try {
                                     </div>
                                 </td>
                                 <td colspan="2" class="border">
-                                    <div class="form-control form-control-sm bg-plain text-right valprtefte"> <?php echo pesos($factura['val_retefuente']) ?></div>
+                                    <div class="form-control form-control-sm bg-plain text-end valprtefte"> <?php echo pesos($factura['val_retefuente']) ?></div>
                                     <input type="hidden" name="valprtefte" value="<?php echo $factura['val_retefuente'] ?>">
                                 </td>
                             </tr>
@@ -481,7 +497,7 @@ try {
                                     </div>
                                 </td>
                                 <td colspan="2" class="border">
-                                    <div class="form-control form-control-sm bg-plain text-right  valpretiva"><?php echo pesos($factura['val_reteiva']) ?></div>
+                                    <div class="form-control form-control-sm bg-plain text-end  valpretiva"><?php echo pesos($factura['val_reteiva']) ?></div>
                                     <input type="hidden" name="valpretiva" value="<?php echo $factura['val_reteiva'] ?>">
                                 </td>
                             </tr>
@@ -490,7 +506,7 @@ try {
                                     <b>TOTAL A PAGAR</b>
                                 </td>
                                 <td colspan="6" class="border">
-                                    <div class="form-control form-control-sm bg-plain text-right  valfac"><b><?php echo pesos($subtotal + $v_iva - $factura['val_retefuente'] - $factura['val_reteiva'] - $v_dcto) ?></b></div>
+                                    <div class="form-control form-control-sm bg-plain text-end  valfac"><b><?php echo pesos($subtotal + $v_iva - $factura['val_retefuente'] - $factura['val_reteiva'] - $v_dcto) ?></b></div>
                                     <input type="hidden" name="valfac" value="<?php echo $subtotal + $v_iva - $factura['val_retefuente'] - $factura['val_reteiva'] - $v_dcto ?>">
                                 </td>
                             </tr>

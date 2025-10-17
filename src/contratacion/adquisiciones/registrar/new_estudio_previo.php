@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../../index.php");
+    header("Location: ../../../../../index.php");
     exit();
 }
 $id_compra = isset($_POST['id_compra']) ? $_POST['id_compra'] : exit('Acción no permitida');
@@ -53,7 +53,7 @@ try {
     $sql->execute();
     $id_estudio = $cmd->lastInsertId();
     if ($id_estudio > 0) {
-        $polizas = isset($_REQUEST['check']) ? $_REQUEST['check'] : '';
+        $polizas = isset($_POST['check']) ? $_POST['check'] : '';
         $cant = 0;
         if ($polizas == '') {
             $cant = 1;
@@ -78,7 +78,6 @@ try {
                 $cmd = null;
             } catch (PDOException $e) {
                 echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
-                header('../../../index.php');
             }
         }
         if ($cant > 0) {
@@ -95,7 +94,7 @@ try {
                 if (!($sql->rowCount() > 0)) {
                     echo $sql->errorInfo()[2];
                 } else {
-                    echo 1;
+                    echo 'ok';
                 }
                 $cmd = null;
             } catch (PDOException $e) {

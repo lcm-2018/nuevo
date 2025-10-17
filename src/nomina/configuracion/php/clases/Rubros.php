@@ -172,7 +172,7 @@ class Rubros
                                 </div>
                             </form>
                         </div>
-                        <div class="text-right pb-3">
+                        <div class="text-end pb-3">
                             <button type="button" class="btn btn-primary btn-sm" id="btnGuardaRubroPtoNom">Guardar</button>
                             <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
                         </div>

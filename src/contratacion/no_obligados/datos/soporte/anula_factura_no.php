@@ -4,7 +4,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../../index.php");
+    header("Location: ../../../../../index.php");
     exit();
 }
 
@@ -12,10 +12,12 @@ $id_facno = isset($_POST['id']) ? $_POST['id'] : exit('Acción no permitida');
 $vigencia = $_SESSION['vigencia'];
 $id_empresa = 1;
 $response['status'] = 'error';
-include '../../../../conexion.php';
+
+include_once '../../../../../config/autoloader.php';
+
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT 
                 `id_valxvig`, `id_concepto`, `valor`,`concepto`
             FROM
@@ -37,7 +39,7 @@ try {
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `tb_datos_ips`.`id_ips`
                 , `tb_datos_ips`.`nit_ips` AS `nit`
@@ -72,7 +74,7 @@ try {
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `ctt_fact_noobligado`.`id_facturano` AS `id_ctb_doc`
                 , `ctt_fact_noobligado`.`id_tercero_no` AS `id_tercero`
@@ -116,7 +118,7 @@ try {
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `codigo`, `detalle`, `val_unitario`, `cantidad`, `p_iva`, `val_iva`, `p_dcto`, `val_dcto`
             FROM
@@ -130,7 +132,7 @@ try {
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT `shash`,`referencia`,`fecha`
             FROM `seg_soporte_fno`
             WHERE `tipo` = 1 AND `id_factura_no` = (SELECT `id_facturano` FROM `ctt_fact_noobligado` WHERE `id_doc_anula` = $id_facno LIMIT 1)";
@@ -174,7 +176,7 @@ $factura['observaciones'] = $contab['nota'];
 $fail = '';
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `id_resol`, `id_empresa`, `no_resol`, `prefijo`, `consecutivo`, `fin_concecutivo`, `fec_inicia`, `fec_termina`, `tipo`, `entorno`
             FROM
@@ -213,7 +215,7 @@ try {
 try {
     $new = true;
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT `id_soporte`, `referencia` FROM `seg_soporte_fno` WHERE `id_factura_no` = $id_facno LIMIT 1";
     $rs = $cmd->query($sql);
     $referencia = $rs->fetch();
@@ -547,7 +549,7 @@ try {
     $iduser = $_SESSION['id_user'];
     $date = new DateTime('now', new DateTimeZone('America/Bogota'));
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     if ($new) {
         $sql = "INSERT INTO `seg_soporte_fno` (`id_factura_no`, `shash`, `referencia`, `fecha`, `id_user_reg`, `fec_reg`,`tipo`) 
             VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -606,7 +608,7 @@ if ($new) {
     $id_sec = $resolucion['id_resol'];
     try {
         $cmd = \Config\Clases\Conexion::getConexion();
-        
+
         $query = "UPDATE `nom_resoluciones` SET `consecutivo` = ? WHERE `id_resol` = ?";
         $query = $cmd->prepare($query);
         $query->bindParam(1, $sigue, PDO::PARAM_INT);

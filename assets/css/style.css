@@ -4,12 +4,14 @@
     table-layout: fixed;
 }
 
-.DTFC_LeftWrapper, .DTFC_RightWrapper {
+.DTFC_LeftWrapper,
+.DTFC_RightWrapper {
     background: #fff;
     z-index: 2;
 }
 
-table.dataTable tbody tr td, table.dataTable thead tr th {
+table.dataTable tbody tr td,
+table.dataTable thead tr th {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -17,18 +19,24 @@ table.dataTable tbody tr td, table.dataTable thead tr th {
 
 /* Evita que las columnas fijas se superpongan visualmente */
 /* Solo encabezados fijos */
-table.dataTable thead .dtfc-fixed-start, table.dataTable thead .dtfc-fixed-end {
+table.dataTable thead .dtfc-fixed-start,
+table.dataTable thead .dtfc-fixed-end {
     background: #48C9B0 !important;
     color: #fff !important;
 }
+
 /* Celdas fijas del cuerpo mantienen fondo blanco */
-table.dataTable tbody .dtfc-fixed-start, table.dataTable tbody .dtfc-fixed-end {
+table.dataTable tbody .dtfc-fixed-start,
+table.dataTable tbody .dtfc-fixed-end {
     background: #fff !important;
     color: inherit !important;
 }
-table.dataTable .dtfc-fixed-start, table.dataTable .dtfc-fixed-end {
+
+table.dataTable .dtfc-fixed-start,
+table.dataTable .dtfc-fixed-end {
     box-shadow: 2px 0 5px -2px #ccc;
 }
+
 body {
     font-family: 'Roboto', sans-serif;
     font-size: 14px;
@@ -293,4 +301,25 @@ tr.row-selected th {
 
 .no-border:focus {
     box-shadow: none;
+}
+
+.ui-autocomplete {
+    max-height: 250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 99999 !important;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    padding: 0;
+
+}
+
+.ui-menu-item-wrapper {
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+.ui-menu-item-wrapper:hover {
+    background-color: #f1f1f1;
 }

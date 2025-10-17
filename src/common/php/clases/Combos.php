@@ -21,6 +21,19 @@ class Combos
         return (new self())->setConsulta($sql, $id);
     }
 
+    public  static function getCentrosCostoxSede($id, $id_sede)
+    {
+        $sql = "SELECT
+                `far_centrocosto_area`.`id_area`,`tb_centrocostos`.`nom_centro`
+            FROM
+                `far_centrocosto_area`
+                INNER JOIN `tb_centrocostos` 
+                    ON (`far_centrocosto_area`.`id_centrocosto` = `tb_centrocostos`.`id_centro`)
+             WHERE `far_centrocosto_area`.`id_sede` = $id_sede
+            ORDER BY `tb_centrocostos`.`nom_centro` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
+
     public  static function getTiposDocumento($id)
     {
         $sql = "SELECT `id_tipodoc`,`descripcion` FROM `tb_tipos_documento`

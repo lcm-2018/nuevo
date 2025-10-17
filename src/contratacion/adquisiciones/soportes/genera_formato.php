@@ -1,14 +1,8 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-$sessionStarted = false;
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-    $sessionStarted = true;
-}
-error_reporting(E_ALL);
+session_start();
+
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
+    header("Location: ../../../../index.php");
     exit();
 }
 $id_adqi = isset($_POST['id_adq']) ? $_POST['id_adq'] : exit('Acción no permitida');
@@ -16,7 +10,7 @@ $form = $_POST['form'];
 $id_user = $_SESSION['id_user'];
 $vigencia = $_SESSION['vigencia'];
 
-include_once '../../../../../config/autoloader.php';
+include_once '../../../../config/autoloader.php';
 require_once '../../../../vendor/autoload.php';
 
 use Src\Common\Php\Clases\Permisos;

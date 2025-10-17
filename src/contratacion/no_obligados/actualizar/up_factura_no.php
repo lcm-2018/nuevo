@@ -1,10 +1,12 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
+    header("Location: ../../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+
+include_once '../../../../config/autoloader.php';
+
 $id_facno = isset($_POST['id_factura']) ? $_POST['id_factura'] : exit('Acción no permitida');
 $valfac = isset($_POST['valfac']) ? $_POST['valfac'] : exit('Acción no permitida');
 $fec_compra = $_POST['fecCompraNO'];
@@ -49,7 +51,7 @@ $vigencia = $_SESSION['vigencia'];
 $inserta = 0;
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT `id_tercero`FROM `seg_terceros_noblig` WHERE `no_doc` = '$no_doc'";
     $rs = $cmd->query($sql);
     $tercero = $rs->fetch();
@@ -100,7 +102,7 @@ try {
                 $inserta++;
                 $sql = null;
                 $cmd = \Config\Clases\Conexion::getConexion();
-                
+
                 $sql = "UPDATE `seg_terceros_noblig` SET  `id_user_act` = ?, `fec_act` = ?  WHERE `id_tercero` = ?";
                 $sql = $cmd->prepare($sql);
                 $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -117,7 +119,7 @@ try {
 try {
     $sql = null;
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "UPDATE `ctt_fact_noobligado`
                 SET `id_tercero_no` = ?, `fec_compra`= ?, `fec_vence`= ?, `met_pago`= ?, `forma_pago`= ?, `val_retefuente`= ?, `porc_retefuente`= ?, `val_reteiva`= ?, `porc_reteiva`= ?, `val_iva`= ?, `porc_iva`= ?, `val_dcto`= ?, `porc_dcto`= ?, `observaciones` = ?
             WHERE `id_facturano` = ?";
@@ -145,7 +147,7 @@ try {
             $inserta++;
             $sql = null;
             $cmd = \Config\Clases\Conexion::getConexion();
-            
+
             $sql = "UPDATE `ctt_fact_noobligado` SET  `id_user_act` = ?, `fec_act` = ?  WHERE `id_facturano` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -155,7 +157,7 @@ try {
         }
     }
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $query = "DELETE FROM `ctt_fact_noobligado_det` WHERE `id_fno` = ?";
     $query = $cmd->prepare($query);
     $query->bindParam(1, $id_facno, PDO::PARAM_INT);

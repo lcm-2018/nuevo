@@ -58,6 +58,8 @@ class Parametros
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return $datos ?: null;
     }
 
@@ -180,7 +182,7 @@ class Parametros
                                 </div>
                             </form>
                         </div>
-                        <div class="text-right pb-3">
+                        <div class="text-end pb-3">
                             <button type="button" class="btn btn-primary btn-sm" id="btnGuardaConcxVig">Guardar</button>
                             <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
                         </div>

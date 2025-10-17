@@ -1,14 +1,17 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header('Location: ../../../../index.php');
+    header('Location: ../../../../../index.php');
     exit();
 }
-include '../../../../conexion.php';
+
+include_once '../../../../../config/autoloader.php';
+
+
 $id_do = isset($_POST['id']) ? $_POST['id'] : exit('Acción no permitida ');
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `ctt_orden_compra_detalle`.`id_detalle`
                 , `ctt_orden_compra_detalle`.`cantidad`
@@ -28,19 +31,19 @@ try {
 ?>
 <div class="px-0">
     <div class="shadow">
-         <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+        <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
             <h5 style="color: white;">ACTUALIZAR DETALLE DE ORDEN</h5>
         </div>
         <form id="formUpDetalleOrden">
-            <input type="hidden" name="id_detalle" value="<?php echo $id_do ?>">
-            <div class="form-row px-4 pt-2">
+            <input type="hidden" name="id_detalle" value="<?= $id_do ?>">
+            <div class="row px-4 py-2">
                 <div class="form-group col-md-6">
-                    <label for="numCantidad" class="small">CANTIDAD</label>
-                    <input type="number" name="numCantidad" id="numCantidad" class="form-control form-control-sm" value="<?php echo $detalle['cantidad'] ?>">
+                    <label for="numCantidad" class="small">Cantidad</label>
+                    <input type="number" name="numCantidad" id="numCantidad" class="form-control form-control-sm bg-input" value="<?= $detalle['cantidad'] ?>">
                 </div>
                 <div class="form-group col-md-6">
-                    <label for="numValUnid" class="small">val. unidad</label>
-                    <input type="number" name="numValUnid" id="numValUnid" class="form-control form-control-sm text-right" value="<?php echo $detalle['val_unid'] ?>">
+                    <label for="numValUnid" class="small">Val. Unidad</label>
+                    <input type="number" name="numValUnid" id="numValUnid" class="form-control form-control-sm text-end bg-input" value="<?= $detalle['val_unid'] ?>">
                 </div>
             </div>
             <div class="text-center pb-3">

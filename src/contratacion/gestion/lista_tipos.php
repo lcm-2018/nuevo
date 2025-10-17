@@ -104,7 +104,7 @@ $content = <<<HTML
                 </h2>
                 <div id="collapeseFCtt" class="accordion-collapse collapse" data-bs-parent="#accContrata">
                     <div class="accordion-body bg-wiev">
-                        <div class="text-right">
+                        <div class="text-end">
                             <button type="button" class="btn btn-outline-info mb-1" id="btnDownloadVarsCtt" title="Descargar variables de contratación">
                                 <i class="fas fa-download me-2"></i>Variables
                             </button>

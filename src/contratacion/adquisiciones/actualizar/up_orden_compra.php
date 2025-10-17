@@ -1,9 +1,12 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
+    header("Location: ../../../../index.php");
     exit();
 }
+
+include_once '../../../../config/autoloader.php';
+
 $id_orden = isset($_POST['id_orden']) ? $_POST['id_orden'] : exit('Accion no permitida');
 $aprobados = $_POST['aprobado'];
 $ivas = $_POST['iva'];
@@ -12,11 +15,6 @@ $val_unitarios = $_POST['val_unid'];
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $c = 0;
-include_once '../../../../../config/autoloader.php';
-$id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
-$id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
-$permisos = new \Src\Common\Php\Clases\Permisos();
-$opciones = $permisos->PermisoOpciones($id_user);
 $cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "UPDATE `far_alm_pedido_detalle`
