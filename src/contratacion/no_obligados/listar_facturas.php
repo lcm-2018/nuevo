@@ -8,7 +8,6 @@ if (!isset($_SESSION['user'])) {
 include_once '../../../config/autoloader.php';
 
 use Config\Clases\Plantilla;
-use Src\Common\Php\Clases\Combos;
 use Src\Common\Php\Clases\Permisos;
 
 
