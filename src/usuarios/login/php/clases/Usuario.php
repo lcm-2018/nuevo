@@ -35,6 +35,23 @@ class Usuario
         return $datos ?: null;
     }
 
+    public function getUsers($busca)
+    {
+        $sql = "SELECT 
+                    `id_usuario`, CONCAT_WS(' ',`nombre1`, `nombre2`, `apellido1`, `apellido2`) AS `nombre`, `num_documento`
+                FROM `seg_usuarios_sistema`  
+                WHERE (`nombre1` LIKE '%{$busca}%' OR `nombre2` LIKE '%{$busca}%' OR `apellido1` LIKE '%{$busca}%' OR `apellido2` LIKE '%{$busca}%' OR `num_documento` LIKE '%{$busca}%') AND `estado` = '1'";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(':busca', $busca, PDO::PARAM_STR);
+        $stmt->execute();
+
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return $datos ?: [];
+    }
+
     public function getEmpresa()
     {
         $sql = "SELECT

@@ -7,3 +7,6 @@
 [2025-10-16 15:54:24] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_garantias_compra` WHERE `id_est_prev` = 484;
 [2025-10-16 19:17:00] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_fact_noobligado`  WHERE `id_facturano`  = 1;
 [2025-10-16 19:32:40] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_fact_noobligado`  WHERE `id_facturano`  = 3;
+[2025-10-20 18:45:54] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_area_user`  WHERE `id_resp` = 3;
+[2025-10-20 18:46:50] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_area_user`  WHERE `id_resp` = 4;
+[2025-10-21 11:24:52] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_relacion_user`  WHERE `id_relacion` = 2;

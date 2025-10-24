@@ -37,7 +37,38 @@
         });
         return false;
     };
-
+    function FormAreaUser(id = 0) {
+        $('.is-invalid').removeClass('is-invalid');
+        if ($('#id_user').val() == '0') {
+            $('#BuscaUsuario').addClass('is-invalid');
+            $('#BuscaUsuario').focus();
+            mjeError('¡Debe seleccionar un usuario para asignar el área!');
+            return false;
+        }
+        $.post("datos/registrar/form_area.php", { id: id, id_user: $('#id_user').val() }, function (he) {
+            $('#divTamModalForms').removeClass('modal-xl');
+            $('#divTamModalForms').removeClass('modal-sm');
+            $('#divTamModalForms').removeClass('modal-lg');
+            $('#divModalForms').modal('show');
+            $("#divForms").html(he);
+        });
+    }
+    function FormRelacionUser(id = 0) {
+        $('.is-invalid').removeClass('is-invalid');
+        if ($('#id_user').val() == '0') {
+            $('#BuscaUsuario').addClass('is-invalid');
+            $('#BuscaUsuario').focus();
+            mjeError('¡Debe seleccionar un usuario para asignar el área!');
+            return false;
+        }
+        $.post("datos/registrar/form_relacion.php", { id: id, id_user: $('#id_user').val() }, function (he) {
+            $('#divTamModalForms').removeClass('modal-xl');
+            $('#divTamModalForms').removeClass('modal-sm');
+            $('#divTamModalForms').removeClass('modal-lg');
+            $('#divModalForms').modal('show');
+            $("#divForms").html(he);
+        });
+    }
     $(document).ready(function () {
         let id_t = $('#id_tercero').val();
         //dataTable Modalidad
@@ -79,6 +110,74 @@
             "pageLength": -1
         });
         $('#tableModalidad').wrap('<div class="overflow" />');
+        $('#tableAreaUser').DataTable({
+            dom: setdom,
+            buttons: [{
+                text: '<span class="fa-solid fa-plus fa-lg"></span>',
+                className: 'btn btn-success btn-sm shadow',
+                action: function (e, dt, node, config) {
+                    FormAreaUser();
+                }
+            }],
+            language: dataTable_es,
+            "ajax": {
+                url: 'datos/listar/datos_area.php',
+                type: 'POST',
+                dataType: 'json',
+                data: function (d) {
+                    d.id_user = $('#id_user').val();
+                }
+            },
+            "columns": [
+                { 'data': 'id' },
+                { 'data': 'area' },
+                { 'data': 'estado' },
+                { 'data': 'botones' },
+            ],
+            "order": [
+                [0, "asc"]
+            ],
+            "lengthMenu": [
+                [10, 25, 50, -1],
+                [10, 25, 50, 'TODO'],
+            ],
+            "pageLength": 10
+        });
+        $('#tableAreaUser').wrap('<div class="overflow" />');
+        $('#tableRelacion').DataTable({
+            dom: setdom,
+            buttons: [{
+                text: '<span class="fa-solid fa-plus fa-lg"></span>',
+                className: 'btn btn-success btn-sm shadow',
+                action: function (e, dt, node, config) {
+                    FormRelacionUser();
+                }
+            }],
+            language: dataTable_es,
+            "ajax": {
+                url: 'datos/listar/datos_relacion.php',
+                type: 'POST',
+                dataType: 'json',
+                data: function (d) {
+                    d.id_user = $('#id_user').val();
+                }
+            },
+            "columns": [
+                { 'data': 'id' },
+                { 'data': 'documento' },
+                { 'data': 'nombre' },
+                { 'data': 'botones' },
+            ],
+            "order": [
+                [0, "asc"]
+            ],
+            "lengthMenu": [
+                [10, 25, 50, -1],
+                [10, 25, 50, 'TODO'],
+            ],
+            "pageLength": 10
+        });
+        $('#tableRelacion').wrap('<div class="overflow" />');
         //dataTable Tipo de bien o servicio
         $('#tableTipoBnSv').DataTable({
             dom: setdom,
@@ -197,6 +296,131 @@
         });
         $('#tableFormCtt').wrap('<div class="overflow" />');
         $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle fa-lg"></span>');
+    });
+    $('#modificarAreasUser').on('click', '.editar', function () {
+        let id_rel = $(this).attr('value');
+        FormAreaUser(id_rel);
+    });
+    $('#modificarRelaciones').on('click', '.editar', function () {
+        let id_relacion = $(this).attr('value');
+        FormRelacionUser(id_relacion);
+    });
+    $('#modificarAreasUser').on('click', '.borrar', function () {
+        let id_rel = $(this).attr('value');
+        Swal.fire({
+            title: "¿Confirma que desea eliminar registro?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#00994C",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si!",
+            cancelButtonText: "NO",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'eliminar/del_area_user.php',
+                    data: { id: id_rel },
+                    success: function (r) {
+                        if (r === '1') {
+                            $('#tableAreaUser').DataTable().ajax.reload(null, false);
+                            mje('Registro eliminado correctamente');
+                        } else {
+                            mjeError(r);
+                        }
+                    },
+                }).always(function () {
+                    ocultarOverlay();
+                });
+            }
+        });
+    });
+    $('#modificarRelaciones').on('click', '.borrar', function () {
+        let id_rel = $(this).attr('value');
+        Swal.fire({
+            title: "¿Confirma que desea eliminar registro?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#00994C",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si!",
+            cancelButtonText: "NO",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'eliminar/del_relacion_user.php',
+                    data: { id: id_rel },
+                    success: function (r) {
+                        if (r === '1') {
+                            $('#tableRelacion').DataTable().ajax.reload(null, false);
+                            mje('Registro eliminado correctamente');
+                        } else {
+                            mjeError(r);
+                        }
+                    },
+                }).always(function () {
+                    ocultarOverlay();
+                });
+            }
+        });
+    });
+    //Guarda area de usuario
+    $('#divForms').on('click', '#btnGuardaAreaUser', function (e) {
+        e.preventDefault();
+        if ($('#slcAreaUser').val() === '0') {
+            $('#slcAreaUser').addClass('is-invalid');
+            $('#slcAreaUser').focus();
+            mjeError('¡Debe seleccionar un área para el usuario!');
+        } else {
+            mostrarOverlay();
+            let datos = $('#formAreaUser').serialize();
+            $.ajax({
+                type: 'POST',
+                url: 'actualizar/up_area_user.php',
+                data: datos,
+                success: function (r) {
+                    if (r === 'ok') {
+                        $('#tableAreaUser').DataTable().ajax.reload(null, false);
+                        $('#divModalForms').modal('hide');
+                        mje('Registro guardado correctamente');
+                    } else {
+                        mjeError(r);
+                    }
+                },
+            }).always(function () {
+                ocultarOverlay();
+            });
+        }
+    });
+    $('#divForms').on('click', '#btnGuardaRelacionUser', function (e) {
+        e.preventDefault();
+        if ($('#buscaUser').val() === '' || $('#id_usuario').val() === '0') {
+            $('#buscaUser').addClass('is-invalid');
+            $('#buscaUser').focus();
+            mjeError('¡Debe seleccionar un usuario!');
+        } else {
+            mostrarOverlay();
+            let datos = $('#formRelacionUser').serialize();
+            $.ajax({
+                type: 'POST',
+                url: 'actualizar/up_relacion_user.php',
+                data: datos,
+                success: function (r) {
+                    if (r === 'ok') {
+                        $('#tableRelacion').DataTable().ajax.reload(null, false);
+                        $('#divModalForms').modal('hide');
+                        mje('Registro guardado correctamente');
+                    } else {
+                        mjeError(r);
+                    }
+                },
+            }).always(function () {
+                ocultarOverlay();
+            });
+        }
     });
     //Agregar modalidad contratacion
     $('#divForms').on('click', '#btnAddModalidad', function (e) {
@@ -389,6 +613,11 @@
             $('#divModalForms').modal('show');
             $("#divForms").html(he);
         });
+    });
+    $('#collapsemodConfig').on('click', '#awesomplete_list_1', function () {
+        $('#tableAreaUser').DataTable().ajax.reload(null, false);
+        $('#tableRelacion').DataTable().ajax.reload(null, false);
+
     });
     //Actualizar datos de bien o servicio
     $('#divForms').on('click', '#btnUpBnSv', function (e) {

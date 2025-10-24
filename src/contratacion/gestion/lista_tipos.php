@@ -18,6 +18,78 @@ $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 $opciones = $permisos->PermisoOpciones($id_user);
 $peReg =  $permisos->PermisosUsuario($opciones, 5301, 0) || $id_rol == 1 ? 1 : 0;
+$configuracion = '';
+if ($id_rol == 1) {
+    $configuracion =
+        <<<HTML
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodConfig" aria-expanded="false" aria-controls="collapsemodConfig">
+                        <span class="text-primary"><i class="fas fa-file-contract me-2 fa-lg"></i>VIÑETA. Configuración.</span>
+                    </button>
+                </h2>
+                <div id="collapsemodConfig" class="accordion-collapse collapse" data-bs-parent="#accConfig">
+                    <div class="text-center">
+                        <div class="row justify-content-center py-3">
+                            <div class="col-md-4">
+                                <input type="text" class="form-control form-control-sm bg-input" id="BuscaUsuario" placeholder="Nombre del usuario">
+                                <input type="hidden" id="id_user" name="id_user" value="0">
+                            </div>
+                        </div>
+                    </div>
+                     <div class="accordion p-3 pt-0" id="accConfig">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodArea" aria-expanded="false" aria-controls="collapsemodArea">
+                                    <span class="text-primary"><i class="fas fa-file-contract me-2 fa-lg"></i>EACII. Area contratación por usuario.</span>
+                                </button>
+                            </h2>
+                            <div id="collapsemodArea" class="accordion-collapse collapse" data-bs-parent="#accConfig">
+                                <div class="accordion-body bg-wiev">
+                                    <table id="tableAreaUser" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th class="bg-sofia">ID</th>
+                                                <th class="bg-sofia">Area</th>
+                                                <th class="bg-sofia">Estado</th>
+                                                <th class="bg-sofia">Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="modificarAreasUser">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodUser" aria-expanded="false" aria-controls="collapsemodUser">
+                                    <span class="text-success"><i class="fas fa-file-contract me-2 fa-lg"></i>EACII. Relación de Usuarios.</span>
+                                </button>
+                            </h2>
+                            <div id="collapsemodUser" class="accordion-collapse collapse" data-bs-parent="#accConfig">
+                                <div class="accordion-body bg-wiev">
+                                    <table id="tableRelacion" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th class="bg-sofia">ID</th>
+                                                <th class="bg-sofia">Documento</th>
+                                                <th class="bg-sofia">Nombre</th>
+                                                <th class="bg-sofia">Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="modificarRelaciones">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        HTML;
+}
+
 $content = <<<HTML
 
 <div class="card w-100">
@@ -28,10 +100,11 @@ $content = <<<HTML
     <div class="card-body p-2 bg-wiev">
         <input type="hidden" id="peReg" value="{$peReg}">
         <div class="accordion" id="accContrata">
+            {$configuracion}
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodContrata" aria-expanded="false" aria-controls="collapsemodContrata">
-                        <span class="text-primary"><i class="fas fa-file-contract me-2 fa-lg"></i>VIÑETA. Modalidad de contratación.</span>
+                        <span class="text-success"><i class="fas fa-file-contract me-2 fa-lg"></i>VIÑETA. Modalidad de contratación.</span>
                     </button>
                 </h2>
                 <div id="collapsemodContrata" class="accordion-collapse collapse" data-bs-parent="#accContrata">
@@ -171,9 +244,27 @@ $content = <<<HTML
     </div>
 </div>
 HTML;
-$content = preg_replace_callback('/VIÑETA/', function () use (&$numeral) {
-    return $numeral++;
-}, $content);
+
+$lines = explode("\n", $content);
+$result = [];
+$mainCounter = 0;
+$subCounter = 0;
+
+foreach ($lines as $line) {
+    if (strpos($line, 'VIÑETA') !== false) {
+        $mainCounter++;
+        $subCounter = 0;
+        $line = trim(str_replace('VIÑETA', $mainCounter, $line));
+    } else if (strpos($line, 'EACII') !== false) {
+        $subCounter++;
+        $line = trim(str_replace('EACII', $mainCounter . '.' . $subCounter, $line));
+    } else {
+        $line = trim($line);
+    }
+    $result[] = $line;
+}
+
+$content = implode("\n", $result);
 
 $plantilla = new Plantilla($content, 2);
 $plantilla->addScriptFile("{$host}/src/contratacion/gestion/js/funciones_contrataciones.js?v=" . date("YmdHis"));

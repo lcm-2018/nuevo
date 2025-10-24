@@ -40,8 +40,7 @@ class Detalles
 
         $where = '';
         if (isset($array['search']) && $array['search'] != '') {
-            $where .= " AND (`e`.`no_documento` LIKE '%{$array['search']}%' OR CONCAT_WS (' ',`e`.`nombre1`,`nombre2`,`apellido1`,`apellido2`) LIKE '%{$array['search']}%' 
-                        OR `nce`.`descripcion_carg` LIKE '%{$array['search']}%')";
+            $where .= " AND (`e`.`no_documento` LIKE '%{$array['search']}%' OR CONCAT_WS (' ',`e`.`nombre1`,`nombre2`,`apellido1`,`apellido2`) LIKE '%{$array['search']}%' OR `cargo`.`descripcion_carg` LIKE '%{$array['search']}%')";
         }
 
 
@@ -141,13 +140,24 @@ class Detalles
                             ON (`nom_liq_vac`.`id_vac` = `nom_vacaciones`.`id_vac`)
                         WHERE (`nom_liq_vac`.`estado` = 1 AND `nom_liq_vac`.`id_nomina` = :id_nomina)),
                     `sal` AS 
-                        (SELECT `id_empleado`,`sal_base`,`id_contrato`,`val_liq` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1)
+                        (SELECT `id_empleado`,`sal_base`,`id_contrato`,`val_liq` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                    `cargo` AS 
+                        (SELECT
+                            `nom_liq_salario`.`id_empleado`
+                            , `nom_cargo_empleado`.`descripcion_carg`
+                        FROM
+                            `nom_liq_salario`
+                            INNER JOIN `nom_contratos_empleados` 
+                            ON (`nom_liq_salario`.`id_contrato` = `nom_contratos_empleados`.`id_contrato_emp`)
+                            LEFT JOIN `nom_cargo_empleado` 
+                            ON (`nom_contratos_empleados`.`id_cargo` = `nom_cargo_empleado`.`id_cargo`)
+                        WHERE (`nom_liq_salario`.`id_nomina` = :id_nomina AND `nom_liq_salario`.`estado` = 1))
                 SELECT 
                     `e`.`id_empleado`
                     , `ts`.`nom_sede` AS `sede`
                     , `e`.`no_documento`
                     , CONCAT_WS (' ',`e`.`nombre1`,`nombre2`,`apellido1`,`apellido2`) AS `nombre`
-                    , `nce`.`descripcion_carg`
+                    , `cargo`.`descripcion_carg`
                     , `sal`.`sal_base`
                     , IFNULL(`bsp`.`val_bsp`,0) AS `val_bsp`
                     , IFNULL(`ces`.`val_cesantias`,0) AS `val_cesantias`
@@ -180,7 +190,7 @@ class Detalles
                     , IFNULL(`vac`.`val_bon_recrea`,0) AS `val_bon_recrea`
                     , IFNULL(`rfte`.`val_ret`,0) AS `val_retencion`
                 FROM `nom_empleado` `e`
-                    INNER JOIN `nom_cargo_empleado` `nce` ON (`e`.`cargo` = `nce`.`id_cargo`)
+                    INNER JOIN `cargo` ON (`cargo`.`id_empleado` = `e`.`id_empleado`)
                     INNER JOIN `sal` ON (`sal`.`id_empleado` = `e`.`id_empleado`)
                     INNER JOIN `tb_sedes` `ts` ON (`ts`.`id_sede` = `e`.`sede_emp`)
                     LEFT JOIN `bsp` ON (`bsp`.`id_empleado` = `e`.`id_empleado`)
@@ -221,18 +231,28 @@ class Detalles
     {
         $where = '';
         if (isset($array['search']) && $array['search'] != '') {
-            $where .= " AND (`e`.`no_documento` LIKE '%{$array['search']}%' OR CONCAT_WS (' ',`e`.`nombre1`,`nombre2`,`apellido1`,`apellido2`) LIKE '%{$array['search']}%' 
-                        OR `nce`.`descripcion_carg` LIKE '%{$array['search']}%')";
+            $where .= " AND (`e`.`no_documento` LIKE '%{$array['search']}%' OR CONCAT_WS (' ',`e`.`nombre1`,`nombre2`,`apellido1`,`apellido2`) LIKE '%{$array['search']}%' OR `cargo`.`descripcion_carg` LIKE '%{$array['search']}%')";
         }
 
 
         $sql = "WITH
                     `sal` AS 
-                        (SELECT `id_empleado`,`sal_base`,`id_contrato`,`val_liq` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1)
+                        (SELECT `id_empleado`,`sal_base`,`id_contrato`,`val_liq` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                    `cargo` AS 
+                        (SELECT
+                            `nom_liq_salario`.`id_empleado`
+                            , `nom_cargo_empleado`.`descripcion_carg`
+                        FROM
+                            `nom_liq_salario`
+                            INNER JOIN `nom_contratos_empleados` 
+                            ON (`nom_liq_salario`.`id_contrato` = `nom_contratos_empleados`.`id_contrato_emp`)
+                            LEFT JOIN `nom_cargo_empleado` 
+                            ON (`nom_contratos_empleados`.`id_cargo` = `nom_cargo_empleado`.`id_cargo`)
+                        WHERE (`nom_liq_salario`.`id_nomina` = :id_nomina AND `nom_liq_salario`.`estado` = 1))
                     SELECT 
                         COUNT(*) AS `total`
                     FROM `nom_empleado` `e`
-                        INNER JOIN `nom_cargo_empleado` `nce` ON (`e`.`cargo` = `nce`.`id_cargo`)
+                        INNER JOIN `cargo` ON (`cargo`.`id_empleado` = `e`.`id_empleado`)
                         INNER JOIN `sal` ON (`sal`.`id_empleado` = `e`.`id_empleado`)
                     WHERE (1 = 1 $where)";
         $stmt = $this->conexion->prepare($sql);
@@ -252,11 +272,22 @@ class Detalles
 
         $sql = "WITH
                     `sal` AS 
-                        (SELECT `id_empleado`,`sal_base`,`id_contrato`,`val_liq` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1)
+                        (SELECT `id_empleado`,`sal_base`,`id_contrato`,`val_liq` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                    `cargo` AS 
+                        (SELECT
+                            `nom_liq_salario`.`id_empleado`
+                            , `nom_cargo_empleado`.`descripcion_carg`
+                        FROM
+                            `nom_liq_salario`
+                            INNER JOIN `nom_contratos_empleados` 
+                            ON (`nom_liq_salario`.`id_contrato` = `nom_contratos_empleados`.`id_contrato_emp`)
+                            LEFT JOIN `nom_cargo_empleado` 
+                            ON (`nom_contratos_empleados`.`id_cargo` = `nom_cargo_empleado`.`id_cargo`)
+                        WHERE (`nom_liq_salario`.`id_nomina` = :id_nomina AND `nom_liq_salario`.`estado` = 1))
                     SELECT 
                         COUNT(*) AS `total`
                     FROM `nom_empleado` `e`
-                        INNER JOIN `nom_cargo_empleado` `nce` ON (`e`.`cargo` = `nce`.`id_cargo`)
+                        INNER JOIN `cargo` ON (`cargo`.`id_empleado` = `e`.`id_empleado`)
                         INNER JOIN `sal` ON (`sal`.`id_empleado` = `e`.`id_empleado`)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(':id_nomina', $array['id_nomina'], PDO::PARAM_INT);

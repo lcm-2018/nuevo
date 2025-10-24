@@ -60,8 +60,8 @@ try {
     $sql = "SELECT `id`, `descripcion` FROM `ctt_estado_adq`";
     $rs = $cmd->query($sql);
     $estado_adq = $rs->fetchAll(PDO::FETCH_ASSOC);
-$rs->closeCursor();
-unset($rs);
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -69,7 +69,7 @@ unset($rs);
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    $sql = "SELECT `id_area` FROM `tb_area_responsable` WHERE `id_user` = $iduser GROUP BY `id_area`";
+    $sql = "SELECT `id_area` FROM `ctt_area_user` WHERE `id_user` = $iduser GROUP BY `id_area`";
     $rs = $cmd->query($sql);
     $areas = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
@@ -82,13 +82,19 @@ try {
 if ($id_rol == '1') {
     $usuario = '';
 } else {
-    if (!empty($areas)) {
-        $areas = array_column($areas, 'id_area');
-        $areas = implode(',', $areas);
-        $usuario = " AND `ctt_adquisiciones`.`id_area` IN ($areas)";
-    } else {
-        $usuario = " AND `ctt_adquisiciones`.`id_user_reg` =" . $iduser;
-    }
+    $usuario = " AND `ctt_adquisiciones`.`id_user_reg` = {$iduser} OR `ctt_adquisiciones`.`id_user_reg` IN (
+        SELECT DISTINCT `rel`.`user_rel`
+        FROM `ctt_area_user` AS `a1`
+        INNER JOIN `ctt_area_user` AS `a2` 
+            ON `a1`.`id_area` = `a2`.`id_area` 
+        INNER JOIN `ctt_relacion_user` AS `rel` 
+            ON `rel`.`user1` = `a1`.`id_user` AND `rel`.`user_rel` = `a2`.`id_user`
+        WHERE `a1`.`id_user` = {$iduser}
+          AND `a1`.`estado` = 1 
+          AND `a2`.`estado` = 1
+    ) AND `ctt_adquisiciones`.`id_area` IN (
+        SELECT `id_area` FROM `ctt_area_user` 
+        WHERE `id_user` = {$iduser} AND `estado` = 1)";
 }
 
 

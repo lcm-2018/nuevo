@@ -269,7 +269,7 @@ tr.row-selected th {
     -o-transform: scale(1.01);
     transform: scale(1.01);
     box-shadow: 0.3rem 0.3rem 0.3rem #16a08566 !important;
-    background-color: #48c9afd1;
+    background-color: #48c9af61;
     /*#F39C12CC*/
     border-radius: 7px;
 }
@@ -322,4 +322,14 @@ tr.row-selected th {
 
 .ui-menu-item-wrapper:hover {
     background-color: #f1f1f1;
+}
+
+/* Icono que indica colapsable: gira cuando el toggle está expandido */
+.collapse-icon{
+    transition: transform .18s ease-in-out;
+    transform-origin: 50% 50%;
+}
+/* Bootstrap actualiza aria-expanded en el toggle <a> automáticamente */
+a[aria-expanded="true"] .collapse-icon{
+    transform: rotate(90deg);
 }

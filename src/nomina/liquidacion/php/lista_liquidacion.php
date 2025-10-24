@@ -43,6 +43,7 @@ $datos = [];
 if (!empty($obj)) {
     foreach ($obj as $o) {
         $id = $o['id_empleado'];
+        $id_contrato = $o['id_contrato'];
         if ($_POST['filter_mes'] == '02' && $o['inc'] >= 28 || $o['inc'] > 30) {
             $o['inc'] = 30;
         }
@@ -60,7 +61,7 @@ if (!empty($obj)) {
         $input = '<input type="number" style="height: auto !important;" class="no-focus text-end border-0 rounded p-0 w-100" name="lab[' . $id . ']" value="' . $laborado . '" min="0" max="' . $laborado . '" step="1">';
         $metodo = '<select style="height:auto !important; max-width: 110px;" class="no-focus border-0 rounded p-0 w-100" name="metodo[' . $id . ']">' . $mp . '</select>';
         $datos[] = [
-            'check'        => '<div class="text-center"><input type="checkbox" name="chk_liquidacion[]" value="' . $id . '" checked></div>',
+            'check'        => '<div class="text-center"><input type="checkbox" name="chk_liquidacion[]" value="' . $id . '" checked><input type="hidden" name="id_contrato[' . $id . ']" value="' . $id_contrato . '"></div>',
             'doc'          => $o['no_documento'],
             'nombre'       => mb_strtoupper($o['nombre']),
             'observacion'  => $o['observacion'] >= 365 ? '<span class="text-danger"><b>Vacaciones: ' . ($o['observacion']) . ' días</b></span>' :  '',

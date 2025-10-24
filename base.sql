@@ -468,3 +468,30 @@ CREATE TABLE `ctt_tipo_terminacion` (
 INSERT  INTO `ctt_tipo_terminacion`
 	(`id_tipo_term`,`descripcion`) 
 VALUES (1,'ANTICIPADA'),(2,'UNILATERAL'),(3,'CADUCIDAD'),(4,'BILATERAL ');
+
+ALTER TABLE `tb_area_responsable`   
+  ADD COLUMN `id_user_reg` INT NULL AFTER `estado`,
+  ADD COLUMN `fec_reg` DATETIME NULL AFTER `id_user_reg`,
+  ADD COLUMN `id_user_act` INT NULL AFTER `fec_reg`,
+  ADD COLUMN `fec_act` DATETIME NULL AFTER `id_user_act`,
+  CHARSET=utf8mb4, COLLATE=utf8mb4_general_ci;
+
+RENAME TABLE `tb_area_responsable` TO `ctt_area_user`;
+
+ALTER TABLE `ctt_area_user`   
+  CHANGE `estado` `estado` TINYINT(1) DEFAULT 1  NULL  COMMENT '0:Incativo, 1:Activo';
+  
+CREATE TABLE `ctt_relacion_user`(  
+  `id_relacion` INT NOT NULL AUTO_INCREMENT,
+  `user1` INT UNSIGNED,
+  `user_rel` INT UNSIGNED,
+  `id_user_reg` INT UNSIGNED,
+  `fec_reg` DATETIME,
+  `id_user_act` INT UNSIGNED,
+  `fec_act` DATETIME,
+  PRIMARY KEY (`id_relacion`),
+  FOREIGN KEY (`user1`) REFERENCES `seg_usuarios_sistema`(`id_usuario`),
+  FOREIGN KEY (`user_rel`) REFERENCES `seg_usuarios_sistema`(`id_usuario`),
+  FOREIGN KEY (`id_user_reg`) REFERENCES `seg_usuarios_sistema`(`id_usuario`),
+  FOREIGN KEY (`id_user_act`) REFERENCES `seg_usuarios_sistema`(`id_usuario`)
+) ENGINE=INNODB CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

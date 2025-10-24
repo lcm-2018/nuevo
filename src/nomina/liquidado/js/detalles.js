@@ -72,11 +72,19 @@ tableDetallesNomina.on('init', function () {
     BuscaDataTable(tableDetallesNomina);
 });
 
-document.querySelector('#tableDetallesNomina').addEventListener('dblclick', function (event) {
-    let fila = event.target.closest('tr');
-    if (fila) {
-        let id_nomina = ValueInput('id_nomina');
-        let data = tableDetallesNomina.row(fila).data();
-        alert(id_nomina + ' - ' + data['id_empleado']);
+
+document.querySelector('#tableDetallesNomina').addEventListener('click', function (event) {
+    const fila = event.target.closest('tr');
+    const esDobleClick = event.detail === 2;
+    const btnDetalles = event.target.closest('.detalles');
+
+    if (fila && (esDobleClick || btnDetalles)) {
+        const id_nomina = ValueInput('id_nomina');
+        const data = tableDetallesNomina.row(fila).data();
+        VerLiquidacionEmpleado(id_nomina, data['id_empleado']);
     }
 });
+
+function VerLiquidacionEmpleado(id_nomina, id_empleado) {
+    alert(`Ver liquidación del empleado ${id_empleado} de la nómina ${id_nomina}`);
+}

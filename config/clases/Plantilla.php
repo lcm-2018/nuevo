@@ -3,6 +3,7 @@
 namespace Config\Clases;
 
 use Config\Clases\Sesion;
+use Src\Common\Php\Clases\Combos;
 
 class Plantilla
 {
@@ -30,14 +31,26 @@ class Plantilla
         $this->content = $content;
         $host = self::getHost();
         $caracter = Sesion::Caracter();
+        $nombre_usuario = Sesion::User();
+        $vigencias = Combos::getVigencias(Sesion::IdVigencia());
+        $vigencias = str_replace('<option value="0" class="text-muted">-- Seleccionar --</option>', '', $vigencias);
         $pto = Sesion::Pto();
         $this->navbar =
             <<<HTML
                 <nav style="background-color: #1a659d !important; border-bottom: 5px solid #16a085 !important;" class="navbar fixed-top text-white" data-navbarbg="skin6">
                     <div class="container-fluid">
-                        <button class="navbar-toggler bg-light border-0 p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                        <button style="box-shadow: none;border: 1px solid #adb5bd !important;" class="navbar-toggler bg-light border-0 p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
                             <i class="fas fa-bars"></i>
                         </button>
+                        <div class="text-center">
+                            <span class="fw-bold">{$nombre_usuario}</span> | 
+                            <span class="badge bg-light text-dark d-inline-flex align-items-center">
+                                Vigencia:
+                                <select class="form-select form-select-sm ms-1" id="slcVigencia" style="width: 70px; display: inline-block; padding: 0.1rem 0.4rem; font-size: 0.7rem;">
+                                    {$vigencias}
+                                </select>
+                            </span>
+                        </div>
                         <div class="dropdown">
                             <a class="nav-link navbar-brand d-flex align-items-center p-0" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                 <img src="{$host}/assets/images/logoFinanciero.png" alt="logo sistema financiero" width="150">
@@ -49,96 +62,96 @@ class Plantilla
                         </div>
                         <div style="background-color: #eafaf1;" class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
                             <div class="offcanvas-header">
-                                <h6 class="offcanvas-title" id="offcanvasNavbarLabel">MENÚ PRINCIPAL</h6>
+                                <h6 class="offcanvas-title" id="offcanvasNavbarLabel"><strong>MENÚ PRINCIPAL</strong></h6>
                                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                             </div>
                             <div class="offcanvas-body fs-6">
                                 <ul class="btn-toggle-nav list-unstyled fw-normal">
                                     <li>
-                                        <a href="#nomina-collapse" class="nav-link d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                        <a href="#nomina-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
                                             <span class="d-flex align-items-center text-primary">
                                                 <i class="fas fa-table fa-lg me-2"></i> Nómina
                                             </span>
-                                            <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                            <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                         </a>
                                         <div class="collapse shadow" id="nomina-collapse">
                                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                 <li>
-                                                    <a href="#general-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                    <a href="#general-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
                                                         <span class="d-flex align-items-center text-primary">
                                                             <i class="fas fa-tags fa-sm me-2"></i> General
                                                         </span>
-                                                        <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                                     </a>
                                                 </li>
                                                 <div class="collapse shadow" id="general-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
-                                                            <a href="{$host}/src/nomina/configuracion/php/index.php" class="nav-link text-primary p-1 sombra">
+                                                            <a href="{$host}/src/nomina/configuracion/php/index.php" class="nav-link text-primary px-1 py-2 sombra">
                                                                 <i class="fas fa-cogs me-2 fa-fw"></i> Configuración
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="{$host}/src/nomina/empleados/php/index.php" class="nav-link text-success p-1 sombra">
+                                                            <a href="{$host}/src/nomina/empleados/php/index.php" class="nav-link text-success px-1 py-2 sombra">
                                                                 <i class="fas fa-users me-2 fa-fw"></i> Empleados
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="{$host}/src/nomina/horas_extra/php/index.php" class="nav-link text-info p-1 sombra">
+                                                            <a href="{$host}/src/nomina/horas_extra/php/index.php" class="nav-link text-info px-1 py-2 sombra">
                                                                 <i class="fas fa-user-clock me-2 fa-fw"></i> Horas Extra
                                                             </a>
                                                         </li>
                                                     </ul>
                                                 </div>
                                                 <li>
-                                                    <a href="#liquidacion-collapse" class="nav-link d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                    <a href="#liquidacion-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
                                                         <span class="d-flex align-items-center text-success">
                                                             <i class="fas fa-file-invoice-dollar fa-sm me-2"></i> Liquidación
                                                         </span>
-                                                        <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                                     </a>
                                                 </li>
                                                 <div class="collapse shadow" id="liquidacion-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
-                                                            <a href="{$host}/src/nomina/liquidacion/php/index.php" class="nav-link text-primary p-1 sombra">
+                                                            <a href="{$host}/src/nomina/liquidacion/php/index.php" class="nav-link text-primary px-1 py-2 sombra">
                                                                 <i class="far fa-calendar-alt me-2 fa-fw"></i> Liquidar
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="{$host}/src/nomina/liquidado/php/index.php" class="nav-link text-success p-1 sombra">
+                                                            <a href="{$host}/src/nomina/liquidado/php/index.php" class="nav-link text-success px-1 py-2 sombra">
                                                                 <i class="fas fa-check-double me-2 fa-fw"></i> Liquidado
                                                             </a>
                                                         </li>
                                                     </ul>
                                                 </div>
                                                 <li>
-                                                    <a href="#reporte-collapse" class="nav-link d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                    <a href="#reporte-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
                                                         <span class="d-flex align-items-center text-info">
                                                             <i class="fas fa-file-invoice-dollar fa-sm me-2"></i> Reportes
                                                         </span>
-                                                        <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                                     </a>
                                                 </li>
                                                 <div class="collapse shadow" id="reporte-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
-                                                            <a href="#" class="nav-link text-primary p-1 sombra">
+                                                            <a href="#" class="nav-link text-primary px-1 py-2 sombra">
                                                                 <i class="fas fa-cogs me-2 fa-fw"></i> Soporte NE
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="#" class="nav-link text-success p-1 sombra">
+                                                            <a href="#" class="nav-link text-success px-1 py-2 sombra">
                                                                 <i class="fas fa-users me-2 fa-fw"></i> Certificados
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="#" class="nav-link text-info p-1 sombra">
+                                                            <a href="#" class="nav-link text-info px-1 py-2 sombra">
                                                                 <i class="fas fa-user-clock me-2 fa-fw"></i> Informes
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="#" class="nav-link text-muted p-1 sombra">
+                                                            <a href="#" class="nav-link text-muted px-1 py-2 sombra">
                                                                 <i class="fas fa-cogs me-2 fa-fw"></i> Inf. Personalizados
                                                             </a>
                                                         </li>
@@ -149,141 +162,301 @@ class Plantilla
                                     </li>
 
                                     <li>
-                                        <a href="#terceros-collapse" class="nav-link d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                        <a href="#terceros-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
                                             <span class="d-flex align-items-center text-success">
                                                 <i class="fas fa-users fa-lg me-2"></i> Terceros
                                             </span>
-                                            <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                            <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                         </a>
                                         <div class="collapse shadow" id="terceros-collapse">
                                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                 <li>
-                                                    <a href="#otro-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                    <a href="#otro-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
                                                         <span class="d-flex align-items-center text-success">
                                                             <i class="fas fa-tags fa-sm me-2"></i> General
                                                         </span>
-                                                        <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                                     </a>
                                                 </li>
                                                 <div class="collapse shadow" id="otro-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
-                                                            <a href="{$host}/src/nomina/configuracion/php/index.php" class="nav-link text-success p-1 sombra">
+                                                            <a href="{$host}/src/nomina/configuracion/php/index.php" class="nav-link text-success px-1 py-2 sombra">
                                                                 <i class="fas fa-cogs me-2 fa-fw"></i> Configuración
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="#" class="nav-link text-warning p-1 sombra">
+                                                            <a href="#" class="nav-link text-warning px-1 py-2 sombra">
                                                                 <i class="fas fa-users me-2 fa-fw"></i> Empleados
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="#" class="nav-link text-primary p-1 sombra">
+                                                            <a href="#" class="nav-link text-primary px-1 py-2 sombra">
                                                                 <i class="fas fa-user-clock me-2 fa-fw"></i> Horas Extra
                                                             </a>
                                                         </li>
                                                     </ul>
                                                 </div>
                                                 <li>
-                                                    <a href="#sd-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                    <a href="#sd-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
                                                         <span class="d-flex align-items-center text-warning">
                                                             <i class="fas fa-file-invoice-dollar fa-sm me-2"></i> Liquidación
                                                         </span>
-                                                        <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-primary"></i> 
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-primary"></i> 
                                                     </a>
                                                 </li>
                                                 <div class="collapse shadow" id="sd-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
-                                                            <a href="{$host}/src/nomina/configuracion/php/index.php" class="nav-link text-success p-1 sombra">
+                                                            <a href="{$host}/src/nomina/configuracion/php/index.php" class="nav-link text-success px-1 py-2 sombra">
                                                                 <i class="fas fa-cogs me-2 fa-fw"></i> Configuración
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="{$host}/src/nomina/empleados/php/index.php" class="nav-link text-warning p-1 sombra">
+                                                            <a href="{$host}/src/nomina/empleados/php/index.php" class="nav-link text-warning px-1 py-2 sombra">
                                                                 <i class="fas fa-users me-2 fa-fw"></i> Empleados
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="#" class="nav-link text-primary p-1 sombra">
+                                                            <a href="#" class="nav-link text-primary px-1 py-2 sombra">
                                                                 <i class="fas fa-user-clock me-2 fa-fw"></i> Horas Extra
                                                             </a>
                                                         </li>
                                                     </ul>
                                                 </div>
                                                 <li>
-                                                    <a href="#" class="nav-link text-info p-1 sombra">
+                                                    <a href="#" class="nav-link text-info px-1 py-2 sombra">
                                                         <i class="fas fa-caret-right me-2 fa-fw"></i> Subopcion 4
                                                     </a>
                                                 </li>
                                             </ul>
                                         </div>
                                     </li>
+                                    
                                     <li>
-                                        <a href="#contratacion-collapse" class="nav-link d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                        <a href="#contratacion-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
                                             <span class="d-flex align-items-center text-info">
-                                                <i class="fas fa-users fa-lg me-2"></i> Contratación
+                                                <i class="fas fa-file-contract fa-lg me-2"></i> Contratación
                                             </span>
-                                            <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                            <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                         </a>
                                         <div class="collapse shadow" id="contratacion-collapse">
                                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                 <li>
-                                                    <a href="{$host}/src/contratacion/gestion/lista_tipos.php" class="nav-link text-primary p-1 sombra">
+                                                    <a href="{$host}/src/contratacion/gestion/lista_tipos.php" class="nav-link text-primary px-1 py-2 sombra">
                                                         <i class="fas fa-cogs me-2 fa-fw"></i> Configuración
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a href="{$host}/src/contratacion/adquisiciones/lista_adquisiciones.php" class="nav-link text-success p-1 sombra">
+                                                    <a href="{$host}/src/contratacion/adquisiciones/lista_adquisiciones.php" class="nav-link text-success px-1 py-2 sombra">
                                                         <i class="fas fa-shopping-bag me-2 fa-fw"></i> Compras
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a href="{$host}/src/contratacion/no_obligados/listar_facturas.php" class="nav-link text-info p-1 sombra">
+                                                    <a href="{$host}/src/contratacion/no_obligados/listar_facturas.php" class="nav-link text-info px-1 py-2 sombra">
                                                         <i class="fas fa-ticket-alt me-2 fa-fw"></i> No obligados
                                                     </a>
                                                 </li>
                                             </ul>
                                         </div>
                                     </li>
+
                                     <li>
-                                        <a href="#dash-collapse" class="nav-link d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                        <a href="#ppto-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center text-muted">
+                                                <i class="fas fa-chart-pie fa-lg me-2"></i> Presupuesto
+                                            </span>
+                                            <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                                        </a>
+                                        <div class="collapse shadow" id="ppto-collapse">
+                                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                <li>
+                                                    <a href="#" class="nav-link text-primary px-1 py-2 sombra">
+                                                        <i class="fas fa-cogs me-2 fa-fw"></i> Gestion
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="nav-link text-success px-1 py-2 sombra">
+                                                        <i class="fas fa-shopping-bag me-2 fa-fw"></i> informes
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </li>
+
+                                    <li>
+                                        <a href="#conta-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center text-warning">
+                                                <i class="fas fa-file-invoice-dollar fa-lg me-2"></i> Contabilidad
+                                            </span>
+                                            <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                                        </a>
+                                        <div class="collapse shadow" id="conta-collapse">
+                                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                <li>
+                                                    <a href="#" class="nav-link text-primary px-1 py-2 sombra">
+                                                        <i class="fas fa-copy me-2 fa-fw"></i> Movimientos
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="nav-link text-success px-1 py-2 sombra">
+                                                        <i class="fas fa-file-invoice me-2 fa-fw"></i> Facturación
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="nav-link text-info px-1 py-2 sombra">
+                                                        <i class="far fa-file me-2 fa-fw"></i> Informes
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#mas-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-muted">
+                                                            <i class="fas fa-bars fa-lg me-2"></i> Mas
+                                                        </span>
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                                                    </a>
+                                                    <div class="collapse shadow" id="mas-collapse">
+                                                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                            <li>
+                                                                <a href="#" class="nav-link text-primary px-1 py-2 sombra">
+                                                                    <i class="fas fa-book me-2 fa-fw"></i> PUC
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="#" class="nav-link text-success px-1 py-2 sombra">
+                                                                    <i class="fas fa-file-invoice me-2 fa-fw"></i> Documentos
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="#" class="nav-link text-info px-1 py-2 sombra">
+                                                                    <i class="fas fa-folder-open me-2 fa-fw"></i> Impuestos
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="#" class="nav-link text-muted px-1 py-2 sombra">
+                                                                    <i class="fas fa-calculator me-2 fa-fw"></i> Ctas. Facturación
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="#" class="nav-link text-warning px-1 py-2 sombra">
+                                                                    <i class="fas fa-file-invoice-dollar me-2 fa-fw"></i> Centros de Costo
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="#" class="nav-link text-secondary px-1 py-2 sombra">
+                                                                    <i class="fas fa-layer-group me-2 fa-fw"></i> Subgrupos
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </li>
+
+                                    <li>
+                                        <a href="#tesoreria-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center text-secondary">
+                                                <i class="fas fa-donate fa-lg me-2"></i> Tesorería
+                                            </span>
+                                            <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                                        </a>
+                                        <div class="collapse shadow" id="tesoreria-collapse">
+                                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                <li>
+                                                    <a href="#" class="nav-link text-primary px-1 py-2 sombra">
+                                                        <i class="far fa-credit-card me-2 fa-fw"></i> Pagos
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="nav-link text-success px-1 py-2 sombra">
+                                                        <i class="fas fa-hand-holding-dollar me-2 fa-fw"></i> Recaudos
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="nav-link text-info px-1 py-2 sombra">
+                                                        <i class="fas fa-cash-register me-2 fa-fw"></i> Caja Menor
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="nav-link text-muted px-1 py-2 sombra">
+                                                        <i class="far fa-file me-2 fa-fw"></i> Informes
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#mastes-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-warning">
+                                                            <i class="fas fa-bars fa-lg me-2"></i> Mas
+                                                        </span>
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                                                    </a>
+                                                    <div class="collapse shadow" id="mastes-collapse">
+                                                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                            <li>
+                                                                <a href="#" class="nav-link text-primary px-1 py-2 sombra">
+                                                                    <i class="fas fa-magnifying-glass-dollar me-2 fa-fw"></i> Conciliaciones
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="#" class="nav-link text-success px-1 py-2 sombra">
+                                                                    <i class="fas fa-building-columns me-2 fa-fw"></i> Cuentas
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="#" class="nav-link text-info px-1 py-2 sombra">
+                                                                    <i class="fas fa-money-check-dollar me-2 fa-fw"></i> Chequeras
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="nav-link text-muted px-1 py-2 sombra">
+                                                        <i class="fas fa-sliders-h me-2 fa-fw"></i> Inf. Personalizados
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </li>
+
+                                    <li>
+                                        <a href="#dash-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
                                             <span class="d-flex align-items-center text-primary">
                                                 <i class="fas fa-table fa-lg me-2"></i> Dashboard
                                             </span>
-                                            <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                            <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                         </a>
                                         <div class="collapse" id="dash-collapse">
                                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                 <li>
-                                                    <a href="#dash_general-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                    <a href="#dash_general-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
                                                         <span class="d-flex align-items-center text-primary">
                                                             <i class="fas fa-tags fa-sm me-2"></i> General
                                                         </span>
-                                                        <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                                     </a>
                                                 </li>
                                                 <div class="collapse" id="dash_general-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
-                                                            <a href="{$host}/src/configuracion/php/index.php" class="nav-link text-primary p-1 sombra">
+                                                            <a href="{$host}/src/configuracion/php/index.php" class="nav-link text-primary px-1 py-2 sombra">
                                                                 <i class="fas fa-cogs me-2 fa-fw"></i> Configuración
                                                             </a>
                                                         </li>                                                        
                                                     </ul>
                                                 </div>
                                                 <li>
-                                                    <a href="#dash_ejecucion-collapse" class="nav-link d-flex justify-content-between align-items-center p-1 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                    <a href="#dash_ejecucion-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
                                                         <span class="d-flex align-items-center text-success">
                                                             <i class="fas fa-file-invoice-dollar fa-sm me-2"></i> Ejecución
                                                         </span>
-                                                        <i class="fas fa-chevron-circle-right ms-auto collapse-icon text-muted"></i> 
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                                     </a>
                                                 </li>
                                                 <div class="collapse shadow" id="dash_ejecucion-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
-                                                            <a href="{$host}/src/personalizados/php/index.php" class="nav-link text-success p-1 sombra">
+                                                            <a href="{$host}/src/personalizados/php/index.php" class="nav-link text-success px-1 py-2 sombra">
                                                                 <i class="fas fa-cogs me-2 fa-fw"></i> Personalizados
                                                             </a>
                                                         </li>                                                        
@@ -336,6 +509,27 @@ class Plantilla
                                 if (icon) icon.classList.remove('rotated');
                             });
                         });
+
+                        document.querySelectorAll('.collapse').forEach(function(collapseEl) {
+                            collapseEl.addEventListener('show.bs.collapse', function(event) {
+                                event.stopPropagation();
+                                const parent = this.parentElement;
+                                if (!parent) return;
+
+                                const siblingsContainer = parent.parentElement;
+                                if (!siblingsContainer) return;
+                                const openSiblings = siblingsContainer.querySelectorAll('.collapse.show');
+
+                                for (const sibling of openSiblings) {
+                                    if (sibling !== this) {
+                                        const collapseInstance = bootstrap.Collapse.getInstance(sibling);
+                                        if (collapseInstance) {
+                                            collapseInstance.hide();
+                                        }
+                                    }
+                                }
+                            });
+                        });
                     });
                 </script>
             HTML;
@@ -371,7 +565,7 @@ class Plantilla
                         <link rel="stylesheet" href="{$host}/assets/css/buttons.bootstrap5.css">
                         <link rel="stylesheet" href="{$host}/assets/css/font-awesome.min.css">
                         <link rel="stylesheet" href="{$host}/assets/css/style.css">
-                        {additional_css} 
+                        {additional_css}
                     </head>
                 <body>
                     <input type="hidden" id="host" value="{$host}">

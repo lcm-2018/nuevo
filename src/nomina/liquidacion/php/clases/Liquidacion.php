@@ -79,6 +79,7 @@ class Liquidacion
                     `taux`.`id_empleado`
                     , `taux`.`no_documento`
                     , `taux`.`nombre`
+                    , `taux`.`id_contrato`
                     , IFNULL(`tt`.`inc`,0) AS `inc`
                     , IFNULL(`tt`.`lic`,0) AS `lic`
                     , IFNULL(`tt`.`vac`,0) AS `vac`
@@ -94,11 +95,13 @@ class Liquidacion
                         , CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`
                         , `ctt`.`fec_fin`
                         , `ctt`.`fec_inicio`
+                        , `ctt`.`id_contrato_emp` AS `id_contrato`
                     FROM
                         (SELECT
-                            `id_empleado`,
-                            `fec_inicio`,
-                            IFNULL(`fec_fin`, '2999-12-31') AS `fec_fin`
+                            `id_empleado`
+                            , `fec_inicio`
+                            , IFNULL(`fec_fin`, '2999-12-31') AS `fec_fin`
+                            , `id_contrato_emp`
                         FROM
                             `nom_contratos_empleados`
                         WHERE `id_contrato_emp` IN (
@@ -341,6 +344,7 @@ class Liquidacion
     public function addRegistro($array, $opcion = 0)
     {
         $ids =          $array['chk_liquidacion'];
+        $contratos =    $array['id_contrato'];
         $laborado =     $array['lab'];
         $mpago =        $array['metodo'];
         $tipo =         $array['tipo'];
@@ -735,6 +739,7 @@ class Liquidacion
                         'val_liq'       =>  $neto,
                         'forma_pago'    =>  1,
                         'sal_base'      =>  $salarios[$id_empleado],
+                        'id_contrato'   =>  $contratos[$id_empleado],
                     ];
                     $response = $this->LiquidaSalarioNeto($data);
                     if (!$response['insert']) {
@@ -1787,17 +1792,18 @@ class Liquidacion
 
         try {
             $sql = "INSERT INTO `nom_liq_salario`
-                        (`id_empleado`,`sal_base`,`forma_pago`,`metodo_pago`,`val_liq`,`fec_reg`,`id_user_reg`,`id_nomina`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                        (`id_empleado`,`sal_base`, `id_contrato`,`forma_pago`,`metodo_pago`,`val_liq`,`fec_reg`,`id_user_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['sal_base'], PDO::PARAM_STR);
-            $stmt->bindValue(3, $array['forma_pago'], PDO::PARAM_INT);
-            $stmt->bindValue(4, $array['metodo_pago'], PDO::PARAM_INT);
-            $stmt->bindValue(5, $array['val_liq'], PDO::PARAM_STR);
-            $stmt->bindValue(6, Sesion::Hoy(), PDO::PARAM_STR);
-            $stmt->bindValue(7, Sesion::IdUser(), PDO::PARAM_INT);
-            $stmt->bindValue(8, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $array['id_contrato'], PDO::PARAM_INT);
+            $stmt->bindValue(4, $array['forma_pago'], PDO::PARAM_INT);
+            $stmt->bindValue(5, $array['metodo_pago'], PDO::PARAM_INT);
+            $stmt->bindValue(6, $array['val_liq'], PDO::PARAM_STR);
+            $stmt->bindValue(7, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(8, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(9, $array['id_nomina'], PDO::PARAM_INT);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {

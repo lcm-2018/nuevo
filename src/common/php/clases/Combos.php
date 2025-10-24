@@ -139,6 +139,18 @@ class Combos
         return (new self())->setConsulta($sql, $id);
     }
 
+    public  static function getArea($id)
+    {
+        $sql = "SELECT `id_area`,`area` FROM `tb_area_c` ORDER BY `area` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
+
+    public  static function getVigencias($id)
+    {
+        $sql = "SELECT `id_vigencia`, `anio` FROM `tb_vigencias` ORDER BY `anio` DESC";
+        return (new self())->setConsulta($sql, $id);
+    }
+
     public function setConsulta($sql, $id)
     {
         $sql = $sql;

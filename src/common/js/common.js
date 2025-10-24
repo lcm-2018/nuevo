@@ -312,6 +312,17 @@ function mjeAlert(titulo, texto, html, timer = 2000) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const intervalId = setInterval(() => {
+        const inputUser = document.getElementById('BuscaUsuario');
+
+        if (inputUser) {
+            clearInterval(intervalId);
+            inicializarAwesomplete(inputUser, ValueInput('host') + '/src/usuarios/login/php/controladores/usuarios.php', '#id_user', false, null, 'list');
+        }
+    }, 100);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
     var modal = document.getElementById('modalForms');
     if (!modal) {
         modal = document.getElementById('divModalForms');
@@ -323,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.addEventListener('shown.bs.modal', () => {
         const intervalId = setInterval(() => {
             const inputTercero = document.getElementById('buscaTercero');
+            const inputUsuario = document.getElementById('buscaUser');
             const inputsRubro = document.querySelectorAll('.buscaRubro');
             const inputCuenta = document.getElementById('buscaCuenta');
             const txtBuscaEmpleado = document.getElementById('txtBuscaEmpleado');
@@ -351,6 +363,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 inicializarAwesomplete(txtBuscaEmpleado, ValueInput('host') + '/src/nomina/horas_extra/php/controladores/horas_extra.php', '#id_empleado', false, null, 'list');
             }
 
+            if (inputUsuario) {
+                clearInterval(intervalId);
+                inicializarAwesomplete(inputUsuario, ValueInput('host') + '/src/usuarios/login/php/controladores/usuarios.php', '#id_usuario', false, null, 'list');
+            }
         }, 100);
     });
 });
@@ -468,8 +484,6 @@ const SelectAll = (maestro) => {
     });
 };
 
-// funcion que al hacer click sobre una tabla de clase table, se marque toda la fila con un color diferente y desmarcar las otras que esten marcadas. el color debe #48C9B066 
-
 document.addEventListener('click', function (e) {
     if (e.target && e.target.closest('table.table')) {
         const fila = e.target.closest('tr');
@@ -483,4 +497,24 @@ document.addEventListener('click', function (e) {
             fila.classList.add('row-selected');
         }
     }
+});
+
+document.getElementById('slcVigencia').addEventListener('change', function () {
+    var valor = this.value;
+    var texto = this.options[this.selectedIndex].text;
+    var url = ValueInput('host') + '/src/usuarios/general/php/vigencia.php';
+    var data = new FormData();
+    data.append('texto', texto);
+    data.append('id', valor);
+    SendPost(url, data).then((response) => {
+        if (response.status === 'ok') {
+            mje('Vigencia cambiada a ' + texto);
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            mjeError('Error!', response.msg);
+        }
+    });
+
 });
