@@ -17,7 +17,7 @@ const tableEmpleados = crearDataTable(
             titleAttr: 'Agregar nuevo empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/empleados.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-fullscreen');
+                VerFormulario('../php/controladores/empleados.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-fullscreen');
             }
         }
     ],
@@ -58,7 +58,7 @@ document.querySelector('#tableEmpleados').addEventListener('click', function (ev
     if (btnActualizar) {
         mostrarOverlay();
         const id = btnActualizar.dataset.id;
-        VerFomulario('../php/controladores/empleados.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-fullscreen');
+        VerFormulario('../php/controladores/empleados.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-fullscreen');
     }
 
     if (btnDetalles) {
@@ -189,7 +189,7 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                             tableEmpleados.ajax.reload(null, false);
                             $('#modalForms').modal('hide');
                             if (data.get('id') != '0') {
-                                VerFomulario('../php/controladores/empleados.php', 'form', data.get('id'), 'modalForms', 'bodyModal', 'tamModalForms', 'modal-fullscreen');
+                                VerFormulario('../php/controladores/empleados.php', 'form', data.get('id'), 'modalForms', 'bodyModal', 'tamModalForms', 'modal-fullscreen');
                             }
                         } else {
                             mjeError('Error!', response.msg);

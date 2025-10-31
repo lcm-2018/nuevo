@@ -11,7 +11,7 @@ const tableConfiguracion = crearDataTable(
         titleAttr: 'Agregar nueva consulta',
         action: function(e, dt, node, config) {
             mostrarOverlay();
-            VerFomulario('../php/controladores/configuracion.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFormulario('../php/controladores/configuracion.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
     }], {
         pageLength: 25,
@@ -33,7 +33,7 @@ document.querySelector('#tableConfiguracion').addEventListener('click', function
     if (btnActualizar) {
         mostrarOverlay();
         const id = btnActualizar.dataset.id;
-        VerFomulario('../php/controladores/configuracion.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+        VerFormulario('../php/controladores/configuracion.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
     }
 
     if (btnEliminar) {

@@ -20,7 +20,7 @@ const tableHorasExtra = crearDataTable(
             titleAttr: 'Agregar hora extra de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/horas_extra.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/horas_extra.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],

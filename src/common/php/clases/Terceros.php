@@ -68,4 +68,26 @@ class Terceros
         $nombre = mb_strtoupper($nombre, 'UTF-8');
         return $nombre;
     }
+
+    public function getTercero($id)
+    {
+        $sql = "SELECT
+                    `tb_terceros`.`nit_tercero`
+                    , `tb_terceros`.`nom_tercero`
+                    , `tb_terceros`.`dir_tercero`
+                    , `tb_terceros`.`tel_tercero`
+                    , `tb_municipios`.`nom_municipio`
+                    , `tb_departamentos`.`nom_departamento`
+                FROM
+                    `tb_terceros`
+                    INNER JOIN `tb_municipios` 
+                        ON (`tb_terceros`.`id_municipio` = `tb_municipios`.`id_municipio`)
+                    INNER JOIN `tb_departamentos` 
+                        ON (`tb_municipios`.`id_departamento` = `tb_departamentos`.`id_departamento`)
+                WHERE (`tb_terceros`.`id_tercero_api` = :id) LIMIT 1";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }

@@ -633,196 +633,196 @@ if ($adquisicion['estado'] > 5 || $adquisicion['id_tipo'] != 2) {
 $content =
     <<<HTML
     <div class="card w-100">
-    <div class="card-header bg-sofia text-white">
-        <button class="btn btn-xs me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
-        <b>CONFIGURACIÓN DE CONTRATACIÓN</b>
-    </div>
-    <div class="card-body p-2 bg-wiev">
-        <input type="hidden" id="peReg" value="{$peReg}">
-        <div class="accordion" id="accContrata">
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodContrata" aria-expanded="false" aria-controls="collapsemodContrata">
-                        <span class="text-primary"><i class="fas fa-clipboard-list me-2 fa-lg"></i>VIÑETA. Detalles de contratación.</span>
-                    </button>
-                </h2>
-                <div id="collapsemodContrata" class="accordion-collapse collapse show" data-bs-parent="#accContrata">
-                    <div class="accordion-body bg-wiev">
-                        <div class=" px-3 shadow rounded">
-                            <div class="card-body">
-                                <input type="hidden" id="tipo_contrato" value="{$adquisicion['id_tipo']}">
-                                <input type="hidden" id="tipo_servicio" value="{$adquisicion['id_tipo_bn_sv']}">
-                                <div class="row mb-0 border border-bottom-0 rounded-top">
-                                    <div class="border-end col-md-4">
-                                        <span class="text-muted small">MODALIDAD CONTRATACIÓN</span><br>
-                                        <span class="fw-bold">{$adquisicion['modalidad']}</span>
+        <div class="card-header bg-sofia text-white">
+            <button class="btn btn-xs me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
+            <b>CONFIGURACIÓN DE CONTRATACIÓN</b>
+        </div>
+        <div class="card-body p-2 bg-wiev">
+            <input type="hidden" id="peReg" value="{$peReg}">
+            <div class="accordion" id="accContrata">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodContrata" aria-expanded="false" aria-controls="collapsemodContrata">
+                            <span class="text-primary"><i class="fas fa-clipboard-list me-2 fa-lg"></i>VIÑETA. Detalles de contratación.</span>
+                        </button>
+                    </h2>
+                    <div id="collapsemodContrata" class="accordion-collapse collapse show" data-bs-parent="#accContrata">
+                        <div class="accordion-body bg-wiev">
+                            <div class=" px-3 shadow rounded">
+                                <div class="card-body">
+                                    <input type="hidden" id="tipo_contrato" value="{$adquisicion['id_tipo']}">
+                                    <input type="hidden" id="tipo_servicio" value="{$adquisicion['id_tipo_bn_sv']}">
+                                    <div class="row mb-0 border border-bottom-0 rounded-top">
+                                        <div class="border-end col-md-4">
+                                            <span class="text-muted small">MODALIDAD CONTRATACIÓN</span><br>
+                                            <span class="fw-bold">{$adquisicion['modalidad']}</span>
+                                        </div>
+                                        <div class="border-end col-md-2">
+                                            <span class="text-muted small">ADQUISICIÓN</span><br>
+                                            <input type="hidden" id="id_compra" value="{$id_adq}">
+                                            <input type="hidden" id="id_contrato_compra" value="{$contrato['id_contrato_compra']}">
+                                            <span class="fw-bold">ADQ-{$adquisicion['id_adquisicion']}</span>
+                                        </div>
+                                        <div class="border-end col-md-3">
+                                            <span class="text-muted small">FECHA</span><br>
+                                            <span class="fw-bold">{$adquisicion['fecha_adquisicion']}</span>
+                                        </div>
+                                        <div class="border-end col-md-3">
+                                            <span class="text-muted small">ESTADO</span><br>
+                                            <span class="fw-bold">{$adquisicion['descripcion']}</span>
+                                        </div>
                                     </div>
-                                    <div class="border-end col-md-2">
-                                        <span class="text-muted small">ADQUISICIÓN</span><br>
-                                        <input type="hidden" id="id_compra" value="{$id_adq}">
-                                        <input type="hidden" id="id_contrato_compra" value="{$contrato['id_contrato_compra']}">
-                                        <span class="fw-bold">ADQ-{$adquisicion['id_adquisicion']}</span>
-                                    </div>
-                                    <div class="border-end col-md-3">
-                                        <span class="text-muted small">FECHA</span><br>
-                                        <span class="fw-bold">{$adquisicion['fecha_adquisicion']}</span>
-                                    </div>
-                                    <div class="border-end col-md-3">
-                                        <span class="text-muted small">ESTADO</span><br>
-                                        <span class="fw-bold">{$adquisicion['descripcion']}</span>
+                                    <div class="row border">
+                                        <div class="col-md-12">
+                                            <span class="text-muted small">OBJETO</span><br>
+                                            <span class="fw-bold">{$adquisicion['objeto']}</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="row border">
-                                    <div class="col-md-12">
-                                        <span class="text-muted small">OBJETO</span><br>
-                                        <span class="fw-bold">{$adquisicion['objeto']}</span>
-                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodOrden" aria-expanded="false" aria-controls="collapsemodOrden">
+                            <span class="text-success"><i class="fas fa-clipboard-list me-2 fa-lg"></i>VIÑETA. Orden de compra.</span>
+                        </button>
+                    </h2>
+                    <div id="collapsemodOrden" class="accordion-collapse collapse" data-bs-parent="#accOrden">
+                        <div class="accordion-body bg-wiev">
+                            <div class=" px-3 shadow rounded">
+                                <form id="formOrdenCompra">
+                                    {$id_orden}
+                                        {$boton_oc}
+                                        {$guardar_oc}
+                                        {$cerrar_oc}
+                                    <table class="table table-striped table-bordered table-sm nowrap table-hover shadow tableCotRecibidas" style="width:100%">
+                                        <thead>
+                                            <tr class="text-center">
+                                                <th class="bg-sofia">TERCERO:</th>
+                                                <th class="bg-sofia" colspan="4">{$adquisicion['nom_tercero']}</th>
+                                                <th class="bg-sofia" colspan="2">{$adquisicion['nit_tercero']}</th>
+                                            </tr>
+                                            <tr class="text-center">
+                                                <th class="bg-sofia">#</th>
+                                                <th class="bg-sofia">Bien o Servicio</th>
+                                                <th class="bg-sofia">{$solcan}</th>
+                                                <th class="bg-sofia">Val. Unidad</th>
+                                                <th class="bg-sofia">IVA</th>
+                                                <th class="bg-sofia">Total</th>
+                                                <th class="bg-sofia">{$action}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="modificarCotizaciones">
+                                            {$detalle_html}
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                $destino
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodCdp" aria-expanded="false" aria-controls="collapsemodCdp">
+                            <span class="text-muted"><i class="fas fa-file-invoice-dollar me-2 fa-lg"></i>VIÑETA. Certificado de disponibilidad presupuestal (CDP).</span>
+                        </button>
+                    </h2>
+                    <div id="collapsemodCdp" class="accordion-collapse collapse" data-bs-parent="#accCdp">
+                        <div class="accordion-body bg-wiev">
+                            <div class=" px-3 shadow rounded">
+                                <div class="card-body">
+                                    {$cdp_html}
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodOrden" aria-expanded="false" aria-controls="collapsemodOrden">
-                        <span class="text-success"><i class="fas fa-clipboard-list me-2 fa-lg"></i>VIÑETA. Orden de compra.</span>
-                    </button>
-                </h2>
-                <div id="collapsemodOrden" class="accordion-collapse collapse" data-bs-parent="#accOrden">
-                    <div class="accordion-body bg-wiev">
-                        <div class=" px-3 shadow rounded">
-                            <form id="formOrdenCompra">
-                                {$id_orden}
-                                    {$boton_oc}
-                                    {$guardar_oc}
-                                    {$cerrar_oc}
-                                <table class="table table-striped table-bordered table-sm nowrap table-hover shadow tableCotRecibidas" style="width:100%">
-                                    <thead>
-                                        <tr class="text-center">
-                                            <th class="bg-sofia">TERCERO:</th>
-                                            <th class="bg-sofia" colspan="4">{$adquisicion['nom_tercero']}</th>
-                                            <th class="bg-sofia" colspan="2">{$adquisicion['nit_tercero']}</th>
-                                        </tr>
-                                        <tr class="text-center">
-                                            <th class="bg-sofia">#</th>
-                                            <th class="bg-sofia">Bien o Servicio</th>
-                                            <th class="bg-sofia">{$solcan}</th>
-                                            <th class="bg-sofia">Val. Unidad</th>
-                                            <th class="bg-sofia">IVA</th>
-                                            <th class="bg-sofia">Total</th>
-                                            <th class="bg-sofia">{$action}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="modificarCotizaciones">
-                                        {$detalle_html}
-                                    </tbody>
-                                </table>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            $destino
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodCdp" aria-expanded="false" aria-controls="collapsemodCdp">
-                        <span class="text-muted"><i class="fas fa-file-invoice-dollar me-2 fa-lg"></i>VIÑETA. Certificado de disponibilidad presupuestal (CDP).</span>
-                    </button>
-                </h2>
-                <div id="collapsemodCdp" class="accordion-collapse collapse" data-bs-parent="#accCdp">
-                    <div class="accordion-body bg-wiev">
-                        <div class=" px-3 shadow rounded">
-                            <div class="card-body">
-                                {$cdp_html}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodEP" aria-expanded="false" aria-controls="collapsemodEP">
+                            <span class="text-warning"><i class="fas fa-folder-open me-2 fa-lg"></i>VIÑETA. Estudios previos.</span>
+                        </button>
+                    </h2>
+                    <div id="collapsemodEP" class="accordion-collapse collapse" data-bs-parent="#accEP">
+                        <div class="accordion-body bg-wiev">
+                            <div class=" px-3 shadow rounded">
+                                <div class="card-body">
+                                    {$tb_html}
+                                    {$btn_ep}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodEP" aria-expanded="false" aria-controls="collapsemodEP">
-                        <span class="text-warning"><i class="fas fa-folder-open me-2 fa-lg"></i>VIÑETA. Estudios previos.</span>
-                    </button>
-                </h2>
-                <div id="collapsemodEP" class="accordion-collapse collapse" data-bs-parent="#accEP">
-                    <div class="accordion-body bg-wiev">
-                        <div class=" px-3 shadow rounded">
-                            <div class="card-body">
-                                {$tb_html}
-                                {$btn_ep}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodContrato" aria-expanded="false" aria-controls="collapsemodContrato">
+                            <span class="text-secondary"><i class="fas fa-file-contract me-2 fa-lg"></i>VIÑETA. Contratación.</span>
+                        </button>
+                    </h2>
+                    <div id="collapsemodContrato" class="accordion-collapse collapse" data-bs-parent="#accContrato">
+                        <div class="accordion-body bg-wiev">
+                            <div class=" px-3 shadow rounded">
+                                <div class="card-body">
+                                    {$btn_ctt_cerrar}{$ctt_html}{$btn_ctt}{$btn_cv}{$btn_cs}{$btn_ds}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodContrato" aria-expanded="false" aria-controls="collapsemodContrato">
-                        <span class="text-secondary"><i class="fas fa-file-contract me-2 fa-lg"></i>VIÑETA. Contratación.</span>
-                    </button>
-                </h2>
-                <div id="collapsemodContrato" class="accordion-collapse collapse" data-bs-parent="#accContrato">
-                    <div class="accordion-body bg-wiev">
-                        <div class=" px-3 shadow rounded">
-                            <div class="card-body">
-                                {$btn_ctt_cerrar}{$ctt_html}{$btn_ctt}{$btn_cv}{$btn_cs}{$btn_ds}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodCrp" aria-expanded="false" aria-controls="collapsemodCrp">
+                            <span class="text-primary-emphasis"><i class="fas fa-file-prescription me-2 fa-lg"></i>VIÑETA. Registro presupuestal (RP).</span>
+                        </button>
+                    </h2>
+                    <div id="collapsemodCrp" class="accordion-collapse collapse" data-bs-parent="#accCrp">
+                        <div class="accordion-body bg-wiev">
+                            <div class=" px-3 shadow rounded">
+                                <div class="card-body">
+                                    {$crp_html}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodCrp" aria-expanded="false" aria-controls="collapsemodCrp">
-                        <span class="text-primary-emphasis"><i class="fas fa-file-prescription me-2 fa-lg"></i>VIÑETA. Registro presupuestal (RP).</span>
-                    </button>
-                </h2>
-                <div id="collapsemodCrp" class="accordion-collapse collapse" data-bs-parent="#accCrp">
-                    <div class="accordion-body bg-wiev">
-                        <div class=" px-3 shadow rounded">
-                            <div class="card-body">
-                                {$crp_html}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodInicio" aria-expanded="false" aria-controls="collapsemodInicio">
+                            <span class="text-success-emphasis"><i class="fas fa-map-pin me-2 fa-lg"></i>VIÑETA. Acta de inicio.</span>
+                        </button>
+                    </h2>
+                    <div id="collapsemodInicio" class="accordion-collapse collapse" data-bs-parent="#accInicio">
+                        <div class="accordion-body bg-wiev">
+                            <div class=" px-3 shadow rounded">
+                                <div class="card-body">
+                                    {$btn_acta}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodInicio" aria-expanded="false" aria-controls="collapsemodInicio">
-                        <span class="text-success-emphasis"><i class="fas fa-map-pin me-2 fa-lg"></i>VIÑETA. Acta de inicio.</span>
-                    </button>
-                </h2>
-                <div id="collapsemodInicio" class="accordion-collapse collapse" data-bs-parent="#accInicio">
-                    <div class="accordion-body bg-wiev">
-                        <div class=" px-3 shadow rounded">
-                            <div class="card-body">
-                                {$btn_acta}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodNovedad" aria-expanded="false" aria-controls="collapsemodNovedad">
-                        <span class="text-info-emphasis"><i class="fas fa-bullhorn me-2 fa-lg"></i>VIÑETA. Novedades.</span>
-                    </button>
-                </h2>
-                <div id="collapsemodNovedad" class="accordion-collapse collapse" data-bs-parent="#accNovedad">
-                    <div class="accordion-body bg-wiev">
-                        <div class=" px-3 shadow rounded">
-                            <div class="card-body">
-                                {$novedades_html}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodNovedad" aria-expanded="false" aria-controls="collapsemodNovedad">
+                            <span class="text-info-emphasis"><i class="fas fa-bullhorn me-2 fa-lg"></i>VIÑETA. Novedades.</span>
+                        </button>
+                    </h2>
+                    <div id="collapsemodNovedad" class="accordion-collapse collapse" data-bs-parent="#accNovedad">
+                        <div class="accordion-body bg-wiev">
+                            <div class=" px-3 shadow rounded">
+                                <div class="card-body">
+                                    {$novedades_html}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
     </div>
     HTML;
 

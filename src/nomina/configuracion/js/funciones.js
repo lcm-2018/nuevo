@@ -14,7 +14,7 @@ const tablaParamLiq = crearDataTable(
             titleAttr: 'Agregar nuevo parámetro',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/parametros.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/parametros.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -43,7 +43,7 @@ const tableCargosNom = crearDataTable(
             titleAttr: 'Agregar nuevo cargo de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/cargos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', opCaracterJS == 2 ? 'modal-lg' : '');
+                VerFormulario('../php/controladores/cargos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', opCaracterJS == 2 ? 'modal-lg' : '');
             }
         }
     ],
@@ -76,7 +76,7 @@ const tableTerceroNom = crearDataTable(
             titleAttr: 'Agregar tercero',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/terceros.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/terceros.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -106,7 +106,7 @@ const tableIncSalario = crearDataTable(
             titleAttr: 'Agregar Incremento Salarial',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/incrementos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/incrementos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -134,7 +134,7 @@ const tableRubroPto = crearDataTable(
             titleAttr: 'Agregar Rubro Presupuestal',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/rubros.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
+                VerFormulario('../php/controladores/rubros.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
             }
         }
     ],
@@ -163,7 +163,7 @@ const tableCtaCtbNom = crearDataTable(
             titleAttr: 'Agregar Cuenta Contable',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/cuentas.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
+                VerFormulario('../php/controladores/cuentas.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
             }
         }
     ],
@@ -198,7 +198,7 @@ document.querySelector('#tableParamLiq').addEventListener('click', function (eve
     if (btnActualizar) {
         mostrarOverlay();
         const id = btnActualizar.dataset.id;
-        VerFomulario('../php/controladores/parametros.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+        VerFormulario('../php/controladores/parametros.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
     }
 
     if (btnEliminar) {
@@ -217,7 +217,7 @@ document.querySelector('#tableCargosNom').addEventListener('click', function (ev
         alert
         mostrarOverlay();
         const id = btnActualizar.dataset.id;
-        VerFomulario('../php/controladores/cargos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', opCaracterJS === 2 ? 'modal-lg' : '');
+        VerFormulario('../php/controladores/cargos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', opCaracterJS === 2 ? 'modal-lg' : '');
     }
 
     if (btnEliminar) {
@@ -233,7 +233,7 @@ document.querySelector('#tableIncSalario').addEventListener('click', function (e
     if (btnActualizar) {
         mostrarOverlay();
         const id = btnActualizar.dataset.id;
-        VerFomulario('../php/controladores/incrementos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms');
+        VerFormulario('../php/controladores/incrementos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms');
     }
 
     if (btnEliminar) {
@@ -249,7 +249,7 @@ document.querySelector('#tableRubroPto').addEventListener('click', function (eve
     if (btnActualizar) {
         mostrarOverlay();
         const id = btnActualizar.dataset.id;
-        VerFomulario('../php/controladores/rubros.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
+        VerFormulario('../php/controladores/rubros.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
     }
 
     if (btnEliminar) {
@@ -265,7 +265,7 @@ document.querySelector('#tableCtaCtbNom').addEventListener('click', function (ev
     if (btnActualizar) {
         mostrarOverlay();
         const id = btnActualizar.dataset.id;
-        VerFomulario('../php/controladores/cuentas.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
+        VerFormulario('../php/controladores/cuentas.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
     }
 
     if (btnEliminar) {

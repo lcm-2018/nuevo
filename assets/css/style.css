@@ -269,9 +269,10 @@ tr.row-selected th {
     -o-transform: scale(1.01);
     transform: scale(1.01);
     box-shadow: 0.3rem 0.3rem 0.3rem #16a08566 !important;
-    background-color: #48c9af61;
-    /*#F39C12CC*/
+    background-color: #48c9af87;
     border-radius: 7px;
+    transition: all 0.2s ease-in-out;
+    color: #ffffff;
 }
 
 .accordion-button {
@@ -325,11 +326,25 @@ tr.row-selected th {
 }
 
 /* Icono que indica colapsable: gira cuando el toggle está expandido */
-.collapse-icon{
+.collapse-icon {
     transition: transform .18s ease-in-out;
     transform-origin: 50% 50%;
 }
+
 /* Bootstrap actualiza aria-expanded en el toggle <a> automáticamente */
-a[aria-expanded="true"] .collapse-icon{
+a[aria-expanded="true"] .collapse-icon {
     transform: rotate(90deg);
+}
+
+.no-caret::after {
+    display: none !important;
+}
+
+.no-caret i {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.no-caret i:hover {
+    transform: scale(1.1);
 }

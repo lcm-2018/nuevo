@@ -20,7 +20,7 @@ const tableContratosEmpleado = crearDataTable(
                     return false;
                 }
                 mostrarOverlay();
-                VerFomulario('../php/controladores/contratos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/contratos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -54,7 +54,7 @@ const tableSegSocial = crearDataTable(
             titleAttr: 'Agregar nueva novedad de Seguridad Social',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/seguridad_social.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/seguridad_social.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -108,7 +108,7 @@ const tableIncapacidades = crearDataTable(
             titleAttr: 'Agregar nueva incapacidad de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/incapacidades.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/incapacidades.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -142,7 +142,7 @@ const tableVacaciones = crearDataTable(
             titleAttr: 'Agregar nueva vacación de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/vacaciones.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/vacaciones.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -173,7 +173,7 @@ const tableLicenciaMoP = crearDataTable(
             titleAttr: 'Agregar nueva licencia materna o paterna de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/licencias_mop.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/licencias_mop.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -203,7 +203,7 @@ const tableLicenciaLuto = crearDataTable(
             titleAttr: 'Agregar nueva licencia por luto de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/licencias_luto.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/licencias_luto.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -233,7 +233,7 @@ const tableLicenciaNoRem = crearDataTable(
             titleAttr: 'Agregar nueva licencia por no remunerada de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/licencias_norem.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/licencias_norem.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -262,7 +262,7 @@ const tableIndemnizaVacacion = crearDataTable(
             titleAttr: 'Agregar nueva indemnización de vacaciones de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/indemniza_vacacion.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/indemniza_vacacion.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -291,7 +291,7 @@ const tableBsp = crearDataTable(
             titleAttr: 'Agregar nueva bonificación por servicios prestados de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/bsp.php', 'form', { id: 0, id_empleado: ValueInput('id_empleado') }, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-sm');
+                VerFormulario('../php/controladores/bsp.php', 'form', { id: 0, id_empleado: ValueInput('id_empleado') }, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-sm');
             }
         }
     ],
@@ -326,7 +326,7 @@ const tableLibranzas = crearDataTable(
             titleAttr: 'Agregar nueva libranza de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/libranzas.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
+                VerFormulario('../php/controladores/libranzas.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
             }
         }
     ],
@@ -360,7 +360,7 @@ const tableEmbargos = crearDataTable(
             titleAttr: 'Agregar nuevo embargo de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/embargos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/embargos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -393,7 +393,7 @@ const tableSindicatos = crearDataTable(
             titleAttr: 'Agregar nuevo sindicato de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/sindicatos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/sindicatos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -426,7 +426,7 @@ const tableOtroDescuento = crearDataTable(
             titleAttr: 'Agregar nuevo descuento de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/otros_descuentos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/otros_descuentos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -455,7 +455,7 @@ const tableCcosto = crearDataTable(
             titleAttr: 'Agregar nuevo centro de costo de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/ccostos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/ccostos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
             }
         }
     ],
@@ -484,7 +484,7 @@ const tableIvivienda = crearDataTable(
             titleAttr: 'Agregar nuevo interes de vivienda de empleado',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFomulario('../php/controladores/ivivienda.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-sm');
+                VerFormulario('../php/controladores/ivivienda.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-sm');
             }
         }
     ],
@@ -557,7 +557,7 @@ if (document.querySelector('#tableContratosEmpleado')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/contratos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFormulario('../php/controladores/contratos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
 
         if (btnEliminar) {
@@ -576,7 +576,7 @@ if (document.querySelector('#tableSegSocial')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/seguridad_social.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFormulario('../php/controladores/seguridad_social.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
 
         if (btnEliminar) {
@@ -595,7 +595,7 @@ if (document.querySelector('#tableIncapacidades')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/incapacidades.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFormulario('../php/controladores/incapacidades.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
 
         if (btnEliminar) {
@@ -614,7 +614,7 @@ if (document.querySelector('#tableVacaciones')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/vacaciones.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFormulario('../php/controladores/vacaciones.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
 
         if (btnEliminar) {
@@ -625,7 +625,7 @@ if (document.querySelector('#tableVacaciones')) {
         if (btnImprimir) {
             mostrarOverlay();
             const id = btnImprimir.dataset.id;
-            VerFomulario('../php/controladores/vacaciones.php', 'imp', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
+            VerFormulario('../php/controladores/vacaciones.php', 'imp', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
         }
 
     });
@@ -639,7 +639,7 @@ if (document.querySelector('#tableLicenciaMoP')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/licencias_mop.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFormulario('../php/controladores/licencias_mop.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
 
         if (btnEliminar) {
@@ -657,7 +657,7 @@ if (document.querySelector('#tableLicenciaLuto')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/licencias_luto.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFormulario('../php/controladores/licencias_luto.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
 
         if (btnEliminar) {
@@ -674,7 +674,7 @@ if (document.querySelector('#tableLicenciaNoRem')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/licencias_norem.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFormulario('../php/controladores/licencias_norem.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
 
         if (btnEliminar) {
@@ -691,7 +691,7 @@ if (document.querySelector('#tableIndemnizaVacacion')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/indemniza_vacacion.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFormulario('../php/controladores/indemniza_vacacion.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
 
         if (btnEliminar) {
@@ -708,7 +708,7 @@ if (document.querySelector('#tableBsp')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/bsp.php', 'form', { id: id, id_empleado: ValueInput('id_empleado') }, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-sm');
+            VerFormulario('../php/controladores/bsp.php', 'form', { id: id, id_empleado: ValueInput('id_empleado') }, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-sm');
         }
 
         if (btnEliminar) {
@@ -725,7 +725,7 @@ if (document.querySelector('#tableLibranzas')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/libranzas.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
+            VerFormulario('../php/controladores/libranzas.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
         }
 
         if (btnEliminar) {
@@ -742,7 +742,7 @@ if (document.querySelector('#tableEmbargos')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/embargos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFormulario('../php/controladores/embargos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
 
         if (btnEliminar) {
@@ -759,7 +759,7 @@ if (document.querySelector('#tableSindicatos')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/sindicatos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFormulario('../php/controladores/sindicatos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
 
         if (btnEliminar) {
@@ -776,7 +776,7 @@ if (document.querySelector('#tableOtroDescuento')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/otros_descuentos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFormulario('../php/controladores/otros_descuentos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
 
         if (btnEliminar) {
@@ -794,7 +794,7 @@ if (document.querySelector('#tableCcosto')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/ccostos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            VerFormulario('../php/controladores/ccostos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
         }
 
         if (btnEliminar) {
@@ -812,7 +812,7 @@ if (document.querySelector('#tableIvivienda')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFomulario('../php/controladores/ivivienda.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-sm');
+            VerFormulario('../php/controladores/ivivienda.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-sm');
         }
 
         if (btnEliminar) {

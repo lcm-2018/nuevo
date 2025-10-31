@@ -10,3 +10,8 @@
 [2025-10-20 18:45:54] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_area_user`  WHERE `id_resp` = 3;
 [2025-10-20 18:46:50] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_area_user`  WHERE `id_resp` = 4;
 [2025-10-21 11:24:52] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_relacion_user`  WHERE `id_relacion` = 2;
+[2025-10-29 15:05:44] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `tb_responsabilidades_tributarias`  WHERE `id_responsabilidad` = 42;
+[2025-10-29 15:13:25] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `tb_responsabilidades_tributarias`  WHERE `id_responsabilidad` = 43;
+[2025-10-29 15:24:42] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_perfil_tercero` WHERE `id_perfil` = 1;
+[2025-10-30 13:38:42] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `tb_responsabilidades_tributarias`  WHERE `id_responsabilidad` = 44;
+[2025-10-30 15:17:00] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_documentos` WHERE `id_soportester` = 2;

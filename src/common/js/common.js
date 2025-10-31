@@ -126,7 +126,7 @@ const SendPost = async (url, data) => {
  * @param {string} tam Tamaño definido para el modal
  */
 
-const VerFomulario = (url, accion, datos, modal, body, idTam, tam) => {
+const VerFormulario = (url, accion, datos, modal, body, idTam, tam) => {
     var data = new FormData();
     data.append('action', accion);
     if (typeof datos === 'object') {
@@ -499,22 +499,70 @@ document.addEventListener('click', function (e) {
     }
 });
 
-document.getElementById('slcVigencia').addEventListener('change', function () {
-    var valor = this.value;
-    var texto = this.options[this.selectedIndex].text;
-    var url = ValueInput('host') + '/src/usuarios/general/php/vigencia.php';
-    var data = new FormData();
-    data.append('texto', texto);
-    data.append('id', valor);
-    SendPost(url, data).then((response) => {
-        if (response.status === 'ok') {
-            mje('Vigencia cambiada a ' + texto);
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
-        } else {
-            mjeError('Error!', response.msg);
-        }
-    });
+const vigencia = document.getElementById('slcVigencia');
+if (vigencia) {
+    vigencia.addEventListener('change', function () {
+        var valor = this.value;
+        var texto = this.options[this.selectedIndex].text;
+        var url = ValueInput('host') + '/src/usuarios/general/php/vigencia.php';
+        var data = new FormData();
+        data.append('texto', texto);
+        data.append('id', valor);
+        SendPost(url, data).then((response) => {
+            if (response.status === 'ok') {
+                mje('Vigencia cambiada a ' + texto);
+                setTimeout(() => {
+                    location.reload();
+                }, 200);
+            } else {
+                mjeError('Error!', response.msg);
+            }
+        });
 
+    });
+}
+
+document.querySelectorAll('.opcion_personalizado').forEach(function (element) {
+    element.addEventListener('click', function () {
+        const id = this.getAttribute('txt_id_opcion');
+
+        const form = document.createElement('form');
+        form.action = ValueInput('host') + '/src/inf_generales/php/inf_personalizados/index.php';
+        form.method = 'post';
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'id_opcion';
+        input.value = id;
+
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    });
 });
+
+var verifica_vacio = function (objeto, msg = "") {
+    var error = 0;
+    if (objeto.val().trim() == "") {
+        objeto.addClass('is-invalid');
+        objeto.focus();
+        error = 1;
+        if (msg != "") {
+            mjeError('Error!', msg);
+        }
+    }
+    return error;
+};
+
+var verifica_valmax = function (objeto, val = 500, msg = "") {
+    var error = 0;
+    if (parseInt(objeto.val()) > val) {
+        objeto.addClass('is-invalid');
+        objeto.focus();
+        error = 1;
+        if (msg != "") {
+            mjeError('Error!', msg);
+        }
+    }
+    return error;
+};

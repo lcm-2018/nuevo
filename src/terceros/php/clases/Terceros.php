@@ -128,7 +128,7 @@ class Terceros
                                 <div class="row mb-2">
                                     <div class="col-md-12">
                                         <label for="slcTipo" class="small">TIPO</label>
-                                        <select name="slcTipo" id="slcTipo" class="form-control form-control-sm">
+                                        <select name="slcTipo" id="slcTipo" class="form-control form-control-sm bg-input">
                                             <option value="0">--Seleccione--</option>
                                             {$lst}
                                         </select>
@@ -137,16 +137,16 @@ class Terceros
                                 <div class="row">
                                     <div class="col-md-6">
                                         <label for="txtRubroAdmin" class="small">RUBRO ADMINISTRATIVO</label>
-                                        <input type="text" id="txtRubroAdmin" class="form-control form-control-sm buscaRubro"
-                                            data-target="#idRubroAdmin" data-tipo-target="#tp_dato_radm"
+                                        <input type="text" id="txtRubroAdmin" class="form-control form-control-sm buscaRubro bg-input"
+                                            data-bs-target="#idRubroAdmin" data-tipo-target="#tp_dato_radm"
                                             value="{$fila['nom_admin']}">
                                         <input type="hidden" id="idRubroAdmin" name="idRubroAdmin" value="{$fila['r_admin']}">
                                         <input type="hidden" id="tp_dato_radm" value="{$fila['tp_a']}">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="txtRubroOpera" class="small">RUBRO OPERATIVO</label>
-                                        <input type="text" id="txtRubroOpera" class="form-control form-control-sm buscaRubro"
-                                            data-target="#idRubroOpera" data-tipo-target="#tp_dato_rope"
+                                        <input type="text" id="txtRubroOpera" class="form-control form-control-sm buscaRubro bg-input"
+                                            data-bs-target="#idRubroOpera" data-tipo-target="#tp_dato_rope"
                                             value="{$fila['nom_operativo']}">
                                         <input type="hidden" id="idRubroOpera" name="idRubroOpera" value="{$fila['r_operativo']}">
                                         <input type="hidden" id="tp_dato_rope" value="{$fila['tp_o']}">
@@ -212,6 +212,7 @@ class Terceros
     public static function getRegistroApiCedula($cc)
     {
         $api = Conexion::Api();
+        $api = \Config\Clases\Conexion::Api();
         $url = $api . 'terceros/datos/res/lista/' . $cc;
         $ch = curl_init($url);
         //curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -230,6 +231,7 @@ class Terceros
     public static function addTerceroApi($array)
     {
         $api = Conexion::Api();
+        $api = \Config\Clases\Conexion::Api();
         $url = $api . 'terceros/datos/res/nuevo';
         $ch = curl_init($url);
         $data = [

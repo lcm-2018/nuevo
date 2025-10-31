@@ -38,27 +38,38 @@ class Plantilla
         $this->navbar =
             <<<HTML
                 <nav style="background-color: #1a659d !important; border-bottom: 5px solid #16a085 !important;" class="navbar fixed-top text-white" data-navbarbg="skin6">
-                    <div class="container-fluid">
-                        <button style="box-shadow: none;border: 1px solid #adb5bd !important;" class="navbar-toggler bg-light border-0 p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                        <div class="text-center">
+                    <div class="container-fluid d-flex justify-content-between align-items-center">
+                        <!-- Elemento Izquierda: Botón Menú -->
+                        <div class="flex-shrink-0">
+                            <button style="box-shadow: none;border: 1px solid #adb5bd !important;" class="navbar-toggler bg-light border-0 p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                        </div>
+                        <!-- Elemento Central: Usuario y Vigencia -->
+                        <div class="text-center flex-grow-1">
                             <span class="fw-bold">{$nombre_usuario}</span> | 
-                            <span class="badge bg-light text-dark d-inline-flex align-items-center">
+                            <span class="fw-bold d-inline-flex align-items-center">
                                 Vigencia:
-                                <select class="form-select form-select-sm ms-1" id="slcVigencia" style="width: 70px; display: inline-block; padding: 0.1rem 0.4rem; font-size: 0.7rem;">
+                                <select class="form-select form-select-sm rounded-pill ms-1" id="slcVigencia" style="width: 70px; display: inline-block; padding: 0.1rem 0.4rem; font-size: 0.7rem;">
                                     {$vigencias}
                                 </select>
                             </span>
                         </div>
-                        <div class="dropdown">
-                            <a class="nav-link navbar-brand d-flex align-items-center p-0" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                        <!-- Elemento Derecha: Logo y Menú de Usuario -->
+                        <div class="d-flex align-items-center flex-shrink-0">
+                            <a class="navbar-brand d-flex align-items-center p-0 me-3" href="{$host}/src/inicio.php">
                                 <img src="{$host}/assets/images/logoFinanciero.png" alt="logo sistema financiero" width="150">
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#">Opción 1</a></li>
-                                <li><a class="dropdown-item" href="#">Opción 2</a></li>
-                            </ul>
+                            <div class="dropdown">
+                                <a class="dropdown-toggle no-caret d-flex align-items-center p-0 text-success" href="#" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+                                    <i class="fas fa-user-circle fa-2x text-white"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item sombra" href="#">Perfil de Usuario</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item sombra" href="{$host}/index.php">Cerrar Sesión</a></li>
+                                </ul>
+                            </div>
                         </div>
                         <div style="background-color: #eafaf1;" class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
                             <div class="offcanvas-header">
@@ -151,9 +162,9 @@ class Plantilla
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="#" class="nav-link text-muted px-1 py-2 sombra">
-                                                                <i class="fas fa-cogs me-2 fa-fw"></i> Inf. Personalizados
-                                                            </a>
+                                                            <a href="javascript:void(0)" class="nav-link text-info px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5199">
+                                                        <i class="fas fa-cogs me-2 fa-fw"></i> Inf. Personalizados
+                                                    </a>
                                                         </li>
                                                     </ul>
                                                 </div>
@@ -171,62 +182,18 @@ class Plantilla
                                         <div class="collapse shadow" id="terceros-collapse">
                                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                 <li>
-                                                    <a href="#otro-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                                        <span class="d-flex align-items-center text-success">
-                                                            <i class="fas fa-tags fa-sm me-2"></i> General
-                                                        </span>
-                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                                                    <a href="{$host}/src/terceros/set/configuracion.php" class="nav-link text-primary px-1 py-2 sombra">
+                                                        <i class="fas fa-cogs me-2 fa-fw"></i> Configuración
                                                     </a>
                                                 </li>
-                                                <div class="collapse shadow" id="otro-collapse">
-                                                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
-                                                        <li>
-                                                            <a href="{$host}/src/nomina/configuracion/php/index.php" class="nav-link text-success px-1 py-2 sombra">
-                                                                <i class="fas fa-cogs me-2 fa-fw"></i> Configuración
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#" class="nav-link text-warning px-1 py-2 sombra">
-                                                                <i class="fas fa-users me-2 fa-fw"></i> Empleados
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#" class="nav-link text-primary px-1 py-2 sombra">
-                                                                <i class="fas fa-user-clock me-2 fa-fw"></i> Horas Extra
-                                                            </a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
                                                 <li>
-                                                    <a href="#sd-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                                        <span class="d-flex align-items-center text-warning">
-                                                            <i class="fas fa-file-invoice-dollar fa-sm me-2"></i> Liquidación
-                                                        </span>
-                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-primary"></i> 
+                                                    <a href="{$host}/src/terceros/gestion/listterceros.php" class="nav-link text-success px-1 py-2 sombra">
+                                                        <i class="fas fa-users me-2 fa-fw"></i> Gestión
                                                     </a>
                                                 </li>
-                                                <div class="collapse shadow" id="sd-collapse">
-                                                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
-                                                        <li>
-                                                            <a href="{$host}/src/nomina/configuracion/php/index.php" class="nav-link text-success px-1 py-2 sombra">
-                                                                <i class="fas fa-cogs me-2 fa-fw"></i> Configuración
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="{$host}/src/nomina/empleados/php/index.php" class="nav-link text-warning px-1 py-2 sombra">
-                                                                <i class="fas fa-users me-2 fa-fw"></i> Empleados
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a href="#" class="nav-link text-primary px-1 py-2 sombra">
-                                                                <i class="fas fa-user-clock me-2 fa-fw"></i> Horas Extra
-                                                            </a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
                                                 <li>
-                                                    <a href="#" class="nav-link text-info px-1 py-2 sombra">
-                                                        <i class="fas fa-caret-right me-2 fa-fw"></i> Subopcion 4
+                                                    <a href="javascript:void(0)" class="nav-link text-info px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5299">
+                                                        <i class="fas fa-cogs me-2 fa-fw"></i> Inf. Personalizados
                                                     </a>
                                                 </li>
                                             </ul>
@@ -411,8 +378,8 @@ class Plantilla
                                                     </div>
                                                 </li>
                                                 <li>
-                                                    <a href="#" class="nav-link text-muted px-1 py-2 sombra">
-                                                        <i class="fas fa-sliders-h me-2 fa-fw"></i> Inf. Personalizados
+                                                    <a href="javascript:void(0)" class="nav-link text-info px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5299">
+                                                        <i class="fas fa-cogs me-2 fa-fw"></i> Inf. Personalizados
                                                     </a>
                                                 </li>
                                             </ul>

@@ -39,10 +39,14 @@ class Detalles
         }
 
         $where = '';
+
+        if (isset($array['id_empleado'])) {
+            $where .= " AND `e`.`id_empleado` = {$array['id_empleado']}";
+        }
+
         if (isset($array['search']) && $array['search'] != '') {
             $where .= " AND (`e`.`no_documento` LIKE '%{$array['search']}%' OR CONCAT_WS (' ',`e`.`nombre1`,`nombre2`,`apellido1`,`apellido2`) LIKE '%{$array['search']}%' OR `cargo`.`descripcion_carg` LIKE '%{$array['search']}%')";
         }
-
 
         $sql = "WITH 
                     `bsp` AS 
@@ -190,9 +194,9 @@ class Detalles
                     , IFNULL(`vac`.`val_bon_recrea`,0) AS `val_bon_recrea`
                     , IFNULL(`rfte`.`val_ret`,0) AS `val_retencion`
                 FROM `nom_empleado` `e`
-                    INNER JOIN `cargo` ON (`cargo`.`id_empleado` = `e`.`id_empleado`)
                     INNER JOIN `sal` ON (`sal`.`id_empleado` = `e`.`id_empleado`)
                     INNER JOIN `tb_sedes` `ts` ON (`ts`.`id_sede` = `e`.`sede_emp`)
+                    LEFT JOIN `cargo` ON (`cargo`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `bsp` ON (`bsp`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `ces` ON (`ces`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `com` ON (`com`.`id_empleado` = `e`.`id_empleado`)
@@ -215,7 +219,7 @@ class Detalles
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(':id_nomina', $array['id_nomina'], PDO::PARAM_INT);
         $stmt->execute();
-        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $datos = isset($array['id_empleado']) ? $stmt->fetch(PDO::FETCH_ASSOC) : $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
 
@@ -294,5 +298,69 @@ class Detalles
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         return !empty($registro) ? $registro['total'] : 0;
+    }
+
+    public function getFormulario($id_empleado, $id_nomina)
+    {
+        $datos = $this->getRegistrosDT(1, -1, ['id_empleado' => $id_empleado, 'id_nomina' => $id_nomina], 1, 'ASC');
+        $html =
+            <<<HTML
+                <div>
+                    <div class="shadow text-center rounded">
+                        <div class="rounded-top py-2" style="background-color: #16a085 !important;">
+                            <h5 style="color: white;" class="mb-0"><b>EMPLEADO:</b> {$datos['nombre']}</h5>
+                        </div>
+                        <div class="p-3">
+                            <form id="formGestCtaCtbNom">
+                                <input type="hidden" id="id_empleado" name="id_empleado" value="{$id_empleado}">
+                                <input type="hidden" id="id_nomina" name="id_nomina" value="{$id_nomina}">
+                                <div class="accordion" id="accordionExample">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button  bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                                Accordion Item #1
+                                            </button>
+                                        </h2>
+                                        <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                                            <div class="accordion-body">
+                                                CONTENIDO 1
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button bg-head-button border collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                                Accordion Item #2
+                                            </button>
+                                        </h2>
+                                        <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                            <div class="accordion-body">
+                                                <strong>This is the second item’s accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It’s also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button bg-head-button border collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                                Accordion Item #3
+                                            </button>
+                                        </h2>
+                                        <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                            <div class="accordion-body">
+                                                <strong>This is the third item’s accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It’s also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="text-end pb-3 px-3">
+                            <button type="button" class="btn btn-primary btn-sm" id="btnReliquidar">Reliquidar</button>
+                            <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
+                        </div>
+                    </div>
+                </div>
+            HTML;
+        return $html;
     }
 }

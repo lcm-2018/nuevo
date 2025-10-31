@@ -7,19 +7,23 @@ if (!isset($_SESSION['user'])) {
 
 $action = isset($_POST['action']) ? $_POST['action'] : exit('Acceso no permitido');
 $id = $_POST['id'] ?? null;
+$id_nomina = $_POST['id_nomina'] ?? null;
 
 include_once '../../../../../config/autoloader.php';
 
 use Src\Nomina\Empleados\Php\Clases\Empleados;
 use Src\Nomina\Liquidacion\Php\Clases\Liquidacion;
+use Src\Nomina\Liquidado\Php\Clases\Detalles;
 
 $Liquidacion = new Liquidacion();
+$Detalles = new Detalles();
 
 $res['status'] = ' error';
 $res['msg'] = 'Acción no válida.';
 switch ($action) {
     case 'form':
-        $res['msg'] = 'Sin formulario definido.';
+        $res['status'] = 'ok';
+        $res['msg'] = $Detalles->getFormulario($id, $id_nomina);
         break;
     case 'add':
         $data = $Liquidacion->addRegistro($_POST);

@@ -5,7 +5,6 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-
 include_once '../config/autoloader.php';
 
 use Config\Clases\Plantilla;
@@ -18,7 +17,7 @@ $content = <<<HTML
         PÁGINA DE INICIO
     </div>
     <div class="card-body p-2">
-        
+        {$_SESSION['user']} bienvenido al sistema financiero.
     </div>
 </div>
 HTML;

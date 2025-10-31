@@ -1,6 +1,11 @@
 <?php
 session_start();
-session_destroy();
+
+if (isset($_SESSION['user'])) {
+    session_destroy();
+    session_unset();
+}
+
 include_once 'config/autoloader.php';
 
 use Config\Clases\Plantilla;

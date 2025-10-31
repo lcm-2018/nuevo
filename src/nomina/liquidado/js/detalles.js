@@ -81,10 +81,12 @@ document.querySelector('#tableDetallesNomina').addEventListener('click', functio
     if (fila && (esDobleClick || btnDetalles)) {
         const id_nomina = ValueInput('id_nomina');
         const data = tableDetallesNomina.row(fila).data();
-        VerLiquidacionEmpleado(id_nomina, data['id_empleado']);
+        VerLiquidacionEmpleado(data['id_empleado'], id_nomina);
     }
 });
 
-function VerLiquidacionEmpleado(id_nomina, id_empleado) {
-    alert(`Ver liquidación del empleado ${id_empleado} de la nómina ${id_nomina}`);
+function VerLiquidacionEmpleado(id_empleado, id_nomina) {
+    mostrarOverlay();
+    VerFormulario('../php/controladores/liquidado.php', 'form', { id: id_empleado, id_nomina: id_nomina }, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-xl');
+    setTimeout(ocultarOverlay, 500);
 }
