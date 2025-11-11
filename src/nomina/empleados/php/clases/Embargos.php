@@ -358,6 +358,27 @@ class Embargos
         }
     }
 
+    public function getRegistroLiq($array)
+    {
+        try {
+            $sql = "SELECT
+                        `nle`.`id_embargo` AS `id`
+                    FROM
+                        `nom_liq_embargo` AS `nle`
+                        INNER JOIN `nom_embargos` AS `ne` 
+                            ON (`nle`.`id_embargo` = `ne`.`id_embargo`)
+                    WHERE (`ne`.`id_empleado` = ? AND `nle`.`id_nomina` = ? AND `nle`.`estado` = 1)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            return !empty($data) ? $data['id'] : 0;
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
     public function addRegistroLiq($array)
     {
         try {
@@ -387,6 +408,30 @@ class Embargos
      * @param array $array Datos del registro a actualizar
      * @return string Mensaje de éxito o error
      */
+    public function editRegistroLiq($array)
+    {
+        try {
+            $sql = "UPDATE `nom_liq_embargo`
+                        SET `val_mes_embargo` = ?
+                    WHERE `id_liq_embargo` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['valor_embargo'], PDO::PARAM_STR);
+            $stmt->bindValue(2, $array['id'], PDO::PARAM_INT);
+
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $consulta = "UPDATE `nom_liq_embargo` SET `fec_act` = ? WHERE `id_liq_embargo` = ?";
+                $stmt2 = $this->conexion->prepare($consulta);
+                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
+                $stmt2->execute();
+                return 'si';
+            } else {
+                return 'no';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
     public function editRegistro($array)
     {
         try {

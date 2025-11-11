@@ -39,7 +39,7 @@ try {
         ORDER BY ctt_novedad_liquidacion.id_liquidacion DESC LIMIT 1";
 
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

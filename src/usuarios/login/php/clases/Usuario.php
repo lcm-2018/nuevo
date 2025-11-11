@@ -76,4 +76,9 @@ class Usuario
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
+
+    public function getFormPerfilUsuario($id_user)
+    {
+        return "<div>Formulario del Perfil de Usuario xd: {$id_user}</div>";
+    }
 }

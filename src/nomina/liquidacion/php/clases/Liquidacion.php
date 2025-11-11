@@ -549,7 +549,7 @@ class Liquidacion
                     }
 
                     //liquidar BSP
-                    // verificar que tenga  1 en tiene bps
+                    // verificar que tenga  1 entonces se liquida bps
                     $valTotalBSP = 0;
                     if ($empleados[$id_empleado]['bsp'] == 1) {
                         if (isset($bonificaciones[$id_empleado])) {
@@ -1451,8 +1451,7 @@ class Liquidacion
             'id_empleado' =>   $param['id_empleado'],
             'corte' =>         $param['corte'],
             'valor' =>         $bsp,
-            'id_nomina' =>     $param['id_nomina'],
-            'tipo' =>          'S'
+            'id_nomina' =>     $param['id_nomina']
         ];
 
         $res = (new Bsp($this->conexion))->addRegistro($data);
@@ -1517,7 +1516,7 @@ class Liquidacion
 
         // Cálculo ARL
         [$idArl, $porcentajeArl] = explode('|', $novedad[3]);
-        $riesgos = $ibc * ($porcentajeArl / 100);
+        $riesgos = $ibc * ($porcentajeArl);
 
         // Datos a guardar
         $data = [
@@ -1782,6 +1781,7 @@ class Liquidacion
         }
         return $response;
     }
+
     public function LiquidaSalarioNeto($array)
     {
         $response = [

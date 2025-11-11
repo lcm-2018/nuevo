@@ -61,7 +61,7 @@ try {
             GROUP BY pto_crp.id_pto_crp, pto_crp.id_manu, pto_crp.fecha, pto_crp.num_contrato, pto_crp.estado";
 
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

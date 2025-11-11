@@ -353,6 +353,26 @@ class Libranzas
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+    public function getRegistroLiq($array)
+    {
+        try {
+            $sql = "SELECT
+                        `nll`.`id_lid_lib` AS `id`
+                    FROM
+                        `nom_liq_libranza` AS `nll`
+                        INNER JOIN `nom_libranzas` AS `nl` 
+                            ON (`nll`.`id_libranza` = `nl`.`id_libranza`)
+                    WHERE (`nl`.`id_empleado`  = ? AND `nll`.`id_nomina`  = ? AND `nll`.`estado` = 1)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            return !empty($data) ? $data['id'] : 0;
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
 
     public function addRegistroLiq($array)
     {
@@ -372,6 +392,32 @@ class Libranzas
                 return 'si';
             } else {
                 return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function editRegistroLiq($array)
+    {
+        try {
+            $sql = "UPDATE `nom_liq_libranza`
+                        SET `val_mes_lib` = ?
+                    WHERE `id_lid_lib` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['valor_libranza'], PDO::PARAM_STR);
+            $stmt->bindValue(2, $array['id'], PDO::PARAM_INT);
+
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $consulta = "UPDATE `nom_liq_libranza` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_lid_lib` = ?";
+                $stmt2 = $this->conexion->prepare($consulta);
+                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
+                $stmt2->execute();
+                return 'si';
+            } else {
+                return 'no';
             }
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();

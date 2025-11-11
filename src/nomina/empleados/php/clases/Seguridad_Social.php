@@ -313,7 +313,7 @@ class Seguridad_Social
     {
         try {
             $sql = "DELETE FROM `nom_terceros_novedad` WHERE `id_novedad` = ?";
-            $consulta  = "DELETE FROM `nom_terceros_novedad` WHERE `id_novedad` = $id";
+            $consulta = "DELETE FROM `nom_terceros_novedad` WHERE `id_novedad` = $id";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->execute();
@@ -328,12 +328,51 @@ class Seguridad_Social
         }
     }
 
+    public function getRegistroLiq($array)
+    {
+        try {
+            $sql = "SELECT
+                        `id_liq_empdo` AS `id`
+                    FROM
+                        `nom_liq_segsocial_empdo`
+                    WHERE (`id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            return !empty($data) ? $data['id'] : 0;
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function getRegistroLiq2($array)
+    {
+        try {
+            $sql = "SELECT
+                        `id_liq_pfis` AS `id`
+                    FROM
+                        `nom_liq_parafiscales`
+                    WHERE (`id_empleado` = ?  AND `id_nomina` = ? AND `estado` = 1)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            return !empty($data) ? $data['id'] : 0;
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
     /**
      * Agrega un nuevo registro.
      *
      * @param array $array Datos del registro a agregar
      * @return string Mensaje de éxito o error
      */
+
     public function addRegistro($array)
     {
         try {
@@ -387,6 +426,65 @@ class Seguridad_Social
                 return 'si';
             } else {
                 return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function editRegistroLiq($array)
+    {
+        try {
+            $sql = "UPDATE `nom_liq_segsocial_empdo`
+                    SET `aporte_salud_emp` = ?, `aporte_pension_emp` = ?, `aporte_solidaridad_pensional` = ?, `aporte_salud_empresa` = ?, `aporte_pension_empresa` = ?, `aporte_rieslab` = ?
+                    WHERE `id_liq_empdo` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['valor_salud'], PDO::PARAM_STR);
+            $stmt->bindValue(2, $array['valor_pension'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $array['val_pension_solidaria'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $array['val_salud_empresa'], PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['val_pension_empresa'], PDO::PARAM_STR);
+            $stmt->bindValue(6, $array['val_riesgo_laboral'], PDO::PARAM_STR);
+            $stmt->bindValue(7, $array['id'], PDO::PARAM_INT);
+
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $consulta = "UPDATE `nom_liq_segsocial_empdo` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_empdo` = ?";
+                $stmt2 = $this->conexion->prepare($consulta);
+                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
+                $stmt2->execute();
+                return 'si';
+            } else {
+                return 'no';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function editRegistroLiq2($array)
+    {
+        try {
+            $sql = "UPDATE `nom_liq_parafiscales`
+                        SET `val_sena` = ?, `val_icbf` = ?, `val_comfam` = ?
+                    WHERE `id_liq_pfis` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['val_sena'], PDO::PARAM_STR);
+            $stmt->bindValue(2, $array['val_icbf'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $array['val_caja_compensacion'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
+
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $consulta = "UPDATE `nom_liq_parafiscales` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_pfis` = ?";
+                $stmt2 = $this->conexion->prepare($consulta);
+                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
+                $stmt2->execute();
+                return 'si';
+            } else {
+                return 'no';
             }
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();

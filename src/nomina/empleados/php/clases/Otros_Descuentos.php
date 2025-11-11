@@ -344,6 +344,53 @@ class Otros_Descuentos
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+
+    public function getRegistroLiq($array)
+    {
+        try {
+            $sql = "SELECT
+                        `nld`.`id_liq` AS `id`
+                    FROM
+                        `nom_liq_descuento` AS `nld`
+                        INNER JOIN `nom_otros_descuentos` AS `nod` 
+                            ON (`nld`.`id_dcto` = `nod`.`id_dcto`)
+                    WHERE (`nod`.`id_empleado` = ? AND `nld`.`id_nomina` = ? AND `nld`.`estado` = 1)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            return !empty($data) ? $data['id'] : 0;
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function editRegistroLiq($array)
+    {
+        try {
+            $sql = "UPDATE `nom_liq_descuento`
+                        SET `valor` = ?
+                    WHERE `id_liq` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['valor_otros_descuentos'], PDO::PARAM_STR);
+            $stmt->bindValue(2, $array['id'], PDO::PARAM_INT);
+
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $consulta = "UPDATE `nom_liq_descuento` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq` = ?";
+                $stmt2 = $this->conexion->prepare($consulta);
+                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
+                $stmt2->execute();
+                return 'si';
+            } else {
+                return 'no';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
     /**
      * Actualiza los datos de un registro.
      *

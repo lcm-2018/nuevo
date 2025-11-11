@@ -114,7 +114,7 @@ class Valores_Liquidacion
     public function getRegistro($id_nomina, $id_empleado)
     {
         $sql = "SELECT
-                    `id_empleado`,`smmlv`,`aux_trans`,`aux_alim`,`uvt`,`base_bsp`,`base_alim`,`min_vital`,`salario`,`tiene_grep`,`prom_horas`,`bsp_ant`,`pri_ser_ant`,`pri_vac_ant`,`pri_nav_ant`,`id_nomina`
+                    `id_empleado`,`smmlv`,`aux_trans`,`aux_alim`,`uvt`,`base_bsp`,`base_alim`,`min_vital`,`salario`,`tiene_grep`,`grep`,`prom_horas`,`bsp_ant`,`pri_ser_ant`,`pri_vac_ant`,`pri_nav_ant`,`id_nomina`
                 FROM `nom_valores_liquidacion` WHERE `id_nomina` = ? AND `id_empleado` = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $id_nomina, PDO::PARAM_INT);

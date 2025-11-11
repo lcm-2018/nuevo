@@ -23,7 +23,7 @@ try {
                 `tb_actividades_economicas`
             WHERE `descripcion` LIKE '%$busco%' OR `cod_actividad` LIKE '%$busco%'";
     $rs = $cmd->query($sql);
-    $resps = $rs->fetchAll();
+    $resps = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

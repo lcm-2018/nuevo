@@ -13,7 +13,7 @@ try {
             FROM
                 `tb_terceros`";
     $rs = $cmd->query($sql);
-    $terEmpr = $rs->fetchAll();
+    $terEmpr = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $sql = "SELECT 

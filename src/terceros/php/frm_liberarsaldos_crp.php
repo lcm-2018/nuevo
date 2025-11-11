@@ -54,7 +54,7 @@ $sql = "SELECT
         LIMIT 1";
 
 $rs = $cmd->query($sql);
-$obj_saldos = $rs->fetchAll();
+$obj_saldos = $rs->fetchAll(PDO::FETCH_ASSOC);
 $rs->closeCursor();
 unset($rs);
 

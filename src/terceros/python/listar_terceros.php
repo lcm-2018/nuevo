@@ -17,7 +17,7 @@ try {
                 INNER JOIN tb_municipios ON (tb_terceros.id_municipio = tb_municipios.id_municipio)
             GROUP BY tb_municipios.nom_municipio";
     $rs = $cmd->query($sql);
-    $obj_terceros = $rs->fetchAll();
+    $obj_terceros = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

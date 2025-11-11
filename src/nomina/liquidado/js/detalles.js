@@ -85,8 +85,84 @@ document.querySelector('#tableDetallesNomina').addEventListener('click', functio
     }
 });
 
+
+document.getElementById('modalForms').addEventListener('click', function (event) {
+    const boton = event.target;
+    if (boton) {
+        event.preventDefault();
+        LimpiaInvalid();
+        switch (boton.id) {
+            case 'btnGuardarDctos':
+                mostrarOverlay();
+                var data = Serializa('formDctosLiq');
+                data = AppendData(data, 4);
+                SendPost('../php/controladores/liquidado.php', data).then((response) => {
+                    if (response.status === 'ok') {
+                        mje('Guardado correctamente!');
+                        tableDetallesNomina.ajax.reload(null, false);
+                    } else {
+                        mjeError('Error!', response.msg);
+                    }
+                }).finally(() => {
+                    ocultarOverlay();
+                });
+                break;
+            case 'btnGuardarParafiscales':
+                mostrarOverlay();
+                var data = Serializa('formParafiscalesLiq');
+                data = AppendData(data, 3);
+                SendPost('../php/controladores/liquidado.php', data).then((response) => {
+                    if (response.status === 'ok') {
+                        mje('Guardado correctamente!');
+                        tableDetallesNomina.ajax.reload(null, false);
+                    } else {
+                        mjeError('Error!', response.msg);
+                    }
+                }).finally(() => {
+                    ocultarOverlay();
+                });
+                break;
+            case 'btnGuardarPretaciones':
+                mostrarOverlay();
+                var data = Serializa('formPrestacionesLiq');
+                data = AppendData(data, 2);
+                SendPost('../php/controladores/liquidado.php', data).then((response) => {
+                    if (response.status === 'ok') {
+                        mje('Guardado correctamente!');
+                        tableDetallesNomina.ajax.reload(null, false);
+                    } else {
+                        mjeError('Error!', response.msg);
+                    }
+                }).finally(() => {
+                    ocultarOverlay();
+                });
+                break;
+        }
+    }
+});
 function VerLiquidacionEmpleado(id_empleado, id_nomina) {
     mostrarOverlay();
     VerFormulario('../php/controladores/liquidado.php', 'form', { id: id_empleado, id_nomina: id_nomina }, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-xl');
-    setTimeout(ocultarOverlay, 500);
 }
+
+function AppendData(data, option) {
+    data.append('action', 'edit');
+    data.append('option', option);
+    data.append('id_nomina', ValueInput('id_nomina'));
+    data.append('id_empleado', ValueInput('id_empleado'));
+    return data;
+}
+
+var miModal = document.getElementById('modalForms');
+
+miModal.addEventListener('click', function (event) {
+    if (event.target.matches('input[type="date"]')) {
+        event.preventDefault();
+        try {
+            event.target.showPicker();
+            event.target.focus();
+        } catch (error) {
+            console.error("Navegador no soporta showPicker():", error);
+        }
+    }
+});

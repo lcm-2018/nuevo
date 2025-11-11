@@ -62,7 +62,7 @@ try {
                 `tb_terceros`.`id_tercero_api`
             ORDER BY $col $dir $limit";
     $rs = $cmd->query($sql);
-    $terEmpr = $rs->fetchAll();
+    $terEmpr = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

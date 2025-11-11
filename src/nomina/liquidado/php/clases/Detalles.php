@@ -5,6 +5,7 @@ namespace Src\Nomina\Liquidado\Php\Clases;
 use Config\Clases\Conexion;
 use Config\Clases\Sesion;
 use PDO;
+use Src\Nomina\Empleados\Php\Clases\Valores_Liquidacion;
 
 /**
  * Clase para gestionar de nomina de los empleados Liquidado.
@@ -50,9 +51,9 @@ class Detalles
 
         $sql = "WITH 
                     `bsp` AS 
-                        (SELECT `id_empleado`,`val_bsp` FROM `nom_liq_bsp` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`,`val_bsp`, `fec_corte` AS `corte_bsp` FROM `nom_liq_bsp` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `ces` AS
-                        (SELECT `id_empleado`,`val_cesantias`,`val_icesantias` FROM `nom_liq_cesantias` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`,`val_cesantias`,`val_icesantias`, `corte` AS `corte_ces`, `cant_dias` AS `dias_ces` FROM `nom_liq_cesantias` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `com` AS
                         (SELECT `id_empleado`,`val_compensa` FROM `nom_liq_compesatorio` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `dcto` AS 
@@ -92,7 +93,7 @@ class Detalles
                         WHERE (`nom_liq_libranza`.`id_nomina` = :id_nomina AND `nom_liq_libranza`.`estado` = 1)
                         GROUP BY `nom_libranzas`.`id_empleado`),
                     `rfte` AS
-                        (SELECT `id_empleado`,`val_ret` FROM `nom_retencion_fte` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`,`val_ret`, `base` AS `base_ret` FROM `nom_retencion_fte` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `luto` AS 
                         (SELECT
                             `nom_licencia_luto`.`id_empleado`, SUM(`nom_liq_licluto`.`val_liq`) AS `valor`, SUM(`nom_liq_licluto`.`dias_licluto`) AS `dias`
@@ -122,11 +123,11 @@ class Detalles
                         WHERE (`nom_liq_licnr`.`estado` = 1 AND `nom_liq_licnr`.`id_nomina` = :id_nomina)
                         GROUP BY `nom_licenciasnr`.`id_empleado`),
                     `pris` AS 
-                        (SELECT `id_empleado`,`val_liq_ps` FROM `nom_liq_prima` WHERE `estado` = 1 AND `id_nomina` = :id_nomina),
+                        (SELECT `id_empleado`,`val_liq_ps`, `cant_dias` AS `dias_ps`, `corte` AS `corte_ps` FROM `nom_liq_prima` WHERE `estado` = 1 AND `id_nomina` = :id_nomina),
                     `prin` AS
-                        (SELECT `id_empleado`,`val_liq_pv` FROM `nom_liq_prima_nav` WHERE `estado` = 1 AND `id_nomina` = :id_nomina),
+                        (SELECT `id_empleado`,`val_liq_pv`, `cant_dias` AS `dias_pn`, `corte` AS `corte_pn` FROM `nom_liq_prima_nav` WHERE `estado` = 1 AND `id_nomina` = :id_nomina),
                     `segs` AS
-                        (SELECT `id_empleado`,`aporte_salud_emp`,`aporte_pension_emp`,`aporte_solidaridad_pensional` FROM `nom_liq_segsocial_empdo` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`,`aporte_salud_emp`,`aporte_pension_emp`, `aporte_solidaridad_pensional`, `aporte_salud_empresa`, `aporte_pension_empresa`, `aporte_rieslab` FROM `nom_liq_segsocial_empdo` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `sind` AS 
                         (SELECT
                             `nom_cuota_sindical`.`id_empleado`, `nom_liq_sindicato_aportes`.`val_aporte`
@@ -137,7 +138,7 @@ class Detalles
                         WHERE (`nom_liq_sindicato_aportes`.`id_nomina` = :id_nomina AND `nom_liq_sindicato_aportes`.`estado` = 1)),
                     `vac` AS 
                         (SELECT
-                            `nom_vacaciones`.`id_empleado`, `nom_liq_vac`.`val_liq`, `nom_liq_vac`.`val_prima_vac`, `nom_liq_vac`.`val_bon_recrea`, `nom_liq_vac`.`dias_liqs`
+                            `nom_vacaciones`.`id_empleado`, `nom_liq_vac`.`val_liq`, `nom_liq_vac`.`val_prima_vac`, `nom_liq_vac`.`val_bon_recrea`, `nom_vacaciones`.`dias_habiles`, `nom_vacaciones`.`corte` AS `corte_vac`, `nom_vacaciones`.`dias_inactivo`
                         FROM
                             `nom_liq_vac`
                             INNER JOIN `nom_vacaciones` 
@@ -155,7 +156,9 @@ class Detalles
                             ON (`nom_liq_salario`.`id_contrato` = `nom_contratos_empleados`.`id_contrato_emp`)
                             LEFT JOIN `nom_cargo_empleado` 
                             ON (`nom_contratos_empleados`.`id_cargo` = `nom_cargo_empleado`.`id_cargo`)
-                        WHERE (`nom_liq_salario`.`id_nomina` = :id_nomina AND `nom_liq_salario`.`estado` = 1))
+                        WHERE (`nom_liq_salario`.`id_nomina` = :id_nomina AND `nom_liq_salario`.`estado` = 1)),
+                    `paraf` AS 
+                        (SELECT `id_empleado`,`val_sena`,`val_icbf`,`val_comfam` FROM `nom_liq_parafiscales` WHERE `id_nomina` = :id_nomina AND `estado` = 1)
                 SELECT 
                     `e`.`id_empleado`
                     , `ts`.`nom_sede` AS `sede`
@@ -164,13 +167,15 @@ class Detalles
                     , `cargo`.`descripcion_carg`
                     , `sal`.`sal_base`
                     , IFNULL(`bsp`.`val_bsp`,0) AS `val_bsp`
+                    , IFNULL(`bsp`.`corte_bsp`, CURDATE()) AS `corte_bsp`
                     , IFNULL(`ces`.`val_cesantias`,0) AS `val_cesantias`
+                    , IFNULL(`ces`.`corte_ces`, CURDATE()) AS `corte_ces`
                     , IFNULL(`ces`.`val_icesantias`,0) AS `val_icesantias`
+                    , IFNULL(`ces`.`dias_ces`,0) AS `dias_ces`
                     , IFNULL(`com`.`val_compensa`,0) AS `val_compensa`
                     , IFNULL(`dcto`.`valor`,0) AS `valor_dcto`
                     , IFNULL(CAST(`inc`.`dias` AS UNSIGNED),0) AS `dias_incapacidad`
                     , CAST(IFNULL(`lmp`.`dias_liqs`,0) + IFNULL(`luto`.`dias`,0) + IFNULL(`lcnr`.`dias`,0) AS UNSIGNED) AS `dias_licencias`
-                    , IFNULL(CAST(`vac`.`dias_liqs` AS UNSIGNED),0) AS `dias_vacaciones`
                     , 0 AS `dias_otros`
                     , IFNULL(CAST(`liq`.`dias_liq` AS UNSIGNED),0) AS `dias_lab`
                     , IFNULL(`liq`.`val_liq_dias`,0) AS `valor_laborado`
@@ -183,16 +188,30 @@ class Detalles
                     , IFNULL(`lib`.`valor`,0) AS `valor_libranza`
                     , IFNULL(`luto`.`valor`,0) AS `valor_luto`
                     , IFNULL(`lmp`.`val_liq`,0) AS  `valor_mp`
-                    , IFNULL(`pris`.`val_liq_ps`,0) AS `valor_ps` 
+                    , IFNULL(`pris`.`val_liq_ps`,0) AS `valor_ps`
+                    , IFNULL(`pris`.`dias_ps`,0) AS `dias_ps`
+                    , IFNULL(`pris`.`corte_ps`, CURDATE()) AS `corte_ps`
                     , IFNULL(`prin`.`val_liq_pv`,0) AS `valor_pv`
+                    , IFNULL(`prin`.`dias_pn`,0) AS `dias_pn`
+                    , IFNULL(`prin`.`corte_pn`, CURDATE()) AS `corte_pn`
                     , IFNULL(`segs`.`aporte_salud_emp`,0) AS `valor_salud`
                     , IFNULL(`segs`.`aporte_pension_emp`,0) AS `valor_pension`
                     , IFNULL(`segs`.`aporte_solidaridad_pensional`,0) AS `val_psolidaria`
+                    , IFNULL(`segs`.`aporte_salud_empresa`,0) AS `val_salud_empresa`
+                    , IFNULL(`segs`.`aporte_pension_empresa`,0) AS `val_pension_empresa`
+                    , IFNULL(`segs`.`aporte_rieslab`,0) AS `val_rieslab`
                     , IFNULL(`sind`.`val_aporte`,0) AS `valor_sind`
                     , IFNULL(`vac`.`val_liq`,0) AS `valor_vacacion`
                     , IFNULL(`vac`.`val_prima_vac`,0) AS `val_prima_vac`
                     , IFNULL(`vac`.`val_bon_recrea`,0) AS `val_bon_recrea`
+                    , IFNULL(CAST(`vac`.`dias_habiles` AS UNSIGNED),0) AS `dias_vacaciones`
+                    , IFNULL(`vac`.`corte_vac`, CURDATE()) AS `corte_vac`
+                    , IFNULL(CAST(`vac`.`dias_inactivo` AS UNSIGNED),0) AS `dias_inactivo`
                     , IFNULL(`rfte`.`val_ret`,0) AS `val_retencion`
+                    , IFNULL(`rfte`.`base_ret`,0) AS `base_retencion`
+                    , IFNULL(`paraf`.`val_sena`,0) AS `val_sena`
+                    , IFNULL(`paraf`.`val_icbf`,0) AS `val_icbf`
+                    , IFNULL(`paraf`.`val_comfam`,0) AS `val_comfam`
                 FROM `nom_empleado` `e`
                     INNER JOIN `sal` ON (`sal`.`id_empleado` = `e`.`id_empleado`)
                     INNER JOIN `tb_sedes` `ts` ON (`ts`.`id_sede` = `e`.`sede_emp`)
@@ -214,6 +233,7 @@ class Detalles
                     LEFT JOIN `segs` ON (`segs`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `sind` ON (`sind`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `vac` ON (`vac`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `paraf` ON (`paraf`.`id_empleado` = `e`.`id_empleado`)
                 WHERE (1 = 1 $where)
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
@@ -303,6 +323,11 @@ class Detalles
     public function getFormulario($id_empleado, $id_nomina)
     {
         $datos = $this->getRegistrosDT(1, -1, ['id_empleado' => $id_empleado, 'id_nomina' => $id_nomina], 1, 'ASC');
+        $listado = '';
+        $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
+        foreach ($datos as $key => $value) {
+            $listado .= "{$key}: {$value}\n";
+        }
         $html =
             <<<HTML
                 <div>
@@ -311,51 +336,350 @@ class Detalles
                             <h5 style="color: white;" class="mb-0"><b>EMPLEADO:</b> {$datos['nombre']}</h5>
                         </div>
                         <div class="p-3">
-                            <form id="formGestCtaCtbNom">
-                                <input type="hidden" id="id_empleado" name="id_empleado" value="{$id_empleado}">
-                                <input type="hidden" id="id_nomina" name="id_nomina" value="{$id_nomina}">
-                                <div class="accordion" id="accordionExample">
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header">
-                                            <button class="accordion-button  bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                                Accordion Item #1
-                                            </button>
-                                        </h2>
-                                        <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
-                                            <div class="accordion-body">
-                                                CONTENIDO 1
-                                            </div>
+                            <input type="hidden" id="id_empleado" name="id_empleado" value="{$id_empleado}">
+                            <div class="accordion" id="accordionExample">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button  bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                            Sueldos y Salarios.
+                                        </button>
+                                    </h2>
+                                    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                                        <div class="accordion-body">
+                                            <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="bg-sofia">CONCEPTO</th>
+                                                        <th class="bg-sofia">VALOR</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="ps-4 text-start">Compensatorio</td>
+                                                        <td>{$datos['val_compensa']}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ps-4 text-start">Laborado</td>
+                                                        <td>{$datos['valor_laborado']}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ps-4 text-start">Auxilio de Transporte</td>
+                                                        <td>{$datos['aux_tran']}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ps-4 text-start">Auxilio de Alimentación</td>
+                                                        <td>{$datos['aux_alim']}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ps-4 text-start">Gastos de Representación</td>
+                                                        <td>{$datos['g_representa']}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ps-4 text-start">Horas extras</td>
+                                                        <td>{$datos['horas_ext']}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ps-4 text-start">Incapacidad</td>
+                                                        <td>{$datos['valor_incap']}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ps-4 text-start">Licencia por luto</td>
+                                                        <td>{$datos['valor_luto']}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="ps-4 text-start">Licencia por materna / paterna</td>
+                                                        <td>{$datos['valor_mp']}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header">
-                                            <button class="accordion-button bg-head-button border collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                                Accordion Item #2
-                                            </button>
-                                        </h2>
-                                        <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
-                                            <div class="accordion-body">
-                                                <strong>This is the second item’s accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It’s also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header">
-                                            <button class="accordion-button bg-head-button border collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                                Accordion Item #3
-                                            </button>
-                                        </h2>
-                                        <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
-                                            <div class="accordion-body">
-                                                <strong>This is the third item’s accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It’s also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button bg-head-button border collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                            Prestaciones Sociales.
+                                        </button>
+                                    </h2>
+                                    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                        <div class="accordion-body">
+                                            <form id="formPrestacionesLiq">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th class="bg-sofia">CONCEPTO</th>
+                                                                    <th class="bg-sofia">VALOR</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <th class="bg-sofia" colspan="2">Valores de liquidación</th>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Salario básico mensual</td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="salario" value="{$param['salario']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Salario Mínimo Mensual Legal Vigente <strong>(SMMLV)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="smmlv" value="{$param['smmlv']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Auxilio de Transporte</td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="aux_trans" value="{$param['aux_trans']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Auxilio de Alimentación</td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="aux_alim" value="{$param['aux_alim']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Unidad de Valor Tributario <strong>(UVT)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="uvt" value="{$param['uvt']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Base Bonificación Servicios Prestados</td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="base_bsp" value="{$param['base_bsp']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Base Auxilio de Alimentación</td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="base_alim" value="{$param['base_alim']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Gastos de Representación</td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="grep" value="{$param['grep']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Promedio de horas extras</td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="prom_horas" value="{$param['prom_horas']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Bonificación Servicios Prestados <strong>(Anterior)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="bsp_ant" value="{$param['bsp_ant']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Prima de Servicios <strong>(Anterior)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="pri_ser_ant" value="{$param['pri_ser_ant']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Prima de Vacaciones <strong>(Anterior)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="pri_vac_ant" value="{$param['pri_vac_ant']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Prima de Navidad <strong>(Anterior)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="pri_nav_ant" value="{$param['pri_nav_ant']}"></td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th class="bg-sofia">CONCEPTO</th>
+                                                                    <th class="bg-sofia">VALOR</th>
+                                                                    <th class="bg-sofia">CORTE</th>
+                                                                    <th class="bg-sofia">DIAS</th>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th class="bg-sofia" colspan="4">Valores Liquidados</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Bonificación Servicios Prestados <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_bsp" value="{$datos['val_bsp']}"></td>
+                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_bsp" value="{$datos['corte_bsp']}"></td>
+                                                                    <td>-</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Prima de Servicios <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_ps" value="{$datos['valor_ps']}"></td>
+                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_ps" value="{$datos['corte_ps']}"></td>
+                                                                    <td title="Dias liquidados"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_ps" value="{$datos['dias_ps']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Prima de Navidad <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_pv" value="{$datos['valor_pv']}"></td>
+                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_pn" value="{$datos['corte_pn']}"></td>
+                                                                    <td title="Dias liquidados"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_pn" value="{$datos['dias_pn']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Cesantías <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_cesantias" value="{$datos['val_cesantias']}"></td>
+                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_ces" value="{$datos['corte_ces']}"></td>
+                                                                    <td title="Dias liquidados"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_ces" value="{$datos['dias_ces']}"></td>
+                                                                </tr>
+                                                                 <tr>
+                                                                    <td class="ps-4 text-start">Interes Cesantías <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_icesantias" value="{$datos['val_icesantias']}"></td>
+                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_ces" value="{$datos['corte_ces']}"></td>
+                                                                    <td title="Dias liquidados"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_ces" value="{$datos['dias_ces']}"></td>
+                                                                </tr>
+
+                                                            </tbody>
+                                                        </table>
+                                                        <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th class="bg-sofia" colspan="2">VACACIONES</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Vacaciones <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_vacacion " value="{$datos['valor_vacacion']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Prima de vacaciones <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_prima_vac" value="{$datos['val_prima_vac']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Bonificación de recreación <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_bon_recrea" value="{$datos['val_bon_recrea']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Días Hábiles <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_habiles" value="{$datos['dias_vacaciones']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Días Inactivos <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_inactivo" value="{$datos['dias_inactivo']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Fecha de corte <strong>(Actual)</strong></td>
+                                                                    <td><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_vac" value="{$datos['corte_vac']}"></td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                            <div class="mt-3 text-center">
+                                                <button type="button" class="btn btn-primary btn-sm" id="btnGuardarPretaciones">Guardar y Reliquidar</button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button bg-head-button border collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                            Seguridad Social y Parafiscales.
+                                        </button>
+                                    </h2>
+                                    <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                        <div class="accordion-body">
+                                            <form id="formParafiscalesLiq">
+                                                <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="bg-sofia">CONCEPTO</th>
+                                                            <th class="bg-sofia">VALOR</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Salud empleado <strong>4%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_salud" value="{$datos['valor_salud']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Salud patronal <strong>8.5%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_salud_empresa" value="{$datos['val_salud_empresa']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Pensión empleado <strong>4%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_pension" value="{$datos['valor_pension']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Pensión patronal <strong>12%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_pension_empresa" value="{$datos['val_pension_empresa']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Pensión solidaria</td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_pension_solidaria" value="{$datos['val_psolidaria']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Riesgo Laboral</td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_riesgo_laboral" value="{$datos['val_rieslab']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">SENA <strong>2%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_sena" value="{$datos['val_sena']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">ICBF <strong>3%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_icbf" value="{$datos['val_icbf']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Caja Compensación <strong>4%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_caja_compensacion" value="{$datos['val_comfam']}"></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </form>
+                                            <div class="mt-3 text-center">
+                                                <button type="button" class="btn btn-primary btn-sm" id="btnGuardarParafiscales">Guardar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button bg-head-button border collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                            Deducciones.
+                                        </button>
+                                    </h2>
+                                    <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                        <div class="accordion-body">
+                                            <form id="formDctosLiq">
+                                                <table id="tableDctosLiq" class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="bg-sofia">CONCEPTO</th>
+                                                            <th class="bg-sofia">VALOR</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Libranzas</td>
+                                                            <td class="pe-4 text-end">{$datos['valor_libranza']}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Embargos</td>
+                                                            <td class="pe-4 text-end">{$datos['valor_embargo']}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Sindicato</td>
+                                                            <td class="pe-4 text-end">{$datos['valor_sind']}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Otros Descuentos</td>
+                                                            <td class="pe-4 text-end">{$datos['valor_dcto']}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Base de retención en la fuente</td>
+                                                            <td>
+                                                                <input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" id="base_retencion" name="base_retencion" value="{$datos['base_retencion']}">
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Valor retención</td>
+                                                            <td>
+                                                                <input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" id="valor_retencion" name="valor_retencion" value="{$datos['val_retencion']}">
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </form>
+                                            <div class="mt-3 text-center">
+                                                <button type="button" class="btn btn-primary btn-sm" id="btnGuardarDctos">Guardar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="text-end pb-3 px-3">
-                            <button type="button" class="btn btn-primary btn-sm" id="btnReliquidar">Reliquidar</button>
                             <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
                         </div>
                     </div>

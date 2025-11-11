@@ -255,16 +255,15 @@ class Bsp
     {
         try {
             $sql = "INSERT INTO `nom_liq_bsp`
-                        (`id_empleado`,`val_bsp`,`fec_corte`,`tipo`,`id_user_reg`,`fec_reg`,`id_nomina`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+                        (`id_empleado`,`val_bsp`,`fec_corte`,`id_user_reg`,`fec_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['valor'], PDO::PARAM_STR);
             $stmt->bindValue(3, $array['corte'], PDO::PARAM_STR);
-            $stmt->bindValue(4, $array['tipo'] ?? 'S', PDO::PARAM_STR);
-            $stmt->bindValue(5, Sesion::IdUser(), PDO::PARAM_INT);
-            $stmt->bindValue(6, Sesion::Hoy(), PDO::PARAM_STR);
-            $stmt->bindValue(7, $array['id_nomina'] ?? NULL, PDO::PARAM_INT);
+            $stmt->bindValue(4, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(6, $array['id_nomina'] ?? NULL, PDO::PARAM_INT);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             $stmt->closeCursor();

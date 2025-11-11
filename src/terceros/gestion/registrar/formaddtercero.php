@@ -19,7 +19,7 @@ try {
 
     $sql = "SELECT * FROM tb_tipo_tercero";
     $rs = $cmd->query($sql);
-    $tipoTercero = $rs->fetchAll();
+    $tipoTercero = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -31,7 +31,7 @@ try {
 
     $sql = "SELECT * FROM tb_tipos_documento";
     $rs = $cmd->query($sql);
-    $tipodoc = $rs->fetchAll();
+    $tipodoc = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -43,12 +43,12 @@ try {
 
     $sql = "SELECT * FROM tb_paises ORDER BY nom_pais";
     $rs = $cmd->query($sql);
-    $pais = $rs->fetchAll();
+    $pais = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $sql = "SELECT * FROM tb_departamentos ORDER BY nom_departamento";
     $rs = $cmd->query($sql);
-    $dpto = $rs->fetchAll();
+    $dpto = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -61,7 +61,7 @@ try {
 
     $sql = "SELECT * FROM nom_riesgos_laboral ORDER BY clase";
     $rs = $cmd->query($sql);
-    $riesgos = $rs->fetchAll();
+    $riesgos = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

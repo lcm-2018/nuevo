@@ -41,7 +41,7 @@ try {
             WHERE pto_crp.id_pto_crp =  $id_crp LIMIT 1";
 
     $rs = $cmd->query($sql);
-    // $obj_codigo = $rs->fetchAll();
+    // $obj_codigo = $rs->fetchAll(PDO::FETCH_ASSOC);
     //esto trae varios registros
     $obj_crps = $rs->fetch(); // esto trae un solo registro
 

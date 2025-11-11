@@ -4,6 +4,7 @@ namespace Config\Clases;
 
 use Config\Clases\Sesion;
 use Src\Common\Php\Clases\Combos;
+use Src\Common\Php\Clases\Permisos;
 
 class Plantilla
 {
@@ -30,11 +31,33 @@ class Plantilla
         $this->title = "Contable";
         $this->content = $content;
         $host = self::getHost();
+        $id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : 0;
+        $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : 0;
+        $opciones = (new Permisos)->PermisoOpciones($id_user);
         $caracter = Sesion::Caracter();
         $nombre_usuario = Sesion::User();
         $vigencias = Combos::getVigencias(Sesion::IdVigencia());
         $vigencias = str_replace('<option value="0" class="text-muted">-- Seleccionar --</option>', '', $vigencias);
         $pto = Sesion::Pto();
+        $empresa = $id_rol == 1 ? '<li><a class="dropdown-item sombra" href="javascript:void(0)">Perfil de Empresa</a></li>' : '';
+        $users = $id_rol == 1 ? '<li><a class="dropdown-item sombra" href="javascript:void(0)">Gestión de Usuarios</a></li>
+            <li><a class="dropdown-item sombra" href="javascript:void(0)">Roles de Usuarios</a></li>
+            <li><hr class="dropdown-divider"></li>' : '';
+        $docs = $id_rol == 1 ||  (new Permisos)->PermisosUsuario($opciones, 6001, 0) ? '<li><a class="dropdown-item sombra" href="javascript:void(0)">Gestión Documental</a></li>' : '';
+        $opciones_user =
+            <<<HTML
+            <li><a class="dropdown-item sombra" href="javascript:void(0)" id="perfilUsuario">Perfil de Usuario</a></li>
+            <li><a class="dropdown-item sombra" href="javascript:void(0)">Cambiar Contraseña</a></li>
+            {$empresa}
+            <li><hr class="dropdown-divider"></li>
+            {$users}
+            <li><a class="dropdown-item sombra" href="javascript:void(0)">Cierre de Periodo</a></li>
+            {$docs}
+            <li><a class="dropdown-item sombra" href="javascript:void(0)">Fecha de Sesión</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item sombra" href="{$host}/index.php">Cerrar Sesión</a></li>
+        HTML;
+
         $this->navbar =
             <<<HTML
                 <nav style="background-color: #1a659d !important; border-bottom: 5px solid #16a085 !important;" class="navbar fixed-top text-white" data-navbarbg="skin6">
@@ -61,13 +84,11 @@ class Plantilla
                                 <img src="{$host}/assets/images/logoFinanciero.png" alt="logo sistema financiero" width="150">
                             </a>
                             <div class="dropdown">
-                                <a class="dropdown-toggle no-caret d-flex align-items-center p-0 text-success" href="#" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+                                <a class="dropdown-toggle no-caret d-flex align-items-center p-0 text-success" href="javascript:void(0)" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
                                     <i class="fas fa-user-circle fa-2x text-white"></i>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item sombra" href="#">Perfil de Usuario</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item sombra" href="{$host}/index.php">Cerrar Sesión</a></li>
+                                    {$opciones_user}
                                 </ul>
                             </div>
                         </div>
@@ -147,17 +168,17 @@ class Plantilla
                                                 <div class="collapse shadow" id="reporte-collapse">
                                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                         <li>
-                                                            <a href="#" class="nav-link text-primary px-1 py-2 sombra">
+                                                            <a href="javascript:void(0)" class="nav-link text-primary px-1 py-2 sombra">
                                                                 <i class="fas fa-cogs me-2 fa-fw"></i> Soporte NE
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="#" class="nav-link text-success px-1 py-2 sombra">
+                                                            <a href="javascript:void(0)" class="nav-link text-success px-1 py-2 sombra">
                                                                 <i class="fas fa-users me-2 fa-fw"></i> Certificados
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="#" class="nav-link text-info px-1 py-2 sombra">
+                                                            <a href="javascript:void(0)" class="nav-link text-info px-1 py-2 sombra">
                                                                 <i class="fas fa-user-clock me-2 fa-fw"></i> Informes
                                                             </a>
                                                         </li>
@@ -238,12 +259,12 @@ class Plantilla
                                         <div class="collapse shadow" id="ppto-collapse">
                                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                 <li>
-                                                    <a href="#" class="nav-link text-primary px-1 py-2 sombra">
+                                                    <a href="javascript:void(0)" class="nav-link text-primary px-1 py-2 sombra">
                                                         <i class="fas fa-cogs me-2 fa-fw"></i> Gestion
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a href="#" class="nav-link text-success px-1 py-2 sombra">
+                                                    <a href="javascript:void(0)" class="nav-link text-success px-1 py-2 sombra">
                                                         <i class="fas fa-shopping-bag me-2 fa-fw"></i> informes
                                                     </a>
                                                 </li>
@@ -261,17 +282,17 @@ class Plantilla
                                         <div class="collapse shadow" id="conta-collapse">
                                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                 <li>
-                                                    <a href="#" class="nav-link text-primary px-1 py-2 sombra">
+                                                    <a href="javascript:void(0)" class="nav-link text-primary px-1 py-2 sombra">
                                                         <i class="fas fa-copy me-2 fa-fw"></i> Movimientos
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a href="#" class="nav-link text-success px-1 py-2 sombra">
+                                                    <a href="javascript:void(0)" class="nav-link text-success px-1 py-2 sombra">
                                                         <i class="fas fa-file-invoice me-2 fa-fw"></i> Facturación
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a href="#" class="nav-link text-info px-1 py-2 sombra">
+                                                    <a href="javascript:void(0)" class="nav-link text-info px-1 py-2 sombra">
                                                         <i class="far fa-file me-2 fa-fw"></i> Informes
                                                     </a>
                                                 </li>
@@ -285,32 +306,32 @@ class Plantilla
                                                     <div class="collapse shadow" id="mas-collapse">
                                                         <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                             <li>
-                                                                <a href="#" class="nav-link text-primary px-1 py-2 sombra">
+                                                                <a href="javascript:void(0)" class="nav-link text-primary px-1 py-2 sombra">
                                                                     <i class="fas fa-book me-2 fa-fw"></i> PUC
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="#" class="nav-link text-success px-1 py-2 sombra">
+                                                                <a href="javascript:void(0)" class="nav-link text-success px-1 py-2 sombra">
                                                                     <i class="fas fa-file-invoice me-2 fa-fw"></i> Documentos
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="#" class="nav-link text-info px-1 py-2 sombra">
+                                                                <a href="javascript:void(0)" class="nav-link text-info px-1 py-2 sombra">
                                                                     <i class="fas fa-folder-open me-2 fa-fw"></i> Impuestos
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="#" class="nav-link text-muted px-1 py-2 sombra">
+                                                                <a href="javascript:void(0)" class="nav-link text-muted px-1 py-2 sombra">
                                                                     <i class="fas fa-calculator me-2 fa-fw"></i> Ctas. Facturación
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="#" class="nav-link text-warning px-1 py-2 sombra">
+                                                                <a href="javascript:void(0)" class="nav-link text-warning px-1 py-2 sombra">
                                                                     <i class="fas fa-file-invoice-dollar me-2 fa-fw"></i> Centros de Costo
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="#" class="nav-link text-secondary px-1 py-2 sombra">
+                                                                <a href="javascript:void(0)" class="nav-link text-secondary px-1 py-2 sombra">
                                                                     <i class="fas fa-layer-group me-2 fa-fw"></i> Subgrupos
                                                                 </a>
                                                             </li>
@@ -331,22 +352,22 @@ class Plantilla
                                         <div class="collapse shadow" id="tesoreria-collapse">
                                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                 <li>
-                                                    <a href="#" class="nav-link text-primary px-1 py-2 sombra">
+                                                    <a href="javascript:void(0)" class="nav-link text-primary px-1 py-2 sombra">
                                                         <i class="far fa-credit-card me-2 fa-fw"></i> Pagos
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a href="#" class="nav-link text-success px-1 py-2 sombra">
+                                                    <a href="javascript:void(0)" class="nav-link text-success px-1 py-2 sombra">
                                                         <i class="fas fa-hand-holding-dollar me-2 fa-fw"></i> Recaudos
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a href="#" class="nav-link text-info px-1 py-2 sombra">
+                                                    <a href="javascript:void(0)" class="nav-link text-info px-1 py-2 sombra">
                                                         <i class="fas fa-cash-register me-2 fa-fw"></i> Caja Menor
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a href="#" class="nav-link text-muted px-1 py-2 sombra">
+                                                    <a href="javascript:void(0)" class="nav-link text-muted px-1 py-2 sombra">
                                                         <i class="far fa-file me-2 fa-fw"></i> Informes
                                                     </a>
                                                 </li>
@@ -360,17 +381,17 @@ class Plantilla
                                                     <div class="collapse shadow" id="mastes-collapse">
                                                         <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                             <li>
-                                                                <a href="#" class="nav-link text-primary px-1 py-2 sombra">
+                                                                <a href="javascript:void(0)" class="nav-link text-primary px-1 py-2 sombra">
                                                                     <i class="fas fa-magnifying-glass-dollar me-2 fa-fw"></i> Conciliaciones
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="#" class="nav-link text-success px-1 py-2 sombra">
+                                                                <a href="javascript:void(0)" class="nav-link text-success px-1 py-2 sombra">
                                                                     <i class="fas fa-building-columns me-2 fa-fw"></i> Cuentas
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="#" class="nav-link text-info px-1 py-2 sombra">
+                                                                <a href="javascript:void(0)" class="nav-link text-info px-1 py-2 sombra">
                                                                     <i class="fas fa-money-check-dollar me-2 fa-fw"></i> Chequeras
                                                                 </a>
                                                             </li>
@@ -518,6 +539,9 @@ class Plantilla
                 </div>
             HTML;
         $plantilla = $pl == 1 ? $this->plantilla1 : $this->plantilla2;
+        $modalDefault = self::getModal('modalDefault', 'tamDefault', 'bodyDefault');
+        $script_user = $id_rol == 1 ? '<script src="' . $host . '/src/common/js/users.js"></script>' : '';
+
         $this->baseHtml =
             <<<HTML
                 <!doctype HTML>
@@ -546,11 +570,13 @@ class Plantilla
                             <div>Procesando...</div>
                         </div>
                     </div>
+                    {$modalDefault}
                     $plantilla
                     {modals}
                     <script src="{$host}/assets/js/awesomplete.min.js"></script>
                     <script src="{$host}/src/common/js/common.js"></script>
                     <script src="{$host}/src/common/js/idioma.js"></script>
+                    {$script_user}
                     <script src="{$host}/assets/js/jquery.js"></script>
                     <script src="{$host}/assets/js/bootstrap.bundle.min.js"></script>
                     <script src="{$host}/assets/js/dataTables.js"></script>

@@ -36,7 +36,7 @@ try {
     }
 
     $rs = $cmd->query($cnsql);
-    $objs = $rs->fetchAll();
+    $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $n = $rs->columnCount();
     $rs->closeCursor();
     unset($rs);

@@ -16,7 +16,7 @@ try {
     
     $sql = "SELECT `id_responsabilidad` FROM `ctt_resposabilidad_terceros` WHERE `id_tercero_api` = $idt AND `id_responsabilidad` = $id_resp_econ";
     $rs = $cmd->query($sql);
-    $data = $rs->fetchAll();
+    $data = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     if (count($data) > 0) {

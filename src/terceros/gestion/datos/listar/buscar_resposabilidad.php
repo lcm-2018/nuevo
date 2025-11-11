@@ -23,7 +23,7 @@ try {
                 `tb_responsabilidades_tributarias`
             WHERE `descripcion` LIKE '%$busco%' OR `codigo` LIKE '%$busco%'";
     $rs = $cmd->query($sql);
-    $resps = $rs->fetchAll();
+    $resps = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

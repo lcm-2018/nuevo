@@ -24,7 +24,7 @@ try {
                OR `tb_terceros`.`nom_tercero` LIKE '%$buscar%'
             ORDER BY `tb_terceros`.`nom_tercero` ASC";
     $rs = $cmd->query($sql);
-    $terceros = $rs->fetchAll();
+    $terceros = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

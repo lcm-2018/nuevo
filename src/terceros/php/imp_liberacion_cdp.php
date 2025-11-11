@@ -45,7 +45,7 @@ try {
         WHERE pto_cdp.id_pto_cdp = $id_cdp ";
 
     $rs = $cmd->query($sql);
-    // $obj_codigo = $rs->fetchAll(); esto trae varios registros
+    // $obj_codigo = $rs->fetchAll(PDO::FETCH_ASSOC); esto trae varios registros
     $obj_cdps = $rs->fetch(); // esto trae un solo registro
 
     //------ codigos ppto cargue con id_rubro

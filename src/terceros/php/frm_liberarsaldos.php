@@ -44,7 +44,7 @@ $sql = "SELECT
             GROUP BY pto_cdp.id_pto_cdp limit 1";
 
 $rs = $cmd->query($sql);
-$obj_saldos = $rs->fetchAll();
+$obj_saldos = $rs->fetchAll(PDO::FETCH_ASSOC);
 $rs->closeCursor();
 unset($rs);
 

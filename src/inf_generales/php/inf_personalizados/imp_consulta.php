@@ -39,7 +39,7 @@ try {
     $total = $obj['count'];
 
     $rs1 = $cmd->query($cnsql . $limite, PDO::FETCH_BOTH);
-    $objs = $rs1->fetchAll();
+    $objs = $rs1->fetchAll(PDO::FETCH_ASSOC);
     $n = $rs1->columnCount();
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

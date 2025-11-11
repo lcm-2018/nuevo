@@ -195,6 +195,27 @@ class Sindicatos
         return $registro;
     }
 
+    public function getRegistroAporte($array)
+    {
+        try {
+            $sql = "SELECT
+                        `nlsa`.`id_aporte` AS `id`
+                    FROM
+                        `nom_liq_sindicato_aportes` AS `nlsa`
+                        INNER JOIN `nom_cuota_sindical` AS `ncs` 
+                            ON (`nlsa`.`id_cuota_sindical` = `ncs`.`id_cuota_sindical`)
+                    WHERE (`ncs`.`id_empleado` = ? AND `nlsa`.`id_nomina` = ? AND `nlsa`.`estado` = 1)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            return !empty($data) ? $data['id'] : 0;
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
     public function getRegistroPorEmpleado($inicia)
     {
         $sql = "SELECT
@@ -358,6 +379,32 @@ class Sindicatos
                 return 'si';
             } else {
                 return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function editRegistroLiq($array)
+    {
+        try {
+            $sql = "UPDATE `nom_liq_sindicato_aportes`
+                        SET `val_aporte` = ?
+                    WHERE `id_aporte` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['valor_sindicato'], PDO::PARAM_STR);
+            $stmt->bindValue(2, $array['id'], PDO::PARAM_INT);
+
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $consulta = "UPDATE `nom_liq_sindicato_aportes` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_aporte` = ?";
+                $stmt2 = $this->conexion->prepare($consulta);
+                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
+                $stmt2->execute();
+                return 'si';
+            } else {
+                return 'no';
             }
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();

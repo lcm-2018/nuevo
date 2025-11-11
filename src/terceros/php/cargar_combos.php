@@ -6,7 +6,7 @@ function sedes($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT tb_sedes.id_sede,tb_sedes.nom_sede FROM tb_sedes";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -31,7 +31,7 @@ function bodegas_sede($cmd, $titulo = '', $idsede = 0, $id = 0)
                 INNER JOIN tb_sedes_bodega ON (tb_sedes_bodega.id_bodega=far_bodegas.id_bodega)
                 WHERE tb_sedes_bodega.id_sede=$idsede";
             $rs = $cmd->query($sql);
-            $objs = $rs->fetchAll();
+            $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
             foreach ($objs as $obj) {
@@ -54,7 +54,7 @@ function bodegas($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT far_bodegas.id_bodega,far_bodegas.nombre FROM far_bodegas";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -85,7 +85,7 @@ function sedes_usuario($cmd, $titulo = '', $id = 0)
                     INNER JOIN seg_sedes_usuario ON (seg_sedes_usuario.id_sede=tb_sedes.id_sede AND seg_sedes_usuario.id_usuario=$idusr)";
         }
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -120,7 +120,7 @@ function bodegas_usuario($cmd, $titulo = '', $idsede = 0, $id = 0)
                     WHERE tb_sedes_bodega.id_sede=$idsede";
             }
             $rs = $cmd->query($sql);
-            $objs = $rs->fetchAll();
+            $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
             foreach ($objs as $obj) {
@@ -143,7 +143,7 @@ function centros_costo($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT id_centro,nom_centro FROM tb_centrocostos WHERE id_centro<>0";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -175,7 +175,7 @@ function centros_costo_usuario($cmd, $titulo = '', $id = 0)
                     WHERE id_centro IN (SELECT id_centrocosto FROM seg_usuarios_sistema WHERE id_usuario=$idusr AND id_centrocosto<>0)";
         }
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -197,7 +197,7 @@ function tipo_egreso($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT id_tipo_egreso,nom_tipo_egreso,es_int_ext FROM far_orden_egreso_tipo WHERE id_tipo_egreso NOT IN (1,2)";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -221,7 +221,7 @@ function terceros($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT id_tercero,nom_tercero FROM tb_terceros WHERE id_tercero<>0";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -243,7 +243,7 @@ function tipo_ingreso($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT id_tipo_ingreso,nom_tipo_ingreso,es_int_ext,orden_compra FROM far_orden_ingreso_tipo";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -306,7 +306,7 @@ function cums_articulo($cmd, $id_articulo = 0, $id = 0)
                 INNER JOIN far_presentacion_comercial ON (far_presentacion_comercial.id_prescom=far_medicamento_cum.id_prescom)
                 WHERE id_med=" . $id_articulo;
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -328,7 +328,7 @@ function tipo_medicamento_insumo($cmd, $id = 0)
         echo '<option value=""></option>';
         $sql = "SELECT id_tipo_servicio,nom_tipo FROM tb_serv_tipo WHERE id_tipo_servicio IN (12,13,15,16)";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -352,7 +352,7 @@ function grupo_articulo($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT id_grupo,nom_grupo FROM far_grupos WHERE id_grupo<>0";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -374,7 +374,7 @@ function subgrupo_articulo($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT id_subgrupo,nom_subgrupo FROM far_subgrupos WHERE id_grupo IN (1,2)";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -405,7 +405,7 @@ function lotes_articulo($cmd, $id_bodega, $id_articulo, $id = 0)
                         far_medicamento_lote.estado=1 AND far_medicamentos.estado=1 AND
                         far_medicamento_lote.fec_vencimiento>='" . date('Y-m-d') . "') OR far_medicamento_lote.id_lote=$id";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);        
         foreach ($objs as $obj) {
@@ -459,7 +459,7 @@ function tipo_area($cmd, $titulo ='', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT id_tipo,nom_tipo FROM far_area_tipo WHERE id_tipo<>0";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -484,7 +484,7 @@ function areas_centrocosto($cmd, $titulo = '', $idcec = 0, $id = -1)
                     INNER JOIN tb_sedes ON (tb_sedes.id_sede=far_centrocosto_area.id_sede)
                     WHERE id_centrocosto=$idcec";
             $rs = $cmd->query($sql);
-            $objs = $rs->fetchAll();
+            $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
             foreach ($objs as $obj) {
@@ -508,7 +508,7 @@ function tipoDocumento($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT tb_tipo_documento.id_tipo_doc,tb_tipo_documento.tipo_doc FROM tb_tipo_documento";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach ($objs as $obj) {
@@ -531,7 +531,7 @@ function roles($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT `id_rol`, `nom_rol` AS `nombre` FROM `seg_rol` ORDER BY `nombre` ASC";
         $rs = $cmd->query($sql);
-        $roles = $rs->fetchAll();
+        $roles = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
         foreach($roles as $obj){

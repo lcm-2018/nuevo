@@ -51,7 +51,7 @@ try {
             GROUP BY pto_cdp.id_pto_cdp";
 
     $rs = $cmd->query($sql);
-    $obj_cdps = $rs->fetchAll();
+    $obj_cdps = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
 
@@ -75,7 +75,7 @@ try {
         ORDER BY ctt_novedad_liquidacion.id_liquidacion DESC LIMIT 1";
 
     $rs = $cmd->query($sql);
-    $obj_contratos = $rs->fetchAll();
+    $obj_contratos = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
 
@@ -114,7 +114,7 @@ try {
             GROUP BY pto_crp.id_pto_crp, pto_crp.id_manu, pto_crp.fecha, pto_crp.num_contrato, pto_crp.estado";
 
     $rs = $cmd->query($sql);
-    $obj_regpresupuestal = $rs->fetchAll();
+    $obj_regpresupuestal = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
 
@@ -142,7 +142,7 @@ try {
         GROUP BY  ctb_doc.id_ctb_doc";
 
     $rs = $cmd->query($sql);
-    $obj_obligaciones = $rs->fetchAll();
+    $obj_obligaciones = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
 
@@ -162,7 +162,7 @@ try {
         WHERE pto_cdp_detalle.id_pto_cdp  = $id_cdp";
 
     $rs = $cmd->query($sql);
-    $obj_pagos = $rs->fetchAll();
+    $obj_pagos = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {

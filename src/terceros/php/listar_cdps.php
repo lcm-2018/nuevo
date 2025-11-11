@@ -83,7 +83,7 @@ try {
             GROUP BY pto_cdp.id_pto_cdp";
 
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

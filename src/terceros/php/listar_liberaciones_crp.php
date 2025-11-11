@@ -36,7 +36,7 @@ try {
             AND valor_liberado > 0 ";
 
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

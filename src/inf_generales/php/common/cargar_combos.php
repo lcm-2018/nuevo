@@ -8,7 +8,7 @@ function cargar_opcion_csql($cmd, $titulo ='', $id = 0)
                 INNER JOIN seg_modulos ON (seg_modulos.id_modulo=seg_opciones.id_modulo)
                 WHERE id_opcion LIKE '%99'";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
         foreach ($objs as $obj) {
             if ($obj['id_opcion']  == $id) {
                 echo '<option value="' . $obj['id_opcion'] . '" selected="selected">' . $obj['nom_modulo'] . '</option>';

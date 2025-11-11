@@ -21,7 +21,7 @@ try {
                     ON (`tb_terceros`.`id_municipio` = `tb_municipios`.`id_municipio`)
             WHERE (`tb_terceros`.`id_tercero_api` IS NULL)";
     $rs = $cmd->query($sql);
-    $pendientes = $rs->fetchAll();
+    $pendientes = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

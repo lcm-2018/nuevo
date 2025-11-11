@@ -17,7 +17,7 @@ try {
             FROM
                 `tb_terceros`";
     $rs = $cmd->query($sql);
-    $terceros = $rs->fetchAll();
+    $terceros = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

@@ -35,7 +35,7 @@ try {
         WHERE pto_cdp_detalle.id_pto_cdp  = $id_cdp";
 
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

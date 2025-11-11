@@ -35,7 +35,7 @@ try {
     $total = $obj['count'];
 
     $rs = $cmd->query($cnsql . $limite, PDO::FETCH_BOTH);
-    $objs = $rs->fetchAll();
+    $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $n = $rs->columnCount();
 ?>
 

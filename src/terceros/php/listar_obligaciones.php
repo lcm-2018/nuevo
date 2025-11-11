@@ -43,7 +43,7 @@ try {
         GROUP BY  ctb_doc.id_ctb_doc";
 
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

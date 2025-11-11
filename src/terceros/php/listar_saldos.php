@@ -38,7 +38,7 @@ try {
             GROUP BY pto_cdp_detalle2.id_pto_cdp,pto_cdp_detalle2.id_rubro ";
 
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

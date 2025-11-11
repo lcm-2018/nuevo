@@ -348,3 +348,11 @@ a[aria-expanded="true"] .collapse-icon {
 .no-caret i:hover {
     transform: scale(1.1);
 }
+
+table tr:nth-child(odd) input {
+    background-color: #f2f2f2;
+}
+
+table tr:nth-child(even) input {
+    background-color: #ffffff;
+}
