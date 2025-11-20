@@ -145,7 +145,7 @@ class Detalles
                             ON (`nom_liq_vac`.`id_vac` = `nom_vacaciones`.`id_vac`)
                         WHERE (`nom_liq_vac`.`estado` = 1 AND `nom_liq_vac`.`id_nomina` = :id_nomina)),
                     `sal` AS 
-                        (SELECT `id_empleado`,`sal_base`,`id_contrato`,`val_liq` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`,`sal_base`,`id_contrato`,`val_liq`, `metodo_pago` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `cargo` AS 
                         (SELECT
                             `nom_liq_salario`.`id_empleado`
@@ -158,7 +158,9 @@ class Detalles
                             ON (`nom_contratos_empleados`.`id_cargo` = `nom_cargo_empleado`.`id_cargo`)
                         WHERE (`nom_liq_salario`.`id_nomina` = :id_nomina AND `nom_liq_salario`.`estado` = 1)),
                     `paraf` AS 
-                        (SELECT `id_empleado`,`val_sena`,`val_icbf`,`val_comfam` FROM `nom_liq_parafiscales` WHERE `id_nomina` = :id_nomina AND `estado` = 1)
+                        (SELECT `id_empleado`,`val_sena`,`val_icbf`,`val_comfam` FROM `nom_liq_parafiscales` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                    `nom` AS
+                        (SELECT `id_nomina`, `mes`, `tipo`, `estado` FROM `nom_nominas` WHERE `id_nomina` = :id_nomina)
                 SELECT 
                     `e`.`id_empleado`
                     , `ts`.`nom_sede` AS `sede`
@@ -166,6 +168,8 @@ class Detalles
                     , CONCAT_WS (' ',`e`.`nombre1`,`nombre2`,`apellido1`,`apellido2`) AS `nombre`
                     , `cargo`.`descripcion_carg`
                     , `sal`.`sal_base`
+                    , `sal`.`metodo_pago`
+                    , `sal`.`id_contrato`
                     , IFNULL(`bsp`.`val_bsp`,0) AS `val_bsp`
                     , IFNULL(`bsp`.`corte_bsp`, CURDATE()) AS `corte_bsp`
                     , IFNULL(`ces`.`val_cesantias`,0) AS `val_cesantias`
@@ -212,6 +216,9 @@ class Detalles
                     , IFNULL(`paraf`.`val_sena`,0) AS `val_sena`
                     , IFNULL(`paraf`.`val_icbf`,0) AS `val_icbf`
                     , IFNULL(`paraf`.`val_comfam`,0) AS `val_comfam`
+                    , `nom`.`mes` AS `mes`
+                    , `nom`.`tipo` AS `codigo_nomina`
+                    , `nom`.`estado` AS `estado_nomina`
                 FROM `nom_empleado` `e`
                     INNER JOIN `sal` ON (`sal`.`id_empleado` = `e`.`id_empleado`)
                     INNER JOIN `tb_sedes` `ts` ON (`ts`.`id_sede` = `e`.`sede_emp`)
@@ -234,6 +241,7 @@ class Detalles
                     LEFT JOIN `sind` ON (`sind`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `vac` ON (`vac`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `paraf` ON (`paraf`.`id_empleado` = `e`.`id_empleado`)
+                    JOIN `nom`
                 WHERE (1 = 1 $where)
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
@@ -283,6 +291,8 @@ class Detalles
         $stmt->bindValue(':id_nomina', $array['id_nomina'], PDO::PARAM_INT);
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($registro) ? $registro['total'] : 0;
     }
 
@@ -317,17 +327,20 @@ class Detalles
         $stmt->bindValue(':id_nomina', $array['id_nomina'], PDO::PARAM_INT);
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($registro) ? $registro['total'] : 0;
     }
 
-    public function getFormulario($id_empleado, $id_nomina)
+    public function getFormulario($id_empleado, $id_nomina, $item)
     {
         $datos = $this->getRegistrosDT(1, -1, ['id_empleado' => $id_empleado, 'id_nomina' => $id_nomina], 1, 'ASC');
-        $listado = '';
         $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
-        foreach ($datos as $key => $value) {
-            $listado .= "{$key}: {$value}\n";
-        }
+        $estado = $datos['estado_nomina'];
+        $uno = $item == 1 ? 'show' : '';
+        $dos = $item == 2 ? 'show' : '';
+        $tres = $item == 3 ? 'show' : '';
+        $cuatro = $item == 4 ? 'show' : '';
         $html =
             <<<HTML
                 <div>
@@ -337,61 +350,67 @@ class Detalles
                         </div>
                         <div class="p-3">
                             <input type="hidden" id="id_empleado" name="id_empleado" value="{$id_empleado}">
-                            <div class="accordion" id="accordionExample">
+                            <div class="accordion" id="acordeonDetallesNom">
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
                                         <button class="accordion-button  bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                                             Sueldos y Salarios.
                                         </button>
                                     </h2>
-                                    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                                    <div id="collapseOne" class="accordion-collapse collapse {$uno}" data-bs-parent="#acordeonDetallesNom">
                                         <div class="accordion-body">
-                                            <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
-                                                <thead>
-                                                    <tr>
-                                                        <th class="bg-sofia">CONCEPTO</th>
-                                                        <th class="bg-sofia">VALOR</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td class="ps-4 text-start">Compensatorio</td>
-                                                        <td>{$datos['val_compensa']}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="ps-4 text-start">Laborado</td>
-                                                        <td>{$datos['valor_laborado']}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="ps-4 text-start">Auxilio de Transporte</td>
-                                                        <td>{$datos['aux_tran']}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="ps-4 text-start">Auxilio de Alimentación</td>
-                                                        <td>{$datos['aux_alim']}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="ps-4 text-start">Gastos de Representación</td>
-                                                        <td>{$datos['g_representa']}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="ps-4 text-start">Horas extras</td>
-                                                        <td>{$datos['horas_ext']}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="ps-4 text-start">Incapacidad</td>
-                                                        <td>{$datos['valor_incap']}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="ps-4 text-start">Licencia por luto</td>
-                                                        <td>{$datos['valor_luto']}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="ps-4 text-start">Licencia por materna / paterna</td>
-                                                        <td>{$datos['valor_mp']}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                            <form id="formSalariosLiq">
+                                                <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="bg-sofia">CONCEPTO</th>
+                                                            <th class="bg-sofia">VALOR</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Compensatorio</td>
+                                                            <td class="text-end pe-4">{$datos['val_compensa']}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Laborado</td>
+                                                            <td class="text-end"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_laborado" value="{$datos['valor_laborado']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Auxilio de Transporte</td>
+                                                            <td class="text-end"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="aux_tran" value="{$datos['aux_tran']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Auxilio de Alimentación</td>
+                                                            <td class="text-end"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="alimentacion" value="{$datos['aux_alim']}"></td>
+                                                        </tr>
+                                                        
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Gastos de Representación</td>
+                                                            <td class="text-end"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="g_representa" value="{$datos['g_representa']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Horas extras</td>
+                                                            <td class="text-end pe-4">{$datos['horas_ext']}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Incapacidad</td>
+                                                            <td class="text-end pe-4">{$datos['valor_incap']}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Licencia por luto</td>
+                                                            <td class="text-end pe-4">{$datos['valor_luto']}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Licencia materna / paterna</td>
+                                                            <td class="text-end"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_mp" value="{$datos['valor_mp']}"></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </form>
+                                            <div class="mt-3 text-center">
+                                                <button type="button" class="btn btn-primary btn-sm" id="btnGuardarSalarios">Guardar y Reliquidar</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -401,9 +420,14 @@ class Detalles
                                             Prestaciones Sociales.
                                         </button>
                                     </h2>
-                                    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                    <div id="collapseTwo" class="accordion-collapse collapse {$dos}" data-bs-parent="#acordeonDetallesNom">
                                         <div class="accordion-body">
                                             <form id="formPrestacionesLiq">
+                                                <input type="hidden" name="id_contrato" value="{$datos['id_contrato']}">
+                                                <input type="hidden" name="metodo_pago" value="{$datos['metodo_pago']}">
+                                                <input type="hidden" name="mes" value="{$datos['mes']}">
+                                                <input type="hidden" name="dias_lab" value="{$datos['dias_lab']}">
+
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
@@ -488,33 +512,33 @@ class Detalles
                                                             <tbody>
                                                                 <tr>
                                                                     <td class="ps-4 text-start">Bonificación Servicios Prestados <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_bsp" value="{$datos['val_bsp']}"></td>
+                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_bsp" value="{$datos['val_bsp']}"></td>
                                                                     <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_bsp" value="{$datos['corte_bsp']}"></td>
                                                                     <td>-</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td class="ps-4 text-start">Prima de Servicios <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_ps" value="{$datos['valor_ps']}"></td>
+                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_ps" value="{$datos['valor_ps']}"></td>
                                                                     <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_ps" value="{$datos['corte_ps']}"></td>
-                                                                    <td title="Dias liquidados"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_ps" value="{$datos['dias_ps']}"></td>
+                                                                    <td title="Dias liquidados"><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_ps" value="{$datos['dias_ps']}"></td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td class="ps-4 text-start">Prima de Navidad <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_pv" value="{$datos['valor_pv']}"></td>
+                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_pv" value="{$datos['valor_pv']}"></td>
                                                                     <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_pn" value="{$datos['corte_pn']}"></td>
-                                                                    <td title="Dias liquidados"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_pn" value="{$datos['dias_pn']}"></td>
+                                                                    <td title="Dias liquidados"><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_pn" value="{$datos['dias_pn']}"></td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td class="ps-4 text-start">Cesantías <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_cesantias" value="{$datos['val_cesantias']}"></td>
+                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_cesantias" value="{$datos['val_cesantias']}"></td>
                                                                     <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_ces" value="{$datos['corte_ces']}"></td>
-                                                                    <td title="Dias liquidados"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_ces" value="{$datos['dias_ces']}"></td>
+                                                                    <td title="Dias liquidados"><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_ces" value="{$datos['dias_ces']}"></td>
                                                                 </tr>
                                                                  <tr>
                                                                     <td class="ps-4 text-start">Interes Cesantías <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_icesantias" value="{$datos['val_icesantias']}"></td>
-                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_ces" value="{$datos['corte_ces']}"></td>
-                                                                    <td title="Dias liquidados"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_ces" value="{$datos['dias_ces']}"></td>
+                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_icesantias" value="{$datos['val_icesantias']}"></td>
+                                                                    <td></td>
+                                                                    <td></td>
                                                                 </tr>
 
                                                             </tbody>
@@ -528,7 +552,7 @@ class Detalles
                                                             <tbody>
                                                                 <tr>
                                                                     <td class="ps-4 text-start">Vacaciones <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_vacacion " value="{$datos['valor_vacacion']}"></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_vacacion" value="{$datos['valor_vacacion']}"></td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td class="ps-4 text-start">Prima de vacaciones <strong>(Actual)</strong></td>
@@ -537,18 +561,6 @@ class Detalles
                                                                 <tr>
                                                                     <td class="ps-4 text-start">Bonificación de recreación <strong>(Actual)</strong></td>
                                                                     <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_bon_recrea" value="{$datos['val_bon_recrea']}"></td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="ps-4 text-start">Días Hábiles <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_habiles" value="{$datos['dias_vacaciones']}"></td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="ps-4 text-start">Días Inactivos <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_inactivo" value="{$datos['dias_inactivo']}"></td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="ps-4 text-start">Fecha de corte <strong>(Actual)</strong></td>
-                                                                    <td><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_vac" value="{$datos['corte_vac']}"></td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
@@ -567,7 +579,7 @@ class Detalles
                                             Seguridad Social y Parafiscales.
                                         </button>
                                     </h2>
-                                    <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                    <div id="collapseThree" class="accordion-collapse collapse {$tres}" data-bs-parent="#acordeonDetallesNom">
                                         <div class="accordion-body">
                                             <form id="formParafiscalesLiq">
                                                 <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
@@ -629,7 +641,7 @@ class Detalles
                                             Deducciones.
                                         </button>
                                     </h2>
-                                    <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                                    <div id="collapseFour" class="accordion-collapse collapse {$cuatro}" data-bs-parent="#acordeonDetallesNom">
                                         <div class="accordion-body">
                                             <form id="formDctosLiq">
                                                 <table id="tableDctosLiq" class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">

@@ -78,7 +78,10 @@ class Incrementos
                 WHERE (`vigencia` = '$vigencia' $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -93,7 +96,10 @@ class Incrementos
                 FROM `nom_incremento_salario`";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     public function getFormulario($id)
@@ -138,6 +144,8 @@ class Incrementos
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if (empty($data)) {
             $data =
                 [

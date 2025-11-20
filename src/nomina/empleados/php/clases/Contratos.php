@@ -113,7 +113,10 @@ class Contratos
                 WHERE (`nom_contratos_empleados`.`id_empleado` = $id_empleado $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -132,7 +135,10 @@ class Contratos
                 WHERE (`nom_contratos_empleados`.`id_empleado` = $id_empleado)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     public function getRegistro($id)
@@ -155,6 +161,8 @@ class Contratos
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $contrato = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if (empty($contrato)) {
             $contrato = [
                 'fec_inicio' => date('Y-m-d'),

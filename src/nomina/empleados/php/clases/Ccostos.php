@@ -102,7 +102,10 @@ class Ccostos
                 WHERE (1 = 1 $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -128,7 +131,10 @@ class Ccostos
                 WHERE (1 = 1 $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -148,6 +154,8 @@ class Ccostos
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if (empty($registro)) {
             $registro = [
                 'id_cc_emp' => 0,

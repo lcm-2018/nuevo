@@ -102,7 +102,10 @@ class Cargos
                 WHERE (`nom_cargo_empleado`.`id_cargo` > 0 $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $id = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $id;
     }
 
     /**
@@ -122,7 +125,10 @@ class Cargos
                         ON (`nom_cargo_empleado`.`id_nombramiento` = `nom_cargo_nombramiento`.`id`)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     public function getCargoEmpleado($id)
@@ -139,6 +145,8 @@ class Cargos
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $cargo = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($cargo) ? $cargo['descripcion_carg'] : '';
     }
     public function getRegistro($id)
@@ -152,6 +160,8 @@ class Cargos
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $cargo = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if (empty($cargo)) {
             $cargo = [
                 'id_cargo' => 0,

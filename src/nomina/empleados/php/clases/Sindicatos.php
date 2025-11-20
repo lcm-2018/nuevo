@@ -123,7 +123,10 @@ class Sindicatos
                 WHERE (1 = 1 $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -151,7 +154,10 @@ class Sindicatos
                 WHERE (1 = 1 $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -171,6 +177,8 @@ class Sindicatos
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if (empty($registro)) {
             $registro = [
                 'id_cuota_sindical' => 0,
@@ -192,6 +200,8 @@ class Sindicatos
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return $registro;
     }
 
@@ -210,6 +220,8 @@ class Sindicatos
             $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
             $stmt->execute();
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            unset($stmt);
             return !empty($data) ? $data['id'] : 0;
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();

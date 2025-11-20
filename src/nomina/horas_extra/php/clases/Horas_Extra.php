@@ -150,6 +150,8 @@ class Horas_Extra
             return 0;
         }
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($registro) ? $registro['total'] : 0;
     }
 
@@ -197,6 +199,8 @@ class Horas_Extra
             return 0;
         }
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($registro) ? $registro['total'] : 0;
     }
 
@@ -549,6 +553,8 @@ class Horas_Extra
         $stmt->bindValue(4, $fec_fin, PDO::PARAM_STR);
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($registro) ? $registro : ['id_he_trab' => 0, 'estado' => 1];
     }
 

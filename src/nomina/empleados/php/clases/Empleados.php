@@ -268,7 +268,10 @@ class Empleados
                 WHERE (`t1`.`estado` $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -289,7 +292,10 @@ class Empleados
                     FROM `nom_empleado`) AS `t1`";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     public function getRegistro()
@@ -1040,7 +1046,10 @@ class Empleados
             $stmt->bindValue(1, $id, PDO::PARAM_INT);
             $stmt->execute();
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $row && isset($row['id']) ? $row['id'] : 0;
+            $data = $row && isset($row['id']) ? $row['id'] : 0;
+            $stmt->closeCursor();
+            unset($stmt);
+            return $data;
         } catch (Exception $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
@@ -1055,7 +1064,10 @@ class Empleados
             $stmt->bindValue(1, $id, PDO::PARAM_INT);
             $stmt->execute();
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $row && isset($row['salario_basico']) ? $row['salario_basico'] : 0;
+            $data = $row && isset($row['salario_basico']) ? $row['salario_basico'] : 0;
+            $stmt->closeCursor();
+            unset($stmt);
+            return $data;
         } catch (Exception $e) {
             return 'Error SQL: ' . $e->getMessage();
         }

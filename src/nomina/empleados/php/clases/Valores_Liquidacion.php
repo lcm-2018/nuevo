@@ -89,7 +89,10 @@ class Valores_Liquidacion
                 WHERE (`nom_contratos_empleados`.`id_empleado` = $id_empleado $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -108,7 +111,10 @@ class Valores_Liquidacion
                 WHERE (`nom_contratos_empleados`.`id_empleado` = $id_empleado)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     public function getRegistro($id_nomina, $id_empleado)
@@ -204,6 +210,66 @@ class Valores_Liquidacion
                 return  'si';
             } else {
                 return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function getRegistroLiq($array)
+    {
+        try {
+            $sql = "SELECT
+                        `id_valor` AS `id`
+                    FROM
+                        `nom_valores_liquidacion`
+                    WHERE (`id_empleado` = ? AND `id_nomina` = ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->execute();
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            unset($stmt);
+            return !empty($data) ? $data['id'] : 0;
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function editRegistroLiq($l)
+    {
+        try {
+            $sql = "UPDATE `nom_valores_liquidacion`
+                        SET `smmlv` = ?, `aux_trans` = ?, `aux_alim` = ?, `uvt` = ?, `base_bsp` = ?, `base_alim` = ?, `min_vital` = ?, `salario` = ?, `tiene_grep` = ?, `prom_horas` = ?, `bsp_ant` = ?, `pri_ser_ant` = ?, `pri_vac_ant` = ?, `pri_nav_ant` = ?, `grep` = ?
+                    WHERE (`id_valor` = ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $l['smmlv'], PDO::PARAM_STR);
+            $stmt->bindValue(2, $l['aux_trans'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $l['aux_alim'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $l['uvt'], PDO::PARAM_STR);
+            $stmt->bindValue(5, $l['base_bsp'], PDO::PARAM_STR);
+            $stmt->bindValue(6, $l['base_alim'], PDO::PARAM_STR);
+            $stmt->bindValue(7, $l['min_vital'] ?? 0, PDO::PARAM_STR);
+            $stmt->bindValue(8, $l['salario'], PDO::PARAM_STR);
+            $stmt->bindValue(9, $l['tiene_grep'] ?? 0, PDO::PARAM_INT);
+            $stmt->bindValue(10, $l['prom_horas'], PDO::PARAM_STR);
+            $stmt->bindValue(11, $l['bsp_ant'], PDO::PARAM_STR);
+            $stmt->bindValue(12, $l['pri_ser_ant'], PDO::PARAM_STR);
+            $stmt->bindValue(13, $l['pri_vac_ant'], PDO::PARAM_STR);
+            $stmt->bindValue(14, $l['pri_nav_ant'], PDO::PARAM_STR);
+            $stmt->bindValue(15, $l['grep'], PDO::PARAM_STR);
+            $stmt->bindValue(16, $l['id'], PDO::PARAM_INT);
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $consulta = "UPDATE `nom_valores_liquidacion` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_valor` = ?";
+                $stmt2 = $this->conexion->prepare($consulta);
+                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmt2->bindValue(3, $l['id'], PDO::PARAM_INT);
+                $stmt2->execute();
+                return 'si';
+            } else {
+                return 'no';
             }
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();

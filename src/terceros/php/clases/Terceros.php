@@ -81,7 +81,10 @@ class Terceros
                 WHERE (`nom_rel_rubro`.`id_vigencia` = $id_vigencia $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -103,7 +106,10 @@ class Terceros
                         ON (`nom_rel_rubro`.`r_admin` = `pto_admin`.`id_cargue`)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     public function getFormulario($id)
@@ -188,6 +194,8 @@ class Terceros
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if (empty($data)) {
             $data =
                 [
@@ -316,7 +324,10 @@ class Terceros
             $stmt->bindValue(1, $id_tipo, PDO::PARAM_INT);
             $stmt->bindValue(2, Sesion::IdVigencia(), PDO::PARAM_INT);
             $stmt->execute();
-            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+            $data = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+            $stmt->closeCursor();
+            unset($stmt);
+            return $data;
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }

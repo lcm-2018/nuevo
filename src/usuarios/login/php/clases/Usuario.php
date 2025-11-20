@@ -31,6 +31,8 @@ class Usuario
         $stmt->execute();
 
         $datos = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
 
         return $datos ?: null;
     }
@@ -74,7 +76,10 @@ class Usuario
                 WHERE `id_vigencia` = (SELECT MAX(`id_vigencia`) FROM `tb_vigencias`)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     public function getFormPerfilUsuario($id_user)

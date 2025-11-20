@@ -91,6 +91,8 @@ class Novedades
             $stmt->bindParam(2, $fecha, PDO::PARAM_STR);
             $stmt->execute();
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            unset($stmt);
             if (!empty($data)) {
                 return 1;
             } else {

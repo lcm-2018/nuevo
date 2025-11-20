@@ -87,7 +87,10 @@ class Terceros
                 WHERE (`nom_categoria_tercero`.`codigo` = '$tipo' $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -107,7 +110,10 @@ class Terceros
                         ON (`nom_terceros`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     public function getFormulario()
@@ -169,6 +175,9 @@ class Terceros
         $sql = "SELECT `id_cat` FROM `nom_categoria_tercero` WHERE `codigo` = '{$cod}'";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['id_cat'] ?? 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['id_cat'] ?? 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 }

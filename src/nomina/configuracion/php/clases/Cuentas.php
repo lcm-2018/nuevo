@@ -95,7 +95,10 @@ class Cuentas
                 $where";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -117,7 +120,10 @@ class Cuentas
                         ON (`tb_centrocostos`.`id_centro` = `nom_causacion`.`centro_costo`)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     public function getFormulario($id)
@@ -201,6 +207,8 @@ class Cuentas
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if (empty($data)) {
             $data =
                 [
@@ -224,7 +232,10 @@ class Cuentas
             $stmt->bindValue(1, $ccosto, PDO::PARAM_INT);
             $stmt->bindValue(2, $id_tipo, PDO::PARAM_INT);
             $stmt->execute();
-            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+            $result = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+            $stmt->closeCursor();
+            unset($stmt);
+            return $result;
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }

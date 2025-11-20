@@ -86,7 +86,10 @@ class Parametros
                 WHERE (`tb_vigencias`.`anio` = '$vigencia' $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -106,7 +109,10 @@ class Parametros
                         ON (`nom_valxvigencia`.`id_vigencia` = `tb_vigencias`.`id_vigencia`)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     public function getRegistro($id)
@@ -116,6 +122,8 @@ class Parametros
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if (empty($data)) {
             $data =
                 [
@@ -135,6 +143,8 @@ class Parametros
         $stmt->bindParam(2, $vigencia, PDO::PARAM_INT);
         $stmt->execute();
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($data) ? $data['id_valxvig'] : 0;
     }
 
@@ -244,6 +254,8 @@ class Parametros
             $stmt->bindValue(2, Sesion::IdVigencia(), PDO::PARAM_INT);
             $stmt->execute();
             $valor = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            unset($stmt);
             return !empty($valor) ? $valor['valor'] : 0;
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();

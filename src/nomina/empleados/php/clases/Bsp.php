@@ -142,6 +142,8 @@ class Bsp
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if (empty($registro)) {
             $registro = [
                 'id_bonificaciones' => 0,
@@ -151,15 +153,13 @@ class Bsp
                 'estado' => 1,
             ];
         }
-        $stmt->closeCursor();
-        unset($stmt);
         return $registro;
     }
 
     public function getRegistroPorEmpleado()
     {
         $sql = "SELECT
-                    `id_empleado`,`val_bsp`
+                    `id_empleado`, `val_bsp`, `id_bonificaciones`, `fec_corte`
                 FROM `nom_liq_bsp`
                 WHERE `estado` = 1 AND `tipo` = 'M'";
         $stmt = $this->conexion->prepare($sql);
@@ -168,7 +168,25 @@ class Bsp
 
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? array_column($registro, 'val_bsp', 'id_empleado') : [];
+        return !empty($registro) ? array_column($registro, null, 'id_empleado') : [];
+    }
+
+
+    public function getRegistroLiq($array)
+    {
+        $sql = "SELECT
+                    `id_bonificaciones` AS `id`, `val_bsp` AS `valor`
+                FROM
+                    `nom_liq_bsp`
+                WHERE (`id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $array['id_empleado'], PDO::PARAM_INT);
+        $stmt->bindParam(2, $array['id_nomina'], PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($data) ? $data : ['id' => 0, 'valor' => 0];
     }
     /**
      * Obtiene el formulario para agregar o editar un registro.
@@ -255,15 +273,16 @@ class Bsp
     {
         try {
             $sql = "INSERT INTO `nom_liq_bsp`
-                        (`id_empleado`,`val_bsp`,`fec_corte`,`id_user_reg`,`fec_reg`,`id_nomina`)
-                    VALUES (?, ?, ?, ?, ?, ?)";
+                        (`id_empleado`,`val_bsp`,`fec_corte`, `tipo`, `id_user_reg`,`fec_reg`,`id_nomina`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['valor'], PDO::PARAM_STR);
             $stmt->bindValue(3, $array['corte'], PDO::PARAM_STR);
-            $stmt->bindValue(4, Sesion::IdUser(), PDO::PARAM_INT);
-            $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
-            $stmt->bindValue(6, $array['id_nomina'] ?? NULL, PDO::PARAM_INT);
+            $stmt->bindValue(4, $array['tipo'] ?? 'S', PDO::PARAM_STR);
+            $stmt->bindValue(5, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(6, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(7, $array['id_nomina'] ?? NULL, PDO::PARAM_INT);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             $stmt->closeCursor();
@@ -288,12 +307,13 @@ class Bsp
     {
         try {
             $sql = "UPDATE `nom_liq_bsp`
-                        SET `val_bsp` = ?, `fec_corte` = ?
+                        SET `val_bsp` = ?, `fec_corte` = ?, `tipo` = ?
                     WHERE `id_bonificaciones` = ?";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['numValor'], PDO::PARAM_STR);
             $stmt->bindValue(2, $array['datFecCorte'], PDO::PARAM_STR);
-            $stmt->bindValue(3, $array['id'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $array['tipo'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
                 $stmt->closeCursor();
                 $consulta = "UPDATE `nom_liq_bsp` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_bonificaciones` = ?";
@@ -306,7 +326,7 @@ class Bsp
                 unset($stmt2);
                 return 'si';
             } else {
-                return 'No se actualizó el registro.';
+                return 'no';
             }
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();

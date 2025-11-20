@@ -129,6 +129,23 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                 SendPost('../php/controladores/liquidado.php', data).then((response) => {
                     if (response.status === 'ok') {
                         mje('Guardado correctamente!');
+                        $('#modalForms').modal('hide');
+                        VerLiquidacionEmpleado(ValueInput('id_empleado'), ValueInput('id_nomina'), 2);
+                        tableDetallesNomina.ajax.reload(null, false);
+                    } else {
+                        mjeError('Error!', response.msg);
+                    }
+                }).finally(() => {
+                    ocultarOverlay();
+                });
+                break;
+            case 'btnGuardarSalarios':
+                mostrarOverlay();
+                var data = Serializa('formSalariosLiq', 'formPrestacionesLiq');
+                data = AppendData(data, 1);
+                SendPost('../php/controladores/liquidado.php', data).then((response) => {
+                    if (response.status === 'ok') {
+                        mje('Guardado correctamente!');
                         tableDetallesNomina.ajax.reload(null, false);
                     } else {
                         mjeError('Error!', response.msg);
@@ -140,9 +157,9 @@ document.getElementById('modalForms').addEventListener('click', function (event)
         }
     }
 });
-function VerLiquidacionEmpleado(id_empleado, id_nomina) {
+function VerLiquidacionEmpleado(id_empleado, id_nomina, item = 1) {
     mostrarOverlay();
-    VerFormulario('../php/controladores/liquidado.php', 'form', { id: id_empleado, id_nomina: id_nomina }, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-xl');
+    VerFormulario('../php/controladores/liquidado.php', 'form', { id: id_empleado, id_nomina: id_nomina, item: item }, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-xl');
 }
 
 function AppendData(data, option) {

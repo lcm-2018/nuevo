@@ -42,6 +42,8 @@ class Prestaciones_Sociales
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if (empty($registro)) {
             $registro = [
                 'id_indemniza' => 0,

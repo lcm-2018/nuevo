@@ -95,7 +95,10 @@ class Vacaciones
                 WHERE (1 = 1 $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -119,7 +122,10 @@ class Vacaciones
                 WHERE (1 = 1 $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -128,6 +134,29 @@ class Vacaciones
      * @param int $id ID del registro
      * @return array  datos del registro
      */
+
+    public function getRegistroLiq($a)
+    {
+        $sql = "SELECT
+                    `nlv`.`id_liq_vac` AS `id`
+                    , `nlv`.`val_liq` AS `val_vac`
+                    , `nlv`.`val_prima_vac` AS `prima_vac`
+                    , `nlv`.`val_bon_recrea` AS `bon_recrea`
+                    , `nlv`.`tipo` AS `tipo`
+                FROM
+                    `nom_liq_vac` AS `nlv`
+                    INNER JOIN `nom_vacaciones` AS `nv` 
+                        ON (`nlv`.`id_vac` = `nv`.`id_vac`)
+                WHERE (`nv`.`id_empleado` = ? AND `nlv`.`id_nomina` = ? AND `nlv`.`estado` = 1)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $a['id_empleado'], PDO::PARAM_INT);
+        $stmt->bindParam(2, $a['id_nomina'], PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($data) ? $data : ['id' => 0, 'val_vac' => 0, 'prima_vac' => 0, 'bon_recrea' => 0, 'tipo' => 'S'];
+    }
 
     public function getRegistro($id)
     {
@@ -140,6 +169,8 @@ class Vacaciones
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if (empty($registro)) {
             $registro = [
                 'id_vac' => 0,
@@ -392,6 +423,38 @@ class Vacaciones
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+
+    public function editRegistroLiq($d)
+    {
+        try {
+            $sql = "UPDATE `nom_liq_vac`
+                        SET `val_liq` = ?, `val_prima_vac` = ?, `val_bon_recrea` = ?, `tipo` = ?
+                    WHERE `id_liq_vac` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $d['val_vac'], PDO::PARAM_STR);
+            $stmt->bindValue(2, $d['prima_vac'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $d['bon_recrea'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $d['tipo'], PDO::PARAM_INT);
+            $stmt->bindValue(5, $d['id'], PDO::PARAM_INT);
+
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $consulta = "UPDATE `nom_liq_vac` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_vac` = ?";
+                $stmt2 = $this->conexion->prepare($consulta);
+                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmt2->bindValue(3, $d['id'], PDO::PARAM_INT);
+                $stmt2->execute();
+                return 'si';
+            } else {
+                return 'No se actualizó el registro.';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+
+
     /**
      * Actualiza los datos de un registro.
      *

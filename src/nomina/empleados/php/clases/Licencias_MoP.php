@@ -95,7 +95,10 @@ class Licencias_MoP
                 WHERE (1 = 1 $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -119,7 +122,10 @@ class Licencias_MoP
                 WHERE (1 = 1 $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data;
     }
 
     /**
@@ -139,6 +145,8 @@ class Licencias_MoP
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if (empty($registro)) {
             $registro = [
                 'id_licmp' => 0,
@@ -150,6 +158,51 @@ class Licencias_MoP
             ];
         }
         return $registro;
+    }
+
+    public function getRegistroLiq($a)
+    {
+        $sql = "SELECT
+                    `nll`.`id_liqlicmp` AS `id`, `nll`.`val_liq` AS `valor`, `nll`.`tipo`
+                FROM
+                    `nom_liq_licmp` AS `nll`
+                    INNER JOIN `nom_licenciasmp` AS `nl` 
+                        ON (`nll`.`id_licmp` = `nl`.`id_licmp`)
+                WHERE (`nl`.`id_empleado` = ? AND `nll`.`id_nomina` = ? AND `nll`.`estado` = 1)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $a['id_empleado'], PDO::PARAM_INT);
+        $stmt->bindParam(2, $a['id_nomina'], PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($data) ? $data : ['id' => 0, 'valor' => 0, 'tipo' => 'S'];
+    }
+
+    public function editRegistroLiq($a)
+    {
+        try {
+            $sql = "UPDATE `nom_liq_licmp` SET `val_liq` = ?, `tipo` = ? WHERE `id_liqlicmp` = ?";
+            $stmt = $this->conexion->prepare($sql);
+
+            $stmt->bindParam(1, $a['valor'], PDO::PARAM_STR);
+            $stmt->bindParam(2, $a['tipo'], PDO::PARAM_STR);
+            $stmt->bindParam(3, $a['id'], PDO::PARAM_STR);
+
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $consulta = "UPDATE `nom_liq_licmp` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liqlicmp` = ?";
+                $stmt2 = $this->conexion->prepare($consulta);
+                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmt2->bindValue(3, $a['id'], PDO::PARAM_INT);
+                $stmt2->execute();
+                return 'si';
+            } else {
+                return 'no';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL1: ' . $e->getMessage();
+        }
     }
 
     public function getRegistroPorEmpleado($inicia, $fin)

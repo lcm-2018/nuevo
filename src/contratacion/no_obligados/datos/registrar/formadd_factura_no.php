@@ -28,6 +28,8 @@ try {
     $stmt->bindParam(1, $id_fno, PDO::PARAM_INT);
     $stmt->execute();
     $factura = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
+    unset($stmt);
     if (!empty($factura)) {
         $id_tercero =  $factura['id_tercero_no'];
         try {

@@ -208,6 +208,8 @@ class Nomina
             return 0;
         }
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($registro) ? $registro['total'] : 0;
     }
 
@@ -281,6 +283,8 @@ class Nomina
             return 0;
         }
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($registro) ? $registro['total'] : 0;
     }
     /**
@@ -367,6 +371,8 @@ class Nomina
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($data) ? $data : ['codigo' => '', 'descripcion' => ''];
     }
 
@@ -388,6 +394,8 @@ class Nomina
             $stmt->bindValue(3, Sesion::Vigencia(), PDO::PARAM_STR);
             $stmt->execute();
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            unset($stmt);
             return !empty($data) ? $data : ['id_nomina' => 0, 'estado' => 0];
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();

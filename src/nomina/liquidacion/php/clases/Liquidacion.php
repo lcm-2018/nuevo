@@ -234,6 +234,8 @@ class Liquidacion
             return 0;
         }
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($registro) ? $registro['total'] : 0;
     }
 
@@ -307,6 +309,8 @@ class Liquidacion
             return 0;
         }
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($registro) ? $registro['total'] : 0;
     }
     /**
@@ -431,19 +435,10 @@ class Liquidacion
                         throw new Exception("No tiene registrado novedades de seguridad social");
                     }
 
-                    $param['aux_trans'] =   $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
-                    $param['aux_alim'] =    $salarios[$id_empleado] <= $param['base_alim'] ? $parametro[3] : 0;
-                    $tipo_emp =             $empleados[$id_empleado]['tipo_empleado'];
-                    $subtipo_emp =          $empleados[$id_empleado]['subtipo_empleado'];
-
-                    if ($tipo_emp == 12 || $tipo_emp == 8) {
-                        $param['aux_trans'] =   0;
-                        $param['aux_alim'] =    0;
-                    }
-
                     $cortes_empleado =  $cortes[$id_empleado] ?? [];
-
-                    $this->conexion->beginTransaction();
+                    if (!$this->conexion->inTransaction()) {
+                        $this->conexion->beginTransaction();
+                    }
 
                     if ($opcion == 0) {
                         $param['id_empleado'] =     $id_empleado;
@@ -456,6 +451,16 @@ class Liquidacion
                         $param['prom_horas'] =      $cortes_empleado['prom'] ?? 0;
                     } else if ($opcion == 1) {
                         $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
+                    }
+
+                    $param['aux_trans'] =   $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
+                    $param['aux_alim'] =    $salarios[$id_empleado] <= $param['base_alim'] ? $parametro[3] : 0;
+                    $tipo_emp =             $empleados[$id_empleado]['tipo_empleado'];
+                    $subtipo_emp =          $empleados[$id_empleado]['subtipo_empleado'];
+
+                    if ($tipo_emp == 12 || $tipo_emp == 8) {
+                        $param['aux_trans'] =   0;
+                        $param['aux_alim'] =    0;
                     }
 
                     if ($opcion == 0) {
@@ -494,12 +499,20 @@ class Liquidacion
 
                     $filtro = $vacaciones[$id_empleado][0] ?? [];
                     if (!empty($filtro)) {
-                        $response =         $this->LiquidaVacaciones($filtro, $param);
-                        $valTotVac =        $response['valor'];
-                        $valTotPrimVac =    $response['prima'];
-                        $valBonRec =        $response['bono'];
-                        if (!$response['insert']) {
-                            throw new Exception("Vacaciones: {$response['msg']}");
+                        $Vcc = new Vacaciones($this->conexion);
+                        $rt = $Vcc->getRegistroLiq(['id_empleado' => $id_empleado, 'id_nomina' => $id_nomina]);
+                        if (!empty($rt) && $rt['tipo'] == 'M') {
+                            $valTotVac =        $rt['val_vac'];
+                            $valTotPrimVac =    $rt['prima_vac'];
+                            $valBonRec =        $rt['bon_recrea'];
+                        } else {
+                            $response =         $this->LiquidaVacaciones($filtro, $param);
+                            $valTotVac =        $response['valor'];
+                            $valTotPrimVac =    $response['prima'];
+                            $valBonRec =        $response['bono'];
+                            if (!$response['insert']) {
+                                throw new Exception("Vacaciones: {$response['msg']}");
+                            }
                         }
                     }
 
@@ -507,13 +520,19 @@ class Liquidacion
                     $valTotLicMP = 0;
                     $filtro = $licenciasMP[$id_empleado][0] ?? [];
                     if (!empty($filtro)) {
-                        $filtro['id_eps'] = $novedad[1];
-                        $filtro['mes'] = $mes;
-                        $response = $this->LiquidaLicenciaMOP($filtro, $param);
-                        $valTotLicMP = $response['valor'];
+                        $Lic = new Licencias_MoP($this->conexion);
+                        $rt = $Lic->getRegistroLiq(['id_empleado' => $id_empleado, 'id_nomina' => $id_nomina]);
+                        if (!empty($rt) && $rt['tipo'] == 'M') {
+                            $valTotLicMP = $rt['valor'];
+                        } else {
+                            $filtro['id_eps'] = $novedad[1];
+                            $filtro['mes'] = $mes;
+                            $response = $this->LiquidaLicenciaMOP($filtro, $param);
+                            $valTotLicMP = $response['valor'];
 
-                        if (!$response['insert']) {
-                            throw new Exception("Licencias MoP: {$response['msg']}");
+                            if (!$response['insert']) {
+                                throw new Exception("Licencias MoP: {$response['msg']}");
+                            }
                         }
                     }
 
@@ -553,7 +572,15 @@ class Liquidacion
                     $valTotalBSP = 0;
                     if ($empleados[$id_empleado]['bsp'] == 1) {
                         if (isset($bonificaciones[$id_empleado])) {
-                            $valTotalBSP = $bonificaciones[$id_empleado];
+                            $dBsp           = $bonificaciones[$id_empleado];
+                            $valTotalBSP    = $dBsp['val_bsp'];
+                            $data = [
+                                'numValor'      => $dBsp['val_bsp'],
+                                'datFecCorte'   => $dBsp['fec_corte'],
+                                'tipo'          => 'P',
+                                'id'            => $dBsp['id_bonificaciones'],
+                            ];
+                            (new Bsp($this->conexion))->editRegistro($data);
                         } else {
                             $fecha_corte = $cortes_empleado['val_bsp']  == '' ? $cortes_empleado['inicia_ctt'] : $cortes_empleado['corte_bsp'];
                             //verificar si hay 360 día para la bonificiacion sacandolo los dias entre fecha_corte y fecha_fin
@@ -575,21 +602,29 @@ class Liquidacion
                     $valAuxAlim = $laborado[$id_empleado] * ($param['aux_alim'] / 30);
                     $grepre = $empleados[$id_empleado]['representacion'] == 1 ? $parametro[8] : 0;
 
-                    $data = [
-                        'id_empleado'       =>  $id_empleado,
-                        'dias_laborados'    =>  $laborado[$id_empleado],
-                        'val_laborado'      =>  $valTotalLab,
-                        'val_aux_trans'     =>  $valAuxTrans,
-                        'val_aux_alim'      =>  $valAuxAlim,
-                        'val_grep'          =>  $grepre,
-                        'val_horas_ex'      =>  $valTotalHe,
-                        'id_nomina'         =>  $id_nomina,
-                    ];
-                    $response = $this->LiquidaLaborado($data);
-                    if (!$response['insert']) {
-                        throw new Exception("Laborado: {$response['msg']}");
+                    $Otros = new Otros();
+                    $labd = $Otros->getRegistroLiq(['id_empleado' => $id_empleado, 'id_nomina' => $id_nomina]);
+                    if (!empty($labd) && $labd['tipo'] == 'M') {
+                        $valTotalLab    = $labd['val_laborado'];
+                        $valAuxTrans    = $labd['val_auxtrans'];
+                        $valAuxAlim     = $labd['auxalim'];
+                        $grepre         = $labd['grepre'];
+                    } else {
+                        $data = [
+                            'id_empleado'       =>  $id_empleado,
+                            'dias_laborados'    =>  $laborado[$id_empleado],
+                            'val_laborado'      =>  $valTotalLab,
+                            'val_aux_trans'     =>  $valAuxTrans,
+                            'val_aux_alim'      =>  $valAuxAlim,
+                            'val_grep'          =>  $grepre,
+                            'val_horas_ex'      =>  $valTotalHe,
+                            'id_nomina'         =>  $id_nomina,
+                        ];
+                        $response = $this->LiquidaLaborado($data);
+                        if (!$response['insert']) {
+                            throw new Exception("Laborado: {$response['msg']}");
+                        }
                     }
-
                     //Seguridad social
                     if ($empleados[$id_empleado]['salario_integral'] == 1) {
                         $ibc = $valTotalLab * 0.7;
@@ -745,8 +780,9 @@ class Liquidacion
                     if (!$response['insert']) {
                         throw new Exception("Salario neto: {$response['msg']}");
                     }
-
-                    $this->conexion->commit();
+                    if ($opcion == 0) {
+                        $this->conexion->commit();
+                    }
                     $inserts++;
                     unset($filtro, $response);
                     gc_collect_cycles();
@@ -1267,7 +1303,7 @@ class Liquidacion
         $corte          =   $param['corte_psv'] ?? NULL;
         $id_nomina      =   $param['id_nomina'];
 
-        $prima_dia      =   $base  / 320;
+        $prima_dia      =   $base  / 360;
         $val_liq_pv     =   $prima_dia * $dliq;
 
         if ($opcion == 1) {
@@ -1818,6 +1854,7 @@ class Liquidacion
         }
         return $response;
     }
+
     public function LiquidaLaborado($array)
     {
         $response = [
@@ -1848,6 +1885,25 @@ class Liquidacion
             } else {
                 $response['msg'] = 'No se insertó el registro';
             }
+        } catch (PDOException $e) {
+            $response['msg'] = 'Error SQL: ' . $e->getMessage();
+        }
+        return $response;
+    }
+    function anulaLiquidacionNomina($id_nomina, $id_empleado = 0)
+    {
+        $response = [
+            'msg'       =>    '',
+            'delete'    =>    false,
+        ];
+
+        try {
+            $sql = "CALL sp_anu_nominaliq(?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $id_nomina, PDO::PARAM_INT);
+            $stmt->execute();
+            $response['delete'] = true;
+            $response['msg'] = 'si';
         } catch (PDOException $e) {
             $response['msg'] = 'Error SQL: ' . $e->getMessage();
         }

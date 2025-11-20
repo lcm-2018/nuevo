@@ -126,6 +126,8 @@ class Liquidado
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($registro) ? $registro['total'] : 0;
     }
 
@@ -147,6 +149,8 @@ class Liquidado
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($registro) ? $registro['total'] : 0;
     }
 }

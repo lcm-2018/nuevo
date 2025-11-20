@@ -89,7 +89,10 @@ class Configuracion
                 WHERE (`tb_consultas_sql`.`id_consulta` > 0 $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $id = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $id;
     }
 
     /**
@@ -106,7 +109,10 @@ class Configuracion
                 WHERE (`tb_consultas_sql`.`id_consulta` > 0)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $id = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
+        $stmt->closeCursor();
+        unset($stmt);
+        return $id;
     }
 
     public function getRegistro($id)
@@ -122,6 +128,8 @@ class Configuracion
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
         $cargo = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         if (empty($cargo)) {
             $cargo = [
                 'id_consulta' => 0,

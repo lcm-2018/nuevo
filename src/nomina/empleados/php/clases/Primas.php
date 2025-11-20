@@ -3,7 +3,6 @@
 namespace Src\Nomina\Empleados\Php\Clases;
 
 use Config\Clases\Conexion;
-use Config\Clases\Logs;
 use Config\Clases\Sesion;
 
 use PDO;
@@ -31,98 +30,38 @@ class Primas
      * @return array  datos del registro
      */
 
-    public function getRegistro($id)
+    public function getRegistroLiq1($a)
     {
-        return 'No se ha implementado aún';
-        $sql = "SELECT
-                    `id_indemniza`,`fec_inica`,`fec_fin`,`cant_dias`,`estado`
-                FROM `nom_indemniza_vac`
-                WHERE `id_indemniza` = ?";
+        $sql = "SELECT `id_liq_prima` FROM `nom_liq_prima` WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1";
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bindParam(1, $id, PDO::PARAM_INT);
+        $stmt->bindParam(1, $a['id_empleado'], PDO::PARAM_INT);
+        $stmt->bindParam(2, $a['id_nomina'], PDO::PARAM_INT);
         $stmt->execute();
-        $registro = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (empty($registro)) {
-            $registro = [
-                'id_indemniza' => 0,
-                'fec_inica' => Sesion::_Hoy(),
-                'fec_fin' => '',
-                'cant_dias' => 0,
-                'estado' => 0,
-            ];
-        }
-        return $registro;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($data) ? $data['id_liq_prima'] : 0;
     }
 
-    /**
-     * Elimina un registro.
-     *
-     * @param int $id ID del registro a eliminar
-     * @return string Mensaje de éxito o error
-     */
-
-    public function delRegistro($id)
+    public function getRegistroLiq2($a)
     {
-        return 'No se ha implementado eliminar aún';
-        try {
-            $sql = "DELETE FROM `nom_indemniza_vac` WHERE `id_indemniza` = ?";
-            $consulta  = "DELETE FROM `nom_indemniza_vac` WHERE `id_indemniza` = $id";
-            $stmt = $this->conexion->prepare($sql);
-            $stmt->bindParam(1, $id, PDO::PARAM_INT);
-            $stmt->execute();
-            if ($stmt->rowCount() > 0) {
-                Logs::guardaLog($consulta);
-                (new Novedades())->delRegistro(6, $id);
-                return 'si';
-            } else {
-                return 'No se eliminó el registro.';
-            }
-        } catch (PDOException $e) {
-            return 'Error SQL: ' . $e->getMessage();
-        }
-    }
-
-    /**
-     * Agrega un nuevo registro.
-     *
-     * @param array $array Datos del registro a agregar
-     * @return string Mensaje de éxito o error
-     */
-    public function addRegistro($array)
-    {
-        return 'No se ha implementado aún';
-        try {
-            $this->conexion->beginTransaction();
-            $sql = "INSERT INTO `nom_indemniza_vac`
-                        (`id_empleado`,`fec_inica`,`fec_fin`,`cant_dias`,`estado`,`fec_reg`,`id_user_reg`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
-            $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
-            $stmt->bindValue(2, $array['datFecInicia'], PDO::PARAM_STR);
-            $stmt->bindValue(3, $array['datFecFin'], PDO::PARAM_STR);
-            $stmt->bindValue(4, $array['diasInactivo'], PDO::PARAM_INT);
-            $stmt->bindValue(5, 1, PDO::PARAM_INT);
-            $stmt->bindValue(6, Sesion::Hoy(), PDO::PARAM_STR);
-            $stmt->bindValue(7, Sesion::IdUser(), PDO::PARAM_INT);
-            $stmt->execute();
-            $id = $this->conexion->lastInsertId();
-            if ($id > 0) {
-                return 'si';
-            } else {
-                $this->conexion->rollBack();
-                return 'No se insertó el registro';
-            }
-        } catch (PDOException $e) {
-            return 'Error SQL: ' . $e->getMessage();
-        }
+        $sql = "SELECT `id_liq_privac` FROM `nom_liq_prima_nav` WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $a['id_empleado'], PDO::PARAM_INT);
+        $stmt->bindParam(2, $a['id_nomina'], PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($data) ? $data['id_liq_privac'] : 0;
     }
 
     public function addRegistroLiq1($array)
     {
         try {
             $sql = "INSERT INTO `nom_liq_prima`
-                        (`id_empleado`,`cant_dias`,`val_liq_ps`,`val_liq_pns`,`periodo`,`corte`,`id_user_reg`,`fec_reg`,`id_nomina`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        (`id_empleado`,`cant_dias`,`val_liq_ps`,`val_liq_pns`,`periodo`,`corte`,`id_user_reg`,`fec_reg`,`id_nomina`,`tipo`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['cant_dias'], PDO::PARAM_INT);
@@ -133,6 +72,7 @@ class Primas
             $stmt->bindValue(7, Sesion::IdUser(), PDO::PARAM_INT);
             $stmt->bindValue(8, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->bindValue(9, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->bindValue(10, $array['tipo'] ?? 'S', PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
@@ -148,8 +88,8 @@ class Primas
     {
         try {
             $sql = "INSERT INTO `nom_liq_prima_nav`
-                    (`id_empleado`,`cant_dias`,`val_liq_pv`,`val_liq_pnv`,`periodo`,`corte`,`id_user_reg`,`fec_reg`,`id_nomina`)
-                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    (`id_empleado`,`cant_dias`,`val_liq_pv`,`val_liq_pnv`,`periodo`,`corte`,`id_user_reg`,`fec_reg`,`id_nomina`,`tipo`)
+                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['cant_dias'], PDO::PARAM_INT);
@@ -160,12 +100,13 @@ class Primas
             $stmt->bindValue(7, Sesion::IdUser(), PDO::PARAM_INT);
             $stmt->bindValue(8, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->bindValue(9, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->bindValue(10, $array['tipo'] ?? 'S', PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
                 return 'si';
             } else {
-                return 'No se insertó el registro';
+                return 'no';
             }
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
@@ -178,22 +119,20 @@ class Primas
      * @param array $array Datos del registro a actualizar
      * @return string Mensaje de éxito o error
      */
-    public function editRegistro($array)
+    public function editRegistroLiq1($array)
     {
-        return 'No se ha implementado aún';
         try {
-            $this->conexion->beginTransaction();
-            $sql = "UPDATE `nom_indemniza_vac`
-                        SET `fec_inica` = ?, `fec_fin` = ?, `cant_dias` = ?
-                    WHERE `id_indemniza` = ?";
+            $sql = "UPDATE `nom_liq_prima`
+                        SET `cant_dias` = ?, `val_liq_ps` = ?,`corte` = ?
+                    WHERE `id_liq_prima` = ?";
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['datFecInicia'], PDO::PARAM_STR);
-            $stmt->bindValue(2, $array['datFecFin'], PDO::PARAM_STR);
-            $stmt->bindValue(3, $array['diasInactivo'], PDO::PARAM_INT);
+            $stmt->bindValue(1, $array['cant_dias'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['val_liq_ps'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $array['corte'], PDO::PARAM_STR);
             $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
-                $consulta = "UPDATE `nom_indemniza_vac` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_indemniza` = ?";
+                $consulta = "UPDATE `nom_liq_prima` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_prima` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
                 $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
                 $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
@@ -201,10 +140,37 @@ class Primas
                 $stmt2->execute();
                 return 'si';
             } else {
-                return 'No se actualizó el registro.';
+                return 'no';
             }
         } catch (PDOException $e) {
-            $this->conexion->rollBack();
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function editRegistroLiq2($array)
+    {
+        try {
+            $sql = "UPDATE `nom_liq_prima_nav`
+                        SET `cant_dias` = ?, `val_liq_pv` = ?, `corte` = ?
+                    WHERE `id_liq_privac` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['cant_dias'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['val_liq_pv'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $array['corte'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
+
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $consulta = "UPDATE `nom_liq_prima_nav` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_privac` = ?";
+                $stmt2 = $this->conexion->prepare($consulta);
+                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
+                $stmt2->execute();
+                return 'si';
+            } else {
+                return 'no';
+            }
+        } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
     }

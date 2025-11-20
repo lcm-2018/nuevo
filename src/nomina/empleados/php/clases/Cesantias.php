@@ -31,28 +31,22 @@ class Cesantias
      * @return array  datos del registro
      */
 
-    public function getRegistro($id)
+    public function getRegistroLiq($a)
     {
-        return 'No se ha implementado aún';
         $sql = "SELECT
-                    `id_indemniza`,`fec_inica`,`fec_fin`,`cant_dias`,`estado`
-                FROM `nom_indemniza_vac`
-                WHERE `id_indemniza` = ?";
+                    `id_liq_cesan`
+                FROM `nom_liq_cesantias`
+                WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1";
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bindParam(1, $id, PDO::PARAM_INT);
+        $stmt->bindParam(1, $a['id_empleado'], PDO::PARAM_INT);
+        $stmt->bindParam(2, $a['id_nomina'], PDO::PARAM_INT);
         $stmt->execute();
-        $registro = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (empty($registro)) {
-            $registro = [
-                'id_indemniza' => 0,
-                'fec_inica' => Sesion::_Hoy(),
-                'fec_fin' => '',
-                'cant_dias' => 0,
-                'estado' => 0,
-            ];
-        }
-        return $registro;
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($data) ? $data['id_liq_cesan'] : 0;
     }
+
 
     /**
      * Elimina un registro.
@@ -121,8 +115,8 @@ class Cesantias
     {
         try {
             $sql = "INSERT INTO `nom_liq_cesantias`
-                        (`id_empleado`,`cant_dias`,`val_cesantias`,`val_icesantias`,`porcentaje_interes`,`corte`,`id_user_reg`,`fec_reg`,`id_nomina`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        (`id_empleado`,`cant_dias`,`val_cesantias`,`val_icesantias`,`porcentaje_interes`,`corte`,`id_user_reg`,`fec_reg`,`id_nomina`,`tipo`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['cant_dias'], PDO::PARAM_INT);
@@ -133,6 +127,7 @@ class Cesantias
             $stmt->bindValue(7, Sesion::IdUser(), PDO::PARAM_INT);
             $stmt->bindValue(8, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->bindValue(9, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->bindValue(10, $array['tipo'] ?? 'S', PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
@@ -151,22 +146,20 @@ class Cesantias
      * @param array $array Datos del registro a actualizar
      * @return string Mensaje de éxito o error
      */
-    public function editRegistro($array)
+    public function editRegistroLiq($array)
     {
-        return 'No se ha implementado aún';
         try {
-            $this->conexion->beginTransaction();
-            $sql = "UPDATE `nom_indemniza_vac`
-                        SET `fec_inica` = ?, `fec_fin` = ?, `cant_dias` = ?
-                    WHERE `id_indemniza` = ?";
+            $sql = "UPDATE `nom_liq_cesantias`
+                        SET `cant_dias` = ?, `val_cesantias` = ?,`val_icesantias` = ?, `corte` = ?
+                    WHERE `id_liq_cesan` = ?";
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['datFecInicia'], PDO::PARAM_STR);
-            $stmt->bindValue(2, $array['datFecFin'], PDO::PARAM_STR);
-            $stmt->bindValue(3, $array['diasInactivo'], PDO::PARAM_INT);
-            $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
-
+            $stmt->bindValue(1, $array['cant_dias'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['val_cesantias'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $array['val_icesantias'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $array['corte'], PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['id'], PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
-                $consulta = "UPDATE `nom_indemniza_vac` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_indemniza` = ?";
+                $consulta = "UPDATE `nom_liq_cesantias` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_cesan` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
                 $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
                 $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
@@ -174,10 +167,9 @@ class Cesantias
                 $stmt2->execute();
                 return 'si';
             } else {
-                return 'No se actualizó el registro.';
+                return 'no';
             }
         } catch (PDOException $e) {
-            $this->conexion->rollBack();
             return 'Error SQL: ' . $e->getMessage();
         }
     }
