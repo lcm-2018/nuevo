@@ -39,7 +39,7 @@ $datos = [];
 if (!empty($obj)) {
     foreach ($obj as $o) {
         $id = $o['id_nomina'];
-        $detalles = '';
+        $detalles = $borrar = $anular = $estado = '';
         if ($o['estado'] >= 2) {
             $estado = '<span class="badge bg-success">DEFINITIVA</span>';
         } elseif ($o['estado'] == 1) {
@@ -48,15 +48,22 @@ if (!empty($obj)) {
             $estado = '<span class="badge bg-secondary text-dark">ANULADO</span>';
         }
         if ($permisos->PermisosUsuario($opciones, 5101, 1) || $id_rol == 1) {
-            $detalles = '<button data-id="' . $id . '" class="btn btn-outline-warning btn-xs rounded-circle shadow me-1 detalles" title="Ver detalles"><div class="fas fa-eye fa-sm"></div></button>';
+            $detalles = '<button data-id="' . $id . '" class="btn btn-outline-warning btn-xs rounded-circle shadow me-1 detalles" title="Ver detalles"><span class="fas fa-eye fa-sm"></span></button>';
         }
+        if (($permisos->PermisosUsuario($opciones, 5101, 4) || $id_rol == 1) && $o['estado'] == 1) {
+            $borrar = '<button data-id="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 borrar" title="Borrar Registro"><span class="fas fa-trash-alt fa-sm"></span></button>';
+        }
+        if (($permisos->PermisosUsuario($opciones, 5101, 5) || $id_rol == 1) && $o['estado'] == 1) {
+            $anular = '<button data-id="' . $id . '" class="btn btn-outline-secondary btn-xs rounded-circle shadow me-1 anular" title="Anular Registro"><span class="fas fa-ban fa-sm"></span></button>';
+        }
+
         $datos[] = [
             'id'            =>  $id,
             'descripcion'   =>  mb_strtoupper($o['descripcion']),
             'mes'           =>  mb_strtoupper($o['nom_mes']),
             'tipo'          =>  mb_strtoupper($o['tipo']),
             'estado'        =>  '<div class="text-center">' . $estado . '</div>',
-            'accion'        =>  '<div class="text-center">' . $detalles . '</div>',
+            'accion'        =>  '<div class="text-center">' . $detalles . $borrar . $anular . '</div>',
         ];
     }
 }

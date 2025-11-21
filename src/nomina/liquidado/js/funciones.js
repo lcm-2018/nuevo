@@ -45,11 +45,22 @@ tablenNominasEmpleados.on('init', function () {
 
 document.querySelector('#tablenNominasEmpleados').addEventListener('click', function (event) {
     const btnDetalles = event.target.closest('.detalles');
+    const btnBorrar = event.target.closest('.borrar');
+    const btnAnular = event.target.closest('.anular');
 
     if (btnDetalles) {
         event.preventDefault();
         const id = btnDetalles.dataset.id;
         SubmitPost('detalles.php', 'id_nomina', id);
     }
-
+    if (btnBorrar) {
+        event.preventDefault();
+        const id = btnBorrar.dataset.id;
+        EliminaRegistro('../php/controladores/liquidado.php', id, tablenNominasEmpleados);
+    }
+    if (btnAnular) {
+        event.preventDefault();
+        const id = btnAnular.dataset.id;
+        console.log(id);
+    }
 });

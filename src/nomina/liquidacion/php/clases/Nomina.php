@@ -364,6 +364,21 @@ class Nomina
         return 'No se ha definido la edición de registros.';
     }
 
+    public static function getRegistro($id)
+    {
+        $sql = "SELECT
+                    `id_nomina`,`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`id_incremento`
+                FROM `nom_nominas`
+                WHERE `id_nomina` =  ?";
+        $stmt = Conexion::getConexion()->prepare($sql);
+        $stmt->bindParam(1, $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($data) ? $data : [];
+    }
+
     public static function getTipoNomina($id)
     {
         $sql = "SELECT `codigo`,`descripcion` FROM `nom_tipo_liquidacion` WHERE `id_tipo` = ?";
@@ -414,5 +429,30 @@ class Nomina
         $stmt->closeCursor();
         unset($stmt);
         return $result;
+    }
+
+    public function cambiaEstado($id_nomina, $estado)
+    {
+        try {
+            $sql = "UPDATE `nom_nominas` SET `estado` = ?, `planilla` = ? WHERE `id_nomina` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindParam(1, $estado, PDO::PARAM_INT);
+            $stmt->bindParam(2, $estado, PDO::PARAM_INT);
+            $stmt->bindParam(3, $id_nomina, PDO::PARAM_INT);
+
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $consulta = "UPDATE `nom_nominas` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_nomina` = ?";
+                $stmt2 = $this->conexion->prepare($consulta);
+                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmt2->bindValue(3, $id_nomina, PDO::PARAM_INT);
+                $stmt2->execute();
+                return 'si';
+            } else {
+                return 'No se actualizó el estado de la nómina.';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
     }
 }

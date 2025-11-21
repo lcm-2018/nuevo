@@ -8,9 +8,21 @@ if (!isset($_SESSION['user'])) {
 include_once '../../../../config/autoloader.php';
 
 use Config\Clases\Plantilla;
+use Src\Nomina\Liquidacion\Php\Clases\Nomina;
 
 $host = Plantilla::getHost();
 $id_nomina = isset($_POST['id_nomina']) ? $_POST['id_nomina'] : exit('Acceso no autorizado');
+$nomina = (new Nomina())->getRegistro($id_nomina);
+
+if (isset($nomina['estado']) && $nomina['estado'] == 1) {
+    $definitiva = '<button type="button" id="btnCerrarNomina" class="btn btn-outline-warning btn-sm mb-2"><i class="fas fa-check-circle fa-lg me-1"></i> Definitiva</button>';
+} else if (isset($nomina['estado']) && $nomina['estado'] > 1) {
+    $definitiva = '<div class="badge bg-success py-2 mb-2"></i> NÓMINA DEFINITIVA</div>';
+} else {
+    $definitiva = '';
+}
+
+
 
 $content = <<<HTML
 
@@ -22,6 +34,9 @@ $content = <<<HTML
     <div class="card-body p-2 bg-wiev">
         <form id="formDetallesNomina">
             <input type="hidden" id="id_nomina" value="{$id_nomina}">
+            <div class="text-end">
+                {$definitiva}
+            </div>
             <table id="tableDetallesNomina" class="table table-striped table-bordered table-sm table-hover align-middle shadow nowrap w-100">
                 <thead>
                     <tr>

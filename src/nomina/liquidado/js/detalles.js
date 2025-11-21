@@ -77,11 +77,17 @@ document.querySelector('#tableDetallesNomina').addEventListener('click', functio
     const fila = event.target.closest('tr');
     const esDobleClick = event.detail === 2;
     const btnDetalles = event.target.closest('.detalles');
+    const btnAnular = event.target.closest('.anular');
+
+    const id_nomina = ValueInput('id_nomina');
+    const data = tableDetallesNomina.row(fila).data();
 
     if (fila && (esDobleClick || btnDetalles)) {
-        const id_nomina = ValueInput('id_nomina');
-        const data = tableDetallesNomina.row(fila).data();
         VerLiquidacionEmpleado(data['id_empleado'], id_nomina);
+    }
+    if (btnAnular) {
+        event.preventDefault();
+        EliminaRegistro('../php/controladores/liquidado.php', { id: data['id_empleado'], id_nomina: id_nomina }, tableDetallesNomina, 'annul');
     }
 });
 
@@ -168,6 +174,29 @@ function AppendData(data, option) {
     data.append('id_nomina', ValueInput('id_nomina'));
     data.append('id_empleado', ValueInput('id_empleado'));
     return data;
+}
+
+var btnCerrarDefinitiva = document.getElementById('btnCerrarNomina');
+if (btnCerrarDefinitiva) {
+    btnCerrarDefinitiva.addEventListener('click', function () {
+        mostrarOverlay();
+        var data = new FormData();
+        data.append('action', 'estado');
+        data.append('id_nomina', ValueInput('id_nomina'));
+        data.append('estado', '2');
+        SendPost('../php/controladores/liquidado.php', data).then((response) => {
+            if (response.status === 'ok') {
+                mje('Nómina cerrada definitivamente!');
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            } else {
+                mjeError('Error!', response.msg);
+            }
+        }).finally(() => {
+            ocultarOverlay();
+        });
+    });
 }
 
 var miModal = document.getElementById('modalForms');

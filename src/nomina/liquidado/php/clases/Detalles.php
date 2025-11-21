@@ -341,6 +341,10 @@ class Detalles
         $dos = $item == 2 ? 'show' : '';
         $tres = $item == 3 ? 'show' : '';
         $cuatro = $item == 4 ? 'show' : '';
+        $boton1 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarSalarios">Guardar y Reliquidar</button>' : '';
+        $boton2 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarPretaciones">Guardar y Reliquidar</button>' : '';
+        $boton3 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarParafiscales">Guardar</button>' : '';
+        $boton4 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarDctos">Guardar</button>' : '';
         $html =
             <<<HTML
                 <div>
@@ -409,7 +413,7 @@ class Detalles
                                                 </table>
                                             </form>
                                             <div class="mt-3 text-center">
-                                                <button type="button" class="btn btn-primary btn-sm" id="btnGuardarSalarios">Guardar y Reliquidar</button>
+                                                {$boton1}
                                             </div>
                                         </div>
                                     </div>
@@ -568,7 +572,7 @@ class Detalles
                                                 </div>
                                             </form>
                                             <div class="mt-3 text-center">
-                                                <button type="button" class="btn btn-primary btn-sm" id="btnGuardarPretaciones">Guardar y Reliquidar</button>
+                                                {$boton2}
                                             </div>
                                         </div>
                                     </div>
@@ -630,7 +634,7 @@ class Detalles
                                                 </table>
                                             </form>
                                             <div class="mt-3 text-center">
-                                                <button type="button" class="btn btn-primary btn-sm" id="btnGuardarParafiscales">Guardar</button>
+                                                {$boton3}
                                             </div>
                                         </div>
                                     </div>
@@ -684,7 +688,7 @@ class Detalles
                                                 </table>
                                             </form>
                                             <div class="mt-3 text-center">
-                                                <button type="button" class="btn btn-primary btn-sm" id="btnGuardarDctos">Guardar</button>
+                                                {$boton4}
                                             </div>
                                         </div>
                                     </div>

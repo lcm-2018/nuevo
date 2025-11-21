@@ -33,7 +33,7 @@ $totalRecords       =   $sql->getRegistrosTotal($array);
 $datos = [];
 if (!empty($obj)) {
     foreach ($obj as $o) {
-        $detalles = '';
+        $detalles = $anular = '';
         $valorLicencias = $o['valor_luto'] + $o['valor_mp'];
         $devengado = $o['valor_incap'] + $valorLicencias + $o['valor_vacacion']
             + $o['valor_laborado'] + $o['aux_tran'] + $o['aux_alim']
@@ -47,7 +47,13 @@ if (!empty($obj)) {
             + $o['val_retencion'] + $o['valor_dcto'];
 
         $neto = $devengado - $deducciones;
-        $detalles = '<button type="button" class="btn btn-outline-warning btn-xs rounded-circle shadow me-1 detalles" title="Ver Detalles"><i class="fa fa-eye"></i></button>';
+
+        if ($permisos->PermisosUsuario($opciones, 5101, 1) || $id_rol == 1) {
+            $detalles = '<button type="button" class="btn btn-outline-warning btn-xs rounded-circle shadow me-1 detalles" title="Ver Detalles"><i class="fa fa-eye"></i></button>';
+        }
+        if (($permisos->PermisosUsuario($opciones, 5101, 5) || $id_rol == 1) && $o['estado_nomina'] == 1) {
+            $anular .= '<button class="btn btn-outline-secondary btn-xs rounded-circle shadow me-1 anular" title="Anular Registro"><span class="fas fa-ban fa-sm"></span></button>';
+        }
         $datos[] = [
             'id_empleado'       => $o['id_empleado'],
             'sede'              => $o['sede'],
@@ -88,7 +94,7 @@ if (!empty($obj)) {
             'valor_dcto'        => Valores::formatNumber($o['valor_dcto']),
             'deducciones'       => Valores::formatNumber($deducciones),
             'neto'              => Valores::formatNumber($neto),
-            'accion'            => '<div class="text-center">' . ($detalles ?? '') . '</div>',
+            'accion'            => '<div class="text-center">' . ($detalles ?? '') . ($anular ?? '') . '</div>',
         ];
     }
 }

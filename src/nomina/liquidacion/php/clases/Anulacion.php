@@ -34,10 +34,12 @@ class Anulacion
      */
     public function anulaRegistros($id_empleado, $id_nomina, $tipo = 1)
     {
-        $tp = "";
         if ($tipo == 1) {
             $tipo = " AND `tipo`  = 'S'";
             $tp = " AND `nllm`.`tipo`  = 'S'";
+        } else {
+            $tipo = "";
+            $tp = "";
         }
         $queries = [
             // horas extra

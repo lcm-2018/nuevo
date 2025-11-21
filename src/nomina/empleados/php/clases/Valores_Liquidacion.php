@@ -129,7 +129,25 @@ class Valores_Liquidacion
         $valores = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($valores) ? $valores : [];
+        return !empty($valores) ? $valores : [
+            'id_empleado'   => 0,
+            'smmlv'         => 0,
+            'aux_trans'     => '',
+            'aux_alim'      => '',
+            'uvt'           => '',
+            'base_bsp'      => '',
+            'base_alim'     => '',
+            'min_vital'     => '',
+            'salario'       => '',
+            'tiene_grep'    => 0,
+            'grep'          => '',
+            'prom_horas'    => '',
+            'bsp_ant'       => '',
+            'pri_ser_ant'   => '',
+            'pri_vac_ant'   => '',
+            'pri_nav_ant'   => '',
+            'id_nomina'     => 0
+        ];
     }
 
 

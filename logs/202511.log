@@ -1,0 +1,2 @@
+[2025-11-20 09:23:38] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 97;
+[2025-11-20 16:05:29] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 99;

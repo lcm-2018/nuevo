@@ -24,6 +24,7 @@ use Src\Nomina\Empleados\Php\Clases\Vacaciones;
 use Src\Nomina\Empleados\Php\Clases\Valores_Liquidacion;
 use Src\Nomina\Liquidacion\Php\Clases\Anulacion;
 use Src\Nomina\Liquidacion\Php\Clases\Liquidacion;
+use Src\Nomina\Liquidacion\Php\Clases\Nomina;
 use Src\Nomina\Liquidacion\Php\Clases\Otros;
 use Src\Nomina\Liquidado\Php\Clases\Detalles;
 
@@ -354,6 +355,12 @@ switch ($action) {
         }
         break;
     case 'del':
+        $rs = (new Nomina())->delRegistro($id);
+        if ($rs == 'si') {
+            $res['status'] = 'ok';
+        } else {
+            $res['msg'] = $rs;
+        }
         break;
     case 'list':
         $data = (new Empleados)->getEmpleados();
@@ -368,6 +375,26 @@ switch ($action) {
             }
         }
         $res = $resultado;
+        break;
+    case 'annul':
+        $Anular  = new Anulacion();
+        $resul = $Anular->anulaRegistros($id, $id_nomina, 2);
+        if ($resul == 'si') {
+            $res['status'] = 'ok';
+        } else {
+            $res['msg'] = $resul;
+        }
+        break;
+
+    case 'estado':
+        $estado = $_POST['estado'];
+        $Nomina = new Nomina();
+        $resul = $Nomina->cambiaEstado($id_nomina, $estado);
+        if ($resul == 'si') {
+            $res['status'] = 'ok';
+        } else {
+            $res['msg'] = $resul;
+        }
         break;
     default:
         break;

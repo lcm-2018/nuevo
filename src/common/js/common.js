@@ -158,16 +158,24 @@ const VerFormulario = (url, accion, datos, modal, body, idTam, tam) => {
     });
 };
 
-const EliminaRegistro = (url, id, tabla) => {
+const EliminaRegistro = (url, id, tabla, action = 'del') => {
     Swal.fire(Confir).then((result) => {
         if (result.isConfirmed) {
             mostrarOverlay();
             var data = new FormData();
-            data.append('action', 'del');
-            data.append('id', id);
+            data.append('action', action);
+            if (typeof id === 'object') {
+                for (const key in id) {
+                    if (id.hasOwnProperty(key)) {
+                        data.append(key, id[key]);
+                    }
+                }
+            } else {
+                data.append('id', id);
+            }
             SendPost(url, data).then((response) => {
                 if (response.status === 'ok') {
-                    mje('Eliminado correctamente!');
+                    mje('Proceso realizado correctamente!');
                     tabla.ajax.reload(null, false);
                 } else {
                     mjeError('Error!', response.msg);
