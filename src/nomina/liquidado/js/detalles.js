@@ -182,7 +182,7 @@ if (btnCerrarDefinitiva) {
         mostrarOverlay();
         var data = new FormData();
         data.append('action', 'estado');
-        data.append('id_nomina', ValueInput('id_nomina'));
+        data.append('id', ValueInput('id_nomina'));
         data.append('estado', '2');
         SendPost('../php/controladores/liquidado.php', data).then((response) => {
             if (response.status === 'ok') {

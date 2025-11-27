@@ -158,6 +158,24 @@ const VerFormulario = (url, accion, datos, modal, body, idTam, tam) => {
     });
 };
 
+const ImprimirReporte = (url, datos) => {
+    var form = document.createElement("form");
+    form.action = url;
+    form.method = "POST";
+    form.target = "_blank";
+    for (const key in datos) {
+        if (datos.hasOwnProperty(key)) {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = key;
+            input.value = datos[key];
+            form.appendChild(input);
+        }
+    }
+    document.body.appendChild(form);
+    form.submit();
+};
+
 const EliminaRegistro = (url, id, tabla, action = 'del') => {
     Swal.fire(Confir).then((result) => {
         if (result.isConfirmed) {
@@ -574,101 +592,27 @@ var verifica_valmax = function (objeto, val = 500, msg = "") {
     }
     return error;
 };
-/*
-document.addEventListener('DOMContentLoaded', function () {
-    // Función para hacer los modales arrastrables
-    function makeModalsDraggable() {
-        // Seleccionar todos los modales
-        const modals = document.querySelectorAll('.modal');
+var CambiaEstado = (url, id, tabla) => {
+    mostrarOverlay();
+    var data = new FormData();
+    data.append('action', 'estado');
+    data.append('id', id);
+    SendPost(url, data).then((response) => {
+        if (response.status === 'ok') {
+            mje('Proceso realizado correctamente!');
+            tabla.ajax.reload(null, false);
+        } else {
+            mjeError('Error!', response.msg);
+        }
+    }).finally(() => {
+        ocultarOverlay();
+    });
+};
 
-        modals.forEach(modal => {
-            let isDragging = false;
-            let currentModal = null;
-            let currentModalDialog = null;
-            let startX, startY, initialX, initialY;
-            console.log('Iniciando arrastre');
-
-            // Buscar el elemento h5 dentro del modal-body que será el control de arrastre
-            const dragHandle = modal.querySelector('.modal-body h5');
-
-            if (!dragHandle) return;
-
-            // Cuando se muestra el modal, prepararlo para ser arrastrado
-            modal.addEventListener('show.bs.modal', function () {
-                currentModal = modal;
-                currentModalDialog = modal.querySelector('.modal-dialog');
-
-                // Asegurarse de que el modal-dialog tenga posición relativa
-                currentModalDialog.style.position = 'relative';
-            });
-
-            // Evento cuando se presiona el mouse sobre el h5
-            dragHandle.addEventListener('mousedown', startDrag);
-
-            function startDrag(e) {
-                isDragging = true;
-
-                // Obtener posición inicial del mouse
-                startX = e.clientX;
-                startY = e.clientY;
-
-                // Obtener posición inicial del modal
-                const rect = currentModalDialog.getBoundingClientRect();
-                initialX = rect.left;
-                initialY = rect.top;
-
-                // Cambiar el cursor
-                document.body.style.cursor = 'grabbing';
-                dragHandle.style.cursor = 'grabbing';
-
-                // Agregar eventos para arrastrar y soltar
-                document.addEventListener('mousemove', drag);
-                document.addEventListener('mouseup', stopDrag);
-
-                e.preventDefault();
-            }
-
-            function drag(e) {
-                if (!isDragging) return;
-
-                // Calcular el desplazamiento
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-
-                // Aplicar el desplazamiento al modal
-                currentModalDialog.style.left = `${initialX + dx}px`;
-                currentModalDialog.style.top = `${initialY + dy}px`;
-
-                // Cambiar la posición a fixed para que no interfiera con el layout
-                currentModalDialog.style.position = 'fixed';
-                currentModalDialog.style.margin = '0';
-            }
-
-            function stopDrag() {
-                isDragging = false;
-
-                // Restaurar el cursor
-                document.body.style.cursor = '';
-                dragHandle.style.cursor = 'move';
-
-                // Remover eventos
-                document.removeEventListener('mousemove', drag);
-                document.removeEventListener('mouseup', stopDrag);
-            }
-
-            // Cuando se oculta el modal, restaurar posición original
-            modal.addEventListener('hidden.bs.modal', function () {
-                if (currentModalDialog) {
-                    currentModalDialog.style.position = '';
-                    currentModalDialog.style.left = '';
-                    currentModalDialog.style.top = '';
-                    currentModalDialog.style.margin = '';
-                }
-            });
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'F2') {
+        document.querySelectorAll('.hide').forEach(function (element) {
+            element.classList.toggle('d-none');
         });
     }
-
-    // Inicializar la funcionalidad de arrastre
-    makeModalsDraggable();
-});
-*/
+}); 

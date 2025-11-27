@@ -389,7 +389,7 @@ switch ($action) {
     case 'estado':
         $estado = $_POST['estado'];
         $Nomina = new Nomina();
-        $resul = $Nomina->cambiaEstado($id_nomina, $estado);
+        $resul = $Nomina->cambiaEstado($id, $estado);
         if ($resul == 'si') {
             $res['status'] = 'ok';
         } else {

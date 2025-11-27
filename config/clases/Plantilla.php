@@ -43,7 +43,7 @@ class Plantilla
         $users = $id_rol == 1 ? '<li><a class="dropdown-item sombra" href="javascript:void(0)">Gestión de Usuarios</a></li>
             <li><a class="dropdown-item sombra" href="javascript:void(0)">Roles de Usuarios</a></li>
             <li><hr class="dropdown-divider"></li>' : '';
-        $docs = $id_rol == 1 ||  (new Permisos)->PermisosUsuario($opciones, 6001, 0) ? '<li><a class="dropdown-item sombra" href="javascript:void(0)">Gestión Documental</a></li>' : '';
+        $docs = $id_rol == 1 ||  (new Permisos)->PermisosUsuario($opciones, 6001, 0) ? '<li><a class="dropdown-item sombra" href="' . $host . '/src/documentos/php/index.php">Gestión Documental</a></li>' : '';
         $opciones_user =
             <<<HTML
             <li><a class="dropdown-item sombra" href="javascript:void(0)" id="perfilUsuario">Perfil de Usuario</a></li>

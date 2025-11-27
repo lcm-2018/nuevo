@@ -76,7 +76,7 @@ class Detalles
                         WHERE (`nom_liq_embargo`.`id_nomina` = :id_nomina AND `nom_liq_embargo`.`estado` = 1)),
                     `inc` AS
                         (SELECT
-                            `nom_incapacidad`.`id_empleado` , SUM(`nom_liq_incap`.`pago_empresa` + `nom_liq_incap`.`pago_eps` + `nom_liq_incap`.`pago_arl`) AS `valor`, SUM(`nom_liq_incap`.`dias_liq`) AS `dias`
+                            `nom_incapacidad`.`id_empleado`, SUM(`nom_liq_incap`.`pago_empresa`) AS `pago_empresa`, SUM(`nom_liq_incap`.`pago_empresa` + `nom_liq_incap`.`pago_eps` + `nom_liq_incap`.`pago_arl`) AS `valor`, SUM(`nom_liq_incap`.`dias_liq`) AS `dias`
                         FROM
                             `nom_liq_incap`
                             INNER JOIN `nom_incapacidad` 
@@ -150,23 +150,35 @@ class Detalles
                         (SELECT
                             `nom_liq_salario`.`id_empleado`
                             , `nom_cargo_empleado`.`descripcion_carg`
+                            , `nom_cargo_empleado`.`tipo_cargo`
                         FROM
                             `nom_liq_salario`
                             INNER JOIN `nom_contratos_empleados` 
-                            ON (`nom_liq_salario`.`id_contrato` = `nom_contratos_empleados`.`id_contrato_emp`)
+                                ON (`nom_liq_salario`.`id_contrato` = `nom_contratos_empleados`.`id_contrato_emp`)
                             LEFT JOIN `nom_cargo_empleado` 
-                            ON (`nom_contratos_empleados`.`id_cargo` = `nom_cargo_empleado`.`id_cargo`)
+                                ON (`nom_contratos_empleados`.`id_cargo` = `nom_cargo_empleado`.`id_cargo`)
                         WHERE (`nom_liq_salario`.`id_nomina` = :id_nomina AND `nom_liq_salario`.`estado` = 1)),
                     `paraf` AS 
                         (SELECT `id_empleado`,`val_sena`,`val_icbf`,`val_comfam` FROM `nom_liq_parafiscales` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `nom` AS
-                        (SELECT `id_nomina`, `mes`, `tipo`, `estado` FROM `nom_nominas` WHERE `id_nomina` = :id_nomina)
+                        (SELECT `id_nomina`, `mes`, `tipo`, `estado` FROM `nom_nominas` WHERE `id_nomina` = :id_nomina),
+                    `indem` AS
+                        (SELECT
+                            `nom_indemniza_vac`.`id_empleado`
+                            , `nom_liq_indemniza_vac`.`val_liq` AS `val_indemniza`
+                        FROM
+                            `nom_liq_indemniza_vac`
+                            INNER JOIN `nom_indemniza_vac` 
+                                ON (`nom_liq_indemniza_vac`.`id_indemnizacion` = `nom_indemniza_vac`.`id_indemniza`)
+                        WHERE (`nom_liq_indemniza_vac`.`estado` = 1
+                            AND `nom_liq_indemniza_vac`.`id_nomina` = :id_nomina))
                 SELECT 
                     `e`.`id_empleado`
                     , `ts`.`nom_sede` AS `sede`
                     , `e`.`no_documento`
                     , CONCAT_WS (' ',`e`.`nombre1`,`nombre2`,`apellido1`,`apellido2`) AS `nombre`
                     , `cargo`.`descripcion_carg`
+                    , `cargo`.`tipo_cargo`
                     , `sal`.`sal_base`
                     , `sal`.`metodo_pago`
                     , `sal`.`id_contrato`
@@ -177,6 +189,7 @@ class Detalles
                     , IFNULL(`ces`.`val_icesantias`,0) AS `val_icesantias`
                     , IFNULL(`ces`.`dias_ces`,0) AS `dias_ces`
                     , IFNULL(`com`.`val_compensa`,0) AS `val_compensa`
+                    , IFNULL(`indem`.`val_indemniza`,0) AS `val_indemniza`
                     , IFNULL(`dcto`.`valor`,0) AS `valor_dcto`
                     , IFNULL(CAST(`inc`.`dias` AS UNSIGNED),0) AS `dias_incapacidad`
                     , CAST(IFNULL(`lmp`.`dias_liqs`,0) + IFNULL(`luto`.`dias`,0) + IFNULL(`lcnr`.`dias`,0) AS UNSIGNED) AS `dias_licencias`
@@ -189,6 +202,7 @@ class Detalles
                     , IFNULL(`liq`.`horas_ext` ,0) AS `horas_ext`
                     , IFNULL(`emb`.`valor`,0) AS `valor_embargo`
                     , IFNULL(`inc`.`valor`,0) AS `valor_incap`
+                    , IFNULL(`inc`.`pago_empresa`,0) AS `pago_empresa`
                     , IFNULL(`lib`.`valor`,0) AS `valor_libranza`
                     , IFNULL(`luto`.`valor`,0) AS `valor_luto`
                     , IFNULL(`lmp`.`val_liq`,0) AS  `valor_mp`
@@ -241,6 +255,7 @@ class Detalles
                     LEFT JOIN `sind` ON (`sind`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `vac` ON (`vac`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `paraf` ON (`paraf`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `indem` ON (`indem`.`id_empleado` = `e`.`id_empleado`)
                     JOIN `nom`
                 WHERE (1 = 1 $where)
                 ORDER BY $col $dir $limit";
@@ -251,6 +266,69 @@ class Detalles
         $stmt->closeCursor();
         unset($stmt);
 
+        return !empty($datos) ? $datos : [];
+    }
+
+    public function getAporteSocial($id_nomina)
+    {
+        $sql = "SELECT
+                    IF(`nca`.`tipo_cargo` = 1,'admin','oper') AS `cargo`,
+                    CASE `tipo_valor`.`tipo`
+                    WHEN 1 THEN 'eps'
+                        WHEN 2 THEN 'afp'
+                        WHEN 3 THEN 'arl'
+                        WHEN 4 THEN 'sena'
+                        WHEN 5 THEN 'icbf'
+                        WHEN 6 THEN 'caja'
+                        ELSE 'otro'
+                    END AS `tipo`,
+                    CASE `tipo_valor`.`tipo`
+                        WHEN 1 THEN `nlse`.`id_eps`
+                        WHEN 2 THEN `nlse`.`id_afp`
+                        WHEN 3 THEN `nlse`.`id_arl`
+                        ELSE 1
+                    END AS `id`,
+                    SUM(CASE `tipo_valor`.`tipo`
+                            WHEN 1 THEN `nlse`.`aporte_salud_emp` + `nlse`.`aporte_salud_empresa`
+                            WHEN 2 THEN `nlse`.`aporte_pension_emp` + `nlse`.`aporte_pension_empresa` + `nlse`.`aporte_solidaridad_pensional`
+                            WHEN 3 THEN `nlse`.`aporte_rieslab`
+                            WHEN 4 THEN `nlp`.`val_sena`
+                            WHEN 5 THEN `nlp`.`val_icbf`
+                            WHEN 6 THEN `nlp`.`val_comfam`
+                        END) AS `valor`
+                FROM 
+                    `nom_liq_salario` AS `nls`
+                    INNER JOIN `nom_contratos_empleados` AS `nce`
+                        ON `nce`.`id_contrato_emp` = `nls`.`id_contrato`
+                    INNER JOIN `nom_cargo_empleado` AS `nca`
+                        ON `nca`.`id_cargo` = `nce`.`id_cargo`
+                    LEFT JOIN `nom_liq_segsocial_empdo` AS `nlse`
+                        ON `nlse`.`id_empleado` = `nls`.`id_empleado` AND `nlse`.`id_nomina` = `nls`.`id_nomina` AND `nlse`.`estado` = 1
+                    LEFT JOIN `nom_liq_parafiscales` AS `nlp`
+                        ON `nlp`.`id_empleado` = `nls`.`id_empleado` AND `nlp`.`id_nomina` = `nls`.`id_nomina` AND `nlp`.`estado` = 1
+                    CROSS JOIN (
+                        SELECT 1 AS `tipo` UNION ALL SELECT 2 UNION ALL SELECT 3 
+                        UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6
+                    ) AS `tipo_valor`
+                WHERE 
+                    `nls`.`id_nomina` = :id_nomina AND `nls`.`estado` = 1
+                    AND ((`tipo_valor`.`tipo` IN (1, 2, 3) AND `nlse`.`id_empleado` IS NOT NULL)
+                        OR (`tipo_valor`.`tipo` IN (4, 5, 6) AND `nlp`.`id_empleado` IS NOT NULL))
+                GROUP BY 
+                    `tipo_valor`.`tipo`, `nca`.`tipo_cargo`,
+                    CASE `tipo_valor`.`tipo`
+                        WHEN 1 THEN `nlse`.`id_eps`
+                        WHEN 2 THEN `nlse`.`id_afp`
+                        WHEN 3 THEN `nlse`.`id_arl`
+                        ELSE 1
+                    END
+                ORDER BY `nca`.`tipo_cargo` ASC,`tipo_valor`.`tipo` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
         return !empty($datos) ? $datos : [];
     }
     /**

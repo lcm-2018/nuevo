@@ -367,9 +367,21 @@ class Nomina
     public static function getRegistro($id)
     {
         $sql = "SELECT
-                    `id_nomina`,`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`id_incremento`
-                FROM `nom_nominas`
-                WHERE `id_nomina` =  ?";
+                    `nn`.`id_nomina`
+                    , `nn`.`descripcion`
+                    , `nn`.`mes`
+                    , `nn`.`vigencia`
+                    , `nn`.`estado`
+                    , `nn`.`planilla`
+                    , `nn`.`id_incremento`
+                    , `nn`.`id_user_reg`
+                    , CONCAT_WS(' ', `sus`.`nombre1`, `sus`.`nombre2`, `sus`.`apellido1`, `sus`.`apellido2`) AS `elabora`
+                    , `sus`.`descripcion` AS `cargo`
+                FROM
+                    `nom_nominas` AS `nn`
+                    LEFT JOIN `seg_usuarios_sistema` AS `sus` 
+                        ON (`nn`.`id_user_reg` = `sus`.`id_usuario`)
+                WHERE (`nn`.`id_nomina` = ?)";
         $stmt = Conexion::getConexion()->prepare($sql);
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
@@ -439,7 +451,7 @@ class Nomina
             $stmt->bindParam(1, $estado, PDO::PARAM_INT);
             $stmt->bindParam(2, $estado, PDO::PARAM_INT);
             $stmt->bindParam(3, $id_nomina, PDO::PARAM_INT);
-
+            
             if ($stmt->execute() && $stmt->rowCount() > 0) {
                 $consulta = "UPDATE `nom_nominas` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_nomina` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);

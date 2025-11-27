@@ -71,6 +71,30 @@ class Rubros
         return $datos;
     }
 
+    public function getRubros2()
+    {
+
+        $sql = "SELECT
+                `nom_tipo_rubro`.`id_rubro`
+                , `nom_rel_rubro`.`id_tipo`
+                , `nom_tipo_rubro`.`nombre`
+                , `nom_rel_rubro`.`r_admin`
+                , `nom_rel_rubro`.`r_operativo`
+                , `nom_rel_rubro`.`id_vigencia`
+            FROM
+                `nom_rel_rubro`
+                INNER JOIN `nom_tipo_rubro` 
+                    ON (`nom_rel_rubro`.`id_tipo` = `nom_tipo_rubro`.`id_rubro`)
+            WHERE (`nom_rel_rubro`.`id_vigencia` = ?)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(1, Sesion::IdVigencia(), PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $datos;
+    }
+
     /**
      * Obtiene el total de registros filtrados.
      * 

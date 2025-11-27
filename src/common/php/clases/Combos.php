@@ -109,6 +109,42 @@ class Combos
         return (new self())->setConsulta($sql, $id);
     }
 
+    public  static function getModulos($id = 0)
+    {
+        $sql = "SELECT
+                    `id_modulo`,`nom_modulo`
+                FROM `seg_modulos` 
+                WHERE `id_modulo` >= 50 AND `estado` = 1
+                ORDER BY `nom_modulo` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
+
+    public  static function getDocumentoFuente($id = 0, $ctb = 0, $tes = 0)
+    {
+        $where = '';
+        if ($ctb != 0) {
+            $where .= " AND `contab` = $ctb";
+        }
+        if ($tes != 0) {
+            $where .= " AND `tesor` = $tes";
+        }
+        $sql = "SELECT
+                    `id_doc_fuente`, CONCAT_WS(' - ',`cod`,`nombre`),`contab`,`tesor`
+                FROM `ctb_fuente`
+                WHERE `estado` = 1 $where
+                ORDER BY `cod` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
+
+    public  static function getTipoControl($id = 0)
+    {
+        $sql = "SELECT
+                    `id_tipo`, `descripcion`
+                FROM `fin_tipo_control`
+                ORDER BY `descripcion` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
+
     public  static function getCategoriaTercero($id = 0, $cat = '')
     {
         $where = '';
