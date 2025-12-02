@@ -43,34 +43,34 @@ document.querySelector('#tableConfiguracion').addEventListener('click', function
 });
 
 document.getElementById('modalForms').addEventListener('click', function(event) {
-    const boton = event.target;
-    if (boton) {
-        event.preventDefault();
-        LimpiaInvalid();
-        switch (boton.id) {
-            case 'btnGuardaConfiguracion':
-                if (ValueInput('txt_id_consulta') === '0') {
-                    MuestraError('txt_id_consulta', 'Ingrese un dato');
-                } else if (Number(ValueInput('txt_nom_consulta')) < 0) {
-                    MuestraError('txt_nom_consulta', 'Ingrese un dato');
-                } else {
-                    mostrarOverlay();
-                    var data = Serializa('formConfiguracion');
-                    data.append('action', data.get('id') == '0' ? 'add' : 'edit');
-                    SendPost('../php/controladores/configuracion.php', data).then((response) => {
-                        if (response.status === 'ok') {
-                            mje('Guardado correctamente!');
-                            tableConfiguracion.ajax.reload(null, false);
-                            $('#modalForms').modal('hide');
-                        } else {
-                            mjeError('Error!', response.msg);
-                        }
-                    }).finally(() => {
-                        ocultarOverlay();
-                    });
+    const boton = event.target.closest('button');
+    if (!boton) return;
 
-                }
-                break;
-        }
+    event.preventDefault();
+    LimpiaInvalid();
+    switch (boton.id) {
+        case 'btnGuardaConfiguracion':
+            if (ValueInput('txt_id_consulta') === '0') {
+                MuestraError('txt_id_consulta', 'Ingrese un dato');
+            } else if (Number(ValueInput('txt_nom_consulta')) < 0) {
+                MuestraError('txt_nom_consulta', 'Ingrese un dato');
+            } else {
+                mostrarOverlay();
+                var data = Serializa('formConfiguracion');
+                data.append('action', data.get('id') == '0' ? 'add' : 'edit');
+                SendPost('../php/controladores/configuracion.php', data).then((response) => {
+                    if (response.status === 'ok') {
+                        mje('Guardado correctamente!');
+                        tableConfiguracion.ajax.reload(null, false);
+                        $('#modalForms').modal('hide');
+                    } else {
+                        mjeError('Error!', response.msg);
+                    }
+                }).finally(() => {
+                    ocultarOverlay();
+                });
+
+            }
+            break;
     }
 });

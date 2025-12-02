@@ -275,11 +275,13 @@ document.querySelector('#tableCtaCtbNom').addEventListener('click', function (ev
 });
 
 document.getElementById('modalForms').addEventListener('click', function (event) {
-    const boton = event.target;
-    if (boton) {
-        event.preventDefault();
-        LimpiaInvalid();
-        switch (boton.id) {
+    const boton = event.target.closest('button');
+    if (!boton) return;
+
+    // Sólo prevenir cuando se haga clic en botones de acción
+    event.preventDefault();
+    LimpiaInvalid();
+    switch (boton.id) {
             case 'btnGuardaConcxVig':
                 if (ValueInput('concepto') === '0') {
                     MuestraError('concepto', 'Seleccione un concepto');

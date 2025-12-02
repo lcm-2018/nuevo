@@ -93,74 +93,77 @@ document.querySelector('#tableDetallesNomina').addEventListener('click', functio
 
 
 document.getElementById('modalForms').addEventListener('click', function (event) {
-    const boton = event.target;
-    if (boton) {
-        event.preventDefault();
-        LimpiaInvalid();
-        switch (boton.id) {
-            case 'btnGuardarDctos':
-                mostrarOverlay();
-                var data = Serializa('formDctosLiq');
-                data = AppendData(data, 4);
-                SendPost('../php/controladores/liquidado.php', data).then((response) => {
-                    if (response.status === 'ok') {
-                        mje('Guardado correctamente!');
-                        tableDetallesNomina.ajax.reload(null, false);
-                    } else {
-                        mjeError('Error!', response.msg);
-                    }
-                }).finally(() => {
-                    ocultarOverlay();
-                });
-                break;
-            case 'btnGuardarParafiscales':
-                mostrarOverlay();
-                var data = Serializa('formParafiscalesLiq');
-                data = AppendData(data, 3);
-                SendPost('../php/controladores/liquidado.php', data).then((response) => {
-                    if (response.status === 'ok') {
-                        mje('Guardado correctamente!');
-                        tableDetallesNomina.ajax.reload(null, false);
-                    } else {
-                        mjeError('Error!', response.msg);
-                    }
-                }).finally(() => {
-                    ocultarOverlay();
-                });
-                break;
-            case 'btnGuardarPretaciones':
-                mostrarOverlay();
-                var data = Serializa('formPrestacionesLiq');
-                data = AppendData(data, 2);
-                SendPost('../php/controladores/liquidado.php', data).then((response) => {
-                    if (response.status === 'ok') {
-                        mje('Guardado correctamente!');
-                        $('#modalForms').modal('hide');
-                        VerLiquidacionEmpleado(ValueInput('id_empleado'), ValueInput('id_nomina'), 2);
-                        tableDetallesNomina.ajax.reload(null, false);
-                    } else {
-                        mjeError('Error!', response.msg);
-                    }
-                }).finally(() => {
-                    ocultarOverlay();
-                });
-                break;
-            case 'btnGuardarSalarios':
-                mostrarOverlay();
-                var data = Serializa('formSalariosLiq', 'formPrestacionesLiq');
-                data = AppendData(data, 1);
-                SendPost('../php/controladores/liquidado.php', data).then((response) => {
-                    if (response.status === 'ok') {
-                        mje('Guardado correctamente!');
-                        tableDetallesNomina.ajax.reload(null, false);
-                    } else {
-                        mjeError('Error!', response.msg);
-                    }
-                }).finally(() => {
-                    ocultarOverlay();
-                });
-                break;
-        }
+    const boton = event.target.closest('button');
+    if (!boton) return;
+
+    // Sólo prevenimos el comportamiento por defecto cuando se hace clic
+    // en un botón de acción dentro del modal; así radios/checkboxes
+    // y otros inputs seguirán funcionando normalmente.
+    event.preventDefault();
+    LimpiaInvalid();
+    switch (boton.id) {
+        case 'btnGuardarDctos':
+            mostrarOverlay();
+            var data = Serializa('formDctosLiq');
+            data = AppendData(data, 4);
+            SendPost('../php/controladores/liquidado.php', data).then((response) => {
+                if (response.status === 'ok') {
+                    mje('Guardado correctamente!');
+                    tableDetallesNomina.ajax.reload(null, false);
+                } else {
+                    mjeError('Error!', response.msg);
+                }
+            }).finally(() => {
+                ocultarOverlay();
+            });
+            break;
+        case 'btnGuardarParafiscales':
+            mostrarOverlay();
+            var data = Serializa('formParafiscalesLiq');
+            data = AppendData(data, 3);
+            SendPost('../php/controladores/liquidado.php', data).then((response) => {
+                if (response.status === 'ok') {
+                    mje('Guardado correctamente!');
+                    tableDetallesNomina.ajax.reload(null, false);
+                } else {
+                    mjeError('Error!', response.msg);
+                }
+            }).finally(() => {
+                ocultarOverlay();
+            });
+            break;
+        case 'btnGuardarPretaciones':
+            mostrarOverlay();
+            var data = Serializa('formPrestacionesLiq');
+            data = AppendData(data, 2);
+            SendPost('../php/controladores/liquidado.php', data).then((response) => {
+                if (response.status === 'ok') {
+                    mje('Guardado correctamente!');
+                    $('#modalForms').modal('hide');
+                    VerLiquidacionEmpleado(ValueInput('id_empleado'), ValueInput('id_nomina'), 2);
+                    tableDetallesNomina.ajax.reload(null, false);
+                } else {
+                    mjeError('Error!', response.msg);
+                }
+            }).finally(() => {
+                ocultarOverlay();
+            });
+            break;
+        case 'btnGuardarSalarios':
+            mostrarOverlay();
+            var data = Serializa('formSalariosLiq', 'formPrestacionesLiq');
+            data = AppendData(data, 1);
+            SendPost('../php/controladores/liquidado.php', data).then((response) => {
+                if (response.status === 'ok') {
+                    mje('Guardado correctamente!');
+                    tableDetallesNomina.ajax.reload(null, false);
+                } else {
+                    mjeError('Error!', response.msg);
+                }
+            }).finally(() => {
+                ocultarOverlay();
+            });
+            break;
     }
 });
 function VerLiquidacionEmpleado(id_empleado, id_nomina, item = 1) {
