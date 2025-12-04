@@ -3,6 +3,7 @@
 namespace Src\Common\Php\Clases;
 
 use Config\Clases\Conexion;
+use Config\Clases\Sesion;
 use PDO;
 
 class Permisos
@@ -90,5 +91,109 @@ class Permisos
         ];
 
         return $permisos[$tipo] ?? '';
+    }
+
+    public function getPermisosModulos($id_user)
+    {
+        $sql = "SELECT
+                    `sm`.`id_modulo`
+                    , `sm`.`nom_modulo`
+                    , IFNULL(`spm`.`id_per_mod`,0) AS `estado` 
+                FROM
+                    `seg_modulos` AS `sm`
+                    LEFT JOIN  `seg_permisos_modulos` AS `spm`
+                    ON (`spm`.`id_modulo` = `sm`.`id_modulo` AND `spm`.`id_usuario` = ?)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $id_user, PDO::PARAM_INT);
+        $stmt->execute();
+        $modulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return $modulos;
+    }
+    public function getPermisosOpciones($id_user, $id_modulo)
+    {
+        $sql = "SELECT
+                    `so`.`id_opcion`
+                    , `so`.`nom_opcion`
+                    , `sru`.`per_consultar`
+                    , `sru`.`per_adicionar`
+                    , `sru`.`per_modificar`
+                    , `sru`.`per_eliminar`
+                    , `sru`.`per_anular`
+                    , `sru`.`per_imprimir`
+                FROM
+                    `seg_opciones` AS `so`
+                    LEFT JOIN `seg_rol_usuario` AS `sru` 
+                        ON (`sru`.`id_opcion` = `so`.`id_opcion` AND `sru`.`id_usuario`  = ?)
+                WHERE (`so`.`id_modulo` = ?)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $id_user, PDO::PARAM_INT);
+        $stmt->bindParam(2, $id_modulo, PDO::PARAM_INT);
+        $stmt->execute();
+        $opciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return $opciones;
+    }
+
+    public function getPermisosRoles($id_rol)
+    {
+        $sql = "SELECT
+                    `so`.`id_opcion`
+                    , `so`.`nom_opcion`
+                    , `srp`.`per_consultar`
+                    , `srp`.`per_adicionar`
+                    , `srp`.`per_modificar`
+                    , `srp`.`per_eliminar`
+                    , `srp`.`per_anular`
+                    , `srp`.`per_imprimir`
+                FROM
+                    `seg_opciones` AS `so`
+                    LEFT JOIN `seg_rol_permisos` AS `srp` 
+                        ON (`srp`.`id_opcion` = `so`.`id_opcion` AND `srp`.`id_rol` = ?)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $id_rol, PDO::PARAM_INT);
+        $stmt->execute();
+        $opciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return $opciones;
+    }
+
+    public function getMesesCierre()
+    {
+        $sql = "SELECT 
+                    `seg_modulos`.`id_modulo`,
+                    `seg_modulos`.`nom_modulo`,
+                    MAX(CASE WHEN `tb_fin_periodos`.`mes` = '01' THEN 1 ELSE 0 END) AS `ene`,
+                    MAX(CASE WHEN `tb_fin_periodos`.`mes` = '02' THEN 1 ELSE 0 END) AS `feb`,
+                    MAX(CASE WHEN `tb_fin_periodos`.`mes` = '03' THEN 1 ELSE 0 END) AS `mar`,
+                    MAX(CASE WHEN `tb_fin_periodos`.`mes` = '04' THEN 1 ELSE 0 END) AS `abr`,
+                    MAX(CASE WHEN `tb_fin_periodos`.`mes` = '05' THEN 1 ELSE 0 END) AS `may`,
+                    MAX(CASE WHEN `tb_fin_periodos`.`mes` = '06' THEN 1 ELSE 0 END) AS `jun`,
+                    MAX(CASE WHEN `tb_fin_periodos`.`mes` = '07' THEN 1 ELSE 0 END) AS `jul`,
+                    MAX(CASE WHEN `tb_fin_periodos`.`mes` = '08' THEN 1 ELSE 0 END) AS `ago`,
+                    MAX(CASE WHEN `tb_fin_periodos`.`mes` = '09' THEN 1 ELSE 0 END) AS `sep`,
+                    MAX(CASE WHEN `tb_fin_periodos`.`mes` = '10' THEN 1 ELSE 0 END) AS `oct`,
+                    MAX(CASE WHEN `tb_fin_periodos`.`mes` = '11' THEN 1 ELSE 0 END) AS `nov`,
+                    MAX(CASE WHEN `tb_fin_periodos`.`mes` = '12' THEN 1 ELSE 0 END) AS `dic`
+
+                FROM `seg_modulos`
+                LEFT JOIN `tb_fin_periodos`
+                    ON (`seg_modulos`.`id_modulo` = `tb_fin_periodos`.`id_modulo`
+                        AND `tb_fin_periodos`.`vigencia` = ?)
+
+                WHERE `seg_modulos`.`id_modulo` >= 50
+
+                GROUP BY `seg_modulos`.`id_modulo`, `seg_modulos`.`nom_modulo`
+                ORDER BY `seg_modulos`.`id_modulo`";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(1, Sesion::Vigencia(), PDO::PARAM_INT);
+        $stmt->execute();
+        $opciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return $opciones;
     }
 }

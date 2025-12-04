@@ -4,14 +4,14 @@ const cambiaClave = document.getElementById('cambiaClave');
 if (perfilUsuario) {
     perfilUsuario.addEventListener('click', function () {
         mostrarOverlay();
-        VerFormulario(ValueInput('host') + '/src/usuarios/login/php/controladores/usuarios.php', 'form1', 0, 'modalDefault', 'bodyDefault', 'tamDefault', 'modal-xl');
+        VerFormulario(ValueInput('host') + '/src/usuarios/login/php/controladores/usuarios.php', 'form1', 'A', 'modalDefault', 'bodyDefault', 'tamDefault', 'modal-xl');
     });
 }
 
 if (cambiaClave) {
     cambiaClave.addEventListener('click', function () {
         mostrarOverlay();
-        VerFormulario(ValueInput('host') + '/src/usuarios/login/php/controladores/usuarios.php', 'form2', 0, 'modalDefault', 'bodyDefault', 'tamDefault', 'modal-sm');
+        VerFormulario(ValueInput('host') + '/src/usuarios/login/php/controladores/usuarios.php', 'form2', 'A', 'modalDefault', 'bodyDefault', 'tamDefault', 'modal-sm');
     });
 }
 document.getElementById('modalDefault').addEventListener('click', function (event) {

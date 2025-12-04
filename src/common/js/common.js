@@ -141,15 +141,18 @@ const VerFormulario = (url, accion, datos, modal, body, idTam, tam) => {
     SendPost(url, data).then((response) => {
         if (response.status === 'ok') {
             const dialog = document.getElementById(idTam);
-            dialog.classList.remove('modal-lg', 'modal-xl', 'modal-sm', 'modal-md', 'modal-fullscreen');
-            if (tam != '') {
-                dialog.classList.add(tam);
+            if (dialog) {
+                dialog.classList.remove('modal-lg', 'modal-xl', 'modal-sm', 'modal-md', 'modal-fullscreen');
+                if (tam != '') {
+                    dialog.classList.add(tam);
+                }
+                document.getElementById(body).innerHTML = '';
+                document.getElementById(body).innerHTML = response.msg;
+                const modalInstance = new bootstrap.Modal('#' + modal);
+                modalInstance.show();
+            } else {
+                mjeError('Modal no encontrado');
             }
-
-            document.getElementById(body).innerHTML = '';
-            document.getElementById(body).innerHTML = response.msg;
-            const modalInstance = new bootstrap.Modal('#' + modal);
-            modalInstance.show();
         } else {
             mjeError(response.msg);
         }
@@ -615,4 +618,23 @@ document.addEventListener('keydown', function (event) {
             element.classList.toggle('d-none');
         });
     }
-}); 
+});
+document.addEventListener('DOMContentLoaded', function () {
+    var modalElementList = document.querySelectorAll('.modal');
+    modalElementList.forEach(function (modalEl) {
+        modalEl.addEventListener('shown.bs.modal', function () {
+            var openModals = document.querySelectorAll('.modal.show');
+
+            const BASE_ZINDEX = 1055;
+            const ZINDEX_INCREMENT = 20;
+            var newZIndex = BASE_ZINDEX + (openModals.length * ZINDEX_INCREMENT);
+
+            this.style.zIndex = newZIndex;
+
+            var backdrop = document.querySelector('.modal-backdrop.show:last-child');
+            if (backdrop) {
+                backdrop.style.zIndex = newZIndex - 1;
+            }
+        });
+    });
+});

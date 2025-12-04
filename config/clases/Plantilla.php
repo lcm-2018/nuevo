@@ -40,24 +40,31 @@ class Plantilla
         $vigencias = str_replace('<option value="0" class="text-muted">-- Seleccionar --</option>', '', $vigencias);
         $pto = Sesion::Pto();
         $empresa = $id_rol == 1 ? '<li><a class="dropdown-item sombra" href="javascript:void(0)">Perfil de Empresa</a></li>' : '';
-        $users = $id_rol == 1 ? '<li><a class="dropdown-item sombra" href="javascript:void(0)">Gestión de Usuarios</a></li>
-            <li><a class="dropdown-item sombra" href="javascript:void(0)">Roles de Usuarios</a></li>
+        $cierre = $id_rol == 1 ? '<li><a class="dropdown-item sombra" href="javascript:void(0)" id="cierrePeriodo">Cierre de Periodo</a></li>' : '';
+        //Esta opción se habilitará cuando se implemente la funcionalidad de gestión de empresas
+        $empresa = '';
+        $users = $id_rol == 1 ? '<li><a class="dropdown-item sombra" href="' . $host . '/src/usuarios/general/php/index.php">Gestión de Usuarios</a></li>
+            <li><a class="dropdown-item sombra" href="' . $host . '/src/usuarios/general/php/roles.php">Roles de Usuarios</a></li>
             <li><hr class="dropdown-divider"></li>' : '';
         $docs = $id_rol == 1 ||  (new Permisos)->PermisosUsuario($opciones, 6001, 0) ? '<li><a class="dropdown-item sombra" href="' . $host . '/src/documentos/php/index.php">Gestión Documental</a></li>' : '';
         $opciones_user =
             <<<HTML
             <li><a class="dropdown-item sombra" href="javascript:void(0)" id="perfilUsuario">Perfil de Usuario</a></li>
-            <li><a class="dropdown-item sombra" href="javascript:void(0)">Cambiar Contraseña</a></li>
+            <li><a class="dropdown-item sombra" href="javascript:void(0)" id="cambiaClave">Cambiar Contraseña</a></li>
             {$empresa}
             <li><hr class="dropdown-divider"></li>
             {$users}
-            <li><a class="dropdown-item sombra" href="javascript:void(0)">Cierre de Periodo</a></li>
+            {$cierre}
             {$docs}
-            <li><a class="dropdown-item sombra" href="javascript:void(0)">Fecha de Sesión</a></li>
+            <li><a class="dropdown-item sombra" href="javascript:void(0)" id="fechaSesion">Fecha de Sesión</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item sombra" href="{$host}/index.php">Cerrar Sesión</a></li>
         HTML;
-
+        if ($id_rol == 1) {
+            $btnVigencia = '<a class="dropdown-item sombra" href="javascript:void(0)" id="btnVigencia">Vigencia</a>';
+        } else {
+            $btnVigencia = 'Vigencia';
+        }
         $this->navbar =
             <<<HTML
                 <nav style="background-color: #1a659d !important; border-bottom: 5px solid #16a085 !important;" class="navbar fixed-top text-white" data-navbarbg="skin6">
@@ -72,8 +79,8 @@ class Plantilla
                         <div class="text-center flex-grow-1">
                             <span class="fw-bold">{$nombre_usuario}</span> | 
                             <span class="fw-bold d-inline-flex align-items-center">
-                                Vigencia:
-                                <select class="form-select form-select-sm rounded-pill ms-1" id="slcVigencia" style="width: 70px; display: inline-block; padding: 0.1rem 0.4rem; font-size: 0.7rem;">
+                                {$btnVigencia}
+                                <select class="form-select form-select-sm rounded-pill ms-1" id="slcVigencia" style="width: 100px; display: inline-block; padding: 0.1rem 0.4rem; font-size: 0.7rem;">
                                     {$vigencias}
                                 </select>
                             </span>
@@ -540,7 +547,7 @@ class Plantilla
             HTML;
         $plantilla = $pl == 1 ? $this->plantilla1 : $this->plantilla2;
         $modalDefault = self::getModal('modalDefault', 'tamDefault', 'bodyDefault');
-        $script_user = $id_rol == 1 ? '<script src="' . $host . '/src/common/js/users.js"></script>' : '';
+        $script_user = $id_rol == 1 ? '<script src="' . $host . '/src/common/js/users.js"></script><script src="' . $host . '/src/usuarios/login/js/sha.js"></script><script src="' . $host . '/src/usuarios/general/js/cierre.js"></script>' : '';
 
         $this->baseHtml =
             <<<HTML
@@ -562,7 +569,7 @@ class Plantilla
                     <input type="hidden" id="host" value="{$host}">
                     <input type="hidden" id="opc_caracter_js" value="{$caracter}">
                     <input type="hidden" id="opc_pto_js" value="{$pto}">
-                    <div id="loadingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex justify-content-center align-items-center" style="z-index: 2000;">
+                    <div id="loadingOverlay" style="z-index: 9999;" class="d-none position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex justify-content-center align-items-center">
                         <div class="text-center text-white">
                             <div class="spinner-grow text-light" role="status">
                                 <img src="{$host}/assets/images/favicon.png" alt="logo sistema financiero">

@@ -356,3 +356,7 @@ table tr:nth-child(odd) input {
 table tr:nth-child(even) input {
     background-color: #ffffff;
 }
+
+.swal2-container {
+    z-index: 20000 !important;
+}

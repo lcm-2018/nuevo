@@ -83,6 +83,7 @@ document.querySelector('#tableDetallesNomina').addEventListener('click', functio
     const data = tableDetallesNomina.row(fila).data();
 
     if (fila && (esDobleClick || btnDetalles)) {
+        event.preventDefault();
         VerLiquidacionEmpleado(data['id_empleado'], id_nomina);
     }
     if (btnAnular) {
@@ -95,10 +96,6 @@ document.querySelector('#tableDetallesNomina').addEventListener('click', functio
 document.getElementById('modalForms').addEventListener('click', function (event) {
     const boton = event.target.closest('button');
     if (!boton) return;
-
-    // Sólo prevenimos el comportamiento por defecto cuando se hace clic
-    // en un botón de acción dentro del modal; así radios/checkboxes
-    // y otros inputs seguirán funcionando normalmente.
     event.preventDefault();
     LimpiaInvalid();
     switch (boton.id) {
@@ -201,17 +198,3 @@ if (btnCerrarDefinitiva) {
         });
     });
 }
-
-var miModal = document.getElementById('modalForms');
-
-miModal.addEventListener('click', function (event) {
-    if (event.target.matches('input[type="date"]')) {
-        event.preventDefault();
-        try {
-            event.target.showPicker();
-            event.target.focus();
-        } catch (error) {
-            console.error("Navegador no soporta showPicker():", error);
-        }
-    }
-});

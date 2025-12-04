@@ -8,19 +8,20 @@ if (!isset($_SESSION['user'])) {
 $action = isset($_POST['action']) ? $_POST['action'] : $_GET['action'] ?? exit('Acceso no permitido');
 $busca = $_POST['search'] ?? '';
 $id_user = $_SESSION['id_user'];
+$id = $_POST['id'] ?? 0;
 
 include_once '../../../../../config/autoloader.php';
 
-use Src\Usuarios\Login\Php\Clases\Usuario;
+use Src\Usuarios\General\Php\Clases\Users;
 
-$Usuario = new Usuario();
+$Usuario = new Users();
 
 $res['status'] = ' error';
 $res['msg'] = 'Acción no válida.';
-
+$dt = 'si';
 switch ($action) {
     case 'list':
-        $data = (new Usuario)->getUsers($busca);
+        $data = $Usuario->getUsers($busca);
         $resultado = [];
         if (!empty($data)) {
             foreach ($data as $row) {
@@ -30,20 +31,30 @@ switch ($action) {
                 ];
             }
         }
-        $res = $resultado;
+        $res['msg'] = $resultado;
         break;
     case 'form1':
-        $res['status'] = 'ok';
-        $res['msg'] = $Usuario->getFormPerfilUsuario($id_user);
+        if ($id == 'A') {
+            $id = $id_user;
+        }
+        $res['msg'] = $Usuario->getFormUsuario($id);
         break;
     case 'form2':
-
+        if ($id == 'A') {
+            $id = $id_user;
+        }
+        $res['msg'] = $Usuario->getFormCambiaClave($id);
         break;
-    case 'form3':
-
+    case 'pass':
+        $dt = $Usuario->editClave($_POST);
         break;
     default:
         break;
+}
+if ($dt === 'si') {
+    $res['status'] = 'ok';
+} else {
+    $res['msg'] = $dt;
 }
 
 echo json_encode($res);

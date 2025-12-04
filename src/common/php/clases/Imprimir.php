@@ -151,39 +151,92 @@ class Imprimir
         $this->firmas = $html;
     }
 
-    public function render()
+    public function render($pdf = false)
     {
+        $script = "";
+        if (!$pdf) {
+            $script = "<script>window.print();</script>";
+        }
         $faviconPath = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST']  . $this->host . '/assets/images/favicon.png';
-        echo "
-            <!DOCTYPE html>
-            <html lang='es'>
-                <head>
-                    <meta charset='UTF-8'>
-                    <title>{$this->titulo}</title>
-                    <link rel='shortcut icon' type='image/png' href='{$faviconPath}' />
-                    {$this->cssExtra}
-                </head>
-                <body>
-                    <table class='layout-table'>
-                        <thead>
-                            <tr>
-                                <td>{$this->encabezado}</td>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class='contenido'>
-                                        {$this->contenido}
-                                        {$this->firmas}
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <script>window.print();</script>
-                </body>
-            </html>
-        ";
+        $html =
+            <<<HTML
+                <!DOCTYPE html>
+                    <html lang='es'>
+                        <head>
+                            <meta charset='UTF-8'>
+                            <title>{$this->titulo}</title>
+                            <link rel='shortcut icon' type='image/png' href='{$faviconPath}' />
+                            {$this->cssExtra}
+                        </head>
+                        <body>
+                            <table class='layout-table'>
+                                <thead>
+                                    <tr>
+                                        <td>{$this->encabezado}</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class='contenido'>
+                                                {$this->contenido}
+                                                {$this->firmas}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            {$script}
+                        </body>
+                    </html>
+            HTML;
+        if ($pdf) {
+            return $html;
+        } else {
+            echo $html;
+        }
+    }
+
+    public function getPDF($html)
+    {
+        $tmpHtmlFile = tempnam(sys_get_temp_dir(), 'cdp_html_') . '.html';
+        $tmpPdfFile = tempnam(sys_get_temp_dir(), 'cdp_pdf_') . '.pdf';
+
+        // Guardar el HTML en un archivo temporal para que Node lo lea
+        file_put_contents($tmpHtmlFile, $html);
+
+        // Construir la ruta al script de Node.js de forma más directa
+        $nodeScript = $_SERVER['DOCUMENT_ROOT'] . Plantilla::getHost() . '/src/common/js/pdf.js';
+
+        if (!file_exists($nodeScript)) {
+            echo "No se encontró el script Node.js para generar PDF: {$nodeScript}";
+            if (file_exists($tmpHtmlFile)) unlink($tmpHtmlFile);
+            if (file_exists($tmpPdfFile)) unlink($tmpPdfFile);
+            exit;
+        }
+
+        $command = 'node ' . escapeshellarg($nodeScript) . ' ' . escapeshellarg($tmpHtmlFile) . ' ' . escapeshellarg($tmpPdfFile) . ' 2>&1';
+
+        $output = [];
+        $returnVar = 0;
+        exec($command, $output, $returnVar);
+
+        // Verificar y Servir el PDF
+        if ($returnVar === 0 && file_exists($tmpPdfFile) && filesize($tmpPdfFile) > 0) {
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: inline; filename="documento_cdp.pdf"');
+            header('Content-Length: ' . filesize($tmpPdfFile));
+
+            readfile($tmpPdfFile);
+
+            // Limpieza de archivos temporales
+            if (file_exists($tmpHtmlFile)) unlink($tmpHtmlFile);
+            if (file_exists($tmpPdfFile)) unlink($tmpPdfFile);
+        } else {
+            echo "Hubo un error generando el PDF.<br>";
+            echo "<pre>" . print_r($output, true) . "</pre>";
+            if (file_exists($tmpHtmlFile)) unlink($tmpHtmlFile);
+            if (file_exists($tmpPdfFile)) unlink($tmpPdfFile);
+        }
     }
 }

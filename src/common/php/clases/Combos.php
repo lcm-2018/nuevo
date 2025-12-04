@@ -21,23 +21,30 @@ class Combos
         return (new self())->setConsulta($sql, $id);
     }
 
-    public  static function getCentrosCostoxSede($id, $id_sede)
+    public  static function getCentrosCostoxSede($id, $id_sede = 0, $id_cc = 0)
     {
+        $where = '';
+        if ($id_sede > 0) {
+            $where =  " AND `far_centrocosto_area`.`id_sede` = $id_sede";
+        }
+        if ($id_cc > 0) {
+            $where =  " AND `far_centrocosto_area`.`id_centrocosto` = $id_cc";
+        }
         $sql = "SELECT
-                `far_centrocosto_area`.`id_area`,`tb_centrocostos`.`nom_centro`
-            FROM
-                `far_centrocosto_area`
-                INNER JOIN `tb_centrocostos` 
-                    ON (`far_centrocosto_area`.`id_centrocosto` = `tb_centrocostos`.`id_centro`)
-             WHERE `far_centrocosto_area`.`id_sede` = $id_sede
-            ORDER BY `tb_centrocostos`.`nom_centro` ASC";
+                    `far_centrocosto_area`.`id_area`,`tb_centrocostos`.`nom_centro`
+                FROM
+                    `far_centrocosto_area`
+                    INNER JOIN `tb_centrocostos` 
+                        ON (`far_centrocosto_area`.`id_centrocosto` = `tb_centrocostos`.`id_centro`)
+                WHERE `tb_centrocostos`.`es_pasivo` = 0 $where
+                ORDER BY `tb_centrocostos`.`nom_centro` ASC";
         return (new self())->setConsulta($sql, $id);
     }
 
     public  static function getTiposDocumento($id)
     {
-        $sql = "SELECT `id_tipodoc`,`descripcion` FROM `tb_tipos_documento`
-                ORDER BY `descripcion` ASC";
+        $sql = "SELECT `id_tipo_doc`,`descripcion_tipo_doc` FROM `tb_tipo_documento`
+                ORDER BY `descripcion_tipo_doc` ASC";
         return (new self())->setConsulta($sql, $id);
     }
 
@@ -142,6 +149,12 @@ class Combos
                     `id_tipo`, `descripcion`
                 FROM `fin_tipo_control`
                 ORDER BY `descripcion` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
+
+    public  static function getRolUser($id = 0)
+    {
+        $sql = "SELECT `id_rol`,`nom_rol` FROM `seg_rol` WHERE `id_rol` > 0 ORDER BY `nom_rol` ASC";
         return (new self())->setConsulta($sql, $id);
     }
 

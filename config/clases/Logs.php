@@ -15,13 +15,15 @@ class Logs
 
     public static function  guardaLog($sql)
     {
-        $url1 = '/var/www/html' . Plantilla::getHost() . '/logs/';
-        $url2 = 'c:/wamp64/www' . Plantilla::getHost() . '/logs/';
+        //determinar la ruta en local o en el servidor
+
+        $root = $_SERVER['DOCUMENT_ROOT'];
+        $url = $root . Plantilla::getHost() . '/logs/';
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
-        if (!file_exists($url2)) {
-            mkdir($url2, 0777, true);
+        if (!file_exists($url)) {
+            mkdir($url, 0777, true);
         }
 
         $fecha = new DateTime('now', new DateTimeZone('America/Bogota'));
@@ -29,7 +31,7 @@ class Logs
         $usuario = isset($_SESSION['user']) ? $_SESSION['user'] : 'Desconocido';
 
         // Construir ruta del archivo usando '/'
-        $archivo = $url2 . $fecha->format('Y') . $fecha->format('m') . '.log';
+        $archivo = $url . $fecha->format('Y') . $fecha->format('m') . '.log';
 
         $cadena = "[{$fecha->format('Y-m-d H:i:s')}] Usuario: $id_user-$usuario, 127.0.0.1, SQL: $sql;" . PHP_EOL;
 

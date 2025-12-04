@@ -22,7 +22,6 @@ $documento  = "Solicitud de CDP";
 $nomina     = Nomina::getRegistro($id_nomina);
 $mes        = mb_strtoupper(Valores::NombreMes($nomina['mes']));
 
-
 $conexion   = Conexion::getConexion();
 $datos      = (new Detalles())->getRegistrosDT(1, -1, ['id_nomina' => $id_nomina], 1, 'ASC');
 
@@ -41,7 +40,6 @@ try {
     $count = 0;
     $data = ['id_nomina' => $id_nomina, 'tipo' => 'M'];
 
-    // Mapeo tipo -> campo(s) del array $d. Valores que requieren suma usan un array.
     $tipo_field_map = [
         1  => ['valor_laborado', 'val_compensa'],
         2  => 'horas_ext',
@@ -125,10 +123,15 @@ $html =
     HTML;
 
 $firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['vigencia'] . '-' . $nomina['mes'] . '-01', '');
-$Imprimir = new Imprimir($documento, "letter");
 
+$Imprimir = new Imprimir($documento, "letter");
 $Imprimir->addEncabezado($documento);
 $Imprimir->addContenido($html);
 $Imprimir->addFirmas($firmas);
+$pdf = isset($_POST['pdf']) ? filter_var($_POST['pdf'], FILTER_VALIDATE_BOOLEAN) : false;
+$resul = $Imprimir->render($pdf);
 
-$Imprimir->render();
+
+if ($pdf) {
+    $Imprimir->getPDF($resul);
+}

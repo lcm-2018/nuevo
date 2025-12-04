@@ -5,5 +5,15 @@
     },
     "[javascript]": {
         "editor.defaultFormatter": "vscode.typescript-language-features"
-    }
+    },
+    "workbench.colorCustomizations": {},
+    "editor.tokenColorCustomizations": {},
+    "workbench.colorTheme": "Idea intellij light theme",
+    "workbench.localThemes": [
+        {
+            "label": "IDEA Like Light Theme (Exact Copy)",
+            "uiTheme": "vs",
+            "path": "./theme-idea.json"
+        }
+    ]
 }

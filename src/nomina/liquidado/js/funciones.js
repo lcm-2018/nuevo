@@ -70,7 +70,8 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
         const id = btnImprimir.dataset.id;
         const text = btnImprimir.getAttribute('text');
         var url = text === 'M' ? 'mensual' : 'patronal';
-        ImprimirReporte('../php/reportes/cdp_' + url + '.php', { id: id });
+        var pdf = false;
+        ImprimirReporte('../php/reportes/cdp_' + url + '.php', { id: id, pdf: pdf });
 
     }
 });
