@@ -224,7 +224,7 @@ class Imprimir
         // Verificar y Servir el PDF
         if ($returnVar === 0 && file_exists($tmpPdfFile) && filesize($tmpPdfFile) > 0) {
             header('Content-Type: application/pdf');
-            header('Content-Disposition: inline; filename="documento_cdp.pdf"');
+            header('Content-Disposition: inline; filename="' . $this->titulo . '.pdf"');
             header('Content-Length: ' . filesize($tmpPdfFile));
 
             readfile($tmpPdfFile);
