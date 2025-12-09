@@ -160,6 +160,7 @@ $content = <<<HTML
                                     <th class="bg-sofia">Tipo de compra</th>
                                     <th class="bg-sofia">Tipo de Bien y/o servicio</th>
                                     <th class="bg-sofia">Bien y/o servicio</th>
+                                    <th class="bg-sofia">Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="modificarBnSvs">
@@ -200,8 +201,32 @@ $content = <<<HTML
             <!--parte-->
             <div class="accordion-item">
                 <h2 class="accordion-header">
+                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapeseFirma" aria-expanded="false" aria-controls="collapeseFirma">
+                        <span class="text-secondary"><i class="fas fa-file-signature fa-lg me-2"></i>VIÑETA. Firmas</span>
+                    </button>
+                </h2>
+                <div id="collapeseFirma" class="accordion-collapse collapse" data-bs-parent="#accContrata">
+                    <div class="accordion-body bg-wiev">
+                        <table id="tableFirmasCtt" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th class="bg-sofia">ID</th>
+                                    <th class="bg-sofia">Variable</th>
+                                    <th class="bg-sofia">Responsable</th>
+                                    <th class="bg-sofia">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modificaFirmasCtt">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!--parte-->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
                     <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapeseMsOp" aria-expanded="false" aria-controls="collapeseMsOp">
-                        <span class="text-secondary"><i class="fas fa-bars fa-lg me-2"></i>VIÑETA. Más opciones</span>
+                        <span class="text-primary-emphasis"><i class="fas fa-bars fa-lg me-2"></i>VIÑETA. Más opciones</span>
                     </button>
                 </h2>
                 <div id="collapeseMsOp" class="accordion-collapse collapse" data-bs-parent="#accContrata">

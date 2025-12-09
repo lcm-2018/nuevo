@@ -51,7 +51,7 @@ class Liquidado
             }
             if (isset($array['filter_estado'])) {
                 if ($array['filter_estado'] === '') {
-                    $where .= " AND `nom_nominas`.`estado` > 0";
+                    $where .= " AND `nom_nominas`.`estado` >= 0";
                 } else if ($array['filter_estado'] == 0) {
                     $where .= " AND `nom_nominas`.`estado` = 0";
                 } else if ($array['filter_estado'] == 1) {
@@ -104,7 +104,7 @@ class Liquidado
             }
             if (isset($array['filter_estado'])) {
                 if ($array['filter_estado'] === '') {
-                    $where .= " AND `nom_nominas`.`estado` > 0";
+                    $where .= " AND `nom_nominas`.`estado` >= 0";
                 } else if ($array['filter_estado'] == 0) {
                     $where .= " AND `nom_nominas`.`estado` = 0";
                 } else if ($array['filter_estado'] == 1) {

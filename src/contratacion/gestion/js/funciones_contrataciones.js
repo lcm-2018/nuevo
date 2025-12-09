@@ -850,4 +850,211 @@
             return false;
         });
     });
+
+    // ==================== CRUD FIRMAS ====================
+
+    // DataTable Firmas
+    $(document).ready(function () {
+        $('#tableFirmasCtt').DataTable({
+            dom: setdom,
+            buttons: [{
+                text: '<span class="fa-solid fa-plus fa-lg"></span>',
+                className: 'btn btn-success btn-sm shadow',
+                action: function (e, dt, node, config) {
+                    $.post("datos/registrar/formadd_firmas.php", function (he) {
+                        $('#divTamModalForms').removeClass('modal-xl');
+                        $('#divTamModalForms').removeClass('modal-sm');
+                        $('#divTamModalForms').addClass('modal-lg');
+                        $('#divModalForms').modal('show');
+                        $("#divForms").html(he);
+                    });
+                }
+            }],
+            language: dataTable_es,
+            "ajax": {
+                url: 'datos/listar/datos_firmas.php',
+                type: 'POST',
+                dataType: 'json',
+            },
+            "columns": [
+                { 'data': 'id' },
+                { 'data': 'variable' },
+                { 'data': 'responsable' },
+                { 'data': 'botones' },
+            ],
+            "order": [
+                [1, "asc"]
+            ],
+            "lengthMenu": [
+                [10, 25, 50, -1],
+                [10, 25, 50, 'TODO'],
+            ],
+            "pageLength": -1
+        });
+        $('#tableFirmasCtt').wrap('<div class="overflow" />');
+    });
+
+    // Agregar firma
+    $('#divForms').on('click', '#btnAddFirma', function (e) {
+        e.preventDefault();
+        $('.is-invalid').removeClass('is-invalid');
+
+        if ($('#txtNomVariable').val() === '') {
+            $('#txtNomVariable').addClass('is-invalid');
+            $('#txtNomVariable').focus();
+            mjeError('¡El nombre de la variable no puede estar vacío!');
+        } else if ($('#id_tercero').val() === '0' || $('#buscaTercero').val() === '') {
+            $('#buscaTercero').addClass('is-invalid');
+            $('#buscaTercero').focus();
+            mjeError('¡Debe seleccionar un responsable!');
+        } else if ($('#txtCargo').val() === '') {
+            $('#txtCargo').addClass('is-invalid');
+            $('#txtCargo').focus();
+            mjeError('¡El cargo no puede estar vacío!');
+        } else if ($('#fileFirma').val() === '') {
+            $('#fileFirma').addClass('is-invalid');
+            $('#fileFirma').focus();
+            mjeError('¡Debe cargar una imagen PNG!');
+        } else {
+            let archivo = $('#fileFirma').val();
+            let ext = archivo.substring(archivo.lastIndexOf(".")).toLowerCase();
+            if (ext !== '.png') {
+                $('#fileFirma').addClass('is-invalid');
+                mjeError('¡Solo se permiten imágenes PNG!');
+                return false;
+            } else if ($('#fileFirma')[0].files[0].size > 2097152) {
+                $('#fileFirma').addClass('is-invalid');
+                mjeError('¡La imagen debe tener un tamaño menor a 2MB!');
+                return false;
+            }
+
+            mostrarOverlay();
+            let datos = new FormData($('#formAddFirma')[0]);
+
+            $.ajax({
+                type: 'POST',
+                url: 'registrar/new_firma.php',
+                contentType: false,
+                data: datos,
+                processData: false,
+                cache: false,
+                success: function (r) {
+                    if (r === '1') {
+                        $('#tableFirmasCtt').DataTable().ajax.reload();
+                        $('#divModalForms').modal('hide');
+                        mje('Firma registrada correctamente');
+                    } else {
+                        mjeError(r);
+                    }
+                },
+            }).always(function () {
+                ocultarOverlay();
+            });
+        }
+    });
+
+    // Editar firma -> formulario
+    $('#modificaFirmasCtt').on('click', '.editarFirma', function () {
+        let idFirma = $(this).attr('value');
+        $.post("datos/actualizar/up_firma.php", { idFirma: idFirma }, function (he) {
+            $('#divTamModalForms').removeClass('modal-sm');
+            $('#divTamModalForms').removeClass('modal-xl');
+            $('#divTamModalForms').addClass('modal-lg');
+            $('#divModalForms').modal('show');
+            $("#divForms").html(he);
+        });
+    });
+
+    // Actualizar datos de firma
+    $('#divForms').on('click', '#btnUpFirma', function (e) {
+        e.preventDefault();
+        $('.is-invalid').removeClass('is-invalid');
+
+        if ($('#txtNomVariable').val() === '') {
+            $('#txtNomVariable').addClass('is-invalid');
+            $('#txtNomVariable').focus();
+            mjeError('¡El nombre de la variable no puede estar vacío!');
+        } else if ($('#slcTercero').val() === '0') {
+            $('#slcTercero').addClass('is-invalid');
+            $('#slcTercero').focus();
+            mjeError('¡Debe seleccionar un responsable!');
+        } else if ($('#txtCargo').val() === '') {
+            $('#txtCargo').addClass('is-invalid');
+            $('#txtCargo').focus();
+            mjeError('¡El cargo no puede estar vacío!');
+        } else {
+            // Validar imagen solo si se está cargando una nueva
+            if ($('#fileFirma').val() !== '') {
+                let archivo = $('#fileFirma').val();
+                let ext = archivo.substring(archivo.lastIndexOf(".")).toLowerCase();
+                if (ext !== '.png') {
+                    $('#fileFirma').addClass('is-invalid');
+                    mjeError('¡Solo se permiten imágenes PNG!');
+                    return false;
+                } else if ($('#fileFirma')[0].files[0].size > 2097152) {
+                    $('#fileFirma').addClass('is-invalid');
+                    mjeError('¡La imagen debe tener un tamaño menor a 2MB!');
+                    return false;
+                }
+            }
+
+            mostrarOverlay();
+            let datos = new FormData($('#formActualizaFirma')[0]);
+
+            $.ajax({
+                type: 'POST',
+                url: 'actualizar/up_datos_firma.php',
+                contentType: false,
+                data: datos,
+                processData: false,
+                cache: false,
+                success: function (r) {
+                    if (r === '1') {
+                        $('#tableFirmasCtt').DataTable().ajax.reload();
+                        $('#divModalForms').modal('hide');
+                        mje('Datos actualizados correctamente');
+                    } else {
+                        mjeError(r);
+                    }
+                },
+            }).always(function () {
+                ocultarOverlay();
+            });
+        }
+    });
+
+    // Borrar firma
+    $('#modificaFirmasCtt').on('click', '.borrarFirma', function () {
+        let id = $(this).attr('value');
+        Swal.fire({
+            title: "¿Confirma que desea eliminar la firma?",
+            text: "Se eliminará la firma y su imagen asociada",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#00994C",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si!",
+            cancelButtonText: "NO",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'eliminar/del_firma.php',
+                    data: { id: id },
+                    success: function (r) {
+                        if (r === '1') {
+                            $('#tableFirmasCtt').DataTable().ajax.reload();
+                            mje("Firma eliminada correctamente");
+                        } else {
+                            mjeError(r);
+                        }
+                    },
+                }).always(function () {
+                    ocultarOverlay();
+                });
+            }
+        });
+    });
+
 })(jQuery);

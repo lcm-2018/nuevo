@@ -134,4 +134,5 @@ $resul = $Imprimir->render($pdf);
 
 if ($pdf) {
     $Imprimir->getPDF($resul);
+    exit();
 }

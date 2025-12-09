@@ -161,6 +161,11 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                 ocultarOverlay();
             });
             break;
+        case 'btnImprimir':
+            event.preventDefault();
+            const id = boton.dataset.id;
+            ImprimirReporte('../php/reportes/desprendible.php', { id: id });
+            break;
     }
 });
 function VerLiquidacionEmpleado(id_empleado, id_nomina, item = 1) {

@@ -35,6 +35,7 @@ class Terceros
                         ON (`tb_terceros`.`id_tercero_api` = `tb_rel_tercero`.`id_tercero_api`)
                 WHERE (`tb_terceros`.`id_tercero_api` LIKE :busca OR `nom_tercero` LIKE :busca  OR `nit_tercero` LIKE :busca ) 
                     AND `estado` = 1 AND `tb_terceros`.`id_tercero_api` IS NOT NULL $where
+                GROUP BY `tb_terceros`.`id_tercero_api`
                 ORDER BY `nom_tercero` ASC";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(':busca', '%' . $busca . '%', PDO::PARAM_STR);

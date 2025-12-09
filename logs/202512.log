@@ -20,3 +20,17 @@
 [2025-12-04 11:41:44] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_rol` WHERE `id_rol` = 41;
 [2025-12-04 14:59:54] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `tb_fin_periodos` WHERE `id_modulo` = 50 AND `mes` = 07 AND `vigencia` = 2025;
 [2025-12-04 15:11:02] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `tb_fin_periodos` WHERE `id_modulo` = 50 AND `mes` = 07 AND `vigencia` = 2025;
+[2025-12-04 19:29:21] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_permisos_modulos` WHERE `id_usuario` = 535 AND `id_modulo` = 57;
+[2025-12-04 19:29:21] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_rol_usuario` WHERE `id_usuario` = 535 AND `id_opcion` LIKE 57%;
+[2025-12-04 19:33:32] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_permisos_modulos` WHERE `id_usuario` = 535 AND `id_modulo` = 10;
+[2025-12-04 19:33:32] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_rol_usuario` WHERE `id_usuario` = 535 AND `id_opcion` LIKE 10%;
+[2025-12-05 16:36:33] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM ctt_firmas WHERE id = 2;
+[2025-12-05 16:36:33] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM ctt_variables_forms WHERE id_var = 47;
+[2025-12-05 16:37:13] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM ctt_firmas WHERE id = 1;
+[2025-12-05 16:37:13] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM ctt_variables_forms WHERE id_var = 44;
+[2025-12-05 16:39:44] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM ctt_firmas WHERE id = 3;
+[2025-12-05 16:39:44] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM ctt_variables_forms WHERE id_var = 49;
+[2025-12-09 09:15:22] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_firmas` WHERE `id` = 4;
+[2025-12-09 09:15:22] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_variables_forms` WHERE `id_var` = 50;
+[2025-12-09 10:41:52] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: 1;
+[2025-12-09 10:42:16] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: 1;

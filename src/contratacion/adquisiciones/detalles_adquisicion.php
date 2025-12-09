@@ -637,7 +637,7 @@ $content =
             <button class="btn btn-xs me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
             <b>CONFIGURACIÓN DE CONTRATACIÓN</b>
         </div>
-        <div class="card-body p-2 bg-wiev">
+        <div id="accordionCtt" class="card-body p-2 bg-wiev">
             <input type="hidden" id="peReg" value="{$peReg}">
             <div class="accordion" id="accContrata">
                 <div class="accordion-item">
@@ -724,6 +724,33 @@ $content =
                     </div>
                 </div>
                 $destino
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodClasificador" aria-expanded="false" aria-controls="collapsemodClasificador">
+                            <span class="text-warning-emphasis"><i class="fas fa-clipboard-list me-2 fa-lg"></i>VIÑETA. Clasificador de bienes y servicios.</span>
+                        </button>
+                    </h2>
+                    <div id="collapsemodClasificador" class="accordion-collapse collapse" data-bs-parent="#accClasificador">
+                        <div class="accordion-body bg-wiev">
+                            <div class=" px-3 shadow rounded">
+                                <div class="card-body">
+                                    <table id="tableClasificador" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
+                                        <thead>
+                                            <tr class="text-center">
+                                                <th class="bg-sofia">#</th>
+                                                <th class="bg-sofia">Código UNSPSC</th>
+                                                <th class="bg-sofia">Descripción</th>
+                                                <th class="bg-sofia">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="modificarClasificador">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodCdp" aria-expanded="false" aria-controls="collapsemodCdp">

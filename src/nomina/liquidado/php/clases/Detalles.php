@@ -423,6 +423,7 @@ class Detalles
         $boton2 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarPretaciones">Guardar y Reliquidar</button>' : '';
         $boton3 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarParafiscales">Guardar</button>' : '';
         $boton4 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarDctos">Guardar</button>' : '';
+        $dataid = base64_encode($id_empleado . '|' . $id_nomina);
         $html =
             <<<HTML
                 <div>
@@ -433,6 +434,9 @@ class Detalles
                         <div class="p-3">
                             <input type="hidden" id="id_empleado" name="id_empleado" value="{$id_empleado}">
                             <div class="accordion" id="acordeonDetallesNom">
+                                <div class="text-end mb-2">
+                                    <button type="button" class="btn btn-outline-warning btn-sm" id="btnImprimir" title="Imprimir desprendible de nómina" data-id="{$dataid}"><i class="fas fa-print"></i></button>
+                                </div>
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
                                         <button class="accordion-button  bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">

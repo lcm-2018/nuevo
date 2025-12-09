@@ -33,11 +33,33 @@ foreach ($variables as $v) {
             $plantilla->setValue($var_, $$var_);
         } else if ($tip_ == '2') {
             $plantilla->cloneRowAndSetValues($var_, $$var_);
+        } else if ($tip_ == '3') {
+            // Obtener la ruta absoluta del sistema de archivos
+            $docRoot = $_SERVER['DOCUMENT_ROOT'];
+
+            // Verificar si existe una variable con el nombre del marcador
+            $imgPath = isset($$var_) ? $$var_ : '/nuevo/assets/images/firmas/frm_' . $var_ . '.png';
+
+            // Construir la ruta absoluta completa
+            $fullPath = $docRoot . $imgPath;
+
+            // Verificar si el archivo existe, si no usar la imagen vacía
+            if (!file_exists($fullPath)) {
+                $fullPath = $docRoot . '/nuevo/assets/images/vacio.png';
+            }
+
+            // Insertar la imagen en el documento
+            $plantilla->setImageValue($var_, [
+                'path' => $fullPath,
+                'width' => 200,
+                'height' => 75,
+                'ratio' => false
+            ]);
         }
     }
 }
-
-$plantilla->saveAs('formato_doc.docx');
-header("Content-Disposition: attachment; Filename=formato_doc.docx");
-echo file_get_contents('formato_doc.docx');
-unlink('formato_doc.docx');
+$name = 'formato_doc' . date('YmdHis') . '.docx';
+$plantilla->saveAs($name);
+header("Content-Disposition: attachment; Filename=" . $name);
+echo file_get_contents($name);
+unlink($name);

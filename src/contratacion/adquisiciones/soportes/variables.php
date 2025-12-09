@@ -1,6 +1,9 @@
 <?php
-session_start();
-include_once '../../../../../config/autoloader.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+include_once '../../../../config/autoloader.php';
 $id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
 $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
 $permisos = new \Src\Common\Php\Clases\Permisos();
@@ -14,7 +17,7 @@ function pesos($valor)
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT `nombre1`,`nombre2`,`apellido1`,`apellido2` FROM `seg_usuarios_sistema` WHERE `id_usuario` = {$id_user}";
     $rs = $cmd->query($sql);
     $usuario = $rs->fetch(PDO::FETCH_ASSOC);
@@ -26,7 +29,7 @@ try {
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT `variable`, `tipo`, `contexto`, `ejemplo` FROM `ctt_variables_forms`";
     $rs = $cmd->query($sql);
     $variables = $rs->fetchAll(PDO::FETCH_ASSOC);
@@ -37,7 +40,7 @@ try {
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT 
                 `ctt_adquisiciones`.`id_orden`,`pto_cdp`.`id_manu`, `pto_cdp`.`id_pto_cdp` AS `id_cdp`, `pto_cdp`.`fecha` AS `fecha_cdp`
             FROM `ctt_adquisiciones`
@@ -92,7 +95,7 @@ if (!empty($oferta)) {
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `ctt_clasificacion_bn_sv`.`id_b_s`
                 , `tb_codificacion_unspsc`.`codigo`
@@ -110,7 +113,7 @@ try {
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `ctt_adquisiciones`.`id_adquisicion`
                 , `ctt_adquisiciones`.`id_tipo_bn_sv`
@@ -140,7 +143,7 @@ try {
 $tipo_bn = $compra['id_tipo_bn_sv'];
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `ctt_escala_honorarios`.`cod_pptal`  AS `id_pto_cargue`
                 , `pto_cargue`.`cod_pptal`
@@ -158,7 +161,7 @@ try {
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `ctt_estudios_previos`.`id_est_prev`
                 , `ctt_estudios_previos`.`id_compra`
@@ -193,7 +196,7 @@ $cmd = null;
 $id_ep = $estudio_prev['id_est_prev'];
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `seg_garantias_compra`.`id_est_prev`
                 ,`seg_garantias_compra`.`id_poliza`
@@ -212,7 +215,7 @@ try {
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `ctt_contratos`.`id_contrato_compra`
                 , `ctt_contratos`.`id_compra`
@@ -239,7 +242,7 @@ foreach ($garantias as $g) {
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `tb_datos_ips`.`nit_ips` AS `nit`
                 , `tb_datos_ips`.`dv` AS `dig_ver`
@@ -345,7 +348,7 @@ foreach ($valores as $va) {
     $describ_val[] = ['describ_val' => $va];
 }
 $plazo = $p_mes == '' ? $p_dia : $p_mes . $y . $p_dia;
-$forma_pago = $contrato['descripcion'];
+$forma_pago = isset($contrato['descripcion']) ? $contrato['descripcion'] : '';
 
 /*
 $segmento = !empty($codigo_servicio) ? ($codigo_servicio['codigo'] != '' ? substr($codigo_servicio['codigo'], 0, 2) : 'XX') : 'XX';
@@ -379,3 +382,14 @@ if (!empty($oferta)) {
     ];
 }
 */
+
+// ==================== VARIABLES PARA IMÁGENES ====================
+// Define aquí las rutas de las imágenes que se usarán en los marcadores tipo 3
+// La ruta debe ser relativa desde el DOCUMENT_ROOT (ejemplo: /nuevo/assets/images/firma.png)
+
+// Ejemplo: Variable para el marcador ${firma1}
+$firma1 = '/nuevo/assets/images/vacio.png';
+
+// Si tienes más firmas, agrégalas aquí:
+// $firma2 = '/nuevo/assets/images/firma2.png';
+// $logo1 = '/nuevo/assets/images/logo.png';

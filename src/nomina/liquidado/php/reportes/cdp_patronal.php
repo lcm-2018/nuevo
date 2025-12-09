@@ -123,10 +123,16 @@ $html =
     HTML;
 
 $firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['vigencia'] . '-' . $nomina['mes'] . '-01', '');
-$Imprimir = new Imprimir($documento, "letter");
 
+$Imprimir = new Imprimir($documento, "letter");
 $Imprimir->addEncabezado($documento);
 $Imprimir->addContenido($html);
 $Imprimir->addFirmas($firmas);
+$pdf = isset($_POST['pdf']) ? filter_var($_POST['pdf'], FILTER_VALIDATE_BOOLEAN) : false;
+$resul = $Imprimir->render($pdf);
 
-$Imprimir->render();
+
+if ($pdf) {
+    $Imprimir->getPDF($resul);
+    exit();
+}

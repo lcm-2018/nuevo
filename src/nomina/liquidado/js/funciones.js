@@ -48,6 +48,7 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
     const btnBorrar = event.target.closest('.borrar');
     const btnAnular = event.target.closest('.anular');
     const btnImprimir = event.target.closest('.imprimir');
+    const btnDescargarPdf = event.target.closest('.descargar-pdf');
 
     if (btnDetalles) {
         event.preventDefault();
@@ -74,4 +75,13 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
         ImprimirReporte('../php/reportes/cdp_' + url + '.php', { id: id, pdf: pdf });
 
     }
+    /*
+    if (btnDescargarPdf) {
+        event.preventDefault();
+        const id = btnDescargarPdf.dataset.id;
+        const text = btnDescargarPdf.getAttribute('text');
+        var url = text === 'M' ? 'mensual' : 'patronal';
+        var pdf = true;
+        ImprimirReporte('../php/reportes/cdp_' + url + '.php', { id: id, pdf: pdf });
+    }*/
 });

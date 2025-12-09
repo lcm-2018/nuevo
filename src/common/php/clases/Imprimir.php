@@ -120,10 +120,11 @@ class Imprimir
         ";
     }
 
-    public function addEncabezado($documento = "")
+    public function addEncabezado($documento = "", $otro = "")
     {
         $logoPath = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST']  . $this->host . '/assets/images/logo.png';
         $documento = mb_strtoupper($documento);
+        $fila = $otro !== '' ? '<div style="text-transform: uppercase; padding-bottom: 14px;">' . $otro . '</div>' : '';
         $this->encabezado =
             <<<HTML
             <div class='header-container'>
@@ -133,8 +134,8 @@ class Imprimir
                 <div class='title'>
                     <h1><strong>{$this->empresa['nombre']}</strong></h1>
                     <div>NIT {$this->empresa['nit']}-{$this->empresa['dv']}</div>
-                    <br>
-                    <div style='text-transform: uppercase; padding-bottom: 10px;'>{$documento}</div>
+                    <br>{$fila}
+                    <div style='text-transform: uppercase; padding-bottom: 14px;'>{$documento}</div>
                 </div>
             </div>
             HTML;
@@ -224,7 +225,7 @@ class Imprimir
         // Verificar y Servir el PDF
         if ($returnVar === 0 && file_exists($tmpPdfFile) && filesize($tmpPdfFile) > 0) {
             header('Content-Type: application/pdf');
-            header('Content-Disposition: inline; filename="' . $this->titulo . '.pdf"');
+            header('Content-Disposition: attachment; filename="' . $this->titulo . '.pdf"');
             header('Content-Length: ' . filesize($tmpPdfFile));
 
             readfile($tmpPdfFile);
@@ -232,6 +233,7 @@ class Imprimir
             // Limpieza de archivos temporales
             if (file_exists($tmpHtmlFile)) unlink($tmpHtmlFile);
             if (file_exists($tmpPdfFile)) unlink($tmpPdfFile);
+            exit();
         } else {
             echo "Hubo un error generando el PDF.<br>";
             echo "<pre>" . print_r($output, true) . "</pre>";

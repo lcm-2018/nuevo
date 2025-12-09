@@ -178,7 +178,7 @@ const tableAdquisiciones = crearDataTable(
             "ajax": {
                 url: 'datos/listar/datos_novedades_contrato.php',
                 type: 'POST',
-                data: { id_csp: id_csp },
+                data: { id_csp: id_csp, id_adq: $('#id_compra').val() },
                 dataType: 'json',
             },
             "columns": [
@@ -204,7 +204,53 @@ const tableAdquisiciones = crearDataTable(
                 targets: [6]
             }],
         });
-        $('#tableNovedadesContrato').wrap('<div class="overflow" />');
+        $('#tableNovedadesContrato').wrap('<div class="overflow" /></div>');
+
+        // DataTable para Clasificador de Bienes y Servicios
+        let id_adq = $('#id_compra').val();
+        $('#tableClasificador').DataTable({
+            dom: setdom,
+            buttons: [{
+                text: '<span class="fa-solid fa-plus fa-lg"></span>',
+                className: 'btn btn-success btn-sm shadow',
+                action: function (e, dt, node, config) {
+                    $.post("datos/registrar/form_clasificador_bs.php", { id: 0, id_adq: id_adq }, function (he) {
+                        $('#divTamModalForms').removeClass('modal-xl');
+                        $('#divTamModalForms').removeClass('modal-sm');
+                        $('#divTamModalForms').addClass('modal-lg');
+                        $('#divModalForms').modal('show');
+                        $("#divForms").html(he);
+                    });
+                }
+            }],
+            language: dataTable_es,
+            "ajax": {
+                url: 'datos/listar/datos_clasificador_bs.php',
+                type: 'POST',
+                data: { id_adq: id_adq },
+                dataType: 'json',
+            },
+            "columns": [
+                { 'data': 'id_clas' },
+                { 'data': 'codigo' },
+                { 'data': 'descripcion' },
+                { 'data': 'botones' },
+            ],
+            "order": [
+                [0, "asc"]
+            ],
+            "lengthMenu": [
+                [10, 25, 50, -1],
+                [10, 25, 50, 'TODO'],
+            ],
+            "pageLength": 10,
+            columnDefs: [{
+                class: 'text-wrap',
+                targets: [2]
+            }],
+        });
+        $('#tableClasificador').wrap('<div class="overflow" /></div>');
+
         $('#divModalForms').on('change', '#slcTipoBnSv', function () {
             let id_bs = $(this).val();
             $.ajax({
@@ -1106,7 +1152,7 @@ const tableAdquisiciones = crearDataTable(
         }
         return false;
     });
-    $('.downloadFormsCtt').on('click', function () {
+    $('#accordionCtt').on('click', '.downloadFormsCtt', function () {
         let form = $(this).attr('text');
         let id = $('#id_compra').val();
         if (form == '0') {
@@ -2268,6 +2314,126 @@ const tableAdquisiciones = crearDataTable(
             }
         });
     });
+
+    // ========== CLASIFICADOR DE BIENES Y SERVICIOS ==========
+
+    // Autocompletar UNSPSC
+    $('#divModalForms').on('focus', '#buscaUnspsc', function () {
+        $(this).autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: 'datos/registrar/busca_unspsc.php',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: { term: request.term },
+                    success: function (data) {
+                        response(data.map(function (item) {
+                            return {
+                                label: item.label,
+                                value: item.label,
+                                id: item.id_codificacion
+                            };
+                        }));
+                    }
+                });
+            },
+            minLength: 2,
+            select: function (event, ui) {
+                $('#id_unspsc').val(ui.item.id);
+                $(this).val(ui.item.value);
+                return false;
+            }
+        });
+    });
+
+    // Editar clasificador
+    $('#modificarClasificador').on('click', '.editar', function () {
+        let id_clas = $(this).attr('value');
+        let id_adq = $('#id_compra').val();
+        $.post("datos/registrar/form_clasificador_bs.php", { id: id_clas, id_adq: id_adq }, function (he) {
+            $('#divTamModalForms').removeClass('modal-xl');
+            $('#divTamModalForms').removeClass('modal-sm');
+            $('#divTamModalForms').addClass('modal-lg');
+            $('#divModalForms').modal('show');
+            $("#divForms").html(he);
+        });
+    });
+
+    // Guardar clasificador (Registrar o Actualizar)
+    $('#divModalForms').on('click', '#btnSaveClasificador', function () {
+        $('.is-invalid').removeClass('is-invalid');
+
+        if ($('#id_unspsc').val() === '0' || $('#buscaUnspsc').val() === '') {
+            $('#buscaUnspsc').addClass('is-invalid');
+            $('#buscaUnspsc').focus();
+            mjeError('Debe seleccionar un código UNSPSC');
+            return false;
+        }
+
+        mostrarOverlay();
+        let datos = $('#formClasificadorBS').serialize();
+        $.ajax({
+            type: 'POST',
+            url: 'registrar/save_clasificador_bs.php',
+            data: datos,
+            dataType: 'json',
+            success: function (r) {
+                if (r.status === 'success') {
+                    $('#tableClasificador').DataTable().ajax.reload(null, false);
+                    $('#divModalForms').modal('hide');
+                    mje(r.message);
+                } else {
+                    mjeError(r.message);
+                }
+            },
+            error: function () {
+                mjeError('Error al procesar la solicitud');
+            }
+        }).always(function () {
+            ocultarOverlay();
+        });
+        return false;
+    });
+
+    // Eliminar clasificador
+    $('#modificarClasificador').on('click', '.borrar', function () {
+        let id_clas = $(this).attr('value');
+        Swal.fire({
+            title: "¿Confirma eliminar este clasificador?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#00994C",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si!",
+            cancelButtonText: "NO",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'eliminar/delete_clasificador_bs.php',
+                    data: { id: id_clas },
+                    dataType: 'json',
+                    success: function (r) {
+                        if (r.status === 'success') {
+                            $('#tableClasificador').DataTable().ajax.reload(null, false);
+                            mje(r.message);
+                        } else {
+                            mjeError(r.message);
+                        }
+                    },
+                    error: function () {
+                        mjeError('Error al procesar la solicitud');
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
+            }
+        });
+    });
+
+    // ========== FIN CLASIFICADOR DE BIENES Y SERVICIOS ==========
+
 })(jQuery);
 
 function AsociarOrden(id_orden) {
