@@ -60,10 +60,10 @@
             ],
         });
 
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle"></span>');
+        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle fa-lg"></span>');
         $('#tb_cencos_areas').wrap('<div class="overflow"/>');
     });
-  
+
     //Buascar registros
     /*$('#btn_buscar_filtro').on("click", function() {
         reloadtable('tb_cencos_areas');

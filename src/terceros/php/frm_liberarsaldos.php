@@ -22,26 +22,54 @@ $sql = "SELECT
 $rs = $cmd->query($sql);
 $obj = $rs->fetch();
 //----------------------------------------------------- hago la consulta aqui para que los saldos sean cajas de texto
-// sino utilizo el script para llamar a listar_saldos.php
-$sql = "SELECT
-                pto_cdp_detalle2.id_pto_cdp
-                , pto_cdp_detalle2.id_rubro
-                , pto_cargue.cod_pptal
-                , pto_cdp_detalle2.id_pto_cdp_det
-                ,SUM(pto_cdp_detalle2.valor) AS valorcdp
-                ,SUM(IFNULL(pto_cdp_detalle2.valor_liberado,0)) AS cdpliberado
-                ,SUM(pto_crp_detalle2.valor) AS valorcrp
-                ,SUM(IFNULL(pto_crp_detalle2.valor_liberado,0)) AS crpliberado
-                ,((SUM(pto_cdp_detalle2.valor) - SUM(IFNULL(pto_cdp_detalle2.valor_liberado,0))) - (SUM(pto_crp_detalle2.valor) - SUM(IFNULL(pto_crp_detalle2.valor_liberado,0)))) AS saldo_final
-            FROM
-                pto_cdp
-                INNER JOIN (SELECT id_pto_cdp,id_rubro,id_pto_cdp_det,SUM(valor) AS valor,SUM(valor_liberado) AS valor_liberado FROM pto_cdp_detalle GROUP BY id_pto_cdp) AS pto_cdp_detalle2 ON (pto_cdp_detalle2.id_pto_cdp = pto_cdp.id_pto_cdp)
-		        INNER JOIN pto_crp ON (pto_crp.id_cdp = pto_cdp.id_pto_cdp)
-                INNER JOIN (SELECT id_pto_crp,SUM(valor) AS valor,SUM(valor_liberado) AS valor_liberado FROM pto_crp_detalle GROUP BY id_pto_crp) AS pto_crp_detalle2 ON (pto_crp_detalle2.id_pto_crp = pto_crp.id_pto_crp)  
-                INNER JOIN pto_cargue ON (pto_cdp_detalle2.id_rubro = pto_cargue.id_cargue)
-            WHERE pto_cdp_detalle2.id_pto_cdp = $id_cdp 
-            AND pto_crp.estado=2
-            GROUP BY pto_cdp.id_pto_cdp limit 1";
+$sql = "WITH
+            cdp_por_rubro AS (
+            SELECT
+                p.id_pto_cdp,
+                p.id_rubro,
+                SUM(p.valor) AS valorcdp,
+                SUM(IFNULL(p.valor_liberado,0)) AS cdpliberado
+            FROM pto_cdp_detalle p
+            WHERE p.id_pto_cdp = $id_cdp
+            GROUP BY p.id_pto_cdp, p.id_rubro
+            ),
+            crp_por_cdp_det AS (
+            SELECT
+                pcd.id_pto_cdp_det,
+                SUM(pcd.valor) AS valorcrp,
+                SUM(IFNULL(pcd.valor_liberado,0)) AS crpliberado
+            FROM pto_crp_detalle pcd
+            JOIN pto_crp pc ON pcd.id_pto_crp = pc.id_pto_crp
+            WHERE pc.estado = 2
+            GROUP BY pcd.id_pto_cdp_det
+            ),
+            crp_por_rubro AS (
+            SELECT
+                pcd.id_rubro,
+                SUM(IFNULL(crp.valorcrp,0))     AS valorcrp,
+                SUM(IFNULL(crp.crpliberado,0))  AS crpliberado
+            FROM (
+                SELECT id_pto_cdp_det, id_rubro
+                FROM pto_cdp_detalle
+                WHERE id_pto_cdp = $id_cdp
+            ) pcd
+            LEFT JOIN crp_por_cdp_det crp ON crp.id_pto_cdp_det = pcd.id_pto_cdp_det
+            GROUP BY pcd.id_rubro
+            )
+            SELECT
+            c.id_pto_cdp,
+            c.id_rubro,
+            pc.cod_pptal,
+            c.valorcdp,
+            c.cdpliberado,
+            IFNULL(r.valorcrp,0)    AS valorcrp,
+            IFNULL(r.crpliberado,0) AS crpliberado,
+            ((c.valorcdp - c.cdpliberado) - (IFNULL(r.valorcrp,0) - IFNULL(r.crpliberado,0))) AS saldo_final,
+            GREATEST(0, ((c.valorcdp - c.cdpliberado) - (IFNULL(r.valorcrp,0) - IFNULL(r.crpliberado,0)))) AS puede_liberar
+            FROM cdp_por_rubro c
+            LEFT JOIN crp_por_rubro r ON r.id_rubro = c.id_rubro
+            LEFT JOIN pto_cargue pc ON pc.id_cargue = c.id_rubro
+            ORDER BY c.id_rubro";
 
 $rs = $cmd->query($sql);
 $obj_saldos = $rs->fetchAll(PDO::FETCH_ASSOC);
@@ -53,34 +81,40 @@ unset($rs);
 <div class="px-0">
     <div class="shadow">
         <div class="card-header p-2 text-center" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LIBERACION DE SALDOS</h5>
+            <h5 class="mb-0" style="color: white;">LIBERACION DE SALDOS</h5>
         </div>
-        <div class="px-2">
+        <div class="p-3">
             <form id="frm_liberarsaldos">
-                <input type="hidden" id="id_cdp" name="id_cdp" value="<?php echo $id_cdp ?>">
-                <div class=" row">
-                    <div class="form-group col-md-3">
+                <input type="hidden" id="id_cdp" name="id_cdp" value="<?= $id_cdp ?>">
+                <div class="row mb-1">
+                    <div class="col-md-3">
                         <label for="txt_num_cdp" class="small">NUMERO CDP</label>
                     </div>
-                    <div class="form-group col-md-9">
-                        <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_num_cdp" name="txt_num_cdp" readonly="true" value="<?php echo $obj['id_manu'] ?>">
+                    <div class="col-md-9">
+                        <input type="text" class="filtro form-control form-control-sm bg-secondary-subtle" id="txt_num_cdp" name="txt_num_cdp" readonly="true" value="<?= $obj['id_manu'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                </div>
+                <div class="row mb-1">
+                    <div class="col-md-3">
                         <label for="txt_fec_cdp" class="small">FECHA CDP</label>
                     </div>
-                    <div class="form_group col-md-9">
-                        <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_fec_cdp" name="txt_fec_cdp" readonly="true" value="<?php echo $obj['fecha'] ?>">
+                    <div class="col-md-9">
+                        <input type="text" class="filtro form-control form-control-sm bg-secondary-subtle" id="txt_fec_cdp" name="txt_fec_cdp" readonly="true" value="<?= $obj['fecha'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                </div>
+                <div class="row mb-1">
+                    <div class="col-md-3">
                         <label for="txt_fec_lib" class="small">FECHA LIBERACION</label>
                     </div>
-                    <div class="form-group col-md-9">
-                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fec_lib" name="txt_fec_lib" placeholder="Fecha liberacion" value="<?php echo date('Y-m-d') ?>">
+                    <div class="col-md-9">
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fec_lib" name="txt_fec_lib" placeholder="Fecha liberacion" value="<?= date('Y-m-d') ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                </div>
+                <div class="row mb-1">
+                    <div class="col-md-3">
                         <label for="txt_concepto_lib" class="small">CONCEPTO LIBERACION</label>
                     </div>
-                    <div class="form-group col-md-9">
+                    <div class="col-md-9">
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_concepto_lib" name="txt_concepto_lib" placeholder="Concepto liberacion">
                     </div>
                 </div>
@@ -101,16 +135,16 @@ unset($rs);
                         ?>
                             <tr>
                                 <td class="border" colspan="1">
-                                    <input type="text" name="txt_id_rubro[]" class="form-control form-control-sm bg-plain bg-input" value="<?php echo $dll['id_rubro'] ?>" readonly="true">
+                                    <input type="text" name="txt_id_rubro[]" class="form-control form-control-sm bg-plain bg-secondary-subtle" value="<?= $dll['id_rubro'] ?>" readonly="true">
                                 </td>
                                 <td class="border" colspan="1">
-                                    <input type="text" name="txt_codigo[]" class="form-control form-control-sm  bg-plain bg-input" value="<?php echo $dll['cod_pptal'] ?>" readonly="true">
+                                    <input type="text" name="txt_codigo[]" class="form-control form-control-sm  bg-plain bg-secondary-subtle" value="<?= $dll['cod_pptal'] ?>" readonly="true">
                                 </td>
                                 <td class="border" colspan="1">
-                                    <input type="text" name="txt_valor[]" class="form-control form-control-sm bg-plain bg-input" value="<?php echo $dll['saldo_final'] ?>" readonly="true">
+                                    <input type="text" name="txt_valor[]" class="form-control form-control-sm bg-plain bg-secondary-subtle" value="<?= $dll['saldo_final'] ?>" readonly="true">
                                 </td>
                                 <td class="border" colspan="1">
-                                    <input type="text" name="txt_valor_liberar[]" class="form-control form-control-sm valfno bg-plain bg-input" value="<?php echo $dll['saldo_final'] ?>">
+                                    <input type="text" name="txt_valor_liberar[]" class="form-control form-control-sm valfno bg-plain bg-input" value="<?= $dll['saldo_final'] ?>">
                                 </td>
                             </tr>
                         <?php
@@ -122,7 +156,7 @@ unset($rs);
         </div>
     </div>
     <div class="text-end py-3">
-        <button type="button" class="btn btn-primary btn-sm" id="btn_liquidar">Liberar</button>
+        <a type="button" class="btn btn-primary btn-sm" onclick="RegLiberacionCdp()">Liberar</a>
         <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>
@@ -138,7 +172,7 @@ unset($rs);
                 searching: false,
                 autoWidth: false,
                 ajax: {
-                    url: window.urlin + '/terceros/php/historialtercero/listar_saldos.php',
+                    url: ValueInput('host') + '/terceros/php/historialtercero/listar_saldos.php',
                     type: 'POST',
                     dataType: 'json',
                     data: function(data) {

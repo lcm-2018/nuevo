@@ -377,6 +377,7 @@ class Nomina
                     , `nn`.`id_user_reg`
                     , CONCAT_WS(' ', `sus`.`nombre1`, `sus`.`nombre2`, `sus`.`apellido1`, `sus`.`apellido2`) AS `elabora`
                     , `sus`.`descripcion` AS `cargo`
+                    , `nn`.`tipo`
                 FROM
                     `nom_nominas` AS `nn`
                     LEFT JOIN `seg_usuarios_sistema` AS `sus` 
@@ -451,7 +452,7 @@ class Nomina
             $stmt->bindParam(1, $estado, PDO::PARAM_INT);
             $stmt->bindParam(2, $estado, PDO::PARAM_INT);
             $stmt->bindParam(3, $id_nomina, PDO::PARAM_INT);
-            
+
             if ($stmt->execute() && $stmt->rowCount() > 0) {
                 $consulta = "UPDATE `nom_nominas` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_nomina` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);

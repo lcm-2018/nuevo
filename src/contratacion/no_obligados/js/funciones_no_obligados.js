@@ -31,7 +31,7 @@
         $.ajax({
             type: 'POST',
             dataType: 'json',
-            url: window.urlin + '/almacen/eliminar/confirdel.php',
+            url: ValueInput('host') + '/almacen/eliminar/confirdel.php',
             data: { id: i, tip: t }
         }).done(function (res) {
             $('#divModalConfDel').modal('show');

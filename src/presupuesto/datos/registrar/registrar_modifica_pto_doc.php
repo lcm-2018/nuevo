@@ -1,0 +1,83 @@
+﻿<?php
+session_start();
+if (isset($_POST)) {
+    $fecha = $_POST['fecha'];
+    $id_pto = $_POST['id_pto'];
+    $tipo_acto = $_POST['tipo_acto'];
+    $numMod = $_POST['numMod'];
+    $objeto = $_POST['objeto'];
+    $tipo_doc = $_POST['id_mov'];
+    $id = $_POST['id_registro'];
+    $iduser = $_SESSION['id_user'];
+    $date = new DateTime('now', new DateTimeZone('America/Bogota'));
+    $fecha2 = $date->format('Y-m-d H:i:s');
+    $estado = 1;
+    include '../../../../config/autoloader.php';
+    try {
+        $cmd = \Config\Clases\Conexion::getConexion();
+
+        $sql = "SELECT MAX(`id_manu`) as `id_manu` FROM `pto_mod` WHERE (`id_tipo_mod`= $tipo_doc)";
+        $rs = $cmd->query($sql);
+        $id_m = $rs->fetch(PDO::FETCH_ASSOC);
+        $id_manu = !empty($id_m) ? $id_m['id_manu'] + 1 : 1;
+        $cmd = null;
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    }
+    $cmd = \Config\Clases\Conexion::getConexion();
+    if (!isset($_POST['id_pto_mod'])) {
+        if ($id == 0) {
+            $query = "INSERT INTO `pto_mod`
+                    (`id_pto`, `id_tipo_mod`,`id_tipo_acto`, `numero_acto`, `fecha`,`id_manu`,`objeto`,`estado`,`id_user_reg`,`fecha_reg`)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $query = $cmd->prepare($query);
+            $query->bindParam(1, $id_pto, PDO::PARAM_INT);
+            $query->bindParam(2, $tipo_doc, PDO::PARAM_STR);
+            $query->bindParam(3, $tipo_acto, PDO::PARAM_INT);
+            $query->bindParam(4, $numMod, PDO::PARAM_INT);
+            $query->bindParam(5, $fecha, PDO::PARAM_STR);
+            $query->bindParam(6, $id_manu, PDO::PARAM_INT);
+            $query->bindParam(7, $objeto, PDO::PARAM_STR);
+            $query->bindParam(8, $estado, PDO::PARAM_INT);
+            $query->bindParam(9, $iduser, PDO::PARAM_INT);
+            $query->bindParam(10, $fecha2);
+            $query->execute();
+            if ($cmd->lastInsertId() > 0) {
+                echo 'ok';
+            } else {
+                echo $query->errorInfo()[2];
+            }
+        } else {
+            $query = "UPDATE `pto_mod`
+                    SET  `id_tipo_acto` = ?, `numero_acto` = ?, `fecha` = ?, `objeto` = ?
+                    WHERE `id_pto_mod` = ?";
+            $query = $cmd->prepare($query);
+            $query->bindParam(1, $tipo_acto, PDO::PARAM_INT);
+            $query->bindParam(2, $numMod, PDO::PARAM_INT);
+            $query->bindParam(3, $fecha, PDO::PARAM_STR);
+            $query->bindParam(4, $objeto, PDO::PARAM_STR);
+            $query->bindParam(5, $id, PDO::PARAM_INT);
+            $query->execute();
+            if ($query->rowCount() > 0) {
+                echo 'ok';
+            } else {
+                echo $query->errorInfo()[2] . 'No se actualizó ningún registro';
+            }
+        }
+        $cmd = null;
+    } else {
+        $id = $_POST['id_pto_mvto'];
+        $query = $cmd->prepare("UPDATE pto_documento_detalles SET id_pto_doc = :id_pto, tipo_mov = :tipo, rubro =:rubro, valor = :valor WHERE id_pto_mvto = :id");
+        $query->bindParam(":id_pto", $id_pto_cdp);
+        $query->bindParam(":tipo", $tipo_mov);
+        $query->bindParam(":rubro", $rubro);
+        $query->bindParam(":valor", $valorCdp);
+        $query->bindParam("id", $id);
+        $query->execute();
+        if ($query->rowCount() > 0) {
+            echo 'ok';
+        } else {
+            echo $query->errorInfo()[2];
+        }
+    }
+}

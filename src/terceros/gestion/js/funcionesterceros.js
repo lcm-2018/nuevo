@@ -819,7 +819,7 @@ function FormResponsabilidad(id) {
         try {
             mostrarOverlay();
             const response = await $.ajax({
-                url: window.urlin + "/terceros/python/listar_terceros.php",
+                url: ValueInput('host') + "/terceros/python/listar_terceros.php",
                 type: 'POST',
                 dataType: 'json'
             });
@@ -845,7 +845,7 @@ function FormResponsabilidad(id) {
         /*
         //--------esto pa traer el numero de terceros por ciudad
         $.ajax({
-            url: window.urlin + "/terceros/python/listar_terceros.php",
+            url: ValueInput('host') + "/terceros/python/listar_terceros.php",
             type: 'POST',
             dataType: 'json',
             data: {
@@ -872,7 +872,7 @@ function FormResponsabilidad(id) {
         /*
         source: function (request, response) {
             $.ajax({
-                url: window.urlin + "/presupuesto/php/libros_aux_pto/listar_rubros.php",
+                url: ValueInput('host') + "/presupuesto/php/libros_aux_pto/listar_rubros.php",
                 type: "POST",
                 dataType: "json",
                 data: {
@@ -908,7 +908,7 @@ function FormResponsabilidad(id) {
             source: function (request, response) {
                 mostrarOverlay();
                 $.ajax({
-                    url: window.urlin + '/terceros/gestion/datos/listar/buscar_terceros.php',
+                    url: ValueInput('host') + '/terceros/gestion/datos/listar/buscar_terceros.php',
                     dataType: "json",
                     type: 'POST',
                     data: { term: request.term },

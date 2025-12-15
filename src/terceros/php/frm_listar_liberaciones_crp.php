@@ -49,7 +49,7 @@ $otro_form = isset($_POST['otro_form']) ? $_POST['otro_form'] : 0;
                 searching: false,
                 autoWidth: false,
                 ajax: {
-                    url: window.urlin + '/terceros/php/historialtercero/listar_liberaciones_crp.php',
+                    url: ValueInput('host') + '/src/terceros/php/listar_liberaciones_crp.php',
                     type: 'POST',
                     dataType: 'json',
                     data: function(data) {

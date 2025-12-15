@@ -1,0 +1,237 @@
+﻿<?php
+session_start();
+if (!isset($_SESSION['user'])) {
+    header("Location: ../../../index.php");
+    exit();
+}
+include '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
+include '../../../financiero/consultas.php';
+$cmd = \Config\Clases\Conexion::getConexion();
+
+// Consulta funcion fechaCierre del modulo 4
+$fecha_cierre = fechaCierre($_SESSION['vigencia'], 54, $cmd);
+// Div de acciones de la lista
+$id_pto_presupuestos = $_POST['id_ejec'];
+// Recuperar los parámetros start y length enviados por DataTables
+$start = isset($_POST['start']) ? intval($_POST['start']) : 0;
+$length = isset($_POST['length']) ? intval($_POST['length']) : 10;
+$search_value = $_POST['search'] ?? '';
+$anulados = $_POST['anulados'] ?? 0;
+// Verifico si serach_value tiene datos para buscar
+if (!empty($search_value)) {
+    $buscar = "AND (pto_cdp.id_manu LIKE '%$search_value%' OR pto_cdp.objeto LIKE '%$search_value%' OR pto_cdp.fecha LIKE '%$search_value%')";
+} else {
+    $buscar = ' ';
+}
+if ($anulados == 1 || !empty($search_value)) {
+    $buscar .= " AND pto_cdp.estado >= 0";
+} else {
+    $buscar .= " AND pto_cdp.estado >= 0";
+}
+
+//----------- filtros--------------------------
+
+$andwhere = " ";
+
+if (isset($_POST['id_manu']) && $_POST['id_manu']) {
+    $andwhere .= " AND pto_cdp.id_manu LIKE '%" . $_POST['id_manu'] . "%'";
+}
+if (isset($_POST['fec_ini']) && $_POST['fec_ini'] && isset($_POST['fec_fin']) && $_POST['fec_fin']) {
+    $andwhere .= " AND pto_cdp.fecha BETWEEN '" . $_POST['fec_ini'] . "' AND '" . $_POST['fec_fin'] . "'";
+}
+if (isset($_POST['objeto']) && $_POST['objeto']) {
+    $andwhere .= " AND pto_cdp.objeto LIKE '%" . $_POST['objeto'] . "%'";
+}
+if (isset($_POST['estado']) && strlen($_POST['estado'])) {
+    if ($_POST['estado'] == "-1") {
+        $andwhere .= " AND pto_cdp.estado>=" . $_POST['estado'];
+    } else {
+        $andwhere .= " AND pto_cdp.estado=" . $_POST['estado'];
+    }
+}
+
+try {
+    $sql = "SELECT
+                `pto_cdp`.`id_pto_cdp`
+                , `pto_cdp`.`id_manu`
+                , `pto_cdp`.`fecha`
+                , `pto_cdp`.`objeto`
+                , `pto_cdp`.`estado`
+                , IFNULL(`cdp`.`val_cdp`,0) AS `val_cdp`
+                , IFNULL(`cdp`.`val_lib_cdp`,0) AS `val_lib_cdp`
+                , IFNULL(`crp`.`val_crp`,0) AS `val_crp`
+                , IFNULL(`crp`.`val_lib_crp`,0) AS `val_lib_crp`
+            FROM `pto_cdp`
+            LEFT JOIN 
+                (SELECT
+                    `id_pto_cdp`
+                    , SUM(`valor`) AS `val_cdp`
+                    , SUM(`valor_liberado`) AS `val_lib_cdp`
+                FROM
+                    `pto_cdp_detalle`
+                GROUP BY `id_pto_cdp`) AS `cdp`
+                ON (`pto_cdp`.`id_pto_cdp` = `cdp`.`id_pto_cdp`)
+            LEFT JOIN
+                (SELECT
+                    `pto_cdp_detalle`.`id_pto_cdp`
+                    , SUM(`pto_crp_detalle`.`valor`) AS `val_crp`
+                    , SUM(`pto_crp_detalle`.`valor_liberado`) AS `val_lib_crp`
+                FROM
+                    `pto_crp_detalle`
+                    INNER JOIN `pto_crp` 
+                    ON (`pto_crp_detalle`.`id_pto_crp` = `pto_crp`.`id_pto_crp`)
+                    INNER JOIN `pto_cdp_detalle` 
+                    ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
+                WHERE (`pto_crp`.`estado` > 0)
+                GROUP BY `pto_cdp_detalle`.`id_pto_cdp`) AS `crp`
+                ON (`pto_cdp`.`id_pto_cdp` = `crp`.`id_pto_cdp`)
+            WHERE `pto_cdp`.`id_pto` = $id_pto_presupuestos $buscar $andwhere
+            ORDER BY `pto_cdp`.`id_manu` DESC
+            LIMIT $start, $length";
+    $rs = $cmd->query($sql);
+    $listappto = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
+} catch (PDOException $e) {
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+}
+
+try {
+    $sql = "SELECT
+                `pto_cdp`.`id_pto_cdp`
+                , `pto_crp`.`id_pto_crp`
+            FROM
+                `pto_cdp`
+                LEFT JOIN `pto_crp` 
+                    ON (`pto_crp`.`id_cdp` = `pto_cdp`.`id_pto_cdp`)
+            WHERE (`pto_cdp`.`id_pto` = $id_pto_presupuestos)";
+    $rs = $cmd->query($sql);
+    $registros = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
+} catch (PDOException $e) {
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+}
+// obtener el numero total de registros de la anterior consulta
+try {
+    $sql = "SELECT COUNT(*) AS `total` FROM `pto_cdp` WHERE `id_pto` = $id_pto_presupuestos";
+    $rs = $cmd->query($sql);
+    $total = $rs->fetch();
+    $totalRecords = $total['total'];
+} catch (PDOException $e) {
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+}
+
+if (!empty($listappto)) {
+    foreach ($listappto as $lp) {
+        $anular = $dato = $borrar = $imprimir = $historial = $abrir = $liberar = null;
+        $id_pto = $lp['id_pto_cdp'];
+        // Sumar el valor del cdp de la tabla id_pto_mtvo
+        $valor_cdp = number_format($lp['val_cdp'], 2, ',', '.');
+        $valor_cdp_lib = number_format($lp['val_lib_cdp'], 2, ',', '.');
+        $valor_crp = number_format($lp['val_crp'], 2, ',', '.');
+        $valor_crp_lib = number_format($lp['val_lib_crp'], 2, ',', '.');
+        $val_cdp = $lp['val_cdp'] - $lp['val_lib_cdp'];
+        $val_crp = $lp['val_crp'] - $lp['val_lib_crp'];
+        $cxregistrar = $val_cdp - $val_crp;
+        $xregistrar = number_format($cxregistrar, 2, ',', '.');
+        $fecha = date('Y-m-d', strtotime($lp['fecha']));
+        // si $fecha es menor a $fecha_cierre no se puede editar ni eliminar
+        $info = base64_encode($id_pto . '|cdp');
+        if ($fecha > $fecha_cierre && ($permisos->PermisosUsuario($opciones, 5401, 5) || $id_rol == 1)) {
+            $anular = '<button text="' . $info . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow" title="Anular" onclick="anulacionPto(this);"><span class="fas fa-ban "></span></button>';
+        }
+        if ($permisos->PermisosUsuario($opciones, 5401, 2) || $id_rol == 1) {
+            if ($lp['estado'] == 2) {
+                $registrar = '<a value="' . $id_pto . '" onclick="CargarFormularioCrpp(' . $id_pto . ')" class="text-blue " role="button" title="Detalles"><span class="badge rounded-pill text-bg-primary">Registrar</span></a>';
+            } else {
+                $mje = "Primero debe cerrar el CDP";
+                $registrar = '<a onclick="mjeError(\'' . htmlspecialchars($mje, ENT_QUOTES) . '\')" class="text-blue" role="button" title="Detalles"><span class="badge rounded-pill text-bg-secondary">Registrar</span></a>';
+            }
+            if ($cxregistrar  == 0) {
+                $registrar = '--';
+            } else {
+                if ($lp['estado'] == 2) {
+                    $liberar = '<a value="' . $id_pto . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_liberar_cdp" title="Liberar"><span class="fas fa-arrow-alt-circle-left "></span></a>';
+                }
+            }
+            if ($fecha <= $fecha_cierre || $val_crp > 0) {
+                $anular = null;
+            }
+            $editar = '<a value="' . $id_pto . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
+            $detalles = '<a value="' . $id_pto . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow detalles" title="Detalles"><span class="fas fa-eye "></span></a>';
+            $historial = '<a value="' . $id_pto . '" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow" title="Ver Historial" onclick="verLiquidarCdp(' . $id_pto . ');"><span class="fas fa-history "></span></a>';
+        }
+        if ($permisos->PermisosUsuario($opciones, 5401, 6) || $id_rol == 1) {
+            $imprimir = '<a value="' . $id_pto . '" onclick="imprimirFormatoCdp(' . $id_pto . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow" title="Impirmir"><span class="fas fa-print "></span></a>';
+        }
+        if ($permisos->PermisosUsuario($opciones, 5401, 4) || $id_rol == 1) {
+            $borrar = '<a value="' . $id_pto . '"    onclick="eliminarCdp(' . $id_pto . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow " title="Registrar"><span class="fas fa-trash-alt "></span></a>';
+            if ($fecha <= $fecha_cierre) {
+                $borrar = null;
+            }
+            if ($lp['val_cdp'] ==  $cxregistrar) {
+            } else {
+                $borrar = null;
+                $editar = null;
+            }
+        }
+        $key = array_search($id_pto, array_column($registros, 'id_pto_cdp'));
+        $valida = $registros[$key]['id_pto_crp'] == '' ? true : false;
+        if (($id_rol == 1 || $permisos->PermisosUsuario($opciones, 5401, 5)) && $valida) {
+            if ($lp['estado'] == 2) {
+                $abrir = '<a onclick="abrirCdp(' . $id_pto . ')" class="btn btn-outline-secondary btn-xs rounded-circle me-1 shadow " title="Abrir CDP"><span class="fas fa-lock "></span></a>';
+            } else {
+                $abrir = '<a onclick="cerrarCdp(' . $id_pto . ')" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow " title="Cerrar CDP"><span class="fas fa-unlock "></span></a>';
+            }
+            if ($fecha <= $fecha_cierre) {
+                $abrir = null;
+            }
+        }
+        if ($lp['estado'] == 0) {
+            $borrar = null;
+            $editar = null;
+            $detalles = null;
+            $anular = null;
+            $historial = null;
+            $abrir = null;
+            $dato = '<span class="badge rounded-pill text-bg-secondary">Anulado</span>';
+            $registrar = '';
+            $xregistrar = '';
+            $liberar = null;
+        }
+        if ($lp['estado'] >= 2) {
+            $borrar = null;
+            $editar = null;
+        }
+        $historial = null;
+        $data[] = [
+            'numero' => $lp['id_manu'],
+            'fecha' => $fecha,
+            'objeto' => $lp['objeto'],
+            'valor' =>  '<div class="text-end">' . $valor_cdp . '</div>',
+            'liberado' =>  '<div class="text-end">' . $valor_cdp_lib . '</div>',
+            'xregistrar' =>  '<div class="text-end">' . $xregistrar  . '</div>',
+            'accion' => '<div class="text-center">' . $registrar . '</div>',
+            'botones' => '<div class="text-center">' . $editar . $detalles . $imprimir . $anular . $borrar . $dato . $historial . $abrir . $liberar . '</div>',
+        ];
+    }
+} else {
+    $data = [];
+}
+$cmd = null;
+$datos = [
+    'data' => $data,
+    'recordsFiltered' => $totalRecords,
+    'recordsTotal' => $totalRecords,
+];
+
+
+echo json_encode($datos);

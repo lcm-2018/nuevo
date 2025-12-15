@@ -1,0 +1,34 @@
+﻿<?php
+session_start();
+if (!isset($_SESSION['user'])) {
+    header('Location: ../../../../index.php');
+    exit();
+}
+include '../../../../config/autoloader.php';
+
+$id = isset($_POST['id_pto_mod']) ? $_POST['id_pto_mod'] : exit('Acceso no disponible');
+
+$fecha = $_POST['fecha'];
+$motivo = $_POST['objeto'];
+$id_user = $_SESSION['id_user'];
+$estado = 0;
+try {
+    $cmd = \Config\Clases\Conexion::getConexion();
+    $sql = "UPDATE `pto_mod`
+                SET `estado`= ?, `id_user_anula` = ?, `fecha_anula` = ?, `concepto_anula` = ? 
+            WHERE `id_pto_mod` = ?";
+    $sql = $cmd->prepare($sql);
+    $sql->bindParam(1, $estado, PDO::PARAM_INT);
+    $sql->bindParam(2, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(3, $fecha, PDO::PARAM_STR);
+    $sql->bindParam(4, $motivo, PDO::PARAM_STR);
+    $sql->bindParam(5, $id, PDO::PARAM_INT);
+    $sql->execute();
+    if ($sql->rowCount() > 0) {
+        echo 'ok';
+    } else {
+        echo $sql->errorInfo()[2];
+    }
+} catch (PDOException $e) {
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+}

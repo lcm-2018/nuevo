@@ -15,6 +15,7 @@ require_once '../../../../vendor/autoload.php';
 
 use Src\Common\Php\Clases\Permisos;
 use Config\Clases\Conexion;
+use Config\Clases\Plantilla;
 
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_user);
@@ -38,14 +39,14 @@ foreach ($variables as $v) {
             $docRoot = $_SERVER['DOCUMENT_ROOT'];
 
             // Verificar si existe una variable con el nombre del marcador
-            $imgPath = isset($$var_) ? $$var_ : '/nuevo/assets/images/firmas/frm_' . $var_ . '.png';
+            $imgPath = isset($$var_) ? $$var_ : Plantilla::getHost() . '/assets/images/firmas/frm_' . $var_ . '.png';
 
             // Construir la ruta absoluta completa
             $fullPath = $docRoot . $imgPath;
 
             // Verificar si el archivo existe, si no usar la imagen vacía
             if (!file_exists($fullPath)) {
-                $fullPath = $docRoot . '/nuevo/assets/images/vacio.png';
+                $fullPath = $docRoot . Plantilla::getHost() . '/assets/images/vacio.png';
             }
 
             // Insertar la imagen en el documento

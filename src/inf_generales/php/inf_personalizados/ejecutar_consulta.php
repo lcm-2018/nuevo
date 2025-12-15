@@ -44,29 +44,29 @@ try {
             <thead>
                 <tr id="encabezado">
                     <?php
-                    for ($i = 0; $i < $n; $i++):
+                    for ($i = 0; $i < $n; $i++) {
                         $col = $rs->getColumnMeta($i);
                     ?>
-                        <th class="bg-sofia"><?php echo $col['name'] ?></th>
-                    <?php endfor; ?>
+                        <th class="bg-sofia"><?= $col['name'] ?></th>
+                    <?php } ?>
                 </tr>
             </thead>
             <tbody>
                 <?php
                 $j = 0;
-                foreach ($objs as $obj) : ?>
+                foreach ($objs as $obj) { ?>
                     <tr>
-                        <?php for ($i = 0; $i < $n; $i++) : ?>
-                            <td><?php echo $obj[$i] ?></td>
-                        <?php endfor; ?>
+                        <?php foreach ($obj as $valor) { ?>
+                            <td><?= $valor ?></td>
+                        <?php } ?>
                     </tr>
                 <?php $j++;
-                endforeach; ?>
+                } ?>
             </tbody>
         </table>
     </div>
-    <label><strong>No. Registros Visualizados:<?php echo $j ?></strong></label>
-    <label><strong>De un Total de:<?php echo $total ?></strong></label>
+    <label><strong>No. Registros Visualizados:<?= $j ?></strong></label>
+    <label><strong>De un Total de:<?= $total ?></strong></label>
 <?php
     $cmd = null;
 } catch (PDOException $e) {

@@ -255,7 +255,7 @@ const tableAdquisiciones = crearDataTable(
             let id_bs = $(this).val();
             $.ajax({
                 type: 'POST',
-                url: window.urlin + '/contratacion/adquisiciones/registrar/slc_objeto_predef.php',
+                url: ValueInput('host') + '/contratacion/adquisiciones/registrar/slc_objeto_predef.php',
                 data: { id_bs: id_bs },
                 success: function (r) {
                     $('#txtObjeto').html(r);
@@ -266,7 +266,7 @@ const tableAdquisiciones = crearDataTable(
             let id_bs = $(this).val();
             $.ajax({
                 type: 'POST',
-                url: window.urlin + '/contratacion/adquisiciones/registrar/slc_objeto_predef.php',
+                url: ValueInput('host') + '/contratacion/adquisiciones/registrar/slc_objeto_predef.php',
                 data: { id_bs: id_bs },
                 success: function (r) {
                     $('#txtObjeto').html(r);
@@ -992,7 +992,7 @@ const tableAdquisiciones = crearDataTable(
         $(this).autocomplete({
             source: function (request, response) {
                 $.ajax({
-                    url: window.urlin + "/terceros/gestion/datos/listar/buscar_terceros.php",
+                    url: ValueInput('host') + "/terceros/gestion/datos/listar/buscar_terceros.php",
                     dataType: "json",
                     type: 'POST',
                     data: {

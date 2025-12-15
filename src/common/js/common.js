@@ -197,7 +197,7 @@ const EliminaRegistro = (url, id, tabla, action = 'del') => {
             SendPost(url, data).then((response) => {
                 if (response.status === 'ok') {
                     mje('Proceso realizado correctamente!');
-                    tabla.ajax.reload(null, false);
+                    $("#" + tabla).DataTable().ajax.reload(null, false);
                 } else {
                     mjeError('Error!', response.msg);
                 }
@@ -638,3 +638,18 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+const DownloadFile = (name) => {
+    const form = document.createElement('form');
+    form.action = ValueInput('host') + '/src/common/xlsx/download_formato.php';
+    form.method = 'post';
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'nom_file';
+    input.value = name;
+
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+}

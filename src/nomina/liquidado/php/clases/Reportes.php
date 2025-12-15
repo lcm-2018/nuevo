@@ -94,7 +94,7 @@ class Reportes
 
     public function delRegsitros($id, $tipo = '')
     {
-        $where = $tipo == '' ? 'AND `tipo` = "' . $tipo . '"' : '';
+        $where = $tipo == '' ? '' : "AND `tipo` = '{$tipo}'";
 
         try {
             $sql = "DELETE FROM `nom_cdp_empleados` WHERE `id_nomina` = ? {$where}";
