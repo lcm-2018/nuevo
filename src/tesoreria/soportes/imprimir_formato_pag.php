@@ -791,7 +791,7 @@ foreach ($documentos_tes as $documento) {
         $id_terceros = $id_tercero;
     }
     try {
-        $pdo = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
+        $pdo = \Config\Clases\Conexion::getConexion();
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
         $sql = "SELECT
                     IF(`fac_facturacion`.`num_efactura` IS NULL,`fac_facturacion`.`num_factura`, CONCAT(`prefijo`, `num_efactura`)) AS `num_factura`      

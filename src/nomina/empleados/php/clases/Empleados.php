@@ -344,7 +344,7 @@ class Empleados
             $cuerpo =
                 <<<HTML
             <div class="p-3">
-                <ul class="nav nav-tabs" id="btnFormEmpleado" role="tablist">
+                <ul class="nav nav-tabs small" id="btnFormEmpleado" role="tablist">
                     <li class="nav-item bg-sofia" role="presentation">
                         <button data-id="emp" class="nav-link active" data-bs-toggle="tab" data-bs-target="#formEmpleado" type="button" role="tab" aria-selected="true">EMPLEADO</button>
                     </li>

@@ -110,12 +110,12 @@ $fecha = date('Y-m-d', strtotime($listado[0]['fecha']));
             <table id="tableContrtacionRp" class="table table-striped table-bordered nowrap table-sm table-hover shadow" style="width: 100%;">
                 <thead>
                     <tr>
-                        <th>Num</th>
-                        <?= $_SESSION['pto'] == '1' ? '<th>RAD</th><th>Contrato</th>' : ''; ?>
-                        <th>Fecha</th>
-                        <th>Terceros</th>
-                        <?= $_SESSION['pto'] == '1' ? '<th>Valor</th>' : ''; ?>
-                        <th>Acciones</th>
+                        <th class="bg-sofia">Num</th>
+                        <?= $_SESSION['pto'] == '1' ? '<th class="bg-sofia">RAD</th><th class="bg-sofia">Contrato</th>' : ''; ?>
+                        <th class="bg-sofia">Fecha</th>
+                        <th class="bg-sofia">Terceros</th>
+                        <?= $_SESSION['pto'] == '1' ? '<th class="bg-sofia">Valor</th>' : ''; ?>
+                        <th class="bg-sofia">Acciones</th>
 
                     </tr>
                 </thead>

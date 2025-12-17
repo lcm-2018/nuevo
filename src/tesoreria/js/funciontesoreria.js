@@ -400,7 +400,7 @@ var tabla;
 	});
 
 	//--------------informes bancos
-	$('#sl_libros_aux_bancos').on("click", function () {
+	$('#sl_libros_aux_bancos_tes').on("click", function () {
 		$.post("php/informes_bancos/frm_libros_aux_bancos.php", {}, function (he) {
 			$('#divTamModalForms').removeClass('modal-lg');
 			$('#divTamModalForms').removeClass('modal-sm');
@@ -423,7 +423,7 @@ var tabla;
 		var id_ctb_doc = $('#id_ctb_doc').val();
 
 		if (accion_pto > 0) {
-			$.post(window.urlin + "/tesoreria/php/afectacion_presupuestal/frm_afectacion_presupuestal.php", { id_ctb_fuente: id_ctb_fuente, id_ctb_referencia: id_ctb_referencia, accion_pto: accion_pto, fecha: fecha, id_tercero_api: id_tercero_api, tercero: tercero, objeto: objeto, id_ctb_doc: id_ctb_doc }, function (he) {
+			$.post(ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/frm_afectacion_presupuestal.php', { id_ctb_fuente: id_ctb_fuente, id_ctb_referencia: id_ctb_referencia, accion_pto: accion_pto, fecha: fecha, id_tercero_api: id_tercero_api, tercero: tercero, objeto: objeto, id_ctb_doc: id_ctb_doc }, function (he) {
 				$('#divTamModalReg').removeClass('modal-xl');
 				$('#divTamModalReg').removeClass('modal-sm');
 				$('#divTamModalReg').addClass('modal-lg');
@@ -1103,7 +1103,7 @@ const EnviarNomina = (boton) => {
 	let id = boton.value;
 	boton.value = "";
 	boton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-	let url = window.urlin + "/nomina/enviar/soportenomelec.php";
+	let url = ValueInput('host') + '/src/nomina/enviar/soportenomelec.php';
 	fetch(url, {
 		method: "POST",
 		body: JSON.stringify({ id: id }),
@@ -1276,7 +1276,7 @@ $("#tableMvtoContableDetallePag").on("input", ".bTercero", function () {
 	$(this).autocomplete({
 		source: function (request, response) {
 			$.ajax({
-				url: window.urlin + "/presupuesto/datos/consultar/buscar_terceros.php",
+				url: ValueInput('host') + '/src/presupuesto/datos/consultar/buscar_terceros.php',
 				type: "post",
 				dataType: "json",
 				data: {
@@ -2727,13 +2727,13 @@ const generarInformeLibrosTesoreria = (id) => {
 	let fecha_corte = fecha.value;
 	let archivo = 0;
 	if (tipo == 1) {
-		archivo = window.urlin + "/tesoreria/informes/informe_libro_causaciones_xls.php";
+		archivo = ValueInput('host') + '/src/tesoreria/informes/informe_libro_causaciones_xls.php';
 	}
 	if (tipo == 2) {
-		archivo = window.urlin + "/tesoreria/informes/informe_libro_egresoscp_xls.php";
+		archivo = ValueInput('host') + '/src/tesoreria/informes/informe_libro_egresoscp_xls.php';
 	}
 	if (tipo == 3) {
-		archivo = window.urlin + "/tesoreria/informes/informe_reporte_terceros_cop_pag_form_detallle.php";
+		archivo = ValueInput('host') + '/src/tesoreria/informes/informe_reporte_terceros_cop_pag_form_detallle.php';
 	}
 	let ruta = {
 		url: archivo,
@@ -2745,7 +2745,7 @@ const generarInformeLibrosTesoreria = (id) => {
 
 // Funcion para generar archivo de pagos OPS
 const imprimirReferenciaPago = (id) => {
-	archivo = window.urlin + "/tesoreria/informes/informe_referencias_pago.php";
+	archivo = ValueInput('host') + '/src/tesoreria/informes/informe_referencias_pago.php';
 	let ruta = {
 		url: archivo,
 		name: "referencia",
@@ -2760,7 +2760,7 @@ const generarReporteTerceros = (id) => {
 	let fecha_inicial = fecha_ini.value;
 	let fecha_final = fecha_fin.value;
 	let vacio = "";
-	archivo = window.urlin + "/tesoreria/informes/informe_reporte_terceros_cop_pag_detallle.php";
+	archivo = ValueInput('host') + '/src/tesoreria/informes/informe_reporte_terceros_cop_pag_detallle.php';
 	let ruta = {
 		url: archivo,
 		name1: "tercero",
@@ -2782,7 +2782,7 @@ const generarInfPorTercero = (boton) => {
 	InactivaBoton(boton);
 	let fec_ini = fecha_ini.value;
 	let fec_fin = fecha_fin.value;
-	let url = window.urlin + "/tesoreria/php/informes/consolidado_por_terceros.php";
+	let url = ValueInput('host') + '/src/tesoreria/php/informes/consolidado_por_terceros.php';
 	$.post(url, { fec_ini: fec_ini, fec_fin: fec_fin }, function (he) {
 		$("#areaImprimir").html(he);
 	});

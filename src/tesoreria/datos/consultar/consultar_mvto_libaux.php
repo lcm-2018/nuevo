@@ -3,8 +3,8 @@ $_post = json_decode(file_get_contents('php://input'), true);
 $id = $_post['id'];
 include '../../../conexion.php';
 try {
-    $pdo = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $pdo = \Config\Clases\Conexion::getConexion();
+
     $sq2 = "SELECT
         `ctb_libaux`.`id_ctb_libaux`
         , `ctb_pgcp`.`cuenta`

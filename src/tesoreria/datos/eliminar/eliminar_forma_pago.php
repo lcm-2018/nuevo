@@ -1,18 +1,20 @@
 <?php
+
+include '../../../../config/autoloader.php';
+
+use Config\Clases\Logs;
+
 $_post = json_decode(file_get_contents('php://input'), true);
 $id = $_post['id'];
-include '../../../conexion.php';
 try {
-    $pdo = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $pdo = \Config\Clases\Conexion::getConexion();
+
     $query = $pdo->prepare("DELETE FROM tes_detalle_pago WHERE id_detalle_pago = ?");
     $query->bindParam(1, $id);
     $query->execute();
     if ($query->rowCount() > 0) {
-        include '../../../financiero/reg_logs.php';
-        $ruta = '../../../log';
         $consulta = "DELETE FROM tes_detalle_pago WHERE id_detalle_pago = $id";
-        RegistraLogs($ruta, $consulta);
+        Logs::guardaLog($consulta);
         $response[] = array("value" => 'ok', "id" => $id);
     } else {
         print_r($query->errorInfo()[2]);

@@ -1,12 +1,15 @@
 <?php
+
+use Config\Clases\Logs;
+
 $_post = json_decode(file_get_contents('php://input'), true);
 $id = $_post['id'];
 include '../../../conexion.php';
 // consulto si el id de la cuenta fue utilizado en seg_fin_chequera_cont
 $response['status'] = 'error';
 try {
-    $pdo = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $pdo = \Config\Clases\Conexion::getConexion();
+
     $query = "SELECT `id_tes_cuenta` FROM `tes_detalle_pago` WHERE `id_tes_cuenta` = ?";
     $query = $pdo->prepare($query);
     $query->bindParam(1, $id);
@@ -21,10 +24,8 @@ try {
             $sql->bindParam(1, $id);
             $sql->execute();
             if ($sql->rowCount() > 0) {
-                include '../../../financiero/reg_logs.php';
-                $ruta = '../../../log';
                 $consulta = "DELETE FROM `tes_cuentas` WHERE `id_tes_cuenta` = $id";
-                RegistraLogs($ruta, $consulta);
+                Logs::guardaLog($consulta);
                 $response['status'] = 'ok';
             } else {
                 $response['msg'] = $pdo->errorInfo()[2];

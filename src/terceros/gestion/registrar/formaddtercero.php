@@ -76,7 +76,7 @@ try {
         </div>
         <div class="card-body" id="divCuerpoPag">
             <nav>
-                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <div class="nav nav-tabs small" id="nav-tab" role="tablist">
                     <a class="nav-item nav-link active small" id="nav_regTercro-tab" data-bs-toggle="tab" href="#nav_regTercro" role="tab" aria-controls="nav_regTercro" aria-selected="true">Nuevo Tercero</a>
                     <a class="nav-item nav-link small" id="nav-agregTipoTercer-tab" data-bs-toggle="tab" href="#nav-agregTipoTercer" role="tab" aria-controls="nav-agregTipoTercer" aria-selected="false">Agregar Tipo de Tercero</a>
                 </div>

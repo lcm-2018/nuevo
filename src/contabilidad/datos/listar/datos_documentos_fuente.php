@@ -45,9 +45,9 @@ if (!empty($lista)) {
             }
         }
         if ($lp['estado'] == 1) {
-            $estado = '<span class="badge badge-success">Activa</span>';
+            $estado = '<span class="badge rounded-pill text-bg-success">Activa</span>';
         } else {
-            $estado = '<span class="badge badge-secondary">Inactiva</span>';
+            $estado = '<span class="badge rounded-pill text-bg-secondary">Inactiva</span>';
         }
         $data[] = [
 

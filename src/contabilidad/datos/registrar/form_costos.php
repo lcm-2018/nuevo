@@ -38,13 +38,13 @@ $opcion = $cuenta['id_cta'] > 0 ? $cuenta['id_cta'] : 0;
         <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
             <h5 class="mb-0" style="color: white;">TRASLADO DE COSTOS</h5>
         </div>
-        <form id="formTrasladoCostos" class="px-3">
+        <form id="formTrasladoCostos" class="p-3">
             <input type="hidden" name="opcion" id="opcion" value="<?= $opcion; ?>">
             <input type="hidden" name="id_pgcp" id="id_pgcp" value="<?= $cuenta['id_pgcp']; ?>">
             <div class="row mb-2 pt-2">
                 <div class="col-md-12">
                     <label for="txtCuenta" class="small">CUENTA SELECCIONADA</label>
-                    <input type="text" name="txtCuenta" id="txtCuenta" class="form-control form-control-sm bg-input" value="<?= $cuenta['cuenta'] ?>" readonly disabled>
+                    <input type="text" name="txtCuenta" id="txtCuenta" class="form-control form-control-sm bg-secondary-subtle" value="<?= $cuenta['cuenta'] ?>" readonly disabled>
                 </div>
             </div>
             <div class="row mb-2">

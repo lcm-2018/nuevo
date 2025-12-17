@@ -31,8 +31,8 @@ if (empty($obj)) {
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header mb-3" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">REGISRTAR SUBGRUPO</h5>
+        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">REGISRTAR SUBGRUPO</h5>
         </div>
         <div class="px-2">
             <form id="frm_reg_subgrupos">
@@ -48,13 +48,13 @@ if (empty($obj)) {
                     </div>
                     <div class="col-md-2">
                         <label for="sl_grp_subgrupo" class="small">Grupo</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_grp_subgrupo" name="sl_grp_subgrupo" required>
+                        <select class="form-select form-select-sm bg-input" id="sl_grp_subgrupo" name="sl_grp_subgrupo" required>
                             <?php grupo_articulo($cmd, '', $obj['id_grupo']) ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label for="sl_actfij_mencua" class="small">Activo Fijo Menor Cuantia</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_actfij_mencua" name="sl_actfij_mencua">
+                        <select class="form-select form-select-sm bg-input" id="sl_actfij_mencua" name="sl_actfij_mencua">
                             <?php estados_sino('', $obj['af_menor_cuantia']) ?>
                         </select>
                     </div>
@@ -73,13 +73,13 @@ if (empty($obj)) {
                     </div>
                     <div class="col-md-2">
                         <label for="sl_lotexdef" class="small">Lote x Defecto</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_lotexdef" name="sl_lotexdef">
+                        <select class="form-select form-select-sm bg-input" id="sl_lotexdef" name="sl_lotexdef">
                             <?php estados_sino('', $obj['lote_xdef']) ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label for="sl_estado" class="small">Estado</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_estado" name="sl_estado">
+                        <select class="form-select form-select-sm bg-input" id="sl_estado" name="sl_estado">
                             <?php estados_registros('', $obj['estado']) ?>
                         </select>
                     </div>
@@ -89,49 +89,49 @@ if (empty($obj)) {
             <!--Tabs para CUENTAS-->
             <div class="p-3">
                 <nav>
-                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                        <a class="nav-item nav-link active small" id="nav_lista_cta_cs-tab" data-toggle="tab" href="#nav_lista_cta_cs" role="tab" aria-controls="nav_lista_cta_cs" aria-selected="true">CUENTA CONTABLE - INVENTARIO</a>
-                        <a class="nav-item nav-link small" id="nav_lista_cta_af-tab" data-toggle="tab" href="#nav_lista_cta_af" role="tab" aria-controls="nav_lista_cta_af" aria-selected="false">CUENTA CONTABLE - ACTIVO FIJO</a>
+                    <div class="nav nav-tabs small" id="nav-tab" role="tablist">
+                        <button class="nav-link active small" id="nav_lista_cta_cs-tab" data-bs-toggle="tab" data-bs-target="#nav_lista_cta_cs" type="button" role="tab" aria-controls="nav_lista_cta_cs" aria-selected="true">CUENTA CONTABLE - INVENTARIO</button>
+                        <button class="nav-link small" id="nav_lista_cta_af-tab" data-bs-toggle="tab" data-bs-target="#nav_lista_cta_af" type="button" role="tab" aria-controls="nav_lista_cta_af" aria-selected="false">CUENTA CONTABLE - ACTIVO FIJO</button>
                     </div>
                 </nav>
 
                 <div class="tab-content pt-2" id="nav-tabContent">
                     <!--Cuentas de Articulos de Consumo-->
                     <div class="tab-pane fade show active" id="nav_lista_cta_cs" role="tabpanel" aria-labelledby="nav_lista_cta_cs-tab">
-                        <table id="tb_cuentas_cs" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
-                            <thead>
-                                <tr class="text-center centro-vertical">
-                                    <th>Id</th>
-                                    <th>Cuenta Contable</th>
-                                    <th>Fecha Inicio de Vigencia</th>
-                                    <th>Cuenta Vigente</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
+                        <table id="tb_cuentas_cs" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle" style="width:100%; font-size:80%">
+                            <thead class="text-center">
+                                <tr>
+                                    <th class="bg-sofia">ID</th>
+                                    <th class="bg-sofia">CUENTA CONTABLE</th>
+                                    <th class="bg-sofia">FECHA INICIO DE VIGENCIA</th>
+                                    <th class="bg-sofia">CUENTA VIGENTE</th>
+                                    <th class="bg-sofia">ESTADO</th>
+                                    <th class="bg-sofia">ACCIONES</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-start centro-vertical"></tbody>
+                            <tbody class="text-start"></tbody>
                         </table>
                     </div>
 
                     <!--Cuentas de Articulos de Activos Fijos-->
                     <div class="tab-pane fade" id="nav_lista_cta_af" role="tabpanel" aria-labelledby="nav_lista_cta_af-tab">
-                        <table id="tb_cuentas_af" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
-                            <thead>
-                                <tr class="text-center centro-vertical">
-                                    <th rowspan="2">Id</th>
-                                    <th colspan="3">Cuentas Contables</th>
-                                    <th rowspan="2">Fecha Inicio de Vigencia</th>
-                                    <th rowspan="2">Cuenta Vigente</th>
-                                    <th rowspan="2">Estado</th>
-                                    <th rowspan="2">Acciones</th>
+                        <table id="tb_cuentas_af" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle" style="width:100%; font-size:80%">
+                            <thead class="text-center">
+                                <tr>
+                                    <th rowspan="2" class="bg-sofia align-middle">ID</th>
+                                    <th colspan="3" class="bg-sofia">CUENTAS CONTABLES</th>
+                                    <th rowspan="2" class="bg-sofia align-middle">FECHA INICIO DE VIGENCIA</th>
+                                    <th rowspan="2" class="bg-sofia align-middle">CUENTA VIGENTE</th>
+                                    <th rowspan="2" class="bg-sofia align-middle">ESTADO</th>
+                                    <th rowspan="2" class="bg-sofia align-middle">ACCIONES</th>
                                 </tr>
-                                <tr class="text-center centro-vertical">
-                                    <th>Activo</th>
-                                    <th>Depreciación</th>
-                                    <th>Gasto Depreciación</th>
+                                <tr>
+                                    <th class="bg-sofia">ACTIVO</th>
+                                    <th class="bg-sofia">DEPRECIACIÓN</th>
+                                    <th class="bg-sofia">GASTO DEPRECIACIÓN</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-start centro-vertical"></tbody>
+                            <tbody class="text-start"></tbody>
                         </table>
                     </div>
                 </div>
@@ -140,7 +140,7 @@ if (empty($obj)) {
     </div>
     <div class="text-center pt-3">
         <button type="button" class="btn btn-primary btn-sm" id="btn_guardar">Guardar</button>
-        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
     </div>
 </div>
 

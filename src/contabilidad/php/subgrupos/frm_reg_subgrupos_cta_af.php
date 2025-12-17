@@ -36,7 +36,7 @@ if (empty($obj)) {
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header mb-3" style="background-color: #16a085 !important;">
+        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
             <h7 style="color: white;">REGISRTAR CUENTAS CONTABLES DE SUBGRUPO - ACTIVO FIJO</h7>
         </div>
         <div class="px-2">
@@ -66,7 +66,7 @@ if (empty($obj)) {
                     </div>
                     <div class="col-md-2">
                         <label for="sl_estado_cta" class="small">Estado</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_estado_cta" name="sl_estado_cta">
+                        <select class="form-select form-select-sm bg-input" id="sl_estado_cta" name="sl_estado_cta">
                             <?php estados_registros('', $obj['estado']) ?>
                         </select>
                     </div>

@@ -304,12 +304,12 @@ class Plantilla
                                                     </a>
                                                 </li>
                                                     <li>
-                                                    <a href="{$host}/src/contabilidad/lista_documentos_mov.php" class="nav-link text-success px-1 py-2 sombra">
+                                                    <a href="{$host}/src/contabilidad/lista_documentos_invoice.php" class="nav-link text-success px-1 py-2 sombra">
                                                         <i class="fas fa-file-invoice me-2 fa-fw"></i> Facturación
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a href="javascript:void(0)" class="nav-link text-info px-1 py-2 sombra">
+                                                    <a href="{$host}/src/contabilidad/informes/lista_informes_contabilidad.php" class="nav-link text-info px-1 py-2 sombra">
                                                         <i class="far fa-file me-2 fa-fw"></i> Informes
                                                     </a>
                                                 </li>
@@ -323,33 +323,43 @@ class Plantilla
                                                     <div class="collapse shadow" id="mas-collapse">
                                                         <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                             <li>
-                                                                <a href="javascript:void(0)" class="nav-link text-primary px-1 py-2 sombra">
+                                                                <a href="{$host}/src/contabilidad/lista_plan_cuentas.php" class="nav-link text-primary px-1 py-2 sombra">
                                                                     <i class="fas fa-book me-2 fa-fw"></i> PUC
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="javascript:void(0)" class="nav-link text-success px-1 py-2 sombra">
+                                                                <a href="{$host}/src/contabilidad/lista_documentos_fuente.php" class="nav-link text-success px-1 py-2 sombra">
                                                                     <i class="fas fa-file-invoice me-2 fa-fw"></i> Documentos
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="javascript:void(0)" class="nav-link text-info px-1 py-2 sombra">
+                                                                <a href="{$host}/src/contabilidad/lista_impuestos.php" class="nav-link text-info px-1 py-2 sombra">
                                                                     <i class="fas fa-folder-open me-2 fa-fw"></i> Impuestos
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="javascript:void(0)" class="nav-link text-muted px-1 py-2 sombra">
+                                                                <a href="{$host}/src/contabilidad/php/cuentas_fac/index.php" class="nav-link text-muted px-1 py-2 sombra">
                                                                     <i class="fas fa-calculator me-2 fa-fw"></i> Ctas. Facturación
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="javascript:void(0)" class="nav-link text-warning px-1 py-2 sombra">
-                                                                    <i class="fas fa-file-invoice-dollar me-2 fa-fw"></i> Centros de Costo
+                                                                <a href="{$host}/src/contabilidad/php/centro_costos/index.php" class="nav-link text-warning px-1 py-2 sombra">
+                                                                    <i class="fas fa-kaaba me-2 fa-fw"></i> Centros de Costo
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="javascript:void(0)" class="nav-link text-secondary px-1 py-2 sombra">
+                                                                <a href="{$host}/src/contabilidad/php/subgrupos/index.php" class="nav-link text-secondary px-1 py-2 sombra">
                                                                     <i class="fas fa-layer-group me-2 fa-fw"></i> Subgrupos
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="{$host}/src/contabilidad/php/tipos_orden_egreso/index.php" class="nav-link text-muted px-1 py-2 sombra">
+                                                                    <i class="fas fa-sign-out-alt me-2 fa-fw"></i> Tipo Orden Egreso
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="{$host}/src/contabilidad/php/tipos_orden_ingreso/index.php" class="nav-link text-success-emphasis px-1 py-2 sombra">
+                                                                    <i class="fas fa-sign-in-alt me-2 fa-fw"></i> Tipo Orden Ingreso
                                                                 </a>
                                                             </li>
                                                         </ul>

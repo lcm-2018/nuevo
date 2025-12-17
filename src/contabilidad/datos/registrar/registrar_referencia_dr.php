@@ -1,4 +1,7 @@
 <?php
+
+use Config\Clases\Logs;
+
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -27,6 +30,8 @@ try {
         $query = $cmd->prepare($query);
         $query->bindParam(1, $id_ctb_ref, PDO::PARAM_INT);
         if ($query->execute()) {
+            $consulta = "DELETE FROM `ctb_referencia` WHERE `id_ctb_referencia` = $id_ctb_ref";
+            Logs::guardaLog($consulta);
             echo 'ok';
         } else {
             echo $query->errorInfo()[2];

@@ -1,9 +1,12 @@
 <?php
+
+use Config\Clases\Logs;
+
 $id = $_POST['id'];
 include '../../../conexion.php';
 $response['status'] = 'error';
 try {
-    $pdo = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
+    $pdo = \Config\Clases\Conexion::getConexion();
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
     $sql = "SELECT id_arqueo FROM tes_ids_arqueo WHERE id_causa = ?";
     $query = $pdo->prepare($sql);
@@ -22,10 +25,8 @@ try {
             $id_arqueo = $row['id_arqueo'];
             $up->execute();
         }
-        include '../../../financiero/reg_logs.php';
-        $ruta = '../../../log';
         $consulta = "DELETE FROM tes_causa_arqueo WHERE id_causa_arqueo = $id";
-        RegistraLogs($ruta, $consulta);
+        Logs::guardaLog($consulta);
         $response['status'] = 'ok';
         $response['id'] = $id;
     } else {

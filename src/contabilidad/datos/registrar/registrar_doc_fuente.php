@@ -50,7 +50,7 @@ try {
             $response['msg'] = $query->errorInfo()[2];
         } else {
             if ($query->rowCount() > 0) {
-                $query = $query = "UPDATE `ctb_pgcp` SET `fec_act` = ?, `id_usuer_act` = ? WHERE `id_doc_fuente` = ?";
+                $query = $query = "UPDATE `ctb_fuente` SET `fecha_act` = ?, `id_user_act` = ? WHERE `id_doc_fuente` = ?";
                 $query = $cmd->prepare($query);
                 $query->bindValue(1, $date->format('Y-m-d H:i:s'));
                 $query->bindParam(2, $iduser, PDO::PARAM_INT);

@@ -431,7 +431,7 @@
 
 	//--------------informes bancos
 	$('#sl_libros_aux_bancos').on("click", function () {
-		$.post(window.urlin + "/contabilidad/php/informes_bancos/frm_libros_aux_bancos.php", {}, function (he) {
+		$.post(ValueInput('host') + '/src/contabilidad/php/informes_bancos/frm_libros_aux_bancos.php', {}, function (he) {
 			$('#divTamModalForms').removeClass('modal-lg');
 			$('#divTamModalForms').removeClass('modal-sm');
 			$('#divTamModalForms').addClass('modal-lg');
@@ -443,7 +443,7 @@
 
 	//--------------frm informes supersalud
 	$('#sl_supersalud').on("click", function () {
-		$.post(window.urlin + "/contabilidad/php/supersalud/frm_supersalud.php", {}, function (he) {
+		$.post(ValueInput('host') + '/src/contabilidad/php/supersalud/frm_supersalud.php', {}, function (he) {
 			$('#divTamModalForms').removeClass('modal-lg');
 			$('#divTamModalForms').removeClass('modal-sm');
 			$('#divTamModalForms').addClass('modal-lg');
@@ -464,6 +464,33 @@
 		if (e.keyCode == 13) {
 			reloadtable('tableMvtoContable');
 		}
+	});
+
+	$('#btn_buscar_filtro_Invoice').on("click", function () {
+		$('#tableMvtCtbInvoice').DataTable().ajax.reload(null, false)
+	});
+
+	$('#areaReporte').on('click', '#btnExcelEntrada', function () {
+		let datos = [];
+		$('#areaImprimir table tr').each(function () {
+			let fila = [];
+			$(this).find('th, td').each(function () {
+				fila.push($(this).text().trim());
+			});
+			datos.push(fila);
+		});
+
+		let form = $('<form>', {
+			action: ValueInput('host') + '/src/financiero/reporte_excel.php',
+			method: 'post'
+		}).append($('<input>', {
+			type: 'hidden',
+			name: 'datos',
+			value: JSON.stringify(datos)
+		}));
+
+		$('body').append(form);
+		form.submit();
 	});
 
 })(jQuery);
@@ -890,7 +917,7 @@ $("#tableMvtoContableDetalle").on("input", ".bTercero", function () {
 	$(this).autocomplete({
 		source: function (request, response) {
 			$.ajax({
-				url: window.urlin + "/presupuesto/datos/consultar/buscar_terceros.php",
+				url: ValueInput('host') + '/src/presupuesto/datos/consultar/buscar_terceros.php',
 				type: "post",
 				dataType: "json",
 				data: {
@@ -911,7 +938,7 @@ $('#areaReporte').on('click', '#bTercero', function () {
 	$(this).autocomplete({
 		source: function (request, response) {
 			$.ajax({
-				url: window.urlin + "/presupuesto/datos/consultar/buscar_terceros.php",
+				url: ValueInput('host') + '/src/presupuesto/datos/consultar/buscar_terceros.php',
 				type: "post",
 				dataType: "json",
 				data: {
@@ -2350,7 +2377,11 @@ const DesctosCtasPorPagar = (id, fc) => {
 
 const editarFactura = (boton) => {
 	var data = atob(boton.getAttribute("text"));
-	FacturarCtasPorPagar(data);
+	if ($('#id_rad').length) {
+		GeneraFormInvoice(data);
+	} else {
+		FacturarCtasPorPagar(data);
+	}
 	$('#tipoDoc').focus();
 
 };
@@ -2376,7 +2407,11 @@ const eliminarFactura = (boton) => {
 				success: function (response) {
 					if (response.status == "ok") {
 						mje("Registro eliminado");
-						FacturarCtasPorPagar(response.id);
+						if ($('#id_rad').length) {
+							GeneraFormInvoice(response.id);
+						} else {
+							FacturarCtasPorPagar(response.id);
+						}
 						$('#valFactura').html(response.acumulado);
 					} else {
 						mjeError("Error: " + response.msg);
@@ -2524,12 +2559,7 @@ const generaMovimientoInvoice = (boton) => {
 			} else {
 				mjeError("Error al guardar:" + response.msg);
 			}
-		})
-		.catch((error) => {
-			console.log("Error:");
-		}).fail(function () {
-			mjeError('Ocurrió un error');
-		}).always(function () {
+		}).finally(function () {
 			ocultarOverlay();
 		});
 };
@@ -3484,6 +3514,9 @@ const generarInformeCtb = (boton) => {
 		tp_doc = $("#slcTpDoc").val();
 		id_tercero = $("#id_tercero").val();
 	}
+	if ($("#tipo_sede").length) {
+		id_tercero = $("#tipo_sede").val();
+	}
 	if ($("#xTercero").length) {
 		xtercero = $("#xTercero").is(":checked") ? 1 : 0;
 	}
@@ -3501,7 +3534,7 @@ const generarInformeCtb = (boton) => {
 		xtercero: xtercero,
 	}
 
-	var ruta = window.urlin + "/contabilidad/informes/";
+	var ruta = ValueInput('host') + '/src/contabilidad/informes/';
 
 	if (id == 1) {
 		ruta = ruta + "informe_impuestos_mpio_resumen.php";
@@ -3530,22 +3563,61 @@ const generarInformeCtb = (boton) => {
 	} else if (id == 13) {
 		ruta = ruta + "informe_contaduria_detalle.php";
 	}
-	boton.disabled = true;
-	var span = boton.querySelector("span")
-	span.classList.add("spinner-border", "spinner-border-sm");
+	mostrarOverlay();
 	$.ajax({
 		url: ruta,
 		type: "POST",
 		data: data,
 		success: function (response) {
-			boton.disabled = false;
-			span.classList.remove("spinner-border", "spinner-border-sm")
 			areaImprimir.innerHTML = response;
 		}, error: function (error) {
 			console.log("Error:" + error);
 		}
+	}).always(function () {
+		ocultarOverlay();
 	});
 };
+
+document.addEventListener("keyup", (e) => {
+	let valor = 2;
+	if (e.target.id == "rubroCod") {
+		let tipo_doc = $("#tipo_doc").val();
+		//salert(tipo_doc);
+		console.log("llego");
+		let id_pto = $("#id_pto_movto").val();
+		$("#rubroCod").autocomplete({
+			source: function (request, response) {
+				mostrarOverlay();
+				$.ajax({
+					url: ValueInput('host') + '/src/presupuesto/datos/consultar/consultaRubrosMod.php',
+					type: "post",
+					dataType: "json",
+					data: {
+						search: request.term,
+						id_pto: id_pto
+					},
+					success: function (data) {
+						response(data);
+					},
+				}).always(function () {
+					ocultarOverlay();
+				});
+			},
+			select: function (event, ui) {
+				$("#rubroCod").val(ui.item.label);
+				$("#id_rubroCod").val(ui.item.value);
+				$("#tipoRubro").val(ui.item.tipo);
+				return false;
+			},
+			focus: function (event, ui) {
+				$("#rubroCod").val(ui.item.label);
+				$("#id_rubroCod").val(ui.item.value);
+				$("#tipoRubro").val(ui.item.tipo);
+				return false;
+			},
+		});
+	}
+});
 
 $('#areaReporte').on('dblclick', '#tbBalancePrueba tr', function () {
 	var cuenta = $(this).find('td:eq(0)').text();
@@ -3557,14 +3629,14 @@ $('#areaReporte').on('dblclick', '#tbBalancePrueba tr', function () {
 	var check = $('#xTercero').is(':checked') ? 1 : 0;
 	$('#divModalEspera').modal('show');
 	$.ajax({
-		url: window.urlin + "/contabilidad/informes/informe_libros_auxiliares_detalle.php",
+		url: ValueInput('host') + '/src/contabilidad/informes/informe_libros_auxiliares_detalle.php',
 		type: "POST",
 		data: { cuenta: cuenta, tipo: tipo, nit: nit, saldo: saldo, f_ini: f_ini, f_fin: f_fin, xTercero: check },
 		success: function (r) {
 			setTimeout(function () {
 				hideModalEspera()
 				let encodedTable = btoa(unescape(encodeURIComponent(r)));
-				$('<form action="' + window.urlin + '/financiero/reporte_excel.php" method="post">' +
+				$('<form action="' + ValueInput('host') + '/src/financiero/reporte_excel.php" method = "post" > ' +
 					'<input type="hidden" name="xls" value="' + encodedTable + '" />' +
 					'<input type="hidden" name="head" value="1" />' +
 					'</form>').appendTo('body').submit();

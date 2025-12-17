@@ -196,7 +196,7 @@ $(function () {
         });
 
         let form = $('<form>', {
-            action: '../php/informes_bancos/reporte_excel.php',
+            action: '../../php/informes_bancos/reporte_excel.php',
             method: 'post'
         }).append($('<input>', {
             type: 'hidden',

@@ -115,6 +115,9 @@ $fecha_max = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-12-31'));
 $fecha_fact = $fecha;
 $fecha_ven = strtotime('+30 day', strtotime($fecha_doc));
 $fecha_ven = date('Y-m-d', $fecha_ven);
+if ($fecha_ven > $vigencia . '-12-31') {
+    $fecha_ven = $vigencia . '-12-31';
+}
 $cmd = null;
 if (empty($detalle)) {
     $detalle = [
@@ -160,10 +163,10 @@ if (empty($detalle)) {
                     <table id="tableIngresosCausa" class="table table-striped table-bordered table-sm table-hover shadow" style="width: 50%;">
                         <thead>
                             <tr>
-                                <th>INGRESO</th>
-                                <th>VALOR BASE</th>
-                                <th>VALOR IVA</th>
-                                <th>VALOR TOTAL</th>
+                                <th class="bg-sofia">INGRESO</th>
+                                <th class="bg-sofia">VALOR BASE</th>
+                                <th class="bg-sofia">VALOR IVA</th>
+                                <th class="bg-sofia">VALOR TOTAL</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -254,16 +257,16 @@ if (empty($detalle)) {
         <table id="tablaFacturasCXP" class="table table-striped table-bordered nowrap table-sm table-hover shadow" style="width: 100%;">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Tipo</th>
-                    <th>Número</th>
-                    <th>Fecha</th>
-                    <th>Vence</th>
-                    <th>Valor</th>
-                    <th>IVA</th>
-                    <th>Base</th>
-                    <th>Detalle</th>
-                    <th>Acciones</th>
+                    <th class="bg-sofia">ID</th>
+                    <th class="bg-sofia">Tipo</th>
+                    <th class="bg-sofia">Número</th>
+                    <th class="bg-sofia">Fecha</th>
+                    <th class="bg-sofia">Vence</th>
+                    <th class="bg-sofia">Valor</th>
+                    <th class="bg-sofia">IVA</th>
+                    <th class="bg-sofia">Base</th>
+                    <th class="bg-sofia">Detalle</th>
+                    <th class="bg-sofia">Acciones</th>
                 </tr>
             </thead>
             <tbody>

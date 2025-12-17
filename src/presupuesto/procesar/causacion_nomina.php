@@ -59,7 +59,7 @@ if (empty($valxrubro)) {
         $cod_rubro = $vr['cod_pptal'];
         $respuesta = SaldoRubro($cmd, $rubro, $fec_doc, 0);
         $saldo = $respuesta['valor_aprobado'] - $respuesta['debito_cdp'] + $respuesta['credito_cdp'] + $respuesta['debito_mod'] - $respuesta['credito_mod'];
-        $estado = $saldo >= $valor ? '<span class="badge badge-success">Disponible</span>' : '<span class="badge badge-danger">Sin Saldo</span>';
+        $estado = $saldo >= $valor ? '<span class="badge rounded-pill text-bg-success">Disponible</span>' : '<span class="badge rounded-pill text-bg-danger">Sin Saldo</span>';
         if ($saldo < $valor) {
             $valida = true;
             $tabla .= '<tr>

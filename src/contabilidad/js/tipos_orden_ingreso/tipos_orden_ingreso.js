@@ -11,17 +11,21 @@
         //Tabla de Registros
         $('#tb_tipos_orden_ingreso').DataTable({
             dom: setdom,
-            buttons: [{
+            buttons: $('#peReg').val() == 1 ? [{
+                text: '<span class="fa-solid fa-plus "></span>',
+                className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
+                    mostrarOverlay();
                     $.post("frm_reg_tipos_orden_ingreso.php", function (he) {
                         $('#divTamModalForms').removeClass('modal-sm');
                         $('#divTamModalForms').removeClass('modal-lg');
                         $('#divTamModalForms').addClass('modal-xl');
                         $('#divModalForms').modal('show');
                         $("#divForms").html(he);
+                        ocultarOverlay();
                     });
                 }
-            }],
+            }] : [],
             language: dataTable_es,
             processing: true,
             serverSide: true,
@@ -58,30 +62,31 @@
             ],
         });
 
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
         $('#tb_tipos_orden_ingreso').wrap('<div class="overflow"/>');
     });
 
-    //Buascar registros
+    //Buscar registros
     $('#btn_buscar_filtro').on("click", function () {
-        reloadtable('tb_tipos_orden_ingreso');
+        $('#tb_tipos_orden_ingreso').DataTable().ajax.reload(null, false);
     });
 
     $('.filtro').keypress(function (e) {
         if (e.keyCode == 13) {
-            reloadtable('tb_tipos_orden_ingreso');
+            $('#tb_tipos_orden_ingreso').DataTable().ajax.reload(null, false);
         }
     });
 
     //Editar un registro    
     $('#tb_tipos_orden_ingreso').on('click', '.btn_editar', function () {
         let id = $(this).attr('value');
+        mostrarOverlay();
         $.post("frm_reg_tipos_orden_ingreso.php", { id: id }, function (he) {
             $('#divTamModalForms').removeClass('modal-lg');
             $('#divTamModalForms').removeClass('modal-sm');
             $('#divTamModalForms').addClass('modal-xl');
             $('#divModalForms').modal('show');
             $("#divForms").html(he);
+            ocultarOverlay();
         });
     });
 
@@ -97,10 +102,10 @@
         error += verifica_vacio($('#sl_activofijo'));
 
         if (error >= 1) {
-            $('#divModalError').modal('show');
-            $('#divMsgError').html('Los datos resaltados son obligatorios');
+            mjeError('Los datos resaltados son obligatorios');
         } else {
             var data = $('#frm_reg_tipos_orden_ingreso').serialize();
+            mostrarOverlay();
             $.ajax({
                 type: 'POST',
                 url: 'editar_tipos_orden_ingreso.php',
@@ -108,53 +113,59 @@
                 data: data + "&oper=add"
             }).done(function (r) {
                 if (r.mensaje == 'ok') {
-                    let pag = ($('#id_tipo_ingreso').val() == -1) ? 0 : $('#tb_tipos_orden_ingreso').DataTable().page.info().page;
-                    reloadtable('tb_tipos_orden_ingreso', pag);
+                    $('#tb_tipos_orden_ingreso').DataTable().ajax.reload(null, false);
                     $('#id_tipo_ingreso').val(r.id);
-                    $('#divModalDone').modal('show');
-                    $('#divMsgDone').html("Proceso realizado con éxito");
+                    mje("Proceso realizado con éxito");
                 } else {
-                    $('#divModalError').modal('show');
-                    $('#divMsgError').html(r.mensaje);
+                    mjeError(r.mensaje);
                 }
-            }).always(function () { }).fail(function () {
-                alert('Ocurrió un error');
+            }).fail(function () {
+                mjeError('Ocurrió un error');
+            }).always(function () {
+                ocultarOverlay();
             });
         }
     });
 
-    //Borrarr un registro 
+    //Borrar un registro 
     $('#tb_tipos_orden_ingreso').on('click', '.btn_eliminar', function () {
         let id = $(this).attr('value');
-        confirmar_del('tipos_orden_ingreso', id);
-    });
-
-    $('#divModalConfDel').on("click", "#tipos_orden_ingreso", function () {
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: 'editar_tipos_orden_ingreso.php',
-            dataType: 'json',
-            data: { id: id, oper: 'del' }
-        }).done(function (r) {
-            $('#divModalConfDel').modal('hide');
-            if (r.mensaje == 'ok') {
-                let pag = $('#tb_tipos_orden_ingreso').DataTable().page.info().page;
-                reloadtable('tb_tipos_orden_ingreso', pag);
-                $('#divModalDone').modal('show');
-                $('#divMsgDone').html("Proceso realizado con éxito");
-            } else {
-                $('#divModalError').modal('show');
-                $('#divMsgError').html(r.mensaje);
+        Swal.fire({
+            title: "¿Está seguro de eliminar el registro?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, eliminar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_tipos_orden_ingreso.php',
+                    dataType: 'json',
+                    data: { id: id, oper: 'del' }
+                }).done(function (r) {
+                    if (r.mensaje == 'ok') {
+                        $('#tb_tipos_orden_ingreso').DataTable().ajax.reload(null, false);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).fail(function () {
+                    mjeError('Ocurrió un error');
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () { }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 
     //Imprimir registros
     $('#btn_imprime_filtro').on('click', function () {
-        reloadtable('tb_tipos_orden_ingreso');
+        $('#tb_tipos_orden_ingreso').DataTable().ajax.reload(null, false);
         $.post("imp_tipos_orden_ingreso.php", {
             nombre: $('#txt_nombre_filtro').val()
         }, function (he) {

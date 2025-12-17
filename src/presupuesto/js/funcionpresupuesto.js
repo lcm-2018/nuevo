@@ -1997,7 +1997,7 @@ document.addEventListener("keyup", (e) => {
             source: function (request, response) {
                 mostrarOverlay();
                 $.ajax({
-                    url: ValueInput('host') + "/src/presupuesto/datos/consultar/consultaRubrosMod.php",
+                    url: ValueInput('host') + '/src/presupuesto/datos/consultar/consultaRubrosMod.php',
                     type: "post",
                     dataType: "json",
                     data: {
@@ -2699,7 +2699,7 @@ const changeFecha = (url) => {
 };
 // Funcion para generar formato de cdp
 const generarFormatoCdp = (id) => {
-    let formato = ValueInput('host') + "/src/presupuesto/soportes/formato_cdp.php";
+    let formato = ValueInput('host') + '/src/presupuesto/soportes/formato_cdp.php';
     let ruta = {
         url: formato,
         name: "datos",
@@ -2711,7 +2711,7 @@ const generarFormatoCdp = (id) => {
 
 const generarFormatoCrp = (id) => {
     console.log(id);
-    let formato = ValueInput('host') + "/src/presupuesto/soportes/formato_rp.php";
+    let formato = ValueInput('host') + '/src/presupuesto/soportes/formato_rp.php';
     let ruta = {
         url: formato,
         name: "datos",
@@ -2722,7 +2722,7 @@ const generarFormatoCrp = (id) => {
 
 // Funcion para generar formato de Modificaciones
 const generarFormatoMod = (id) => {
-    let archivo = ValueInput('host') + "/src/presupuesto/soportes/formato_modifica.php";
+    let archivo = ValueInput('host') + '/src/presupuesto/soportes/formato_modifica.php';
     let ruta = {
         url: archivo,
         name: "datos",
@@ -3584,31 +3584,31 @@ const generarInforme = (boton) => {
     let archivo = '';
     const areaImprimir = document.getElementById("areaImprimir");
     if (id == 1) {
-        archivo = ValueInput('host') + "/src/presupuesto/informes/informe_ejecucion_gas_xls.php";
+        archivo = ValueInput('host') + '/src/presupuesto/informes/informe_ejecucion_gas_xls.php';
         let mes = $("#mes").length ? $("#mes").is(":checked") : false;
         mes = mes ? 1 : 0;
         data = { fecha_corte: fecha_corte, mes: mes, fecha_ini: $('#fecha_ini').val() };
     }
     if (id == 2) {
-        archivo = ValueInput('host') + "/src/presupuesto/informes/informe_ejecucion_ing_xls.php";
+        archivo = ValueInput('host') + '/src/presupuesto/informes/informe_ejecucion_ing_xls.php';
         let mes = $("#mes").length ? $("#mes").is(":checked") : false;
         mes = mes ? 1 : 0;
         data = { fecha_corte: fecha_corte, mes: mes, fecha_ini: $('#fecha_ini').val() };
     }
     if (id == 3) {
-        archivo = ValueInput('host') + "/src/presupuesto/informes/informe_ejecucion_gas_xls_mes.php";
+        archivo = ValueInput('host') + '/src/presupuesto/informes/informe_ejecucion_gas_xls_mes.php';
     }
     if (id == 4) {
-        archivo = ValueInput('host') + "/src/presupuesto/informes/informe_ejecucion_trimestral.php";
+        archivo = ValueInput('host') + '/src/presupuesto/informes/informe_ejecucion_trimestral.php';
         let tipo_ppto = $('#tipo_pto').val();
         let informe = $('#informe').val();
         data = { fecha_corte: fecha_corte, tipo_ppto: tipo_ppto, informe: informe };
     }
     if (id == 5) {
-        archivo = ValueInput('host') + "/src/presupuesto/informes/informe_ejecucion_gas_xls_consulta.php";
+        archivo = ValueInput('host') + '/src/presupuesto/informes/informe_ejecucion_gas_xls_consulta.php';
     }
     if (id == 6) {
-        archivo = ValueInput('host') + "/src/presupuesto/informes/informe_ejecucion2_trimestral.php";
+        archivo = ValueInput('host') + '/src/presupuesto/informes/informe_ejecucion2_trimestral.php';
     }
     boton.disabled = true;
     var span = boton.querySelector("span")
@@ -3635,7 +3635,7 @@ const generarInformeLibros = (boton) => {
     let tipo = $('#tipo_libro').val();
     let fecha_ini = $('#fecha_ini').val();
     let fecha_corte = $('#fecha').val();
-    let ruta = ValueInput('host') + "/src/presupuesto/informes/";
+    let ruta = ValueInput('host') + '/src/presupuesto/informes/';
     var data = { fecha_corte: fecha_corte, fecha_ini: fecha_ini };
     if (tipo == 1) {
         ruta = ruta + "informe_libro_cdp_xls.php";

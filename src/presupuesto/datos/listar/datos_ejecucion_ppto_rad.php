@@ -162,7 +162,7 @@ if (!empty($listappto)) {
             $detalles = null;
             $anular = null;
             $abrir = null;
-            $dato = '<span class="badge badge-pill badge-secondary">Anulado</span>';
+            $dato = '<span class="badge rounded-pill text-bg-pill badge-secondary">Anulado</span>';
         }
         if ($lp['estado'] >= 2) {
             $borrar = null;

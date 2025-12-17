@@ -142,7 +142,7 @@ $content = <<<HTML
                 <div id="divTerceros" class="accordion-collapse collapse">
                     <div class="accordion-body bg-wiev">
                     <input type="hidden" id="tipoTerceroNom" value="eps">
-                        <ul class="nav nav-tabs" id="btnsTerceros" role="tablist">
+                        <ul class="nav nav-tabs small" id="btnsTerceros" role="tablist">
                             <li class="nav-item bg-sofia" role="presentation">
                                 <button data-id="eps" class="nav-link active tipo-datas" data-filter="EPS" data-bs-toggle="tab" data-bs-target="#tab-pane" type="button" role="tab" aria-selected="true">EPS</button>
                             </li>

@@ -1,4 +1,7 @@
 <?php
+
+use Config\Clases\Logs;
+
 $_post = json_decode(file_get_contents('php://input'), true);
 $id = $_post['id'];
 include '../../../../config/autoloader.php';
@@ -9,10 +12,8 @@ try {
     $query->bindParam(1, $id);
     $query->execute();
     if ($query->rowCount() > 0) {
-        include '../../../financiero/reg_logs.php';
-        $ruta = '../../../log';
         $consulta = "DELETE FROM ctb_doc WHERE id_ctb_doc = $id";
-        RegistraLogs($ruta, $consulta);
+        Logs::guardaLog($consulta);
         echo 'ok';
     } else {
         echo $query->errorInfo()[2];

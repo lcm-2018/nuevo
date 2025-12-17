@@ -13,90 +13,76 @@ if (!isset($_SESSION['user'])) {
 }
 
 include '../../../../config/autoloader.php';
-$id_rol = $_SESSION['rol'];
-$id_user = $_SESSION['id_user'];
 
 use Config\Clases\Plantilla;
 use Src\Common\Php\Clases\Permisos;
 
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_user);
-?>
 
-<!DOCTYPE html>
-<html lang="es">
-<?php include '../../../head.php' ?>
+$host = Plantilla::getHost();
 
-<body class="sb-nav-fixed <?php if ($_SESSION['navarlat'] == '1') {
-                                echo 'sb-sidenav-toggled';
-                            } ?>">
-    <?php include '../../../navsuperior.php' ?>
-    <div id="layoutSidenav">
-        <?php include '../../../navlateral.php' ?>
-        <div id="layoutSidenav_content">
-            <main>
-                <div class="container-fluid p-2">
-                    <div class="card mb-4">
-                        <div class="card-header" id="divTituloPag">
-                            <div class="row mb-2">
-                                <div class="col-md-11">
-                                    <i class="fas fa-list-ul fa-lg" style="color:#1D80F7"></i>
-                                    CENTROS DE COSTO
-                                </div>
-                            </div>
-                        </div>
+// Validar permisos de registro
+$peReg = $permisos->PermisosUsuario($opciones, 5508, 2) || $id_rol == 1 ? 1 : 0;
 
-                        <!--Cuerpo Principal del formulario -->
-                        <div class="card-body" id="divCuerpoPag">
-
-                            <!--Opciones de filtros -->
-                            <div class="row mb-2">
-                                <div class="col-md-2">
-                                    <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_nombre_filtro" placeholder="Nombre">
-                                </div>
-                                <div class="col-md-1">
-                                    <a type="button" id="btn_buscar_filtro" class="btn btn-outline-success btn-sm" title="Filtrar">
-                                        <span class="fas fa-search fa-lg" aria-hidden="true"></span>
-                                    </a>
-                                    <a type="button" id="btn_imprime_filtro" class="btn btn-outline-success btn-sm" title="Imprimir">
-                                        <span class="fas fa-print" aria-hidden="true"></span>
-                                    </a>
-                                </div>
-                            </div>
-
-                            <!--Lista de registros en la tabla
-                                5508-Opcion [General][Dependencias]
-                                1-Consultar, 2-Adicionar, 3-Modificar, 4-Eliminar, 5-Anular, 6-Imprimir
-                            -->
-                            <?php
-                            if ($permisos->PermisosUsuario($opciones, 5508, 2) || $id_rol == 1) {
-                                echo '<input type="hidden" id="peReg" value="1">';
-                            } else {
-                                echo '<input type="hidden" id="peReg" value="0">';
-                            }
-                            ?>
-                            <table id="tb_centro_costos" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
-                                <thead>
-                                    <tr class="text-center centro-vertical">
-                                        <th>Id</th>
-                                        <th>Nombre</th>
-                                        <th>Cuenta Contable Facturación Vigente</th>
-                                        <th>Para Uso Asistencial</th>
-                                        <th>Responsable</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </main>
-            <?php include '../../../footer.php' ?>
-        </div>
-        <?php include '../../../modales.php' ?>
+$content = <<<HTML
+<div class="card w-100">
+    <div class="card-header bg-sofia text-white">
+        <i class="fas fa-kaaba fa-lg me-2"></i>
+        <b>CENTROS DE COSTO</b>
     </div>
-    <?php include '../../../scripts.php' ?>
-    <script type="text/javascript" src="../../js/centro_costos/centro_costos.js?v=<?php echo date('YmdHis') ?>"></script>
-</body>
+    <div class="card-body p-2 bg-wiev">
+        <input type="hidden" id="peReg" value="{$peReg}">
+        
+        <!-- Opciones de filtros -->
+        <div class="row mb-3">
+            <div class="col-md-2">
+                <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_nombre_filtro" placeholder="Nombre">
+            </div>
+            <div class="col-md-auto">
+                <button type="button" id="btn_buscar_filtro" class="btn btn-outline-success btn-sm" title="Filtrar">
+                    <i class="fas fa-search fa-lg"></i>
+                </button>
+                <button type="button" id="btn_imprime_filtro" class="btn btn-outline-success btn-sm" title="Imprimir">
+                    <i class="fas fa-print fa-lg"></i>
+                </button>
+            </div>
+        </div>
 
-</html>
+        <!-- Tabla de centros de costo -->
+        <div class="table-responsive shadow">
+            <table id="tb_centro_costos" class="table table-striped table-bordered table-sm table-hover align-middle w-100" style="font-size:80%">
+                <thead class="text-center">
+                    <tr>
+                        <th class="bg-sofia">ID</th>
+                        <th class="bg-sofia">NOMBRE</th>
+                        <th class="bg-sofia">CUENTA CONTABLE FACTURACIÓN VIGENTE</th>
+                        <th class="bg-sofia">PARA USO ASISTENCIAL</th>
+                        <th class="bg-sofia">RESPONSABLE</th>
+                        <th class="bg-sofia">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+HTML;
+
+$plantilla = new Plantilla($content, 2);
+$plantilla->addCssFile("{$host}/assets/css/jquery-ui.css?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/assets/js/jquery-ui.js?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/src/contabilidad/js/informes_bancos/common.js?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/src/contabilidad/js/centro_costos/centro_costos.js?v=" . date("YmdHis"));
+$modal = $plantilla->getModal('divModalForms', 'divTamModalForms', 'divForms');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalReg', 'divTamModalReg', 'divFormsReg');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalImp', 'divTamModalImp', 'divImp');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalBus', 'divTamModalBus', 'divFormsBus');
+$plantilla->addModal($modal);
+echo $plantilla->render();

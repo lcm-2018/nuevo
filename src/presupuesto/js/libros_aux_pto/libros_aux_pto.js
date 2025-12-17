@@ -36,7 +36,7 @@ document.addEventListener("keyup", (e) => {
             source: function (request, response) {
                 mostrarOverlay();
                 $.ajax({
-                    url: ValueInput('host') + "/src/presupuesto/php/libros_aux_pto/listar_rubros.php",
+                    url: ValueInput('host') + '/src/presupuesto/php/libros_aux_pto/listar_rubros.php',
                     type: "POST",
                     dataType: "json",
                     data: {

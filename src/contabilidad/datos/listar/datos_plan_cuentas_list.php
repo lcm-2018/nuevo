@@ -62,11 +62,11 @@ if (!empty($lista)) {
             }
         }
         if ($lp['estado'] == 1) {
-            $estado = '<span class="badge badge-success">Activa</span>';
+            $estado = '<span class="badge rounded-pill text-bg-success">Activa</span>';
         } else {
-            $estado = '<span class="badge badge-danger">Inactiva</span>';
+            $estado = '<span class="badge rounded-pill text-bg-danger">Inactiva</span>';
         }
-        $des  = $lp['desagrega'] == 1 ? '<span class="badge badge-info">Si</span>' : '<span class="badge badge-secondary">No</span>';
+        $des  = $lp['desagrega'] == 1 ? '<span class="badge rounded-pill text-bg-info">Si</span>' : '<span class="badge rounded-pill text-bg-secondary">No</span>';
 
         $fecha = date("d-m-Y", strtotime($lp['fecha']));
         $data[] = [

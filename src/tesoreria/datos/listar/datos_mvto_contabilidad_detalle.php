@@ -96,7 +96,7 @@ if (!empty($listappto)) {
 $debe = number_format($totDebito, 2, '.', ',');
 $haber = number_format($totCredito, 2, '.', ',');
 $valor = $totDebito - $totCredito;
-$msg = $valor == 0 ? '<span class="badge badge-success">Correcto</span>' : '<span class="badge badge-danger">Incorrecto</span>';
+$msg = $valor == 0 ? '<span class="badge rounded-pill text-bg-success">Correcto</span>' : '<span class="badge rounded-pill text-bg-danger">Incorrecto</span>';
 $tfoot = [
     'cuenta' => '1',
     'tercero' => '<div class="text-center"><b>TOTAL</b> (Sumas iguales)</div>',

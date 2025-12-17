@@ -33,8 +33,8 @@ if (empty($obj)) {
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header mb-3" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">REGISTRAR CENTRO DE COSTO</h5>
+        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">REGISTRAR CENTRO DE COSTO</h5>
         </div>
         <div class="px-2">
             <form id="frm_reg_centrocostos">
@@ -68,9 +68,9 @@ if (empty($obj)) {
             <!--Tabs para CUENTAS-->
             <div class="p-3">
                 <nav>
-                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                        <a class="nav-item nav-link active small" id="nav_lista_cta_cc-tab" data-toggle="tab" href="#nav_lista_cta_cc" role="tab" aria-controls="nav_lista_cta_cc" aria-selected="true">CUENTA CONTABLE - FACTURACION</a>
-                        <a class="nav-item nav-link small" id="nav_lista_cta_sg-tab" data-toggle="tab" href="#nav_lista_cta_sg" role="tab" aria-controls="nav_lista_cta_sg" aria-selected="false">CUENTA CONTABLE - GASTOS POR SUBGRUPO</a>
+                    <div class="nav nav-tabs small small" id="nav-tab" role="tablist">
+                        <button class="nav-link active small" id="nav_lista_cta_cc-tab" data-bs-toggle="tab" data-bs-target="#nav_lista_cta_cc" type="button" role="tab" aria-controls="nav_lista_cta_cc" aria-selected="true">CUENTA CONTABLE - FACTURACION</button>
+                        <button class="nav-link small" id="nav_lista_cta_sg-tab" data-bs-toggle="tab" data-bs-target="#nav_lista_cta_sg" type="button" role="tab" aria-controls="nav_lista_cta_sg" aria-selected="false">CUENTA CONTABLE - GASTOS POR SUBGRUPO</button>
                     </div>
                 </nav>
 
@@ -78,34 +78,34 @@ if (empty($obj)) {
 
                     <!--Cuentas del Centro de Costo-->
                     <div class="tab-pane fade show active" id="nav_lista_cta_cc" role="tabpanel" aria-labelledby="nav_lista_cta_cc-tab">
-                        <table id="tb_cuentas" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
+                        <table id="tb_cuentas" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle" style="width:100%; font-size:80%">
                             <thead>
-                                <tr class="text-center centro-vertical">
-                                    <th>Id</th>
-                                    <th>Cuenta Contable</th>
-                                    <th>Fecha Inicio de Vigencia</th>
-                                    <th>Cuenta Vigente</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
+                                <tr class="text-center">
+                                    <th class="bg-sofia">Id</th>
+                                    <th class="bg-sofia">Cuenta Contable</th>
+                                    <th class="bg-sofia">Fecha Inicio de Vigencia</th>
+                                    <th class="bg-sofia">Cuenta Vigente</th>
+                                    <th class="bg-sofia">Estado</th>
+                                    <th class="bg-sofia">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-start centro-vertical"></tbody>
+                            <tbody class="text-start"></tbody>
                         </table>
                     </div>
 
                     <!--Cuentas por Subgrupo-->
                     <div class="tab-pane fade" id="nav_lista_cta_sg" role="tabpanel" aria-labelledby="nav_lista_cta_sg-tab">
-                        <table id="tb_cuentas_sg" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
+                        <table id="tb_cuentas_sg" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle" style="width:100%; font-size:80%">
                             <thead>
-                                <tr class="text-center centro-vertical">
-                                    <th>Id</th>
-                                    <th>Fecha Inicio de Vigencia</th>
-                                    <th>Cuenta Vigente</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
+                                <tr class="text-center">
+                                    <th class="bg-sofia">Id</th>
+                                    <th class="bg-sofia">Fecha Inicio de Vigencia</th>
+                                    <th class="bg-sofia">Cuenta Vigente</th>
+                                    <th class="bg-sofia">Estado</th>
+                                    <th class="bg-sofia">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-start centro-vertical"></tbody>
+                            <tbody class="text-start"></tbody>
                         </table>
                     </div>
                 </div>
@@ -114,7 +114,7 @@ if (empty($obj)) {
     </div>
     <div class="text-center pt-3">
         <button type="button" class="btn btn-primary btn-sm" id="btn_guardar">Guardar</button>
-        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
     </div>
 </div>
 

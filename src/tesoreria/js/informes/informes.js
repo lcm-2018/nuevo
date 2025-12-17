@@ -12,10 +12,10 @@
     $('#frm_libros_aux_tesoreria').on("click", "#btn_consultar", function () {
         $tipo_libro = $('#sl_tipo_libro').val();
         if ($tipo_libro == 1) {
-            $.post( window.urlin + '/tesoreria/php/informes/imp_rel_causacion.php', {
-                fec_ini:  $('#txt_fecini').val(),
+            $.post(ValueInput('host') + '/src/tesoreria/php/informes/imp_rel_causacion.php', {
+                fec_ini: $('#txt_fecini').val(),
                 fec_fin: $('#txt_fecfin').val()
-            }, function(he) {
+            }, function (he) {
                 $('#divTamModalImp').removeClass('modal-sm');
                 $('#divTamModalImp').removeClass('modal-lg');
                 $('#divTamModalImp').addClass('modal-xl');
@@ -24,10 +24,10 @@
             });
         }
         else {
-            $.post( window.urlin + '/tesoreria/php/informes/imp_rel_compr_egresos.php', {
-                fec_ini:  $('#txt_fecini').val(),
+            $.post(ValueInput('host') + '/src/tesoreria/php/informes/imp_rel_compr_egresos.php', {
+                fec_ini: $('#txt_fecini').val(),
                 fec_fin: $('#txt_fecfin').val()
-            }, function(he) {
+            }, function (he) {
                 $('#divTamModalImp').removeClass('modal-sm');
                 $('#divTamModalImp').removeClass('modal-lg');
                 $('#divTamModalImp').addClass('modal-xl');

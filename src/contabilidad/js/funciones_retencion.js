@@ -31,12 +31,14 @@
         $('#tableTipoRetencion').DataTable({
             dom: setdom,
             language: dataTable_es,
-            buttons: [{
+            buttons: $('#peReg').val() == 1 ? [{
                 //Registar modalidad de contratación
+                text: '<span class="fa-solid fa-plus fa-lg"></span>',
+                className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     FormGestionTpRte(0);
                 }
-            }],
+            }] : [],
             ajax: {
                 url: 'datos/listar/datos_tipo_impuesto.php',
                 type: 'POST',
@@ -61,12 +63,14 @@
         $('#tableRetenciones').DataTable({
             dom: setdom,
             language: dataTable_es,
-            buttons: [{
+            buttons: $('#peReg').val() == 1 ? [{
                 //Registar modalidad de contratación
+                text: '<span class="fa-solid fa-plus fa-lg"></span>',
+                className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     FormGestionRetencion(0);
                 }
-            }],
+            }] : [],
             ajax: {
                 url: 'datos/listar/datos_retenciones.php',
                 type: 'POST',
@@ -92,12 +96,14 @@
         $('#tableRangoRet').DataTable({
             dom: setdom,
             language: dataTable_es,
-            buttons: [{
+            buttons: $('#peReg').val() == 1 ? [{
                 //Registar modalidad de contratación
+                text: '<span class="fa-solid fa-plus fa-lg"></span>',
+                className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     FormGestionRetRango(0);
                 }
-            }],
+            }] : [],
             ajax: {
                 url: 'datos/listar/datos_retenciones_rango.php',
                 type: 'POST',
@@ -122,7 +128,6 @@
             ],
         });
         $('#tableRangoRet').wrap('<div class="overflow" />');
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
     });
     $('#divModalForms').on('click', '#btnGuardaTpRte', function () {
         $('.is-invalid').removeClass('is-invalid');
@@ -156,6 +161,33 @@
             });
         }
     });
+
+    $("#divModalForms").on('input', '#SeaTercer', function (e) {
+        e.preventDefault();
+        $(this).autocomplete({
+            source: function (request, response) {
+                mostrarOverlay();
+                $.ajax({
+                    url: ValueInput('host') + '/src/terceros/gestion/datos/listar/buscar_terceros.php',
+                    dataType: "json",
+                    type: 'POST',
+                    data: {
+                        term: request.term
+                    },
+                    success: function (data) {
+                        response(data);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
+            },
+            minLength: 2,
+            select: function (event, ui) {
+                $('#id_tercero').val(ui.item.id);
+            }
+        });
+    });
+
     $('#divModalForms').on('click', '#btnGuardaRetencion', function () {
         $('.is-invalid').removeClass('is-invalid');
         if ($('#txtTipoRte').val() == '0') {
@@ -196,6 +228,36 @@
             });
         }
     });
+
+    document.addEventListener("keyup", (e) => {
+        if (e.target.id == "codigoCta") {
+            $("#codigoCta").autocomplete({
+                source: function (request, response) {
+                    mostrarOverlay();
+                    $.ajax({
+                        url: "datos/consultar/consultaPgcp.php",
+                        type: "post",
+                        dataType: "json",
+                        data: {
+                            search: request.term,
+                        },
+                        success: function (data) {
+                            response(data);
+                        },
+                    }).always(function () {
+                        ocultarOverlay();
+                    });
+                },
+                select: function (event, ui) {
+                    $("#codigoCta").val(ui.item.label);
+                    $("#id_codigoCta").val(ui.item.id);
+                    $("#tipoDato").val(ui.item.tipo_dato);
+                    return false;
+                },
+            });
+        }
+    });
+
     $('#divModalForms').on('click', '#btnGuardaRango', function () {
         $('.is-invalid').removeClass('is-invalid');
         if ($('#id_retencion').val() == '0') {
@@ -250,6 +312,7 @@
     });
     $('#modificarTipoRetencion').on('click', '.estado', function () {
         var data = $(this).attr('text');
+        mostrarOverlay();
         $.ajax({
             type: 'POST',
             url: 'datos/registrar/cambia_estado.php',
@@ -261,10 +324,13 @@
                     mjeError(r);
                 }
             }
+        }).always(function () {
+            ocultarOverlay();
         });
     });
     $('#modificarRetencioness').on('click', '.estado', function () {
         var data = $(this).attr('text');
+        mostrarOverlay();
         $.ajax({
             type: 'POST',
             url: 'datos/registrar/cambia_estado_ret.php',
@@ -276,9 +342,12 @@
                     mjeError(r);
                 }
             }
+        }).always(function () {
+            ocultarOverlay();
         });
     }); $('#modificarRangoRet').on('click', '.estado', function () {
         var data = $(this).attr('text');
+        mostrarOverlay();
         $.ajax({
             type: 'POST',
             url: 'datos/registrar/cambia_estado_rango.php',
@@ -290,6 +359,8 @@
                     mjeError(r);
                 }
             }
+        }).always(function () {
+            ocultarOverlay();
         });
     });
     $('#modificarTipoRetencion').on('click', '.borrar', function () {
@@ -304,6 +375,7 @@
             cancelButtonText: "NO",
         }).then((result) => {
             if (result.isConfirmed) {
+                mostrarOverlay();
                 $.ajax({
                     type: 'POST',
                     url: 'datos/eliminar/eliminar_tipo_retencion.php',
@@ -316,6 +388,8 @@
                             mjeError(r);
                         }
                     }
+                }).always(function () {
+                    ocultarOverlay();
                 });
             }
         });
@@ -332,6 +406,7 @@
             cancelButtonText: "NO",
         }).then((result) => {
             if (result.isConfirmed) {
+                mostrarOverlay();
                 $.ajax({
                     type: 'POST',
                     url: 'datos/eliminar/eliminar_retencion.php',
@@ -344,6 +419,8 @@
                             mjeError(r);
                         }
                     }
+                }).always(function () {
+                    ocultarOverlay();
                 });
             }
         });
@@ -360,6 +437,7 @@
             cancelButtonText: "NO",
         }).then((result) => {
             if (result.isConfirmed) {
+                mostrarOverlay();
                 $.ajax({
                     type: 'POST',
                     url: 'datos/eliminar/eliminar_rango.php',
@@ -372,6 +450,8 @@
                             mjeError(r);
                         }
                     }
+                }).always(function () {
+                    ocultarOverlay();
                 });
             }
         });
@@ -379,6 +459,7 @@
     $('#divModalForms').on('input', '#buscaRetencion', function () {
         $(this).autocomplete({
             source: function (request, response) {
+                mostrarOverlay();
                 $.ajax({
                     url: "datos/consultar/busca_retenciones.php",
                     dataType: "json",
@@ -387,6 +468,8 @@
                     success: function (data) {
                         response(data);
                     }
+                }).always(function () {
+                    ocultarOverlay();
                 });
             },
             minLength: 2,

@@ -29,11 +29,12 @@ $fecha_actual = $fecha->format('Y-m-d');
 $cmd = \Config\Clases\Conexion::getConexion();
 $sql = "SELECT
             `tb_municipios`.`nom_municipio`
-            , `tb_sedes`.`id_tercero`
+            ,`tb_sedes`.`id_tercero_api` AS `id_tercero`
         FROM
             `tb_sedes`
         INNER JOIN `tb_municipios` 
-        ON (`tb_sedes`.`id_municipio` = `tb_municipios`.`id_municipio`);";
+        ON (`tb_sedes`.`id_municipio` = `tb_municipios`.`id_municipio`)
+        GROUP BY `tb_sedes`.`id_tercero_api`";
 $rs = $cmd->query($sql);
 $sedes = $rs->fetchAll();
 ?>
@@ -74,15 +75,20 @@ $sedes = $rs->fetchAll();
                     <div class="row mb-2">
                         <div class="col-12">
                             <div class="text-center pt-3">
-                                <a type="button" class="btn btn-primary btn-sm" onclick="generarInformeCtb(1);"> Resumen</a>
-                                <a type="button" class="btn btn-warning btn-sm" onclick="generarInformeCtb(2);"> Detallado</a>
-                                <a type="button" class="btn btn-secondary btn-sm" onclick="generarInformeCtb(3);"> Exogena</a>
+                                <button value="1" type="button" class="btn btn-primary btn-sm" onclick="generarInformeCtb(this);"> Resumen</button>
+                                <button value="2" type="button" class="btn btn-warning btn-sm" onclick="generarInformeCtb(this);"> Detallado</button>
+                                <button value="3" type="button" class="btn btn-secondary btn-sm" onclick="generarInformeCtb(this);"> Exogena</button>
                             </div>
                         </div>
                     </div>
+                </form>
             </div>
-            </form>
         </div>
     </div>
-</div>
+    <div class="col-md-9">
+        <div class="row mb-2">
+            <br>
+            <div id="areaImprimir" class="table-responsive px-2" style="font-size: 100%;"></div>
+        </div>
+    </div>
 </div>

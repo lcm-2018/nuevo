@@ -1,4 +1,7 @@
 <?php
+
+use Config\Clases\Logs;
+
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -54,10 +57,8 @@ try {
         $query->bindParam(2, $id_libaux, PDO::PARAM_INT);
         $query->execute();
         if ($query->rowCount()) {
-            include '../../../financiero/reg_logs.php';
-            $ruta = '../../../log';
             $consulta = "DELETE FROM `tes_conciliacion_detalle` WHERE `id_concilia` = $id_conciliacion AND `id_ctb_libaux` = $id_libaux";
-            RegistraLogs($ruta, $consulta);
+            Logs::guardaLog($consulta);
             $response['status'] = 'ok';
         } else {
             $response['msg'] = $query->errorInfo()[2];

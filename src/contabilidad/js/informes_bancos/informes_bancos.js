@@ -4,7 +4,7 @@
             mjeError("Debe seleccionar la cuenta inicial y la cuenta final");
         }
         else {
-            $.post(window.urlin + '/contabilidad/php/informes_bancos/imp_libros_bancos.php', {
+            $.post(ValueInput('host') + '/src/contabilidad/php/informes_bancos/imp_libros_bancos.php', {
                 id_cuenta_ini: $('#id_txt_cuentainicial').val(),
                 id_cuenta_fin: $('#id_txt_cuentafinal').val(),
                 fec_ini: $('#txt_fecini').val(),
@@ -27,7 +27,7 @@
             // Crear un form temporal para enviar el POST
             let form = $('<form>', {
                 method: 'POST',
-                action: window.urlin + '/contabilidad/php/informes_bancos/imp_libros_bancos_excel.php'
+                action: ValueInput('host') + '/src/contabilidad/php/informes_bancos/imp_libros_bancos_excel.php'
             });
 
             form.append($('<input>', { type: 'hidden', name: 'id_cuenta_ini', value: $('#id_txt_cuentainicial').val() }));
@@ -50,7 +50,7 @@ document.addEventListener("keyup", (e) => {
         $("#txt_cuentainicial").autocomplete({
             source: function (request, response) {
                 $.ajax({
-                    url: window.urlin + "/contabilidad/php/informes_bancos/buscar_cuentas.php",
+                    url: ValueInput('host') + '/src/contabilidad/php/informes_bancos/buscar_cuentas.php',
                     type: "POST",
                     dataType: "json",
                     data: {
@@ -76,7 +76,7 @@ document.addEventListener("keyup", (e) => {
         $("#txt_cuentafinal").autocomplete({
             source: function (request, response) {
                 $.ajax({
-                    url: window.urlin + "/contabilidad/php/informes_bancos/buscar_cuentas.php",
+                    url: ValueInput('host') + '/src/contabilidad/php/informes_bancos/buscar_cuentas.php',
                     type: "POST",
                     dataType: "json",
                     data: {
@@ -102,7 +102,7 @@ document.addEventListener("keyup", (e) => {
         $("#txt_tercero_filtro").autocomplete({
             source: function (request, response) {
                 $.ajax({
-                    url: window.urlin + "/contabilidad/php/informes_bancos/buscar_terceros.php",
+                    url: ValueInput('host') + '/src/contabilidad/php/informes_bancos/buscar_terceros.php',
                     type: "POST",
                     dataType: "json",
                     data: {

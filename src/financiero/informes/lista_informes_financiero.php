@@ -34,7 +34,7 @@ include '../../financiero/consultas.php';
                                 </div>
                             </div>
                         </div>
-                        <ul class="nav nav-tabs" id="myTab">
+                        <ul class="nav nav-tabs small" id="myTab">
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle sombra" data-toggle="dropdown" href="#" role="button" aria-expanded="false">Entidades de control </a>
                                 <div class="dropdown-menu">

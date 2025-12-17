@@ -11,17 +11,21 @@
         //Tabla de Registros
         $('#tb_centro_costos').DataTable({
             dom: setdom,
-            buttons: [{
+            buttons: $('#peReg').val() == 1 ? [{
+                text: '<span class="fa-solid fa-plus "></span>',
+                className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
+                    mostrarOverlay();
                     $.post("frm_reg_centrocostos.php", function (he) {
                         $('#divTamModalForms').removeClass('modal-sm');
                         $('#divTamModalForms').removeClass('modal-lg');
                         $('#divTamModalForms').addClass('modal-xl');
                         $('#divModalForms').modal('show');
                         $("#divForms").html(he);
+                        ocultarOverlay();
                     });
                 }
-            }],
+            }] : [],
             language: dataTable_es,
             processing: true,
             serverSide: true,
@@ -55,18 +59,17 @@
             ],
         });
 
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
         $('#tb_centro_costos').wrap('<div class="overflow"/>');
     });
 
-    //Buascar registros
+    //Buscar registros
     $('#btn_buscar_filtro').on("click", function () {
-        reloadtable('tb_centro_costos');
+        $('#tb_centro_costos').DataTable().ajax.reload(null, false);
     });
 
     $('.filtro').keypress(function (e) {
         if (e.keyCode == 13) {
-            reloadtable('tb_centro_costos');
+            $('#tb_centro_costos').DataTable().ajax.reload(null, false);
         }
     });
 
@@ -93,10 +96,12 @@
     //Editar un registro    
     $('#tb_centro_costos').on('click', '.btn_editar', function () {
         let id = $(this).attr('value');
+        mostrarOverlay();
         $.post("frm_reg_centrocostos.php", { id: id }, function (he) {
             $('#divTamModalForms').addClass('modal-xl');
             $('#divModalForms').modal('show');
             $("#divForms").html(he);
+            ocultarOverlay();
         });
     });
 
@@ -117,8 +122,7 @@
                 data: data + "&oper=add"
             }).done(function (r) {
                 if (r.mensaje == 'ok') {
-                    let pag = ($('#id_centrocosto').val() == -1) ? 0 : $('#tb_centro_costos').DataTable().page.info().page;
-                    reloadtable('tb_centro_costos', pag);
+                    $('#tb_centro_costos').DataTable().ajax.reload(null, false);
                     $('#id_centrocosto').val(r.id);
                     mje("Proceso realizado con éxito");
                 } else {
@@ -135,36 +139,42 @@
     //Borrar un registro 
     $('#tb_centro_costos').on('click', '.btn_eliminar', function () {
         let id = $(this).attr('value');
-        confirmar_del('centrocostos', id);
-    });
-
-    $('#divModalConfDel').on("click", "#centrocostos", function () {
-        var id = $(this).attr('value');
-        mostrarOverlay();
-        $.ajax({
-            type: 'POST',
-            url: 'editar_centrocostos.php',
-            dataType: 'json',
-            data: { id: id, oper: 'del' }
-        }).done(function (r) {
-            $('#divModalConfDel').modal('hide');
-            if (r.mensaje == 'ok') {
-                let pag = $('#tb_centro_costos').DataTable().page.info().page;
-                reloadtable('tb_centro_costos', pag);
-                mje("Proceso realizado con éxito");
-            } else {
-                mjeError(r.mensaje);
+        Swal.fire({
+            title: "¿Está seguro de eliminar el registro?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, eliminar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_centrocostos.php',
+                    dataType: 'json',
+                    data: { id: id, oper: 'del' }
+                }).done(function (r) {
+                    if (r.mensaje == 'ok') {
+                        $('#tb_centro_costos').DataTable().ajax.reload(null, false);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).fail(function () {
+                    mjeError('Ocurrió un error');
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).fail(function () {
-            mjeError('Ocurrió un error');
-        }).always(function () {
-            ocultarOverlay();
         });
     });
 
     //Imprimir registros
     $('#btn_imprime_filtro').on('click', function () {
-        reloadtable('tb_centro_costos');
+        $('#tb_centro_costos').DataTable().ajax.reload(null, false);
         $.post("imp_centrocostos.php", {
             nombre: $('#txt_nombre_filtro').val()
         }, function (he) {

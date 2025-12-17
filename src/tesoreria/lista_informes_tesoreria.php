@@ -31,12 +31,12 @@ include '../financiero/consultas.php';
                                 </div>
                             </div>
                         </div>
-                        <ul class="nav nav-tabs" id="myTab">
+                        <ul class="nav nav-tabs small" id="myTab">
                             <li class="nav-item">
                                 <a class="nav-link dropdown-toggle sombra" data-toggle="dropdown" href="#" role="button" aria-expanded="false">Internos </a>
                                 <div class="dropdown-menu">
                                     <a class="dropdown-item sombra" href="#" id="sl_libros_aux_tesoreria">Libros auxiliares de tesorería</a>
-                                    <a class="dropdown-item sombra" href="#" id="sl_libros_aux_bancos">Libros auxiliares de bancos</a>
+                                    <a class="dropdown-item sombra" href="#" id="sl_libros_aux_bancos_tes">Libros auxiliares de bancos</a>
                                     <a class="dropdown-item sombra" href="#" id="sl_historico_pagos_pendientes">Historial de pagos pendientes a terceros</a>
                                     <a class="dropdown-item sombra" href="#" onclick="cargarReporteTesoreria(4);">Consolidado por terceros</a>
                                     <!--<a class="dropdown-item sombra" href="#" onclick="cargarReporteTesoreria(1);">Libros auxiliares de tesorería</a>-->

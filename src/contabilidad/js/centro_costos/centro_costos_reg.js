@@ -2,17 +2,21 @@
     $(document).ready(function () {
         $('#tb_cuentas').DataTable({
             dom: setdom,
-            buttons: [{
+            buttons: $('#peReg').val() == 1 ? [{
+                text: '<span class="fa-solid fa-plus "></span>',
+                className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
+                    mostrarOverlay();
                     $.post("frm_reg_centrocostos_cta.php", { id_cencos: $('#id_centrocosto').val() }, function (he) {
                         $('#divTamModalReg').removeClass('modal-xl');
                         $('#divTamModalReg').removeClass('modal-sm');
                         $('#divTamModalReg').addClass('modal-lg');
                         $('#divModalReg').modal('show');
                         $("#divFormsReg").html(he);
+                        ocultarOverlay();
                     });
                 }
-            }],
+            }] : [],
             language: dataTable_es,
             processing: true,
             serverSide: true,
@@ -57,17 +61,21 @@
 
         $('#tb_cuentas_sg').DataTable({
             dom: setdom,
-            buttons: [{
+            buttons: $('#peReg').val() == 1 ? [{
+                text: '<span class="fa-solid fa-plus "></span>',
+                className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
+                    mostrarOverlay();
                     $.post("frm_reg_centrocostos_sg.php", { id_cencos: $('#id_centrocosto').val() }, function (he) {
                         $('#divTamModalReg').removeClass('modal-xl');
                         $('#divTamModalReg').removeClass('modal-sm');
                         $('#divTamModalReg').addClass('modal-lg');
                         $('#divModalReg').modal('show');
                         $("#divFormsReg").html(he);
+                        ocultarOverlay();
                     });
                 }
-            }],
+            }] : [],
             language: dataTable_es,
             processing: true,
             serverSide: true,
@@ -104,7 +112,6 @@
                 [10, 25, 50, 'TODO'],
             ],
         });
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
         $('#tb_cuentas_sg').wrap('<div class="overflow"/>');
 
     });

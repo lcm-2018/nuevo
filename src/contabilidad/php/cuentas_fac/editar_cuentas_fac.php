@@ -8,6 +8,7 @@ include '../../../../config/autoloader.php';
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 
+use Config\Clases\Logs;
 use Config\Clases\Plantilla;
 use Src\Common\Php\Clases\Permisos;
 
@@ -107,10 +108,8 @@ try {
             $sql = "DELETE FROM tb_homologacion WHERE id_homo=" . $id;
             $rs = $cmd->query($sql);
             if ($rs) {
-                include '../../../financiero/reg_logs.php';
-                $ruta = '../../../log';
                 $consulta = $sql;
-                RegistraLogs($ruta, $consulta);
+                Logs::guardaLog($consulta);
                 $res['mensaje'] = 'ok';
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];

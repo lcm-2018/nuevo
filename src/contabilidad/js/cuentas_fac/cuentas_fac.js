@@ -11,17 +11,21 @@
         //Tabla de Registros
         $('#tb_cuentas').DataTable({
             dom: setdom,
-            buttons: [{
+            buttons: $('#peReg').val() == 1 ? [{
+                text: '<span class="fa-solid fa-plus "></span>',
+                className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
+                    mostrarOverlay();
                     $.post("frm_reg_cuentas_fac.php", function (he) {
                         $('#divTamModalForms').removeClass('modal-xl');
                         $('#divTamModalForms').removeClass('modal-sm');
                         $('#divTamModalForms').addClass('modal-lg');
                         $('#divModalForms').modal('show');
                         $("#divForms").html(he);
+                        ocultarOverlay();
                     });
                 }
-            }],
+            }] : [],
             language: dataTable_es,
             processing: true,
             serverSide: true,
@@ -76,29 +80,29 @@
                 [10, 25, 50, 'TODO'],
             ],
         });
-
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
         $('#tb_cuentas').wrap('<div class="overflow"/>');
     });
 
     //Buascar registros
     $('#btn_buscar_filtro').on("click", function () {
-        reloadtable('tb_cuentas');
+        $('#tb_cuentas').DataTable().ajax.reload(null, false);
     });
 
     $('.filtro').keypress(function (e) {
         if (e.keyCode == 13) {
-            reloadtable('tb_cuentas');
+            $('#tb_cuentas').DataTable().ajax.reload(null, false);
         }
     });
 
     //Editar un registro    
     $('#tb_cuentas').on('click', '.btn_editar', function () {
         let id = $(this).attr('value');
+        mostrarOverlay();
         $.post("frm_reg_cuentas_fac.php", { id: id }, function (he) {
             $('#divTamModalForms').addClass('modal-lg');
             $('#divModalForms').modal('show');
             $("#divForms").html(he);
+            ocultarOverlay();
         });
     });
 
@@ -248,8 +252,7 @@
                 data: data + "&oper=add"
             }).done(function (r) {
                 if (r.mensaje == 'ok') {
-                    let pag = ($('#id_cuentafac').val() == -1) ? 0 : $('#tb_cuentas').DataTable().page.info().page;
-                    reloadtable('tb_cuentas', pag);
+                    $('#tb_cuentas').DataTable().ajax.reload(null, false);
                     $('#id_cuentafac').val(r.id);
                     mje("Proceso realizado con éxito");
                 } else {
@@ -266,35 +269,46 @@
     //Borrarr un registro 
     $('#tb_cuentas').on('click', '.btn_eliminar', function () {
         let id = $(this).attr('value');
-        confirmar_del('cuentas_fac', id);
-    });
-
-    $('#divModalConfDel').on("click", "#cuentas_fac", function () {
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: 'editar_cuentas_fac.php',
-            dataType: 'json',
-            data: { id: id, oper: 'del' }
-        }).done(function (r) {
-            $('#divModalConfDel').modal('hide');
-            if (r.mensaje == 'ok') {
-                let pag = $('#tb_cuentas').DataTable().page.info().page;
-                reloadtable('tb_cuentas', pag);
-                $('#divModalDone').modal('show');
-                $('#divMsgDone').html("Proceso realizado con éxito");
-            } else {
-                $('#divModalError').modal('show');
-                $('#divMsgError').html(r.mensaje);
+        Swal.fire({
+            title: "¿Está seguro de eliminar el registro?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, eliminar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const formData = new FormData();
+                formData.append("id", id);
+                formData.append("oper", "del");
+                mostrarOverlay();
+                fetch("editar_cuentas_fac.php", {
+                    method: "POST",
+                    body: formData,
+                })
+                    .then((response) => response.json())
+                    .then((response) => {
+                        if (response.mensaje == "ok") {
+                            mje("Registro eliminado exitosamente");
+                            $('#tb_cuentas').DataTable().ajax.reload(null, false);
+                        } else {
+                            mjeError("Error al eliminar");
+                        }
+                    })
+                    .catch((error) => {
+                        console.log("Error:");
+                    }).finally(() => {
+                        ocultarOverlay();
+                    });
             }
-        }).always(function () { }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 
     //Imprimir registros
     $('#btn_imprime_filtro').on('click', function () {
-        reloadtable('tb_cuentas');
+        $('#tb_cuentas').DataTable().ajax.reload(null, false);
         $.post("imp_cuentas_fac.php", {
             nombre: $('#txt_nombre_filtro').val()
         }, function (he) {

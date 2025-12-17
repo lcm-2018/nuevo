@@ -123,18 +123,18 @@ if (!empty($listado)) {
             }
         }
         if ($estado == '1') {
-            $estado = '<span class="badge badge-success">Abierto</span>';
+            $estado = '<span class="badge rounded-pill text-bg-success">Abierto</span>';
         }
         if ($estado == '2') {
             $editar = null;
             $borrar = null;
-            $estado = '<span class="badge badge-secondary">Cerrado</span>';
+            $estado = '<span class="badge rounded-pill text-bg-secondary">Cerrado</span>';
         }
         if ($estado == '0') {
             $editar = null;
             $borrar = null;
             $imprimir = null;
-            $estado = '<span class="badge badge-danger">Anulado</span>';
+            $estado = '<span class="badge rounded-pill text-bg-danger">Anulado</span>';
         }
         $data[] = [
             'acto' => $lp['acto'],

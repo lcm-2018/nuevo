@@ -103,7 +103,7 @@ if ($fin_mes != 0) {
             $estado = $editar = $borrar = $acciones = $cerrar = null;
             $id_ctb = $lp['id_tes_cuenta'];
             $key = array_search($id_ctb, array_column($estados, 'id_cuenta'));
-            $estado = '<a href="javascript:void(0)" onclick="ConciliacionBancaria(' . $id_ctb . ')"><span class="badge badge-warning">Conciliar</span></a>';
+            $estado = '<a href="javascript:void(0)" onclick="ConciliacionBancaria(' . $id_ctb . ')"><span class="badge rounded-pill text-bg-warning">Conciliar</span></a>';
             if ($key !== false) {
                 if ($estados[$key]['estado'] == 1) {
                     $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-info btn-sm btn-circle shadow-gb" onclick="CerrarConciliacion(' . $id_ctb . ')" title="Cerrar"><span class="fas fa-unlock fa-lg"></span></a>';

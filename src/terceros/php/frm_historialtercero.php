@@ -82,7 +82,7 @@ if (empty($obj)) {
             <!--Tabs-->
             <div class="p-3">
                 <nav>
-                    <div class="nav nav-tabs small" id="nav-tab" role="tablist">
+                    <div class="nav nav-tabs small small" id="nav-tab" role="tablist">
                         <a class="nav-item nav-link active small" id="nav_lista_contratacion-tab" data-bs-toggle="tab" href="#nav_lista_contratacion" role="tab" aria-controls="nav_lista_contratacion" aria-selected="true">CONTRATACIÓN</a>
                         <a class="nav-item nav-link small" id="nav_lista_regpresupuestal-tab" data-bs-toggle="tab" href="#nav_lista_regpresupuestal" role="tab" aria-controls="nav_lista_regpresupuestal" aria-selected="false">REGISTRO PRESUPUESTAL</a>
                         <a class="nav-item nav-link small" id="nav_lista_obligaciones-tab" data-bs-toggle="tab" href="#nav_lista_obligaciones" role="tab" aria-controls="nav_lista_obligaciones" aria-selected="false">OBLIGACIONES</a>

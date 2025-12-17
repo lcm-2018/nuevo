@@ -121,20 +121,20 @@ try {
                                                      </div>
                                                      <div class="input-group-prepend px-1">
                                                         <button type="button" class="btn btn-outline-secondary" onclick ="cargaListaReferenciaPago(2)">
-                                                          Referencias <span class="badge badge-light"><?php echo $tipo_doc; ?></span>
+                                                          Referencias <span class="badge rounded-pill text-bg-light"><?php echo $tipo_doc; ?></span>
                                                         </button>
                                                      </div>
                                                      <div class="input-group-prepend px-1">
                                                      <input type="hidden" id="total" value="' . $total . '">
                                                          <button type="button" class="btn btn-outline-success" onclick ="CegresoNomina(this)">
-                                                           Nómina <span class="badge badge-light" id="totalCausa">' . $total . '</span>
+                                                           Nómina <span class="badge rounded-pill text-bg-light" id="totalCausa">' . $total . '</span>
                                                          </button>
                                                       </div>';
                                                 }
                                                 if ($tipo_doc == '11') {
                                                     echo '<div class="input-group-prepend px-1">
                                                         <button type="button" class="btn btn-secondary" onclick ="CargaArqueoCaja(2)">
-                                                          Ver Listado <span class="badge badge-light"><?php echo $tipo_doc; ?></span>
+                                                          Ver Listado <span class="badge rounded-pill text-bg-light"><?php echo $tipo_doc; ?></span>
                                                         </button>
                                                      </div>';
                                                 }

@@ -4,168 +4,125 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
+
 include '../../config/autoloader.php';
-$id_rol = $_SESSION['rol'];
-$id_user = $_SESSION['id_user'];
 
 use Config\Clases\Plantilla;
 use Src\Common\Php\Clases\Permisos;
 
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_user);
-?>
-<!DOCTYPE html>
-<html lang="es">
-<?php include '../head.php';
-// Consulta la lista de chequeras creadas en el sistema
-$cmd = \Config\Clases\Conexion::getConexion();
-?>
 
-<body class="sb-nav-fixed <?php echo $_SESSION['navarlat'] === '1' ? 'sb-sidenav-toggled' : '' ?>">
+$host = Plantilla::getHost();
+$numeral = 1;
 
-    <?php include '../navsuperior.php' ?>
-    <div id="layoutSidenav">
-        <?php include '../navlateral.php' ?>
-        <div id="layoutSidenav_content">
-            <main>
-                <div class="container-fluid p-2">
-                    <div class="card mb-4">
-                        <div class="card-header" id="divTituloPag">
-                            <div class="row mb-2">
-                                <div class="col-md-11">
-                                    <i class="fas fa-users fa-lg" style="color:#1D80F7"></i>
-                                    LISTA DE IMPUESTOS
-                                </div>
-                                <?php
-                                if ($permisos->PermisosUsuario($opciones, 5506, 2) || $id_rol == 1) {
-                                    echo '<input type="hidden" id="peReg" value="1">';
-                                } else {
-                                    echo '<input type="hidden" id="peReg" value="0">';
-                                }
-                                ?>
+// Validar permisos de registro
+$peReg = $permisos->PermisosUsuario($opciones, 5506, 2) || $id_rol == 1 ? 1 : 0;
 
-                            </div>
-                        </div>
-                        <div class="card-body" id="divCuerpoPag">
-                            <div id="accordion">
-                                <!-- parte-->
-                                <div class="card">
-                                    <div class="card-header card-header-detalles py-0 headings" id="modTipoRte">
-                                        <h5 class="mb-0">
-                                            <a class="btn btn-link-acordeon sombra collapsed" data-toggle="collapse" data-target="#collapsemodTipoRte" aria-expanded="true" aria-controls="collapsemodTipoRte">
-                                                <div class="row mb-2">
-                                                    <div class="div-icono">
-                                                        <span class="fas fa-hand-holding-usd fa-lg" style="color: #2ECC71;"></span>
-                                                    </div>
-                                                    <div>
-                                                        1. TIPO DE RETENCIÓN
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </h5>
-                                    </div>
-                                    <div id="collapsemodTipoRte" class="collapse" aria-labelledby="modTipoRte">
-                                        <div class="card-body">
-                                            <table id="tableTipoRetencion" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
-                                                <thead>
-                                                    <tr class="text-center">
-                                                        <th>ID</th>
-                                                        <th>Tipo Retención</th>
-                                                        <th>Responsable</th>
-                                                        <th>Estado</th>
-                                                        <th>Acción</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="modificarTipoRetencion">
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- parte-->
-                                <div class="card">
-                                    <div class="card-header card-header-detalles py-0 headings" id="Retenciones">
-                                        <h5 class="mb-0">
-                                            <a class="btn btn-link-acordeon sombra collapsed" data-toggle="collapse" data-target="#collapseRetenciones" aria-expanded="true" aria-controls="collapseRetenciones">
-                                                <div class="row mb-2">
-                                                    <div class="div-icono">
-                                                        <span class="fas fa-money-bill-wave fa-lg" style="color: #E74C3C;"></span>
-                                                    </div>
-                                                    <div>
-                                                        2. RETENCIONES
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </h5>
-                                    </div>
-                                    <div id="collapseRetenciones" class="collapse" aria-labelledby="Retenciones">
-                                        <div class="card-body">
-                                            <table id="tableRetenciones" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
-                                                <thead>
-                                                    <tr>
-                                                        <th>ID</th>
-                                                        <th>Tipo Retención</th>
-                                                        <th>Retención</th>
-                                                        <th>Cuenta</th>
-                                                        <th>Estado</th>
-                                                        <th>Acción</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="modificarRetencioness">
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- parte-->
-                                <div class="card">
-                                    <div class="card-header card-header-detalles py-0 headings" id="RangoRet">
-                                        <h5 class="mb-0">
-                                            <a class="btn btn-link-acordeon sombra collapsed" data-toggle="collapse" data-target="#collapseRangoRet" aria-expanded="true" aria-controls="collapseRangoRet">
-                                                <div class="row mb-2">
-                                                    <div class="div-icono">
-                                                        <span class="fas fa-stream fa-lg" style="color: #3498db;"></span>
-                                                    </div>
-                                                    <div>
-                                                        3. RANGO RETENCIONES
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </h5>
-                                    </div>
-                                    <div id="collapseRangoRet" class="collapse" aria-labelledby="RangoRet">
-                                        <div class="card-body">
-                                            <table id="tableRangoRet" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
-                                                <thead>
-                                                    <tr>
-                                                        <th>ID</th>
-                                                        <th>Tipo Retención</th>
-                                                        <th>Retención</th>
-                                                        <th>Base</th>
-                                                        <th>Tope</th>
-                                                        <th>Tarifa</th>
-                                                        <th>Estado</th>
-                                                        <th>Acción</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="modificarRangoRet">
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+$content = <<<HTML
+<div class="card w-100">
+    <div class="card-header bg-sofia text-white">
+        <i class="fas fa-file-invoice fa-lg me-2"></i>
+        <b>LISTA DE IMPUESTOS</b>
+    </div>
+    <div class="card-body p-2 bg-wiev">
+        <input type="hidden" id="peReg" value="{$peReg}">
+        
+        <div class="accordion" id="accImpuestos">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divTipoRte" aria-expanded="true" aria-controls="divTipoRte">
+                        <span class="text-primary"><i class="fas fa-hand-holding-usd me-2 fa-lg"></i>VIÑETA. Tipo de Retención.</span>
+                    </button>
+                </h2>
+                <div id="divTipoRte" class="accordion-collapse collapse">
+                    <div class="accordion-body bg-wiev">
+                        <table id="tableTipoRetencion" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
+                            <thead class="text-center">
+                                <tr>
+                                    <th class="bg-sofia">ID</th>
+                                    <th class="bg-sofia">TIPO RETENCIÓN</th>
+                                    <th class="bg-sofia">RESPONSABLE</th>
+                                    <th class="bg-sofia">ESTADO</th>
+                                    <th class="bg-sofia">ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modificarTipoRetencion"></tbody>
+                        </table>
                     </div>
                 </div>
-            </main>
-            <?php include '../footer.php' ?>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divRetenciones" aria-expanded="false" aria-controls="divRetenciones">
+                        <span class="text-success"><i class="fas fa-money-bill-wave me-2 fa-lg"></i>VIÑETA. Retenciones.</span>
+                    </button>
+                </h2>
+                <div id="divRetenciones" class="accordion-collapse collapse">
+                    <div class="accordion-body bg-wiev">
+                        <table id="tableRetenciones" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
+                            <thead class="text-center">
+                                <tr>
+                                    <th class="bg-sofia">ID</th>
+                                    <th class="bg-sofia">TIPO RETENCIÓN</th>
+                                    <th class="bg-sofia">RETENCIÓN</th>
+                                    <th class="bg-sofia">CUENTA</th>
+                                    <th class="bg-sofia">ESTADO</th>
+                                    <th class="bg-sofia">ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modificarRetencioness"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divRangoRet" aria-expanded="false" aria-controls="divRangoRet">
+                        <span class="text-info"><i class="fas fa-stream me-2 fa-lg"></i>VIÑETA. Rango Retenciones.</span>
+                    </button>
+                </h2>
+                <div id="divRangoRet" class="accordion-collapse collapse">
+                    <div class="accordion-body bg-wiev">
+                        <table id="tableRangoRet" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
+                            <thead class="text-center">
+                                <tr>
+                                    <th class="bg-sofia">ID</th>
+                                    <th class="bg-sofia">TIPO RETENCIÓN</th>
+                                    <th class="bg-sofia">RETENCIÓN</th>
+                                    <th class="bg-sofia">BASE</th>
+                                    <th class="bg-sofia">TOPE</th>
+                                    <th class="bg-sofia">TARIFA</th>
+                                    <th class="bg-sofia">ESTADO</th>
+                                    <th class="bg-sofia">ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modificarRangoRet"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-        <?php include '../modales.php' ?>
     </div>
-    <?php include '../scripts.php' ?>
-    <script src="js/funciones_retencion.js?<?= date('YmdHHmmss') ?>"></script>
+</div>
+HTML;
 
-</body>
+// Reemplazar las VIÑETAS con numeración automática
+$content = preg_replace_callback('/VIÑETA/', function () use (&$numeral) {
+    return $numeral++;
+}, $content);
 
-</html>
+$plantilla = new Plantilla($content, 2);
+$plantilla->addCssFile("{$host}/assets/css/jquery-ui.css?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/assets/js/jquery-ui.js?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/src/contabilidad/js/funciones_retencion.js?v=" . date("YmdHis"));
+$modal = $plantilla->getModal('divModalForms', 'divTamModalForms', 'divForms');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalReg', 'divTamModalReg', 'divFormsReg');
+$plantilla->addModal($modal);
+echo $plantilla->render();

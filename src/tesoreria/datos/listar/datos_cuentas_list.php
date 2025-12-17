@@ -43,7 +43,7 @@ if (!empty($lista)) {
         $editar = $borrar = $acciones = $cerrar = null;
         $id_ctb = $lp['id_tes_cuenta'];
         if ($lp['estado'] == 1) {
-            $estado = '<span class="badge badge-success">Activa</span>';
+            $estado = '<span class="badge rounded-pill text-bg-success">Activa</span>';
             if (PermisosUsuario($permisos, 5607, 3) || $id_rol == 1) {
                 $editar = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" onclick="editarDatosCuenta(' . $id_ctb . ')" class="btn btn-outline-primary btn-sm btn-circle shadow-gb"  title="Editar_' . $id_ctb . '"><span class="fas fa-pencil-alt fa-lg"></span></a>';
                 //si es lider de proceso puede abrir o cerrar documentos
@@ -53,7 +53,7 @@ if (!empty($lista)) {
                 $cerrar = '<a value="' . $id_ctb . '" class="dropdown-item sombra carga" onclick="cerrarCuentaBco(' . $id_ctb . ')" href="#">Desactivar cuenta</a>';
             }
         } else {
-            $estado = '<span class="badge badge-secondary">Inactiva</span>';
+            $estado = '<span class="badge rounded-pill text-bg-secondary">Inactiva</span>';
             if (PermisosUsuario($permisos, 5607, 4) || $id_rol == 1) {
                 $cerrar = '<a value="' . $id_ctb . '" class="dropdown-item sombra carga" onclick="abrirCuentaBco(' . $id_ctb . ')" href="#">Activar cuenta</a>';
             }

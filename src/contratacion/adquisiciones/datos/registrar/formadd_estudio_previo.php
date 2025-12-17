@@ -160,7 +160,7 @@ try {
         </form>
         <div class="px-4">
             <nav>
-                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <div class="nav nav-tabs small" id="nav-tab" role="tablist">
                     <button class="nav-link active small" id="nav_necesidad-tab" data-bs-toggle="tab" data-bs-target="#nav_necesidad" type="button" role="tab" aria-controls="nav_necesidad" aria-selected="true" title="Descripción de la necesidad">Necesidad</button>
                     <button class="nav-link small" id="nav-actividad-tab" data-bs-toggle="tab" data-bs-target="#nav-actividad" type="button" role="tab" aria-controls="nav-actividad" aria-selected="false">Actividades</button>
                     <button class="nav-link small" id="nav-producto-tab" data-bs-toggle="tab" data-bs-target="#nav-producto" type="button" role="tab" aria-controls="nav-producto" aria-selected="false" title="Productos a entregar">Productos</button>

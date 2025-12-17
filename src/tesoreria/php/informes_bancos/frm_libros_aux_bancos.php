@@ -13,8 +13,8 @@ $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header mb-3" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LIBROS AUXILIARES DE BANCOS</h5>
+        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LIBROS AUXILIARES DE BANCOS</h5>
         </div>
         <div class="px-2">
             <form id="frm_libros_aux_bancos">

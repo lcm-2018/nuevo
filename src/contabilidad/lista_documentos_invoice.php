@@ -1,194 +1,164 @@
+
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header('Location: ../index.php');
+    header('Location: ../../index.php');
     exit();
 }
 include '../../config/autoloader.php';
-$id_rol = $_SESSION['rol'];
-$id_user = $_SESSION['id_user'];
 
 use Config\Clases\Plantilla;
 use Src\Common\Php\Clases\Permisos;
 
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_user);
+$peReg = $permisos->PermisosUsuario($opciones, 5511, 2) || $id_rol == 1 ? 1 : 0;
+$host = Plantilla::getHost();
+
 $tipo_doc = isset($_POST['cod_doc']) ? $_POST['cod_doc'] : '';
-?>
-<!DOCTYPE html>
-<html lang="es">
-<?php include '../head.php';
+
 // Consulta tipo de documento
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `cod`, `nombre` FROM `ctb_fuente` WHERE `contab` = 2 ORDER BY `nombre`";
     $rs = $cmd->query($sql);
-    $docsFuente = $rs->fetchAll(PDO::FETCH_ASSOC);
-    $rs->closeCursor();
-    unset($rs);
-    $cmd = null;
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
-try {
-    $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT `id_doc_fuente` FROM `ctb_fuente` WHERE `cod` = '$tipo_doc'";
-    $rs = $cmd->query($sql);
-    $tipo_doc_fuente = $rs->fetch();
-    $id_tipo_doc = !empty($tipo_doc_fuente) ? $tipo_doc_fuente['id_doc_fuente'] : 0;
-    $cmd = null;
+    $docsFuente = $rs->fetchAll();
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 
-$cmd = null;
-?>
+// Obtener id_doc_fuente
+$id_tipo_doc = 0;
+if ($tipo_doc != '') {
+    try {
+        $sql = "SELECT `id_doc_fuente` FROM `ctb_fuente` WHERE `cod` = '$tipo_doc'";
+        $rs = $cmd->query($sql);
+        $tipo_doc_fuente = $rs->fetch();
+        $id_tipo_doc = !empty($tipo_doc_fuente) ? $tipo_doc_fuente['id_doc_fuente'] : 0;
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    }
+}
 
-<body class="sb-nav-fixed <?= $_SESSION['navarlat'] === '1' ? 'toggled' : ''; ?>">
+// Construir opciones del select de documentos
+$optionsDocFuente = '<option value="">-- Seleccionar --</option>';
+foreach ($docsFuente as $mov) {
+    $selected = $mov['cod'] == $tipo_doc ? 'selected' : '';
+    $optionsDocFuente .= '<option value="' . $mov['cod'] . '" ' . $selected . '>' . $mov['nombre'] . '</option>';
+}
 
-    <?php include '../navsuperior.php' ?>
-    <div id="layoutSidenav">
-        <?php include '../navlateral.php' ?>
-        <div id="layoutSidenav_content">
-            <main>
-                <div class="container-fluid p-2">
-                    <div class="card mb-4">
-                        <div class="card-header" id="divTituloPag">
-                            <div class="row mb-2">
-                                <div class="col-md-11">
-                                    <i class="fas fa-users fa-lg" style="color:#1D80F7"></i>
-                                    REGISTRO DE MOVIMIENTOS CONTABLES FACTURACIÓN
-                                </div>
-                                <?php
-                                if (($permisos->PermisosUsuario($opciones, 5511, 2)  || $id_rol == 1)) {
-                                    echo '<input type="hidden" id="peReg" value="1">';
-                                } else {
-                                    echo '<input type="hidden" id="peReg" value="0">';
-                                }
-                                ?>
-                            </div>
-                        </div>
-                        <div class="card-body" id="divCuerpoPag">
-                            <input type="hidden" id="id_ctb_doc" value="<?php echo $id_tipo_doc; ?>">
-                            <div>
-                                <div clas="row">
-                                    <div class="center-block">
-                                        <div class="input-group">
-                                            <div class="input-group-prepend px-1">
-                                                <form action="<?php echo $_SERVER["PHP_SELF"] ?>" method="POST">
-                                                    <select class="custom-select " id="cod_ctb_doc" name="cod_ctb_doc" onchange="cambiaListadoCtbInvoice(value)">
-                                                        <option value="">-- Seleccionar --</option>
-                                                        <?php
-                                                        foreach ($docsFuente as $mov) {
-                                                            if ($mov['cod'] == $tipo_doc) {
-                                                                echo '<option value="' . $mov['cod'] . '" selected>' . $mov['nombre'] .  '</option>';
-                                                            } else {
-                                                                echo '<option value="' . $mov['cod'] . '">' . $mov['nombre'] . '</option>';
-                                                            }
-                                                        }
-                                                        ?>
-                                                    </select>
-                                                </form>
-                                                <?php
-                                                if ($tipo_doc == 'FELE' && $_SESSION['pto'] == '1') {
-                                                    echo '<div class="input-group-prepend px-1">
-                                                        <button type="button" class="btn btn-primary" onclick ="CargaObligaRad(2)">
-                                                          Ver Listado <span class="badge badge-light"></span>
-                                                        </button>
-                                                     </div>';
-                                                }
-                                                ?>
-                                                <button type="button" class="btn btn-success" title="Imprimir por Lotes" id="btnImpLotes">
-                                                    <i class="fas fa-print fa-lg"></i>
-                                                </button>
-                                            </div>
-                                        </div>
+// Botones adicionales según tipo de documento
+$botonesAdicionales = '';
+if ($tipo_doc == 'FELE' && $_SESSION['pto'] == '1') {
+    $botonesAdicionales .= <<<HTML
+    <button type="button" class="btn btn-primary btn-sm me-1" onclick="CargaObligaRad(2)">
+        Ver Listado <span class="badge bg-light text-dark"></span>
+    </button>
+HTML;
+}
 
-                                    </div>
-                                </div>
-                                <br>
+// Determinar si mostrar tabla
+$tablaHTML = '';
+if ($tipo_doc != '') {
+    $tablaHTML = <<<HTML
+    <div class="table-responsive shadow p-2">
+        <table id="tableMvtCtbInvoice" class="table table-striped table-bordered table-sm table-hover shadow w-100">
+            <thead class="text-center">
+                <tr>
+                    <th class="bg-sofia">Numero</th>
+                    <th class="bg-sofia">RAD</th>
+                    <th class="bg-sofia">Fecha</th>
+                    <th class="bg-sofia">Tercero</th>
+                    <th class="bg-sofia">Valor</th>
+                    <th class="bg-sofia">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="modificarMvtCtbInvoice">
+            </tbody>
+        </table>
+    </div>
+HTML;
+}
 
-                                <!--Opciones de filtros -->
-                                <div class="row mb-2">
-                                    <div class="col-md-1">
-                                        <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_idmanu_filtro" placeholder="Id. Manu">
-                                    </div>
-                                    <div class="col-md-1">
-                                        <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_rad_filtro" placeholder="RP">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="row mb-2">
-                                            <div class="col-md-6">
-                                                <input type="date" class="form-control form-control-sm bg-input" id="txt_fecini_filtro" name="txt_fecini_filtro" placeholder="Fecha Inicial">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <input type="date" class="form-control form-control-sm bg-input" id="txt_fecfin_filtro" name="txt_fecfin_filtro" placeholder="Fecha Final">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_tercero_filtro" placeholder="Tercero">
-                                    </div>
-                                    <div class="col-md-1">
-                                        <select class="form-control form-control-sm bg-input" id="sl_estado_filtro">
-                                            <option value="0">--Estado--</option>
-                                            <option value="1">Abierto</option>
-                                            <option value="2">Cerrado</option>
-                                            <option value="3">Anulado</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-1">
-                                        <a type="button" id="btn_buscar_filtro_Invoice" class="btn btn-outline-success btn-sm" title="Filtrar">
-                                            <span class="fas fa-search fa-lg" aria-hidden="true"></span>
-                                        </a>
-                                    </div>
-                                </div>
+$content = <<<HTML
+<div class="card w-100">
+    <div class="card-header bg-sofia text-white">
+        <button class="btn btn-sm me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
+        <b>REGISTRO DE MOVIMIENTOS CONTABLES FACTURACIÓN</b>
+    </div>
+    <div class="card-body p-2 bg-wiev">
+        <input type="hidden" id="peReg" value="{$peReg}">
+        <input type="hidden" id="id_ctb_doc" value="{$id_tipo_doc}">
+        
+        <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap">
+            <form action="{$_SERVER['PHP_SELF']}" method="POST">
+                <select class="form-select form-select-sm bg-input" id="cod_ctb_doc" name="cod_doc" onchange="cambiaListadoCtbInvoice(this.value)">
+                    {$optionsDocFuente}
+                </select>
+            </form>
+            <div class="d-flex gap-1">
+                {$botonesAdicionales}
+                <button type="button" class="btn btn-success btn-sm" title="Imprimir por Lotes" id="btnImpLotes">
+                    <i class="fas fa-print fa-lg"></i>
+                </button>
+            </div>
+        </div>
 
-                                <?php
-                                if ($tipo_doc != '') {
-                                ?>
-                                    <table id="tableMvtCtbInvoice" class="table table-striped table-bordered table-sm table-hover shadow" style="table-layout: fixed;width: 98%;">
-                                        <thead>
-                                            <tr>
-                                                <th style="width: 8%;">Numero</th>
-                                                <th style="width: 8%;">RAD</th>
-                                                <th style="width: 8%;">Fecha</th>
-                                                <th style="width: 44%;">Tercero</th>
-                                                <th style="width: 12%;">Valor</th>
-                                                <th style="width: 12%;">Acciones</th>
-
-                                            </tr>
-                                        </thead>
-                                        <tbody id="modificarMvtCtbInvoice">
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <th>Numero</th>
-                                                <th>RAD</th>
-                                                <th>Fecha</th>
-                                                <th>Tercero</th>
-                                                <th>Valor</th>
-                                                <th>Acciones</th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                <?php
-                                }
-                                ?>
-                            </div>
-                        </div>
-
+        <!-- Opciones de filtros -->
+        <div class="row mb-2 py-3">
+            <div class="col-md-1">
+                <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_idmanu_filtro" placeholder="Id. Manu">
+            </div>
+            <div class="col-md-1">
+                <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_rad_filtro" placeholder="RAD">
+            </div>
+            <div class="col-md-3">
+                <div class="row mb-2">
+                    <div class="col-md-6">
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fecini_filtro" name="txt_fecini_filtro" placeholder="Fecha Inicial">
+                    </div>
+                    <div class="col-md-6">
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fecfin_filtro" name="txt_fecfin_filtro" placeholder="Fecha Final">
                     </div>
                 </div>
-            </main>
-            <?php include '../footer.php' ?>
+            </div>
+            <div class="col-md-3">
+                <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_tercero_filtro" placeholder="Tercero">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm bg-input" id="sl_estado_filtro">
+                    <option value="0">--Estado--</option>
+                    <option value="1">Abierto</option>
+                    <option value="2">Cerrado</option>
+                    <option value="3">Anulado</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-check-label small">
+                    <input class="form-check-input" type="checkbox" id="verAnulados"> Anulados
+                </label>
+            </div>
+            <div class="col-md-1">
+                <button type="button" id="btn_buscar_filtro_Invoice" class="btn btn-outline-success btn-sm w-100" title="Filtrar">
+                    <span class="fas fa-search fa-lg" aria-hidden="true"></span>
+                </button>
+            </div>
         </div>
-        <!-- Modal formulario-->
-        <?php include '../modales.php' ?>
 
+        {$tablaHTML}
     </div>
-    <?php include '../scripts.php' ?>
+</div>
+HTML;
 
-</body>
-
-</html>
+$plantilla = new Plantilla($content, 2);
+$plantilla->addScriptFile("{$host}/src/contabilidad/js/funcioncontabilidad.js?v=" . date("YmdHis"));
+$modal = $plantilla->getModal('divModalForms', 'divTamModalForms', 'divForms');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalReg', 'divTamModalReg', 'divFormsReg');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalImp', 'divTamModalImp', 'divImp');
+$plantilla->addModal($modal);
+echo $plantilla->render();

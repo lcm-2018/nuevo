@@ -11,8 +11,8 @@ include '../../../terceros.php';
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header mb-3" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">HISTORICO DE PAGOS PENDIENTES A TERCEROS</h5>
+        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">HISTORICO DE PAGOS PENDIENTES A TERCEROS</h5>
         </div>
         <div class="px-2">
             <form id="frm_historicopagos">
@@ -44,7 +44,8 @@ include '../../../terceros.php';
                                 <th style="max-width: 40%;">Tercero</th>
                                 <th>Fecha credito</th>
                                 <th>Credito</th>
-                                <th>< 30</th>
+                                <th>
+                                    < 30</th>
                                 <th>30 a 60</th>
                                 <th>60 a 90</th>
                                 <th>90 a 180</th>

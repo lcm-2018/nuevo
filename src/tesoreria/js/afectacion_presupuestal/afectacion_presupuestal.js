@@ -7,7 +7,7 @@
             serverSide: true,
             searching: false,
             ajax: {
-                url: window.urlin + '/tesoreria/php/afectacion_presupuestal/listar_rubros.php',
+                url: ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/listar_rubros.php',
                 type: 'POST',
                 dataType: 'json',
                 data: function (data) {
@@ -73,7 +73,7 @@
             serverSide: true,
             searching: false,
             ajax: {
-                url: window.urlin + '/terceros/php/historialtercero/listar_contratos.php',
+                url: ValueInput('host') + '/src/terceros/php/historialtercero/listar_contratos.php',
                 type: 'POST',
                 dataType: 'json',
                 data: function (data) {
@@ -125,7 +125,7 @@
             serverSide: true,
             searching: false,
             ajax: {
-                url: window.urlin + '/terceros/php/historialtercero/listar_reg_presupuestal.php',
+                url: ValueInput('host') + '/src/terceros/php/historialtercero/listar_reg_presupuestal.php',
                 type: 'POST',
                 dataType: 'json',
                 data: function (data) {
@@ -179,7 +179,7 @@
             serverSide: true,
             searching: false,
             ajax: {
-                url: window.urlin + '/terceros/php/historialtercero/listar_obligaciones.php',
+                url: ValueInput('host') + '/src/terceros/php/historialtercero/listar_obligaciones.php',
                 type: 'POST',
                 dataType: 'json',
                 data: function (data) {
@@ -231,7 +231,7 @@
             serverSide: true,
             searching: false,
             ajax: {
-                url: window.urlin + '/terceros/php/historialtercero/listar_pagos.php',
+                url: ValueInput('host') + '/src/terceros/php/historialtercero/listar_pagos.php',
                 type: 'POST',
                 dataType: 'json',
                 data: function (data) {
@@ -308,7 +308,7 @@
     });
 
     $('#divForms').on("click", "#btn_imprimir", function () {
-        $.post(window.urlin + '/terceros/php/historialtercero/imp_historialtercero.php', {
+        $.post(ValueInput('host') + '/src/terceros/php/historialtercero/imp_historialtercero.php', {
             id_tercero: $('#id_tercero').val(),
             id_cdp: $('#id_cdp').val()
         }, function (he) {
@@ -325,7 +325,7 @@
         let id_cdp = $(this).attr('value');
         $('#id_cdp').val(id_cdp);
 
-        $.post(window.urlin + "/terceros/php/historialtercero/frm_liberarsaldos.php", { id_cdp: id_cdp }, function (he) {
+        $.post(ValueInput('host') + '/src/terceros/php/historialtercero/frm_liberarsaldos.php", { id_cdp: id_cdp }, function (he) {
             $('#divTamModalReg').removeClass('modal-xl');
             $('#divTamModalReg').removeClass('modal-sm');
             $('#divTamModalReg').addClass('modal-lg');
@@ -343,7 +343,7 @@
         else {
             let datos = $('#frm_liberarsaldos').serialize();
             let url;
-            url = window.urlin + '/terceros/php/historialtercero/registrar_liberacion.php';
+            url = ValueInput('host') + '/src/terceros/php/historialtercero/registrar_liberacion.php';
             $.ajax({
                 type: 'POST',
                 url: url,
@@ -366,7 +366,7 @@
         let id_cdp = $(this).attr('value');
         $('#id_cdp').val(id_cdp);
 
-        $.post(window.urlin + "/terceros/php/historialtercero/frm_listar_liberaciones_cdp.php", { id_cdp: id_cdp }, function (he) {
+        $.post(ValueInput('host') + '/src/terceros/php/historialtercero/frm_listar_liberaciones_cdp.php", { id_cdp: id_cdp }, function (he) {
             $('#divTamModalReg').removeClass('modal-xl');
             $('#divTamModalReg').removeClass('modal-sm');
             $('#divTamModalReg').addClass('modal-lg');
@@ -394,7 +394,7 @@
         var id = $(this).attr('value');
         $.ajax({
             type: 'POST',
-            url: window.urlin + '/terceros/php/historialtercero/registrar_liberacion.php',
+            url: ValueInput('host') + '/src/terceros/php/historialtercero/registrar_liberacion.php',
             dataType: 'json',
             data: { id: id, oper: 'del' }
         }).done(function (r) {
@@ -414,7 +414,7 @@
     // -------- imprimir liberacion cdp
     $('#divFormsReg').on("click", ".btn_imprimir_liberacion_cdp", function () {
         var id = $(this).attr('value');
-        $.post(window.urlin + '/terceros/php/historialtercero/imp_liberacion_cdp.php', {
+        $.post(ValueInput('host') + '/src/terceros/php/historialtercero/imp_liberacion_cdp.php', {
             id_lib: id,
             id_cdp: $('#id_cdp').val()
         }, function (he) {
@@ -430,7 +430,7 @@
     $('#body_tb_reg_presupuestal').on('click', '.btn_liberar_crp', function () {
         let id_crp = $(this).attr('value');
 
-        $.post(window.urlin + "/terceros/php/historialtercero/frm_liberarsaldos_crp.php", { id_crp: id_crp }, function (he) {
+        $.post(ValueInput('host') + '/src/terceros/php/historialtercero/frm_liberarsaldos_crp.php", { id_crp: id_crp }, function (he) {
             $('#divTamModalReg').removeClass('modal-xl');
             $('#divTamModalReg').removeClass('modal-sm');
             $('#divTamModalReg').addClass('modal-lg');
@@ -447,7 +447,7 @@
         else {
             let datos = $('#frm_liberarsaldos_crp').serialize();
             let url;
-            url = window.urlin + '/terceros/php/historialtercero/registrar_liberacion_crp.php';
+            url = ValueInput('host') + '/src/terceros/php/historialtercero/registrar_liberacion_crp.php';
             $.ajax({
                 type: 'POST',
                 url: url,
@@ -476,7 +476,7 @@
     //----------- listar liberaciones realizadas crp
     $('#body_tb_reg_presupuestal').on('click', '.btn_liberaciones_crp', function () {
         let id_crp = $(this).attr('value');
-        $.post(window.urlin + "/terceros/php/historialtercero/frm_listar_liberaciones_crp.php", { id_crp: id_crp }, function (he) {
+        $.post(ValueInput('host') + '/src/terceros/php/historialtercero/frm_listar_liberaciones_crp.php", { id_crp: id_crp }, function (he) {
             $('#divTamModalReg').removeClass('modal-xl');
             $('#divTamModalReg').removeClass('modal-sm');
             $('#divTamModalReg').addClass('modal-lg');
@@ -495,7 +495,7 @@
         var id = $(this).attr('value');
         $.ajax({
             type: 'POST',
-            url: window.urlin + '/terceros/php/historialtercero/registrar_liberacion_crp.php',
+            url: ValueInput('host') + '/src/terceros/php/historialtercero/registrar_liberacion_crp.php',
             dataType: 'json',
             data: { id: id, oper: 'del' }
         }).done(function (r) {
@@ -521,7 +521,7 @@
 
             var datos = $('#frm_afectacion_presupuestal').serialize();
             var url;
-            url = window.urlin + '/tesoreria/php/afectacion_presupuestal/editar_afectacion_presupuestal.php';
+            url = ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/editar_afectacion_presupuestal.php';
             $.ajax({
                 type: 'POST',
                 url: url,
@@ -542,7 +542,7 @@
         if (id_pto_rad > 0) {
             var datos = $('#frm_afectacion_presupuestal').serialize();
             var url;
-            url = window.urlin + '/tesoreria/php/afectacion_presupuestal/editar_afectacion_presupuestal.php';
+            url = ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/editar_afectacion_presupuestal.php';
             $.ajax({
                 type: 'POST',
                 url: url,
@@ -580,7 +580,7 @@
                     else {
                         var datos = $('#frm_afectacion_presupuestal').serialize();
                         var url;
-                        url = window.urlin + '/tesoreria/php/afectacion_presupuestal/editar_detalles_rubros.php';
+                        url = ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/editar_detalles_rubros.php';
                         $.ajax({
                             type: 'POST',
                             url: url,
@@ -606,7 +606,7 @@
         var id = $(this).attr('value');
         $.ajax({
             type: 'POST',
-            url: window.urlin + '/tesoreria/php/afectacion_presupuestal/editar_detalles_rubros.php',
+            url: ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/editar_detalles_rubros.php',
             dataType: 'json',
             data: { id: id, oper: 'del' }
         }).done(function (r) {
@@ -629,7 +629,7 @@ document.addEventListener("keyup", (e) => {
         $("#txt_rubro").autocomplete({
             source: function (request, response) {
                 $.ajax({
-                    url: window.urlin + "/tesoreria/php/afectacion_presupuestal/buscar_rubros.php",
+                    url: ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/buscar_rubros.php",
                     type: "POST",
                     dataType: "json",
                     data: {

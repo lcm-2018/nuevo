@@ -14,11 +14,7 @@ use Src\Common\Php\Clases\Permisos;
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_user);
 include '../../financiero/consultas.php';
-?>
-<!DOCTYPE html>
-<html lang="es">
 
-<?php
 $vigencia = $_SESSION['vigencia'];
 // concateno la fecha con el año vigencia
 $fecha_max = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-12-31'));
@@ -80,7 +76,7 @@ $otras = $rs->fetchAll();
                                 <a type="" id="btnExcelEntrada" class="btn btn-outline-success" value="01" title="Exprotar a Excel">
                                     <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
                                 </a>
-                                <a type="button" class="btn btn-danger" title="Imprimir" onclick="imprSelecTes('areaImprimir',<?php echo 0; ?>);"><span class="fas fa-print fa-lg" aria-hidden="true"></span></a>
+                                <a type="button" class="btn btn-danger" title="Imprimir" onclick="imprSelecTes('areaImprimir','0');"><span class="fas fa-print fa-lg" aria-hidden="true"></span></a>
                             </div>
                         </div>
                     </div>

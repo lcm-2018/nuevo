@@ -12,60 +12,55 @@ $cmd = \Config\Clases\Conexion::getConexion();
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header mb-3" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LIBROS AUXILIARES</h5>
+        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LIBROS AUXILIARES</h5>
         </div>
-        <div class="px-2">
+        <div class="px-3">
             <form id="frm_libros_aux_bancos">
-                <div class=" row">
-                    <div class="col-md-5">
+                <div class="row mb-2">
+                    <div class="col-md-6">
                         <label for="txt_cuentainicial" class="small">Cuenta inicial</label>
                         <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_cuentainicial" name="txt_cuentainicial" placeholder="Cuenta Inicial">
                         <input type="hidden" id="id_txt_cuentainicial" name="id_txt_cuentainicial" class="form-control form-control-sm bg-input">
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-md-6">
                         <label for="txt_cuentafinal" class="small">Cuenta final</label>
                         <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_cuentafinal" name="txt_cuentafinal" placeholder="Cuenta final">
                         <input type="hidden" id="id_txt_cuentafinal" name="id_txt_cuentafinal" class="form-control form-control-sm bg-input">
                     </div>
                 </div>
-                <div class=" row">
-                    <div class="col-md-5">
+                <div class=" row mb-2">
+                    <div class="col-md-6">
                         <label for="txt_fecini" class="small">Fecha inicial</label>
                         <input type="date" class="form-control form-control-sm bg-input" id="txt_fecini" name="txt_fecini" placeholder="Fecha Inicial" value="<?php echo $_SESSION['vigencia'] ?>-01-01">
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-md-6">
                         <label for="txt_fecfin" class="small">Fecha final</label>
                         <input type="date" class="form-control form-control-sm bg-input" id="txt_fecfin" name="txt_fecfin" placeholder="Fecha final" value="<?php echo $_SESSION['vigencia'] ?>-12-31">
                     </div>
                 </div>
                 <div class=" row">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="sl_tipo_documento" class="small">Tipo documento</label>
                         <select class="filtro form-control form-control-sm bg-input" id="sl_tipo_documento" name="sl_tipo_documento">
                             <?php tipo_documento($cmd, '--Seleccione--', 0) ?>
                         </select>
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-md-6">
                         <label for="txt_tercero_filtro" class="small">Tercero</label>
                         <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_tercero_filtro" name="txt_tercero_filtro" placeholder="Tercero">
                         <input type="hidden" id="id_txt_tercero" name="id_txt_tercero" class="form-control form-control-sm bg-input">
                     </div>
-                    <div class="col-md-1">
-                        <label for="btn_consultar" class="small">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                        <a type="button" id="btn_consultar" class="btn btn-outline-success btn-sm" title="Consultar">
+                </div>
+                <div class="row py-3">
+                    <div class="col-md-12 d-flex justify-content-end">
+                        <a type="button" id="btn_consultar" class="btn btn-outline-success btn-sm me-1" title="Consultar">
                             <span class="fas fa-search fa-lg" aria-hidden="true"></span>
                         </a>
-                    </div>
-                    <div class="col-md-1">
-                        <label for="btn_csv" class="small">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                        <a type="button" id="btn_csv" class="btn btn-outline-success btn-sm" title="Exportar a CSV">
+                        <a type="button" id="btn_csv" class="btn btn-outline-success btn-sm me-1" title="Exportar a CSV">
                             <span class="fas fa-file-csv fa-lg" aria-hidden="true"></span>
                         </a>
-                    </div>
-                    <div class="col-md-1">
-                        <label for="btn_cancelar" class="small">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                        <a type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                        <a type="button" class="btn btn-outline-secondary btn-sm me-1" data-bs-dismiss="modal">
                             <span class="fas fa-window-close fa-lg" aria-hidden="true"></span>
                         </a>
                     </div>

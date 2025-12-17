@@ -26,7 +26,7 @@ $content =
             <b>LISTADO DE INFORMES PRESUPUESTALES</b>
         </div>
         <div class="card-body p-0 bg-wiev">
-            <ul class="nav nav-tabs" id="myTab">
+            <ul class="nav nav-tabs small" id="myTab">
                 <li class="nav-item">
                     <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Internos</a>
                     <div class="dropdown-menu">

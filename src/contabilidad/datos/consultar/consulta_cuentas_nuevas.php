@@ -17,10 +17,10 @@ try {
     } else {
         if ($cuentas['tipo_dato'] == 'M') {
             // Buscar la ultima cuenta o cuenta vacia de la tabla ctb_pgcp
-            $sql = "SELECT MAX(cuenta) FROM ctb_pgcp WHERE cuenta LIKE  '{$_post['codigo']}%';";
+            $sql = "SELECT MAX(cuenta) AS cuenta FROM ctb_pgcp WHERE cuenta LIKE  '{$_post['codigo']}%';";
             $rs = $cmd->query($sql);
             $cuentas = $rs->fetch();
-            $response[] = array("datos" => "ok", "cuenta" => $cuentas[0] + 1);
+            $response[] = array("datos" => "ok", "cuenta" => $cuentas['cuenta'] + 1);
         } else {
             $response[] = array("datos" => 'Auxiliar');
         }

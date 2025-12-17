@@ -33,7 +33,7 @@ if (empty($obj)) {
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header mb-3" style="background-color: #16a085 !important;">
+        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
             <h7 style="color: white;">REGISRTAR CUENTA CONTABLE DE SUBGRUPO</h7>
         </div>
         <div class="px-2">

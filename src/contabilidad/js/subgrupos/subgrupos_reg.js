@@ -2,7 +2,9 @@
     $(document).ready(function () {
         $('#tb_cuentas_cs').DataTable({
             dom: setdom,
-            buttons: [{
+            buttons: $('#peReg').val() == 1 ? [{
+                text: '<span class="fa-solid fa-plus "></span>',
+                className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     $.post("frm_reg_subgrupos_cta.php", { id_cencos: $('#id_subgrupo').val() }, function (he) {
                         $('#divTamModalReg').removeClass('modal-xl');
@@ -12,7 +14,7 @@
                         $("#divFormsReg").html(he);
                     });
                 }
-            }],
+            }] : [],
             language: dataTable_es,
             processing: true,
             serverSide: true,
@@ -51,12 +53,13 @@
                 [10, 25, 50, 'TODO'],
             ],
         });
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
         $('#tb_cuentas_cs').wrap('<div class="overflow"/>');
 
         $('#tb_cuentas_af').DataTable({
             dom: setdom,
-            buttons: [{
+            buttons: $('#peReg').val() == 1 ? [{
+                text: '<span class="fa-solid fa-plus "></span>',
+                className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     $.post("frm_reg_subgrupos_cta_af.php", { id_cencos: $('#id_subgrupo').val() }, function (he) {
                         $('#divTamModalReg').removeClass('modal-xl');
@@ -66,7 +69,7 @@
                         $("#divFormsReg").html(he);
                     });
                 }
-            }],
+            }] : [],
             language: dataTable_es,
             processing: true,
             serverSide: true,
@@ -107,7 +110,6 @@
                 [10, 25, 50, 'TODO'],
             ],
         });
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
         $('#tb_cuentas_af').wrap('<div class="overflow"/>');
     });
 

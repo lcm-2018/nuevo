@@ -1,4 +1,7 @@
 <?php
+
+use Config\Clases\Logs;
+
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -16,10 +19,8 @@ try {
     $query->bindParam(1, $id);
     $query->execute();
     if ($query->rowCount() > 0) {
-        include '../../../financiero/reg_logs.php';
-        $ruta = '../../../log';
         $consulta = "DELETE FROM `ctb_retencion_rango` WHERE `id_rango` = $id";
-        RegistraLogs($ruta, $consulta);
+        Logs::guardaLog($consulta);
         echo 'ok';
     } else {
         echo $query->errorInfo()[2];

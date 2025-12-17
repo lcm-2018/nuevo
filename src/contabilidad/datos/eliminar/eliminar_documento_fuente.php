@@ -1,9 +1,12 @@
 <?php
+
+use Config\Clases\Logs;
+
 $_post = json_decode(file_get_contents('php://input'), true);
 include '../../../../config/autoloader.php';
 $id = $_post['id'];
-$pdo = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+$pdo = \Config\Clases\Conexion::getConexion();
+
 $response['value'] = 'error';
 // consulto si el id de la cuenta fue utilizado en seg_fin_chequera_cont
 try {
@@ -11,10 +14,8 @@ try {
     $query->bindParam(1, $id);
     $query->execute();
     if ($query->rowCount() > 0) {
-        include '../../../financiero/reg_logs.php';
-        $ruta = '../../../log';
         $consulta = "DELETE FROM `ctb_fuente` WHERE `id_doc_fuente` = $id";
-        RegistraLogs($ruta, $consulta);
+        Logs::guardaLog($consulta);
         $response['value'] = 'ok';
         $response['msg'] = 'Cuenta eliminada correctamente';
     } else {

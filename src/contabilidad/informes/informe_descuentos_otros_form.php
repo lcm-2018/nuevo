@@ -14,11 +14,7 @@ use Src\Common\Php\Clases\Permisos;
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_user);
 include '../../financiero/consultas.php';
-?>
-<!DOCTYPE html>
-<html lang="es">
 
-<?php
 $vigencia = $_SESSION['vigencia'];
 // concateno la fecha con el año vigencia
 $fecha_max = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-12-31'));
@@ -75,14 +71,14 @@ $otras = $rs->fetchAll();
                     <div class="row mb-2">
                         <div class="col-12">
                             <div class="text-center pt-3">
-                                <a type="button" class="btn btn-primary btn-sm" onclick="generarInformeCtb(6);"> Resumen</a>
-                                <a type="button" class="btn btn-warning btn-sm" onclick="generarInformeCtb(7);"> Detallado</a>
+                                <button value="6" type="button" class="btn btn-primary btn-sm" onclick="generarInformeCtb(this)"> Resumen</button>
+                                <button value="7" type="button" class="btn btn-warning btn-sm" onclick="generarInformeCtb(this)"> Detallado</button>
                             </div>
                         </div>
                     </div>
+                </form>
             </div>
-            </form>
         </div>
     </div>
-</div>
+    <div id="areaImprimir" class="table-responsive px-2" style="font-size: 100%;"></div>
 </div>

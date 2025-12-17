@@ -5,34 +5,12 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-?>
-<!DOCTYPE html>
-<html lang="es">
 
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>CONTAFACIL</title>
-    <style>
-        .text {
-            mso-number-format: "\@"
-        }
-    </style>
-
-    <?php
-
-    header("Content-type: application/vnd.ms-excel charset=utf-8");
-    header("Content-Disposition: attachment; filename=Descuentos_municipio.xls");
-    header("Pragma: no-cache");
-    header("Expires: 0");
-
-    ?>
-</head>
-<?php
 $vigencia = $_SESSION['vigencia'];
 // estraigo las variables que llegan por post en json
-$fecha_inicial = $_POST['fec_inicial'];
-$fecha_corte = $_POST['fec_final'];
-$sede = $_POST['mpio'];
+$fecha_inicial = $_POST['fecha_inicial'];
+$fecha_corte = $_POST['fecha_final'];
+$sede = $_POST['id_tercero'];
 function pesos($valor)
 {
     return '$' . number_format($valor, 2);
@@ -43,10 +21,12 @@ $cmd = \Config\Clases\Conexion::getConexion();
 // consulto la tabla seg_terceros para obtener el id_tercero_api
 try {
     $sql = "SELECT
-                `seg_terceros`.`id_tercero_api`
+                `tb_terceros`.`nom_tercero`
+                , `tb_terceros`.`nit_tercero`
+                , `tb_terceros`.`id_tercero_api`
             FROM
-                `seg_terceros`
-            WHERE (`seg_terceros`.`id_tercero` = $sede);";
+                `tb_terceros`
+            WHERE (`tb_terceros`.`id_tercero_api` = $sede);";
     $res = $cmd->query($sql);
     $tercero = $res->fetch();
 } catch (PDOException $e) {
@@ -97,7 +77,7 @@ FROM
     INNER JOIN `ctb_doc` 
         ON (`ctb_causa_retencion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
 WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` =4
-    AND `ctb_doc`.`fecha` BETWEEN '$fecha_inicial' AND '$fecha_corte'
+    AND DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
     AND `ctb_causa_retencion`.`id_terceroapi` ={$tercero['id_tercero_api']})
 GROUP BY `ctb_retenciones`.`nombre_retencion`;
             ";
@@ -106,7 +86,6 @@ GROUP BY `ctb_retenciones`.`nombre_retencion`;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-// consulto el nombre de la empresa de la tabla tb_datos_ips
 try {
     $sql = "SELECT
     `nombre`
@@ -119,12 +98,7 @@ FROM
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-// buscar datos del tercero
-// Consulta terceros en la api ********************************************* API
-$ids = $tercero['id_tercero_api'];
-$terceros = getTerceros($ids, $cmd);
-$tercero = isset($terceros[0]) ? $terceros[0]['nom_tercero'] : '---';
-$ccnit = isset($terceros[0]) ? $terceros[0]['nit_tercero'] : '---';
+
 ?>
 <div class="contenedor bg-light" id="areaImprimir">
     <div class="px-2 " style="width:90% !important;margin: 0 auto;">

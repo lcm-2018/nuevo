@@ -29,8 +29,8 @@ if (empty($obj)) {
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header mb-3" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">HISTORIAL MOVIMIENTOS POR TERCERO</h5>
+        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">HISTORIAL MOVIMIENTOS POR TERCERO</h5>
         </div>
         <div class="px-2">
             <form id="frm_historialtercero">
@@ -83,7 +83,7 @@ if (empty($obj)) {
             <!--Tabs-->
             <div class="p-3">
                 <nav>
-                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                    <div class="nav nav-tabs small" id="nav-tab" role="tablist">
                         <a class="nav-item nav-link active small" id="nav_lista_contratacion-tab" data-toggle="tab" href="#nav_lista_contratacion" role="tab" aria-controls="nav_lista_contratacion" aria-selected="true">CONTRATACIÓN</a>
                         <a class="nav-item nav-link small" id="nav_lista_regpresupuestal-tab" data-toggle="tab" href="#nav_lista_regpresupuestal" role="tab" aria-controls="nav_lista_regpresupuestal" aria-selected="false">REGISTRO PRESUPUESTAL</a>
                         <a class="nav-item nav-link small" id="nav_lista_obligaciones-tab" data-toggle="tab" href="#nav_lista_obligaciones" role="tab" aria-controls="nav_lista_obligaciones" aria-selected="false">OBLIGACIONES</a>

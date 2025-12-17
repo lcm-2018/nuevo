@@ -992,7 +992,7 @@ const tableAdquisiciones = crearDataTable(
         $(this).autocomplete({
             source: function (request, response) {
                 $.ajax({
-                    url: ValueInput('host') + "/terceros/gestion/datos/listar/buscar_terceros.php",
+                    url: ValueInput('host') + '/terceros/gestion/datos/listar/buscar_terceros.php',
                     dataType: "json",
                     type: 'POST',
                     data: {

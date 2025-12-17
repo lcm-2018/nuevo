@@ -57,13 +57,13 @@ if (!empty($rangos)) {
             if ($estado == '1') {
                 $title = 'Activo';
                 $icono = 'on';
-                $color = '#37E146';
+                $color = 'success';
             } else {
                 $title = 'Inactivo';
                 $icono = 'off';
-                $color = 'gray';
+                $color = 'secondary';
             }
-            $boton = '<a text="' . $st . '" class="btn btn-sm btn-circle estado" title="' . $title . '"><span class="fas fa-toggle-' . $icono . ' fa-2x" style="color:' . $color . ';"></span></a>';
+            $boton = '<a text="' . $st . '" href="javascript:void(0)" class="estado" title="' . $title . '"><span class="fas fa-toggle-' . $icono . ' fa-lg text-' . $color . '"></span></a>';
         }
         if ($permisos->PermisosUsuario($opciones, 5506, 4) || $id_rol == 1) {
             $borrar = '<a text="' . $id_r . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow borrar"  title="Eliminar"><span class="fas fa-trash-alt "></span></a>';

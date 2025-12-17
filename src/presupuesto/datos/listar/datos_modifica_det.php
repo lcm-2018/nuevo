@@ -121,9 +121,9 @@ if (!empty($listappto)) {
 $queda = $suma - $resta;
 $valor = '<input type="hidden" id="valida" value="' . $queda . '">';
 if ($queda != 0) {
-    $msg = '<span class="badge badge-danger">INCORRECTO</span>';
+    $msg = '<span class="badge rounded-pill text-bg-danger">INCORRECTO</span>';
 } else {
-    $msg = '<span class="badge badge-success">CORRECTO</span>';
+    $msg = '<span class="badge rounded-pill text-bg-success">CORRECTO</span>';
 }
 $suma = number_format($suma, 2, ',', '.');
 $resta = number_format($resta, 2, ',', '.');

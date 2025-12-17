@@ -32,31 +32,33 @@ if (empty($obj)) {
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header mb-3" style="background-color: #16a085 !important;">
+        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
             <h7 style="color: white;">REGISRTAR CUENTA CONTABLE DE CENTRO DE COSTO</h7>
         </div>
-        <div class="px-2">
-
+        <div class="px-4 mb-2">
             <!--Formulario de registro de Cuenta-->
             <form id="frm_reg_centrocostos_cta">
                 <input type="hidden" id="id_ceccta" name="id_ceccta" value="<?php echo $id ?>">
-                <div class=" row">
+                <div class=" row mb-2">
                     <div class="col-md-12">
                         <label for="txt_cta_con" class="small">Cuenta Contable</label>
                         <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_con" data-campoid="id_txt_cta_con" value="<?php echo $obj['cuenta'] ?>">
                         <input type="hidden" id="id_txt_cta_con" name="id_txt_cta_con" value="<?php echo $obj['id_cuenta'] ?>">
                     </div>
+                </div>
+                <div class="row">
                     <div class="col-md-3">
                         <label for="txt_fec_vig" class="small">Fecha Inicio de Vigencia</label>
                         <input type="date" class="form-control form-control-sm bg-input" id="txt_fec_vig" name="txt_fec_vig" value="<?php echo $obj['fecha_vigencia'] ?>">
                     </div>
                     <div class="col-md-2">
                         <label for="sl_estado_cta" class="small">Estado</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_estado_cta" name="sl_estado_cta">
+                        <select class="form-select form-select-sm bg-input" id="sl_estado_cta" name="sl_estado_cta">
                             <?php estados_registros('', $obj['estado']) ?>
                         </select>
                     </div>
                 </div>
+                <br>
             </form>
         </div>
     </div>

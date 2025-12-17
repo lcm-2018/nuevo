@@ -5,101 +5,57 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../config/autoloader.php';
-$id_rol = $_SESSION['rol'];
-$id_user = $_SESSION['id_user'];
 
 use Config\Clases\Plantilla;
 use Src\Common\Php\Clases\Permisos;
 
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_user);
-?>
-<!DOCTYPE html>
-<html lang="es">
-<?php include '../head.php';
-// Consulta la lista de chequeras creadas en el sistema
-$cmd = \Config\Clases\Conexion::getConexion();
-?>
 
-<body class="sb-nav-fixed <?php if ($_SESSION['navarlat'] === '1') {
-                                echo 'sb-sidenav-toggled';
-                            } ?>">
+$host = Plantilla::getHost();
 
-    <?php include '../navsuperior.php' ?>
-    <div id="layoutSidenav">
-        <?php include '../navlateral.php' ?>
-        <div id="layoutSidenav_content">
-            <main>
-                <div class="container-fluid p-2">
-                    <div class="card mb-4">
-                        <div class="card-header" id="divTituloPag">
-                            <div class="row mb-2">
-                                <div class="col-md-11">
-                                    <i class="fas fa-users fa-lg" style="color:#1D80F7"></i>
-                                    LISTA DE CUENTAS CONTABLES
-                                </div>
-                                <?php
-                                if ($permisos->PermisosUsuario($opciones, 5505, 2) || $id_rol == 1) {
-                                    echo '<input type="hidden" id="peReg" value="1">';
-                                } else {
-                                    echo '<input type="hidden" id="peReg" value="0">';
-                                }
-                                ?>
-                            </div>
-                        </div>
-                        <div class="card-body" id="divCuerpoPag">
-                            <div>
-                                <div clas="row">
-                                    <div class="center-block">
-                                        <div class="input-group">
-                                            <div class="input-group-prepend px-1">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <br>
-                                <table id="tableDocumentosFuente" class="table table-striped table-bordered table-sm table-hover shadow" style="table-layout: fixed;width: 98%;">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 12%;">Código</th>
-                                            <th style="width: 34%;">Nombre</th>
-                                            <th style="width: 13%;">Contabilidad</th>
-                                            <th style="width: 12%;">Tesorería</th>
-                                            <th style="width: 12%;">Cuentas por pagar</th>
-                                            <th style="width: 7%;">Estado</th>
-                                            <th style="width: 10%;">Acciones</th>
+// Validar permisos de registro
+$peReg = $permisos->PermisosUsuario($opciones, 5505, 2) || $id_rol == 1 ? 1 : 0;
 
-                                        </tr>
-                                    </thead>
-                                    <tbody id="modificartableDocumentosFuente">
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th>Código</th>
-                                            <th>Nombre</th>
-                                            <th>Contabilidad</th>
-                                            <th>Tesorería</th>
-                                            <th>Cuentas por pagar</th>
-                                            <th>Estado</th>
-                                            <th>Acciones</th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                            <div class="text-center pt-4">
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </main>
-            <?php include '../footer.php' ?>
-        </div>
-        <!-- Modal formulario-->
-        <?php include '../modales.php' ?>
+$content = <<<HTML
+<div class="card w-100">
+    <div class="card-header bg-sofia text-white">
+        <i class="fas fa-file-alt fa-lg me-2"></i>
+        <b>LISTA DE DOCUMENTOS FUENTE</b>
     </div>
-    <?php include '../scripts.php' ?>
+    <div class="card-body p-2 bg-wiev">
+        <input type="hidden" id="peReg" value="{$peReg}">
+        
+        <div class="table-responsive shadow p-2">
+            <table id="tableDocumentosFuente" class="table table-striped table-bordered table-sm table-hover w-100">
+                <thead class="text-center">
+                    <tr>
+                        <th class="bg-sofia" style="width: 12%;">Código</th>
+                        <th class="bg-sofia" style="width: 34%;">Nombre</th>
+                        <th class="bg-sofia" style="width: 13%;">Contabilidad</th>
+                        <th class="bg-sofia" style="width: 12%;">Tesorería</th>
+                        <th class="bg-sofia" style="width: 12%;">Cuentas por pagar</th>
+                        <th class="bg-sofia" style="width: 7%;">Estado</th>
+                        <th class="bg-sofia" style="width: 10%;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="modificartableDocumentosFuente">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+HTML;
 
-</body>
-
-</html>
+$plantilla = new Plantilla($content, 2);
+$plantilla->addCssFile("{$host}/assets/css/jquery-ui.css?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/assets/js/jquery-ui.js?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/src/contabilidad/js/funcioncontabilidad.js?v=" . date("YmdHis"));
+$modal = $plantilla->getModal('divModalForms', 'divTamModalForms', 'divForms');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalReg', 'divTamModalReg', 'divFormsReg');
+$plantilla->addModal($modal);
+echo $plantilla->render();

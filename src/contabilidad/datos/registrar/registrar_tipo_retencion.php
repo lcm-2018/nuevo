@@ -44,7 +44,7 @@ try {
             echo $query->errorInfo()[2];
         } else {
             if ($query->rowCount() > 0) {
-                $query = "UPDATE `ctb_retencion_tipo` SET `fec_act` = ?, `id_usuer_act` = ? WHERE `id_retencion_tipo` = ?";
+                $query = "UPDATE `ctb_retencion_tipo` SET `fecha_act` = ?, `id_user_act` = ? WHERE `id_retencion_tipo` = ?";
                 $query = $cmd->prepare($query);
                 $query->bindValue(1, $date->format('Y-m-d H:i:s'));
                 $query->bindParam(2, $iduser, PDO::PARAM_INT);

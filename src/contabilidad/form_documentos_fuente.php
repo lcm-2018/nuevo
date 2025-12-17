@@ -57,7 +57,7 @@ try {
                         <label for="slcGrupoContab" class="small">Grupo contabilidad: </label>
                     </div>
                     <div class="col-9">
-                        <select id="slcGrupoContab" name="slcGrupoContab" class="form-control form-control-sm bg-input">
+                        <select id="slcGrupoContab" name="slcGrupoContab" class="form-select form-select-sm bg-input">
                             <option value="0" <?php echo $fuente['contab'] == '0' ? 'selected' : ''; ?>>0</option>
                             <option value="1" <?php echo $fuente['contab'] == '1' ? 'selected' : ''; ?>>1</option>
                         </select>
@@ -68,7 +68,7 @@ try {
                         <label for="slcGrupoTesor" class="small">grupo tesorería: </label>
                     </div>
                     <div class="col-9">
-                        <select id="slcGrupoTesor" name="slcGrupoTesor" class="form-control form-control-sm bg-input">
+                        <select id="slcGrupoTesor" name="slcGrupoTesor" class="form-select form-select-sm bg-input">
                             <option value="0" <?php echo $fuente['tesor'] == '0' ? 'selected' : ''; ?>>0</option>
                             <option value="1" <?php echo $fuente['tesor'] == '1' ? 'selected' : ''; ?>>1</option>
                             <option value="2" <?php echo $fuente['tesor'] == '2' ? 'selected' : ''; ?>>2</option>

@@ -1,4 +1,7 @@
 <?php
+
+use Config\Clases\Logs;
+
 $_post = json_decode(file_get_contents('php://input'), true);
 $id = $_post['id'];
 
@@ -28,12 +31,12 @@ try {
 
     $sql = "DELETE FROM pto_rec WHERE id_ctb_doc = $id";
     $rs = $cmd->query($sql);
- 
+
     $sql = "SELECT id_pto_rad FROM pto_rad WHERE id_ctb_doc = $id LIMIT 1";
     $rs = $cmd->query($sql);
     $obj_id_pto_rad = $rs->fetch();
 
-    if(!empty($obj_id_pto_rad)){
+    if (!empty($obj_id_pto_rad)) {
         $id_pto_rad = $obj_id_pto_rad['id_pto_rad'];
     }
 
@@ -42,7 +45,7 @@ try {
 
     $sql = "DELETE FROM pto_rad WHERE id_ctb_doc=" . $id;
     $rs = $cmd->query($sql);
-    
+
     if ($rs) {
         $res['mensaje'] = 'ok';
     } else {
@@ -55,10 +58,8 @@ try {
     $query->bindParam(1, $id);
     $query->execute();
     if ($query->rowCount() > 0) {
-        include '../../../financiero/reg_logs.php';
-        $ruta = '../../../log';
         $consulta = "DELETE FROM `ctb_doc` WHERE `id_ctb_doc` = $id";
-        RegistraLogs($ruta, $consulta);
+        Logs::guardaLog($consulta);
         $response['status'] = 'ok';
     } else {
         $response['msg'] = 'Error: ' . $query->errorInfo()[2];

@@ -48,10 +48,105 @@ try {
             $("#divTamModalReg").removeClass("modal-xl");
             $("#divTamModalReg").removeClass("modal-sm");
             $("#divTamModalReg").removeClass("modal-lg");
-            $("#divModalReg").modal("show");
+
+            // Configurar el modal para que se muestre correctamente sobre el primero
+            var $modalReg = $("#divModalReg");
+
+            // Manejar el evento shown para ajustar z-index
+            $modalReg.off('shown.bs.modal').on('shown.bs.modal', function() {
+                // Ajustar z-index del modal y backdrop
+                var zIndex = 1055;
+                $(this).css('z-index', zIndex);
+                $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 5).addClass('modal-stack');
+
+                // Configurar autocomplete con z-index alto
+                configureNestedAutocomplete();
+            });
+
+            $modalReg.modal("show");
             $("#divFormsReg").html(he);
         });
     }
+
+    // Función para configurar autocomplete en modales anidados
+    function configureNestedAutocomplete() {
+        // Configurar autocomplete para codigoCta1 y codigoCta2
+        $('#codigoCta1, #codigoCta2').each(function() {
+            var $input = $(this);
+            var inputId = $input.attr('id');
+            var num = inputId === 'codigoCta1' ? 1 : 2;
+
+            $input.autocomplete({
+                source: function(request, response) {
+                    $.ajax({
+                        url: "datos/consultar/consultaPgcp.php",
+                        type: "post",
+                        dataType: "json",
+                        data: {
+                            search: request.term,
+                        },
+                        success: function(data) {
+                            response(data);
+                        },
+                    });
+                },
+                select: function(event, ui) {
+                    $("#codigoCta" + num).val(ui.item.label);
+                    $("#id_codigoCta" + num).val(ui.item.id);
+                    $("#tipoDato" + num).val(ui.item.tipo_dato);
+                    return false;
+                },
+                appendTo: "#divModalReg", // Anexar al modal para mejor control
+                position: {
+                    my: "left top",
+                    at: "left bottom",
+                    collision: "flip"
+                }
+            }).autocomplete("widget").css({
+                "z-index": 9999,
+                "max-height": "300px",
+                "overflow-y": "auto"
+            });
+        });
+
+        // Configurar autocomplete para rubroCod si existe
+        if ($('#rubroCod').length) {
+            $('#rubroCod').autocomplete({
+                source: function(request, response) {
+                    $.ajax({
+                        url: "../presupuesto/datos/consultar/buscar_rubros.php",
+                        type: "post",
+                        dataType: "json",
+                        data: {
+                            term: request.term,
+                            tipo: $('#tipoRubro').val() || '1'
+                        },
+                        success: function(data) {
+                            response(data);
+                        },
+                    });
+                },
+                select: function(event, ui) {
+                    $("#rubroCod").val(ui.item.label);
+                    $("#id_rubroCod").val(ui.item.id);
+                    $("#tipoRubro").val(ui.item.tipo);
+                    return false;
+                },
+                appendTo: "#divModalReg",
+                position: {
+                    my: "left top",
+                    at: "left bottom",
+                    collision: "flip"
+                },
+                minLength: 2
+            }).autocomplete("widget").css({
+                "z-index": 9999,
+                "max-height": "300px",
+                "overflow-y": "auto"
+            });
+        }
+    }
+
     $('#tableDocRefs').DataTable({
         language: dataTable_es,
         dom: setdom,
@@ -83,11 +178,11 @@ try {
             <table id="tableDocRefs" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
                 <thead>
                     <tr>
-                        <th class="text-center">Cuenta</th>
-                        <th class="text-center">Nombre</th>
-                        <th class="text-center">Acción</th>
-                        <th class="text-center">Estado</th>
-                        <th class="text-center">Acciones</th>
+                        <th class="text-center bg-sofia">Cuenta</th>
+                        <th class="text-center bg-sofia">Nombre</th>
+                        <th class="text-center bg-sofia">Acción</th>
+                        <th class="text-center bg-sofia">Estado</th>
+                        <th class="text-center bg-sofia">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -97,14 +192,14 @@ try {
                             $cerrar = $editar = $borrar = null;
                             $id_ctb = $ref['id_ctb_referencia'];
                             if ($ref['estado'] == 1) {
-                                $estado = '<span class="badge badge-success">Activa</span>';
+                                $estado = '<span class="badge rounded-pill text-bg-success">Activa</span>';
                             } else {
-                                $estado = '<span class="badge badge-secondary">Inactiva</span>';
+                                $estado = '<span class="badge rounded-pill text-bg-secondary">Inactiva</span>';
                             }
                             if ($ref['accion'] == '1') {
-                                $accion = '<span class="badge badge-primary">Ingreso</span>';
+                                $accion = '<span class="badge rounded-pill text-bg-primary">Ingreso</span>';
                             } else {
-                                $accion = '<span class="badge badge-warning">Gasto</span>';
+                                $accion = '<span class="badge rounded-pill text-bg-warning">Gasto</span>';
                             }
                             if ($ref['estado'] == 1) {
                                 $cerrar = '<button value="' . $id_ctb . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow" onclick="cerrarReferencia(' . $id_ctb . ')" title="Desactivar Referencia"><span class="fas fa-unlock "></span></button>';

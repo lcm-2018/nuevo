@@ -33,8 +33,8 @@ if (empty($obj)) {
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header mb-3" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">REGISRTAR TIPO DE ORDEN DE INGRESO</h5>
+        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">REGISRTAR TIPO DE ORDEN DE INGRESO</h5>
         </div>
         <div class="px-2">
             <form id="frm_reg_tipos_orden_ingreso">
@@ -46,37 +46,37 @@ if (empty($obj)) {
                     </div>
                     <div class="col-md-2">
                         <label for="sl_esintext" class="small">Interno/Externo</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_esintext" name="sl_esintext">
+                        <select class="form-select form-select-sm bg-input" id="sl_esintext" name="sl_esintext">
                             <?php interno_externo('', $obj['es_int_ext']) ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label for="sl_ordencompra" class="small">Con Orden Compra</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_ordencompra" name="sl_ordencompra">
+                        <select class="form-select form-select-sm bg-input" id="sl_ordencompra" name="sl_ordencompra">
                             <?php estados_sino('', $obj['orden_compra']) ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label for="sl_fianza" class="small">Es Fianza</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_fianza" name="sl_fianza">
+                        <select class="form-select form-select-sm bg-input" id="sl_fianza" name="sl_fianza">
                             <?php estados_sino('', $obj['fianza']) ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label for="sl_almacen" class="small">Mod. Almacen</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_almacen" name="sl_almacen">
+                        <select class="form-select form-select-sm bg-input" id="sl_almacen" name="sl_almacen">
                             <?php estados_sino('', $obj['almacen']) ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label for="sl_farmacia" class="small">Mod. Farmacia</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_farmacia" name="sl_farmacia">
+                        <select class="form-select form-select-sm bg-input" id="sl_farmacia" name="sl_farmacia">
                             <?php estados_sino('', $obj['farmacia']) ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label for="sl_activofijo" class="small">Mod. Activos Fijos</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_activofijo" name="sl_activofijo">
+                        <select class="form-select form-select-sm bg-input" id="sl_activofijo" name="sl_activofijo">
                             <?php estados_sino('', $obj['activofijo']) ?>
                         </select>
                     </div>

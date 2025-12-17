@@ -1,14 +1,14 @@
 ﻿<?php
+
+use Src\Common\Php\Clases\Terceros as ClasesTerceros;
+
 session_start();
 set_time_limit(3600);
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-?>
-<!DOCTYPE html>
-<html lang="es">
-<?php include '../../head.php';
+
 $id_tercero = $_POST['id_tercero'];
 $fecha_ini  = $_POST['fecha_i'];
 $fecha_fin  = $_POST['fecha_f'];
@@ -68,10 +68,12 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 */
-$id_t = [];
-$id_t[] = $_POST['id_tercero'];
+
 $prefijo = '';
 // consulta para motrar cuadro de retenciones
+
+$Terceros = new ClasesTerceros();
+$tercero = $Terceros->getTercero($id_tercero);
 try {
     $sql = "SELECT
                 SUM(`ctb_causa_retencion`.`valor_base`) as total_base
@@ -82,7 +84,6 @@ try {
                 , `ctb_retenciones`.`nombre_retencion`
                 , `ctb_retenciones`.`id_retencion`
                 , `ctb_retencion_tipo`.`tipo`
-
             FROM
                 `ctb_causa_retencion`
                 INNER JOIN `ctb_doc` ON (`ctb_causa_retencion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
@@ -96,23 +97,6 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-foreach ($retenciones as $re) {
-    if ($re['id_terceroapi'] != '') {
-        $id_t[] = $re['id_terceroapi'];
-    }
-}
-$ccnit = implode(',', $id_t);
-$terceros = getTerceros($ccnit, $cmd);
-$key = array_search($_POST['id_tercero'], array_column($terceros, 'id_tercero_api'));
-
-if ($key !== false) {
-    $tercero = $terceros[$key]['nom_tercero'];
-    $num_doc = $terceros[$key]['nit_tercero'];
-} else {
-    $tercero = '---';
-    $num_doc = '---';
-}
-// consulto el nombre de la empresa de la tabla tb_datos_ips
 
 try {
     $sql = "SELECT razon_social_ips, nit_ips, dv,direccion_ips FROM tb_datos_ips;";
@@ -150,7 +134,7 @@ try {
         </br>
         <table class="table-bordered bg-light" style="width:100% !important;">
             <tr>
-                <td class='text-center' style="width:18%"><label class="small"><img src="../../images/logos/logo.png" width="100"></label></td>
+                <td class='text-center' style="width:18%"><label class="small"><img src="../../../assets/images/logo.png" width="100"></label></td>
                 <td style="text-align:center">
                     <strong><?php echo $empresa['razon_social_ips']; ?> </strong>
                     <div>NIT <?php echo $empresa['nit_ips'] . '-' . $empresa['dv']; ?></div>
@@ -181,11 +165,11 @@ try {
                 </tr>
                 <tr>
                     <td class='text-start' style="width:18%">TERCERO:</td>
-                    <td class='text-start'><?php echo $tercero; ?></td>
+                    <td class='text-start'><?php echo $tercero['nom_tercero']; ?></td>
                 </tr>
                 <tr>
                     <td class='text-start' style="width:18%">CC/NIT:</td>
-                    <td class='text-start'><?php echo $num_doc; ?></td>
+                    <td class='text-start'><?php echo $tercero['nit_tercero']; ?></td>
                 </tr>
 
             </table>

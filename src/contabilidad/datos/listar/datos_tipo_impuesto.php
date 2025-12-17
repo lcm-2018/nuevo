@@ -42,21 +42,21 @@ if (!empty($tipos)) {
         $id_tp = base64_encode($id_tipo);
         $estado = $lp['estado'];
         if (($permisos->PermisosUsuario($opciones, 5506, 3) || $id_rol == 1)) {
-            $editar = '<a text="' . $id_tp . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow editar"  title="Editar Tipo Retención"><span class="fas fa-pencil-alt "></span></a>';
+            $editar = '<a text="' . $id_tp . '" href="javascript:void(0)" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow editar"  title="Editar Tipo Retención"><span class="fas fa-pencil-alt "></span></a>';
             $st = base64_encode($id_tipo . '|' . $estado);
             if ($estado == '1') {
                 $title = 'Activo';
                 $icono = 'on';
-                $color = '#37E146';
+                $color = 'success';
             } else {
                 $title = 'Inactivo';
                 $icono = 'off';
-                $color = 'gray';
+                $color = 'secondary';
             }
-            $boton = '<a text="' . $st . '" class="btn btn-sm btn-circle estado" title="' . $title . '"><span class="fas fa-toggle-' . $icono . ' fa-2x" style="color:' . $color . ';"></span></a>';
+            $boton = '<a text="' . $st . '" href="javascript:void(0)" class="estado" title="' . $title . '"><span class="fas fa-toggle-' . $icono . ' fa-lg text-' . $color . '"></span></a>';
         }
         if ($permisos->PermisosUsuario($opciones, 5506, 4) || $id_rol == 1) {
-            $borrar = '<a text="' . $id_tp . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow borrar"  title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
+            $borrar = '<a text="' . $id_tp . '" href="javascript:void(0)" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow borrar"  title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         }
 
         if ($estado == 0) {

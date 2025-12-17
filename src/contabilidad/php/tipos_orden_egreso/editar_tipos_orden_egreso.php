@@ -8,6 +8,7 @@ include '../../../../config/autoloader.php';
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 
+use Config\Clases\Logs;
 use Config\Clases\Plantilla;
 use Src\Common\Php\Clases\Permisos;
 
@@ -76,10 +77,8 @@ try {
             $sql = "DELETE FROM far_orden_egreso_tipo WHERE id_tipo_egreso>2 AND id_tipo_egreso=" . $id;
             $rs = $cmd->query($sql);
             if ($rs) {
-                include '../../../financiero/reg_logs.php';
-                $ruta = '../../../log';
-                $consulta = "DELETE FROM far_tipos_orden_egreso WHERE id_subgrupo = $id";
-                RegistraLogs($ruta, $consulta);
+                $consulta = "DELETE FROM far_orden_egreso_tipo WHERE id_tipo_egreso = $id";
+                Logs::guardaLog($consulta);
                 $res['mensaje'] = 'ok';
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];

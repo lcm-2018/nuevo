@@ -34,8 +34,8 @@ if (empty($obj)) {
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header mb-3" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">REGISRTAR TIPO DE ORDEN DE EGRESO</h5>
+        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">REGISRTAR TIPO DE ORDEN DE EGRESO</h5>
         </div>
         <div class="px-2">
             <form id="frm_reg_tipos_orden_egreso">
@@ -47,43 +47,43 @@ if (empty($obj)) {
                     </div>
                     <div class="col-md-2">
                         <label for="sl_esintext" class="small">Interno/Externo</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_esintext" name="sl_esintext">
+                        <select class="form-select form-select-sm bg-input" id="sl_esintext" name="sl_esintext">
                             <?php interno_externo('', $obj['es_int_ext']) ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label for="sl_conpedido" class="small">Con Pedido</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_conpedido" name="sl_conpedido">
+                        <select class="form-select form-select-sm bg-input" id="sl_conpedido" name="sl_conpedido">
                             <?php estados_sino('', $obj['con_pedido']) ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label for="sl_devfianza" class="small">Es Dev. Fianza</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_devfianza" name="sl_devfianza">
+                        <select class="form-select form-select-sm bg-input" id="sl_devfianza" name="sl_devfianza">
                             <?php estados_sino('', $obj['dev_fianza']) ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label for="sl_consumo" class="small">Es Consumo</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_consumo" name="sl_consumo">
+                        <select class="form-select form-select-sm bg-input" id="sl_consumo" name="sl_consumo">
                             <?php estados_sino('', $obj['consumo']) ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label for="sl_almacen" class="small">Mod. Almacen</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_almacen" name="sl_almacen">
+                        <select class="form-select form-select-sm bg-input" id="sl_almacen" name="sl_almacen">
                             <?php estados_sino('', $obj['almacen']) ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label for="sl_farmacia" class="small">Mod. Farmacia</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_farmacia" name="sl_farmacia">
+                        <select class="form-select form-select-sm bg-input" id="sl_farmacia" name="sl_farmacia">
                             <?php estados_sino('', $obj['farmacia']) ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <label for="sl_activofijo" class="small">Mod. Activos Fijos</label>
-                        <select class="form-control form-control-sm bg-input" id="sl_activofijo" name="sl_activofijo">
+                        <select class="form-select form-select-sm bg-input" id="sl_activofijo" name="sl_activofijo">
                             <?php estados_sino('', $obj['activofijo']) ?>
                         </select>
                     </div>

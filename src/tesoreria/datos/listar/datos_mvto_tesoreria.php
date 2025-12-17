@@ -272,7 +272,7 @@ if (!empty($listappto)) {
             $cerrar = null;
             $anular = null;
             $detalles = null;
-            $dato = '<span class="badge badge-pill badge-secondary">Anulado</span>';
+            $dato = '<span class="badge rounded-pill text-bg-pill badge-secondary">Anulado</span>';
         }
         $data[] = [
             'numero' => $lp['id_manu'],

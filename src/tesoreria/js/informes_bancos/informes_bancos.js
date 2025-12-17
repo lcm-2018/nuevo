@@ -1,6 +1,6 @@
 (function ($) {
     $('#frm_libros_aux_bancos').on("click", "#btn_consultar", function () {
-        $.post(window.urlin + '/tesoreria/php/informes_bancos/imp_libros_bancos.php', {
+        $.post(ValueInput('host') + '/src/tesoreria/php/informes_bancos/imp_libros_bancos.php', {
             id_cuenta_ini: $('#id_txt_cuentainicial').val(),
             id_cuenta_fin: $('#id_txt_cuentafinal').val(),
             fec_ini: $('#txt_fecini').val(),
@@ -23,7 +23,7 @@ document.addEventListener("keyup", (e) => {
         $("#txt_cuentainicial").autocomplete({
             source: function (request, response) {
                 $.ajax({
-                    url: window.urlin + "/tesoreria/php/informes_bancos/buscar_cuentas.php",
+                    url: ValueInput('host') + '/src/tesoreria/php/informes_bancos/buscar_cuentas.php",
                     type: "POST",
                     dataType: "json",
                     data: {
@@ -49,7 +49,7 @@ document.addEventListener("keyup", (e) => {
         $("#txt_cuentafinal").autocomplete({
             source: function (request, response) {
                 $.ajax({
-                    url: window.urlin + "/tesoreria/php/informes_bancos/buscar_cuentas.php",
+                    url: ValueInput('host') + '/src/tesoreria/php/informes_bancos/buscar_cuentas.php",
                     type: "POST",
                     dataType: "json",
                     data: {
@@ -75,7 +75,7 @@ document.addEventListener("keyup", (e) => {
         $("#txt_tercero_filtro").autocomplete({
             source: function (request, response) {
                 $.ajax({
-                    url: window.urlin + "/tesoreria/php/informes_bancos/buscar_terceros.php",
+                    url: ValueInput('host') + '/src/tesoreria/php/informes_bancos/buscar_terceros.php",
                     type: "POST",
                     dataType: "json",
                     data: {

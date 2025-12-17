@@ -57,3 +57,13 @@
 [2025-12-15 11:45:25] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `pto_cargue`  WHERE `id_cargue` = 574;
 [2025-12-16 09:34:50] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_factura` WHERE `id_cta_factura` = 1485;
 [2025-12-16 11:26:01] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM ctb_causa_costos WHERE id = 1433;
+[2025-12-17 10:17:26] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_factura` WHERE `id_cta_factura` = 1487;
+[2025-12-17 10:24:03] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_factura` WHERE `id_cta_factura` = 1488;
+[2025-12-17 10:26:06] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_libaux` WHERE `id_ctb_libaux` = 522012;
+[2025-12-17 10:26:24] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_factura` WHERE `id_cta_factura` = 1489;
+[2025-12-17 12:54:39] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM ctb_pgcp WHERE id_pgcp = 2311;
+[2025-12-17 13:36:41] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_fuente` WHERE `id_doc_fuente` = 38;
+[2025-12-17 14:21:57] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_retencion_tipo` WHERE `id_retencion_tipo` = 8;
+[2025-12-17 14:30:30] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_retenciones` WHERE `id_retencion` = 58;
+[2025-12-17 14:33:30] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_retencion_rango` WHERE `id_rango` = 56;
+[2025-12-17 15:18:57] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM tb_homologacion WHERE id_homo=13;
