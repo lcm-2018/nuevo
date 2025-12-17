@@ -4,15 +4,14 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
 $usuario = $_SESSION['id_user'];
 $vigencia = $_SESSION['vigencia'];
 
 $term = isset($_POST['term']) ? $_POST['term'] : exit('Acción no permitida');
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT pto_cargue.id_cargue AS id_cta,pto_cargue.tipo_dato AS tipo,
                 CONCAT_WS(' - ',pto_cargue.cod_pptal,pto_cargue.nom_rubro) AS nom_cta
             FROM pto_cargue

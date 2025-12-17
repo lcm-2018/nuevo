@@ -1,19 +1,19 @@
 <?php
-include '../../../conexion.php';
-$conexion = new mysqli($bd_servidor, $bd_usuario, $bd_clave, $bd_base);
+include '../../../../config/autoloader.php';
+$cmd = \Config\Clases\Conexion::getConexion();
 $_post = json_decode(file_get_contents('php://input'), true);
 $id_rp = $_post['id'];
 $parcial = $_post['total'];
 $valor_total = 0;
 // Consultar valor total causado al registro
 $sql = "SELECT sum(valor) as valor FROM ctb_causa_costos WHERE id_pto_rp='$id_rp' AND estado=0";
-$res = $conexion->query($sql);
+$res = $cmd->query($sql);
 while ($row = $res->fetch_assoc()) {
     $total = $row['valor'];
 }
 // Consulto las causaciones realizadas al registro que se esta ajustando
 $sql = "SELECT id, valor FROM ctb_causa_costos WHERE id_pto_rp='$id_rp' AND estado=0";
-$res = $conexion->query($sql);
+$res = $cmd->query($sql);
 while ($row = $res->fetch_assoc()) {
     $valor = ($row['valor'] / $total) * $parcial;
     // Realizo el update

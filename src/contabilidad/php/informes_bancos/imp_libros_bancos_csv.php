@@ -6,12 +6,11 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include '../../../vendor/autoload.php';
 include 'funciones_generales.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $id_cuenta_ini = isset($_POST['id_cuenta_ini']) ? $_POST['id_cuenta_ini'] : 0;
 $id_cuenta_fin = isset($_POST['id_cuenta_fin']) ? $_POST['id_cuenta_fin'] : 0;
@@ -29,8 +28,7 @@ if ($id_tipo_doc > 0) {
 }
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT 
                  ctb_pgcp.id_pgcp
                 ,ctb_pgcp.cuenta
@@ -60,8 +58,7 @@ try {
     header("Pragma: no-cache");
     header("Expires: 0");
 
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     foreach ($obj_cuentas as $obj_c) {
         try {
             //-----libros auxiliares de bancos -----------------------
@@ -180,12 +177,12 @@ try {
             fputcsv($output, ["FECHA FINAL", $fec_fin]);
         }
         $reg++;
-    fputcsv($output, ["CUENTA", strval($obj_c['cuenta'] . ' - ' . $obj_c['nombre'])]);
-    fputcsv($output, []); // línea en blanco
-    $headers = ["Fecha", "Tipo Documento", "Documento", "Referencia", "Tercero", "CC/nit", "Detalle", "Debito", "Credito", "Saldo"];
-    fputcsv($output, $headers);
-    $saldoInicial = ["", "", "", "", "", "", "Saldo inicial:", "", "", number_format($saldo_inicial, 2, ".", ",")];
-    fputcsv($output, $saldoInicial);
+        fputcsv($output, ["CUENTA", strval($obj_c['cuenta'] . ' - ' . $obj_c['nombre'])]);
+        fputcsv($output, []); // línea en blanco
+        $headers = ["Fecha", "Tipo Documento", "Documento", "Referencia", "Tercero", "CC/nit", "Detalle", "Debito", "Credito", "Saldo"];
+        fputcsv($output, $headers);
+        $saldoInicial = ["", "", "", "", "", "", "Saldo inicial:", "", "", number_format($saldo_inicial, 2, ".", ",")];
+        fputcsv($output, $saldoInicial);
 
         foreach ($obj_informe as $obj) {
             $primer_caracter = substr($obj['cuenta'], 0, 1);

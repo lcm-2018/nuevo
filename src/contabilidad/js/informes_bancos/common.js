@@ -2,7 +2,7 @@
 //CONFIRMAIÓN DE BORRAR REGISTROS
 var confirmar_del = function (tipo, id) {
     var msg = "Esta seguro de esta Operación?";
-    let btns = '<button class="btn btn-primary btn-sm" id="' + tipo + '" value=' + id + '>Aceptar</button><button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>';
+    let btns = '<button class="btn btn-primary btn-sm" id="' + tipo + '" value=' + id + '>Aceptar</button><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>';
     $('#divModalConfDel').modal('show');
     $('#divMsgConfdel').html(msg);
     $('#divBtnsModalDel').html(btns);
@@ -12,7 +12,7 @@ var confirmar_del = function (tipo, id) {
 //CONFIRMACIÓN DE CERRAR, ANULAR PARA ORDENES DE INGRESO, ORDENES DE EGRESO, TRASLADOS, ETC.
 var confirmar_proceso = function (tipo) {
     var msg = "Esta seguro de esta Operación?, <p style='color:red'>ESTE PROCESO ES IRREVERSIBLE</p>";
-    let btns = '<button class="btn btn-primary btn-sm" id="' + tipo + '">Continuar</button><button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>';
+    let btns = '<button class="btn btn-primary btn-sm" id="' + tipo + '">Continuar</button><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>';
     $('#divModalConfDel').modal('show');
     $('#divMsgConfdel').html(msg);
     $('#divBtnsModalDel').html(btns);
@@ -21,7 +21,7 @@ var confirmar_proceso = function (tipo) {
 
 //CONFIRMACIÓN PROCESO SOLICITANDO UN MENSAJE
 var confirmar_proceso_msg = function (tipo, msg) {
-    let btns = '<button class="btn btn-primary btn-sm" id="' + tipo + '">Continuar</button><button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>';
+    let btns = '<button class="btn btn-primary btn-sm" id="' + tipo + '">Continuar</button><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>';
     $('#divModalConfDel').modal('show');
     $('#divMsgConfdel').html(msg);
     $('#divBtnsModalDel').html(btns);

@@ -1,7 +1,7 @@
-(function($) {
-    $(document).ready(function() {
+(function ($) {
+    $(document).ready(function () {
         $('#tb_cuentas_sg_det').DataTable({
-            language: setIdioma,
+            language: dataTable_es,
             processing: true,
             serverSide: true,
             searching: false,
@@ -10,7 +10,7 @@
                 url: 'listar_centrocostos_sg_cta.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function(data) {
+                data: function (data) {
                     data.id_cec_sg = $('#id_cec_sg').val();
                 }
             },
@@ -34,7 +34,7 @@
                 [10, 25, 50, 'TODO'],
             ],
         });
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle fa-lg"></span>');
+        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
         $('#tb_cuentas_sg_det').wrap('<div class="overflow"/>');
     });
 

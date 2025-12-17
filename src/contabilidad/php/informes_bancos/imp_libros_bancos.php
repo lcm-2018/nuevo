@@ -6,11 +6,10 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include 'funciones_generales.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $id_cuenta_ini = isset($_POST['id_cuenta_ini']) ? $_POST['id_cuenta_ini'] : 0;
 $id_cuenta_fin = isset($_POST['id_cuenta_fin']) ? $_POST['id_cuenta_fin'] : 0;
@@ -28,8 +27,7 @@ if ($id_tipo_doc > 0) {
 }
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT 
                  ctb_pgcp.id_pgcp
                 ,ctb_pgcp.cuenta
@@ -51,12 +49,12 @@ try {
 
 ?>
 
-    <div class="text-right py-3">
+    <div class="text-end py-3">
         <a type="button" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" value="01" title="Exportar a Excel">
             <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
         </a>
         <a type="button" class="btn btn-primary btn-sm" id="btnImprimir">Imprimir</a>
-        <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Cerrar</a>
+        <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
     </div>
     <div class="content bg-light" id="areaImprimirrr">
         <style>
@@ -77,8 +75,7 @@ try {
     </div>
     <?php
     $reg = 0;
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     foreach ($obj_cuentas as $obj_c) {
         try {
             //-----libros auxiliares de bancos -----------------------

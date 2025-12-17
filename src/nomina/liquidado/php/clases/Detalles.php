@@ -171,7 +171,9 @@ class Detalles
                             INNER JOIN `nom_indemniza_vac` 
                                 ON (`nom_liq_indemniza_vac`.`id_indemnizacion` = `nom_indemniza_vac`.`id_indemniza`)
                         WHERE (`nom_liq_indemniza_vac`.`estado` = 1
-                            AND `nom_liq_indemniza_vac`.`id_nomina` = :id_nomina))
+                            AND `nom_liq_indemniza_vac`.`id_nomina` = :id_nomina)),
+                    `ccosto` AS
+                        (SELECT `id_empleado`, `id_ccosto` FROM `nom_ccosto_empleado`)
                 SELECT 
                     `e`.`id_empleado`
                     , `ts`.`nom_sede` AS `sede`
@@ -233,6 +235,7 @@ class Detalles
                     , `nom`.`mes` AS `mes`
                     , `nom`.`tipo` AS `codigo_nomina`
                     , `nom`.`estado` AS `estado_nomina`
+                    , IFNULL(`ccosto`.`id_ccosto`,21) AS `id_ccosto`
                 FROM `nom_empleado` `e`
                     INNER JOIN `sal` ON (`sal`.`id_empleado` = `e`.`id_empleado`)
                     INNER JOIN `tb_sedes` `ts` ON (`ts`.`id_sede` = `e`.`sede_emp`)
@@ -256,6 +259,7 @@ class Detalles
                     LEFT JOIN `vac` ON (`vac`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `paraf` ON (`paraf`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `indem` ON (`indem`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `ccosto` ON (`ccosto`.`id_empleado` = `e`.`id_empleado`)
                     JOIN `nom`
                 WHERE (1 = 1 $where)
                 ORDER BY $col $dir $limit";

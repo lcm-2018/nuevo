@@ -4,12 +4,11 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $id = $_POST['id'];
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_pgcp`,`cuenta`, `nombre`, `desagrega`
             FROM `ctb_pgcp`
@@ -24,20 +23,20 @@ try {
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">DESAGREGACIÓN DE TERCEROS</h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">DESAGREGACIÓN DE TERCEROS</h5>
         </div>
         <form id="formDesagregacion" class="px-3">
             <input type="hidden" name="id_pgcp" id="id_pgcp" value="<?php echo $cuenta['id_pgcp']; ?>">
             <input type="hidden" name="cuenta" id="cuenta" value="<?php echo $cuenta['cuenta']; ?>">
-            <div class="form-row px-12 pt-2">
-                <div class="form-group col-md-12">
+            <div class="row mb-2 px-12 pt-2">
+                <div class="col-md-12">
                     <label for="txtCuenta" class="small">CÓDIGO - CUENTA</label>
-                    <input type="text" name="txtCuenta" id="txtCuenta" class="form-control form-control-sm" value="<?php echo $cuenta['cuenta'] . ' - ' . $cuenta['nombre']; ?>" readonly disabled>
+                    <input type="text" name="txtCuenta" id="txtCuenta" class="form-control form-control-sm bg-input" value="<?php echo $cuenta['cuenta'] . ' - ' . $cuenta['nombre']; ?>" readonly disabled>
                 </div>
             </div>
-            <div class="form-row px-12">
-                <div class="form-group col-md-8 text-center mt-1">
+            <div class="row mb-2 px-12">
+                <div class="col-md-8 text-center mt-1">
                     <label class="small d-block" for="aplica">Aplica A</label>
                     <div class="form-control-sm border rounded px-2 py-1">
                         <div class="form-check form-check-inline mb-0">
@@ -50,7 +49,7 @@ try {
                         </div>
                     </div>
                 </div>
-                <div class="form-group col-md-4 text-center mt-1">
+                <div class="col-md-4 text-center mt-1">
                     <label class="small d-block" for="marca_si">Marca</label>
                     <div class="form-control-sm border rounded px-2 py-1">
                         <div class="form-check form-check-inline mb-0">
@@ -68,6 +67,6 @@ try {
     </div>
     <div class="text-center py-3">
         <button class="btn btn-primary btn-sm" onclick="GuardarDesagregacion()">Guardar</button>
-        <button type="button" class="btn btn-secondary  btn-sm" data-dismiss="modal"> Cancelar</button>
+        <button type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal"> Cancelar</button>
     </div>
 </div>

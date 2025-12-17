@@ -5,11 +5,10 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include '../common/funciones_generales.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $where = "WHERE far_subgrupos.id_subgrupo<>0";
 if (isset($_POST['nombre']) && $_POST['nombre']) {
@@ -29,12 +28,12 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 ?>
-<div class="text-right py-3">
+<div class="text-end py-3">
     <a type="button" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" value="01" title="Exprotar a Excel">
         <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
     </a>
     <a type="button" class="btn btn-primary btn-sm" id="btnImprimir">Imprimir</a>
-    <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Cerrar</a>
+    <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
 </div>
 <div class="content bg-light" id="areaImprimir">
     <style>
@@ -43,9 +42,11 @@ try {
                 font-family: Arial, sans-serif;
             }
         }
+
         .resaltar:nth-child(even) {
             background-color: #F8F9F9;
         }
+
         .resaltar:nth-child(odd) {
             background-color: #ffffff;
         }
@@ -56,11 +57,11 @@ try {
     <table style="width:100%; font-size:80%">
         <tr style="text-align:center">
             <th>REPORTE DE SUBGRUPOS</th>
-        </tr>     
+        </tr>
     </table>
 
     <table style="width:100% !important">
-        <thead style="font-size:80%">                
+        <thead style="font-size:80%">
             <tr style="background-color:#CED3D3; color:#000000; text-align:center">
                 <th>Id</th>
                 <th>Código</th>
@@ -98,8 +99,8 @@ try {
                 $cuenta_af = isset($obj_cta['cuenta_af']) ? $obj_cta['cuenta_af'] : '';
                 $cuenta_dep = isset($obj_cta['cuenta_dep']) ? $obj_cta['cuenta_dep'] : '';
                 $cuenta_gas = isset($obj_cta['cuenta_gas']) ? $obj_cta['cuenta_gas'] : '';
-                        
-                $tabla .=  
+
+                $tabla .=
                     '<tr class="resaltar" style="text-align:left"> 
                         <td>' . $obj['id_subgrupo'] . '</td>
                         <td>' . $obj['cod_subgrupo'] . '</td>
@@ -110,28 +111,28 @@ try {
                     <tr class="resaltar" style="text-align:left"> 
                         <td colspan="5">
                             <table>';
-                            if($obj['id_grupo'] == 1 || $obj['id_grupo'] == 2){  
-                                $tabla .= 
-                                    '<tr>    
-                                       <td>Cta. Inventario:</td><td>' . $cuenta_cs .'</td>
+                if ($obj['id_grupo'] == 1 || $obj['id_grupo'] == 2) {
+                    $tabla .=
+                        '<tr>    
+                                       <td>Cta. Inventario:</td><td>' . $cuenta_cs . '</td>
                                     </tr></table></td></tr>';
-                            }else{        
-                                $tabla .= 
-                                    '<tr>    
-                                        <td>Cta. Activo Fijo:</td><td> ' . $cuenta_af .'</td>
+                } else {
+                    $tabla .=
+                        '<tr>    
+                                        <td>Cta. Activo Fijo:</td><td> ' . $cuenta_af . '</td>
                                     </tr>
                                     <tr>        
-                                        <td>Cta. Depreciación Activo Fijo:</td><td> ' . $cuenta_dep .'</td>
+                                        <td>Cta. Depreciación Activo Fijo:</td><td> ' . $cuenta_dep . '</td>
                                     </tr>
                                     <tr>        
-                                        <td>Cta. Gasto Depreciación Activo Fijo:</td><td> ' . $cuenta_gas .'</td>
+                                        <td>Cta. Gasto Depreciación Activo Fijo:</td><td> ' . $cuenta_gas . '</td>
                                     </tr></table></td></tr>';
-                            }        
+                }
             }
             echo $tabla;
-            ?>            
+            ?>
         </tbody>
-        <tfoot style="font-size:60%"> 
+        <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="5" style="text-align:left">
                     No. de Registros: <?php echo count($objs); ?>

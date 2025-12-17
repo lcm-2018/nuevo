@@ -5,11 +5,10 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include '../common/funciones_generales.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $where = "WHERE tb_homologacion.id_homo<>0";
 if (isset($_POST['nombre']) && $_POST['nombre']) {
@@ -61,12 +60,12 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 ?>
-<div class="text-right py-3">
+<div class="text-end py-3">
     <a type="button" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" value="01" title="Exprotar a Excel">
         <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
     </a>
     <a type="button" class="btn btn-primary btn-sm" id="btnImprimir">Imprimir</a>
-    <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Cerrar</a>
+    <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
 </div>
 <div class="content bg-light" id="areaImprimir">
     <style>
@@ -75,9 +74,11 @@ try {
                 font-family: Arial, sans-serif;
             }
         }
+
         .resaltar:nth-child(even) {
             background-color: #F8F9F9;
         }
+
         .resaltar:nth-child(odd) {
             background-color: #ffffff;
         }
@@ -88,17 +89,17 @@ try {
     <table style="width:100%; font-size:80%">
         <tr style="text-align:center">
             <th>REPORTE DE CUENTAS CONTABLES DE FACTURACIÓN</th>
-        </tr>     
+        </tr>
     </table>
 
     <table style="width:100% !important">
-        <thead style="font-size:80%">                
+        <thead style="font-size:80%">
             <tr style="background-color:#CED3D3; color:#000000; text-align:left">
                 <th>Id</th>
                 <th>Régimen</th>
                 <th>Cobertura</th>
                 <th>Modadlidad</th>
-                <th>Fecha Inicio de Vigencia</th>                
+                <th>Fecha Inicio de Vigencia</th>
                 <th>Estado</th>
             </tr>
         </thead>
@@ -106,7 +107,7 @@ try {
             <?php
             $tabla = '';
             foreach ($objs as $obj) {
-                $tabla .=  
+                $tabla .=
                     '<tr class="resaltar" style="text-align:left"> 
                         <td>' . $obj['id_homo'] . '</td>
                         <td>' . $obj['nom_regimen'] . '</td>
@@ -175,12 +176,12 @@ try {
                                 </tr>
                             </table>
                         </td>  
-                    </tr>';      
+                    </tr>';
             }
             echo $tabla;
-            ?>            
+            ?>
         </tbody>
-        <tfoot style="font-size:60%"> 
+        <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="7" style="text-align:left">
                     No. de Registros: <?php echo count($objs); ?>

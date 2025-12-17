@@ -37,10 +37,9 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT
     `ctb_retenciones`.`nombre_retencion`
@@ -128,15 +127,15 @@ FROM
             $total_pago =  0;
             foreach ($causaciones as $rp) {
                 echo "<tr>
-                    <td class='text-right'>" . $id_des . "</td>
+                    <td class='text-end'>" . $id_des . "</td>
                     <td class='text'>" . $rp['nombre_retencion'] . "</td>
-                    <td class='text-right'>" . number_format($rp['valor_retencion'], 2, ".", ",")  . "</td>
+                    <td class='text-end'>" . number_format($rp['valor_retencion'], 2, ".", ",")  . "</td>
                     </tr>";
                 $total_ret = $total_ret + $rp['valor_retencion'];
             }
             echo "<tr>
-            <td class='text-right' colspan='2'> Total</td>
-            <td class='text-right'>" . number_format($total_ret, 2, ".", ",")  . "</td>
+            <td class='text-end' colspan='2'> Total</td>
+            <td class='text-end'>" . number_format($total_ret, 2, ".", ",")  . "</td>
             </tr>";
 
             ?>

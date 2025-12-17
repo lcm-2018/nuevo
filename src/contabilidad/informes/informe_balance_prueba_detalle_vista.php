@@ -41,10 +41,9 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 // Consulto las cuentas que han tenido movimeiento en el libro auxiliar
 try {
     $sql = "SELECT
@@ -119,7 +118,7 @@ FROM
                 <td style='text-align: left;'></td>
             </tr>
         </table>
-        <label class="text-right"> <b></b></label>
+        <label class="text-end"> <b></b></label>
         <table class="table-bordered bg-light" style="width:100% !important;" border=1>
             <tr>
                 <td>Cuenta</td>
@@ -137,9 +136,9 @@ FROM
                 }
                 */
                 echo "<tr>
-                    <td class='text-right'>" . $tp['cuenta'] . "</td>
-                    <td class='text-right'>" . $tp['debito'] . "</td>
-                    <td class='text-right'>" . $tp['credito']  . "</td>
+                    <td class='text-end'>" . $tp['cuenta'] . "</td>
+                    <td class='text-end'>" . $tp['debito'] . "</td>
+                    <td class='text-end'>" . $tp['credito']  . "</td>
                     </tr>";
             }
             ?>

@@ -46,7 +46,7 @@ try {
 <script>
     $('#tableReferenciasPagos').DataTable({
         dom: setdom,
-        language: setIdioma,
+        language: dataTable_es,
         buttons: [{
             text: ' <span class="fas fa-plus-circle fa-lg"></span>',
             action: function(e, dt, node, config) {

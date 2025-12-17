@@ -22,12 +22,10 @@ function pesos($valor)
     return '$' . number_format($valor, 2);
 }
 
-include '../../conexion.php';
-include '../../terceros.php';
+include '../../../config/autoloader.php';
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
 
     // Consultar cuentas con movimiento
     $sql = "SELECT
@@ -76,18 +74,7 @@ try {
     exit();
 }
 
-$id_t = [];
-foreach ($cuentas as $ter) {
-    if ($ter['id_tercero_api'] != '') {
-        $id_t[] = $ter['id_tercero_api'];
-    }
-}
 
-$terceros = [];
-if (count($id_t) > 0) {
-    $ids = implode(',', $id_t);
-    $terceros = getTerceros($ids, $cmd);
-}
 
 $nom_informe = "LIBRO AUXILIAR DETALLADO DE LA CUENTA $cuenta";
 include_once '../../financiero/encabezado_empresa.php';
@@ -98,7 +85,7 @@ $total_cre = 0;
 $primer_caracter = substr($cta['cuenta'], 0, 1);
 $bandera = in_array($primer_caracter, [1, 5, 6, 7]);
 ?>
-<label class="text-right"> <b><?php echo $cta['cuenta'] . ' - ' . $cta['nombre']; ?></b></label>
+<label class="text-end"> <b><?php echo $cta['cuenta'] . ' - ' . $cta['nombre']; ?></b></label>
 <table class="table-bordered bg-light" style="width:100% !important;" border="1">
     <tr>
         <td>Fecha</td>
@@ -114,10 +101,10 @@ $bandera = in_array($primer_caracter, [1, 5, 6, 7]);
     </tr>
     <?php
     echo "<tr>
-             <td class='text-right' colspan='7'> Saldo inicial</td>
-             <td class='text-right'></td>
-             <td class='text-right'></td>
-             <td class='text-right'>" . number_format($saldo, 2, ".", ",") . "</td>
+             <td class='text-end' colspan='7'> Saldo inicial</td>
+             <td class='text-end'></td>
+             <td class='text-end'></td>
+             <td class='text-end'>" . number_format($saldo, 2, ".", ",") . "</td>
           </tr>";
     $total_ret = 0;
     foreach ($cuentas as $tp) {
@@ -126,30 +113,29 @@ $bandera = in_array($primer_caracter, [1, 5, 6, 7]);
         } else {
             $saldo = $saldo + $tp['credito'] - $tp['debito'];
         }
-        $key = array_search($tp['id_tercero_api'], array_column($terceros, 'id_tercero_api'));
-        $nom_ter = $key !== false ? ltrim($terceros[$key]['nom_tercero']) : '---';
-        $cc_nit = $key !== false ? $terceros[$key]['nit_tercero'] : '---';
+        $nom_ter = !empty($tp['nom_tercero']) ? ltrim($tp['nom_tercero']) : '---';
+        $cc_nit = !empty($tp['nit_tercero']) ? $tp['nit_tercero'] : '---';
         $fecha = date('Y-m-d', strtotime($tp['fecha']));
         echo "<tr>
-                <td class='text-right'>" . $fecha . "</td>
-                <td class='text-right'>" . $tp['cod_tipo_doc'] . "</td>
-                <td class='text-right'>" . $tp['id_manu'] . "</td>
-                <td class='text-right'>" . $tp['forma_pago'] . "</td>
+                <td class='text-end'>" . $fecha . "</td>
+                <td class='text-end'>" . $tp['cod_tipo_doc'] . "</td>
+                <td class='text-end'>" . $tp['id_manu'] . "</td>
+                <td class='text-end'>" . $tp['forma_pago'] . "</td>
                 <td class='text'>" . $nom_ter . "</td>
                 <td class='text'>" . $cc_nit . "</td>
-                <td class='text-right'>" . $tp['detalle'] . "</td>
-                <td class='text-right'>" . number_format($tp['debito'], 2, ".", ",") . "</td>
-                <td class='text-right'>" . number_format($tp['credito'], 2, ".", ",") . "</td>
-                <td class='text-right'>" . number_format($saldo, 2, ".", ",") . "</td>
+                <td class='text-end'>" . $tp['detalle'] . "</td>
+                <td class='text-end'>" . number_format($tp['debito'], 2, ".", ",") . "</td>
+                <td class='text-end'>" . number_format($tp['credito'], 2, ".", ",") . "</td>
+                <td class='text-end'>" . number_format($saldo, 2, ".", ",") . "</td>
               </tr>";
         $total_deb += $tp['debito'];
         $total_cre += $tp['credito'];
     }
     echo "<tr>
-            <td class='text-right' colspan='7'> Total</td>
-            <td class='text-right'>" . number_format($total_deb, 2, ".", ",") . "</td>
-            <td class='text-right'>" . number_format($total_cre, 2, ".", ",") . "</td>
-            <td class='text-right'>" . number_format($saldo, 2, ".", ",") . "</td>
+            <td class='text-end' colspan='7'> Total</td>
+            <td class='text-end'>" . number_format($total_deb, 2, ".", ",") . "</td>
+            <td class='text-end'>" . number_format($total_cre, 2, ".", ",") . "</td>
+            <td class='text-end'>" . number_format($saldo, 2, ".", ",") . "</td>
           </tr>";
     ?>
 </table>

@@ -4,14 +4,20 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
+include '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $id_doc = isset($_POST['id_doc']) ? $_POST['id_doc'] : exit('Acceso no permitido');
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `ctb_referencia`.`id_ctb_referencia`
                 , `ctb_referencia`.`id_cuenta`
@@ -47,10 +53,11 @@ try {
         });
     }
     $('#tableDocRefs').DataTable({
-        language: setIdioma,
+        language: dataTable_es,
         dom: setdom,
         buttons: [{
-            text: ' <span class="fas fa-plus-circle fa-lg"></span>',
+            text: '<span class="fa-solid fa-plus "></span>',
+            className: 'btn btn-success btn-sm shadow',
             action: function(e, dt, node, config) {
                 FormDocReferencia($('#id_doc_ft').val(), 0);
             },
@@ -68,11 +75,11 @@ try {
 </script>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">DOCUMENTOS DE REFERENCIA</b></h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">DOCUMENTOS DE REFERENCIA</b></h5>
         </div>
         <input type="hidden" name="id_doc_ft" id="id_doc_ft" value="<?php echo $id_doc; ?>">
-        <div class="px-3 py-3 text-left">
+        <div class="px-3 py-3 text-start">
             <table id="tableDocRefs" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
                 <thead>
                     <tr>
@@ -100,18 +107,18 @@ try {
                                 $accion = '<span class="badge badge-warning">Gasto</span>';
                             }
                             if ($ref['estado'] == 1) {
-                                $cerrar = '<button value="' . $id_ctb . '" class="btn btn-outline-warning btn-sm btn-circle shadow-gb" onclick="cerrarReferencia(' . $id_ctb . ')" title="Desactivar Referencia"><span class="fas fa-unlock fa-lg"></span></button>';
+                                $cerrar = '<button value="' . $id_ctb . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow" onclick="cerrarReferencia(' . $id_ctb . ')" title="Desactivar Referencia"><span class="fas fa-unlock "></span></button>';
                             } else {
-                                $cerrar = '<button value="' . $id_ctb . '" class="btn btn-outline-secondary btn-sm btn-circle shadow-gb" onclick="abrirReferencia(' . $id_ctb . ')" title="Activar Referencia"><span class="fas fa-lock fa-lg"></span></button>';
+                                $cerrar = '<button value="' . $id_ctb . '" class="btn btn-outline-secondary btn-xs rounded-circle me-1 shadow" onclick="abrirReferencia(' . $id_ctb . ')" title="Activar Referencia"><span class="fas fa-lock "></span></button>';
                             }
-                            if ((PermisosUsuario($permisos, 5505, 3) || $id_rol == 1) && ($ref['estado'] == 1)) {
-                                $editar = '<button onclick="EditarDocReferencia(' . $id_ctb . ')" class="btn btn-outline-primary btn-sm btn-circle shadow-gb"  title="Editar Referencia"><span class="fas fa-pencil-alt fa-lg"></span></button>';
+                            if (($permisos->PermisosUsuario($opciones, 5505, 3) || $id_rol == 1) && ($ref['estado'] == 1)) {
+                                $editar = '<button onclick="EditarDocReferencia(' . $id_ctb . ')" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow"  title="Editar Referencia"><span class="fas fa-pencil-alt "></span></button>';
                             }
-                            if (PermisosUsuario($permisos, 5505, 4) || $id_rol == 1 && ($ref['estado'] == 1)) {
-                                $borrar = '<button value="' . $id_ctb . '" onclick="eliminarReferencia(' . $id_ctb . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb "  title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></button>';
+                            if ($permisos->PermisosUsuario($opciones, 5505, 4) || $id_rol == 1 && ($ref['estado'] == 1)) {
+                                $borrar = '<button value="' . $id_ctb . '" onclick="eliminarReferencia(' . $id_ctb . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow "  title="Eliminar"><span class="fas fa-trash-alt "></span></button>';
                             }
                             echo '<tr>
-                                <td class="text-right">' . $ref['nom_cuenta'] . '</td>
+                                <td class="text-end">' . $ref['nom_cuenta'] . '</td>
                                 <td>' . $ref['nombre'] . '</td>
                                 <td class="text-center">' . $accion . '</td>
                                 <td class="text-center">' . $estado . '</td>
@@ -123,8 +130,8 @@ try {
                 </tbody>
             </table>
         </div>
-        <div class="text-right pb-3 px-4 w-100">
-            <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</a>
+        <div class="text-end pb-3 px-4 w-100">
+            <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
         </div>
     </div>
 </div>

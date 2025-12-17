@@ -1,6 +1,6 @@
 <?php
 $_post = json_decode(file_get_contents('php://input'), true);
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $id = $_post['id'];
 $pdo = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);

@@ -1,9 +1,9 @@
 <?php
 
-include '../../../conexion.php';
-$conexion = new mysqli($bd_servidor, $bd_usuario, $bd_clave, $bd_base);
+include '../../../../config/autoloader.php';
+$cmd = \Config\Clases\Conexion::getConexion();
 if (isset($_POST['search'])) {
-    $search = mysqli_real_escape_string($conexion, $_POST['search']);
+    $search = $_POST['search'];
     // Consulta del muncipio asociado a la empresa
     $sql = "SELECT
                 `tb_sedes`.`nom_sede`
@@ -16,9 +16,12 @@ if (isset($_POST['search'])) {
                     ON (`tb_sedes`.`id_municipio` = `tb_municipios`.`id_municipio`)
             WHERE (`tb_municipios`.`nom_municipio` LIKE '%$search%')
             GROUP BY `tb_sedes`.`id_municipio`";
-    $res = $conexion->query($sql);
-    if ($res->num_rows > 0) {
-        while ($row = $res->fetch_assoc()) {
+    $sql = $cmd->prepare($sql);
+    $sql->execute();
+    $obj = $sql->fetchAll();
+    $response = [];
+    if (!empty($obj)) {
+        foreach ($obj as $row) {
             $response[] = array("value" => $row['id_municipio'], "label" => $row['nom_municipio']);
         }
     } else {

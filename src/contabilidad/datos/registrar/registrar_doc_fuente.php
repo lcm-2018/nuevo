@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $id_doc = isset($_POST['id_doc_fuente']) ? $_POST['id_doc_fuente'] : exit('Acceso no autorizado');
 $codigo = $_POST['txtCodigo'];
 $nombre = $_POST['txtNombre'];
@@ -17,8 +17,7 @@ $fecha2 = $date->format('Y-m-d H:i:s');
 
 $response['value'] = 'error';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     if ($id_doc == 0) {
         $query = "INSERT INTO `ctb_fuente`
                         (`cod`,`nombre`,`contab`,`tesor`,`estado`,`id_user_reg`,`fecha_reg`)

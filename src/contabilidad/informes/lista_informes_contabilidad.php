@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../../conexion.php';
-include '../../permisos.php';
+include '../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -24,7 +31,7 @@ include '../../permisos.php';
                 <div class="container-fluid p-2">
                     <div class="card mb-11">
                         <div class="card-header" id="divTituloPag">
-                            <div class="row">
+                            <div class="row mb-2">
                                 <div class="col-md-11">
                                     <i class="fas fa-users fa-lg" style="color:#1D80F7"></i>
                                     LISTADO DE INFORMES CONTABILIDAD

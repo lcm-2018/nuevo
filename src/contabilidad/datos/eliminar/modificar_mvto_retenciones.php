@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include_once '../../../financiero/consultas.php';
 
 $res = array();
@@ -14,8 +14,7 @@ $id = $_POST['id'];
 //$id_doc = $_POST['id_doc'];
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
 
     $sql = "SELECT
                 ctb_causa_retencion.id_causa_retencion
@@ -36,7 +35,7 @@ try {
             WHERE ctb_causa_retencion.id_causa_retencion = $id";
     $rs = $cmd->query($sql);
     $retenciones = $rs->fetchAll();
- 
+
     $res['mensaje'] = 'ok';
     $res['value'] = 'ok';
     $res['id'] = $id;

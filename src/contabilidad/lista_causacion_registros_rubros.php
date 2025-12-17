@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
+include '../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -13,8 +20,7 @@ include '../permisos.php';
 $id_pto_doc = $_POST['id_crp'] ?? '';
 // Consulta tipo de presupuesto
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
     `pto_documento_detalles`.`id_detalle`
     ,`pto_documento_detalles`.`id_documento`
@@ -40,7 +46,7 @@ try {
         dom: "<'row'<'col-md-2'l><'col-md-10'f>>" +
             "<'row'<'col-sm-12'tr>>" +
             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        language: setIdioma,
+        language: dataTable_es,
         "order": [
             [0, "desc"]
         ]
@@ -50,8 +56,8 @@ try {
 <div class="px-0">
 
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LISTA DE REGISTROS PRESUPUESTALES PARA OBLIGACION</h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LISTA DE REGISTROS PRESUPUESTALES PARA OBLIGACION</h5>
         </div>
         <div class="pb-3"></div>
         <input type="hidden" name="id_pto_rp" id="id_pto_rp" value="<?php echo $id_pto_doc; ?>">
@@ -90,29 +96,29 @@ try {
                             $liquidado = $liq['liquidado'];
                             $valor =  $comprometido - $obligado + $liquidado;
                             if ((intval($permisos['editar'])) === 1) {
-                                $editar = '<a value="' . $id_doc . '" onclick="cargarListaDetalleCont(' . $id_doc . ')" class="btn btn-outline-success btn-sm btn-circle shadow-gb editar" title="Causar"><span class="fas fa-plus-square fa-lg"></span></a>';
+                                $editar = '<a value="' . $id_doc . '" onclick="cargarListaDetalleCont(' . $id_doc . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-plus-square "></span></a>';
                                 $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
                             ...
                             </button>
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             <a value="' . $id_doc . '" class="dropdown-item sombra carga" href="#">Historial</a>
                             </div>';
-                                $borrar = '<a value="' . $id_doc . '" onclick="eliminarImputacionDoc(' . $id_ctb_doc . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb "  title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+                                $borrar = '<a value="' . $id_doc . '" onclick="eliminarImputacionDoc(' . $id_ctb_doc . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow "  title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
                             } else {
                                 $editar = null;
                                 $detalles = null;
                             }
                             if ((intval($permisos['borrar'])) === 1) {
-                                $borrar = '<a value="' . $id_doc . '" onclick="eliminarImputacionDoc(' . $id_ctb_doc . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb "  title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+                                $borrar = '<a value="' . $id_doc . '" onclick="eliminarImputacionDoc(' . $id_ctb_doc . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow "  title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
                             } else {
                                 //$borrar = null;
                             }
                             $valor_obl = number_format($obligado, 2, '.', ',');
                         ?>
                             <tr>
-                                <td class="text-left"><?php echo $ce['rubro'] . ' - ' . $ce['nom_rubro']; ?></td>
-                                <td class="text-right"><?php echo number_format($ce['valor'], 2, '.', ','); ?></td>
-                                <td class="text-right"><input type="text" name="rub_<?php echo $id_pto_mvto; ?>" id="rub_<?php echo  $id_pto_mvto; ?>" class="form-control form-control-sm" value="<?php echo $valor; ?>" style="text-align: right;" required onkeyup="valorMiles(id)" max="<?php echo $valor; ?>" onchange="validarValorMaximo(id)"></td>
+                                <td class="text-start"><?php echo $ce['rubro'] . ' - ' . $ce['nom_rubro']; ?></td>
+                                <td class="text-end"><?php echo number_format($ce['valor'], 2, '.', ','); ?></td>
+                                <td class="text-end"><input type="text" name="rub_<?php echo $id_pto_mvto; ?>" id="rub_<?php echo  $id_pto_mvto; ?>" class="form-control form-control-sm bg-input" value="<?php echo $valor; ?>" style="text-align: right;" required onkeyup="valorMiles(id)" max="<?php echo $valor; ?>" onchange="validarValorMaximo(id)"></td>
                                 <td class="text-center"> <?php echo $borrar; ?></td>
                             </tr>
                         <?php
@@ -122,9 +128,9 @@ try {
                     </tbody>
                 </table>
             </div>
-            <div class="text-right pt-3">
+            <div class="text-end pt-3">
                 <a type="button" class="btn btn-primary btn-sm" onclick="rubrosaObligar();"> Aceptar</a>
-                <a type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Cancelar</a>
+                <a type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cancelar</a>
 
 
             </div>

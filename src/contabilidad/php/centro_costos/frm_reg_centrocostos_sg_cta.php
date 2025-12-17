@@ -4,11 +4,10 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include '../common/cargar_combos.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $id = isset($_POST['id']) && $_POST['id'] ? $_POST['id'] : -1;
 $id_subgrupo = $_POST['id_subgrupo'];
@@ -43,18 +42,18 @@ if (empty($obj)) {
             <form id="frm_reg_centrocostos_sg_cta">
                 <input type="hidden" id="id_cec_sgcta" name="id_cec_sgcta" value="<?php echo $id ?>">
                 <input type="hidden" id="id_subgrupo" name="id_subgrupo" value="<?php echo $id_subgrupo ?>">
-                <div class=" form-row">
-                    <div class="form-group col-md-12">
+                <div class=" row">
+                    <div class="col-md-12">
                         <label for="txt_cta_con" class="small">Cuenta Contable</label>
-                        <input type="text" class="form-control form-control-sm cuenta" id="txt_cta_con" data-campoid="id_txt_cta_con" value="<?php echo $obj['cuenta'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_con" data-campoid="id_txt_cta_con" value="<?php echo $obj['cuenta'] ?>">
                         <input type="hidden" id="id_txt_cta_con" name="id_txt_cta_con" value="<?php echo $obj['id_cuenta'] ?>">
                     </div>
                 </div>
             </form>
         </div>
     </div>
-    <div class="text-center pt-3">    
+    <div class="text-center pt-3">
         <button type="button" class="btn btn-primary btn-sm" id="btn_guardar_sg_cta">Guardar</button>
-        <a type="button" class="btn btn-secondary  btn-sm" data-dismiss="modal">Cancelar</a>
+        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>

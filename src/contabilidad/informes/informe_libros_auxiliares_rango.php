@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 set_time_limit(5600);
 
@@ -17,10 +17,8 @@ function pesos($valor)
     return '$' . number_format($valor, 2);
 }
 
-include '../../conexion.php';
-include '../../terceros.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+include '../../../config/autoloader.php';
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT `id_pgcp`, `cuenta`, `nombre` FROM `ctb_pgcp` WHERE `id_pgcp` IN ('$cta_inicial', '$cta_final') ORDER BY `cuenta` ASC";
     $res = $cmd->query($sql);
@@ -89,7 +87,7 @@ $saldo = 0;
 $total_deb = 0;
 $total_cre = 0;
 ?>
-<label class="text-right"> <b><?php echo $cta[0]['cuenta'] . ' - ' . $cta[0]['nombre'] . ' => ' . $cta[0]['cuenta'] . ' - ' . $cta[0]['nombre']; ?></b></label>
+<label class="text-end"> <b><?php echo $cta[0]['cuenta'] . ' - ' . $cta[0]['nombre'] . ' => ' . $cta[0]['cuenta'] . ' - ' . $cta[0]['nombre']; ?></b></label>
 <table class="table-bordered bg-light" style="width:100% !important;" border="1">
     <tr style="text-align: center;">
         <td>Fecha</td>
@@ -105,10 +103,10 @@ $total_cre = 0;
     </tr>
     <?php
     echo "<tr>
-             <td class='text-right' colspan='7'> Saldo inicial</td>
-             <td class='text-right'></td>
-             <td class='text-right'></td>
-             <td class='text-right'>" . number_format($saldo, 2, ".", ",") . "</td>
+             <td class='text-end' colspan='7'> Saldo inicial</td>
+             <td class='text-end'></td>
+             <td class='text-end'></td>
+             <td class='text-end'>" . number_format($saldo, 2, ".", ",") . "</td>
           </tr>";
     $total_ret = 0;
     foreach ($cuentas as $tp) {
@@ -123,25 +121,25 @@ $total_cre = 0;
         $cc_nit = $tp['nit_tercero'] != '' ? $tp['nit_tercero'] : '---';
         $fecha = date('Y-m-d', strtotime($tp['fecha']));
         echo "<tr>
-                <td class='text-left' style='white-space: nowrap;'>" . $fecha . "</td>
-                <td class='text-left'>" . $tp['cod_tipo_doc'] . "</td>
-                <td class='text-left'>" . $tp['id_manu'] . "</td>
-                <td class='text-left'>" . $tp['forma_pago'] . "</td>
-                <td class='text-left'>" . $nom_ter . "</td>
-                <td class='text-right'>" . $cc_nit . "</td>
-                <td class='text-left'>" . $tp['detalle'] . "</td>
-                <td class='text-right'>" . number_format($tp['debito'], 2, ".", ",") . "</td>
-                <td class='text-right'>" . number_format($tp['credito'], 2, ".", ",") . "</td>
-                <td class='text-right'>" . number_format($saldo, 2, ".", ",") . "</td>
+                <td class='text-start' style='white-space: nowrap;'>" . $fecha . "</td>
+                <td class='text-start'>" . $tp['cod_tipo_doc'] . "</td>
+                <td class='text-start'>" . $tp['id_manu'] . "</td>
+                <td class='text-start'>" . $tp['forma_pago'] . "</td>
+                <td class='text-start'>" . $nom_ter . "</td>
+                <td class='text-end'>" . $cc_nit . "</td>
+                <td class='text-start'>" . $tp['detalle'] . "</td>
+                <td class='text-end'>" . number_format($tp['debito'], 2, ".", ",") . "</td>
+                <td class='text-end'>" . number_format($tp['credito'], 2, ".", ",") . "</td>
+                <td class='text-end'>" . number_format($saldo, 2, ".", ",") . "</td>
               </tr>";
         $total_deb += $tp['debito'];
         $total_cre += $tp['credito'];
     }
     echo "<tr>
-            <td class='text-right' colspan='7'> Total</td>
-            <td class='text-right'>" . number_format($total_deb, 2, ".", ",") . "</td>
-            <td class='text-right'>" . number_format($total_cre, 2, ".", ",") . "</td>
-            <td class='text-right'>" . number_format($saldo, 2, ".", ",") . "</td>
+            <td class='text-end' colspan='7'> Total</td>
+            <td class='text-end'>" . number_format($total_deb, 2, ".", ",") . "</td>
+            <td class='text-end'>" . number_format($total_cre, 2, ".", ",") . "</td>
+            <td class='text-end'>" . number_format($saldo, 2, ".", ",") . "</td>
           </tr>";
     ?>
 </table>

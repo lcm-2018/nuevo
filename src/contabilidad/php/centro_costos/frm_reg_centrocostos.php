@@ -4,11 +4,10 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include '../common/cargar_combos.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $id = isset($_POST['id']) ? $_POST['id'] : -1;
 $sql = "SELECT tb_centrocostos.*,
@@ -40,14 +39,14 @@ if (empty($obj)) {
         <div class="px-2">
             <form id="frm_reg_centrocostos">
                 <input type="hidden" id="id_centrocosto" name="id_centrocosto" value="<?php echo $id ?>">
-                <div class=" form-row">                   
-                    <div class="form-group col-md-5">
+                <div class=" row">
+                    <div class="col-md-5">
                         <label for="txt_nom_centrocosto" class="small">Nombre</label>
-                        <input type="text" class="form-control form-control-sm" id="txt_nom_centrocosto" name="txt_nom_centrocosto" value="<?php echo $obj['nom_centro'] ?>">
-                    </div>                                    
-                    <div class="form-group col-md-3">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_centrocosto" name="txt_nom_centrocosto" value="<?php echo $obj['nom_centro'] ?>">
+                    </div>
+                    <div class="col-md-3">
                         <label class="small">Para Uso Asistencial</label>
-                        <div class="form-control form-control-sm" id="rdo_escli_cec">
+                        <div class="form-control form-control-sm bg-input" id="rdo_escli_cec">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="rdo_escli_cec" id="rdo_escli_cec_si" value="1" <?php echo $obj['es_clinico'] == 1 ? 'checked' : '' ?>>
                                 <label class="form-check-label small" for="rdo_escli_cec_si">SI</label>
@@ -58,13 +57,13 @@ if (empty($obj)) {
                             </div>
                         </div>
                     </div>
-                    <div class="form-group col-md-4">
+                    <div class="col-md-4">
                         <label for="txt_responsable" class="small">Responsable</label>
-                        <input type="text" class="form-control form-control-sm" id="txt_responsable" value="<?php echo $obj['usr_respon'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_responsable" value="<?php echo $obj['usr_respon'] ?>">
                         <input type="hidden" id="id_txt_responsable" name="id_txt_responsable" value="<?php echo $obj['id_responsable'] ?>">
                     </div>
                 </div>
-            </form>    
+            </form>
 
             <!--Tabs para CUENTAS-->
             <div class="p-3">
@@ -76,7 +75,7 @@ if (empty($obj)) {
                 </nav>
 
                 <div class="tab-content pt-2" id="nav-tabContent">
-                    
+
                     <!--Cuentas del Centro de Costo-->
                     <div class="tab-pane fade show active" id="nav_lista_cta_cc" role="tabpanel" aria-labelledby="nav_lista_cta_cc-tab">
                         <table id="tb_cuentas" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
@@ -90,10 +89,10 @@ if (empty($obj)) {
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-left centro-vertical"></tbody>
-                        </table>    
-                    </div> 
-                    
+                            <tbody class="text-start centro-vertical"></tbody>
+                        </table>
+                    </div>
+
                     <!--Cuentas por Subgrupo-->
                     <div class="tab-pane fade" id="nav_lista_cta_sg" role="tabpanel" aria-labelledby="nav_lista_cta_sg-tab">
                         <table id="tb_cuentas_sg" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
@@ -106,16 +105,16 @@ if (empty($obj)) {
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-left centro-vertical"></tbody>
+                            <tbody class="text-start centro-vertical"></tbody>
                         </table>
                     </div>
                 </div>
-            </div>      
+            </div>
         </div>
     </div>
     <div class="text-center pt-3">
         <button type="button" class="btn btn-primary btn-sm" id="btn_guardar">Guardar</button>
-        <a type="button" class="btn btn-secondary  btn-sm" data-dismiss="modal">Cancelar</a>
+        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>
 

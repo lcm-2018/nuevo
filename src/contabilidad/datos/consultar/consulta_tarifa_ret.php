@@ -4,14 +4,13 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../../../index.php');
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
 $id_ret = isset($_POST['id']) ? $_POST['id'] : exit('Acceso no disponible');
 $base = $_POST['base'];
 $id_vigencia = $_SESSION['id_vigencia'];
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 try {
     $sql = "SELECT `tarifa` 

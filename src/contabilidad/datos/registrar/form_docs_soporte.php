@@ -4,16 +4,22 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
+include '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 $key = array_search('55', array_column($perm_modulos, 'id_modulo'));
 if ($key === false) {
     echo 'Usuario no autorizado';
     exit();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_metodo_pago`, `metodo`
             FROM
@@ -25,8 +31,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_responsabilidad` AS `id`
                 , `significado` AS `descripcion`
@@ -41,8 +46,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_tipodoc`, `descripcion`
             FROM
@@ -54,8 +58,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_pais`
                 , `codigo` AS `codigo_pais`
@@ -69,8 +72,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_departamento` AS `id_dpto`
                 , `codigo_departamento` AS `codigo_dpto`
@@ -86,14 +88,14 @@ try {
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
             <h5 class="mb-0 text-light">GESTION DATOS DOCUMENTO SOPORTE</h5>
         </div>
         <form id="formAddFactura">
             <input type="hidden" name="tipo_fac" value="1">
             <div class="overflow p-3">
                 <div style="overflow-y: scroll;height: 70vh; width: 100%;">
-                    <table class="w-100 table-sm text-left bg-light" id="tableFacNoObliga" style="font-size:85%; white-space: nowrap;">
+                    <table class="w-100 table-sm text-start bg-light" id="tableFacNoObliga" style="font-size:85%; white-space: nowrap;">
                         <!-- background-color:#D1F2EB -->
                         <tr class="p-0">
                             <?php for ($i = 0; $i < 20; $i++) { ?><td class="w-5 border-0 p-0"></td><?php } ?>
@@ -106,20 +108,20 @@ try {
                         </tr>
                         <tr>
                             <td colspan="4" class="small border border-top-0">
-                                <input id="fecCompraNO" type="date" name="fecCompraNO" class="form-control form-control-sm  bg-plain" value="<?php echo date('Y-m-d') ?>">
+                                <input id="fecCompraNO" type="date" name="fecCompraNO" class="form-control form-control-sm bg-input  bg-plain" value="<?php echo date('Y-m-d') ?>">
                             </td>
                             <td colspan="4" class="small border border-top-0">
-                                <input id="fecVenceNO" type="date" name="fecVenceNO" class="form-control form-control-sm  bg-plain">
+                                <input id="fecVenceNO" type="date" name="fecVenceNO" class="form-control form-control-sm bg-input  bg-plain">
                             </td>
                             <td colspan="4" class="small border border-top-0">
-                                <select id="slcMetPago" name="slcMetPago" class="form-control form-control-sm  bg-plain">
+                                <select id="slcMetPago" name="slcMetPago" class="form-control form-control-sm bg-input  bg-plain">
                                     <option value="0">--Seleccionar--</option>
                                     <option value="1">CONTADO</option>
                                     <option value="2">CRÉDITO</option>
                                 </select>
                             </td>
                             <td colspan="8" class="small border border-top-0">
-                                <select id="slcFormaPago" type="text" name="slcFormaPago" class="form-control form-control-sm  bg-plain">
+                                <select id="slcFormaPago" type="text" name="slcFormaPago" class="form-control form-control-sm bg-input  bg-plain">
                                     <option value="0">--Seleccionar--</option>
                                     <?php foreach ($metodop as $metodo) {
                                     ?>
@@ -138,31 +140,31 @@ try {
                         </tr>
                         <tr>
                             <td colspan="3" class="border border-top-0">
-                                <input id="numOrden" type="number" name="numOrden" class="form-control form-control-sm  bg-plain" placeholder="Número">
+                                <input id="numOrden" type="number" name="numOrden" class="form-control form-control-sm bg-input  bg-plain" placeholder="Número">
                             </td>
                             <td colspan="4" class="border border-top-0">
-                                <select id="slcProcedencia" name="slcProcedencia" class="form-control form-control-sm  bg-plain">
+                                <select id="slcProcedencia" name="slcProcedencia" class="form-control form-control-sm bg-input  bg-plain">
                                     <option value="0">--Seleccionar--</option>
                                     <option value="10">RESIDENTE</option>
                                     <option value="11">NO RESIDENTE</option>
                                 </select>
                             </td>
                             <td colspan="4" class="border border-top-0">
-                                <select id="slcTipoOrg" name="slcTipoOrg" class="form-control form-control-sm  bg-plain">
+                                <select id="slcTipoOrg" name="slcTipoOrg" class="form-control form-control-sm bg-input  bg-plain">
                                     <option value="0">--Seleccionar--</option>
                                     <option value="2">PERSONA NATURAL</option>
                                     <option value="1">EMPRESA</option>
                                 </select>
                             </td>
                             <td colspan="4" class="border border-top-0">
-                                <select id="slcRegFiscal" type="text" name="slcRegFiscal" class="form-control form-control-sm  bg-plain">
+                                <select id="slcRegFiscal" type="text" name="slcRegFiscal" class="form-control form-control-sm bg-input  bg-plain">
                                     <option value="0">--Seleccionar--</option>
                                     <option value="1">PERSONA NATURAL</option>
                                     <option value="2">PERSONA JURÍDICA</option>
                                 </select>
                             </td>
                             <td colspan="4" class="border border-top-0">
-                                <select id="slcRespFiscal" name="slcRespFiscal" class="form-control form-control-sm  bg-plain">
+                                <select id="slcRespFiscal" name="slcRespFiscal" class="form-control form-control-sm bg-input  bg-plain">
                                     <option value="0">--Seleccionar--</option>
                                     <?php
                                     foreach ($rep_fiscal as $rep) {
@@ -181,7 +183,7 @@ try {
                         </tr>
                         <tr>
                             <td colspan="3" class="border border-top-0">
-                                <select id="slcTipoDoc" name="slcTipoDoc" class="form-control form-control-sm  bg-plain">
+                                <select id="slcTipoDoc" name="slcTipoDoc" class="form-control form-control-sm bg-input  bg-plain">
                                     <option value="0">--Seleccionar--</option>
                                     <?php foreach ($tip_doc as $tipo) {
                                     ?>
@@ -190,16 +192,16 @@ try {
                                 </select>
                             </td>
                             <td colspan="3" class="border border-top-0">
-                                <input id="numNoDoc" type="number" name="numNoDoc" class="form-control form-control-sm  bg-plain">
+                                <input id="numNoDoc" type="number" name="numNoDoc" class="form-control form-control-sm bg-input  bg-plain">
                             </td>
                             <td colspan="6" class="border border-top-0">
-                                <input id="txtNombreRazonSocial" type="text" name="txtNombreRazonSocial" class="form-control form-control-sm  bg-plain">
+                                <input id="txtNombreRazonSocial" type="text" name="txtNombreRazonSocial" class="form-control form-control-sm bg-input  bg-plain">
                             </td>
                             <td colspan="4" class="border border-top-0">
-                                <input id="txtCorreoOrg" type="email" name="txtCorreoOrg" class="form-control form-control-sm  bg-plain">
+                                <input id="txtCorreoOrg" type="email" name="txtCorreoOrg" class="form-control form-control-sm bg-input  bg-plain">
                             </td>
                             <td colspan="3" class="border border-top-0">
-                                <input id="txtTelefonoOrg" type="text" name="txtTelefonoOrg" class="form-control form-control-sm  bg-plain">
+                                <input id="txtTelefonoOrg" type="text" name="txtTelefonoOrg" class="form-control form-control-sm bg-input  bg-plain">
                             </td>
                         </tr>
                         <tr>
@@ -210,7 +212,7 @@ try {
                         </tr>
                         <tr>
                             <td colspan="5" class="border border-top-0">
-                                <select id="slcPaisEmp" name="slcPaisEmp" class="form-control form-control-sm py-0 sm  bg-plain">
+                                <select id="slcPaisEmp" name="slcPaisEmp" class="form-control form-control-sm bg-input py-0 sm  bg-plain">
                                     <option value="0">--Seleccionar--</option>
                                     <?php
                                     foreach ($pais as $p) {
@@ -220,7 +222,7 @@ try {
                                 </select>
                             </td>
                             <td colspan="5" class="border border-top-0">
-                                <select id="slcDptoEmp" name="slcDptoEmp" class="form-control form-control-sm py-0 sm  bg-plain">
+                                <select id="slcDptoEmp" name="slcDptoEmp" class="form-control form-control-sm bg-input py-0 sm  bg-plain">
                                     <option value="0">--Seleccionar--</option>
                                     <?php
                                     foreach ($dpto as $d) {
@@ -230,12 +232,12 @@ try {
                                 </select>
                             </td>
                             <td colspan="5" class="border border-top-0">
-                                <select id="slcMunicipioEmp" name="slcMunicipioEmp" class="form-control form-control-sm py-0 sm  bg-plain" placeholder="elegir mes">
+                                <select id="slcMunicipioEmp" name="slcMunicipioEmp" class="form-control form-control-sm bg-input py-0 sm  bg-plain" placeholder="elegir mes">
                                     <option value="0">--Seleccionar--</option>
                                 </select>
                             </td>
                             <td colspan="4" class="border border-top-0">
-                                <input type="text" class="form-control form-control-sm  bg-plain" id="txtDireccion" name="txtDireccion" placeholder="Residencial">
+                                <input type="text" class="form-control form-control-sm bg-input  bg-plain" id="txtDireccion" name="txtDireccion" placeholder="Residencial">
                             </td>
                         </tr>
                         <tr>
@@ -256,42 +258,42 @@ try {
                         </tr>
                         <tr>
                             <td class="border" colspan="1">
-                                <input type="text" name="txtCod[]" class="form-control form-control-sm bg-plain">
+                                <input type="text" name="txtCod[]" class="form-control form-control-sm bg-input bg-plain">
                             </td>
                             <td class="border" colspan="7">
-                                <input type="text" name="txtDescripcion[]" class="form-control form-control-sm  bg-plain">
+                                <input type="text" name="txtDescripcion[]" class="form-control form-control-sm bg-input  bg-plain">
                             </td>
                             <td class="border" colspan="2">
-                                <input type="number" name="numValorUnitario[]" class="form-control form-control-sm valfno bg-plain">
+                                <input type="number" name="numValorUnitario[]" class="form-control form-control-sm bg-input valfno bg-plain">
                             </td>
                             <td class="border" colspan="1">
-                                <input id="numCantidad" type="number" name="numCantidad[]" class="form-control form-control-sm valfno bg-plain">
+                                <input id="numCantidad" type="number" name="numCantidad[]" class="form-control form-control-sm bg-input valfno bg-plain">
                             </td>
                             <td class="border w-10" colspan="1">
-                                <select name="numPIVA[]" class="form-control form-control-sm valfno bg-plain">
+                                <select name="numPIVA[]" class="form-control form-control-sm bg-input valfno bg-plain">
                                     <option value="0" selected>0.00</option>
                                     <option value="5">5.00</option>
                                     <option value="19">19.00</option>
                                 </select>
                             </td>
                             <td class="border" colspan="2">
-                                <div class="form-control form-control-sm bg-plain valIVA"></div>
+                                <div class="form-control form-control-sm bg-input bg-plain valIVA"></div>
                                 <input type="hidden" name="valIva[]">
                             </td>
                             <td class="border" colspan="1">
-                                <input type="number" name="numPDcto[]" class="form-control form-control-sm valfno bg-plain" value="0">
+                                <input type="number" name="numPDcto[]" class="form-control form-control-sm bg-input valfno bg-plain" value="0">
                             </td>
                             <td class="border" colspan="2">
-                                <div class="form-control form-control-sm bg-plain valDcto"></div>
+                                <div class="form-control form-control-sm bg-input bg-plain valDcto"></div>
                                 <input type="hidden" name="numValDcto[]">
                             </td>
                             <td class="border" colspan="2">
-                                <div class="form-control form-control-sm bg-plain valTotal"></div>
+                                <div class="form-control form-control-sm bg-input bg-plain valTotal"></div>
                                 <input type="hidden" name="numValorTotal[]">
                             </td>
                             <td class="border text-center" colspan="1">
                                 <button id="btnAddRowFNO" type="button" class="btn btn-sm btn-outline-info" title="Agregar fila para otro producto">
-                                    <span class="fas fa-plus-square fa-lg"></span>
+                                    <span class="fas fa-plus-square "></span>
                                 </button>
                             </td>
                         </tr>
@@ -300,20 +302,20 @@ try {
                                 <td colspan="14" class="border"><b>OBSERVACIONES:</b></td>
                                 <td colspan="2" class="border"><b>SUBTOTAL</b></td>
                                 <td colspan="4" class="border">
-                                    <div class=" text-right form-control form-control-sm bg-plain valSubTotal"></div>
+                                    <div class=" text-end form-control form-control-sm bg-input bg-plain valSubTotal"></div>
                                     <input type="hidden" name="valSubTotal">
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="14" rowspan="4" class="border border-top-0 py-0"><textarea name="observaNO" id="observaNO" rows="7" class="form-control form-control-sm"></textarea></td>
+                                <td colspan="14" rowspan="4" class="border border-top-0 py-0"><textarea name="observaNO" id="observaNO" rows="7" class="form-control form-control-sm bg-input"></textarea></td>
                                 <td colspan="2" class="border"><b>IVA</b></td>
                                 <td colspan="4" class="border">
-                                    <div class="text-right form-control form-control-sm bg-plain valIVAfno"></div>
+                                    <div class="text-end form-control form-control-sm bg-input bg-plain valIVAfno"></div>
                                     <input type="hidden" name="valIVAfno">
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="2" class="border py-0 text-left">
+                                <td colspan="2" class="border py-0 text-start">
                                     <b>DESCUENTOS</b>
                                     <div class="form-check" title="Descuentos a nivel de pie de documento soporte">
                                         <input class="form-check-input" type="checkbox" value="" name="dctoCondicionado" id="dctoCondicionado">
@@ -331,7 +333,7 @@ try {
                                     </div>
                                 </td>
                                 <td colspan="2" class="border">
-                                    <div class=" text-right form-control form-control-sm bg-plain valDctofno"></div>
+                                    <div class=" text-end form-control form-control-sm bg-input bg-plain valDctofno"></div>
                                     <input type="hidden" name="valDctofno">
                                 </td>
                             </tr>
@@ -363,7 +365,7 @@ try {
                                     </div>
                                 </td>
                                 <td colspan="2" class="border">
-                                    <div class="form-control form-control-sm bg-plain text-right valprtefte"></div>
+                                    <div class="form-control form-control-sm bg-input bg-plain text-end valprtefte"></div>
                                     <input type="hidden" name="valprtefte">
                                 </td>
                             </tr>
@@ -382,7 +384,7 @@ try {
                                     </div>
                                 </td>
                                 <td colspan="2" class="border">
-                                    <div class="form-control form-control-sm bg-plain text-right  valpretiva"></div>
+                                    <div class="form-control form-control-sm bg-input bg-plain text-end  valpretiva"></div>
                                     <input type="hidden" name="valpretiva">
                                 </td>
                             </tr>
@@ -391,7 +393,7 @@ try {
                                     <b>TOTAL A PAGAR</b>
                                 </td>
                                 <td colspan="6" class="border">
-                                    <div class="form-control form-control-sm bg-plain text-right  valfac"></div>
+                                    <div class="form-control form-control-sm bg-input bg-plain text-end  valfac"></div>
                                     <input type="hidden" name="valfac">
                                 </td>
                             </tr>
@@ -401,7 +403,7 @@ try {
             </div>
             <div class="text-center pb-3">
                 <button class="btn btn-primary btn-sm" id="btnFacturaE" value="0">Registrar</button>
-                <a type="button" class="btn btn-secondary  btn-sm" data-dismiss="modal"> Cancelar</a>
+                <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal"> Cancelar</a>
             </div>
         </form>
     </div>

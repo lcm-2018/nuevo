@@ -4,12 +4,11 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $id = $_POST['id'];
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `ctb_pgcp`.`id_pgcp`
                 ,  CONCAT_WS(' - ', `ctb_pgcp`.`cuenta`, `ctb_pgcp`.`nombre`) AS `cuenta`
@@ -36,28 +35,28 @@ $opcion = $cuenta['id_cta'] > 0 ? $cuenta['id_cta'] : 0;
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">TRASLADO DE COSTOS</h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">TRASLADO DE COSTOS</h5>
         </div>
         <form id="formTrasladoCostos" class="px-3">
             <input type="hidden" name="opcion" id="opcion" value="<?= $opcion; ?>">
             <input type="hidden" name="id_pgcp" id="id_pgcp" value="<?= $cuenta['id_pgcp']; ?>">
-            <div class="form-row pt-2">
-                <div class="form-group col-md-12">
+            <div class="row mb-2 pt-2">
+                <div class="col-md-12">
                     <label for="txtCuenta" class="small">CUENTA SELECCIONADA</label>
-                    <input type="text" name="txtCuenta" id="txtCuenta" class="form-control form-control-sm" value="<?= $cuenta['cuenta'] ?>" readonly disabled>
+                    <input type="text" name="txtCuenta" id="txtCuenta" class="form-control form-control-sm bg-input" value="<?= $cuenta['cuenta'] ?>" readonly disabled>
                 </div>
             </div>
-            <div class="form-row">
-                <div class="form-group col-md-6">
+            <div class="row mb-2">
+                <div class="col-md-6">
                     <label for="codigoCta1" class="small">CUENTA DE DÉBITO</label>
-                    <input type="text" name="codigoCta1" id="codigoCta1" class="form-control form-control-sm" value="<?= $cuenta['cta_debito']; ?>">
+                    <input type="text" name="codigoCta1" id="codigoCta1" class="form-control form-control-sm bg-input" value="<?= $cuenta['cta_debito']; ?>">
                     <input type="hidden" name="id_codigoCta1" id="id_codigoCta1" value="<?= $cuenta['id_debito']; ?>">
                     <input type="hidden" name="tipoDato1" id="tipoDato1" value="<?= $cuenta['tp_debito']; ?>">
                 </div>
-                <div class="form-group col-md-6">
+                <div class="col-md-6">
                     <label for="codigoCta2" class="small">CUENTA DE CRÉDITO</label>
-                    <input type="text" name="codigoCta2" id="codigoCta2" class="form-control form-control-sm" value="<?= $cuenta['cta_credito']; ?>">
+                    <input type="text" name="codigoCta2" id="codigoCta2" class="form-control form-control-sm bg-input" value="<?= $cuenta['cta_credito']; ?>">
                     <input type="hidden" name="id_codigoCta2" id="id_codigoCta2" value="<?= $cuenta['id_credito']; ?>">
                     <input type="hidden" name="tipoDato2" id="tipoDato2" value="<?= $cuenta['tp_credito']; ?>">
                 </div>
@@ -66,6 +65,6 @@ $opcion = $cuenta['id_cta'] > 0 ? $cuenta['id_cta'] : 0;
     </div>
     <div class="text-center py-3">
         <button class="btn btn-primary btn-sm" onclick="GuardarCtasTrasladoCostos()">Guardar</button>
-        <button type="button" class="btn btn-secondary  btn-sm" data-dismiss="modal"> Cancelar</button>
+        <button type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal"> Cancelar</button>
     </div>
 </div>

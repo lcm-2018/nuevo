@@ -4,15 +4,21 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
+include '../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <?php include '../head.php';
 // Consulta la lista de chequeras creadas en el sistema
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 ?>
 
 <body class="sb-nav-fixed <?php if ($_SESSION['navarlat'] === '1') {
@@ -27,13 +33,13 @@ $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
                 <div class="container-fluid p-2">
                     <div class="card mb-4">
                         <div class="card-header" id="divTituloPag">
-                            <div class="row">
+                            <div class="row mb-2">
                                 <div class="col-md-11">
                                     <i class="fas fa-users fa-lg" style="color:#1D80F7"></i>
                                     LISTA DE CUENTAS CONTABLES
                                 </div>
                                 <?php
-                                if (PermisosUsuario($permisos, 5505, 2) || $id_rol == 1) {
+                                if ($permisos->PermisosUsuario($opciones, 5505, 2) || $id_rol == 1) {
                                     echo '<input type="hidden" id="peReg" value="1">';
                                 } else {
                                     echo '<input type="hidden" id="peReg" value="0">';

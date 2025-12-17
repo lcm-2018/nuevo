@@ -1,9 +1,8 @@
 <?php
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $sql = 'SELECT razon_social_ips,nit_ips,codigo_sgsss_ips,telefono_ips,direccion_ips FROM tb_datos_ips LIMIT 1';
 $rs = $cmd->query($sql);
@@ -23,13 +22,14 @@ $telhd = $obj_ent['telefono_ips'];
         <th colspan="2" style="text-align:right; font-size:50%">
             Generado por: <strong>CRONHIS</strong>. Fecha Impresión:<?php echo date('Y-m-d h:i:s A') ?>. Usuario:<?php echo mb_strtoupper($_SESSION['user']); ?>
         </th>
-    </tr>    
+    </tr>
     <tr>
         <th style="text-align:center; font-size:80%">
             <div><?php echo $razhd; ?></div>
             <div>NIT: <?php echo $nithd; ?></div>
             <div><?php echo $dirhd; ?> TELÉFONO <?php echo $telhd; ?></div>
         </th>
-        <th style="width:15%"></td>
+        <th style="width:15%">
+            </td>
     </tr>
 </table>

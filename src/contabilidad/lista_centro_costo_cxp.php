@@ -4,15 +4,21 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
+include '../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $id_doc = isset($_POST['id']) ? $_POST['id'] : exit('Acceso no disponible');
 $id_detalle = isset($_POST['id_detalle']) ? $_POST['id_detalle'] : 0;
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `ctb_causa_costos`.`id`
                 , `ctb_causa_costos`.`id_ctb_doc`
@@ -37,8 +43,7 @@ try {
 }
 if ($id_detalle > 0) {
     try {
-        $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-        $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+        $cmd = \Config\Clases\Conexion::getConexion();
         $sql = "SELECT
                     `ctb_causa_costos`.`id`
                     , `ctb_causa_costos`.`id_area_cc`
@@ -68,8 +73,7 @@ if ($id_detalle > 0) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
     try {
-        $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-        $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+        $cmd = \Config\Clases\Conexion::getConexion();
         $sql = "SELECT `id_sede`, `nom_sede` as `nombre` FROM `tb_sedes` WHERE `id_municipio` = $id_municipio";
         $rs = $cmd->query($sql);
         $sedes = $rs->fetchAll();
@@ -78,8 +82,7 @@ if ($id_detalle > 0) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
     try {
-        $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-        $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+        $cmd = \Config\Clases\Conexion::getConexion();
         $sql = "SELECT
                     `id_area`
                     , `nom_area`
@@ -101,8 +104,7 @@ if ($id_detalle > 0) {
     $centros = [];
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT SUM(`valor_pago`) AS `valor_pago` FROM `ctb_factura` WHERE (`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
     $valor_factura = $rs->fetch();
@@ -126,7 +128,7 @@ $max = $max < 0 ? 0 : $max;
         dom: "<'row'<'col-md-2'l><'col-md-10'f>>" +
             "<'row'<'col-sm-12'tr>>" +
             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        language: setIdioma,
+        language: dataTable_es,
         "order": [
             [0, "desc"]
         ]
@@ -135,22 +137,22 @@ $max = $max < 0 ? 0 : $max;
 </script>
 <div class="px-0">
     <div class="shadow ">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LISTA DE CENTROS DE COSTO DE CUENTA POR PAGAR </h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LISTA DE CENTROS DE COSTO DE CUENTA POR PAGAR </h5>
         </div>
         <div class="px-4">
             <form id="formGuardaCentroCosto" class="mb-3">
                 <input type="hidden" name="id_doc" id="id_doc" value="<?php echo $id_doc; ?>">
                 <input type="hidden" name="id_detalle" id="id_detalle" value="<?php echo $id_detalle; ?>">
-                <div class="form-row">
-                    <div class="form-group col-md-3">
+                <div class="row mb-2">
+                    <div class="col-md-3">
                         <label for="municipio" class="small">MUNICIPIO</label>
-                        <input type="text" name="municipio" id="municipio" class="form-control form-control-sm" value="<?= $municipio ?>" onchange="mostrarSedes();" required>
+                        <input type="text" name="municipio" id="municipio" class="form-control form-control-sm bg-input" value="<?= $municipio ?>" onchange="mostrarSedes();" required>
                         <input type="hidden" name="id_municipio" id="id_municipio" value="<?= $id_municipio; ?>">
                     </div>
-                    <div class="form-group col-md-3" id="divSede">
+                    <div class="col-md-3" id="divSede">
                         <label for="id_sede" class="small">SEDE</label>
-                        <select type="text" name="id_sede" id="id_sede" class="form-control form-control-sm" onchange="mostrarCentroCostos(value);">
+                        <select type="text" name="id_sede" id="id_sede" class="form-control form-control-sm bg-input" onchange="mostrarCentroCostos(value);">
                             <option value="0">--Seleccione--</option>
                             <?php
                             foreach ($sedes as $s) {
@@ -160,9 +162,9 @@ $max = $max < 0 ? 0 : $max;
                             ?>
                         </select>
                     </div>
-                    <div class="form-group col-md-3" id="divCosto">
+                    <div class="col-md-3" id="divCosto">
                         <label for="id_cc" class="small">CENTRO DE COSTO</label>
-                        <select type="text" name="id_cc" id="id_cc" class="form-control form-control-sm">
+                        <select type="text" name="id_cc" id="id_cc" class="form-control form-control-sm bg-input">
                             <option value="0">--Seleccione--</option>
                             <?php
                             foreach ($centros as $c) {
@@ -172,20 +174,20 @@ $max = $max < 0 ? 0 : $max;
                             ?>
                         </select>
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="valor_cc" class="small">VALOR CC</label>
-                        <input type="text" name="valor_cc" id="valor_cc" min="<?= $min; ?>" max="<?= $max; ?>" class="form-control form-control-sm" required style="text-align: right;" onkeyup="valorMiles(id)" value="<?= isset($value_cc) ? $value_cc : $max; ?>">
+                        <input type="text" name="valor_cc" id="valor_cc" min="<?= $min; ?>" max="<?= $max; ?>" class="form-control form-control-sm bg-input" required style="text-align: right;" onkeyup="valorMiles(id)" value="<?= isset($value_cc) ? $value_cc : $max; ?>">
                     </div>
                 </div>
             </form>
             <table id="tableCausacionCostos" class="table table-striped table-bordered table-sm table-hover shadow" style="width: 100%;">
                 <thead>
                     <tr>
-                        <th style="width: 30%;">Municipio</th>
-                        <th style="width: 35%;">Sede</th>
-                        <th style="width: 20%;">Centro de costo</th>
-                        <th style="width: 20%;">Valor</th>
-                        <th style="width: 15%;">Acciones</th>
+                        <th class="bg-sofia" style="width: 30%;">Municipio</th>
+                        <th class="bg-sofia" style="width: 35%;">Sede</th>
+                        <th class="bg-sofia" style="width: 20%;">Centro de costo</th>
+                        <th class="bg-sofia" style="width: 20%;">Valor</th>
+                        <th class="bg-sofia" style="width: 15%;">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -196,11 +198,11 @@ $max = $max < 0 ? 0 : $max;
                             $id = $ce['id'];
                             $editar = null;
                             $detalles = null;
-                            if (PermisosUsuario($permisos, 5501, 3)  || $id_rol == 1) {
-                                $editar = '<a value="' . $id_doc . '" onclick="editarCentroCosto(' . $id . ')" class="btn btn-outline-primary btn-sm btn-circle shadow-gb editar" title="Editar"><span class="fas fa-pencil-alt fa-lg"></span></a>';
+                            if ($permisos->PermisosUsuario($opciones, 5501, 3)  || $id_rol == 1) {
+                                $editar = '<a value="' . $id_doc . '" onclick="editarCentroCosto(' . $id . ')" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
                             }
-                            if (PermisosUsuario($permisos, 5501, 4)  || $id_rol == 1) {
-                                $eliminar = '<a value="' . $id_doc . '" onclick="eliminarCentroCosto(' . $id . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb editar" title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+                            if ($permisos->PermisosUsuario($opciones, 5501, 4)  || $id_rol == 1) {
+                                $eliminar = '<a value="' . $id_doc . '" onclick="eliminarCentroCosto(' . $id . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow editar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
                             }
                             if (true) {
                                 $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
@@ -214,10 +216,10 @@ $max = $max < 0 ? 0 : $max;
                             $acciones = null;
                         ?>
                             <tr id="<?php echo $id; ?>">
-                                <td class="text-left"><?php echo $ce['nom_municipio']; ?></td>
-                                <td class="text-left"><?php echo $ce['nom_sede']; ?></td>
-                                <td class="text-left"> <?php echo $ce['descripcion'];; ?></td>
-                                <td class="text-right"> <?php echo number_format($ce['valor'], 2, '.', ','); ?></td>
+                                <td class="text-start"><?php echo $ce['nom_municipio']; ?></td>
+                                <td class="text-start"><?php echo $ce['nom_sede']; ?></td>
+                                <td class="text-start"> <?php echo $ce['descripcion'];; ?></td>
+                                <td class="text-end"> <?php echo number_format($ce['valor'], 2, '.', ','); ?></td>
                                 <td class="text-center"> <?php echo $editar . $eliminar .  $acciones; ?></td>
 
                             </tr>
@@ -229,9 +231,9 @@ $max = $max < 0 ? 0 : $max;
             </table>
         </div>
     </div>
-    <div class="text-right pt-3">
+    <div class="text-end pt-3">
         <button type="button" class="btn btn-primary btn-sm" onclick="guardarCostos(this)">Guardar</button>
-        <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Cerrar</a>
+        <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
     </div>
 </div>
 <?php

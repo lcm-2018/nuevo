@@ -4,9 +4,15 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
-include '../terceros.php';
+include '../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $id_doc = $_POST['id_doc'] ?? '';
 $valor_pago = $_POST['valor'] ?? 0;
@@ -14,8 +20,7 @@ $fecha_doc = date('Y-m-d', strtotime($_POST['fechar']));
 
 // Consulta tipo de presupuesto
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `ctb_causa_retencion`.`id_causa_retencion`
                 , `ctb_causa_retencion`.`id_ctb_doc`
@@ -25,6 +30,8 @@ try {
                 , `ctb_causa_retencion`.`tarifa`
                 , `ctb_causa_retencion`.`valor_retencion`
                 , `ctb_causa_retencion`.`id_terceroapi`
+                , `tb_terceros`.`nom_tercero`
+                , `tb_terceros`.`nit_tercero`
             FROM
                 `ctb_causa_retencion`
                 INNER JOIN `ctb_retencion_rango` 
@@ -33,20 +40,14 @@ try {
                     ON (`ctb_retencion_rango`.`id_retencion` = `ctb_retenciones`.`id_retencion`)
                 INNER JOIN `ctb_retencion_tipo` 
                     ON (`ctb_retenciones`.`id_retencion_tipo` = `ctb_retencion_tipo`.`id_retencion_tipo`)
+                LEFT JOIN `tb_terceros`
+                    ON (`ctb_causa_retencion`.`id_terceroapi` = `tb_terceros`.`id_tercero_api`)
             WHERE (`ctb_causa_retencion`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
     $rubros = $rs->fetchAll();
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$id_t = [];
-foreach ($rubros as $r) {
-    if ($rubros['id_terceroapi'] != '') {
-        $id_t[] = $r['id_terceroapi'];
-    }
-}
-$ids = implode(',', $id_t);
-$terceros = getTerceros($ids, $cmd);
 
 // Consultar tipo de retenciones tabla ctb_retenciones_tipo
 try {
@@ -65,7 +66,7 @@ $cmd = null;
         dom: "<'row'<'col-md-2'l><'col-md-10'f>>" +
             "<'row'<'col-sm-12'tr>>" +
             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        language: setIdioma,
+        language: dataTable_es,
         "order": [
             [0, "desc"]
         ]
@@ -75,23 +76,23 @@ $cmd = null;
 <div class="px-0">
 
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LISTA DE DESCUENTOS DE LA OBLIGACION </h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LISTA DE DESCUENTOS DE LA OBLIGACION </h5>
         </div>
         <div class="pb-3"></div>
         <div class="px-3">
 
-            <div class="row">
+            <div class="row mb-2">
                 <div class="col-3">
                     <div class="col"><label for="numDoc" class="small"> campos</label></div>
                 </div>
 
             </div>
             <form id="formAddRetencioness">
-                <div class="row">
+                <div class="row mb-2">
                     <div class="col-4">
                         <div class="col">
-                            <select class="form-control form-control-sm py-0 sm" name="tipo_rete" id="tipo_rete" onchange="mostrarRetenciones(value);" required>
+                            <select class="form-control form-control-sm bg-input py-0 sm" name="tipo_rete" id="tipo_rete" onchange="mostrarRetenciones(value);" required>
                                 <option value="0">-- Seleccionar --</option>
                                 <?php
                                 foreach ($retenciones as $retencion) {
@@ -107,19 +108,19 @@ $cmd = null;
                     </div>
                     <div class="col-5">
                         <div class="col" id="divRete">
-                            <select class="form-control form-control-sm py-0 sm">
+                            <select class="form-control form-control-sm bg-input py-0 sm">
                                 <option value="">-- Seleccionar --</option>
                             </select>
                         </div>
                     </div>
                     <div class="col-3">
-                        <div class="btn-group"><input type="text" name="valor_rte" id="valor_rte" class="form-control form-control-sm" value="<?php echo 0; ?>" required style="text-align: right;">
+                        <div class="btn-group"><input type="text" name="valor_rte" id="valor_rte" class="form-control form-control-sm bg-input" value="<?php echo 0; ?>" required style="text-align: right;">
                             <button type="submit" class="btn btn-primary btn-sm">+</button>
                         </div>
                     </div>
                 </div>
-                <div class="row">&nbsp;</div>
-                <div class="row" id="conDivSobre">
+                <div class="row mb-2">&nbsp;</div>
+                <div class="row mb-2" id="conDivSobre">
                     <div class="col-4">
                         <div class="col" id="divSede"></div>
                     </div>
@@ -145,20 +146,10 @@ $cmd = null;
                     foreach ($rubros as $ce) {
                         $id_doc = $ce['id_causa_retencion'];
                         $j++;
-                        // Consulto el valor del tercero de la api
-                        $id_ter = $ce['id_terceroapi'];
-                        $key = array_search($id_ter, array_column($terceros, 'id_tercero_api'));
-                        if ($key === false) {
-                            $tercero = '---';
-                            $nit = '---';
-                        } else {
-                            $tercero = $terceros[$key]['nom_tercero'];
-                            $nit = $terceros[$key]['nit_tercero'];
-                        }
                         // Obtener el saldo del registro por obligar
 
                         if ((intval($permisos['editar'])) === 1) {
-                            $editar = '<a value="' . $id_doc . '" onclick="eliminarRetencion(' . $id_doc . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb editar" title="Causar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+                            $editar = '<a value="' . $id_doc . '" onclick="eliminarRetencion(' . $id_doc . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-trash-alt "></span></a>';
                             $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
                             ...
                             </button>
@@ -172,10 +163,10 @@ $cmd = null;
                         $valor = number_format($ce['valor_base'], 2, '.', ',');
                     ?>
                         <tr id="<?php echo $id_doc; ?>">
-                            <td class="text-left"> <?php echo $tercero; ?></td>
-                            <td class="text-left"> <?php echo $ce['nombre_retencion']; ?></td>
-                            <td class="text-right"> <?php echo number_format($ce['valor_base'], 2, '.', ','); ?></td>
-                            <td class="text-right"> <?php echo number_format($ce['valor_retencion'], 2, '.', ','); ?></td>
+                            <td class="text-start"> <?php echo $ce['nom_tercero']; ?></td>
+                            <td class="text-start"> <?php echo $ce['nombre_retencion']; ?></td>
+                            <td class="text-end"> <?php echo number_format($ce['valor_base'], 2, '.', ','); ?></td>
+                            <td class="text-end"> <?php echo number_format($ce['valor_retencion'], 2, '.', ','); ?></td>
                             <td class="text-center"> <?php echo $editar .  $acciones; ?></td>
 
                         </tr>
@@ -186,8 +177,8 @@ $cmd = null;
                 </tbody>
             </table>
         </div>
-        <div class="text-right pt-3">
-            <a type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Cerrar</a>
+        <div class="text-end pt-3">
+            <a type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cerrar</a>
         </div>
         </form>
     </div>

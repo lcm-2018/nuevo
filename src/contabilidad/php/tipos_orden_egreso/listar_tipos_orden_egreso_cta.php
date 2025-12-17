@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     echo '<script>window.location.replace("../../../index.php");</script>';
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
+include '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include '../common/funciones_generales.php';
 
 $start = isset($_POST['start']) ? intval($_POST['start']) : 0;
@@ -18,14 +25,13 @@ $col = $_POST['order'][0]['column'] + 1;
 $dir = $_POST['order'][0]['dir'];
 
 $where = "";
-if (isset($_POST['search']['value']) && $_POST['search']['value']){
-   $where .= " AND CONCAT(ctb_pgcp.cuenta,ctb_pgcp.nombre) LIKE '%" . $_POST['search']['value'] . "%'";
+if (isset($_POST['search']['value']) && $_POST['search']['value']) {
+    $where .= " AND CONCAT(ctb_pgcp.cuenta,ctb_pgcp.nombre) LIKE '%" . $_POST['search']['value'] . "%'";
 }
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
-    
+    $cmd = \Config\Clases\Conexion::getConexion();
+
     //Consulta la Cuenta Vigente
     $sql = "SELECT id_tipo_egreso_cta AS id FROM far_orden_egreso_tipo_cta
             WHERE estado=1 AND fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND id_tipo_egreso=" . $_POST['id_tipo_egreso'] . " 
@@ -45,7 +51,7 @@ try {
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM far_orden_egreso_tipo_cta 
             INNER JOIN ctb_pgcp ON (ctb_pgcp.id_pgcp=far_orden_egreso_tipo_cta.id_cuenta)
-            WHERE far_orden_egreso_tipo_cta.id_tipo_egreso=" . $_POST['id_tipo_egreso'] . $where; 
+            WHERE far_orden_egreso_tipo_cta.id_tipo_egreso=" . $_POST['id_tipo_egreso'] . $where;
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
     $totalRecordsFilter = $total['total'];
@@ -72,11 +78,11 @@ if (!empty($objs)) {
         $eliminar = NULL;
         $id = $obj['id_tipo_egreso_cta'];
         //Permite crear botones en la cuadricula si tiene permisos de 3-Editar,4-Eliminar
-        if (PermisosUsuario($permisos, 5511, 3) || $id_rol == 1) {    
-            $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-sm btn-circle shadow-gb btn_editar" title="Editar"><span class="fas fa-pencil-alt fa-lg"></span></a>';
+        if ($permisos->PermisosUsuario($opciones, 5511, 3) || $id_rol == 1) {
+            $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
         }
-        if (PermisosUsuario($permisos, 5511, 4) || $id_rol == 1) {    
-            $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-sm btn-circle shadow-gb btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+        if ($permisos->PermisosUsuario($opciones, 5511, 4) || $id_rol == 1) {
+            $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         }
         $data[] = [
             "id_tipo_egreso_cta" => $id,
@@ -95,5 +101,3 @@ $datos = [
 ];
 
 echo json_encode($datos);
-
-   

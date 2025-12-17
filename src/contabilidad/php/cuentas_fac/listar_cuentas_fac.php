@@ -4,16 +4,23 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
+include '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $start = isset($_POST['start']) ? intval($_POST['start']) : 0;
 $length = isset($_POST['length']) ? intval($_POST['length']) : 10;
 $limit = "";
-if ($length != -1){
+if ($length != -1) {
     $limit = "LIMIT $start, $length";
 }
-$col = $_POST['order'][0]['column']+1;
+$col = $_POST['order'][0]['column'] + 1;
 $dir = $_POST['order'][0]['dir'];
 
 $where = "WHERE tb_homologacion.id_homo<>0";
@@ -22,8 +29,7 @@ if (isset($_POST['nombre']) && $_POST['nombre']) {
 }
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
 
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM tb_homologacion WHERE id_homo<>0";
@@ -98,12 +104,12 @@ if (!empty($objs)) {
         /*Permisos del usuario
             5507-Opcion [Otros][Cuentas Facturación]
             1-Consultar, 2-Adicionar, 3-Modificar, 4-Eliminar, 5-Anular, 6-Imprimir
-        */    
-        if (PermisosUsuario($permisos, 5507, 3) || $id_rol == 1) {
-            $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-sm btn-circle shadow-gb btn_editar" title="Editar"><span class="fas fa-pencil-alt fa-lg"></span></a>';
+        */
+        if ($permisos->PermisosUsuario($opciones, 5507, 3) || $id_rol == 1) {
+            $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
         }
-        if (PermisosUsuario($permisos, 5507, 4) || $id_rol == 1) {
-            $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-sm btn-circle shadow-gb btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+        if ($permisos->PermisosUsuario($opciones, 5507, 4) || $id_rol == 1) {
+            $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         }
         $data[] = [
             "id_homo" => $id,

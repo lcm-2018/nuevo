@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
+include '../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 $tipo_doc = isset($_POST['cod_doc']) ? $_POST['cod_doc'] : '';
 ?>
 <!DOCTYPE html>
@@ -13,8 +20,7 @@ $tipo_doc = isset($_POST['cod_doc']) ? $_POST['cod_doc'] : '';
 <?php include '../head.php';
 // Consulta tipo de documento
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `cod`, `nombre` FROM `ctb_fuente` WHERE `contab` = 2 ORDER BY `nombre`";
     $rs = $cmd->query($sql);
     $docsFuente = $rs->fetchAll(PDO::FETCH_ASSOC);
@@ -25,8 +31,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_doc_fuente` FROM `ctb_fuente` WHERE `cod` = '$tipo_doc'";
     $rs = $cmd->query($sql);
     $tipo_doc_fuente = $rs->fetch();
@@ -49,13 +54,13 @@ $cmd = null;
                 <div class="container-fluid p-2">
                     <div class="card mb-4">
                         <div class="card-header" id="divTituloPag">
-                            <div class="row">
+                            <div class="row mb-2">
                                 <div class="col-md-11">
                                     <i class="fas fa-users fa-lg" style="color:#1D80F7"></i>
                                     REGISTRO DE MOVIMIENTOS CONTABLES FACTURACIÓN
                                 </div>
                                 <?php
-                                if ((PermisosUsuario($permisos, 5511, 2)  || $id_rol == 1)) {
+                                if (($permisos->PermisosUsuario($opciones, 5511, 2)  || $id_rol == 1)) {
                                     echo '<input type="hidden" id="peReg" value="1">';
                                 } else {
                                     echo '<input type="hidden" id="peReg" value="0">';
@@ -104,35 +109,35 @@ $cmd = null;
                                 <br>
 
                                 <!--Opciones de filtros -->
-                                <div class="form-row">
-                                    <div class="form-group col-md-1">
-                                        <input type="text" class="filtro form-control form-control-sm" id="txt_idmanu_filtro" placeholder="Id. Manu">
+                                <div class="row mb-2">
+                                    <div class="col-md-1">
+                                        <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_idmanu_filtro" placeholder="Id. Manu">
                                     </div>
-                                    <div class="form-group col-md-1">
-                                        <input type="text" class="filtro form-control form-control-sm" id="txt_rad_filtro" placeholder="RP">
+                                    <div class="col-md-1">
+                                        <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_rad_filtro" placeholder="RP">
                                     </div>
-                                    <div class="form-group col-md-3">
-                                        <div class="form-row">
-                                            <div class="form-group col-md-6">
-                                                <input type="date" class="form-control form-control-sm" id="txt_fecini_filtro" name="txt_fecini_filtro" placeholder="Fecha Inicial">
+                                    <div class="col-md-3">
+                                        <div class="row mb-2">
+                                            <div class="col-md-6">
+                                                <input type="date" class="form-control form-control-sm bg-input" id="txt_fecini_filtro" name="txt_fecini_filtro" placeholder="Fecha Inicial">
                                             </div>
-                                            <div class="form-group col-md-6">
-                                                <input type="date" class="form-control form-control-sm" id="txt_fecfin_filtro" name="txt_fecfin_filtro" placeholder="Fecha Final">
+                                            <div class="col-md-6">
+                                                <input type="date" class="form-control form-control-sm bg-input" id="txt_fecfin_filtro" name="txt_fecfin_filtro" placeholder="Fecha Final">
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="form-group col-md-3">
-                                        <input type="text" class="filtro form-control form-control-sm" id="txt_tercero_filtro" placeholder="Tercero">
+                                    <div class="col-md-3">
+                                        <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_tercero_filtro" placeholder="Tercero">
                                     </div>
-                                    <div class="form-group col-md-1">
-                                        <select class="form-control form-control-sm" id="sl_estado_filtro">
+                                    <div class="col-md-1">
+                                        <select class="form-control form-control-sm bg-input" id="sl_estado_filtro">
                                             <option value="0">--Estado--</option>
                                             <option value="1">Abierto</option>
                                             <option value="2">Cerrado</option>
                                             <option value="3">Anulado</option>
                                         </select>
                                     </div>
-                                    <div class="form-group col-md-1">
+                                    <div class="col-md-1">
                                         <a type="button" id="btn_buscar_filtro_Invoice" class="btn btn-outline-success btn-sm" title="Filtrar">
                                             <span class="fas fa-search fa-lg" aria-hidden="true"></span>
                                         </a>

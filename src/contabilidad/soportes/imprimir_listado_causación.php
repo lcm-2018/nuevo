@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 set_time_limit(3600);
 if (!isset($_SESSION['user'])) {
@@ -16,11 +16,9 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
-include '../../terceros.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT detalle,fecha,id_manu,id_tercero,fec_reg,tipo_doc FROM ctb_doc WHERE fecha < $corte";
     $res = $cmd->query($sql);
@@ -32,19 +30,19 @@ try {
 $fecha = date('Y-m-d', strtotime($cdp['fecha']));
 $hora = date('H:i:s', strtotime($cdp['fec_reg']));
 ?>
-<div class="text-right pt-3">
+<div class="text-end pt-3">
     <a type="button" class="btn btn-primary btn-sm" onclick="imprSelecDoc('areaImprimir',<?php echo $dto; ?>);"> Imprimir</a>
-    <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Cerrar</a>
+    <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
 </div>
 <div class="contenedor bg-light" id="areaImprimir">
     <div class="px-2 " style="width:90% !important;margin: 0 auto;">
-        <div class="row px-2" style="text-align: center">
+        <div class="row mb-2 px-2" style="text-align: center">
             <div class="col-12">
                 <div class="col lead"><label><strong><?php echo $nombre_doc . ': ' . $cdp['id_manu']; ?></strong></label></div>
             </div>
         </div>
 
-        <div class="row">
+        <div class="row mb-2">
             <div class="col-12">
                 <div style="text-align: left">
                     <div><strong>Datos generales: </strong></div>
@@ -87,11 +85,11 @@ $hora = date('H:i:s', strtotime($cdp['fec_reg']));
                     $key = array_search($rp['id_tercero_api'], array_column($terceros, 'id_tercero_api'));
                     if ($rp['tipo_mov'] == 'COP') {
                         echo "<tr>
-                    <td class='text-left' style='border: 1px solid black '>" . $rp['id_manu'] . "</td>
-                    <td class='text-left' style='border: 1px solid black '>" . $terceros[$key]['nit_tercero'] . "</td>
-                    <td class='text-left' style='border: 1px solid black '>" . $rp['rubro'] . "</td>
-                    <td class='text-left' style='border: 1px solid black '>" . $rp['nom_rubro'] . "</td>
-                    <td class='text-right' style='border: 1px solid black; text-align: right'>" . number_format($rp['valor'], 2, ",", ".")  . "</td>
+                    <td class='text-start' style='border: 1px solid black '>" . $rp['id_manu'] . "</td>
+                    <td class='text-start' style='border: 1px solid black '>" . $terceros[$key]['nit_tercero'] . "</td>
+                    <td class='text-start' style='border: 1px solid black '>" . $rp['rubro'] . "</td>
+                    <td class='text-start' style='border: 1px solid black '>" . $rp['nom_rubro'] . "</td>
+                    <td class='text-end' style='border: 1px solid black; text-align: right'>" . number_format($rp['valor'], 2, ",", ".")  . "</td>
                     </tr>";
                         $total_pto += $rp['valor'];
                     }
@@ -100,10 +98,10 @@ $hora = date('H:i:s', strtotime($cdp['fec_reg']));
                 foreach ($rubros as $rp) {
                     if ($rp['tipo_mov'] == 'COP') {
                         echo "<tr>
-                    <td class='text-left' style='border: 1px solid black '>" . $rp['id_manu'] . "</td>
-                    <td class='text-left' style='border: 1px solid black '>" . $rp['rubro'] . "</td>
-                    <td class='text-left' style='border: 1px solid black '>" . $rp['nom_rubro'] . "</td>
-                    <td class='text-right' style='border: 1px solid black; text-align: right'>" . number_format($rp['valor'], 2, ",", ".")  . "</td>
+                    <td class='text-start' style='border: 1px solid black '>" . $rp['id_manu'] . "</td>
+                    <td class='text-start' style='border: 1px solid black '>" . $rp['rubro'] . "</td>
+                    <td class='text-start' style='border: 1px solid black '>" . $rp['nom_rubro'] . "</td>
+                    <td class='text-end' style='border: 1px solid black; text-align: right'>" . number_format($rp['valor'], 2, ",", ".")  . "</td>
                     </tr>";
                         $total_pto += $rp['valor'];
                     }
@@ -129,7 +127,7 @@ $hora = date('H:i:s', strtotime($cdp['fec_reg']));
             ?>
         </table>
         </br>
-        <div class="row">
+        <div class="row mb-2">
             <div class="col-12">
                 <div style="text-align: left">
                     <div><strong>Datos de la factura: </strong></div>
@@ -163,7 +161,7 @@ $hora = date('H:i:s', strtotime($cdp['fec_reg']));
             </tr>
         </table>
         </br>
-        <div class="row">
+        <div class="row mb-2">
             <div class="col-12">
                 <div style="text-align: left">
                     <div><strong>Retenciones y descuentos: </strong></div>
@@ -200,7 +198,7 @@ $hora = date('H:i:s', strtotime($cdp['fec_reg']));
 
         </table>
         </br>
-        <div class="row">
+        <div class="row mb-2">
             <div class="col-12">
                 <div style="text-align: left">
                     <div><strong>Movimiento contable: </strong></div>
@@ -228,11 +226,11 @@ $hora = date('H:i:s', strtotime($cdp['fec_reg']));
                     $ccnit = $key !== false ? $terceros[$key]['nit_tercero'] : '---';
 
                     echo "<tr style='border: 1px solid black'>
-                <td class='text-left' style='border: 1px solid black'>" . $mv['cuenta'] . "</td>
-                <td class='text-left' style='border: 1px solid black'>" . $mv['nombre'] .  "</td>
-                <td class='text-left' style='border: 1px solid black'>" .   $ccnit  . "</td>
-                <td class='text-right' style='border: 1px solid black;text-align: right'>" . number_format($mv['debito'], 2, ",", ".")  . "</td>
-                <td class='text-right' style='border: 1px solid black;text-align: right'>" . number_format($mv['credito'], 2, ",", ".")  . "</td>
+                <td class='text-start' style='border: 1px solid black'>" . $mv['cuenta'] . "</td>
+                <td class='text-start' style='border: 1px solid black'>" . $mv['nombre'] .  "</td>
+                <td class='text-start' style='border: 1px solid black'>" .   $ccnit  . "</td>
+                <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['debito'], 2, ",", ".")  . "</td>
+                <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['credito'], 2, ",", ".")  . "</td>
                 </tr>";
                     $tot_deb += $mv['debito'];
                     $tot_cre += $mv['credito'];
@@ -240,8 +238,8 @@ $hora = date('H:i:s', strtotime($cdp['fec_reg']));
                 ?>
                 <tr>
                     <td style="text-align: left;border: 1px solid black" colspan="3">Sumas iguales</td>
-                    <td class='text-right' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_deb, 2, ",", "."); ?></td>
-                    <td class='text-right' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_cre, 2, ",", "."); ?> </td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_deb, 2, ",", "."); ?></td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_cre, 2, ",", "."); ?> </td>
                 </tr>
             <?php
             } else {
@@ -261,10 +259,10 @@ $hora = date('H:i:s', strtotime($cdp['fec_reg']));
 
 
                     echo "<tr style='border: 1px solid black'>
-            <td class='text-left' style='border: 1px solid black'>" . $mv['cuenta'] . "</td>
-            <td class='text-left' style='border: 1px solid black'>" . $mv['nombre'] .  "</td>
-            <td class='text-right' style='border: 1px solid black;text-align: right'>" . number_format($mv['debito'], 2, ",", ".")  . "</td>
-            <td class='text-right' style='border: 1px solid black;text-align: right'>" . number_format($mv['credito'], 2, ",", ".")  . "</td>
+            <td class='text-start' style='border: 1px solid black'>" . $mv['cuenta'] . "</td>
+            <td class='text-start' style='border: 1px solid black'>" . $mv['nombre'] .  "</td>
+            <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['debito'], 2, ",", ".")  . "</td>
+            <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['credito'], 2, ",", ".")  . "</td>
             </tr>";
                     $tot_deb += $mv['debito'];
                     $tot_cre += $mv['credito'];
@@ -272,8 +270,8 @@ $hora = date('H:i:s', strtotime($cdp['fec_reg']));
                 ?>
                 <tr>
                     <td style="text-align: left;border: 1px solid black" colspan="2">Sumas iguales</td>
-                    <td class='text-right' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_deb, 2, ",", "."); ?></td>
-                    <td class='text-right' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_cre, 2, ",", "."); ?> </td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_deb, 2, ",", "."); ?></td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_cre, 2, ",", "."); ?> </td>
                 </tr>
             <?php
             }

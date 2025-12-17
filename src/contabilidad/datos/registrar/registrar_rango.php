@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
 $id_rango = isset($_POST['id_rango']) ? $_POST['id_rango'] : exit('Acceso no autorizado');
 $id_retencion = $_POST['id_retencion'];
@@ -17,8 +17,7 @@ $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     if ($id_rango == 0) {
         $query = "INSERT INTO `ctb_retencion_rango`
                     (`id_vigencia`,`id_retencion`,`valor_base`,`valor_tope`,`tarifa`,`estado`,`id_user_reg`,`fecha_reg`)

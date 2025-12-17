@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
+include '../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -13,8 +20,7 @@ include '../permisos.php';
 $id_doc = $_POST['id_doc'] ?? '';
 // Consulta tipo de presupuesto
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `ctb_causa_costos`.`id`
                 , `ctb_causa_costos`.`id_ctb_doc`
@@ -44,7 +50,7 @@ try {
         dom: "<'row'<'col-md-2'l><'col-md-10'f>>" +
             "<'row'<'col-sm-12'tr>>" +
             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        language: setIdioma,
+        language: dataTable_es,
         "order": [
             [0, "desc"]
         ]
@@ -54,13 +60,13 @@ try {
 <div class="px-0">
 
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LISTA DE CENTROS DE COSTO OBLIGACION</h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LISTA DE CENTROS DE COSTO OBLIGACION</h5>
         </div>
         <div class="pb-3"></div>
         <div class="px-5">
             <form id="formAddCentroCosto">
-                <div class="row">
+                <div class="row mb-2">
                     <div class="col-3">
                         <div class="col"><label for="numDoc" class="small">MUNICIPIO:</label></div>
                     </div>
@@ -74,21 +80,21 @@ try {
                         <div class="col"><label for="numDoc" class="small">VALOR CC:</label></div>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row mb-2">
                     <div class="col-3">
-                        <div class="col"><input type="text" name="municipio" id="municipio" class="form-control form-control-sm" value="" onchange="mostrarSedes();" required>
+                        <div class="col"><input type="text" name="municipio" id="municipio" class="form-control form-control-sm bg-input" value="" onchange="mostrarSedes();" required>
                             <input type="hidden" name="id_municipio" id="id_municipio" value="">
                             <input type="hidden" name="id_doc" id="id_doc" value="<?php echo $id_doc; ?>">
                         </div>
                     </div>
                     <div class="col-3">
-                        <div class="col" id="divSede"><input type="text" name="sede" id="sede" class="form-control form-control-sm" value="" required></div>
+                        <div class="col" id="divSede"><input type="text" name="sede" id="sede" class="form-control form-control-sm bg-input" value="" required></div>
                     </div>
                     <div class="col-3">
-                        <div class="col" id="divCosto"><input type="text" name="c_costo" id="c_costo" class="form-control form-control-sm" value="" required></div>
+                        <div class="col" id="divCosto"><input type="text" name="c_costo" id="c_costo" class="form-control form-control-sm bg-input" value="" required></div>
                     </div>
                     <div class="col-3">
-                        <div class="btn-group"><input type="text" name="valor_cc" id="valor_cc" class="form-control form-control-sm" value="" required style="text-align: right;" onkeyup="valorMiles(id)" ondblclick="valorCostoReg('<?php echo $id_doc; ?>');">
+                        <div class="btn-group"><input type="text" name="valor_cc" id="valor_cc" class="form-control form-control-sm bg-input" value="" required style="text-align: right;" onkeyup="valorMiles(id)" ondblclick="valorCostoReg('<?php echo $id_doc; ?>');">
                             <button type="submit" class="btn btn-primary btn-sm" id="registrarMvtoDetalle">+</button>
                         </div>
                     </div>
@@ -112,7 +118,7 @@ try {
                             $id_doc = $ce['id_ctb_doc'];
                             $id = $ce['id'];
                             if ((intval($permisos['editar'])) === 1) {
-                                $editar = '<a value="' . $id_doc . '" onclick="eliminarCentroCosto(' . $id . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb editar" title="Causar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+                                $editar = '<a value="' . $id_doc . '" onclick="eliminarCentroCosto(' . $id . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-trash-alt "></span></a>';
                                 $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
                             ...
                             </button>
@@ -126,10 +132,10 @@ try {
                             $valor = number_format($ce['valor'], 2, '.', ',');
                         ?>
                             <tr id="<?php echo $id; ?>">
-                                <td class="text-left"><?php echo $ce['nom_municipio']; ?></td>
-                                <td class="text-left"><?php echo $ce['nombre']; ?></td>
-                                <td class="text-left"> <?php echo $ce['descripcion'];; ?></td>
-                                <td class="text-right"> <?php echo number_format($ce['valor'], 2, '.', ','); ?></td>
+                                <td class="text-start"><?php echo $ce['nom_municipio']; ?></td>
+                                <td class="text-start"><?php echo $ce['nombre']; ?></td>
+                                <td class="text-start"> <?php echo $ce['descripcion'];; ?></td>
+                                <td class="text-end"> <?php echo number_format($ce['valor'], 2, '.', ','); ?></td>
                                 <td class="text-center"> <?php echo $editar .  $acciones; ?></td>
 
                             </tr>
@@ -139,8 +145,8 @@ try {
                     </div>
                 </tbody>
             </table>
-            <div class="text-right pt-3">
-                <a type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Cerrar</a>
+            <div class="text-end pt-3">
+                <a type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cerrar</a>
 
 
             </div>

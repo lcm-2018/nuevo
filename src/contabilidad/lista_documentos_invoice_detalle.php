@@ -4,10 +4,16 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include_once '../conexion.php';
-include_once '../permisos.php';
+include_once '../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include_once '../financiero/consultas.php';
-include_once '../terceros.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -24,8 +30,7 @@ function pesos($valor)
 {
     return '$ ' . number_format($valor, 2, '.', ',');
 }
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $fecha_cierre = fechaCierre($_SESSION['vigencia'], 55, $cmd);
 
@@ -55,8 +60,12 @@ if ($id_doc == 0) {
                     , 0 AS `val_retencion`
                     , 0 AS `id_ref_ctb`
                     , $id_rad AS `id_rad`
+                    , `tb_terceros`.`nom_tercero`
+                    , `tb_terceros`.`nit_tercero`
                 FROM
                     `pto_rad`
+                    LEFT JOIN `tb_terceros`
+                        ON (`pto_rad`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
                 WHERE (`pto_rad`.`id_pto_rad` = $id_rad) LIMIT 1";
         $rs = $cmd->query($sql);
         $datosDoc = $rs->fetch();
@@ -97,8 +106,7 @@ try {
 }
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_ctb_referencia`,`nombre` FROM `ctb_referencia` WHERE `accion` = 1";
     $rs = $cmd->query($sql);
     $referencias = $rs->fetchAll();
@@ -107,12 +115,10 @@ try {
 }
 $fecha = date('Y-m-d', strtotime($datosDoc['fecha']));
 
-// Consulto tercero registrado en contratación del api de tercero para mostrar el nombre
-// Consulta terceros en la api ********************************************* API
+// Consulto tercero registrado en contratación
 $tercero = '---';
-if (!empty($datosDoc) && $datosDoc['id_tercero'] > 0) {
-    $terceros = getTerceros($datosDoc['id_tercero'], $cmd);
-    $tercero = ltrim($terceros[0]['nom_tercero']);
+if (!empty($datosDoc) && !empty($datosDoc['nom_tercero'])) {
+    $tercero = ltrim($datosDoc['nom_tercero']);
 }
 $ver = 'readonly';
 ?>
@@ -126,7 +132,7 @@ $ver = 'readonly';
                 <div class="container-fluid p-2">
                     <div class="card mb-4">
                         <div class="card-header" id="divTituloPag">
-                            <div class="row">
+                            <div class="row mb-2">
                                 <div class="col-md-11">
                                     <i class="fas fa-users fa-lg" style="color:#1D80F7"></i>
                                     DETALLE DEL MOVIMIENTO CONTABLE <b><?php echo $datosDoc['fuente']; ?></b>
@@ -135,7 +141,7 @@ $ver = 'readonly';
                         </div>
                         <!-- Formulario para nuevo reistro -->
                         <?php
-                        if (PermisosUsuario($permisos, 5501, 2) || $id_rol == 1) {
+                        if ($permisos->PermisosUsuario($opciones, 5501, 2) || $id_rol == 1) {
                             echo '<input type="hidden" id="peReg" value="1">';
                         } else {
                             echo '<input type="hidden" id="peReg" value="0">';
@@ -147,30 +153,30 @@ $ver = 'readonly';
                                     <div class="right-block">
                                         <form id="formMvtoCtbInvoice">
                                             <input type="hidden" id="fec_cierre" name="fec_cierre" value="<?php echo $fecha_cierre; ?>">
-                                            <div class="row mb-1">
+                                            <div class="row mb-2 mb-1">
                                                 <div class="col-2">
                                                     <div class="col"><span class="small">NUMERO ACTO:</span></div>
                                                 </div>
                                                 <div class="col-10">
-                                                    <input type="number" name="numDoc" id="numDoc" class="form-control form-control-sm" value="<?php echo $id_manu; ?>" required>
+                                                    <input type="number" name="numDoc" id="numDoc" class="form-control form-control-sm bg-input" value="<?php echo $id_manu; ?>" required>
                                                     <input type="hidden" id="id_doc_fuente" name="id_doc_fuente" value="<?php echo $tipo_dato; ?>">
                                                     <input type="hidden" id="id_rad" name="id_rad" value="<?php echo $datosDoc['id_rad'] > 0 ? $datosDoc['id_rad'] : 0 ?>">
                                                 </div>
                                             </div>
-                                            <div class="row mb-1">
+                                            <div class="row mb-2 mb-1">
                                                 <div class="col-2">
                                                     <div class="col"><span class="small">FECHA:</span></div>
                                                 </div>
                                                 <div class="col-10">
-                                                    <input type="date" name="fecha" id="fecha" class="form-control form-control-sm" value="<?php echo $fecha_doc; ?>" min="<?= date('Y-m-d', strtotime($datosDoc['fecha_crp'])) ?>" max="<?= $_SESSION['vigencia'] . '-12-31' ?>" required>
+                                                    <input type="date" name="fecha" id="fecha" class="form-control form-control-sm bg-input" value="<?php echo $fecha_doc; ?>" min="<?= date('Y-m-d', strtotime($datosDoc['fecha_crp'])) ?>" max="<?= $_SESSION['vigencia'] . '-12-31' ?>" required>
                                                 </div>
                                             </div>
-                                            <div class="row mb-1">
+                                            <div class="row mb-2 mb-1">
                                                 <div class="col-2">
                                                     <div class="col"><span class="small">REFERENCIA:</span></div>
                                                 </div>
                                                 <div class="col-10">
-                                                    <select id="slcReferencia" name="slcReferencia" class="form-control form-control-sm">
+                                                    <select id="slcReferencia" name="slcReferencia" class="form-control form-control-sm bg-input">
                                                         <option value="0">Seleccione...</option>
                                                         <?php
                                                         foreach ($referencias as $rf) {
@@ -181,26 +187,26 @@ $ver = 'readonly';
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="row mb-1">
+                                            <div class="row mb-2 mb-1">
                                                 <div class="col-2">
                                                     <div class="col"><span class="small">TERCERO:</span></div>
                                                 </div>
-                                                <div class="col-10"><input type="text" name="tercero" id="tercero" class="form-control form-control-sm" value="<?php echo $tercero; ?>" readonly>
+                                                <div class="col-10"><input type="text" name="tercero" id="tercero" class="form-control form-control-sm bg-input" value="<?php echo $tercero; ?>" readonly>
                                                     <input type="hidden" name="id_tercero" id="id_tercero" value="<?php echo $datosDoc['id_tercero'] ?>">
                                                 </div>
                                             </div>
-                                            <div class="row mb-1">
+                                            <div class="row mb-2 mb-1">
                                                 <div class="col-2">
                                                     <div class="col"><span class="small">OBJETO:</span></div>
                                                 </div>
                                                 <div class="col-10">
-                                                    <textarea id="objeto" type="text" name="objeto" class="form-control form-control-sm py-0 sm" aria-span="Default select example" rows="3" required="required"><?= $datosDoc['detalle']; ?></textarea>
+                                                    <textarea id="objeto" type="text" name="objeto" class="form-control form-control-sm bg-input py-0 sm" aria-span="Default select example" rows="3" required="required"><?= $datosDoc['detalle']; ?></textarea>
                                                 </div>
                                             </div>
                                         </form>
                                         <div class="input-group input-group-sm mb-1 mt-3">
                                             <div class="input-group-prepend col-2 pr-0">
-                                                <button class="btn btn-outline-success btn-block text-left" type="button" onclick="GeneraFormInvoice(<?php echo $id_doc; ?>)" <?php echo $datosDoc['estado'] == '1' ? '' : 'disabled' ?>><i class="fas fa-file-invoice-dollar fa-lg mr-2"></i>Facturación</button>
+                                                <button class="btn btn-outline-success btn-block text-start" type="button" onclick="GeneraFormInvoice(<?php echo $id_doc; ?>)" <?php echo $datosDoc['estado'] == '1' ? '' : 'disabled' ?>><i class="fas fa-file-invoice-dollar fa-lg mr-2"></i>Facturación</button>
                                             </div>
                                             <div class="form-control col-4" readonly id="valFactura"><?php echo pesos($datosDoc['val_factura']); ?></div>
                                         </div>
@@ -227,8 +233,8 @@ $ver = 'readonly';
                                     <?php if ($datosDoc['estado'] == '1') { ?>
                                         <tr>
                                             <td>
-                                                <input type="text" name="codigoCta" id="codigoCta" class="form-control form-control-sm" value="" required>
-                                                <input type="hidden" name="id_codigoCta" id="id_codigoCta" class="form-control form-control-sm" value="0">
+                                                <input type="text" name="codigoCta" id="codigoCta" class="form-control form-control-sm bg-input" value="" required>
+                                                <input type="hidden" name="id_codigoCta" id="id_codigoCta" class="form-control form-control-sm bg-input" value="0">
                                                 <input type="hidden" name="tipodato" id="tipodato" value="<?= $tipo_dato; ?>">
                                             </td>
                                             <td>
@@ -241,14 +247,14 @@ $ver = 'readonly';
                                                     $idter = 0;
                                                 }
                                                 ?>
-                                                <input type="text" name="bTercero" id="bTercero" class="form-control form-control-sm bTercero" required value="<?= $trc; ?>">
+                                                <input type="text" name="bTercero" id="bTercero" class="form-control form-control-sm bg-input bTercero" required value="<?= $trc; ?>">
                                                 <input type="hidden" name="idTercero" id="idTercero" value="<?= $idter; ?>">
                                             </td>
                                             <td>
-                                                <input type="text" name="valorDebito" id="valorDebito" class="form-control form-control-sm text-right" value="0" required onkeyup="valorMiles(id)" onchange="llenarCero(id)">
+                                                <input type="text" name="valorDebito" id="valorDebito" class="form-control form-control-sm bg-input text-end" value="0" required onkeyup="valorMiles(id)" onchange="llenarCero(id)">
                                             </td>
                                             <td>
-                                                <input type="text" name="valorCredito" id="valorCredito" class="form-control form-control-sm text-right" value="0" required onkeyup="valorMiles(id)" onchange="llenarCero(id)">
+                                                <input type="text" name="valorCredito" id="valorCredito" class="form-control form-control-sm bg-input text-end" value="0" required onkeyup="valorMiles(id)" onchange="llenarCero(id)">
                                             </td>
                                             <td class="text-center">
                                                 <button text="0" class="btn btn-primary btn-sm" onclick="GestMvtoDetalle(this)">Agregar</button>

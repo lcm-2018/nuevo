@@ -4,9 +4,15 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
-include '../terceros.php';
+include '../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 $id_vigencia = $_SESSION['id_vigencia'];
 unset($_SESSION['id_doc']);
 // Consulta tipo de presupuesto
@@ -16,8 +22,7 @@ function pesos($valor)
 }
 $id_r = $_POST['dato'];
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_pto` FROM `pto_presupuestos` WHERE (`id_tipo` = 1 AND `id_vigencia` = $id_vigencia)";
     $rs = $cmd->query($sql);
     $listappto = $rs->fetch();
@@ -84,7 +89,7 @@ $fecha = date('Y-m-d', strtotime($listado[0]['fecha']));
         dom: "<'row'<'col-md-2'l><'col-md-10'f>>" +
             "<'row'<'col-sm-12'tr>>" +
             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        language: setIdioma,
+        language: dataTable_es,
         "order": [
             [0, "desc"]
         ],
@@ -97,8 +102,8 @@ $fecha = date('Y-m-d', strtotime($listado[0]['fecha']));
 </script>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LISTA DE RECONOCIMIENTOS PRESUPUESTALES</h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LISTA DE RECONOCIMIENTOS PRESUPUESTALES</h5>
         </div>
         <div class="pb-3"></div>
         <div class="px-3">
@@ -131,19 +136,19 @@ $fecha = date('Y-m-d', strtotime($listado[0]['fecha']));
                             $saldo_rad = pesos($saldoo);
 
                             $numeroc = $ce['num_factura'];
-                            if (PermisosUsuario($permisos, 5501, 3)  || $id_rol == 1) {
-                                $editar = '<a value="' . $id_rad . '" onclick="cargarListaDetalleCtbInvoice(' . $id_rad . ', 0)" class="btn btn-outline-success btn-sm btn-circle shadow-gb editar" title="Causar"><span class="fas fa-plus-square fa-lg"></span></a>';
+                            if ($permisos->PermisosUsuario($opciones, 5501, 3)  || $id_rol == 1) {
+                                $editar = '<a value="' . $id_rad . '" onclick="cargarListaDetalleCtbInvoice(' . $id_rad . ', 0)" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-plus-square "></span></a>';
                             }
                             $fecha = date('Y-m-d', strtotime($ce['fecha']));
                             if ($saldoo > 0) {
                     ?>
                                 <tr>
                                     <td class="text-center"><input type="checkbox" value="" id="defaultCheck1"></td>
-                                    <td class="text-left"><?php echo $ce['id_manu']; ?></td>
-                                    <td class="text-left"><?php echo $numeroc  ?></td>
-                                    <td class="text-left"><?php echo $fecha; ?></td>
-                                    <td class="text-left"><?php echo $ce['nom_tercero']; ?></td>
-                                    <td class="text-right"> <?php echo  $saldo_rad; ?></td>
+                                    <td class="text-start"><?php echo $ce['id_manu']; ?></td>
+                                    <td class="text-start"><?php echo $numeroc  ?></td>
+                                    <td class="text-start"><?php echo $fecha; ?></td>
+                                    <td class="text-start"><?php echo $ce['nom_tercero']; ?></td>
+                                    <td class="text-end"> <?php echo  $saldo_rad; ?></td>
                                     <td class="text-center"> <?php echo $editar .  $acciones; ?></td>
                                 </tr>
                     <?php
@@ -158,8 +163,8 @@ $fecha = date('Y-m-d', strtotime($listado[0]['fecha']));
             </table>
         </div>
     </div>
-    <div class="text-right pt-3">
-        <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Cerrar</a>
+    <div class="text-end pt-3">
+        <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
     </div>
 </div>
 <?php

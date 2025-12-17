@@ -4,7 +4,7 @@ session_start();
 // incrementar el tiempo de ejecucion del script
 ini_set('max_execution_time', 5600);
 
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 // Consexion a cronhis asistencial
 $vigencia = $_SESSION['vigencia'];
 // estraigo las variables que llegan por post en json
@@ -16,8 +16,7 @@ if ($_POST['xtercero'] == 1) {
     $where = ", `t1`.`id_tercero_api`";
 }
 // contar los caracteres de $cuenta_ini
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT 
                 `ctb_pgcp`.`cuenta`
@@ -188,10 +187,10 @@ include_once '../../financiero/encabezado_empresa.php';
                     <td class='text'>" . $tp['cuenta'] . "</td>
                     <td class='text'>" . mb_convert_encoding($tp['nombre'], 'UTF-8') . "</td>
                     <td class='text-center'>" . $tp['tipo'] . "</td>" . $dter . "
-                    <td class='text-right'>" . $saldo_ini . "</td>
-                    <td class='text-right'>" . $tp['debito'] . "</td>
-                    <td class='text-right'>" . $tp['credito'] . "</td>
-                    <td class='text-right'>" . $saldo . "</td>
+                    <td class='text-end'>" . $saldo_ini . "</td>
+                    <td class='text-end'>" . $tp['debito'] . "</td>
+                    <td class='text-end'>" . $tp['credito'] . "</td>
+                    <td class='text-end'>" . $saldo . "</td>
                     </tr>";
                 $saldo_ini = 0;
                 $saldo = 0;

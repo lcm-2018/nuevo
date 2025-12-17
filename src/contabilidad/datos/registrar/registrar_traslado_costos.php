@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
 $id_cta  = isset($_POST['opcion']) ? $_POST['opcion'] : exit('Acceso no disponible');
 $id_cta_costo = $_POST['id_pgcp'];
@@ -16,8 +16,7 @@ $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     if ($id_cta == 0) {
         $sql = "INSERT INTO `ctb_cuenta_costo`
                 (`id_cta_costo`,`id_cta_debito`,`id_cta_credito`,`id_user_reg`,`fec_reg`)

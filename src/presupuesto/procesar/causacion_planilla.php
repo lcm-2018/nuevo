@@ -72,10 +72,10 @@ if (empty($valxrubro)) {
     $tabla = '<table class="table table-bordered table-striped table-hover table-sm" style="font-size: 12px; width: 100%">
                 <thead>
                     <tr>
-                        <th>Rubro</th>
-                        <th>Valor</th>
-                        <th>Saldo</th>
-                        <th>Estado</th>
+                        <th class="bg-sofia">Rubro</th>
+                        <th class="bg-sofia">Valor</th>
+                        <th class="bg-sofia">Saldo</th>
+                        <th class="bg-sofia">Estado</th>
                     </tr>
                 </thead>
                 <tbody>';
@@ -85,7 +85,7 @@ if (empty($valxrubro)) {
         $cod_rubro = $vr['cod_pptal'];
         $respuesta = SaldoRubro($cmd, $rubro, $fec_doc, 0);
         $saldo = $respuesta['valor_aprobado'] - $respuesta['debito_cdp'] + $respuesta['credito_cdp'] + $respuesta['debito_mod'] - $respuesta['credito_mod'];
-        $estado = $saldo >= $valor ? '<span class="badge badge-success">Disponible</span>' : '<span class="badge badge-danger">Sin Saldo</span>';
+        $estado = $saldo >= $valor ? '<span class="badge rounded-pill text-bg-success">Disponible</span>' : '<span class="badge rounded-pill text-bg-danger">Sin Saldo</span>';
         if ($saldo < $valor) {
             $valida = true;
             $tabla .= '<tr>
@@ -145,40 +145,52 @@ try {
     exit();
 }
 
-// Obtener IDs de terceros
+// Obtener IDs de terceros API para cada EPS, ARL y AFP
 $idsTercero = [];
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT * FROM (
-                SELECT
-                    `nom_empleado`.`id_empleado`
-                    , `nom_liq_segsocial_empdo`.`id_eps`
-                    , `nom_liq_segsocial_empdo`.`id_arl`
-                    , `nom_liq_segsocial_empdo`.`id_afp`
-                    , `nom_epss`.`id_tercero_api` AS `id_api_eps`
-                    , `nom_arl`.`id_tercero_api` AS `id_api_arl`
-                    , `nom_afp`.`id_tercero_api` AS `id_api_afp`
-                FROM
-                    `nom_empleado`
-                    INNER JOIN `nom_liq_segsocial_empdo` 
-                        ON (`nom_liq_segsocial_empdo`.`id_empleado` = `nom_empleado`.`id_empleado`)
-                    INNER JOIN `nom_epss` 
-                        ON (`nom_liq_segsocial_empdo`.`id_eps` = `nom_epss`.`id_eps`)
-                    INNER JOIN `nom_arl` 
-                        ON (`nom_liq_segsocial_empdo`.`id_arl` = `nom_arl`.`id_arl`)
-                    INNER JOIN `nom_afp` 
-                        ON (`nom_liq_segsocial_empdo`.`id_afp` = `nom_afp`.`id_afp`)
-                WHERE `nom_liq_segsocial_empdo`.`id_nomina` = $id_nomina
-            ) AS t1";
-    $rs = $cmd->query($sql);
-    $terceros_seg = $rs->fetchAll(PDO::FETCH_ASSOC);
-    foreach ($terceros_seg as $t) {
-        $idsTercero['eps'][$t['id_eps']] = $t['id_api_eps'];
-        $idsTercero['arl'][$t['id_arl']] = $t['id_api_arl'];
-        $idsTercero['afp'][$t['id_afp']] = $t['id_api_afp'];
+
+    // Extraer IDs únicos de EPS, ARL y AFP de los datos
+    $ids_eps = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'eps'), 'id'));
+    $ids_arl = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'arl'), 'id'));
+    $ids_afp = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'afp'), 'id'));
+
+    // Obtener terceros API de EPS
+    if (!empty($ids_eps)) {
+        $placeholders_eps = implode(',', array_fill(0, count($ids_eps), '?'));
+        $sql = "SELECT `id_eps`, `id_tercero_api` FROM `nom_epss` WHERE `id_eps` IN ($placeholders_eps)";
+        $stmt = $cmd->prepare($sql);
+        $stmt->execute(array_values($ids_eps));
+        $eps_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($eps_data as $eps) {
+            $idsTercero['eps'][$eps['id_eps']] = $eps['id_tercero_api'];
+        }
     }
-    $rs->closeCursor();
-    unset($rs);
+
+    // Obtener terceros API de ARL
+    if (!empty($ids_arl)) {
+        $placeholders_arl = implode(',', array_fill(0, count($ids_arl), '?'));
+        $sql = "SELECT `id_arl`, `id_tercero_api` FROM `nom_arl` WHERE `id_arl` IN ($placeholders_arl)";
+        $stmt = $cmd->prepare($sql);
+        $stmt->execute(array_values($ids_arl));
+        $arl_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($arl_data as $arl) {
+            $idsTercero['arl'][$arl['id_arl']] = $arl['id_tercero_api'];
+        }
+    }
+
+    // Obtener terceros API de AFP
+    if (!empty($ids_afp)) {
+        $placeholders_afp = implode(',', array_fill(0, count($ids_afp), '?'));
+        $sql = "SELECT `id_afp`, `id_tercero_api` FROM `nom_afp` WHERE `id_afp` IN ($placeholders_afp)";
+        $stmt = $cmd->prepare($sql);
+        $stmt->execute(array_values($ids_afp));
+        $afp_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($afp_data as $afp) {
+            $idsTercero['afp'][$afp['id_afp']] = $afp['id_tercero_api'];
+        }
+    }
+
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -219,7 +231,7 @@ $nom_mes = isset($meses[$mes]) ? 'MES DE ' . mb_strtoupper($meses[$mes]) : '';
 $id_pto = $pto['id_pto'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha = $date->format('Y-m-d');
-$objeto = "PAGO NOMINA PATRONAL " . $cual . " N° " . $nomina['id_nomina'] . ' ' . $nom_mes . " VIGENCIA " . $nomina['vigencia'];
+$objeto = $nomina['descripcion'] . ' DE EMPLEADO(S) PATRONAL, NÓMINA No. ' . $id_nomina . ' VIGENCIA ' . $vigencia;
 $iduser = $_SESSION['id_user'];
 $fecha2 = $date->format('Y-m-d H:i:s');
 $cerrado = 2;
@@ -339,7 +351,7 @@ try {
                 $valores_detalle = [];
                 foreach ($datos as $row) {
                     if ($row['cargo'] == 'admin' && $row['tipo'] == $key && $row['valor'] > 0) {
-                        $id_tercero_seg = $idsTercero[$key][$row['id_' . $key]] ?? null;
+                        $id_tercero_seg = $idsTercero[$key][$row['id']] ?? null;
                         if ($id_tercero_seg) {
                             $valores_detalle[$id_tercero_seg] = ($valores_detalle[$id_tercero_seg] ?? 0) + $row['valor'];
                         }
@@ -387,7 +399,7 @@ try {
                 $valores_detalle = [];
                 foreach ($datos as $row) {
                     if ($row['cargo'] == 'oper' && $row['tipo'] == $key && $row['valor'] > 0) {
-                        $id_tercero_seg = $idsTercero[$key][$row['id_' . $key]] ?? null;
+                        $id_tercero_seg = $idsTercero[$key][$row['id']] ?? null;
                         if ($id_tercero_seg) {
                             $valores_detalle[$id_tercero_seg] = ($valores_detalle[$id_tercero_seg] ?? 0) + $row['valor'];
                         }

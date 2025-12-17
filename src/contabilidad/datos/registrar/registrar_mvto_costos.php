@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include_once '../../../conexion.php';
-include_once '../../../permisos.php';
+include_once '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include_once '../../../financiero/consultas.php';
 function pesos($valor)
 {
@@ -22,8 +29,7 @@ $fecha = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $fecha->format('Y-m-d H:i:s');
 $response['status'] = 'error';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     if ($id_detalle == '0') {
         $sql = "INSERT INTO `ctb_causa_costos`
                     (`id_ctb_doc`,`id_area_cc`,`valor`,`id_user_reg`,`fecha_reg`)

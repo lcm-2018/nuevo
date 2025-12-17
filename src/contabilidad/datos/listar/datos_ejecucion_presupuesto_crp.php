@@ -4,13 +4,19 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
+include '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 // Llega el id del presupuesto que se esta listando
 $id_pto_presupuestos = $_POST['id_ejec'];
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `pto_documento`.`id_doc`
                 , `pto_documento`.`id_pto_presupuestos`
@@ -50,8 +56,8 @@ if (!empty($listappto)) {
         $rs = $cmd->query($sql);
         $listmanu = $rs->fetch();
         if ((intval($permisos['editar'])) === 1) {
-            $editar = '<a value="' . $id_pto . '" onclick="CargarListadoCrpp(' . $id_pto . ')" class="btn btn-outline-primary btn-sm btn-circle shadow-gb" title="Editar"><span class="fas fa-pencil-alt fa-lg"></span></a>';
-            $detalles = '<a value="' . $id_pto . '" class="btn btn-outline-warning btn-sm btn-circle shadow-gb detalles" title="Detalles"><span class="fas fa-eye fa-lg"></span></a>';
+            $editar = '<a value="' . $id_pto . '" onclick="CargarListadoCrpp(' . $id_pto . ')" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
+            $detalles = '<a value="' . $id_pto . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow detalles" title="Detalles"><span class="fas fa-eye "></span></a>';
             $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
             ...
             </button>
@@ -65,7 +71,7 @@ if (!empty($listappto)) {
             $detalles = null;
         }
         if ((intval($permisos['borrar'])) === 1) {
-            $borrar = '<a value="' . $id_pto . '" class="btn btn-outline-danger btn-sm btn-circle shadow-gb registrar" title="Registrar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+            $borrar = '<a value="' . $id_pto . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow registrar" title="Registrar"><span class="fas fa-trash-alt "></span></a>';
         } else {
             $borrar = null;
         }
@@ -75,7 +81,7 @@ if (!empty($listappto)) {
             'cdp' => $listmanu['id_manu'],
             'fecha' => $fecha,
             'tercero' => $tercero,
-            'valor' =>  '<div class="text-right">' . $valor_cdp . '</div>',
+            'valor' =>  '<div class="text-end">' . $valor_cdp . '</div>',
             'botones' => '<div class="text-center" style="position:relative">' . $editar . $borrar . $detalles . $acciones . '</div>',
 
         ];

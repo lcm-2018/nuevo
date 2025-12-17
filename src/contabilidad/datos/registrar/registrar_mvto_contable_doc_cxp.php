@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include_once '../../../financiero/consultas.php';
 function pesos($valor)
 {
@@ -22,8 +22,7 @@ $valor_base = str_replace(",", "", $_POST['valor_base']);
 $detalle = mb_strtoupper($_POST['detalle']);
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 $response['status'] = 'error';
 
 if ($id_cta_factura == 0) {

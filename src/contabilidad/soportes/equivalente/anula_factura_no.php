@@ -10,10 +10,9 @@ if (!isset($_SESSION['user'])) {
 $id_facno = isset($_POST['id']) ? $_POST['id'] : exit('Acción no permitida');
 $vigencia = $_SESSION['vigencia'];
 $id_empresa = $_SESSION['id_empresa'];
-include '../../../../config/conexion.php';
+include '../../../../config/../config/autoloader.php';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_valxvig`, `id_concepto`, `valor`,`concepto`
             FROM
                 `nom_valxvigencia`
@@ -33,8 +32,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `tb_datos_ips`.`id_empresa`
                 , `tb_datos_ips`.`nit`
@@ -73,8 +71,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `tb_terceros_noblig`.`id_tercero`
                 , `tb_tipos_documento`.`codigo_ne`
@@ -136,8 +133,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_detail`, `id_fno`, `codigo`, `detalle`, `val_unitario`, `cantidad`, `p_iva`, `val_iva`, `p_dcto`, `val_dcto`
             FROM
@@ -150,8 +146,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_soporte`, `id_factura`, `shash`, `referencia`, `fecha`
             FROM
@@ -166,8 +161,7 @@ try {
 $response = [];
 $response['msg'] = '1';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_resol`, `id_empresa`, `no_resol`, `prefijo`, `consecutivo`, `fin_concecutivo`, `fec_inicia`, `fec_termina`, `tipo`, `entorno`
             FROM
@@ -528,8 +522,7 @@ if ($resnom['rerror'] == 0) {
     $errores .= $notificaciones;
     try {
         $hoy = date('Y-m-d');
-        $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-        $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+        $cmd = \Config\Clases\Conexion::getConexion();
         $sql = "INSERT INTO `tb_soporte_factura` (`shash`, `referencia`, `fecha`, `id_user_reg`, `fec_reg`) 
                 VALUES (?, ?, ?, ?, ?)";
         $sql = $cmd->prepare($sql);
@@ -561,8 +554,7 @@ if ($resnom['rerror'] == 0) {
                 $fec_reg = new DateTime('now', new DateTimeZone('America/Bogota'));
                 $id_tfac = 6;
                 $estado = 2;
-                $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-                $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+                $cmd = \Config\Clases\Conexion::getConexion();
                 $sql = "INSERT INTO `tb_facturas`
                             (`id_tercero_no`, `fec_compra`, `met_pago`, `forma_pago`, `vigencia`, `id_user_reg`, `fec_reg`, `id_empresa`, `id_tfac`, `id_fac_ndc`, `estado`)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";

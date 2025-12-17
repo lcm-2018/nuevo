@@ -4,14 +4,13 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
 $id_ctb_ref = isset($_POST['id_ctb_ref']) ? $_POST['id_ctb_ref'] : exit('Acceso no permitido');
 $id_doc_ref = $_POST['id_doc_ref'];
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `ctb_referencia`.`id_ctb_referencia`
                 , `ctb_referencia`.`id_cuenta`
@@ -61,44 +60,44 @@ $ver = $referencias['accion'] == 1 ? 'block' : 'none';
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">REFERENCIA</b></h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">REFERENCIA</b></h5>
         </div>
         <form id="formRefDr">
             <input type="hidden" name="id_doc_ref" id="id_doc_ref" value="<?php echo $id_doc_ref; ?>">
             <input type="hidden" name="id_ctb_ref" id="id_ctb_ref" value="<?php echo $id_ctb_ref; ?>">
             <input type="hidden" id="id_pto_movto" value="1">
-            <div class="form-row px-4 pt-3">
-                <div class="form-group col-md-8">
+            <div class="row mb-2 px-4 pt-3">
+                <div class="col-md-8">
                     <label for="nombre" class="small">Nombre</label>
-                    <input type="text" class="form-control form-control-sm" id="nombre" name="nombre" value="<?php echo $referencias['nombre']; ?>">
+                    <input type="text" class="form-control form-control-sm bg-input" id="nombre" name="nombre" value="<?php echo $referencias['nombre']; ?>">
                 </div>
-                <div class="form-group col-md-4">
+                <div class="col-md-4">
                     <label for="accion" class="small">acción</label>
-                    <select class="form-control form-control-sm" id="accion" name="accion" onchange="cambiarTipoRefDr(value);">
+                    <select class="form-control form-control-sm bg-input" id="accion" name="accion" onchange="cambiarTipoRefDr(value);">
                         <option value="2">--Seleccione--</option>
                         <option value="1" <?php echo $referencias['accion'] == 1 ? 'selected' : ''; ?>>INGRESO</option>
                         <option value="0" <?php echo $referencias['accion'] == 0 ? 'selected' : ''; ?>>GASTO</option>
                     </select>
                 </div>
             </div>
-            <div class="form-row px-4 pb-3">
-                <div class="form-group col-md-6">
+            <div class="row mb-2 px-4 pb-3">
+                <div class="col-md-6">
                     <label for="codigoCta1" class="small">Cuenta D</label>
-                    <input type="text" name="codigoCta1" id="codigoCta1" class="form-control form-control-sm" value="<?php echo $referencias['nom_cuenta']; ?>">
+                    <input type="text" name="codigoCta1" id="codigoCta1" class="form-control form-control-sm bg-input" value="<?php echo $referencias['nom_cuenta']; ?>">
                     <input type="hidden" name="id_codigoCta1" id="id_codigoCta1" value="<?php echo $referencias['id_cuenta']; ?>">
                     <input type="hidden" name="tipoDato1" id="tipoDato1" value="<?php echo $referencias['tipo']; ?>">
                 </div>
-                <div class="form-group col-md-6">
+                <div class="col-md-6">
                     <label for="codigoCta2" class="small">Cuenta C</label>
-                    <input type="text" name="codigoCta2" id="codigoCta2" class="form-control form-control-sm" value="<?php echo $referencias['nom_cuenta2']; ?>">
+                    <input type="text" name="codigoCta2" id="codigoCta2" class="form-control form-control-sm bg-input" value="<?php echo $referencias['nom_cuenta2']; ?>">
                     <input type="hidden" name="id_codigoCta2" id="id_codigoCta2" value="<?php echo $referencias['id_cta_credito']; ?>">
                     <input type="hidden" name="tipoDato2" id="tipoDato2" value="<?php echo $referencias['tipo2']; ?>">
                 </div>
             </div>
             <div id="divAfectacion" style="display:<?php echo $ver; ?>;">
-                <div class="form-row px-4 pb-2">
-                    <div class="form-group col-md-12 text-center mt-1">
+                <div class="row mb-2 px-4 pb-2">
+                    <div class="col-md-12 text-center mt-1">
                         <label class="small d-block" for="marca_si">AFECTA PRESUPUESTO</label>
                         <div class="form-control-sm border rounded px-2 py-1 bg-light">
                             <div class="form-check form-check-inline mb-0">
@@ -112,19 +111,19 @@ $ver = $referencias['accion'] == 1 ? 'block' : 'none';
                         </div>
                     </div>
                 </div>
-                <div class="form-row px-4 pb-2">
-                    <div class="form-group col-md-12 text-center">
+                <div class="row mb-2 px-4 pb-2">
+                    <div class="col-md-12 text-center">
                         <label for="rubroCod" class="small">CUENTA PRESUPUESTO DE INGRESOS</label>
-                        <input type="text" class="form-control form-control-sm" id="rubroCod" name="rubroCod" value="<?php echo isset($referencias['nom_rubro']) ? $referencias['nom_rubro'] : ''; ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="rubroCod" name="rubroCod" value="<?php echo isset($referencias['nom_rubro']) ? $referencias['nom_rubro'] : ''; ?>">
                         <input type="hidden" name="id_rubroCod" id="id_rubroCod" value="<?php echo isset($referencias['id_rubro']) ? $referencias['id_rubro'] : '0'; ?>">
                         <input type="hidden" name="tipoRubro" id="tipoRubro" value="<?php echo isset($referencias['tipo_rubro']) ? $referencias['tipo_rubro'] : '0'; ?>">
                     </div>
                 </div>
             </div>
         </form>
-        <div class="text-right pb-3 px-4 w-100">
+        <div class="text-end pb-3 px-4 w-100">
             <button type="button" class="btn btn-primary btn-sm" onclick="GuardarReferenciaDr(this)">Guardar</button>
-            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
         </div>
     </div>
 </div>

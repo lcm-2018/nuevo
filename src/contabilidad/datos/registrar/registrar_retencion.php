@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
 $tipo = isset($_POST['txtTipoRte']) ? $_POST['txtTipoRte'] : exit('Acceso no autorizado');
 $id_ret = $_POST['id_retencion'];
@@ -15,8 +15,7 @@ $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     if ($id_ret == 0) {
         $query = "INSERT INTO `ctb_retenciones`
                     (`id_retencion_tipo`,`nombre_retencion`,`id_cuenta`,`estado`,`id_user_reg`,`fecha_reg`)

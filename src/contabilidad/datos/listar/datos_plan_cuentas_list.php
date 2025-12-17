@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include_once '../../../conexion.php';
-include_once '../../../permisos.php';
+include_once '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include_once '../../../financiero/consultas.php';
 
 // Div de acciones de la lista
@@ -14,8 +21,7 @@ $start = isset($_POST['start']) ? intval($_POST['start']) : 0;
 $length = isset($_POST['length']) ? intval($_POST['length']) : 10;
 $where = $_POST['search']['value'] != '' ? "WHERE (`cuenta` LIKE '%{$_POST['search']['value']}%' OR `nombre` LIKE '%{$_POST['search']['value']}%')" : '';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_pgcp`, `fecha`, `cuenta`, `nombre`, `tipo_dato`, `estado`, `desagrega` 
             FROM `ctb_pgcp`
@@ -39,20 +45,20 @@ if (!empty($lista)) {
     foreach ($lista as $lp) {
         $cerrar = $editar = $detalles = $borrar = $desagrega = $costos = null;
         $id_ctb = $lp['id_pgcp'];
-        if ((PermisosUsuario($permisos, 5504, 3) || $id_rol == 1) && ($lp['estado'] == 1)) {
-            $editar = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" onclick="editarDatosPlanCuenta(' . $id_ctb . ')" class="btn btn-outline-primary btn-sm btn-circle shadow-gb"  title="Editar_' . $id_ctb . '"><span class="fas fa-pencil-alt fa-lg"></span></a>';
+        if (($permisos->PermisosUsuario($opciones, 5504, 3) || $id_rol == 1) && ($lp['estado'] == 1)) {
+            $editar = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" onclick="editarDatosPlanCuenta(' . $id_ctb . ')" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow"  title="Editar_' . $id_ctb . '"><span class="fas fa-pencil-alt "></span></a>';
         }
-        $desagrega = '<button value="' . $id_ctb . '" onclick="formDesagregacion(' . $id_ctb . ')" class="btn btn-outline-info btn-sm btn-circle shadow-gb"  title="Formulario de desagregación de terceros"><span class="fas fa-clipboard-list fa-lg"></span></button>';
+        $desagrega = '<button value="' . $id_ctb . '" onclick="formDesagregacion(' . $id_ctb . ')" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow"  title="Formulario de desagregación de terceros"><span class="fas fa-clipboard-list "></span></button>';
 
         if (strlen($lp['cuenta']) == 4 && substr($lp['cuenta'], 0, 1) === "7") {
-            $costos = '<button value="' . $id_ctb . '" onclick="formCostos(' . $id_ctb . ')" class="btn btn-outline-success btn-sm btn-circle shadow-gb"  title="Formulario traslado de costos"><span class="fas fa-exchange-alt fa-lg"></span></button>';
+            $costos = '<button value="' . $id_ctb . '" onclick="formCostos(' . $id_ctb . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow"  title="Formulario traslado de costos"><span class="fas fa-exchange-alt "></span></button>';
         }
-        if (PermisosUsuario($permisos, 5504, 4) || $id_rol == 1) {
+        if ($permisos->PermisosUsuario($opciones, 5504, 4) || $id_rol == 1) {
             if ($lp['estado'] == 1) {
-                $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-warning btn-sm btn-circle shadow-gb" onclick="cerrarCuentaPlan(' . $id_ctb . ')" title="Desactivar cuenta"><span class="fas fa-unlock fa-lg"></span></a>';
-                $borrar = '<a value="' . $id_ctb . '" onclick="eliminarCuentaContable(' . $id_ctb . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb "  title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+                $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow" onclick="cerrarCuentaPlan(' . $id_ctb . ')" title="Desactivar cuenta"><span class="fas fa-unlock "></span></a>';
+                $borrar = '<a value="' . $id_ctb . '" onclick="eliminarCuentaContable(' . $id_ctb . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow "  title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
             } else {
-                $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-secondary btn-sm btn-circle shadow-gb" onclick="abrirCuentaPlan(' . $id_ctb . ')" title="Activar cuenta"><span class="fas fa-lock fa-lg"></span></a>';
+                $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-secondary btn-xs rounded-circle me-1 shadow" onclick="abrirCuentaPlan(' . $id_ctb . ')" title="Activar cuenta"><span class="fas fa-lock "></span></a>';
             }
         }
         if ($lp['estado'] == 1) {

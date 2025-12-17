@@ -4,11 +4,10 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include '../common/cargar_combos.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $id = isset($_POST['id']) ? $_POST['id'] : -1;
 $sql = "SELECT tb_homologacion.*,
@@ -45,13 +44,13 @@ $sql = "SELECT tb_homologacion.*,
 $rs = $cmd->query($sql);
 $obj = $rs->fetch();
 
-if(empty($obj)){
+if (empty($obj)) {
     $n = $rs->columnCount();
     for ($i = 0; $i < $n; $i++):
         $col = $rs->getColumnMeta($i);
-        $name=$col['name'];
-        $obj[$name]=NULL;
-    endfor;    
+        $name = $col['name'];
+        $obj[$name] = NULL;
+    endfor;
     //Inicializa variable por defecto
     $obj['estado'] = 1;
 }
@@ -65,131 +64,131 @@ if(empty($obj)){
         <div class="px-2">
             <form id="frm_reg_cuentas_fac">
                 <input type="hidden" id="id_cuentafac" name="id_cuentafac" value="<?php echo $id ?>">
-                <div class=" form-row">                    
-                    <div class="form-group col-md-3">
+                <div class=" row">
+                    <div class="col-md-3">
                         <label for="sl_regimen" class="small">Régimen</label>
-                        <select class="form-control form-control-sm" id="sl_regimen" name="sl_regimen" required>
+                        <select class="form-control form-control-sm bg-input" id="sl_regimen" name="sl_regimen" required>
                             <?php regimenes($cmd, '', $obj['id_regimen']) ?>
                         </select>
                     </div>
-                    <div class="form-group col-md-5">
+                    <div class="col-md-5">
                         <label for="sl_cobertura" class="small">Cobertura</label>
-                        <select class="form-control form-control-sm" id="sl_cobertura" name="sl_cobertura" required>
+                        <select class="form-control form-control-sm bg-input" id="sl_cobertura" name="sl_cobertura" required>
                             <?php cobertura($cmd, '', $obj['id_cobertura']) ?>
                         </select>
                     </div>
-                    <div class="form-group col-md-4">
+                    <div class="col-md-4">
                         <label for="sl_modalidad" class="small">Modalidad</label>
-                        <select class="form-control form-control-sm" id="sl_modalidad" name="sl_modalidad" required>
+                        <select class="form-control form-control-sm bg-input" id="sl_modalidad" name="sl_modalidad" required>
                             <?php modalidad($cmd, '', $obj['id_modalidad']) ?>
                         </select>
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="txt_cta_pre" class="small">Cta. Presupuesto</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta_pre" id="txt_cta_pre" data-campoid="id_txt_cta_pre" value="<?php echo $obj['cta_presupuesto'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta_pre" id="txt_cta_pre" data-campoid="id_txt_cta_pre" value="<?php echo $obj['cta_presupuesto'] ?>">
                         <input type="hidden" id="id_txt_cta_pre" name="id_txt_cta_pre" value="<?php echo $obj['id_cta_presupuesto'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="txt_cta_pre_ant" class="small">Cta. Presupuesto Anterior</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta_pre" id="txt_cta_pre_ant" data-campoid="id_txt_cta_pre_ant" value="<?php echo $obj['cta_presupuesto_ant'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta_pre" id="txt_cta_pre_ant" data-campoid="id_txt_cta_pre_ant" value="<?php echo $obj['cta_presupuesto_ant'] ?>">
                         <input type="hidden" id="id_txt_cta_pre_ant" name="id_txt_cta_pre_ant" value="<?php echo $obj['id_cta_presupuesto_ant'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="txt_cta_deb" class="small">Cta. Debito</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta" id="txt_cta_deb" data-campoid="id_txt_cta_deb" value="<?php echo $obj['cta_debito'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_deb" data-campoid="id_txt_cta_deb" value="<?php echo $obj['cta_debito'] ?>">
                         <input type="hidden" id="id_txt_cta_deb" name="id_txt_cta_deb" value="<?php echo $obj['id_cta_debito'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="txt_cta_cre" class="small">Cta. Crédito</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta" id="txt_cta_cre" data-campoid="id_txt_cta_cre" value="<?php echo $obj['cta_credito'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_cre" data-campoid="id_txt_cta_cre" value="<?php echo $obj['cta_credito'] ?>">
                         <input type="hidden" id="id_txt_cta_cre" name="id_txt_cta_cre" value="<?php echo $obj['id_cta_credito'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="txt_cta_cop" class="small">Cta. Copago</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta" id="txt_cta_cop" data-campoid="id_txt_cta_cop" value="<?php echo $obj['cta_copago'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_cop" data-campoid="id_txt_cta_cop" value="<?php echo $obj['cta_copago'] ?>">
                         <input type="hidden" id="id_txt_cta_cop" name="id_txt_cta_cop" value="<?php echo $obj['id_cta_copago'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="txt_cta_cop_cap" class="small">Cta. Copago Capitado</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta" id="txt_cta_cop_cap" data-campoid="id_txt_cta_cop_cap" value="<?php echo $obj['cta_copago_capitado'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_cop_cap" data-campoid="id_txt_cta_cop_cap" value="<?php echo $obj['cta_copago_capitado'] ?>">
                         <input type="hidden" id="id_txt_cta_cop_cap" name="id_txt_cta_cop_cap" value="<?php echo $obj['id_cta_copago_capitado'] ?>">
-                    </div>                    
-                    <div class="form-group col-md-3">
+                    </div>
+                    <div class="col-md-3">
                         <label for="txt_cta_gli_deb" class="small">Cta. Glosa Inicial Debito</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta" id="txt_cta_gli_deb" data-campoid="id_txt_cta_gli_deb" value="<?php echo $obj['cta_glosaini_debito'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_gli_deb" data-campoid="id_txt_cta_gli_deb" value="<?php echo $obj['cta_glosaini_debito'] ?>">
                         <input type="hidden" id="id_txt_cta_gli_deb" name="id_txt_cta_gli_deb" value="<?php echo $obj['id_cta_glosaini_debito'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="txt_cta_gli_cre" class="small">Cta. Glosa Inicial Crédito</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta" id="txt_cta_gli_cre" data-campoid="id_txt_cta_gli_cre" value="<?php echo $obj['cta_glosaini_credito'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_gli_cre" data-campoid="id_txt_cta_gli_cre" value="<?php echo $obj['cta_glosaini_credito'] ?>">
                         <input type="hidden" id="id_txt_cta_gli_cre" name="id_txt_cta_gli_cre" value="<?php echo $obj['id_cta_glosaini_credito'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="txt_cta_glo_def" class="small">Cta. Glosa Definitiva</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta" id="txt_cta_glo_def" data-campoid="id_txt_cta_glo_def" value="<?php echo $obj['cta_glosadefinitiva'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_glo_def" data-campoid="id_txt_cta_glo_def" value="<?php echo $obj['cta_glosadefinitiva'] ?>">
                         <input type="hidden" id="id_txt_cta_glo_def" name="id_txt_cta_glo_def" value="<?php echo $obj['id_cta_glosadefinitiva'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="txt_cta_dev" class="small">Cta. Devolución</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta" id="txt_cta_dev" data-campoid="id_txt_cta_dev" value="<?php echo $obj['cta_devolucion'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_dev" data-campoid="id_txt_cta_dev" value="<?php echo $obj['cta_devolucion'] ?>">
                         <input type="hidden" id="id_txt_cta_dev" name="id_txt_cta_dev" value="<?php echo $obj['id_cta_devolucion'] ?>">
-                    </div>                    
-                    <div class="form-group col-md-3">
+                    </div>
+                    <div class="col-md-3">
                         <label for="txt_cta_caj" class="small">Cta. Caja</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta" id="txt_cta_caj" data-campoid="id_txt_cta_caj" value="<?php echo $obj['cta_caja'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_caj" data-campoid="id_txt_cta_caj" value="<?php echo $obj['cta_caja'] ?>">
                         <input type="hidden" id="id_txt_cta_caj" name="id_txt_cta_caj" value="<?php echo $obj['id_cta_caja'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="txt_cta_fac_glo" class="small">Cta. Factura Global</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta" id="txt_cta_fac_glo" data-campoid="id_txt_cta_fac_glo" value="<?php echo $obj['cta_fac_global'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_fac_glo" data-campoid="id_txt_cta_fac_glo" value="<?php echo $obj['cta_fac_global'] ?>">
                         <input type="hidden" id="id_txt_cta_fac_glo" name="id_txt_cta_fac_glo" value="<?php echo $obj['id_cta_fac_global'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="txt_cta_x_ide" class="small">Cta. Por Identificar</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta" id="txt_cta_x_ide" data-campoid="id_txt_cta_x_ide" value="<?php echo $obj['cta_x_ident'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_x_ide" data-campoid="id_txt_cta_x_ide" value="<?php echo $obj['cta_x_ident'] ?>">
                         <input type="hidden" id="id_txt_cta_x_ide" name="id_txt_cta_x_ide" value="<?php echo $obj['id_cta_x_ident'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="txt_cta_x_ide" class="small">Cta. de Baja</label>
-                    </div>  
-                    <div class="form-group col-md-9">                            
-                        <input type="text" class="form-control form-control-sm cuenta" id="txt_cta_baja" data-campoid="id_txt_cta_baja" value="<?php echo $obj['cta_baja'] ?>">
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_baja" data-campoid="id_txt_cta_baja" value="<?php echo $obj['cta_baja'] ?>">
                         <input type="hidden" id="id_txt_cta_baja" name="id_txt_cta_baja" value="<?php echo $obj['id_cta_baja'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <label for="txt_fec_vig" class="small">Fecha Inicio de Vigencia</label>
-                        <input type="date" class="form-control form-control-sm" id="txt_fec_vig" name="txt_fec_vig" value="<?php echo $obj['fecha_vigencia'] ?>">
-                    </div> 
-                    <div class="form-group col-md-2">
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fec_vig" name="txt_fec_vig" value="<?php echo $obj['fecha_vigencia'] ?>">
+                    </div>
+                    <div class="col-md-2">
                         <label for="sl_estado" class="small">Estado</label>
-                        <select class="form-control form-control-sm" id="sl_estado" name="sl_estado">
-                            <?php estados_registros('',$obj['estado']) ?>
+                        <select class="form-control form-control-sm bg-input" id="sl_estado" name="sl_estado">
+                            <?php estados_registros('', $obj['estado']) ?>
                         </select>
                     </div>
                 </div>
@@ -198,6 +197,6 @@ if(empty($obj)){
     </div>
     <div class="text-center pt-3">
         <button type="button" class="btn btn-primary btn-sm" id="btn_guardar">Guardar</button>
-        <a type="button" class="btn btn-secondary  btn-sm" data-dismiss="modal">Cancelar</a>
+        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>

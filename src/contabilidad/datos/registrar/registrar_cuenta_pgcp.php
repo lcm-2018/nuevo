@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $id_pgcp = isset($_POST['id_pgcp']) ? $_POST['id_pgcp'] : exit('Acceso no autorizado');
 $cuentas = $_POST['cuentas'];
 $nombre = $_POST['nombre'];
@@ -16,8 +16,7 @@ $fecha2 = $date->format('Y-m-d H:i:s');
 
 $response['value'] = 'error';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     if ($id_pgcp == 0) {
         $estado = 1;
         $query = "INSERT INTO `ctb_pgcp` (`cuenta`, `nombre`, `tipo_dato`, `estado`,`id_user_reg`, `fec_reg`) 

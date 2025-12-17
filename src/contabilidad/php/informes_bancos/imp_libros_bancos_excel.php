@@ -7,15 +7,15 @@ if (!isset($_SESSION['user'])) {
 
 ini_set('memory_limit', '-1');
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
+
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use Box\Spout\Common\Entity\Row;
 
 include '../../../vendor/autoload.php';
 include 'funciones_generales.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $id_cuenta_ini = isset($_POST['id_cuenta_ini']) ? $_POST['id_cuenta_ini'] : 0;
 $id_cuenta_fin = isset($_POST['id_cuenta_fin']) ? $_POST['id_cuenta_fin'] : 0;
@@ -33,8 +33,7 @@ if ($id_tipo_doc > 0) {
 }
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT 
                  ctb_pgcp.id_pgcp
                 ,ctb_pgcp.cuenta
@@ -70,9 +69,11 @@ try {
     // Construir lista de ids de cuenta
     $accountIds = array_column($obj_cuentas, 'id_pgcp');
     if (!empty($accountIds)) {
-        $inList = implode(',', array_map(function ($v) { return "'" . $v . "'"; }, $accountIds));
+        $inList = implode(',', array_map(function ($v) {
+            return "'" . $v . "'";
+        }, $accountIds));
 
-    // 1) Obtener saldos iniciales para todas las cuentas en una sola consulta
+        // 1) Obtener saldos iniciales para todas las cuentas en una sola consulta
         $sqlSaldos = "SELECT
                         ctb_libaux.id_cuenta AS id_cuenta,
                         ctb_pgcp.cuenta AS cuenta,
@@ -88,8 +89,7 @@ try {
 
         // asegurar conexión PDO activa
         if ($cmd === null) {
-            $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-            $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+            $cmd = \Config\Clases\Conexion::getConexion();
         }
         $rs = $cmd->query($sqlSaldos);
         if ($rs === false) {
@@ -179,59 +179,59 @@ try {
 
         if ($rs) {
             while ($obj = $rs->fetch(PDO::FETCH_ASSOC)) {
-            $acct = $obj['id_cuenta'];
-            // cuando cambie de cuenta escribir cabeceras y saldo inicial
-            if ($currentAccount === null || $currentAccount !== $acct) {
-                // si ya estábamos en otra cuenta, escribir totales de la cuenta anterior
-                if ($currentAccount !== null) {
-                    $totalsRow = ["", "", "", "", "", "", "Totales", $total_deb, $total_cre, $saldo_inicial];
-                    $writer->addRow(WriterEntityFactory::createRowFromArray($totalsRow));
+                $acct = $obj['id_cuenta'];
+                // cuando cambie de cuenta escribir cabeceras y saldo inicial
+                if ($currentAccount === null || $currentAccount !== $acct) {
+                    // si ya estábamos en otra cuenta, escribir totales de la cuenta anterior
+                    if ($currentAccount !== null) {
+                        $totalsRow = ["", "", "", "", "", "", "Totales", $total_deb, $total_cre, $saldo_inicial];
+                        $writer->addRow(WriterEntityFactory::createRowFromArray($totalsRow));
+                    }
+
+                    // inicializar nueva cuenta
+                    $currentAccount = $acct;
+                    $total_deb = 0;
+                    $total_cre = 0;
+                    $saldo_inicial = isset($saldosMap[$acct]) ? $saldosMap[$acct] : 0;
+
+                    // obtener descripción desde el mapa (O(1))
+                    $cuentaDesc = isset($cuentaMap[$acct]) ? $cuentaMap[$acct] : '';
+
+                    $writer->addRow(WriterEntityFactory::createRowFromArray([])); // Línea en blanco
+                    $writer->addRow(WriterEntityFactory::createRowFromArray(["CUENTA", $cuentaDesc]));
+                    $writer->addRow(WriterEntityFactory::createRowFromArray([])); // línea en blanco
+                    $headers = ["Fecha", "Tipo Documento", "Documento", "Referencia", "Tercero", "CC/nit", "Detalle", "Debito", "Credito", "Saldo"];
+                    $writer->addRow(WriterEntityFactory::createRowFromArray($headers));
+                    $saldoInicialRow = ["", "", "", "", "", "", "Saldo inicial:", "", "", $saldo_inicial];
+                    $writer->addRow(WriterEntityFactory::createRowFromArray($saldoInicialRow));
                 }
 
-                // inicializar nueva cuenta
-                $currentAccount = $acct;
-                $total_deb = 0;
-                $total_cre = 0;
-                $saldo_inicial = isset($saldosMap[$acct]) ? $saldosMap[$acct] : 0;
+                // procesar fila
+                $primer_caracter = substr($obj['cuenta'], 0, 1);
+                $segundo_caracter = substr($obj['cuenta'], 0, 2);
+                if ($primer_caracter == 1 || $primer_caracter == 5 || $primer_caracter == 6 || $primer_caracter == 7 || $segundo_caracter == 81 || $segundo_caracter == 83 || $segundo_caracter == 99) {
+                    $saldo_inicial = $saldo_inicial + $obj['debito'] - $obj['credito'];
+                } else {
+                    $saldo_inicial = $saldo_inicial + $obj['credito'] - $obj['debito'];
+                }
 
-                // obtener descripción desde el mapa (O(1))
-                $cuentaDesc = isset($cuentaMap[$acct]) ? $cuentaMap[$acct] : '';
+                $row = [
+                    $obj['fecha'],
+                    $obj['cod_tipo_doc'],
+                    $obj['id_manu'],
+                    mb_strtoupper($obj['forma_pago']),
+                    mb_strtoupper($obj['nom_tercero']),
+                    $obj['nit_tercero'],
+                    mb_strtoupper($obj['detalle']),
+                    $obj['debito'],
+                    $obj['credito'],
+                    $saldo_inicial
+                ];
+                $writer->addRow(WriterEntityFactory::createRowFromArray($row));
 
-                $writer->addRow(WriterEntityFactory::createRowFromArray([])); // Línea en blanco
-                $writer->addRow(WriterEntityFactory::createRowFromArray(["CUENTA", $cuentaDesc]));
-                $writer->addRow(WriterEntityFactory::createRowFromArray([])); // línea en blanco
-                $headers = ["Fecha", "Tipo Documento", "Documento", "Referencia", "Tercero", "CC/nit", "Detalle", "Debito", "Credito", "Saldo"];
-                $writer->addRow(WriterEntityFactory::createRowFromArray($headers));
-                $saldoInicialRow = ["", "", "", "", "", "", "Saldo inicial:", "", "", $saldo_inicial];
-                $writer->addRow(WriterEntityFactory::createRowFromArray($saldoInicialRow));
+                $total_deb += $obj['debito'];
+                $total_cre += $obj['credito'];
             }
-
-            // procesar fila
-            $primer_caracter = substr($obj['cuenta'], 0, 1);
-            $segundo_caracter = substr($obj['cuenta'], 0, 2);
-            if ($primer_caracter == 1 || $primer_caracter == 5 || $primer_caracter == 6 || $primer_caracter == 7 || $segundo_caracter == 81 || $segundo_caracter == 83 || $segundo_caracter == 99) {
-                $saldo_inicial = $saldo_inicial + $obj['debito'] - $obj['credito'];
-            } else {
-                $saldo_inicial = $saldo_inicial + $obj['credito'] - $obj['debito'];
-            }
-
-            $row = [
-                $obj['fecha'],
-                $obj['cod_tipo_doc'],
-                $obj['id_manu'],
-                mb_strtoupper($obj['forma_pago']),
-                mb_strtoupper($obj['nom_tercero']),
-                $obj['nit_tercero'],
-                mb_strtoupper($obj['detalle']),
-                $obj['debito'],
-                $obj['credito'],
-                $saldo_inicial
-            ];
-            $writer->addRow(WriterEntityFactory::createRowFromArray($row));
-
-            $total_deb += $obj['debito'];
-            $total_cre += $obj['credito'];
-        }
 
             // escribir totales de la última cuenta
             if ($currentAccount !== null) {

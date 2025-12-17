@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
+include '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 //Permisos: 1-Consultar,2-Crear,3-Editar,4-Eliminar,5-Anular,6-Imprimir
 
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
@@ -14,12 +21,11 @@ $id_usr_crea = $_SESSION['id_user'];
 $res = array();
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
 
-    if ((PermisosUsuario($permisos, 5508, 2) && $oper == 'add' && $_POST['id_centrocosto'] == -1) ||
-        (PermisosUsuario($permisos, 5508, 3) && $oper == 'add' && $_POST['id_centrocosto'] != -1) ||
-        (PermisosUsuario($permisos, 5508, 4) && $oper == 'del') || $id_rol == 1
+    if (($permisos->PermisosUsuario($opciones, 5508, 2) && $oper == 'add' && $_POST['id_centrocosto'] == -1) ||
+        ($permisos->PermisosUsuario($opciones, 5508, 3) && $oper == 'add' && $_POST['id_centrocosto'] != -1) ||
+        ($permisos->PermisosUsuario($opciones, 5508, 4) && $oper == 'del') || $id_rol == 1
     ) {
 
         if ($oper == 'add') {

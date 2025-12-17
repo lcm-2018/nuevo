@@ -1,6 +1,6 @@
 (function ($) {
     //---boton buscar
-    $("#divForms").on("click", "#btn_buscar" , function () {
+    $("#divForms").on("click", "#btn_buscar", function () {
         var fecha = $('#txt_fecha').val();
         //------------ cargar la tabla terceros segun la fecha
         if ($.fn.DataTable.isDataTable('#tb_terceros')) {
@@ -9,7 +9,7 @@
 
         $('#tb_terceros').DataTable({
             dom: setdom = "<'row'<'col-md-6'l><'col-md-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            language: setIdioma,
+            language: dataTable_es,
             processing: true,
             serverSide: true,
             searching: false,
@@ -22,11 +22,11 @@
                 }
             },
             columns: [
-               // { 'data': 'id_tercero_api' },
-                { 'data': 'id_manu'},
+                // { 'data': 'id_tercero_api' },
+                { 'data': 'id_manu' },
                 { 'data': 'nit_tercero' },
                 { 'data': 'nom_tercero' },
-               // { 'data': 'id_ctb_doc' },
+                // { 'data': 'id_ctb_doc' },
                 { 'data': 'fecha_credito' },
                 { 'data': 'sumacredito', 'className': 'text-right' },
                 { 'data': 'menos30', 'className': 'text-right' },

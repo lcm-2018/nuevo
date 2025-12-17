@@ -5,10 +5,9 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 //---------------------------------------------------
 ?>
 <div class="px-0">
@@ -18,55 +17,55 @@ $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
         </div>
         <div class="px-2">
             <form id="frm_libros_aux_bancos">
-                <div class=" form-row">
-                    <div class="form-group col-md-5">
+                <div class=" row">
+                    <div class="col-md-5">
                         <label for="txt_cuentainicial" class="small">Cuenta inicial</label>
-                        <input type="text" class="filtro form-control form-control-sm" id="txt_cuentainicial" name="txt_cuentainicial" placeholder="Cuenta Inicial">
-                        <input type="hidden" id="id_txt_cuentainicial" name="id_txt_cuentainicial" class="form-control form-control-sm">
+                        <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_cuentainicial" name="txt_cuentainicial" placeholder="Cuenta Inicial">
+                        <input type="hidden" id="id_txt_cuentainicial" name="id_txt_cuentainicial" class="form-control form-control-sm bg-input">
                     </div>
-                    <div class="form-group col-md-5">
+                    <div class="col-md-5">
                         <label for="txt_cuentafinal" class="small">Cuenta final</label>
-                        <input type="text" class="filtro form-control form-control-sm" id="txt_cuentafinal" name="txt_cuentafinal" placeholder="Cuenta final">
-                        <input type="hidden" id="id_txt_cuentafinal" name="id_txt_cuentafinal" class="form-control form-control-sm">
+                        <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_cuentafinal" name="txt_cuentafinal" placeholder="Cuenta final">
+                        <input type="hidden" id="id_txt_cuentafinal" name="id_txt_cuentafinal" class="form-control form-control-sm bg-input">
                     </div>
                 </div>
-                <div class=" form-row">
-                    <div class="form-group col-md-5">
+                <div class=" row">
+                    <div class="col-md-5">
                         <label for="txt_fecini" class="small">Fecha inicial</label>
-                        <input type="date" class="form-control form-control-sm" id="txt_fecini" name="txt_fecini" placeholder="Fecha Inicial" value="<?php echo $_SESSION['vigencia'] ?>-01-01">
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fecini" name="txt_fecini" placeholder="Fecha Inicial" value="<?php echo $_SESSION['vigencia'] ?>-01-01">
                     </div>
-                    <div class="form-group col-md-5">
+                    <div class="col-md-5">
                         <label for="txt_fecfin" class="small">Fecha final</label>
-                        <input type="date" class="form-control form-control-sm" id="txt_fecfin" name="txt_fecfin" placeholder="Fecha final" value="<?php echo $_SESSION['vigencia'] ?>-12-31">
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fecfin" name="txt_fecfin" placeholder="Fecha final" value="<?php echo $_SESSION['vigencia'] ?>-12-31">
                     </div>
                 </div>
-                <div class=" form-row">
-                    <div class="form-group col-md-4">
+                <div class=" row">
+                    <div class="col-md-4">
                         <label for="sl_tipo_documento" class="small">Tipo documento</label>
-                        <select class="filtro form-control form-control-sm" id="sl_tipo_documento" name="sl_tipo_documento">
+                        <select class="filtro form-control form-control-sm bg-input" id="sl_tipo_documento" name="sl_tipo_documento">
                             <?php tipo_documento($cmd, '--Seleccione--', 0) ?>
                         </select>
                     </div>
-                    <div class="form-group col-md-5">
+                    <div class="col-md-5">
                         <label for="txt_tercero_filtro" class="small">Tercero</label>
-                        <input type="text" class="filtro form-control form-control-sm" id="txt_tercero_filtro" name="txt_tercero_filtro" placeholder="Tercero">
-                        <input type="hidden" id="id_txt_tercero" name="id_txt_tercero" class="form-control form-control-sm">
+                        <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_tercero_filtro" name="txt_tercero_filtro" placeholder="Tercero">
+                        <input type="hidden" id="id_txt_tercero" name="id_txt_tercero" class="form-control form-control-sm bg-input">
                     </div>
-                    <div class="form-group col-md-1">
+                    <div class="col-md-1">
                         <label for="btn_consultar" class="small">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                         <a type="button" id="btn_consultar" class="btn btn-outline-success btn-sm" title="Consultar">
                             <span class="fas fa-search fa-lg" aria-hidden="true"></span>
                         </a>
                     </div>
-                    <div class="form-group col-md-1">
+                    <div class="col-md-1">
                         <label for="btn_csv" class="small">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                         <a type="button" id="btn_csv" class="btn btn-outline-success btn-sm" title="Exportar a CSV">
                             <span class="fas fa-file-csv fa-lg" aria-hidden="true"></span>
                         </a>
                     </div>
-                    <div class="form-group col-md-1">
+                    <div class="col-md-1">
                         <label for="btn_cancelar" class="small">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                        <a type="button" class="btn btn-outline-secondary btn-sm" data-dismiss="modal">
+                        <a type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
                             <span class="fas fa-window-close fa-lg" aria-hidden="true"></span>
                         </a>
                     </div>

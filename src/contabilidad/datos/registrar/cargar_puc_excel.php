@@ -4,15 +4,14 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include '../../../simpleXLSX.php';
 
 $file_tmp = $_FILES['file']['tmp_name'];
 $id_user = $_SESSION['id_user'];
 $estado = 1;
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT COUNT(*) AS `cantiad` FROM `ctb_libaux`";
     $rs = $cmd->query($sql);
     $registros = $rs->fetch();
@@ -30,8 +29,7 @@ if ($registros > 0) {
     $date = new DateTime('now', new DateTimeZone('America/Bogota'));
     if (file_exists('file.xlsx')) {
         try {
-            $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-            $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+            $cmd = \Config\Clases\Conexion::getConexion();
             $sql = "DELETE FROM `ctb_pgcp` WHERE `id_pgcp` >= ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $estado, PDO::PARAM_INT);
@@ -46,8 +44,7 @@ if ($registros > 0) {
         }
         $xlsx = new SimpleXLSX('file.xlsx');
         try {
-            $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-            $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+            $cmd = \Config\Clases\Conexion::getConexion();
             $sql = "INSERT INTO `ctb_pgcp`
                         (`fecha`,`cuenta`,`nombre`,`tipo_dato`,`estado`,`id_user_reg`,`fec_reg`)
                     VALUES (?, ?, ?, ?, ?, ?, ?)";

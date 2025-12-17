@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
+include '../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -13,8 +20,7 @@ include '../permisos.php';
 // Consulta tipo de presupuesto
 $id_pto_presupuestos = $_POST['id_pto'];
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT nombre FROM pto_presupuestos WHERE id_pto_presupuestos=$id_pto_presupuestos";
     $rs = $cmd->query($sql);
     $nomPresupuestos = $rs->fetch();
@@ -36,7 +42,7 @@ try {
                 <div class="container-fluid p-2">
                     <div class="card mb-4">
                         <div class="card-header" id="divTituloPag">
-                            <div class="row">
+                            <div class="row mb-2">
                                 <div class="col-md-11">
                                     <i class="fas fa-users fa-lg" style="color:#1D80F7"></i>
                                     LISTADO DE CUENTAS CONTABLES

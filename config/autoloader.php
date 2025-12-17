@@ -1,5 +1,39 @@
 <?php
 
+// ============================================================================
+// AUTOLOADER ESPECÍFICO PARA App\DocumentoElectronico (PSR-4)
+// ============================================================================
+spl_autoload_register(function ($class) {
+    // Namespace base para documentos electrónicos
+    $prefix = 'App\\DocumentoElectronico\\';
+
+    // Directorio base donde están las clases
+    $baseDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'contabilidad'
+        . DIRECTORY_SEPARATOR . 'soportes' . DIRECTORY_SEPARATOR . 'equivalente'
+        . DIRECTORY_SEPARATOR . 'DocumentoElectronico' . DIRECTORY_SEPARATOR;
+
+    // Verificar si la clase usa el namespace que manejamos
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        // No es nuestro namespace, dejar que otro autoloader lo maneje
+        return;
+    }
+
+    // Obtener el nombre de la clase relativo
+    $relative_class = substr($class, $len);
+
+    // Reemplazar namespace separators con directory separators y agregar .php
+    $file = $baseDir . str_replace('\\', DIRECTORY_SEPARATOR, $relative_class) . '.php';
+
+    // Si el archivo existe, requerirlo
+    if (file_exists($file)) {
+        require_once $file;
+    }
+});
+
+// ============================================================================
+// AUTOLOADER GENÉRICO (Original)
+// ============================================================================
 spl_autoload_register(function ($class) {
     $path = str_replace('\\', DIRECTORY_SEPARATOR, $class);
     $baseDir = dirname(__DIR__);

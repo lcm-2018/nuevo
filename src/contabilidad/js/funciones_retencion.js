@@ -30,7 +30,7 @@
     $(document).ready(function () {
         $('#tableTipoRetencion').DataTable({
             dom: setdom,
-            language: setIdioma,
+            language: dataTable_es,
             buttons: [{
                 //Registar modalidad de contratación
                 action: function (e, dt, node, config) {
@@ -60,7 +60,7 @@
         $('#tableTipoRetencion').wrap('<div class="overflow" />');
         $('#tableRetenciones').DataTable({
             dom: setdom,
-            language: setIdioma,
+            language: dataTable_es,
             buttons: [{
                 //Registar modalidad de contratación
                 action: function (e, dt, node, config) {
@@ -91,7 +91,7 @@
         $('#tableRetenciones').wrap('<div class="overflow" />');
         $('#tableRangoRet').DataTable({
             dom: setdom,
-            language: setIdioma,
+            language: dataTable_es,
             buttons: [{
                 //Registar modalidad de contratación
                 action: function (e, dt, node, config) {
@@ -122,11 +122,9 @@
             ],
         });
         $('#tableRangoRet').wrap('<div class="overflow" />');
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle fa-lg"></span>');
+        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
     });
     $('#divModalForms').on('click', '#btnGuardaTpRte', function () {
-        var btn = $(this).get(0);
-        InactivaBoton(btn);
         $('.is-invalid').removeClass('is-invalid');
         if ($('#txtTipoRte').val() == '') {
             $('#txtTipoRte').addClass('is-invalid');
@@ -135,9 +133,10 @@
         } else if ($('#id_tercero').val() == '0') {
             $('#SeaTercer').addClass('is-invalid');
             $('#SeaTercer').focus();
-            mjeError('Seleccione un responsable del tipo de retención');
+            mjeError('Selecci one un responsable del tipo de retención');
         } else {
             var data = $('#formGestTpRet').serialize();
+            mostrarOverlay();
             $.ajax({
                 type: 'POST',
                 url: 'datos/registrar/registrar_tipo_retencion.php',
@@ -150,14 +149,14 @@
                     } else {
                         mjeError(r);
                     }
+                },
+                complete: function () {
+                    ocultarOverlay();
                 }
             });
         }
-        ActivaBoton(btn);
     });
     $('#divModalForms').on('click', '#btnGuardaRetencion', function () {
-        var btn = $(this).get(0);
-        InactivaBoton(btn);
         $('.is-invalid').removeClass('is-invalid');
         if ($('#txtTipoRte').val() == '0') {
             $('#txtTipoRte').addClass('is-invalid');
@@ -177,6 +176,7 @@
             mjeError('La cuenta contable debe ser de tipo detalle');
         } else {
             var data = $('#formGestRetencion').serialize();
+            mostrarOverlay();
             $.ajax({
                 type: 'POST',
                 url: 'datos/registrar/registrar_retencion.php',
@@ -189,14 +189,14 @@
                     } else {
                         mjeError(r);
                     }
+                },
+                complete: function () {
+                    ocultarOverlay();
                 }
             });
         }
-        ActivaBoton(btn);
     });
     $('#divModalForms').on('click', '#btnGuardaRango', function () {
-        var btn = $(this).get(0);
-        InactivaBoton(btn);
         $('.is-invalid').removeClass('is-invalid');
         if ($('#id_retencion').val() == '0') {
             $('#buscaRetencion').addClass('is-invalid');
@@ -216,6 +216,7 @@
             mjeError('La tarifa no puede ser menor a cero');
         } else {
             var data = $('#formGestRango').serialize();
+            mostrarOverlay();
             $.ajax({
                 type: 'POST',
                 url: 'datos/registrar/registrar_rango.php',
@@ -228,10 +229,12 @@
                     } else {
                         mjeError(r);
                     }
+                },
+                complete: function () {
+                    ocultarOverlay();
                 }
             });
         }
-        ActivaBoton(btn);
     });
     $('#modificarTipoRetencion').on('click', '.editar', function () {
         var id = $(this).attr('text');

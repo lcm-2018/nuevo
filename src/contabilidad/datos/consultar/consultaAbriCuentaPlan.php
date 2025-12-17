@@ -1,12 +1,11 @@
 <?php
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $data = file_get_contents("php://input");
 // Realizo conexion con la base de datos
 $response['value'] = 'error';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $query = "UPDATE `ctb_pgcp` SET `estado` = 1 WHERE `id_pgcp` =?";
     $query = $cmd->prepare($query);
     $query->bindParam(1, $data, PDO::PARAM_INT);

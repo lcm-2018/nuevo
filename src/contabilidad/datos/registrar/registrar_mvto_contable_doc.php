@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $fecha = $_POST['fecha'];
 $id_tipo_doc = isset($_POST['id_ctb_doc']) ? $_POST['id_ctb_doc'] : $_POST['tipodato'];
 $id_tercero = $_POST['id_tercero'];
@@ -19,8 +19,7 @@ $id_manu = isset($_POST['id_manu']) ? $_POST['id_manu'] : $_POST['numDoc'];
 $response['status'] = 'error';
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_manu` 
             FROM
@@ -39,8 +38,7 @@ try {
 }
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     if ($id_reg == 0) {
         $estado = 1;
         $query = "INSERT INTO `ctb_doc`

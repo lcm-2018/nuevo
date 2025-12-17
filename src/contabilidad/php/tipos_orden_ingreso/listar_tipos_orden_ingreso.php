@@ -4,16 +4,23 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
+include '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $start = isset($_POST['start']) ? intval($_POST['start']) : 0;
 $length = isset($_POST['length']) ? intval($_POST['length']) : 10;
 $limit = "";
-if ($length != -1){
+if ($length != -1) {
     $limit = "LIMIT $start, $length";
 }
-$col = $_POST['order'][0]['column']+1;
+$col = $_POST['order'][0]['column'] + 1;
 $dir = $_POST['order'][0]['dir'];
 
 $where = "WHERE id_tipo_ingreso<>0";
@@ -22,8 +29,7 @@ if (isset($_POST['nombre']) && $_POST['nombre']) {
 }
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
 
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM far_orden_ingreso_tipo WHERE id_tipo_ingreso<>0";
@@ -49,7 +55,6 @@ try {
             $where ORDER BY $col $dir $limit";
     $rs = $cmd->query($sql);
     $objs = $rs->fetchAll();
-    
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
@@ -63,12 +68,12 @@ if (!empty($objs)) {
         /*Permisos del usuario
             5512-Opcion [General][tipos_orden_ingreso]
             1-Consultar, 2-Adicionar, 3-Modificar, 4-Eliminar, 5-Anular, 6-Imprimir
-        */    
-        if (PermisosUsuario($permisos, 5512, 3) || $id_rol == 1) {
-            $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-sm btn-circle shadow-gb btn_editar" title="Editar"><span class="fas fa-pencil-alt fa-lg"></span></a>';
+        */
+        if ($permisos->PermisosUsuario($opciones, 5512, 3) || $id_rol == 1) {
+            $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
         }
-        if (PermisosUsuario($permisos, 5512, 4) || $id_rol == 1) {
-            $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-sm btn-circle shadow-gb btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+        if ($permisos->PermisosUsuario($opciones, 5512, 4) || $id_rol == 1) {
+            $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         }
 
         $data[] = [
@@ -78,7 +83,7 @@ if (!empty($objs)) {
             "orden_compra" => $obj['orden_compra'],
             "fianza" => $obj['fianza'],
             "almacen" => $obj['almacen'],
-            "farmacia" => $obj['farmacia'],            
+            "farmacia" => $obj['farmacia'],
             "activofijo" => $obj['activofijo'],
             "botones" => '<div class="text-center centro-vertical">' . $editar . $eliminar . '</div>',
         ];

@@ -1,7 +1,7 @@
 <?php
 
-include '../../../conexion.php';
-$conexion = new mysqli($bd_servidor, $bd_usuario, $bd_clave, $bd_base);
+include '../../../../config/autoloader.php';
+$cmd = \Config\Clases\Conexion::getConexion();
 $_post = json_decode(file_get_contents('php://input'), true);
 $concepto = $_post['concep'];
 $tercero = $_post['tercero'];
@@ -17,7 +17,7 @@ $sql = "SELECT
         AND `concepto` =$concepto)
         GROUP BY `concepto`;";
 $response[] = array("valor" => $sql);
-$res = $conexion->query($sql);
+$res = $cmd->query($sql);
 while ($row = $res->fetch_assoc()) {
     $valor = $row['valor'] ?? 0;
     $response[] = array("valor" => $valor);

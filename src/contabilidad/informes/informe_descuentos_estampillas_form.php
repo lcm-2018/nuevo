@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../../conexion.php';
-include '../../permisos.php';
+include '../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include '../../financiero/consultas.php';
 ?>
 <!DOCTYPE html>
@@ -19,8 +26,7 @@ $fecha_min = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-01-01'));
 $fecha = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha_actual = $fecha->format('Y-m-d');
 // obtengo la lista de retenciones creadas en la empresa
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 $sql = "SELECT
         `ctb_retenciones`.`id_retencion`
         ,`ctb_retenciones`.`nombre_retencion`
@@ -33,17 +39,17 @@ $rs = $cmd->query($sql);
 $otras = $rs->fetchAll();
 ?>
 
-<div class="row justify-content-center">
+<div class="row mb-2 justify-content-center">
     <div class="col-sm-8 ">
         <div class="card">
             <h5 class="card-header small">Informe de otros descuentos aplicados</h5>
             <div class="card-body">
                 <form>
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-2"></div>
                         <div class="col-3 small">Descuento:</div>
                         <div class="col-3">
-                            <select name="tipo_sede" id="tipo_sede" class="form-control form-control-sm">
+                            <select name="tipo_sede" id="tipo_sede" class="form-control form-control-sm bg-input">
                                 <option value="0">-- Selecionar --</option>
                                 <?php
                                 foreach ($otras as $sed) {
@@ -53,20 +59,20 @@ $otras = $rs->fetchAll();
                             </select>
                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-2"></div>
                         <div class="col-3 small">Fecha de inicial:</div>
-                        <div class="col-3"><input type="date" name="fecha_ini" id="fecha_ini" class="form-control form-control-sm" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_min; ?>"></div>
+                        <div class="col-3"><input type="date" name="fecha_ini" id="fecha_ini" class="form-control form-control-sm bg-input" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_min; ?>"></div>
                     </div>
 
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-2"></div>
                         <div class="col-3 small">Fecha de corte:</div>
-                        <div class="col-3"><input type="date" name="fecha_fin" id="fecha_fin" class="form-control form-control-sm" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_actual; ?>"></div>
+                        <div class="col-3"><input type="date" name="fecha_fin" id="fecha_fin" class="form-control form-control-sm bg-input" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_actual; ?>"></div>
                     </div>
 
                     <div class="px-50">&nbsp; </div>
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-12">
                             <div class="text-center pt-3">
                                 <button class="btn btn-primary" onclick="generarInformeCtb(this)" value="10"><span></span>Resumen</button>

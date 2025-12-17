@@ -4,11 +4,9 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../terceros.php';
+include '../../../../config/autoloader.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 function pesos($valor)
 {
     return number_format($valor, 2, '.', ',');
@@ -24,32 +22,33 @@ try {
                 , `ctb_libaux`.`credito`
                 , `ctb_libaux`.`id_cuenta`
                 , `ctb_pgcp`.`tipo_dato`
+                , `tb_terceros`.`nom_tercero`
+                , `tb_terceros`.`nit_tercero`
             FROM
                 `ctb_libaux`
                 LEFT JOIN `ctb_pgcp` 
                     ON (`ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
+                LEFT JOIN `tb_terceros`
+                    ON (`ctb_libaux`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
             WHERE (`ctb_libaux`.`id_ctb_libaux` = $id_detalle)";
     $rs = $cmd->query($sql);
     $detalle = $rs->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$id_t[] = $detalle['id_tercero_api'];
-$ids = implode(',', $id_t);
-$terceros = getTerceros($ids, $cmd);
 $cmd = null;
 $res['status'] = 'error';
 if (!empty($detalle)) {
-    $tercero = isset($terceros[0]) ? ltrim($terceros[0]['nom_tercero'] . ' -> ' . $terceros[0]['nit_tercero']) : '';
+    $tercero = !empty($detalle['nom_tercero']) ? ltrim($detalle['nom_tercero'] . ' -> ' . $detalle['nit_tercero']) : '';
     $id_tercero = $detalle['id_tercero_api'] > 0 ? $detalle['id_tercero_api'] : 0;
     $res['status'] = 'ok';
-    $res[1] = '<input type="text" id="codigoCta" name="codigoCta" class="form-control form-control-sm" value="' .  $detalle['cuenta'] . ' - ' . $detalle['nombre'] . '">
-            <input type="hidden" name="id_codigoCta" id="id_codigoCta" class="form-control form-control-sm" value="' . $detalle['id_cuenta'] . '">
+    $res[1] = '<input type="text" id="codigoCta" name="codigoCta" class="form-control form-control-sm bg-input" value="' .  $detalle['cuenta'] . ' - ' . $detalle['nombre'] . '">
+            <input type="hidden" name="id_codigoCta" id="id_codigoCta" class="form-control form-control-sm bg-input" value="' . $detalle['id_cuenta'] . '">
             <input type="hidden" id="tipoDato" name="tipoDato" value="' . $detalle['tipo_dato'] . '">';
-    $res[2] = '<input type="text" name="bTercero" id="bTercero" class="form-control form-control-sm bTercero" value="' . $tercero . '">
+    $res[2] = '<input type="text" name="bTercero" id="bTercero" class="form-control form-control-sm bg-input bTercero" value="' . $tercero . '">
             <input type="hidden" name="idTercero" id="idTercero" value="' . $detalle['id_tercero_api'] . '">';
-    $res[3] = '<input type="text" name="valorDebito" id="valorDebito" class="form-control form-control-sm " style="text-align: right;" onkeyup="valorMiles(id)" onchange="llenarCero(id)" value="' . pesos($detalle['debito']) . '">';
-    $res[4] = '<input type="text" name="valorCredito" id="valorCredito" class="form-control form-control-sm " style="text-align: right;" onkeyup="valorMiles(id)" onchange="llenarCero(id)" value="' . pesos($detalle['credito']) . '">';
+    $res[3] = '<input type="text" name="valorDebito" id="valorDebito" class="form-control form-control-sm bg-input " style="text-align: right;" onkeyup="valorMiles(id)" onchange="llenarCero(id)" value="' . pesos($detalle['debito']) . '">';
+    $res[4] = '<input type="text" name="valorCredito" id="valorCredito" class="form-control form-control-sm bg-input " style="text-align: right;" onkeyup="valorMiles(id)" onchange="llenarCero(id)" value="' . pesos($detalle['credito']) . '">';
     $res[5] = '<div class="text-center"><button text="' . $id_detalle . '" class="btn btn-primary btn-sm" onclick="GestMvtoDetalle(this)">Modificar</button></div>';
     $res['msg'] = 'Consulta exitosa';
 } else {

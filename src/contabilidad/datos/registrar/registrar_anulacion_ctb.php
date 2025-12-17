@@ -10,11 +10,10 @@ $fecha = $_POST['fecha'];
 $motivo = $_POST['objeto'];
 $iduser = $_SESSION['id_user'];
 $estado = 0;
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $response['status'] = 'error';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "UPDATE `ctb_doc`
                     SET `id_user_anula` = ?,`fecha_anula` = ?,`concepto_anula` = ?, `estado` = ?
                 WHERE `id_ctb_doc`  = ?";

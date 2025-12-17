@@ -4,29 +4,28 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include '../common/cargar_combos.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $id = isset($_POST['id']) ? $_POST['id'] : -1;
 $sql = "SELECT * FROM far_subgrupos WHERE id_subgrupo=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
 $obj = $rs->fetch();
 
-if(empty($obj)){
+if (empty($obj)) {
     $n = $rs->columnCount();
     for ($i = 0; $i < $n; $i++):
         $col = $rs->getColumnMeta($i);
-        $name=$col['name'];
-        $obj[$name]=NULL;
-    endfor;    
+        $name = $col['name'];
+        $obj[$name] = NULL;
+    endfor;
     //Inicializa variable por defecto
     $obj['af_menor_cuantia'] = 0;
     $obj['es_clinico'] = 0;
     $obj['lote_xdef'] = 1;
-    $obj['estado'] = 1;    
+    $obj['estado'] = 1;
 }
 
 ?>
@@ -38,30 +37,30 @@ if(empty($obj)){
         <div class="px-2">
             <form id="frm_reg_subgrupos">
                 <input type="hidden" id="id_subgrupo" name="id_subgrupo" value="<?php echo $id ?>">
-                <div class=" form-row">
-                    <div class="form-group col-md-1">
+                <div class=" row">
+                    <div class="col-md-1">
                         <label for="txt_cod_subgrupo" class="small">Código</label>
-                        <input type="text" class="form-control form-control-sm number" id="txt_cod_subgrupo" name="txt_cod_subgrupo" required value="<?php echo $obj['cod_subgrupo'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input number" id="txt_cod_subgrupo" name="txt_cod_subgrupo" required value="<?php echo $obj['cod_subgrupo'] ?>">
                     </div>
-                    <div class="form-group col-md-5">
+                    <div class="col-md-5">
                         <label for="txt_nom_subgrupo" class="small">Nombre</label>
-                        <input type="text" class="form-control form-control-sm" id="txt_nom_subgrupo" name="txt_nom_subgrupo" required value="<?php echo $obj['nom_subgrupo'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_subgrupo" name="txt_nom_subgrupo" required value="<?php echo $obj['nom_subgrupo'] ?>">
                     </div>
-                    <div class="form-group col-md-2">
+                    <div class="col-md-2">
                         <label for="sl_grp_subgrupo" class="small">Grupo</label>
-                        <select class="form-control form-control-sm" id="sl_grp_subgrupo" name="sl_grp_subgrupo" required>
-                            <?php grupo_articulo($cmd,'',$obj['id_grupo']) ?>
+                        <select class="form-control form-control-sm bg-input" id="sl_grp_subgrupo" name="sl_grp_subgrupo" required>
+                            <?php grupo_articulo($cmd, '', $obj['id_grupo']) ?>
                         </select>
                     </div>
-                    <div class="form-group col-md-2">
+                    <div class="col-md-2">
                         <label for="sl_actfij_mencua" class="small">Activo Fijo Menor Cuantia</label>
-                        <select class="form-control form-control-sm" id="sl_actfij_mencua" name="sl_actfij_mencua">
-                            <?php estados_sino('',$obj['af_menor_cuantia']) ?>
+                        <select class="form-control form-control-sm bg-input" id="sl_actfij_mencua" name="sl_actfij_mencua">
+                            <?php estados_sino('', $obj['af_menor_cuantia']) ?>
                         </select>
                     </div>
-                    <div class="form-group col-md-2">
+                    <div class="col-md-2">
                         <label class="small">Para Uso Asistencial</label>
-                        <div class="form-control form-control-sm" id="rdo_escli_subgrupo">
+                        <div class="form-control form-control-sm bg-input" id="rdo_escli_subgrupo">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="rdo_escli_subgrupo" id="rdo_escli_subgrupo_si" value="1" <?php echo $obj['es_clinico'] == 1 ? 'checked' : '' ?>>
                                 <label class="form-check-label small" for="rdo_escli_subgrupo_si">SI</label>
@@ -72,16 +71,16 @@ if(empty($obj)){
                             </div>
                         </div>
                     </div>
-                    <div class="form-group col-md-2">
+                    <div class="col-md-2">
                         <label for="sl_lotexdef" class="small">Lote x Defecto</label>
-                        <select class="form-control form-control-sm" id="sl_lotexdef" name="sl_lotexdef">
-                            <?php estados_sino('',$obj['lote_xdef']) ?>
+                        <select class="form-control form-control-sm bg-input" id="sl_lotexdef" name="sl_lotexdef">
+                            <?php estados_sino('', $obj['lote_xdef']) ?>
                         </select>
                     </div>
-                    <div class="form-group col-md-2">
+                    <div class="col-md-2">
                         <label for="sl_estado" class="small">Estado</label>
-                        <select class="form-control form-control-sm" id="sl_estado" name="sl_estado">
-                            <?php estados_registros('',$obj['estado']) ?>
+                        <select class="form-control form-control-sm bg-input" id="sl_estado" name="sl_estado">
+                            <?php estados_registros('', $obj['estado']) ?>
                         </select>
                     </div>
                 </div>
@@ -110,10 +109,10 @@ if(empty($obj)){
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-left centro-vertical"></tbody>
+                            <tbody class="text-start centro-vertical"></tbody>
                         </table>
-                    </div> 
-                    
+                    </div>
+
                     <!--Cuentas de Articulos de Activos Fijos-->
                     <div class="tab-pane fade" id="nav_lista_cta_af" role="tabpanel" aria-labelledby="nav_lista_cta_af-tab">
                         <table id="tb_cuentas_af" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
@@ -132,16 +131,16 @@ if(empty($obj)){
                                     <th>Gasto Depreciación</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-left centro-vertical"></tbody>
+                            <tbody class="text-start centro-vertical"></tbody>
                         </table>
                     </div>
                 </div>
-            </div>         
+            </div>
         </div>
     </div>
     <div class="text-center pt-3">
         <button type="button" class="btn btn-primary btn-sm" id="btn_guardar">Guardar</button>
-        <a type="button" class="btn btn-secondary  btn-sm" data-dismiss="modal">Cancelar</a>
+        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>
 

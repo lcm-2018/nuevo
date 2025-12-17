@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 set_time_limit(3600);
 if (!isset($_SESSION['user'])) {
@@ -56,11 +56,9 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
-include '../../terceros.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 /*
 try {
     $sql = "SELECT detalle,fecha,id_manu,id_tercero,fec_reg,tipo_doc FROM ctb_doc WHERE id_ctb_doc =$dto";
@@ -142,9 +140,9 @@ try {
 
 ?>
 
-<div class="text-right pt-3">
+<div class="text-end pt-3">
     <a type="button" class="btn btn-primary btn-sm" onclick="imprSelecDoc('areaImprimir',<?php echo 0/*$dto*/; ?>);"> Imprimir</a>
-    <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Cerrar</a>
+    <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
 </div>
 <div class="contenedor bg-light" id="areaImprimir">
     <div class="px-2 " style="width:90% !important;margin: 0 auto;">
@@ -164,12 +162,12 @@ try {
         </br>
 
 
-        <div class="row px-2" style="text-align: center">
+        <div class="row mb-2 px-2" style="text-align: center">
             <div class="col-12">
                 <div class="col lead "><label><strong><?php echo 'Certificado de ingresos y retenciones'; ?></strong></label></div>'
             </div>
 
-            <div class="row">
+            <div class="row mb-2">
                 <div class="col-12">
                     <div style="text-align: left">
                         <div><strong>Datos generales: </strong></div>
@@ -178,22 +176,22 @@ try {
             </div>
             <table class="table-bordered bg-light" style="width:100% !important;">
                 <tr>
-                    <td class='text-left' style="width:18%">FECHA:</td>
-                    <td class='text-left'><?php echo 'Desde ' . $_POST['fecha_i'] . ' hasta ' . $_POST['fecha_f']; ?></td>
+                    <td class='text-start' style="width:18%">FECHA:</td>
+                    <td class='text-start'><?php echo 'Desde ' . $_POST['fecha_i'] . ' hasta ' . $_POST['fecha_f']; ?></td>
                 </tr>
                 <tr>
-                    <td class='text-left' style="width:18%">TERCERO:</td>
-                    <td class='text-left'><?php echo $tercero; ?></td>
+                    <td class='text-start' style="width:18%">TERCERO:</td>
+                    <td class='text-start'><?php echo $tercero; ?></td>
                 </tr>
                 <tr>
-                    <td class='text-left' style="width:18%">CC/NIT:</td>
-                    <td class='text-left'><?php echo $num_doc; ?></td>
+                    <td class='text-start' style="width:18%">CC/NIT:</td>
+                    <td class='text-start'><?php echo $num_doc; ?></td>
                 </tr>
 
             </table>
             </br>
 
-            <div class="row" style="margin-top: 2em;">
+            <div class="row mb-2" style="margin-top: 2em;">
                 <div class="col-12">
                     <div style="text-align: left">
                         <div><strong>Ingresos y retenciones: </strong></div>
@@ -236,14 +234,14 @@ try {
 
             </table>
 
-            <div class="row" style="margin-top: 2em;">
+            <div class="row mb-2" style="margin-top: 2em;">
                 <div class="col-12">
                     <div style="text-align: left">
                         <div>El valor retenido fue consignado en oportunamente en la Dirección de Aduanas Nacionales Dian para el caso de retención en la fuente y demás beneficiarios para los otros conceptos, se omite firma del certificado de conformidad con el artículo 10 del Decreto 836 de 1991. </div>
                     </div>
                 </div>
             </div>
-            <div class="row" style="margin-top: 2em;">
+            <div class="row mb-2" style="margin-top: 2em;">
                 <div class="col-12">
                     <div style="text-align: left">
                         <div><?php

@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../../conexion.php';
-include '../../permisos.php';
+include '../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include '../../financiero/consultas.php';
 ?>
 <!DOCTYPE html>
@@ -19,41 +26,40 @@ $fecha_min = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-01-01'));
 $fecha = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha_actual = $fecha->format('Y-m-d');
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 ?>
 
-<div class="row justify-content-center">
+<div class="row mb-2 justify-content-center">
     <div class="col-md-9">
         <div class="card">
             <h5 class="card-header small">Informe de impuestos municipales aplicados</h5>
             <div class="card-body">
                 <form>
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-3"></div>
                         <div class="col-3 small">Entidad:</div>
                         <div class="col-3">
-                            <select name="tipo_sede" id="tipo_sede" class="form-control form-control-sm">
+                            <select name="tipo_sede" id="tipo_sede" class="form-control form-control-sm bg-input">
                                 <option value="680">DIAN</option>
 
                             </select>
                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-3"></div>
                         <div class="col-3 small">Fecha de inicial:</div>
-                        <div class="col-3"><input type="date" name="fecha_ini" id="fecha_ini" class="form-control form-control-sm" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_min; ?>"></div>
+                        <div class="col-3"><input type="date" name="fecha_ini" id="fecha_ini" class="form-control form-control-sm bg-input" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_min; ?>"></div>
                     </div>
 
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-3"></div>
                         <div class="col-3 small">Fecha de corte:</div>
-                        <div class="col-3"><input type="date" name="fecha_fin" id="fecha_fin" class="form-control form-control-sm" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_actual; ?>"></div>
+                        <div class="col-3"><input type="date" name="fecha_fin" id="fecha_fin" class="form-control form-control-sm bg-input" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_actual; ?>"></div>
                     </div>
 
 
 
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-12">
                             <div class="text-center pt-3">
                                 <button class="btn btn-primary" onclick="generarInformeCtb(this)" value="4"><span></span>Resumen</button>
@@ -71,7 +77,7 @@ $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
 
     </div>
     <div class="col-md-9">
-        <div class="row">
+        <div class="row mb-2">
             <br>
             <div id="areaImprimir" class="table-responsive px-2" style="font-size: 100%;"></div>
         </div>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 set_time_limit(5600);
 if (!isset($_SESSION['user'])) {
@@ -37,11 +37,9 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
-include '../../terceros.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 //Consulto descuentos de retefuente
 try {
     $sql = "SELECT
@@ -144,16 +142,16 @@ FROM
                 // redodear valor al mil mas cercano
                 $pago = round($rp['valor_retencion'], -3);
                 echo "<tr>
-                    <td class='text-right'>" . $rp['fecha'] . "</td>
+                    <td class='text-end'>" . $rp['fecha'] . "</td>
                     <td class='text'>" . $rp['documento'] . "</td>
                     <td class='text'>" . $rp['tipo_tercero'] . "</td>
                     <td class='text'>" . $rp['tercero'] . "</td>
                     <td class='text'>" . $rp['nit'] . "</td>
                     <td class='text'>" . $rp['detalle'] . "</td>
-                    <td class='text-right'>" . number_format($rp['base'], 2, ".", ",")  . "</td>
+                    <td class='text-end'>" . number_format($rp['base'], 2, ".", ",")  . "</td>
                     <td class='text'>" . $rp['tarifa'] . "</td>
-                    <td class='text-right'>" . number_format($rp['valor_retencion'], 2, ".", ",")  . "</td>
-                    <td class='text-right'>" . number_format($pago, 2, ".", ",")  . "</td>
+                    <td class='text-end'>" . number_format($rp['valor_retencion'], 2, ".", ",")  . "</td>
+                    <td class='text-end'>" . number_format($pago, 2, ".", ",")  . "</td>
                      <td class='text'>" . $rp['nombre_retencion'] . "</td>
                     </tr>";
                 $total_base =   $total_base + $rp['base'];
@@ -161,10 +159,10 @@ FROM
                 $total_pago =  $total_pago + $pago;
             }
             echo "<tr>
-            <td class='text-right' colspan='2'> Total</td>
-            <td class='text-right'>" . number_format($total_base, 2, ".", ",")  . "</td>
-            <td class='text-right'>" . number_format($total_ret, 2, ".", ",")  . "</td>
-            <td class='text-right'>" . number_format($total_pago, 2, ".", ",")  . "</td>
+            <td class='text-end' colspan='2'> Total</td>
+            <td class='text-end'>" . number_format($total_base, 2, ".", ",")  . "</td>
+            <td class='text-end'>" . number_format($total_ret, 2, ".", ",")  . "</td>
+            <td class='text-end'>" . number_format($total_pago, 2, ".", ",")  . "</td>
             </tr>";
 
             ?>

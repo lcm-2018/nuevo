@@ -8,8 +8,15 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 $_post = json_decode(file_get_contents('php://input'), true);
-include_once '../../../conexion.php';
-include_once '../../../permisos.php';
+include_once '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include_once '../../../financiero/consultas.php';
 
 $id_doc = $_post['id_doc'];
@@ -18,8 +25,7 @@ $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+$cmd = \Config\Clases\Conexion::getConexion();
 $response['status'] = 'error';
 $response['msg'] = '<br>Ningún registro afectado';
 $datosDoc = GetValoresCxP($id_doc, $cmd);

@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../../conexion.php';
-include '../../permisos.php';
+include '../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $vigencia = $_SESSION['vigencia'];
 // concateno la fecha con el año vigencia
@@ -14,8 +21,7 @@ $fecha_min = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-01-01'));
 $fecha = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha_actual = $fecha->format('Y-m-d');
 // obtengo la lista de municipio asociados a las sedes de la empresa
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT
         `ctb_retenciones`.`id_retencion`
@@ -36,44 +42,44 @@ try {
 }
 ?>
 
-<div class="row justify-content-center">
+<div class="row mb-2 justify-content-center">
     <div class="col-md-12 ">
         <div class="card">
             <h5 class="card-header small">Informe libro auxiliar </h5>
             <div class="card-body">
                 <form>
-                    <div class="row mb-1">
+                    <div class="row mb-2 mb-1">
                         <div class="col-md-3"></div>
                         <div class="col-md-3 small">CUENTA INICIAL:</div>
                         <div class="col-md-3">
-                            <input type="text" name="codigoctaini" id="codigoctaini" class="form-control form-control-sm" value="">
-                            <input type="hidden" name="id_codigoctaini" id="id_codigoctaini" class="form-control form-control-sm" value="0">
+                            <input type="text" name="codigoctaini" id="codigoctaini" class="form-control form-control-sm bg-input" value="">
+                            <input type="hidden" name="id_codigoctaini" id="id_codigoctaini" class="form-control form-control-sm bg-input" value="0">
                         </div>
                     </div>
-                    <div class="row mb-1">
+                    <div class="row mb-2 mb-1">
                         <div class="col-md-3"></div>
                         <div class="col-md-3 small">CUENTA FINAL:</div>
                         <div class="col-md-3">
-                            <input type="text" name="codigoctafin" id="codigoctafin" class="form-control form-control-sm" value="">
-                            <input type="hidden" name="id_codigoctafin" id="id_codigoctafin" class="form-control form-control-sm" value="0">
+                            <input type="text" name="codigoctafin" id="codigoctafin" class="form-control form-control-sm bg-input" value="">
+                            <input type="hidden" name="id_codigoctafin" id="id_codigoctafin" class="form-control form-control-sm bg-input" value="0">
 
                         </div>
                     </div>
-                    <div class="row mb-1">
+                    <div class="row mb-2 mb-1">
                         <div class="col-md-3"></div>
                         <div class="col-md-3 small">Fecha de inicial:</div>
-                        <div class="col-md-3"><input type="date" name="fecha_ini" id="fecha_ini" class="form-control form-control-sm" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_min; ?>"></div>
+                        <div class="col-md-3"><input type="date" name="fecha_ini" id="fecha_ini" class="form-control form-control-sm bg-input" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_min; ?>"></div>
                     </div>
-                    <div class="row mb-1">
+                    <div class="row mb-2 mb-1">
                         <div class="col-md-3"></div>
                         <div class="col-md-3 small">Fecha de corte:</div>
-                        <div class="col-md-3"><input type="date" name="fecha_fin" id="fecha_fin" class="form-control form-control-sm" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_actual; ?>"></div>
+                        <div class="col-md-3"><input type="date" name="fecha_fin" id="fecha_fin" class="form-control form-control-sm bg-input" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_actual; ?>"></div>
                     </div>
-                    <div class="row mb-1">
+                    <div class="row mb-2 mb-1">
                         <div class="col-md-3"></div>
                         <div class="col-md-3 small">Tipo Documento:</div>
                         <div class="col-md-3">
-                            <select name="slcTpDoc" id="slcTpDoc" class="form-control form-control-sm">
+                            <select name="slcTpDoc" id="slcTpDoc" class="form-control form-control-sm bg-input">
                                 <option value="0">--Seleccione--</option>
                                 <?php
                                 foreach ($documentos as $row) {
@@ -83,15 +89,15 @@ try {
                             </select>
                         </div>
                     </div>
-                    <div class="row mb-1">
+                    <div class="row mb-2 mb-1">
                         <div class="col-md-3"></div>
                         <div class="col-md-3 small">Tercero</div>
                         <div class="col-md-3">
-                            <input type="text" id="bTercero" class="form-control form-control-sm">
-                            <input type="hidden" id="id_tercero" class="form-control form-control-sm" value="0">
+                            <input type="text" id="bTercero" class="form-control form-control-sm bg-input">
+                            <input type="hidden" id="id_tercero" class="form-control form-control-sm bg-input" value="0">
                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-12">
                             <div class="text-center pt-3">
                                 <button class="btn btn-primary" onclick="generarInformeCtb(this)" value="9"><span></span>Libro auxiliar</button>

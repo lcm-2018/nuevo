@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $id_doc = isset($_POST['id_doc_ref']) ? $_POST['id_doc_ref'] : exit('Acceso no autorizado');
 $id_ctb_ref = $_POST['id_ctb_ref'];
 $accion = isset($_POST['accion']) ? $_POST['accion'] : '';
@@ -21,8 +21,7 @@ $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     if (isset($_POST['eliminar'])) {
         $query = "DELETE FROM `ctb_referencia` WHERE `id_ctb_referencia` = ?";
         $query = $cmd->prepare($query);

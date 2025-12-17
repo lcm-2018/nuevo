@@ -1,19 +1,19 @@
-(function($) {
-    $(document).on('show.bs.modal', '.modal', function() {
+(function ($) {
+    $(document).on('show.bs.modal', '.modal', function () {
         var zIndex = 1040 + (10 * $('.modal:visible').length);
         $(this).css('z-index', zIndex);
-        setTimeout(function() {
+        setTimeout(function () {
             $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
         }, 0);
     });
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         //Tabla de Registros
         $('#tb_cuentas').DataTable({
             dom: setdom,
             buttons: [{
-                action: function(e, dt, node, config) {
-                    $.post("frm_reg_cuentas_fac.php", function(he) {
+                action: function (e, dt, node, config) {
+                    $.post("frm_reg_cuentas_fac.php", function (he) {
                         $('#divTamModalForms').removeClass('modal-xl');
                         $('#divTamModalForms').removeClass('modal-sm');
                         $('#divTamModalForms').addClass('modal-lg');
@@ -22,7 +22,7 @@
                     });
                 }
             }],
-            language: setIdioma,
+            language: dataTable_es,
             processing: true,
             serverSide: true,
             searching: false,
@@ -30,7 +30,7 @@
                 url: 'listar_cuentas_fac.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function(data) {
+                data: function (data) {
                     data.nombre = $('#txt_nombre_filtro').val();
                 }
             },
@@ -63,7 +63,7 @@
                 { visible: false, targets: 19 },
                 { orderable: false, targets: 21 },
             ],
-            rowCallback: function(row, data, index) {
+            rowCallback: function (row, data, index) {
                 if (data.vigente == 'X') {
                     $($(row).find("td")[0]).css("background-color", "#ffc107");
                 }
@@ -77,32 +77,32 @@
             ],
         });
 
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle fa-lg"></span>');
+        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
         $('#tb_cuentas').wrap('<div class="overflow"/>');
     });
 
     //Buascar registros
-    $('#btn_buscar_filtro').on("click", function() {
+    $('#btn_buscar_filtro').on("click", function () {
         reloadtable('tb_cuentas');
     });
 
-    $('.filtro').keypress(function(e) {
+    $('.filtro').keypress(function (e) {
         if (e.keyCode == 13) {
             reloadtable('tb_cuentas');
         }
     });
 
     //Editar un registro    
-    $('#tb_cuentas').on('click', '.btn_editar', function() {
+    $('#tb_cuentas').on('click', '.btn_editar', function () {
         let id = $(this).attr('value');
-        $.post("frm_reg_cuentas_fac.php", { id: id }, function(he) {
+        $.post("frm_reg_cuentas_fac.php", { id: id }, function (he) {
             $('#divTamModalForms').addClass('modal-lg');
             $('#divModalForms').modal('show');
             $("#divForms").html(he);
         });
     });
 
-    $('#divForms').on("input", "#sl_regimen", function() {
+    $('#divForms').on("input", "#sl_regimen", function () {
         $('#sl_cobertura').find('option').prop('disabled', true).hide();
         $('#sl_modalidad').find('option').prop('disabled', true).hide();
         let id = $(this).val();
@@ -145,61 +145,59 @@
     });
 
     // Autocompletar cuenta contable presupuesto
-    $('#divForms').on("input", ".cuenta_pre", function() {
+    $('#divForms').on("input", ".cuenta_pre", function () {
         $(this).autocomplete({
-            source: function(request, response) {
+            source: function (request, response) {
                 $.ajax({
                     url: "../common/cargar_cta_presupuesto_ls.php",
                     dataType: "json",
                     type: 'POST',
                     data: { term: request.term }
-                }).done(function(data) {
+                }).done(function (data) {
                     response(data);
                 });
             },
             minLength: 2,
-            select: function(event, ui) {
+            select: function (event, ui) {
                 var that = $(this);
                 if (ui.item.tipo == 1 || ui.item.id == '') {
                     $('#' + that.attr('data-campoid')).val(ui.item.id);
                 } else {
                     $('#' + that.attr('data-campoid')).val('-1');
-                    $('#divModalError').modal('show');
-                    $('#divMsgError').html('Debe seleccionar una cuenta tipo detalle');
+                    mjeError('Debe seleccionar una cuenta tipo detalle');
                 }
             },
         });
     });
 
     // Autocompletar cuenta contable 
-    $('#divForms').on("input", ".cuenta", function() {
+    $('#divForms').on("input", ".cuenta", function () {
         $(this).autocomplete({
-            source: function(request, response) {
+            source: function (request, response) {
                 $.ajax({
                     url: "../common/cargar_cta_contable_ls.php",
                     dataType: "json",
                     type: 'POST',
                     data: { term: request.term }
-                }).done(function(data) {
+                }).done(function (data) {
                     response(data);
                 });
             },
             minLength: 2,
-            select: function(event, ui) {
+            select: function (event, ui) {
                 var that = $(this);
                 if (ui.item.tipo == 'D' || ui.item.id == '') {
                     $('#' + that.attr('data-campoid')).val(ui.item.id);
                 } else {
                     $('#' + that.attr('data-campoid')).val('-1');
-                    $('#divModalError').modal('show');
-                    $('#divMsgError').html('Debe seleccionar una cuenta tipo detalle');
+                    mjeError('Debe seleccionar una cuenta tipo detalle');
                 }
             },
         });
     });
 
     //Guardar registro 
-    $('#divForms').on("click", "#btn_guardar", function() {
+    $('#divForms').on("click", "#btn_guardar", function () {
         $('.is-invalid').removeClass('is-invalid');
         var error = verifica_vacio($('#sl_regimen'));
         error += verifica_vacio($('#sl_cobertura'));
@@ -237,49 +235,48 @@
         error1 += verifica_valmin_2($('#id_txt_cta_baja'), $('#txt_cta_baja'), 0);
 
         if (error >= 1) {
-            $('#divModalError').modal('show');
-            $('#divMsgError').html('Los datos resaltados son obligatorios');
+            mjeError('Los datos resaltados son obligatorios');
         } else if (error1 >= 1) {
-            $('#divModalError').modal('show');
-            $('#divMsgError').html('Todas las cuentas deben ser tipo detalle')
+            mjeError('Todas las cuentas deben ser tipo detalle');
         } else {
             var data = $('#frm_reg_cuentas_fac').serialize();
+            mostrarOverlay();
             $.ajax({
                 type: 'POST',
                 url: 'editar_cuentas_fac.php',
                 dataType: 'json',
                 data: data + "&oper=add"
-            }).done(function(r) {
+            }).done(function (r) {
                 if (r.mensaje == 'ok') {
                     let pag = ($('#id_cuentafac').val() == -1) ? 0 : $('#tb_cuentas').DataTable().page.info().page;
                     reloadtable('tb_cuentas', pag);
                     $('#id_cuentafac').val(r.id);
-                    $('#divModalDone').modal('show');
-                    $('#divMsgDone').html("Proceso realizado con éxito");
+                    mje("Proceso realizado con éxito");
                 } else {
-                    $('#divModalError').modal('show');
-                    $('#divMsgError').html(r.mensaje);
+                    mjeError(r.mensaje);
                 }
-            }).always(function() {}).fail(function() {
-                alert('Ocurrió un error');
+            }).fail(function () {
+                mjeError('Ocurrió un error');
+            }).always(function () {
+                ocultarOverlay();
             });
         }
     });
 
     //Borrarr un registro 
-    $('#tb_cuentas').on('click', '.btn_eliminar', function() {
+    $('#tb_cuentas').on('click', '.btn_eliminar', function () {
         let id = $(this).attr('value');
         confirmar_del('cuentas_fac', id);
     });
 
-    $('#divModalConfDel').on("click", "#cuentas_fac", function() {
+    $('#divModalConfDel').on("click", "#cuentas_fac", function () {
         var id = $(this).attr('value');
         $.ajax({
             type: 'POST',
             url: 'editar_cuentas_fac.php',
             dataType: 'json',
             data: { id: id, oper: 'del' }
-        }).done(function(r) {
+        }).done(function (r) {
             $('#divModalConfDel').modal('hide');
             if (r.mensaje == 'ok') {
                 let pag = $('#tb_cuentas').DataTable().page.info().page;
@@ -290,17 +287,17 @@
                 $('#divModalError').modal('show');
                 $('#divMsgError').html(r.mensaje);
             }
-        }).always(function() {}).fail(function() {
+        }).always(function () { }).fail(function () {
             alert('Ocurrió un error');
         });
     });
 
     //Imprimir registros
-    $('#btn_imprime_filtro').on('click', function() {
+    $('#btn_imprime_filtro').on('click', function () {
         reloadtable('tb_cuentas');
         $.post("imp_cuentas_fac.php", {
             nombre: $('#txt_nombre_filtro').val()
-        }, function(he) {
+        }, function (he) {
             $('#divTamModalImp').removeClass('modal-sm');
             $('#divTamModalImp').removeClass('modal-lg');
             $('#divTamModalImp').addClass('modal-xl');

@@ -1,21 +1,23 @@
 <?php
+
+use Config\Clases\Logs;
+
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include_once '../../../financiero/consultas.php';
 function pesos($valor)
 {
-    return '$ '.number_format($valor, 2, '.', ',');
+    return '$ ' . number_format($valor, 2, '.', ',');
 }
 $data = isset($_POST['id']) ? explode('|', base64_decode($_POST['id'])) : exit('Acceso no disponible');
 $id = $data[0];
 $detalle = $data[1];
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+$cmd = \Config\Clases\Conexion::getConexion();
 $response['status'] = 'error';
 
 try {
@@ -23,10 +25,8 @@ try {
     $query->bindParam(1, $detalle);
     $query->execute();
     if ($query->rowCount() > 0) {
-        include '../../../financiero/reg_logs.php';
-        $ruta = '../../../log';
         $consulta = "DELETE FROM `ctb_factura` WHERE `id_cta_factura` = $detalle";
-        RegistraLogs($ruta, $consulta);
+        Logs::guardaLog($consulta);
         $response['status'] = 'ok';
         $response['msg'] = 'Factura eliminada correctamente';
         $response['id'] = $id;

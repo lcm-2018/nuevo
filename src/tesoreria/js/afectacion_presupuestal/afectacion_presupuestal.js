@@ -2,7 +2,7 @@
     $(document).ready(function () {
         $('#tb_rubros').DataTable({
             dom: setdom = "<'row'<'col-md-6'l><'col-md-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            language: setIdioma,
+            language: dataTable_es,
             processing: true,
             serverSide: true,
             searching: false,
@@ -68,7 +68,7 @@
                     });
                 }
             }],
-            language: setIdioma,
+            language: dataTable_es,
             processing: true,
             serverSide: true,
             searching: false,
@@ -120,7 +120,7 @@
                     });
                 }
             }],
-            language: setIdioma,
+            language: dataTable_es,
             processing: true,
             serverSide: true,
             searching: false,
@@ -174,7 +174,7 @@
                     });
                 }
             }],
-            language: setIdioma,
+            language: dataTable_es,
             processing: true,
             serverSide: true,
             searching: false,
@@ -226,7 +226,7 @@
                     });
                 }
             }],
-            language: setIdioma,
+            language: dataTable_es,
             processing: true,
             serverSide: true,
             searching: false,

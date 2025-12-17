@@ -1,19 +1,19 @@
-(function($) {
-    $(document).on('show.bs.modal', '.modal', function() {
+(function ($) {
+    $(document).on('show.bs.modal', '.modal', function () {
         var zIndex = 1040 + (10 * $('.modal:visible').length);
         $(this).css('z-index', zIndex);
-        setTimeout(function() {
+        setTimeout(function () {
             $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
         }, 0);
     });
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         //Tabla de Registros
         $('#tb_tipos_orden_egreso').DataTable({
             dom: setdom,
             buttons: [{
-                action: function(e, dt, node, config) {
-                    $.post("frm_reg_tipos_orden_egreso.php", function(he) {
+                action: function (e, dt, node, config) {
+                    $.post("frm_reg_tipos_orden_egreso.php", function (he) {
                         $('#divTamModalForms').removeClass('modal-sm');
                         $('#divTamModalForms').removeClass('modal-lg');
                         $('#divTamModalForms').addClass('modal-xl');
@@ -22,7 +22,7 @@
                     });
                 }
             }],
-            language: setIdioma,
+            language: dataTable_es,
             processing: true,
             serverSide: true,
             searching: false,
@@ -30,7 +30,7 @@
                 url: 'listar_tipos_orden_egreso.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function(data) {
+                data: function (data) {
                     data.nombre = $('#txt_nombre_filtro').val();
                 }
             },
@@ -43,7 +43,7 @@
                 { 'data': 'dev_fianza' },
                 { 'data': 'consumo' },
                 { 'data': 'almacen' },
-                { 'data': 'farmacia' },                
+                { 'data': 'farmacia' },
                 { 'data': 'activofijo' },
                 { 'data': 'botones' }
             ],
@@ -60,25 +60,25 @@
             ],
         });
 
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle fa-lg"></span>');
+        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
         $('#tb_tipos_orden_egreso').wrap('<div class="overflow"/>');
     });
 
     //Buascar registros
-    $('#btn_buscar_filtro').on("click", function() {
+    $('#btn_buscar_filtro').on("click", function () {
         reloadtable('tb_tipos_orden_egreso');
     });
 
-    $('.filtro').keypress(function(e) {
+    $('.filtro').keypress(function (e) {
         if (e.keyCode == 13) {
             reloadtable('tb_tipos_orden_egreso');
         }
     });
 
     //Editar un registro    
-    $('#tb_tipos_orden_egreso').on('click', '.btn_editar', function() {
+    $('#tb_tipos_orden_egreso').on('click', '.btn_editar', function () {
         let id = $(this).attr('value');
-        $.post("frm_reg_tipos_orden_egreso.php", { id: id }, function(he) {
+        $.post("frm_reg_tipos_orden_egreso.php", { id: id }, function (he) {
             $('#divTamModalForms').removeClass('modal-lg');
             $('#divTamModalForms').removeClass('modal-sm');
             $('#divTamModalForms').addClass('modal-xl');
@@ -88,7 +88,7 @@
     });
 
     //Guardar registro 
-    $('#divForms').on("click", "#btn_guardar", function() {
+    $('#divForms').on("click", "#btn_guardar", function () {
         $('.is-invalid').removeClass('is-invalid');
         var error = verifica_vacio($('#txt_nom_tipoegreso'));
         error += verifica_vacio($('#sl_esintext'));
@@ -109,7 +109,7 @@
                 url: 'editar_tipos_orden_egreso.php',
                 dataType: 'json',
                 data: data + "&oper=add"
-            }).done(function(r) {
+            }).done(function (r) {
                 if (r.mensaje == 'ok') {
                     let pag = ($('#id_tipo_egreso').val() == -1) ? 0 : $('#tb_tipos_orden_egreso').DataTable().page.info().page;
                     reloadtable('tb_tipos_orden_egreso', pag);
@@ -120,26 +120,26 @@
                     $('#divModalError').modal('show');
                     $('#divMsgError').html(r.mensaje);
                 }
-            }).always(function() {}).fail(function() {
+            }).always(function () { }).fail(function () {
                 alert('Ocurrió un error');
             });
         }
     });
 
     //Borrarr un registro 
-    $('#tb_tipos_orden_egreso').on('click', '.btn_eliminar', function() {
+    $('#tb_tipos_orden_egreso').on('click', '.btn_eliminar', function () {
         let id = $(this).attr('value');
         confirmar_del('tipos_orden_egreso', id);
     });
 
-    $('#divModalConfDel').on("click", "#tipos_orden_egreso", function() {
+    $('#divModalConfDel').on("click", "#tipos_orden_egreso", function () {
         var id = $(this).attr('value');
         $.ajax({
             type: 'POST',
             url: 'editar_tipos_orden_egreso.php',
             dataType: 'json',
             data: { id: id, oper: 'del' }
-        }).done(function(r) {
+        }).done(function (r) {
             $('#divModalConfDel').modal('hide');
             if (r.mensaje == 'ok') {
                 let pag = $('#tb_tipos_orden_egreso').DataTable().page.info().page;
@@ -150,17 +150,17 @@
                 $('#divModalError').modal('show');
                 $('#divMsgError').html(r.mensaje);
             }
-        }).always(function() {}).fail(function() {
+        }).always(function () { }).fail(function () {
             alert('Ocurrió un error');
         });
     });
 
     //Imprimir registros
-    $('#btn_imprime_filtro').on('click', function() {
+    $('#btn_imprime_filtro').on('click', function () {
         reloadtable('tb_tipos_orden_egreso');
         $.post("imp_tipos_orden_egreso.php", {
             nombre: $('#txt_nombre_filtro').val()
-        }, function(he) {
+        }, function (he) {
             $('#divTamModalImp').removeClass('modal-sm');
             $('#divTamModalImp').removeClass('modal-lg');
             $('#divTamModalImp').addClass('modal-xl');
@@ -174,9 +174,9 @@
     -----------------------------------------------------*/
 
     //Editar un registro 
-    $('#divForms').on('click', '#tb_cuentas_c .btn_editar', function() {
+    $('#divForms').on('click', '#tb_cuentas_c .btn_editar', function () {
         let id = $(this).attr('value');
-        $.post("frm_reg_tipos_orden_egreso_cta.php", { id: id }, function(he) {
+        $.post("frm_reg_tipos_orden_egreso_cta.php", { id: id }, function (he) {
             $('#divTamModalReg').removeClass('modal-xl');
             $('#divTamModalReg').removeClass('modal-sm');
             $('#divTamModalReg').addClass('modal-lg');
@@ -186,20 +186,20 @@
     });
 
     // Autocompletar cuenta contable 
-    $('#divFormsReg').on("input", ".cuenta", function() {
+    $('#divFormsReg').on("input", ".cuenta", function () {
         $(this).autocomplete({
-            source: function(request, response) {
+            source: function (request, response) {
                 $.ajax({
                     url: "../common/cargar_cta_contable_ls.php",
                     dataType: "json",
                     type: 'POST',
                     data: { term: request.term }
-                }).done(function(data) {
+                }).done(function (data) {
                     response(data);
                 });
             },
             minLength: 2,
-            select: function(event, ui) {
+            select: function (event, ui) {
                 var that = $(this);
                 if (ui.item.tipo == 'D' || ui.item.id == '') {
                     $('#' + that.attr('data-campoid')).val(ui.item.id);
@@ -213,7 +213,7 @@
     });
 
     //Guardar registro Cuenta
-    $('#divFormsReg').on("click", "#btn_guardar_cta", function() {
+    $('#divFormsReg').on("click", "#btn_guardar_cta", function () {
         $('.is-invalid').removeClass('is-invalid');
 
         var error = verifica_vacio_2($('#id_txt_cta_con'), $('#txt_cta_con'));
@@ -235,7 +235,7 @@
                 url: 'editar_tipos_orden_egreso_cta.php',
                 dataType: 'json',
                 data: data + "&id_tipo_egreso=" + $('#id_tipo_egreso').val() + "&oper=add"
-            }).done(function(r) {
+            }).done(function (r) {
                 if (r.mensaje == 'ok') {
                     let pag = ($('#id_tipo_egreso_cta').val() == -1) ? 0 : $('#tb_cuentas_c').DataTable().page.info().page;
                     reloadtable('tb_cuentas_c', pag);
@@ -249,25 +249,25 @@
                     $('#divModalError').modal('show');
                     $('#divMsgError').html(r.mensaje);
                 }
-            }).always(function() {}).fail(function() {
+            }).always(function () { }).fail(function () {
                 alert('Ocurrió un error');
             });
         }
     });
 
     //Borrar un registro Cuenta
-    $('#divForms').on('click', '#tb_cuentas_c .btn_eliminar', function() {
+    $('#divForms').on('click', '#tb_cuentas_c .btn_eliminar', function () {
         let id = $(this).attr('value');
         confirmar_del('cuenta_c', id);
     });
-    $('#divModalConfDel').on("click", "#cuenta_c", function() {
+    $('#divModalConfDel').on("click", "#cuenta_c", function () {
         var id = $(this).attr('value');
         $.ajax({
             type: 'POST',
             url: 'editar_tipos_orden_egreso_cta.php',
             dataType: 'json',
             data: { id: id, id_tipo_egreso: $('#id_tipo_egreso').val(), oper: 'del' }
-        }).done(function(r) {
+        }).done(function (r) {
             $('#divModalConfDel').modal('hide');
             if (r.mensaje == 'ok') {
                 let pag = $('#tb_cuentas_c').DataTable().page.info().page;
@@ -278,9 +278,9 @@
                 $('#divModalError').modal('show');
                 $('#divMsgError').html(r.mensaje);
             }
-        }).always(function() {}).fail(function() {
+        }).always(function () { }).fail(function () {
             alert('Ocurrió un error');
         });
     });
-    
+
 })(jQuery);

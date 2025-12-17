@@ -4,36 +4,45 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
-include '../../../terceros.php';
+include '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 // Div de acciones de la lista
 $id_ctb_doc = $_POST['id_doc'];
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
-    $sql = "SELECT id_ctb_doc,id_manu,fecha,detalle,id_tercero,estado FROM ctb_doc WHERE tipo_doc='$id_ctb_doc' AND vigencia = $_SESSION[vigencia] ";
+    $cmd = \Config\Clases\Conexion::getConexion();
+    $sql = "SELECT 
+                `ctb_doc`.`id_ctb_doc`
+                , `ctb_doc`.`id_manu`
+                , `ctb_doc`.`fecha`
+                , `ctb_doc`.`detalle`
+                , `ctb_doc`.`id_tercero`
+                , `ctb_doc`.`estado`
+                , `tb_terceros`.`nom_tercero`
+                , `tb_terceros`.`nit_tercero`
+            FROM 
+                `ctb_doc`
+                LEFT JOIN `tb_terceros`
+                    ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
+            WHERE `tipo_doc`='$id_ctb_doc' AND `vigencia` = $_SESSION[vigencia]";
     $rs = $cmd->query($sql);
     $listappto = $rs->fetchAll();
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 if (!empty($listappto)) {
-    $id_t = [];
-    foreach ($listappto as $rp) {
-        $id_t[] = $rp['id_tercero'];
-    }
-    $ids = implode(',', $id_t);
-    $terceros = getTerceros($ids, $cmd);
-
     foreach ($listappto as $lp) {
 
-        $key = array_search($lp['id_tercero'], array_column($terceros, 'id_tercero_api'));
         $id_ctb = $lp['id_ctb_doc'];
         $estado = $lp['estado'];
-        // Buscar el nombre del tercero
-        $tercero =  $key !== false ? $terceros[$key]['nom_tercero'] : '';
+        $tercero = !empty($lp['nom_tercero']) ? $lp['nom_tercero'] : '';
 
         // consultar la suma de debito y credito en la tabla ctb_libaux para el documento
         $sql = "SELECT sum(debito) as debito, sum(credito) as credito FROM ctb_libaux WHERE id_ctb_doc=$id_ctb GROUP BY id_ctb_doc";
@@ -63,9 +72,9 @@ if (!empty($listappto)) {
         // Sumar el valor del crp de la tabla id_pto_mtvo asociado al CDP
 
         if ((intval($permisos['editar'])) === 1) {
-            $editar = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" onclick="cargarListaDetalle(' . $id_ctb . ')" class="btn btn-outline-primary btn-sm btn-circle shadow-gb"  title="Editar_' . $id_ctb . '"><span class="fas fa-pencil-alt fa-lg"></span></a>';
-            $detalles = '<a value="' . $id_ctb . '" class="btn btn-outline-warning btn-sm btn-circle shadow-gb detalles" title="Detalles"><span class="fas fa-eye fa-lg"></span></a>';
-            $imprimir = '<a value="' . $id_ctb . '" onclick="imprimirFormatoDoc(' . $lp['id_ctb_doc'] . ')" class="btn btn-outline-success btn-sm btn-circle shadow-gb " title="Detalles"><span class="fas fa-print fa-lg"></span></a>';
+            $editar = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" onclick="cargarListaDetalle(' . $id_ctb . ')" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow"  title="Editar_' . $id_ctb . '"><span class="fas fa-pencil-alt "></span></a>';
+            $detalles = '<a value="' . $id_ctb . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow detalles" title="Detalles"><span class="fas fa-eye "></span></a>';
+            $imprimir = '<a value="' . $id_ctb . '" onclick="imprimirFormatoDoc(' . $lp['id_ctb_doc'] . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow " title="Detalles"><span class="fas fa-print "></span></a>';
             // Acciones teniendo en cuenta el tipo de rol
             //si es lider de proceso puede abrir o cerrar documentos
             $acciones = null;
@@ -84,7 +93,7 @@ if (!empty($listappto)) {
             $acciones = null;
         }
         if ((intval($permisos['borrar'])) === 1) {
-            $borrar = '<a value="' . $id_ctb . '" onclick="eliminarRegistroDoc(' . $id_ctb . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb "  title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+            $borrar = '<a value="' . $id_ctb . '" onclick="eliminarRegistroDoc(' . $id_ctb . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow "  title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
             $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
             ...
             </button>
@@ -107,7 +116,7 @@ if (!empty($listappto)) {
             'rp' =>  $id_manu_rp,
             'fecha' => $fecha,
             'tercero' => $tercero,
-            'valor' =>  '<div class="text-right">' . $valor_total . '</div>',
+            'valor' =>  '<div class="text-end">' . $valor_total . '</div>',
             'botones' => '<div class="text-center" style="position:relative">' . $editar . $borrar . $imprimir . $acciones .  '</div>',
         ];
     }

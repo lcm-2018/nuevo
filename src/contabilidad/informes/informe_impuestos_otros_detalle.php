@@ -37,11 +37,9 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
-include '../../terceros.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 // consulto la tabla tb_terceros para obtener el id_tercero_api
 try {
     $sql = "SELECT
@@ -82,24 +80,7 @@ FROM
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-// Consulto los id de terceros creado en la tabla ctb_doc
-try {
-    $sql = "SELECT DISTINCT
-    `ctb_doc`.`id_tercero`
-FROM
-    `ctb_doc`
-WHERE ( `ctb_doc`.`id_tercero` >0);";
-    $res = $cmd->query($sql);
-    $id_terceros = $res->fetchAll();
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
-$id_t = [];
-foreach ($id_terceros as $ter) {
-    $id_t[] = $ter['id_tercero'];
-}
-$ids = implode(',', $id_t);
-$terceros = getTerceros($ids, $cmd);
+
 
 ?>
 <div class="contenedor bg-light" id="areaImprimir">
@@ -162,23 +143,22 @@ $terceros = getTerceros($ids, $cmd);
             <?php
             $total_ret = 0;
             foreach ($descuentos as $tp) {
-                $key = array_search($tp['id_terceroapi'], array_column($terceros, 'id_tercero_api'));
-                $nom_ter =  $key !== false ? $terceros[$key]['nom_tercero'] : '---';
-                $ced_ter =  $key !== false ? $terceros[$key]['cc_nit'] : '---';
+                $nom_ter = !empty($tp['nom_tercero']) ? $tp['nom_tercero'] : '---';
+                $ced_ter = !empty($tp['nit_tercero']) ? $tp['nit_tercero'] : '---';
                 $fecha = date('Y-m-d', strtotime($tp['fecha']));
                 echo "<tr>
-                    <td class='text-right'>" . $tp['id_manu'] . "</td>
-                    <td class='text-right'>" . $fecha . "</td>
-                    <td class='text-right'>" . $nom_ter  . "</td>
+                    <td class='text-end'>" . $tp['id_manu'] . "</td>
+                    <td class='text-end'>" . $fecha . "</td>
+                    <td class='text-end'>" . $nom_ter  . "</td>
                     <td class='text'>" . $ced_ter . "</td>
-                    <td class='text-right'>" . $tp['detalle'] . "</td>
-                    <td class='text-right'>" . number_format($tp['valor_retencion'], 2, ".", ",")  . "</td>
+                    <td class='text-end'>" . $tp['detalle'] . "</td>
+                    <td class='text-end'>" . number_format($tp['valor_retencion'], 2, ".", ",")  . "</td>
                     </tr>";
                 $total_ret = $total_ret + $tp['valor_retencion'];
             }
             echo "<tr>
-        <td class='text-right' colspan='5'> Total</td>
-        <td class='text-right'>" . number_format($total_ret, 2, ".", ",")  . "</td>
+        <td class='text-end' colspan='5'> Total</td>
+        <td class='text-end'>" . number_format($total_ret, 2, ".", ",")  . "</td>
         </tr>
         </table>
         </br> &nbsp;

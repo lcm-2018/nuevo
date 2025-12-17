@@ -1,12 +1,11 @@
 <?php
 // Realiza la suma del valor total asignado a un CDP
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $_post = json_decode(file_get_contents('php://input'), true);
 $valor_pago = str_replace(",", "", $_post['valor']);
 // Buscamos si hay registros posteriores a la fecha recibida
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
     `ctt_destino_contrato`.`id_adquisicion`
     , `tb_centrocostos`.`id_centro`

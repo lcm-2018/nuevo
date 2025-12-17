@@ -1,10 +1,9 @@
 <?php
 $_post = json_decode(file_get_contents('php://input'), true);
 $id = $_post['id'];
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 try {
-    $pdo = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $pdo = \Config\Clases\Conexion::getConexion();
     $query = $pdo->prepare("DELETE FROM `ctb_libaux` WHERE `id_ctb_libaux` = ?");
     $query->bindParam(1, $id);
     $query->execute();

@@ -1,19 +1,19 @@
-(function($) {
-    $(document).on('show.bs.modal', '.modal', function() {
+(function ($) {
+    $(document).on('show.bs.modal', '.modal', function () {
         var zIndex = 1040 + (10 * $('.modal:visible').length);
         $(this).css('z-index', zIndex);
-        setTimeout(function() {
+        setTimeout(function () {
             $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
         }, 0);
     });
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         //Tabla de Registros
         $('#tb_tipos_orden_ingreso').DataTable({
             dom: setdom,
             buttons: [{
-                action: function(e, dt, node, config) {
-                    $.post("frm_reg_tipos_orden_ingreso.php", function(he) {
+                action: function (e, dt, node, config) {
+                    $.post("frm_reg_tipos_orden_ingreso.php", function (he) {
                         $('#divTamModalForms').removeClass('modal-sm');
                         $('#divTamModalForms').removeClass('modal-lg');
                         $('#divTamModalForms').addClass('modal-xl');
@@ -22,7 +22,7 @@
                     });
                 }
             }],
-            language: setIdioma,
+            language: dataTable_es,
             processing: true,
             serverSide: true,
             searching: false,
@@ -30,7 +30,7 @@
                 url: 'listar_tipos_orden_ingreso.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function(data) {
+                data: function (data) {
                     data.nombre = $('#txt_nombre_filtro').val();
                 }
             },
@@ -41,7 +41,7 @@
                 { 'data': 'orden_compra' },
                 { 'data': 'fianza' },
                 { 'data': 'almacen' },
-                { 'data': 'farmacia' },                
+                { 'data': 'farmacia' },
                 { 'data': 'activofijo' },
                 { 'data': 'botones' }
             ],
@@ -58,25 +58,25 @@
             ],
         });
 
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle fa-lg"></span>');
+        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
         $('#tb_tipos_orden_ingreso').wrap('<div class="overflow"/>');
     });
 
     //Buascar registros
-    $('#btn_buscar_filtro').on("click", function() {
+    $('#btn_buscar_filtro').on("click", function () {
         reloadtable('tb_tipos_orden_ingreso');
     });
 
-    $('.filtro').keypress(function(e) {
+    $('.filtro').keypress(function (e) {
         if (e.keyCode == 13) {
             reloadtable('tb_tipos_orden_ingreso');
         }
     });
 
     //Editar un registro    
-    $('#tb_tipos_orden_ingreso').on('click', '.btn_editar', function() {
+    $('#tb_tipos_orden_ingreso').on('click', '.btn_editar', function () {
         let id = $(this).attr('value');
-        $.post("frm_reg_tipos_orden_ingreso.php", { id: id }, function(he) {
+        $.post("frm_reg_tipos_orden_ingreso.php", { id: id }, function (he) {
             $('#divTamModalForms').removeClass('modal-lg');
             $('#divTamModalForms').removeClass('modal-sm');
             $('#divTamModalForms').addClass('modal-xl');
@@ -86,7 +86,7 @@
     });
 
     //Guardar registro 
-    $('#divForms').on("click", "#btn_guardar", function() {
+    $('#divForms').on("click", "#btn_guardar", function () {
         $('.is-invalid').removeClass('is-invalid');
         var error = verifica_vacio($('#txt_nom_tipoingreso'));
         error += verifica_vacio($('#sl_esintext'));
@@ -106,7 +106,7 @@
                 url: 'editar_tipos_orden_ingreso.php',
                 dataType: 'json',
                 data: data + "&oper=add"
-            }).done(function(r) {
+            }).done(function (r) {
                 if (r.mensaje == 'ok') {
                     let pag = ($('#id_tipo_ingreso').val() == -1) ? 0 : $('#tb_tipos_orden_ingreso').DataTable().page.info().page;
                     reloadtable('tb_tipos_orden_ingreso', pag);
@@ -117,26 +117,26 @@
                     $('#divModalError').modal('show');
                     $('#divMsgError').html(r.mensaje);
                 }
-            }).always(function() {}).fail(function() {
+            }).always(function () { }).fail(function () {
                 alert('Ocurrió un error');
             });
         }
     });
 
     //Borrarr un registro 
-    $('#tb_tipos_orden_ingreso').on('click', '.btn_eliminar', function() {
+    $('#tb_tipos_orden_ingreso').on('click', '.btn_eliminar', function () {
         let id = $(this).attr('value');
         confirmar_del('tipos_orden_ingreso', id);
     });
 
-    $('#divModalConfDel').on("click", "#tipos_orden_ingreso", function() {
+    $('#divModalConfDel').on("click", "#tipos_orden_ingreso", function () {
         var id = $(this).attr('value');
         $.ajax({
             type: 'POST',
             url: 'editar_tipos_orden_ingreso.php',
             dataType: 'json',
             data: { id: id, oper: 'del' }
-        }).done(function(r) {
+        }).done(function (r) {
             $('#divModalConfDel').modal('hide');
             if (r.mensaje == 'ok') {
                 let pag = $('#tb_tipos_orden_ingreso').DataTable().page.info().page;
@@ -147,17 +147,17 @@
                 $('#divModalError').modal('show');
                 $('#divMsgError').html(r.mensaje);
             }
-        }).always(function() {}).fail(function() {
+        }).always(function () { }).fail(function () {
             alert('Ocurrió un error');
         });
     });
 
     //Imprimir registros
-    $('#btn_imprime_filtro').on('click', function() {
+    $('#btn_imprime_filtro').on('click', function () {
         reloadtable('tb_tipos_orden_ingreso');
         $.post("imp_tipos_orden_ingreso.php", {
             nombre: $('#txt_nombre_filtro').val()
-        }, function(he) {
+        }, function (he) {
             $('#divTamModalImp').removeClass('modal-sm');
             $('#divTamModalImp').removeClass('modal-lg');
             $('#divTamModalImp').addClass('modal-xl');

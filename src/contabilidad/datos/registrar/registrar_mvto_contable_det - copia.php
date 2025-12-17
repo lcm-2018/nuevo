@@ -18,12 +18,11 @@ if (isset($_POST)) {
     $date = new DateTime('now', new DateTimeZone('America/Bogota'));
     $fecha2 = $date->format('Y-m-d H:i:s');
     //
-    include '../../../conexion.php';
+    include '../../../../config/autoloader.php';
     if ($estado == 0) {
         // Ejecutar para información general ----> se ejecuta cuando hay cambios
         try {
-            $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-            $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+            $cmd = \Config\Clases\Conexion::getConexion();
             if (empty($_POST['id_ctb_doc'])) {
                 $query = $cmd->prepare("INSERT INTO ctb_doc (vigencia, tipo_doc, id_manu,id_tercero, fecha, detalle, id_user_reg, fec_reg) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                 $query->bindParam(1, $datFecVigencia, PDO::PARAM_INT);
@@ -61,8 +60,7 @@ if (isset($_POST)) {
     // Ejecutar para movimiento de detalle ----> siempre se ejecuta
     if ($_POST['id_ctb_doc'] == 0) $id_ctb_doc =  $id;
     try {
-        $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-        $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+        $cmd = \Config\Clases\Conexion::getConexion();
         if (empty($_POST['id_ctb_doc2'])) {
             $query = $cmd->prepare("INSERT INTO ctb_libaux (id_ctb_doc,id_cc,cuenta,debito,credito,documento,id_user_reg,fec_reg) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             $query->bindParam(1, $id_ctb_doc, PDO::PARAM_INT);

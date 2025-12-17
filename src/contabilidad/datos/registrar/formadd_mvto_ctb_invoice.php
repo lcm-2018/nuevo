@@ -4,8 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../terceros.php';
+include '../../../../config/autoloader.php';
 include '../../../financiero/consultas.php';
 
 
@@ -13,8 +12,7 @@ $cod_ctb_doc = isset($_POST['cod_doc']) ? $_POST['cod_doc'] : exit('Acceso no pe
 $id_documento = isset($_POST['id_detalle']) ? $_POST['id_detalle'] : 0;
 $id_vigencia = $_SESSION['id_vigencia'];
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $fecha_cierre = fechaCierre($_SESSION['vigencia'], 55, $cmd);
 try {
@@ -35,12 +33,20 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
-                `id_ctb_doc`, `id_manu`, `id_tercero`, `fecha`, `detalle`,`id_ref_ctb`
+                `ctb_doc`.`id_ctb_doc`
+                , `ctb_doc`.`id_manu`
+                , `ctb_doc`.`id_tercero`
+                , `ctb_doc`.`fecha`
+                , `ctb_doc`.`detalle`
+                , `ctb_doc`.`id_ref_ctb`
+                , `tb_terceros`.`nom_tercero`
+                , `tb_terceros`.`nit_tercero`
             FROM
                 `ctb_doc`
+                LEFT JOIN `tb_terceros`
+                    ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
             WHERE (`id_ctb_doc` = $id_documento)";
     $rs = $cmd->query($sql);
     $datos = $rs->fetch();
@@ -49,8 +55,7 @@ try {
 }
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_ctb_referencia`,`nombre` FROM `ctb_referencia` WHERE `accion` = 1";
     $rs = $cmd->query($sql);
     $referencias = $rs->fetchAll();
@@ -70,38 +75,31 @@ if (empty($datos)) {
     $datos['id_ref_ctb'] = 0;
     $tercero = '';
 } else {
-    if ($datos['id_tercero'] > 0) {
-        $payload = array(0 => $datos['id_tercero']);
-        $ids = implode(',', $payload);
-        $terceros = getTerceros($ids, $cmd);
-        $tercero = ltrim($terceros[0]['nom_tercero']);
-    } else {
-        $tercero = '---';
-    }
+    $tercero = !empty($datos['nom_tercero']) ? ltrim($datos['nom_tercero']) : '---';
 }
 $cmd = null;
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">GESTIÓN DOCUMENTOS: <b><?php echo $fuente; ?></b></h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">GESTIÓN DOCUMENTOS: <b><?php echo $fuente; ?></b></h5>
         </div>
         <form id="formMvtoCtbInvoice">
             <input type="hidden" name="cod_ctb_doc" value="<?php echo $cod_ctb_doc; ?>">
             <input type="hidden" name="id_doc_fuente" value="<?php echo $id_doc_fuente; ?>">
             <input type="hidden" id="fec_cierre" value="<?php echo $fecha_cierre; ?>">
-            <div class="form-row px-4 pt-2">
-                <div class="form-group col-md-4">
+            <div class="row mb-2 px-4 pt-2">
+                <div class="col-md-4">
                     <label for="fecha" class="small">FECHA </label>
-                    <input type="date" name="fecha" id="fecha" class="form-control form-control-sm" value="<?php echo date('Y-m-d', strtotime($datos['fecha'])); ?>" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>">
+                    <input type="date" name="fecha" id="fecha" class="form-control form-control-sm bg-input" value="<?php echo date('Y-m-d', strtotime($datos['fecha'])); ?>" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>">
                 </div>
-                <div class="form-group col-md-4">
+                <div class="col-md-4">
                     <label for="numDoc" class="small">NUMERO</label>
-                    <input type="number" name="numDoc" id="numDoc" class="form-control form-control-sm" value="<?php echo $datos['id_manu'] ?>">
+                    <input type="number" name="numDoc" id="numDoc" class="form-control form-control-sm bg-input" value="<?php echo $datos['id_manu'] ?>">
                 </div>
-                <div class="form-group col-md-4">
+                <div class="col-md-4">
                     <label for="slcReferencia" class="small">Referencia</label>
-                    <select id="slcReferencia" name="slcReferencia" class="form-control form-control-sm">
+                    <select id="slcReferencia" name="slcReferencia" class="form-control form-control-sm bg-input">
                         <option value="0">Seleccione...</option>
                         <?php
                         foreach ($referencias as $rf) {
@@ -112,25 +110,25 @@ $cmd = null;
                     </select>
                 </div>
             </div>
-            <div class="form-row px-4">
-                <div class="form-group col-md-12">
+            <div class="row mb-2 px-4">
+                <div class="col-md-12">
                     <label for="terceromov" class="small">TERCERO</label>
-                    <input type="text" name="terceromov" id="terceromov" class="form-control form-control-sm" value="<?php echo $tercero ?>">
-                    <input type="hidden" name="id_tercero" id="id_tercero" class="form-control form-control-sm" value="<?php echo $datos['id_tercero'] ?>">
+                    <input type="text" name="terceromov" id="terceromov" class="form-control form-control-sm bg-input" value="<?php echo $tercero ?>">
+                    <input type="hidden" name="id_tercero" id="id_tercero" class="form-control form-control-sm bg-input" value="<?php echo $datos['id_tercero'] ?>">
                 </div>
 
             </div>
-            <div class="form-row px-4">
-                <div class="form-group col-md-12">
+            <div class="row mb-2 px-4">
+                <div class="col-md-12">
                     <label for="objeto" class="small">OBJETO</label>
-                    <textarea id="objeto" type="text" name="objeto" class="form-control form-control-sm py-0 sm" aria-label="Default select example" rows="4" required><?php echo $datos['detalle'] ?></textarea>
+                    <textarea id="objeto" type="text" name="objeto" class="form-control form-control-sm bg-input py-0 sm" aria-label="Default select example" rows="4" required><?php echo $datos['detalle'] ?></textarea>
                 </div>
 
             </div>
         </form>
-        <div class="text-right pb-3 px-4 w-100">
+        <div class="text-end pb-3 px-4 w-100">
             <button class="btn btn-primary btn-sm" style="width: 5rem;" id="btnGuardaMvtoCtbInvoice" text="<?php echo $id_documento ?>"><?php echo $id_documento == 0 ? 'Registrar' : 'Actualizar'; ?></button>
-            <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</a>
+            <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
         </div>
     </div>
 </div>

@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
+include '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include '../common/funciones_generales.php';
 
 $start = isset($_POST['start']) ? intval($_POST['start']) : 0;
@@ -18,9 +25,8 @@ $col = $_POST['order'][0]['column'] + 1;
 $dir = $_POST['order'][0]['dir'];
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
-    
+    $cmd = \Config\Clases\Conexion::getConexion();
+
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM far_subgrupos WHERE id_grupo IN (1,2)";
     $rs = $cmd->query($sql);
@@ -34,7 +40,7 @@ try {
             LEFT JOIN (SELECT CSG.*,CONCAT_WS(' - ',CTA.cuenta,CTA.nombre) AS cuenta
                     FROM tb_centrocostos_subgr_cta_detalle AS CSG
                     INNER JOIN ctb_pgcp AS CTA ON (CTA.id_pgcp=CSG.id_cuenta)
-                    WHERE CSG.id_cecsubgrp=" . $_POST['id_cec_sg'] .") AS C ON (C.id_subgrupo=SG.id_subgrupo)
+                    WHERE CSG.id_cecsubgrp=" . $_POST['id_cec_sg'] . ") AS C ON (C.id_subgrupo=SG.id_subgrupo)
             WHERE SG.id_grupo IN (1,2)
             ORDER BY $col $dir $limit";
 
@@ -52,12 +58,12 @@ if (!empty($objs)) {
         $eliminar = NULL;
         $id = $obj['id_cecsubgrp_det'];
         //Permite crear botones en la cuadricula si tiene permisos de 3-Editar,4-Eliminar
-        if (PermisosUsuario($permisos, 5508, 3) || $id_rol == 1) {    
-            $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-sm btn-circle shadow-gb btn_editar" title="Editar"><span class="fas fa-pencil-alt fa-lg"></span></a>';
+        if ($permisos->PermisosUsuario($opciones, 5508, 3) || $id_rol == 1) {
+            $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
         }
-        if (PermisosUsuario($permisos, 5508, 4) || $id_rol == 1) {    
-            $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-sm btn-circle shadow-gb btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
-        }        
+        if ($permisos->PermisosUsuario($opciones, 5508, 4) || $id_rol == 1) {
+            $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
+        }
         $data[] = [
             "id_cecsubgrp_det" => $id,
             "id_subgrupo" => $obj['id_subgrupo'],
@@ -74,5 +80,3 @@ $datos = [
 ];
 
 echo json_encode($datos);
-
-   

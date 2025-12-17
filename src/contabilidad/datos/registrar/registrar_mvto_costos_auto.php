@@ -4,8 +4,15 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include_once '../../../conexion.php';
-include_once '../../../permisos.php';
+include_once '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include_once '../../../financiero/consultas.php';
 function pesos($valor)
 {
@@ -14,8 +21,7 @@ function pesos($valor)
 $id_crp = isset($_POST['id_crp']) ? $_POST['id_crp'] : exit('Acceso no disponible');
 $id_doc = $_POST['id_doc'];
 $valor = $_POST['valor'];
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $iduser = $_SESSION['id_user'];
 $fecha = new DateTime('now', new DateTimeZone('America/Bogota'));
@@ -129,7 +135,7 @@ try {
 $bandera = false;
 $val_ant = 0;
 $impuestos = [];
-if (empty($centros) && !empty($datos)) {
+if (empty($centros) && !empty($datos) && !empty($doc_anterior)) {
     $bandera = true;
     $val_ant = $doc_anterior['valor'];
     $id_ant = $doc_anterior['id_ctb_doc'];
@@ -152,8 +158,7 @@ if (empty($centros) && !empty($datos)) {
 }
 $cmd = null;
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
 
     $cmd->beginTransaction();
     $cambios = 0;

@@ -5,11 +5,10 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include 'funciones_generales.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $fec_ini = isset($_POST['fec_ini']) && strlen($_POST['fec_ini'] > 0) ? $_POST['fec_ini'] : '2020-01-01';
 $fec_fin = isset($_POST['fec_fin']) && strlen($_POST['fec_fin']) > 0 ? $_POST['fec_fin'] : '2050-12-31';
@@ -121,12 +120,12 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 ?>
-<div class="text-right py-3">
+<div class="text-end py-3">
     <a type="button" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" value="01" title="Exportar a Excel">
         <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
     </a>
     <a type="button" class="btn btn-primary btn-sm" id="btnImprimir">Imprimir</a>
-    <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Cerrar</a>
+    <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
 </div>
 <div class="content bg-light" id="areaImprimirrr">
     <style>
@@ -164,7 +163,8 @@ try {
                 <th style="border:#A9A9A9 1px solid;">Documento/Nit</th>
                 <th style="border:#A9A9A9 1px solid;">Tercero</th>
                 <th style="border:#A9A9A9 1px solid;">Credito</th>
-                <th style="border:#A9A9A9 1px solid;">< 30</th>
+                <th style="border:#A9A9A9 1px solid;">
+                    < 30</th>
                 <th style="border:#A9A9A9 1px solid;">30 a 60</th>
                 <th style="border:#A9A9A9 1px solid;">60 a 90</th>
                 <th style="border:#A9A9A9 1px solid;">90 a 180</th>
@@ -176,7 +176,7 @@ try {
         <tbody style="font-size: 70%;">
             <?php
             foreach ($obj_informe as $obj) { ?>
-                <tr class="resaltar"> 
+                <tr class="resaltar">
                     <td style="border:#A9A9A9 1px solid;"> <?php echo $obj['nit_tercero'] ?> </td>
                     <td style="border:#A9A9A9 1px solid; text-align:left;"> <?php echo mb_strtoupper($obj['nom_tercero']) ?> </td>
                     <td style="border:#A9A9A9 1px solid; text-align:right;"> <?php echo $obj['sumacredito'] ?></td>

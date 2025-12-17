@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
 $aplica = $_POST['aplicacion'];
 $marca = $_POST['marca'];
@@ -13,8 +13,7 @@ $cuenta = $_POST['cuenta'];
 $where = $aplica == 1 ? "WHERE `cuenta` = '$cuenta'" : "WHERE `cuenta` LIKE '$cuenta%'";
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $query = "UPDATE `ctb_pgcp` SET `desagrega` = $marca $where AND  `tipo_dato` = 'D'";
     $query = $cmd->prepare($query);
     if (!($query->execute())) {

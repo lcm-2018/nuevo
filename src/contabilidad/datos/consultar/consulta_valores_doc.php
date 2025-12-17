@@ -4,12 +4,11 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../../../index.php');
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include_once '../../../financiero/consultas.php';
 $id_doc = $_POST['id'];
 $tipo = $_POST['tipo'];
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     if ($id_doc == 0) {
         $inicia = $_POST['docInicia'];

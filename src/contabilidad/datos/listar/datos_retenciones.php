@@ -4,14 +4,20 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include_once '../../../conexion.php';
-include_once '../../../permisos.php';
+include_once '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 // Div de acciones de la lista
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `ctb_retenciones`.`id_retencion`
                 , `ctb_retencion_tipo`.`tipo`
@@ -36,8 +42,8 @@ if (!empty($retenciones)) {
         $id_ret = $lp['id_retencion'];
         $id_r = base64_encode($id_ret);
         $estado = $lp['estado'];
-        if ((PermisosUsuario($permisos, 5506, 3) || $id_rol == 1)) {
-            $editar = '<a text="' . $id_r . '" class="btn btn-outline-primary btn-sm btn-circle shadow-gb editar"  title="Editar Retención"><span class="fas fa-pencil-alt fa-lg"></span></a>';
+        if (($permisos->PermisosUsuario($opciones, 5506, 3) || $id_rol == 1)) {
+            $editar = '<a text="' . $id_r . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow editar"  title="Editar Retención"><span class="fas fa-pencil-alt "></span></a>';
             $st = base64_encode($id_ret . '|' . $estado);
             if ($estado == '1') {
                 $title = 'Activo';
@@ -50,8 +56,8 @@ if (!empty($retenciones)) {
             }
             $boton = '<a text="' . $st . '" class="btn btn-sm btn-circle estado" title="' . $title . '"><span class="fas fa-toggle-' . $icono . ' fa-2x" style="color:' . $color . ';"></span></a>';
         }
-        if (PermisosUsuario($permisos, 5506, 4) || $id_rol == 1) {
-            $borrar = '<a text="' . $id_r . '" class="btn btn-outline-danger btn-sm btn-circle shadow-gb borrar"  title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+        if ($permisos->PermisosUsuario($opciones, 5506, 4) || $id_rol == 1) {
+            $borrar = '<a text="' . $id_r . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow borrar"  title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         }
 
         if ($estado == 0) {

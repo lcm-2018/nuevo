@@ -4,7 +4,7 @@ session_start();
 // incrementar el tiempo de ejecucion del script
 ini_set('max_execution_time', 5600);
 
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 // Consexion a cronhis asistencial
 $vigencia = $_SESSION['vigencia'];
 // estraigo las variables que llegan por post en json
@@ -13,8 +13,7 @@ $fecha_corte = $_POST['fecha_final'];
 $inicio = $_SESSION['vigencia'] . '-01-01';
 $parametro = 2;
 // contar los caracteres de $cuenta_ini
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT
                 `taux`.`cuenta`
@@ -124,10 +123,10 @@ include_once '../../financiero/encabezado_empresa.php';
 
                 echo "<tr>
                         <td class='text'>" . $separarCadenaResultados[$cuenta] . "</td>
-                        <td class='text-right'>" . Decimales($saldo_ini) . "</td>
-                        <td class='text-right'>" . Decimales($debito) . "</td>
-                        <td class='text-right'>" . Decimales($credito) . "</td>
-                        <td class='text-right'>" . Decimales($saldo) . "</td>
+                        <td class='text-end'>" . Decimales($saldo_ini) . "</td>
+                        <td class='text-end'>" . Decimales($debito) . "</td>
+                        <td class='text-end'>" . Decimales($credito) . "</td>
+                        <td class='text-end'>" . Decimales($saldo) . "</td>
                     </tr>";
             }
         } else {

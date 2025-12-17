@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 set_time_limit(5600);
 if (!isset($_SESSION['user'])) {
@@ -20,11 +20,9 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
-include '../../terceros.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 // consulto la tabla tb_terceros para obtener el id_tercero_api
 try {
     $sql = "SELECT
@@ -131,19 +129,19 @@ try {
             foreach ($descuentos as $tp) {
                 $fecha = date('Y-m-d', strtotime($tp['fecha']));
                 echo "<tr>
-                    <td class='text-right'>" . $tp['id_manu'] . "</td>
-                    <td class='text-right'>" . $fecha . "</td>
-                    <td class='text-right'>" .  $tp['nom_tercero']  . "</td>
+                    <td class='text-end'>" . $tp['id_manu'] . "</td>
+                    <td class='text-end'>" . $fecha . "</td>
+                    <td class='text-end'>" .  $tp['nom_tercero']  . "</td>
                     <td class='text'>" .  $tp['nit_tercero'] . "</td>
-                    <td class='text-right'>" . $tp['detalle'] . "</td>
-                    <td class='text-right'>" . number_format($tp['valor_base'], 2, ".", ",")  . "</td>
-                    <td class='text-right'>" . number_format($tp['valor_retencion'], 2, ".", ",")  . "</td>
+                    <td class='text-end'>" . $tp['detalle'] . "</td>
+                    <td class='text-end'>" . number_format($tp['valor_base'], 2, ".", ",")  . "</td>
+                    <td class='text-end'>" . number_format($tp['valor_retencion'], 2, ".", ",")  . "</td>
                     </tr>";
                 $total_ret = $total_ret + $tp['valor_retencion'];
             }
             echo "<tr>
-        <td class='text-right' colspan='6'> Total</td>
-        <td class='text-right'>" . number_format($total_ret, 2, ".", ",")  . "</td>
+        <td class='text-end' colspan='6'> Total</td>
+        <td class='text-end'>" . number_format($total_ret, 2, ".", ",")  . "</td>
         </tr>
         </table>
         </br> &nbsp;

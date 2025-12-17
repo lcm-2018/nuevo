@@ -48,27 +48,26 @@
 	$(document).ready(function () {
 		//dataTable de movimientos contables
 		let id_doc = $("#id_ctb_doc").val();
-		if (id_doc === "3" && op_caracter == "2") {
-			setdom = "<'row'<'col-md-6'l><'col-md-6'f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>";
-		}
+		var btns = opCaracterJS == '1' ? [] : [
+			{
+				text: '<span class="fa-solid fa-plus "></span>',
+				className: 'btn btn-success btn-sm shadow',
+				action: function (e, dt, node, config) {
+					$.post("datos/registrar/formadd_mvto_contable.php", { id_doc: id_doc }, function (he) {
+						$("#divTamModalForms").removeClass("modal-xl");
+						$("#divTamModalForms").removeClass("modal-sm");
+						$("#divTamModalForms").addClass("modal-lg");
+						$("#divModalForms").modal("show");
+						$("#divForms").html(he);
+					});
+				},
+			}
+		];
 		var tableMvtoCtb = $("#tableMvtoContable").DataTable({
 			dom: setdom,
 			autoWidth: false,
-			buttons: [
-				{
-					text: ' <span class="fas fa-plus-circle fa-lg"></span>',
-					action: function (e, dt, node, config) {
-						$.post("datos/registrar/formadd_mvto_contable.php", { id_doc: id_doc }, function (he) {
-							$("#divTamModalForms").removeClass("modal-xl");
-							$("#divTamModalForms").removeClass("modal-sm");
-							$("#divTamModalForms").addClass("modal-lg");
-							$("#divModalForms").modal("show");
-							$("#divForms").html(he);
-						});
-					},
-				},
-			],
-			language: setIdioma,
+			buttons: $('#peReg').val() == 1 ? btns : [],
+			language: dataTable_es,
 			serverSide: true,
 			processing: true,
 			searching: false,
@@ -107,7 +106,7 @@
 				{ class: 'text-wrap', targets: [3] },
 				{ orderable: false, targets: 5 },
 				{ targets: -1, width: "160px", className: "text-nowrap" },
-				{ targets: op_caracter == '2' ? [] : [1], "visible": false }
+				{ targets: opCaracterJS == '2' ? [] : [1], "visible": false }
 			],
 			order: [
 				[2, "desc"],
@@ -127,7 +126,8 @@
 			autoWidth: false,
 			buttons: [
 				{
-					text: ' <span class="fas fa-plus-circle fa-lg"></span>',
+					text: '<span class="fa-solid fa-plus "></span>',
+					className: 'btn btn-success btn-sm shadow',
 					action: function (e, dt, node, config) {
 						$.post("datos/registrar/formadd_mvto_ctb_invoice.php", { cod_doc: $('#cod_ctb_doc').val() }, function (he) {
 							$("#divTamModalForms").removeClass("modal-xl");
@@ -139,7 +139,7 @@
 					},
 				},
 			],
-			language: setIdioma,
+			language: dataTable_es,
 			serverSide: true,
 			processing: true,
 			searching: false,
@@ -178,7 +178,7 @@
 				{ class: 'text-wrap', targets: [3] },
 				{ orderable: false, targets: 5 },
 				{ targets: -1, width: "160px", className: "text-nowrap" },
-				{ targets: op_caracter == '2' ? [] : [1], "visible": false }
+				{ targets: opCaracterJS == '2' ? [] : [1], "visible": false }
 			],
 			order: [
 				[2, "desc"],
@@ -197,7 +197,8 @@
 			dom: setdom,
 			buttons: [
 				{
-					text: ' <span class="fas fa-plus-circle fa-lg"></span>',
+					text: '<span class="fa-solid fa-plus "></span>',
+					className: 'btn btn-success btn-sm shadow',
 					action: function (e, dt, node, config) {
 						$.post("datos/registrar/form_docs_soporte.php", function (he) {
 							$("#divTamModalForms").removeClass("modal-sm");
@@ -209,7 +210,7 @@
 					},
 				},
 			],
-			language: setIdioma,
+			language: dataTable_es,
 			ajax: {
 				url: "datos/listar/datos_doc_soporte.php",
 				type: "POST",
@@ -237,7 +238,7 @@
 		// dataTable de movimientos contables
 		$("#tableMvtoContableDetalle").DataTable({
 			search: "false",
-			language: setIdioma,
+			language: dataTable_es,
 			processing: true,
 			ajax: {
 				url: "datos/listar/datos_mvto_contabilidad_detalle.php",
@@ -286,7 +287,7 @@
 					},
 				},
 			],
-			language: setIdioma,
+			language: dataTable_es,
 			ajax: {
 				url: "datos/listar/datos_ejecucion_presupuesto_cxp.php",
 				type: "POST",
@@ -301,7 +302,8 @@
 			dom: setdom,
 			buttons: [
 				{
-					text: ' <span class="fas fa-plus-circle fa-lg"></span>',
+					text: '<span class="fa-solid fa-plus "></span>',
+					className: 'btn btn-success btn-sm shadow',
 					action: function (e, dt, node, config) {
 						$.post("form_plan_cuentas.php", function (he) {
 							$("#divTamModalForms").removeClass("modal-xl");
@@ -315,7 +317,7 @@
 			],
 			serverSide: true,
 			processing: true,
-			language: setIdioma,
+			language: dataTable_es,
 			ajax: {
 				url: "datos/listar/datos_plan_cuentas_list.php",
 				data: function (d) {
@@ -334,7 +336,8 @@
 			dom: setdom,
 			buttons: [
 				{
-					text: ' <span class="fas fa-plus-circle fa-lg"></span>',
+					text: '<span class="fa-solid fa-plus "></span>',
+					className: 'btn btn-success btn-sm shadow',
 					action: function (e, dt, node, config) {
 						$.post("form_documentos_fuente.php", function (he) {
 							$("#divTamModalForms").removeClass("modal-xl");
@@ -346,7 +349,7 @@
 					},
 				},
 			],
-			language: setIdioma,
+			language: dataTable_es,
 			ajax: {
 				url: "datos/listar/datos_documentos_fuente.php",
 				data: function (d) {
@@ -387,7 +390,7 @@
 				$('#divMsgError').html('¡Documento debe tener un tamaño menor a 2Mb!');
 				return false;
 			}
-			var btns = '<button class="btn btn-primary btn-sm" id="btnConfirCargaPuc">Aceptar</button><button type="button" class="btn btn-secondary  btn-sm"  data-dismiss="modal">Cancelar</button>'
+			var btns = '<button class="btn btn-primary btn-sm" id="btnConfirCargaPuc">Aceptar</button><button type="button" class="btn btn-secondary  btn-sm"  data-bs-dismiss="modal">Cancelar</button>'
 			$("#divModalConfDel").modal("show");
 			$("#divMsgConfdel").html('Esta acción eliminará el cargue del plan de cuentas.<br> Confirmar.');
 			$("#divBtnsModalDel").html(btns);
@@ -658,40 +661,28 @@ document.addEventListener("submit", (e) => {
 });
 
 $('#divModalForms').on('click', '#gestionarMvtoCtb', function () {
-	var btn = $(this).get(0);
-	InactivaBoton(btn);
 	var id = $(this).attr('text');
 	GuardaDocCtb(id);
-	ActivaBoton(btn);
 	return false;
 
 });
 $('#divModalForms').on('click', '#btnGuardaMvtoCtbInvoice', function () {
-	var btn = $(this).get(0);
-	InactivaBoton(btn);
 	var id = $(this).attr('text');
 	GuardaDocInvoice(id);
-	ActivaBoton(btn);
 	return false;
 
 });
 
 $('#btnGuardaMvtoCtbInvoice').on('click', function () {
-	var btn = $(this).get(0);
-	InactivaBoton(btn);
 	var id = $(this).attr('text');
 	GuardaDocInvoice(id);
-	ActivaBoton(btn);
 	return false;
 
 });
 
 $('#GuardaDocCtb').on('click', function () {
-	var btn = $(this).get(0);
-	InactivaBoton(btn);
 	var id = $(this).attr('text');
 	GuardaDocCtb(id);
-	ActivaBoton(btn);
 
 });
 function GuardaDocCtb(id) {
@@ -719,6 +710,7 @@ function GuardaDocCtb(id) {
 	} else {
 		var datos = $('#formGetMvtoCtb').serialize() + '&id=' + id;
 		url = "datos/registrar/registrar_mvto_contable_doc.php";
+		mostrarOverlay();
 		$.ajax({
 			type: 'POST',
 			url: url,
@@ -738,16 +730,11 @@ function GuardaDocCtb(id) {
 						}
 					}, 300);
 				} else {
-					function mjeError(titulo, mensaje) {
-						Swal.fire({
-							title: titulo,
-							html: mensaje, // Renderiza el HTML en el mensaje
-							icon: "error"
-						});
-					}
-					mjeError('Error:', r.msg);
+					mjeError('Error: ' + r.msg);
 				}
-
+			},
+			complete: function () {
+				ocultarOverlay();
 			}
 		});
 	}
@@ -980,7 +967,6 @@ function consultarSumaDoc(id_doc) {
 
 // Funcion para agregar o editar registros contables en el libro auxiliar
 function GestMvtoDetalle(elemento) {
-	InactivaBoton(elemento);
 	$('.is-invalid').removeClass('is-invalid');
 	var opc = elemento.getAttribute('text');
 	var fila = elemento.closest('tr');
@@ -993,15 +979,15 @@ function GestMvtoDetalle(elemento) {
 	var id_codigoCta = fila.querySelector('input[name="id_codigoCta"]');
 	if (tipoDato.value == 'M' || tipoDato.value == '0') {
 		codigoCta.focus();
-		mjeError('La cuenta seleccionada no es de tipo detalle', '');
+		mjeError('La cuenta seleccionada no es de tipo detalle');
 		codigoCta.classList.add('is-invalid');
 	} else if (idTercero.value == '0') {
 		bTercero.focus();
-		mjeError('El tercero no puede estar vacio', '');
+		mjeError('El tercero no puede estar vacio');
 		bTercero.classList.add('is-invalid');
 	} else if (Number(valorDebito.value) == 0 && Number(valorCredito.value) == 0 || (Number(valorDebito.value) > 0 && Number(valorCredito.value) > 0)) {
 		valorDebito.focus();
-		mjeError('El valor del debito o credito debe ser mayor a cero', '');
+		mjeError('El valor del debito o credito debe ser mayor a cero');
 		valorDebito.classList.add('is-invalid');
 		$('#valorCredito').classList.add('is-invalid');
 	} else {
@@ -1014,6 +1000,7 @@ function GestMvtoDetalle(elemento) {
 		datos.append('valorCredito', valorCredito.value);
 		datos.append('opcion', opc);
 		var url = 'datos/registrar/registrar_mvto_contable_det.php';
+		mostrarOverlay();
 		fetch(url, {
 			method: "POST",
 			body: datos,
@@ -1053,11 +1040,13 @@ function GestMvtoDetalle(elemento) {
 					});
 					mje('Registro exitoso');
 				} else {
-					mjeError('Error:', response);
+					mjeError('Error: ' + response);
 				}
+			})
+			.finally(() => {
+				ocultarOverlay();
 			});
 	}
-	ActivaBoton(elemento);
 	return false;
 };
 // Funcion sumas iguales
@@ -1202,22 +1191,26 @@ function cargarFormCxp(busqueda) {
 
 // Cargar lista de registros para obligar en contabilidad de
 let CargaObligaRad = function (dato) {
+	mostrarOverlay();
 	$.post("lista_causacion_rads.php", { dato: dato }, function (he) {
 		$("#divTamModalForms").removeClass("modal-sm");
 		$("#divTamModalForms").removeClass("modal-lg");
 		$("#divTamModalForms").addClass("modal-xl");
 		$("#divModalForms").modal("show");
 		$("#divForms").html(he);
+		ocultarOverlay();
 	});
 };
 
 let CargaObligaCrp = function (dato) {
+	mostrarOverlay();
 	$.post("lista_causacion_registros.php", { dato: dato }, function (he) {
 		$("#divTamModalForms").removeClass("modal-sm");
 		$("#divTamModalForms").removeClass("modal-lg");
 		$("#divTamModalForms").addClass("modal-xl");
 		$("#divModalForms").modal("show");
 		$("#divForms").html(he);
+		ocultarOverlay();
 	});
 };
 function CausaNomina(boton) {
@@ -1248,8 +1241,7 @@ function CausaNomina(boton) {
 		cancelButtonText: "NO",
 	}).then((result) => {
 		if (result.isConfirmed) {
-			boton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-			boton.disabled = true;
+			mostrarOverlay();
 			fetch(ruta, {
 				method: "POST",
 				body: data,
@@ -1260,12 +1252,13 @@ function CausaNomina(boton) {
 						$('#tableMvtoContable').DataTable().ajax.reload(null, false);
 						cant.value = valor - 1;
 						document.getElementById("totalCausa").innerHTML = valor - 1;
-						boton.innerHTML = '<span class="fas fa-thumbs-up fa-lg"></span>';
 						$("#divModalForms").modal("hide");
 						mje("Registro exitoso");
 					} else {
 						mjeError("Error: " + response);
 					}
+				}).finally(() => {
+					ocultarOverlay();
 				});
 		}
 	});
@@ -1422,7 +1415,6 @@ let validarValorMaximo = function (id) {
 
 // Guardar los rubros y el valor de la afectación presupuestal asociada a la cuenta por pagar
 var DetalleImputacionCtasPorPagar = function (boton) {
-	InactivaBoton(boton);
 	var band = true;
 	var valor = 0;
 	var min, max;
@@ -1437,12 +1429,12 @@ var DetalleImputacionCtasPorPagar = function (boton) {
 			$(this).focus();
 			mjeError('El valor debe estar entre ' + min.toLocaleString("es-MX") + ' y ' + max.toLocaleString("es-MX"));
 			band = false;
-			ActivaBoton(boton);
 			return false;
 		}
 	});
 	if (band) {
 		var data = $('#formImputacion').serialize();
+		mostrarOverlay();
 		$.ajax({
 			type: 'POST',
 			dataType: 'json',
@@ -1454,12 +1446,14 @@ var DetalleImputacionCtasPorPagar = function (boton) {
 					ImputacionCtasPorPagar($('#id_ctb_doc').val());
 					$('#valImputacion').html(r.acumulado);
 				} else {
-					mjeError('Error:', r.msg);
+					mjeError('Error: ' + r.msg);
 				}
+			},
+			complete: function () {
+				ocultarOverlay();
 			}
 		});
 	}
-	ActivaBoton(boton);
 };
 /*
 let rubrosaObligar = function () {
@@ -1605,7 +1599,6 @@ let mostrarCentroCostos = function (dato) {
 
 // Guardar datos de causación de costos
 var guardarCostos = function (boton) {
-	InactivaBoton(boton);
 	var valor = Number($('#valor_cc').val().replace(/\,/g, "", ""));
 	var max = Number($('#valor_cc').attr('max').replace(/\,/g, "", ""));
 
@@ -1628,6 +1621,7 @@ var guardarCostos = function (boton) {
 		mjeError('El valor del centro de costo debe ser mayor a cero y menor a ' + max.toLocaleString("es-MX"));
 	} else {
 		var data = $('#formGuardaCentroCosto').serialize();
+		mostrarOverlay();
 		$.ajax({
 			type: 'POST',
 			dataType: 'json',
@@ -1642,9 +1636,10 @@ var guardarCostos = function (boton) {
 					mjeError('Error:', r.msg);
 				}
 			}
+		}).always(() => {
+			ocultarOverlay();
 		});
 	}
-	ActivaBoton(boton);
 
 };
 document.addEventListener("submit", (e) => {
@@ -1980,7 +1975,6 @@ var ValorBase = function (data) {
 };
 // Guardar valor de la retención
 var GuardarRetencion = function (boton) {
-	InactivaBoton(boton);
 	$('.is-invalid').removeClass('is-invalid');
 	if ($('#tipo_rete').val() == '3') {
 		enviaRetenciones();
@@ -2001,7 +1995,6 @@ var GuardarRetencion = function (boton) {
 			enviaRetenciones();
 		}
 	}
-	ActivaBoton(boton);
 };
 function enviaRetenciones() {
 	$("#formAddRetencioness").find(":disabled").prop("disabled", false);
@@ -2227,7 +2220,6 @@ const procesaCausacionCxp = (id) => {
 const ProcesaFacturas = (boton) => {
 	$('.is-invalid').removeClass('is-invalid');
 	id = boton.getAttribute("text");
-	InactivaBoton(boton);
 	if ($('#tipoDoc').val() == '0') {
 		$('#tipoDoc').addClass('is-invalid');
 		$('#tipoDoc').focus();
@@ -2273,6 +2265,7 @@ const ProcesaFacturas = (boton) => {
 		$('#detalle').focus();
 		mjeError("Debe ingresar un detalle válido o menor a 200 caracteres");
 	} else {
+		mostrarOverlay();
 		$.ajax({
 			type: "POST",
 			url: "datos/registrar/registrar_mvto_contable_doc_cxp.php",
@@ -2291,9 +2284,12 @@ const ProcesaFacturas = (boton) => {
 					mjeError("Error: " + response.msg);
 				}
 			}
+		}).fail(function () {
+			mjeError('Ocurrió un error');
+		}).always(function () {
+			ocultarOverlay();
 		});
 	}
-	ActivaBoton(boton);
 	return false;
 };
 const FacturarCtasPorPagar = (id) => {
@@ -2371,6 +2367,7 @@ const eliminarFactura = (boton) => {
 		cancelButtonText: 'Cancelar'
 	}).then((result) => {
 		if (result.isConfirmed) {
+			mostrarOverlay();
 			$.ajax({
 				type: "POST",
 				url: "datos/eliminar/eliminar_mvto_contable_doc_cxp.php",
@@ -2385,23 +2382,27 @@ const eliminarFactura = (boton) => {
 						mjeError("Error: " + response.msg);
 					}
 				}
+			}).fail(function () {
+				mjeError('Ocurrió un error');
+			}).always(function () {
+				ocultarOverlay();
 			});
 		}
 	});
 };
 // Genera movimiento cuando se hace procesamiento automatico del documento cxp
 const generaMovimientoCxp = (boton) => {
-	InactivaBoton(boton);
 	var val_fac = $('#valFactura').text().replace(/[\s$]+/g, "").replace(/\,/g, "");
 	var val_inp = $('#valImputacion').text().replace(/[\s$]+/g, "").replace(/\,/g, "");
 	var val_cos = $('#valCentroCosto').text().replace(/[\s$]+/g, "").replace(/\,/g, "");
 	// verificar si los tres valores son iguales
-	if (op_caracter == '1' && op_ppto == '0') {
+	if (opCaracterJS == '1' && op_ppto == '0') {
 		val_inp = val_fac;
 	}
 	if (val_fac == val_inp && val_fac == val_cos) {
 		let id_crp = $('#id_crpp').val();
 		let id_doc = $('#id_ctb_doc').val();
+		mostrarOverlay();
 		fetch("datos/registrar/registrar_mvto_libaux_auto_cxp.php", {
 			method: "POST",
 			body: JSON.stringify({ id_doc: id_doc, id_crp: id_crp }),
@@ -2429,14 +2430,17 @@ const generaMovimientoCxp = (boton) => {
 				}
 			})
 			.catch((error) => {
-				console.log("Error:");
+				console.log("Error:", error);
+				mjeError('Ocurrió un error');
+			})
+			.finally(() => {
+				ocultarOverlay();
 			});
 	} else {
 		mjeError("Los valores de Facturación, imputacion y centro de costo no son iguales.");
-		ActivaBoton(boton);
 		return false;
 	}
-	ActivaBoton(boton);
+
 };
 
 const generaMovimientoTrasCosto = (boton) => {
@@ -2455,7 +2459,7 @@ const generaMovimientoTrasCosto = (boton) => {
 		$('#fecFinTraslado').focus();
 		mjeError("La fecha final debe estar entre " + $('#fecFinTraslado').attr('min') + " y " + $('#fecFinTraslado').attr('max'));
 	} else {
-		InactivaBoton(boton);
+		mostrarOverlay();
 		let id_doc = $('#id_ctb_doc').val();
 		let fini = $('#fecIniTraslado').val();
 		let ffin = $('#fecFinTraslado').val();
@@ -2478,21 +2482,23 @@ const generaMovimientoTrasCosto = (boton) => {
 			})
 			.catch((error) => {
 				console.log("Error:");
+			}).fail(function () {
+				mjeError('Ocurrió un error');
+			}).always(function () {
+				ocultarOverlay();
 			});
 	}
-	ActivaBoton(boton);
 };
 
 const generaMovimientoInvoice = (boton) => {
-	InactivaBoton(boton);
 	let id_rad = $('#id_rad').val();
 	let id_doc = $('#id_ctb_doc').val();
 	let valorFac = $('#valFactura').text().replace(/[\s$]+/g, "").replace(/\,/g, "");
 	if (valorFac == 0) {
 		mjeError("El valor de la factura debe ser mayor a cero");
-		ActivaBoton(boton);
 		return false;
 	}
+	mostrarOverlay();
 	fetch("datos/registrar/registrar_mvto_libaux_auto_invoice.php", {
 		method: "POST",
 		body: JSON.stringify({ id_doc: id_doc, id_rad: id_rad, facturado: valorFac }),
@@ -2521,8 +2527,11 @@ const generaMovimientoInvoice = (boton) => {
 		})
 		.catch((error) => {
 			console.log("Error:");
+		}).fail(function () {
+			mjeError('Ocurrió un error');
+		}).always(function () {
+			ocultarOverlay();
 		});
-	ActivaBoton(boton);
 };
 // llenar cero en el input
 const llenarCero = (id) => {
@@ -2745,12 +2754,14 @@ const imprimirFormatoDoc = (id) => {
 
 function ImprimirD(id) {
 	let url = "soportes/imprimir_formato_doc.php";
+	mostrarOverlay();
 	$.post(url, id, function (he) {
 		$("#divTamModalForms").removeClass("modal-sm");
 		$("#divTamModalForms").removeClass("modal-xl");
 		$("#divTamModalForms").addClass("modal-lg");
 		$("#divModalForms").modal("show");
 		$("#divForms").html(he);
+		ocultarOverlay();
 	});
 };
 
@@ -2868,7 +2879,7 @@ const EnviaDocumentoSoporte = (boton, tipo = 0) => {
 		success: function (response) {
 			boton.disabled = false;
 			boton.value = id;
-			boton.innerHTML = '<span class="fas fa-paper-plane fa-lg"></span>';
+			boton.innerHTML = '<span class="fas fa-paper-plane "></span>';
 			if (response.value == "ok") {
 				$('#tableMvtoContable').DataTable().ajax.reload(null, false);
 				mje("Documento enviado correctamente");
@@ -3104,7 +3115,6 @@ const buscarCuentaPlan = async () => {
 };
 // Guardar cuenta en plan contable
 const guardarPlanCuentas = async (boton) => {
-	InactivaBoton(boton);
 	let formEnvio = new FormData(formNuevaCuentaContable);
 	for (var pair of formEnvio.entries()) {
 		console.log(pair[0] + ", " + pair[1]);
@@ -3112,19 +3122,16 @@ const guardarPlanCuentas = async (boton) => {
 		if (formEnvio.get("cuentas") == "") {
 			document.querySelector("#cuentas").focus();
 			mjeError("Debe digitar una cuenta valida ", "");
-			ActivaBoton(boton);
 			return false;
 		}
 		if (formEnvio.get("nombre") == "") {
 			document.querySelector("#nombre").focus();
 			mjeError("Debe digitar un mombre valido ", "");
-			ActivaBoton(boton);
 			return false;
 		}
 		if (formEnvio.get("controlid") == 1) {
 			document.querySelector("#cuentas").focus();
 			mjeError("La cuenta contable ya existe ", "");
-			ActivaBoton(boton);
 			return false;
 		}
 	}
@@ -3146,18 +3153,19 @@ const guardarPlanCuentas = async (boton) => {
 	} catch (error) {
 		console.error(error);
 	}
-	ActivaBoton(boton);
 
 };
 // Abre formulario para edición de datos de cuenta contable
 const editarDatosPlanCuenta = (id) => {
 	let url = "form_plan_cuentas.php";
+	mostrarOverlay();
 	$.post(url, { id: id }, function (he) {
 		$("#divTamModalForms").removeClass("modal-sm");
 		$("#divTamModalForms").removeClass("modal-xl");
 		$("#divTamModalForms").addClass("modal-lg");
 		$("#divModalForms").modal("show");
 		$("#divForms").html(he);
+		ocultarOverlay();
 	});
 };
 
@@ -3253,7 +3261,6 @@ const eliminarCuentaContable = (comp) => {
 	});
 };
 const guardarDocFuente = async (boton) => {
-	InactivaBoton(boton);
 	$('.is-invalid').removeClass('is-invalid');
 	let formEnvio = new FormData(formDocFuente);
 	for (var pair of formEnvio.entries()) {
@@ -3263,14 +3270,12 @@ const guardarDocFuente = async (boton) => {
 			document.querySelector("#txtCodigo").classList.add("is-invalid");
 			document.querySelector("#txtCodigo").focus();
 			mjeError("Debe digitar una codigo", "");
-			ActivaBoton(boton);
 			return false;
 		}
 		if (formEnvio.get("txtNombre") == "") {
 			document.querySelector("#txtNombre").classList.add("is-invalid");
 			document.querySelector("#txtNombre").focus();
 			mjeError("Debe digitar un mombre valido ", "");
-			ActivaBoton(boton);
 			return false;
 		}
 	}
@@ -3292,9 +3297,9 @@ const guardarDocFuente = async (boton) => {
 	} catch (error) {
 		console.error(error);
 	}
-	ActivaBoton(boton);
 };
 const editarDocFuente = (id) => {
+	mostrarOverlay();
 	let url = "form_documentos_fuente.php";
 	$.post(url, { id: id }, function (he) {
 		$("#divTamModalForms").removeClass("modal-sm");
@@ -3302,6 +3307,7 @@ const editarDocFuente = (id) => {
 		$("#divTamModalForms").addClass("modal-lg");
 		$("#divModalForms").modal("show");
 		$("#divForms").html(he);
+		ocultarOverlay();
 	});
 };
 const eliminarDocFuente = (comp) => {
@@ -3622,7 +3628,6 @@ function obtenerNumeroSemana(fecha) {
 	return 1 + Math.ceil((primerJueves - fechaAuxiliar) / 604800000);
 }
 function CausaAuCentroCostos(boton) {
-	InactivaBoton(boton);
 	var id_crp = $('#id_crpp').val();
 	var id_doc = $('#id_ctb_doc').val();
 	var factura = parseFloat($('#valFactura').text().replace(/[\$,]/g, ''));
@@ -3634,10 +3639,11 @@ function CausaAuCentroCostos(boton) {
 	} else if (imputacion > 0 || ccosto > 0 || impuestos > 0) {
 		mjeError('Se encuentran valores  registrados de imputación, centro de costos o impuestos');
 	} else {
+		mostrarOverlay();
 		$.ajax({
 			url: 'datos/registrar/registrar_mvto_costos_auto.php',
 			type: 'POST',
-			data: { id_crp: id_crp, id_doc: id_doc, valor: valor },
+			data: { id_crp: id_crp, id_doc: id_doc, valor: 0 },
 			dataType: 'json',
 			success: function (r) {
 				if (r.status == 'ok') {
@@ -3653,9 +3659,10 @@ function CausaAuCentroCostos(boton) {
 					mjeError(r.msg);
 				}
 			}
+		}).always(function () {
+			ocultarOverlay();
 		});
 	}
-	ActivaBoton(boton);
 }
 
 $(document).ready(function () {
@@ -3691,7 +3698,6 @@ function RegDocREfDr(datos, id_doc) {
 }
 
 function GuardarReferenciaDr(boton) {
-	InactivaBoton(boton);
 	$('.is-invalid').removeClass('is-invalid');
 	if ($('#nombre').val() == '') {
 		$('#nombre').addClass('is-invalid');
@@ -3726,7 +3732,6 @@ function GuardarReferenciaDr(boton) {
 		var id_doc = $('#id_doc_ft').val();
 		RegDocREfDr(datos, id_doc);
 	}
-	ActivaBoton(boton);
 
 }
 

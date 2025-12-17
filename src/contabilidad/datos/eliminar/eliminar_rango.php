@@ -4,12 +4,11 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
 $id = isset($_POST['id']) ? base64_decode($_POST['id']) : exit('Acceso no disponible');
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 try {
     $query = "DELETE FROM `ctb_retencion_rango` WHERE `id_rango` = ?";

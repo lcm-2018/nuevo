@@ -299,12 +299,12 @@ class Plantilla
                                         <div class="collapse shadow" id="conta-collapse">
                                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                 <li>
-                                                    <a href="javascript:void(0)" class="nav-link text-primary px-1 py-2 sombra">
+                                                    <a href="{$host}/src/contabilidad/lista_documentos_mov.php" class="nav-link text-primary px-1 py-2 sombra">
                                                         <i class="fas fa-copy me-2 fa-fw"></i> Movimientos
                                                     </a>
                                                 </li>
-                                                <li>
-                                                    <a href="javascript:void(0)" class="nav-link text-success px-1 py-2 sombra">
+                                                    <li>
+                                                    <a href="{$host}/src/contabilidad/lista_documentos_mov.php" class="nav-link text-success px-1 py-2 sombra">
                                                         <i class="fas fa-file-invoice me-2 fa-fw"></i> Facturación
                                                     </a>
                                                 </li>
