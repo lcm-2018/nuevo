@@ -71,6 +71,8 @@ try {
         ";
     $res = $cmd->query($sql);
     $retenciones = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -91,6 +93,8 @@ try {
             WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` =2 AND  `ctb_doc`.`fecha` BETWEEN '$fecha_inicial' AND '$fecha_corte')";
     $res = $cmd->query($sql);
     $sobretasa = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -117,6 +121,8 @@ try {
             WHERE ( `ctb_doc`.`id_tercero` >0);";
     $res = $cmd->query($sql);
     $id_terceros = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -214,6 +220,8 @@ if ($key !== false) {
                 AND `ctb_doc`.`fecha` BETWEEN '$fecha_inicial' AND '$fecha_corte');";
             $res = $cmd->query($sql);
             $pagos_realizados = $res->fetchAll();
+            $res->closeCursor();
+            unset($res);
             // Iniciar la tabla
             echo "<h4>" . strtoupper($tp['nombre_retencion']) . "</h4>";
             echo '<table class="table-bordered bg-light" style="width:100% !important;" border=1>
@@ -232,6 +240,8 @@ if ($key !== false) {
                 $sql = "SELECT distinct cuenta from ctb_libaux WHERE debito >0 and id_ctb_doc = {$pr['id_ctb_doc']}";
                 $res = $cmd->query($sql);
                 $cuentas = $res->fetchAll();
+                $res->closeCursor();
+                unset($res);
                 // recorrer cuentas y generar una cadena con los resultado separada con - si hay mas de dos registros
                 $cuentas_debito = '';
                 foreach ($cuentas as $c) {
@@ -292,6 +302,8 @@ if ($key !== false) {
                 AND `ctb_doc`.`fecha` BETWEEN '$fecha_inicial' AND '$fecha_corte');";
             $res = $cmd->query($sql);
             $pagos_realizados = $res->fetchAll();
+            $res->closeCursor();
+            unset($res);
 
 
             // Iniciar la tabla
@@ -312,6 +324,8 @@ if ($key !== false) {
                 $sql = "SELECT distinct cuenta from ctb_libaux WHERE debito >0 and id_ctb_doc = {$pr['id_ctb_doc']}";
                 $res = $cmd->query($sql);
                 $cuentas = $res->fetchAll();
+                $res->closeCursor();
+                unset($res);
                 // recorrer cuentas y generar una cadena con los resultado separada con - si hay mas de dos registros
                 $cuentas_debito = '';
                 foreach ($cuentas as $c) {

@@ -26,6 +26,8 @@ try {
     $sql = "SELECT `id_doc_fuente`, `nombre` FROM `ctb_fuente` WHERE `contab` = 1 OR `contab` = 3 ORDER BY `nombre`";
     $rs = $cmd->query($sql);
     $docsFuente = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -64,7 +66,9 @@ try {
                     ON (`nom_nomina_pto_ctb_tes`.`id_nomina` = `nom_nominas`.`id_nomina`)
             WHERE (`nom_nominas`.`planilla` = 3 AND `nom_nomina_pto_ctb_tes`.`tipo` = 'PL')";
     $rs = $cmd->query($sql);
-    $nominas = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $nominas = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -96,7 +100,9 @@ if (!empty($nominas) && !empty($rp)) {
                 INNER JOIN `pto_crp`
                     ON(`pto_crp`.`id_pto_crp` = `t1`.`id_pto_crp`)";
         $rs = $cmd->query($sql);
-        $valores = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $valores = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
 
         foreach ($valores as $vl) {
             $key = array_search($vl['id_pto_crp'], array_column($nominas, 'crp'));

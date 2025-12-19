@@ -36,6 +36,8 @@ $sql = "SELECT
         WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` = 6)";
 $rs = $cmd->query($sql);
 $otras = $rs->fetchAll();
+$rs->closeCursor();
+unset($rs);
 ?>
 
 <div class="row mb-2 justify-content-center">

@@ -37,6 +37,8 @@ try {
     AND `pto_cargue`.`vigencia` ='$_SESSION[vigencia]');";
     $rs = $cmd->query($sql);
     $rubros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -118,7 +120,7 @@ try {
                             <tr>
                                 <td class="text-start"><?php echo $ce['rubro'] . ' - ' . $ce['nom_rubro']; ?></td>
                                 <td class="text-end"><?php echo number_format($ce['valor'], 2, '.', ','); ?></td>
-                                <td class="text-end"><input type="text" name="rub_<?php echo $id_pto_mvto; ?>" id="rub_<?php echo  $id_pto_mvto; ?>" class="form-control form-control-sm bg-input" value="<?php echo $valor; ?>" style="text-align: right;" required onkeyup="valorMiles(id)" max="<?php echo $valor; ?>" onchange="validarValorMaximo(id)"></td>
+                                <td class="text-end"><input type="text" name="rub_<?php echo $id_pto_mvto; ?>" id="rub_<?php echo  $id_pto_mvto; ?>" class="form-control form-control-sm bg-input" value="<?php echo $valor; ?>" style="text-align: right;" required onkeyup="NumberMiles(this)" max="<?php echo $valor; ?>" onchange="validarValorMaximo(id)"></td>
                                 <td class="text-center"> <?php echo $borrar; ?></td>
                             </tr>
                         <?php

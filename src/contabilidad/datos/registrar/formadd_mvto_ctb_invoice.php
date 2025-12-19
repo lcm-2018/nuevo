@@ -59,6 +59,8 @@ try {
     $sql = "SELECT `id_ctb_referencia`,`nombre` FROM `ctb_referencia` WHERE `accion` = 1";
     $rs = $cmd->query($sql);
     $referencias = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

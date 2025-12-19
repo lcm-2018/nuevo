@@ -14,15 +14,21 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
-include '../../conexion.php';
-include '../../permisos.php';
+include '../../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include '../../financiero/consultas.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT `fin_mes`, `nom_mes` FROM `nom_meses` WHERE (`codigo` = '$mes')";
     $rs = $cmd->query($sql);
@@ -64,6 +70,8 @@ try {
                   ";
     $rs = $cmd->query($sql);
     $lista = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $tot_deb = 0;
     $tot_cre = 0;
     $tdc = 0;
@@ -209,6 +217,8 @@ try {
                 AND `fin_maestro_doc`.`estado` = 1)";
     $res = $cmd->query($sql);
     $responsables = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
     $key = array_search('4', array_column($responsables, 'tipo_control'));
     $nom_respon = $key !== false ? $responsables[$key]['nom_tercero'] : '';
     $cargo_respon = $key !== false ? $responsables[$key]['cargo'] : '';
@@ -223,11 +233,11 @@ try {
 $anulado = '';
 
 ?>
-<div class="text-right py-3">
-    <?php if (PermisosUsuario($permisos, 5601, 6)  || $id_rol == 1) { ?>
+<div class="text-end py-3">
+    <?php if ($permisos->PermisosUsuario($opciones, 5601, 6)  || $id_rol == 1) { ?>
         <a type="button" class="btn btn-primary btn-sm" onclick="imprSelecTes('areaImprimir','0');"> Imprimir</a>
     <?php } ?>
-    <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Cerrar</a>
+    <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
 </div>
 <div class="contenedor bg-light" id="areaImprimir">
     <style>
@@ -294,7 +304,7 @@ $anulado = '';
         </br>
         <table class="table-bordered bg-light" style="width:100% !important;">
             <tr>
-                <td class='text-center' style="width:18%"><label class="small"><img src="../images/logos/logo.png" width="100"></label></td>
+                <td class='text-center' style="width:18%"><label class="small"><img src="../../assets/images/logo.png" width="100"></label></td>
                 <td style="text-align:center">
                     <strong><?php echo $empresa['nombre']; ?> </strong>
                     <div>NIT <?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></div>
@@ -315,20 +325,20 @@ $anulado = '';
         </div>
         <table class="table-bordered bg-light" style="width:100% !important;">
             <tr>
-                <td class='text-left' style="width:25%">CÓDIGO CUENTA:</td>
-                <td class='text-left'><?= $detalles['cta_contable'] ?></td>
+                <td class='text-start' style="width:25%">CÓDIGO CUENTA:</td>
+                <td class='text-start'><?= $detalles['cta_contable'] ?></td>
             </tr>
             <tr>
-                <td class='text-left'>NOMBRE CUENTA:</td>
-                <td class='text-left'><?= $detalles['descripcion']; ?></td>
+                <td class='text-start'>NOMBRE CUENTA:</td>
+                <td class='text-start'><?= $detalles['descripcion']; ?></td>
             </tr>
             <tr>
-                <td class='text-left'>MES CONCILIADO:</td>
-                <td class='text-left'><?= $nom_mes; ?></td>
+                <td class='text-start'>MES CONCILIADO:</td>
+                <td class='text-start'><?= $nom_mes; ?></td>
             </tr>
             <tr>
-                <td class='text-left'>AÑO:</td>
-                <td class='text-left'><?php echo $vigencia; ?></td>
+                <td class='text-start'>AÑO:</td>
+                <td class='text-start'><?php echo $vigencia; ?></td>
             </tr>
         </table>
         <br>

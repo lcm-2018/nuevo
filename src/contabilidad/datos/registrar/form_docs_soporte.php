@@ -26,6 +26,8 @@ try {
                 `nom_metodo_pago` ORDER BY `metodo` ASC";
     $rs = $cmd->query($sql);
     $metodop = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -41,6 +43,8 @@ try {
             ORDER BY `significado` ASC";
     $rs = $cmd->query($sql);
     $rep_fiscal = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -53,6 +57,8 @@ try {
                 `tb_tipos_documento` ORDER BY `descripcion` ASC";
     $rs = $cmd->query($sql);
     $tip_doc = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -67,6 +73,8 @@ try {
                 `tb_paises`";
     $rs = $cmd->query($sql);
     $pais = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -81,6 +89,8 @@ try {
                 `tb_departamentos` ORDER BY `nombre_dpto` ASC";
     $rs = $cmd->query($sql);
     $dpto = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

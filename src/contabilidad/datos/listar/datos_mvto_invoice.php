@@ -108,7 +108,7 @@ try {
             GROUP BY `ctb_doc`.`id_ctb_doc`
             ORDER BY $col $dir $limit";
     $rs = $cmd->query($sql);
-    $listappto = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $listappto = $rs->fetchAll();
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
@@ -177,7 +177,7 @@ try {
                 `ctb_libaux`
             GROUP BY `id_ctb_doc`";
     $rs = $cmd->query($sql);
-    $diferencias = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $diferencias = $rs->fetchAll();
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
@@ -193,7 +193,7 @@ try {
                 `seg_soporte_fno`
             WHERE (`fecha` BETWEEN '$inicia' AND '$termina')";
     $rs = $cmd->query($sql);
-    $equivalente = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $equivalente = $rs->fetchAll();
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {

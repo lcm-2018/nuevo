@@ -4,13 +4,12 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../conexion.php';
+include '../../config/autoloader.php';
 $id_ctb_doc = isset($_POST['id_tipo']) ? $_POST['id_tipo'] : exit('Acceso no permitido');
 $id_documento = isset($_POST['id_detalle']) ? $_POST['id_detalle'] : 0;
 $id_vigencia = $_SESSION['id_vigencia'];
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_acto`
                 , `nombre`
@@ -19,13 +18,14 @@ try {
             ORDER BY `nombre` ASC";
     $rs = $cmd->query($sql);
     $actos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_caja_const`
                 , `id_tipo_acto` AS `acto`
@@ -66,15 +66,15 @@ if (empty($datos)) {
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;"><b>CONSTITUCIÓN DE CAJA MENOR</b></h5>
+        <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;"><b>CONSTITUCIÓN DE CAJA MENOR</b></h5>
         </div>
         <form id="formGetMvtoCaja">
             <input type="hidden" name="id_ctb_doc" value="<?php echo $id_ctb_doc; ?>">
-            <div class="form-row px-4 pt-2">
-                <div class="form-group col-md-4">
+            <div class="row mb-2 px-4 pt-2">
+                <div class="col-md-4">
                     <label for="slcTipActo" class="small">tipo acto</label>
-                    <select name="slcTipActo" id="slcTipActo" class="form-control form-control-sm" required>
+                    <select name="slcTipActo" id="slcTipActo" class="form-control form-control-sm bg-input" required>
                         <option value="0" <?php echo $datos['acto'] == 0 ? 'selected' : '' ?>>--Seleccione--</option>
                         <?php foreach ($actos as $acto) {
                             $slc = $datos['acto'] == $acto['id_acto'] ? 'selected' : '';
@@ -83,47 +83,47 @@ if (empty($datos)) {
                         ?>
                     </select>
                 </div>
-                <div class="form-group col-md-4">
+                <div class="col-md-4">
                     <label for="numActo" class="small">Num. Acto</label>
-                    <input type="text" name="numActo" id="numActo" class="form-control form-control-sm" value="<?php echo $datos['num_acto']; ?>">
+                    <input type="text" name="numActo" id="numActo" class="form-control form-control-sm bg-input" value="<?php echo $datos['num_acto']; ?>">
                 </div>
-                <div class="form-group col-md-4">
+                <div class="col-md-4">
                     <label for="txtNomCaja" class="small">Nombre Caja</label>
-                    <input type="text" name="txtNomCaja" id="txtNomCaja" class="form-control form-control-sm" value="<?php echo $datos['nombre_caja']; ?>">
+                    <input type="text" name="txtNomCaja" id="txtNomCaja" class="form-control form-control-sm bg-input" value="<?php echo $datos['nombre_caja']; ?>">
                 </div>
             </div>
-            <div class="form-row px-4">
-                <div class="form-group col-md-4">
+            <div class="row mb-2 px-4">
+                <div class="col-md-4">
                     <label for="fecIniciaCaja" class="small">Inicia</label>
-                    <input type="date" name="fecIniciaCaja" id="fecIniciaCaja" class="form-control form-control-sm" value="<?php echo date('Y-m-d', strtotime($datos['fecha_ini'])); ?>" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>">
+                    <input type="date" name="fecIniciaCaja" id="fecIniciaCaja" class="form-control form-control-sm bg-input" value="<?php echo date('Y-m-d', strtotime($datos['fecha_ini'])); ?>" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>">
                 </div>
-                <div class="form-group col-md-4">
+                <div class="col-md-4">
                     <label for="fecActoDc" class="small">Acto</label>
-                    <input type="date" name="fecActoDc" id="fecActoDc" class="form-control form-control-sm" value="<?php echo date('Y-m-d', strtotime($datos['fecha_acto'])); ?>" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>">
+                    <input type="date" name="fecActoDc" id="fecActoDc" class="form-control form-control-sm bg-input" value="<?php echo date('Y-m-d', strtotime($datos['fecha_acto'])); ?>" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>">
                 </div>
-                <div class="form-group col-md-4">
+                <div class="col-md-4">
                     <label for="txtPoliza" class="small">Num. Póliza</label>
-                    <input type="text" name="txtPoliza" id="txtPoliza" class="form-control form-control-sm" value="<?php echo $datos['num_poliza']; ?>">
+                    <input type="text" name="txtPoliza" id="txtPoliza" class="form-control form-control-sm bg-input" value="<?php echo $datos['num_poliza']; ?>">
                 </div>
             </div>
-            <div class="form-row px-4  ">
-                <div class="form-group col-md-4">
+            <div class="row mb-2 px-4  ">
+                <div class="col-md-4">
                     <label for="valTotal" class="small">Valor Total</label>
-                    <input type="text" name="valTotal" id="valTotal" class="form-control form-control-sm" value="<?php echo $datos['valor_total']; ?>">
+                    <input type="text" name="valTotal" id="valTotal" class="form-control form-control-sm bg-input" value="<?php echo $datos['valor_total']; ?>">
                 </div>
-                <div class="form-group col-md-4">
+                <div class="col-md-4">
                     <label for="valMinimo" class="small">Valor Mínimo</label>
-                    <input type="text" name="valMinimo" id="valMinimo" class="form-control form-control-sm" value="<?php echo $datos['valor_minimo']; ?>">
+                    <input type="text" name="valMinimo" id="valMinimo" class="form-control form-control-sm bg-input" value="<?php echo $datos['valor_minimo']; ?>">
                 </div>
-                <div class="form-group col-md-4">
+                <div class="col-md-4">
                     <label for="porcentajeCs" class="small">Porcentaje (%)</label>
-                    <input type="text" name="porcentajeCs" id="porcentajeCs" class="form-control form-control-sm" value="<?php echo $datos['porcentaje']; ?>">
+                    <input type="text" name="porcentajeCs" id="porcentajeCs" class="form-control form-control-sm bg-input" value="<?php echo $datos['porcentaje']; ?>">
                 </div>
             </div>
         </form>
-        <div class="text-right pb-3 px-4 w-100">
+        <div class="text-end pb-3 px-4 w-100">
             <button class="btn btn-primary btn-sm" style="width: 5rem;" id="gestionarMvtoCtbCaja" text="<?php echo $id_documento ?>"><?php echo $id_documento == 0 ? 'Registrar' : 'Actualizar'; ?></button>
-            <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</a>
+            <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
         </div>
     </div>
 </div>

@@ -1,46 +1,50 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
-include '../../../terceros.php';
+include '../../../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 // Div de acciones de la lista
 $id_ctb_doc = $_POST['id_doc'];
 
 try {
     $sql = "SELECT
-    `ctb_doc`.`vigencia`
-    , `pto_documento_detalles`.`estado`
-    , `pto_documento_detalles`.`id_documento`
-    , `pto_documento_detalles`.`id_auto_dep`
-    , `ctb_doc`.`id_tercero`
-    , `ctb_doc`.`id_manu`
-    , `ctb_doc`.`fecha`
-    , `ctb_doc`.`id_ctb_doc`
-    FROM
-    `pto_documento_detalles`
-    INNER JOIN `ctb_doc` 
-        ON (`pto_documento_detalles`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-    WHERE (`ctb_doc`.`vigencia` =$vigencia
-    AND `pto_documento_detalles`.`estado` =0
-    AND `pto_documento_detalles`.`tipo_mov` ='COP')
-    GROUP BY `pto_documento_detalles`.`id_ctb_doc`";
+                `ctb_doc`.`vigencia`
+                , `pto_documento_detalles`.`estado`
+                , `pto_documento_detalles`.`id_documento`
+                , `pto_documento_detalles`.`id_auto_dep`
+                , `ctb_doc`.`id_tercero`
+                , `ctb_doc`.`id_manu`
+                , `ctb_doc`.`fecha`
+                , `ctb_doc`.`id_ctb_doc`
+                , `tb_terceros`.`nom_tercero`
+                , `tb_terceros`.`nit_tercero`
+            FROM
+                `pto_documento_detalles`
+            INNER JOIN `ctb_doc` 
+                ON (`pto_documento_detalles`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
+            LEFT JOIN `tb_terceros` 
+                ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
+            WHERE (`ctb_doc`.`vigencia` =$vigenciaAND `pto_documento_detalles`.`estado` =0AND `pto_documento_detalles`.`tipo_mov` ='COP')
+            GROUP BY `pto_documento_detalles`.`id_ctb_doc`";
     $rs = $cmd->query($sql);
     $listado = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$id_t = [];
-foreach ($listado as $rp) {
-    if ($rp['id_tercero'] != '') {
-        $id_t[] = $rp['id_tercero'];
-    }
-}
-$ids = implode(',', $id_t);
-$terceros = getTerceros($ids, $cmd);
+
 foreach ($listado as $ce) {
     $id_doc = $ce['id_ctb_doc'];
     $id_ter = $ce['id_tercero'];
@@ -55,9 +59,8 @@ foreach ($listado as $ce) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
     // Consulta terceros en la api
-    $key = array_search($ce['id_tercero'], array_column($terceros, 'id_tercero_api'));
-    $tercero = $key !== false ? $terceros[$key]['nom_tercero'] : '---';
-    $ccnit = $key !== false ? $terceros[$key]['nit_tercero'] : '---';
+    $tercero = $ce['nom_tercero'];
+    $ccnit = $ce['nit_tercero'];
     // fin api terceros
     // Obtener el saldo del registro por obligar valor del registro - el valor obligado efectivamente
     try {
@@ -98,8 +101,8 @@ foreach ($listado as $ce) {
     }
 
     if ((intval($permisos['editar'])) === 1) {
-        $editar = '<a value="' . $id_doc . '" onclick="cargarListaDetallePago(' . $id_doc . ')" class="btn btn-outline-success btn-sm btn-circle shadow-gb editar" title="Causar"><span class="fas fa-plus-square fa-lg"></span></a>';
-        $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
+        $editar = '<a value="' . $id_doc . '" onclick="cargarListaDetallePago(' . $id_doc . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-plus-square"></span></a>';
+        $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
         ...
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -116,7 +119,7 @@ foreach ($listado as $ce) {
             'numero' =>  $lp['id_manu'],
             'fecha' => $fecha,
             'tercero' => $tercero,
-            'valor' =>  '<div class="text-right">' . $valor_total . '</div>',
+            'valor' =>  '<div class="text-end">' . $valor_total . '</div>',
             'botones' => '<div class="text-center" style="position:relative">' . $editar . $borrar . $imprimir . $acciones .  '</div>',
         ];
     }

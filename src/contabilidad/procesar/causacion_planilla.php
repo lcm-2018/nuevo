@@ -25,9 +25,10 @@ try {
             FROM `nom_parafiscales`
             ORDER BY `id_parafiscal` DESC";
     $rs = $cmd->query($sql);
-    $parafiscales = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $parafiscales = $rs->fetchAll();
     $rs->closeCursor();
     unset($rs);
+
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -114,7 +115,9 @@ try {
             ON (`t1`.`id_empleado` = `t2`.`id_empleado`)
             ORDER BY `t1`.`id_ccosto` ASC";
     $rs = $cmd->query($sql);
-    $patronales = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $patronales = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -211,7 +214,9 @@ try {
                     ON (`nom_rel_rubro`.`id_tipo` = `nom_tipo_rubro`.`id_rubro`)
             WHERE (`nom_rel_rubro`.`id_vigencia` = $id_vigencia)";
     $rs = $cmd->query($sql);
-    $rubros = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rubros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -236,7 +241,9 @@ try {
                 INNER JOIN `tb_centrocostos`
                     ON (`nom_causacion`.`centro_costo` = `tb_centrocostos`.`id_centro`)";
     $rs = $cmd->query($sql);
-    $cuentas_causacion = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $cuentas_causacion = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -345,6 +352,8 @@ try {
             WHERE (`pto_crp_detalle`.`id_pto_crp` = $crp)";
     $rs = $cmd->query($sql);
     $ids_detalle = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

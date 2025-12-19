@@ -1,12 +1,19 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include_once '../../../conexion.php';
-include_once '../../../permisos.php';
-include_once '../../../terceros.php';
+include_once '../../../../config/autoloader.php';
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
+
 include_once '../../../financiero/consultas.php';
 // Div de acciones de la lista
 $id_ctb_doc = $_POST['id_doc'];
@@ -54,14 +61,15 @@ if (isset($_POST['estado']) && strlen($_POST['estado'])) {
 }
 
 //-----------------------------------------------------------------------------------------------
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 $erp = [];
 if ($id_ctb_doc == '6') {
     try {
         $sql = "SELECT `id_transaccion` FROM `fac_pagos_erp` WHERE `estado` = 1";
         $rs = $cmd->query($sql);
-        $erp = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $erp = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -117,13 +125,16 @@ try {
              ORDER BY $col $dir $limit";
     $rs = $cmd->query($sql);
     $listappto = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
+    $rs->closeCursor();
+    unset($rs);
     // contar el total de registros
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 COUNT(*) AS `total`
             FROM
@@ -143,8 +154,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 COUNT(*) AS `total`
             FROM
@@ -166,15 +176,16 @@ try {
 $inicia = $_SESSION['vigencia'] . '-01-01';
 $termina = $_SESSION['vigencia'] . '-12-31';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_soporte`, `id_factura_no`, `shash`, `referencia`, `fecha`
             FROM
                 `seg_soporte_fno`
             WHERE (`fecha` BETWEEN '$inicia' AND '$termina')";
     $rs = $cmd->query($sql);
-    $equivalente = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $equivalente = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -182,17 +193,11 @@ try {
 // consultar la fecha de cierre del periodo del módulo de presupuesto 
 if (!empty($listappto)) {
 
-    $ids = [];
     $id_cta = [];
     foreach ($listappto as $lp) {
-        if ($lp['id_tercero'] !== null) {
-            $ids[] = $lp['id_tercero'];
-        }
         $id_cta[] = $lp['id_ctb_doc'];
     }
     $id_cta = implode(',', $id_cta);
-    $ids = implode(',', $ids);
-    $terceros = getTerceros($ids, $cmd);
     try {
         $sql = "SELECT 
                     `id_ctb_doc`
@@ -202,6 +207,8 @@ if (!empty($listappto)) {
                 WHERE `id_ctb_doc`IN ($id_cta) GROUP BY `id_ctb_doc`";
         $rs = $cmd->query($sql);
         $suma = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -213,15 +220,15 @@ if (!empty($listappto)) {
         $tercero = $lp['nom_tercero'];
         $ccnit = $lp['nit_tercero'];
         if ($lp['tipo'] == 'N') {
-            $enviar = '<button id ="enviar_' . $id_ctb . '" value="' . $lp['id_nomina'] . '" onclick="EnviarNomina(this)" class="btn btn-outline-primary btn-sm btn-circle shadow-gb"  title="Procesar nómina (Soporte Electrónico)"><span class="fas fa-paper-plane fa-lg"></span></button>';
+            $enviar = '<button id ="enviar_' . $id_ctb . '" value="' . $lp['id_nomina'] . '" onclick="EnviarNomina(this)" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow"  title="Procesar nómina (Soporte Electrónico)"><span class="fas fa-paper-plane"></span></button>';
         }
         $disabled = $estado == 2 ? '' : 'disabled';
         if ($lp['doc_soporte'] == 1) {
             $key = array_search($id_ctb, array_column($equivalente, 'id_factura_no'));
             if ($key !== false && $equivalente[$key]['shash'] != '') {
-                $doc_soporte = '<a onclick="VerSoporteElectronico(' . $equivalente[$key]['id_soporte'] . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb" title="VER DOCUMENTO"><span class="far fa-file-pdf fa-lg"></span></a>';
+                $doc_soporte = '<a onclick="VerSoporteElectronico(' . $equivalente[$key]['id_soporte'] . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow" title="VER DOCUMENTO"><span class="far fa-file-pdf"></span></a>';
             } else {
-                $doc_soporte = '<button value="' . $id_ctb . '" onclick="EnviaDocumentoSoporte(this)" class="btn btn-outline-info btn-sm btn-circle shadow-gb" title="REPORTAR FACTURA" ' . $disabled . '><span class="fas fa-paper-plane fa-lg"></span></button>';
+                $doc_soporte = '<button value="' . $id_ctb . '" onclick="EnviaDocumentoSoporte(this)" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow" title="REPORTAR FACTURA" ' . $disabled . '><span class="fas fa-paper-plane"></span></button>';
             }
         }
         // fin api terceros
@@ -234,30 +241,30 @@ if (!empty($listappto)) {
         }
         $fecha = date('Y-m-d', strtotime($lp['fecha']));
 
-        if ((PermisosUsuario($permisos, 5601, 1) || PermisosUsuario($permisos, 5602, 1) || PermisosUsuario($permisos, 5603, 1) || PermisosUsuario($permisos, 5604, 1) || $id_rol == 1)) {
-            $detalles = '<a value="' . $id_ctb . '" class="btn btn-outline-warning btn-sm btn-circle shadow-gb" title="Detalles" onclick="cargarListaDetallePagoEdit(' . $id_ctb . ')"><span class="fas fa-eye fa-lg"></span></a>';
+        if (($permisos->PermisosUsuario($opciones, 5601, 1) || $permisos->PermisosUsuario($opciones, 5602, 1) || $permisos->PermisosUsuario($opciones, 5603, 1) || $permisos->PermisosUsuario($opciones, 5604, 1) || $id_rol == 1)) {
+            $detalles = '<a value="' . $id_ctb . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow" title="Detalles" onclick="cargarListaDetallePagoEdit(' . $id_ctb . ')"><span class="fas fa-eye"></span></a>';
         }
-        if ((PermisosUsuario($permisos, 5601, 3) || PermisosUsuario($permisos, 5602, 3) || PermisosUsuario($permisos, 5603, 3) || PermisosUsuario($permisos, 5604, 3) || $id_rol == 1)) {
-            $editar = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" class="btn btn-outline-primary btn-sm btn-circle shadow-gb modificar"  text="' . $id_ctb . '"><span class="fas fa-pencil-alt fa-lg"></span></a>';
+        if (($permisos->PermisosUsuario($opciones, 5601, 3) || $permisos->PermisosUsuario($opciones, 5602, 3) || $permisos->PermisosUsuario($opciones, 5603, 3) || $permisos->PermisosUsuario($opciones, 5604, 3) || $id_rol == 1)) {
+            $editar = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow modificar"  text="' . $id_ctb . '"><span class="fas fa-pencil-alt"></span></a>';
         }
-        if ((PermisosUsuario($permisos, 5601, 4) || PermisosUsuario($permisos, 5602, 4) || PermisosUsuario($permisos, 5603, 4) || PermisosUsuario($permisos, 5604, 4) || $id_rol == 1)) {
-            $borrar = '<a value="' . $id_ctb . '" onclick="eliminarRegistroTec(' . $id_ctb . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb "  title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+        if (($permisos->PermisosUsuario($opciones, 5601, 4) || $permisos->PermisosUsuario($opciones, 5602, 4) || $permisos->PermisosUsuario($opciones, 5603, 4) || $permisos->PermisosUsuario($opciones, 5604, 4) || $id_rol == 1)) {
+            $borrar = '<a value="' . $id_ctb . '" onclick="eliminarRegistroTec(' . $id_ctb . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow "  title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
         }
-        if ((PermisosUsuario($permisos, 5601, 5) || PermisosUsuario($permisos, 5602, 5) || PermisosUsuario($permisos, 5603, 5) || PermisosUsuario($permisos, 5604, 5) || $id_rol == 1)) {
+        if (($permisos->PermisosUsuario($opciones, 5601, 5) || $permisos->PermisosUsuario($opciones, 5602, 5) || $permisos->PermisosUsuario($opciones, 5603, 5) || $permisos->PermisosUsuario($opciones, 5604, 5) || $id_rol == 1)) {
             if ($estado == 1) {
-                $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-info btn-sm btn-circle shadow-gb" onclick="cerrarDocumentoCtb(' . $id_ctb . ')" title="Cerrar"><span class="fas fa-lock fa-lg"></span></a>';
+                $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow" onclick="cerrarDocumentoCtbTes(' . $id_ctb . ')" title="Cerrar"><span class="fas fa-lock"></span></a>';
             } else {
-                $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-secondary btn-sm btn-circle shadow-gb" onclick="abrirDocumentoTes(' . $id_ctb . ')" title="Abrir"><span class="fas fa-unlock fa-lg"></span></a>';
+                $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-secondary btn-xs rounded-circle me-1 shadow" onclick="abrirDocumentoTes(' . $id_ctb . ')" title="Abrir"><span class="fas fa-unlock"></span></a>';
             }
-            $anular = '<a value="' . $id_ctb . '" class="btn btn-outline-danger btn-sm btn-circle shadow-gb" onclick="anularDocumentoTes(' . $id_ctb . ')" title="Anular"><span class="fas fa-ban fa-lg"></span></a>';
+            $anular = '<a value="' . $id_ctb . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow" onclick="anularDocumentoTes(' . $id_ctb . ')" title="Anular"><span class="fas fa-ban"></span></a>';
             $key = array_search($id_ctb, array_column($erp, 'id_transaccion'));
             if ($fecha < $fecha_cierre || $key !== false) {
                 $anular = null;
                 $cerrar = null;
             }
         }
-        if ((PermisosUsuario($permisos, 5601, 6) || PermisosUsuario($permisos, 5602, 6) || PermisosUsuario($permisos, 5603, 6) || PermisosUsuario($permisos, 5604, 6) || $id_rol == 1)) {
-            $imprimir = '<a value="' . $id_ctb . '" onclick="imprimirFormatoTes(' . $lp['id_ctb_doc'] . ')" class="btn btn-outline-success btn-sm btn-circle shadow-gb " title="Detalles"><span class="fas fa-print fa-lg"></span></a>';
+        if (($permisos->PermisosUsuario($opciones, 5601, 6) || $permisos->PermisosUsuario($opciones, 5602, 6) || $permisos->PermisosUsuario($opciones, 5603, 6) || $permisos->PermisosUsuario($opciones, 5604, 6) || $id_rol == 1)) {
+            $imprimir = '<a value="' . $id_ctb . '" onclick="imprimirFormatoTes(' . $lp['id_ctb_doc'] . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow " title="Detalles"><span class="fas fa-print"></span></a>';
         }
 
         if ($estado >= 2) {
@@ -272,7 +279,7 @@ if (!empty($listappto)) {
             $cerrar = null;
             $anular = null;
             $detalles = null;
-            $dato = '<span class="badge rounded-pill text-bg-pill badge-secondary">Anulado</span>';
+            $dato = '<span class="badge rounded-pill bg-secondary">Anulado</span>';
         }
         $data[] = [
             'numero' => $lp['id_manu'],
@@ -280,7 +287,7 @@ if (!empty($listappto)) {
             'fecha' => $fecha,
             'ccnit' => $ccnit,
             'tercero' => $tercero,
-            'valor' => '<div class="text-right">' . $valor_total . '</div>',
+            'valor' => '<div class="text-end">' . $valor_total . '</div>',
             'botones' => '<div class="text-center" style="position:relative">' . $editar . $detalles . $borrar . $imprimir . $enviar . $dato . $cerrar . $doc_soporte . $anular . '</div>',
         ];
     }

@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include_once '../../../financiero/consultas.php';
 function pesos($valor)
 {
@@ -19,8 +19,7 @@ $fecha2 = $fecha->format('Y-m-d H:i:s');
 $response['status'] = 'error';
 $cambios = 0;
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "DELETE FROM `tes_caja_mvto` WHERE `id_ctb_doc` = ?";
     $sql = $cmd->prepare($sql);
     $sql->bindParam(1, $id_doc, PDO::PARAM_INT);

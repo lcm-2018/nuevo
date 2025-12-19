@@ -1,11 +1,10 @@
 <?php
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $data = file_get_contents("php://input");
 // Realizo conexion con la base de datos
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
 } catch (Exception $e) {
     die("No se pudo conectar: " . $e->getMessage());
 }

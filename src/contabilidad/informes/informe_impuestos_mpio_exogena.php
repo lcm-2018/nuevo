@@ -49,6 +49,8 @@ WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` =3 AND `ctb_causa_retencion`.`id
 ";
     $res = $cmd->query($sql);
     $retenciones = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -71,6 +73,8 @@ WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` =4 AND `ctb_causa_retencion`.`id
 ";
     $res = $cmd->query($sql);
     $sobretasa = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -97,6 +101,8 @@ FROM
 WHERE ( `ctb_doc`.`id_tercero` >0);";
     $res = $cmd->query($sql);
     $id_terceros = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -186,6 +192,8 @@ $ccnit = $key !== false ? $terceros[$key]['nit_tercero'] : '---';
                 AND `ctb_doc`.`fecha` BETWEEN '$fecha_inicial' AND '$fecha_corte');";
             $res = $cmd->query($sql);
             $pagos_realizados = $res->fetchAll();
+            $res->closeCursor();
+            unset($res);
             // Iniciar la tabla
             echo "<h4>" . strtoupper($tp['nombre_retencion']) . "</h4>";
             echo '<table class="table-bordered bg-light" style="width:100% !important;" border=1>
@@ -253,6 +261,8 @@ $ccnit = $key !== false ? $terceros[$key]['nit_tercero'] : '---';
                 AND `ctb_doc`.`fecha` BETWEEN '$fecha_inicial' AND '$fecha_corte');";
             $res = $cmd->query($sql);
             $pagos_realizados = $res->fetchAll();
+            $res->closeCursor();
+            unset($res);
             // Iniciar la tabla
             echo "<h4>" . strtoupper($tp['nombre_retencion']) . "</h4>";
             echo '<table class="table-bordered bg-light" style="width:100% !important;" border=1>

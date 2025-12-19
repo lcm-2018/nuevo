@@ -620,23 +620,46 @@ document.addEventListener('keydown', function (event) {
     }
 });
 document.addEventListener('DOMContentLoaded', function () {
-    var modalElementList = document.querySelectorAll('.modal');
-    modalElementList.forEach(function (modalEl) {
-        modalEl.addEventListener('shown.bs.modal', function () {
-            var openModals = document.querySelectorAll('.modal.show');
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('tesoreria')) {
+            e.preventDefault();
 
-            const BASE_ZINDEX = 1055;
-            const ZINDEX_INCREMENT = 20;
-            var newZIndex = BASE_ZINDEX + (openModals.length * ZINDEX_INCREMENT);
+            let id = e.target.getAttribute('text');
 
-            this.style.zIndex = newZIndex;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = ValueInput('host') + '/src/tesoreria/lista_documentos_com.php';
 
-            var backdrop = document.querySelector('.modal-backdrop.show:last-child');
-            if (backdrop) {
-                backdrop.style.zIndex = newZIndex - 1;
-            }
-        });
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'var';
+            input.value = id;
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
     });
+
+    var modalElementList = document.querySelectorAll('.modal');
+    if (modalElementList) {
+        modalElementList.forEach(function (modalEl) {
+            modalEl.addEventListener('shown.bs.modal', function () {
+                var openModals = document.querySelectorAll('.modal.show');
+
+                const BASE_ZINDEX = 1055;
+                const ZINDEX_INCREMENT = 20;
+                var newZIndex = BASE_ZINDEX + (openModals.length * ZINDEX_INCREMENT);
+
+                this.style.zIndex = newZIndex;
+
+                var backdrop = document.querySelector('.modal-backdrop.show:last-child');
+                if (backdrop) {
+                    backdrop.style.zIndex = newZIndex - 1;
+                }
+            });
+        });
+    }
 });
 
 const DownloadFile = (name) => {

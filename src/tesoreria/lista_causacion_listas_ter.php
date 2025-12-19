@@ -1,18 +1,25 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
+include '../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $id_doc = isset($_POST['id_doc']) ? $_POST['id_doc'] : 0;
 $id_tercero = isset($_POST['id_tercero']) ? $_POST['id_tercero'] : 0;
 $id_cop = isset($_POST['id_cop']) ? $_POST['id_cop'] : 0;
 // Consulta tipo de presupuesto
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 try {
     if ($_SESSION['pto'] == '1') {
@@ -86,6 +93,8 @@ try {
     }
     $rs = $cmd->query($sql);
     $causaciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -93,9 +102,6 @@ try {
 ?>
 <script>
     $('#tableCausacionPagos').DataTable({
-        dom: "<'row'<'col-md-2'l><'col-md-10'f>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         language: dataTable_es,
         "order": [
             [0, "desc"]
@@ -107,18 +113,18 @@ try {
 <div class="px-0">
 
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LISTA DE CAUSACIONES PARA PAGO DEL TERCERO</h5>
+        <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LISTA DE CAUSACIONES PARA PAGO DEL TERCERO</h5>
         </div>
         <div class="px-3 pt-2">
             <table id="tableCausacionPagos" class="table table-striped table-bordered table-sm table-hover shadow" style="width: 100%;">
                 <thead>
                     <tr>
-                        <th class="w-15">No causación</th>
-                        <th class="w-30">Fecha</th>
-                        <th class="w-10">Valor causado</th>
-                        <th class="w-10">Valor Pagos</th>
-                        <th class="w-5">Acciones</th>
+                        <th class="bg-sofia">No causación</th>
+                        <th class="bg-sofia">Fecha</th>
+                        <th class="bg-sofia">Valor causado</th>
+                        <th class="bg-sofia">Valor Pagos</th>
+                        <th class="bg-sofia">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -128,10 +134,10 @@ try {
                             $id = $ce['id_ctb_doc'];
                             $fecha = $ce['fecha'];
 
-                            if (PermisosUsuario($permisos, 5601, 3) || $id_rol == 1) {
-                                $editar = '<button value="' . $id_doc . '" onclick="cargaRubrosPago(' . $id . ',this)" class="btn btn-outline-info btn-sm btn-circle shadow-gb" title="Causar"><span class="fas fa-chevron-circle-down fa-lg"></span></a>';
-                                $borrar = '<a value="' . $id_doc . '" onclick="eliminarFormaPago(' . $id_doc . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb editar" title="Causar"><span class="fas fa-trash-alt fa-lg"></span></a>';
-                                $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
+                            if ($permisos->PermisosUsuario($opciones, 5601, 3) || $id_rol == 1) {
+                                $editar = '<button value="' . $id_doc . '" onclick="cargaRubrosPago(' . $id . ',this)" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow" title="Causar"><span class="fas fa-chevron-circle-down"></span></a>';
+                                $borrar = '<a value="' . $id_doc . '" onclick="eliminarFormaPago(' . $id_doc . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-trash-alt"></span></a>';
+                                $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
                             ...
                             </button>
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -149,11 +155,11 @@ try {
                             $fecha_doc = date('Y-m-d',  strtotime($fecha));
                         ?>
                             <tr id="<?php echo $id; ?>">
-                                <td class="text-left"><?php echo $ce['id_manu']; ?></td>
-                                <td class="text-left"><?php echo $fecha_doc;  ?></td>
-                                <td class="text-right">$ <?php echo number_format($ce['val_cop'], 2, '.', ','); ?></td>
-                                <td class="text-right">$ <?php echo number_format($ce['val_pag'], 2, '.', ','); ?></td>
-                                <td> <?php echo $editar .  $acciones; ?></td>
+                                <td class="text-start"><?php echo $ce['id_manu']; ?></td>
+                                <td class="text-start"><?php echo $fecha_doc;  ?></td>
+                                <td class="text-end">$ <?php echo number_format($ce['val_cop'], 2, '.', ','); ?></td>
+                                <td class="text-end">$ <?php echo number_format($ce['val_pag'], 2, '.', ','); ?></td>
+                                <td class="text-center"> <?php echo $editar .  $acciones; ?></td>
 
                             </tr>
                         <?php
@@ -162,8 +168,8 @@ try {
                     </div>
                 </tbody>
             </table>
-            <div class="text-right py-3">
-                <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</a>
+            <div class="text-end py-3">
+                <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</a>
             </div>
 
         </div>

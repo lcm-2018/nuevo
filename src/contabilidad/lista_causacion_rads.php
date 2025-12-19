@@ -46,6 +46,8 @@ try {
             WHERE (`pto_rad`.`estado` = 2  AND `id_pto` = {$listappto['id_pto']} AND `pto_rad`.`tipo_movimiento` IS NULL)";
     $rs = $cmd->query($sql);
     $listado = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -61,6 +63,8 @@ try {
             GROUP BY `pto_rad`.`id_pto_rad`";
     $rs = $cmd->query($sql);
     $radicados = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -77,6 +81,8 @@ try {
             GROUP BY `ctb_doc`.`id_rad`";
     $rs = $cmd->query($sql);
     $causados = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

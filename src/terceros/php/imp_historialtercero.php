@@ -8,8 +8,7 @@ include '../../../conexion.php';
 include '../../../terceros.php';
 include 'cargar_combos.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $id_tercero = isset($_POST['idt']) ? $_POST['idt'] : -1;
 $otro_form = isset($_POST['otro_form']) ? $_POST['otro_form'] : 0;

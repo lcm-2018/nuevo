@@ -42,6 +42,8 @@ try {
             WHERE (`ctb_causa_retencion`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
     $rubros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -50,6 +52,8 @@ try {
     $sql = "SELECT `id_retencion_tipo`, `tipo` FROM `ctb_retencion_tipo` ORDER BY `tipo` ASC;";
     $rs = $cmd->query($sql);
     $retenciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -75,6 +79,8 @@ try {
             WHERE (`ctb_factura`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
     $facturas = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -161,7 +167,7 @@ $val_iva = $valores[1];
                                     </div>
                                     <div class="col-md-6">
                                         <label for="valor_rte" class="small">Valor retención</label>
-                                        <input type="text" name="valor_rte" id="valor_rte" class="form-control form-control-sm bg-input text-end" onkeyup="valorMiles(id)" value="<?php echo 0; ?>">
+                                        <input type="text" name="valor_rte" id="valor_rte" class="form-control form-control-sm bg-input text-end" onkeyup="NumberMiles(this)" value="<?php echo 0; ?>">
                                     </div>
                                 </div>
                             </div>

@@ -1,8 +1,7 @@
 <?php
 session_start();
-include '../../../conexion.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+include '../../../../config/autoloader.php';
+$cmd = \Config\Clases\Conexion::getConexion();
 $_post = json_decode(file_get_contents('php://input'), true);
 $search = $_post['search'][0];
 if (isset($_POST['search'])) {
@@ -19,6 +18,8 @@ if (isset($_POST['search'])) {
             AND `pto_cargue`.`vigencia` ={$_SESSION['vigencia']});";
     $rs = $cmd->query($sql);
     $datos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     foreach ($datos as $key => $value) {
         $response[] = array("value" => $value['cod_pptal'], "label" => $value['cod_pptal'] . " - " . $value['nom_rubro'], "tipo" => $value['tipo_dato']);
     }

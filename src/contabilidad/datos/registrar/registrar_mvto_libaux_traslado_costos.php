@@ -53,7 +53,9 @@ try {
                 INNER JOIN `ctb_pgcp` ON (`cc`.`id_cta_costo` = `ctb_pgcp`.`id_pgcp`)
                 LEFT JOIN `v` ON (`v`.`cuenta` = `ctb_pgcp`.`cuenta`)";
     $rs = $cmd->query($sql);
-    $cuentas = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $cuentas = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $query = "INSERT INTO `ctb_libaux`
 	            (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`)
             VALUES (?, ?, ?, ?, ?, ?, ?)";

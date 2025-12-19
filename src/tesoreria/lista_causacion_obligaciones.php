@@ -4,9 +4,17 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
-include '../terceros.php';
+include '../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
+
 
 // Consulta tipo de presupuesto
 $vigencia = $_SESSION['vigencia'];
@@ -15,8 +23,7 @@ $id_cop_add = $_POST['id_cop_add'] ?? 0;
 $id_tipo = $_POST['id_tipo'];
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_pto` FROM `pto_presupuestos` WHERE (`id_vigencia` = $id_vigencia AND `id_tipo` = 2)";
     $rs = $cmd->query($sql);
     $listappto = $rs->fetch();
@@ -34,6 +41,8 @@ try {
                 , SUM(`t1`.`valor`) AS `valor`
                 , SUM(`t1`.`valor_pagado`) AS `valor_pagado`
                 , `t1`.`num_contrato`
+                , `tb_terceros`.`nom_tercero`
+                , `tb_terceros`.`nit_tercero`
             FROM 
                 (SELECT
                     `ctb_doc`.`id_ctb_doc`
@@ -67,7 +76,9 @@ try {
                         ON (`ctt_adquisiciones`.`id_cdp` = `pto_cdp`.`id_pto_cdp`)
                     LEFT JOIN `ctt_contratos` 
                         ON (`ctt_contratos`.`id_compra` = `ctt_adquisiciones`.`id_adquisicion`)
-                WHERE `ctb_doc`.`id_crp` IS NOT NULL) AS `t1`  
+                WHERE `ctb_doc`.`id_crp` IS NOT NULL) AS `t1`
+                LEFT JOIN `tb_terceros` 
+                    ON (`t1`.`id_tercero` = `tb_terceros`.`id_tercero_api`) 
             WHERE  `valor` > `valor_pagado`
             GROUP BY `id_ctb_doc`";
     } else {
@@ -80,6 +91,8 @@ try {
                     , `causado`.`valor`
                     , IFNULL(`pagado`.`valor`,0) AS `valor_pagado`
                     , '' AS `num_contrato`
+                    , `tb_terceros`.`nom_tercero`
+                    , `tb_terceros`.`nit_tercero`
                 FROM 
                     `ctb_doc`
                     INNER JOIN
@@ -104,22 +117,19 @@ try {
                             ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
                         WHERE (`ctb_doc`.`id_ctb_doc_tipo3` > 0 AND `ctb_doc`.`estado` > 0)
                         GROUP BY `ctb_libaux`.`id_ctb_doc`) AS `pagado`
-                        ON(`causado`.`id_ctb_doc` = `pagado`.`id_ctb_doc_tipo3`)";
+                        ON(`causado`.`id_ctb_doc` = `pagado`.`id_ctb_doc_tipo3`)
+                        LEFT JOIN `tb_terceros` 
+                            ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)";
     }
     $sql2 = $sql;
     $rs = $cmd->query($sql);
     $listado = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$id_t = [];
-foreach ($listado as $rp) {
-    if ($rp['id_tercero'] !== null) {
-        $id_t[] = $rp['id_tercero'];
-    }
-}
-$ids = implode(',', $id_t);
-$terceros = getTerceros($ids, $cmd);
+
 ?>
 <script>
     $('#tableObligacionesPago').DataTable({
@@ -141,8 +151,8 @@ $terceros = getTerceros($ids, $cmd);
 </script>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LISTA DE OBLIGACIONES PARA PAGO DE TESORERÍA</h5>
+        <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LISTA DE OBLIGACIONES PARA PAGO DE TESORERÍA</h5>
         </div>
         <div class="pb-3"></div>
         <div class="px-3">
@@ -151,15 +161,15 @@ $terceros = getTerceros($ids, $cmd);
                 <table id="tableObligacionesPago" class="table table-striped table-bordered nowrap table-sm table-hover shadow" style="width: 100%;">
                     <thead>
                         <tr>
-                            <th style="width: 7%;" title="Seleccionar todos"><input type="checkbox" id="checkAll" onclick="checkAll(this)"></th>
-                            <th style="width: 10%;">Causación</th>
-                            <th style="width: 10%;">Rp</th>
-                            <th style="width: 13%;">Contrato</th>
-                            <th style="width: 10%;">Fecha</th>
-                            <th style="width: 10%;">Cc / Nit</th>
-                            <th style="width: 20%;">Terceros</th>
-                            <th style="width: 15%;">Valor</th>
-                            <th style="width: 5%;">Acciones</th>
+                            <th class="bg-sofia" title="Seleccionar todos"><input type="checkbox" id="checkAll" onclick="checkAll(this)"></th>
+                            <th class="bg-sofia">Causación</th>
+                            <th class="bg-sofia">Rp</th>
+                            <th class="bg-sofia">Contrato</th>
+                            <th class="bg-sofia">Fecha</th>
+                            <th class="bg-sofia">Cc / Nit</th>
+                            <th class="bg-sofia">Terceros</th>
+                            <th class="bg-sofia">Valor</th>
+                            <th class="bg-sofia">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -172,16 +182,15 @@ $terceros = getTerceros($ids, $cmd);
 
                             // Consulta terceros en la api
 
-                            $key = array_search($ce['id_tercero'], array_column($terceros, 'id_tercero_api'));
-                            $tercero = $key !== false ? ltrim($terceros[$key]['nom_tercero']) : '';
-                            $ccnit = $key !== false ? $terceros[$key]['nit_tercero'] : '';
+                            $tercero = $ce['nom_tercero'];
+                            $ccnit = $ce['nit_tercero'];
 
                             // fin api terceros
 
                             $saldo_rp = $ce['valor'] - $ce['valor_pagado'];
 
-                            if (PermisosUsuario($permisos, 5601, 3) || $id_rol == 1) {
-                                $editar = '<a value="' . $id_doc . '" onclick="cargarListaDetallePago(' . $id_doc . ',0)" class="btn btn-outline-success btn-sm btn-circle shadow-gb editar" title="Causar"><span class="fas fa-plus-square fa-lg"></span></a>';
+                            if ($permisos->PermisosUsuario($opciones, 5601, 3) || $id_rol == 1) {
+                                $editar = '<a value="' . $id_doc . '" onclick="cargarListaDetallePago(' . $id_doc . ',0)" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-plus-square"></span></a>';
                             }
 
                             if ($saldo_rp > 0) {
@@ -190,13 +199,13 @@ $terceros = getTerceros($ids, $cmd);
                                     <td class="text-center">
                                         <input type="checkbox" name="check[]" class="check-item" value="<?php echo $id_doc; ?>">
                                     </td>
-                                    <td class="text-left"><?php echo $ce['causacion']; ?></td>
-                                    <td class="text-left"><?php echo $ce['registro'] ?></td>
-                                    <td class="text-left"><?php echo $ce['num_contrato']   ?></td>
-                                    <td class="text-left"><?php echo $fecha; ?></td>
-                                    <td class="text-left"><?php echo $ccnit; ?></td>
-                                    <td class="text-left text-wrap"><?php echo $tercero; ?></td>
-                                    <td class="text-right"> <?php echo number_format($saldo_rp, 2, ',', '.'); ?></td>
+                                    <td class="text-start"><?php echo $ce['causacion']; ?></td>
+                                    <td class="text-start"><?php echo $ce['registro'] ?></td>
+                                    <td class="text-start"><?php echo $ce['num_contrato']   ?></td>
+                                    <td class="text-start"><?php echo $fecha; ?></td>
+                                    <td class="text-start"><?php echo $ccnit; ?></td>
+                                    <td class="text-start text-wrap"><?php echo $tercero; ?></td>
+                                    <td class="text-end"> <?php echo number_format($saldo_rp, 2, ',', '.'); ?></td>
                                     <td class="text-center"> <?php echo $editar; ?></td>
                                 </tr>
                         <?php
@@ -210,13 +219,13 @@ $terceros = getTerceros($ids, $cmd);
             </form>
         </div>
     </div>
-    <div class="text-right pt-3">
+    <div class="text-end pt-3">
         <?php
         if ($id_tipo == 4) {
             echo '<button type="button" class="btn btn-primary btn-sm" onclick="ProcesarLotesPagos(this)">Procesar lote</button>';
         }
         ?>
-        <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Cerrar</a>
+        <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
     </div>
 </div>
 <?php

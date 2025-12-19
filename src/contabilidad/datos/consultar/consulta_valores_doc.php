@@ -29,6 +29,8 @@ try {
     }
     $rs = $cmd->query($sql);
     $datas = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -43,6 +45,8 @@ foreach ($datas as $doc) {
             $sql = "SELECT `id_cuenta` FROM `ctb_libaux` WHERE (`id_ctb_doc` = $id)";
             $rs = $cmd->query($sql);
             $cuentas = $rs->fetchAll();
+            $rs->closeCursor();
+            unset($rs);
             foreach ($cuentas as $c) {
                 if ($c['id_cuenta'] == '') {
                     $valida = false;

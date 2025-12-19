@@ -23,6 +23,8 @@ try {
     $sql = "SELECT `id_pgcp`, `cuenta`, `nombre` FROM `ctb_pgcp` WHERE `id_pgcp` IN ('$cta_inicial', '$cta_final') ORDER BY `cuenta` ASC";
     $res = $cmd->query($sql);
     $cta = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo 'Error: ' . $e->getMessage();
     exit();
@@ -75,6 +77,8 @@ try {
             ORDER BY `ctb_pgcp`.`fecha`, `ctb_pgcp`.`cuenta` ASC";
     $res = $cmd->query($sql);
     $cuentas = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo 'Error: ' . $e->getMessage();
     exit();

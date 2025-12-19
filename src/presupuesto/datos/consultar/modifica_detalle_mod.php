@@ -37,8 +37,8 @@ if (!empty($detalle)) {
     $res[1] = ' <input type="text" id="rubroCod" class="form-control form-control-sm bg-input" value="' .  $detalle['cod_pptal'] . ' - ' . $detalle['nom_rubro'] . '">
             <input type="hidden" name="id_rubroCod" id="id_rubroCod" class="form-control form-control-sm bg-input" value="' . $detalle['id_cargue'] . '">
             <input type="hidden" id="tipoRubro" name="tipoRubro" value="' . $detalle['tipo_dato'] . '">';
-    $res[2] = '<input type="text" name="valorDeb" id="valorDeb" class="form-control form-control-sm  bg-input" size="6" style="text-align: right;" onkeyup="valorMiles(id)" value="' . $detalle['valor_deb'] . '">';
-    $res[3] = '<input type="text" name="valorCred" id="valorCred" class="form-control form-control-sm  bg-input" size="6" style="text-align: right;" onkeyup="valorMiles(id)" value="' . $detalle['valor_cred'] . '">';
+    $res[2] = '<input type="text" name="valorDeb" id="valorDeb" class="form-control form-control-sm  bg-input" size="6" style="text-align: right;" onkeyup="NumberMiles(this)" value="' . $detalle['valor_deb'] . '">';
+    $res[3] = '<input type="text" name="valorCred" id="valorCred" class="form-control form-control-sm  bg-input" size="6" style="text-align: right;" onkeyup="NumberMiles(this)" value="' . $detalle['valor_cred'] . '">';
     $res[4] = '<div class="text-center"><input type="hidden" name="id_pto_mod" id="id_pto_mod" value="' . $detalle['id_pto_mod'] . '">
             <a class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow" title="Ver historial del rubro" onclick="verHistorial(this)"><span class="far fa-list-alt "></span></a>
             <button text="' . $id_detalle . '" class="btn btn-primary btn-sm" onclick="RegDetalleMod(this)">Modificar</button></div>';

@@ -430,7 +430,7 @@
 	});
 
 	//--------------informes bancos
-	$('#sl_libros_aux_bancos').on("click", function () {
+	$('#sl_libros_aux_bancos_ctb').on("click", function () {
 		$.post(ValueInput('host') + '/src/contabilidad/php/informes_bancos/frm_libros_aux_bancos.php', {}, function (he) {
 			$('#divTamModalForms').removeClass('modal-lg');
 			$('#divTamModalForms').removeClass('modal-sm');
@@ -565,9 +565,6 @@ function redireccionar(ruta) {
 	}, ruta.time);
 }
 
-function valorMiles(id) {
-	milesp(id);
-}
 /*  ========================================================= Modulo de contabilidad ==========================================*/
 // Función para formaterar fecha Y-m-d
 const formatDate = (date) => {

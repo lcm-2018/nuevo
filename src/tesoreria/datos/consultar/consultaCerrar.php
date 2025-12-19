@@ -1,14 +1,13 @@
 <?php
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $data = file_get_contents("php://input");
 $data = str_replace("|", ",", $data);
 $data = str_replace("'", "", $data);
 // Incio la transaccion
 $response['status'] = 'error';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT 
                 `ctb_libaux`.`id_ctb_doc`, `id_manu`,SUM(`debito`) as `debito`, SUM(`credito`) as `credito` 
             FROM 
@@ -18,6 +17,8 @@ try {
             GROUP BY `id_ctb_doc`";
     $rs = $cmd->query($sql);
     $sumaMovimientos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $total = count($sumaMovimientos);
     $cerrados = 0;
     $errores = '';
@@ -27,6 +28,8 @@ try {
         $sql = "SELECT `id_cuenta`, `id_ctb_doc` FROM `ctb_libaux` WHERE (`id_ctb_doc` = $id_ctb_doc)";
         $rs = $cmd->query($sql);
         $cuentas = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
         if ($sumaMov['debito'] == 0 || $sumaMov['credito'] == 0) {
             $dif = 3;
         }

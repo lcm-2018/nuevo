@@ -67,3 +67,12 @@
 [2025-12-17 14:30:30] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_retenciones` WHERE `id_retencion` = 58;
 [2025-12-17 14:33:30] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_retencion_rango` WHERE `id_rango` = 56;
 [2025-12-17 15:18:57] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM tb_homologacion WHERE id_homo=13;
+[2025-12-18 11:49:32] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_doc` WHERE `id_ctb_doc` = 145263;
+[2025-12-18 12:07:41] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM tes_detalle_pago WHERE id_detalle_pago = 2600;
+[2025-12-18 14:25:47] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `tes_referencia` WHERE `id_referencia` = 3;
+[2025-12-18 14:59:49] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_libaux` WHERE `id_ctb_libaux` = 522018;
+[2025-12-18 15:13:28] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_doc` WHERE `id_ctb_doc` = 93548;
+[2025-12-18 15:25:24] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_doc` WHERE `id_ctb_doc` = 145266;
+[2025-12-18 15:27:43] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_doc` WHERE `id_ctb_doc` = 145267;
+[2025-12-18 17:19:07] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `tes_cuentas` WHERE `id_tes_cuenta` = 119;
+[2025-12-18 17:29:16] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `fin_chequeras` WHERE `id_chequera` = 1;

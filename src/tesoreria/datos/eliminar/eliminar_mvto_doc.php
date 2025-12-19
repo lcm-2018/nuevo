@@ -5,14 +5,13 @@ use Config\Clases\Logs;
 $_post = json_decode(file_get_contents('php://input'), true);
 $id = $_post['id'];
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
 // Incio la transaccion
 $response['status'] = 'error';
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
 
     //---------------- eliminar pto_rad, pto_rec, pto_rad_detalle y pto_rec_detalle con id_ctb_doc
     $id_pto_rec = 0;

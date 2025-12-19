@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 //Recibir variables por POST
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $_post = json_decode(file_get_contents('php://input'), true);
 $id_doc = $_post['id'];
 $id_crp = $_post['id_crp'];
@@ -17,8 +17,7 @@ $fecha2 = $date->format('Y-m-d H:i:s');
 $response['status'] = 'error';
 $registros = 0;
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $query = "DELETE FROM `ctb_libaux` WHERE `id_ctb_doc` = ?";
     $query = $cmd->prepare($query);
     $query->bindParam(1, $id_doc, PDO::PARAM_INT);
@@ -39,6 +38,8 @@ try {
             WHERE (`tes_detalle_pago`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sq2);
     $formapago = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     if ($tipo != 4) {
         $sql = "SELECT
                     `ctb_referencia`.`id_cuenta` AS `cuenta`
@@ -61,6 +62,8 @@ try {
                 WHERE (`id_ctb_doc` = $id_cop AND `credito` > 0)";
         $rs = $cmd->query($sql);
         $cuenta_ctb = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
     }
     $sql = "INSERT INTO `ctb_libaux`
                 (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`)

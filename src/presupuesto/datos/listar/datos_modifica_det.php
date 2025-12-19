@@ -131,8 +131,8 @@ if ($estado == '1') {
     $rubro = ' <input type="text" id="rubroCod" class="form-control form-control-sm bg-input" value="">
             <input type="hidden" name="id_rubroCod" id="id_rubroCod" class="form-control form-control-sm bg-input" value="0">
             <input type="hidden" id="tipoRubro" name="tipoRubro" value="0">';
-    $debito = '<input type="text" ' . $ingresos . ' name="valorDeb" id="valorDeb" class="form-control form-control-sm  bg-input" size="6" value="0" style="text-align: right;" onkeyup="valorMiles(id)">';
-    $credito = '<input type="text" ' . $gastos . ' name="valorCred" id="valorCred" class="form-control form-control-sm  bg-input" size="6" value="0" style="text-align: right;" onkeyup="valorMiles(id)">';
+    $debito = '<input type="text" ' . $ingresos . ' name="valorDeb" id="valorDeb" class="form-control form-control-sm  bg-input" size="6" value="0" style="text-align: right;" onkeyup="NumberMiles(this)">';
+    $credito = '<input type="text" ' . $gastos . ' name="valorCred" id="valorCred" class="form-control form-control-sm  bg-input" size="6" value="0" style="text-align: right;" onkeyup="NumberMiles(this)">';
     $botones = '<input type="hidden" name="id_pto_mod" id="id_pto_mod" value="' . $id_pto_mod . '">
             <a class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow" title="Ver historial del rubro" onclick="verHistorial(this)"><span class="far fa-list-alt "></span></a>
             <button text="0" class="btn btn-primary btn-sm" onclick="RegDetalleMod(this)">Agregar</button>';

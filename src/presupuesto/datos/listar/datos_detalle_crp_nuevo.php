@@ -85,10 +85,10 @@ if (!empty($detalles)) {
         $valor  = $dt['val_cdp'] - $dt['val_crp'];
         if ($valor != 0) {
             if ($id_crp == 0) {
-                $valor_input = '<input class="form-control form-control-sm valor-detalle bg-input" type="text" style="text-align:right;border: 0;" name="detalle[' . $id . ']"  id="lp' . $id . '" value="' . $valor . '" min="0" max="' . $valor .  '" onkeyup="valorMiles(id)">';
+                $valor_input = '<input class="form-control form-control-sm valor-detalle bg-input" type="text" style="text-align:right;border: 0;" name="detalle[' . $id . ']"  id="lp' . $id . '" value="' . $valor . '" min="0" max="' . $valor .  '" onkeyup="NumberMiles(this)">';
             } else {
                 $max = $dt['val_crp'] + $valor;
-                $valor_input = '<input class="form-control form-control-sm valor-detalle bg-input" type="text" style="text-align:right;border: 0;" name="detalle[' . $id . ']"  id="lp' . $id . '" value="' . $dt['val_crp'] . '" min="0" max="' . $max .  '" onkeyup="valorMiles(id)">';
+                $valor_input = '<input class="form-control form-control-sm valor-detalle bg-input" type="text" style="text-align:right;border: 0;" name="detalle[' . $id . ']"  id="lp' . $id . '" value="' . $dt['val_crp'] . '" min="0" max="' . $max .  '" onkeyup="NumberMiles(this)">';
             }
         } else {
             $valor_input = pesos($dt['val_crp']);

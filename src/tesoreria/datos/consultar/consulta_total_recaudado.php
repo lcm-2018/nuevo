@@ -1,8 +1,7 @@
 <?php
 
-include '../../../conexion.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+include '../../../../config/autoloader.php';
+$cmd = \Config\Clases\Conexion::getConexion();
 $_post = json_decode(file_get_contents('php://input'), true);
 $doc = $_post['doc'];
 // Consulto el valor que el facturador ya tiene registrado en esa fecha

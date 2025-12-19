@@ -73,6 +73,8 @@ try {
         ORDER BY `ctb_pgcp`.`cuenta` ASC";
     $res = $cmd->query($sql);
     $datos = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (Exception $e) {
     echo $e->getMessage();
 }
@@ -80,6 +82,8 @@ try {
     $sql = "SELECT `cuenta`,`nombre`, `id_pgcp`,`tipo_dato` FROM `ctb_pgcp` WHERE (`estado` = 1)";
     $res = $cmd->query($sql);
     $cuentas = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (Exception $e) {
     echo $e->getMessage();
 }

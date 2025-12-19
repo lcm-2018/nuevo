@@ -94,6 +94,8 @@ try {
             GROUP BY `ctb_causa_retencion`.`tarifa`, `ctb_causa_retencion`.`id_terceroapi`";
     $rs = $cmd->query($sql);
     $retenciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -118,6 +120,8 @@ try {
     ORDER BY `fin_respon_doc`.`tipo_control` ASC;";
     $res = $cmd->query($sql);
     $firmas = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

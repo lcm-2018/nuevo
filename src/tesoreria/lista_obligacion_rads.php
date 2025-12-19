@@ -4,14 +4,20 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
-include '../terceros.php';
+include '../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $id_vigencia = $_SESSION['id_vigencia'];
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -20,10 +26,10 @@ try {
     $sql = "SELECT
                 `ctb_doc`.`id_ctb_doc`
                 , `ctb_doc`.`id_manu`
-                , `ctb_doc`.`fecha`
+                , DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') AS `fecha`
                 , `tb_terceros`.`nom_tercero`
                 , `tb_terceros`.`nit_tercero`
-                , `obligado`.`valor`
+                , IFNULL(`obligado`.`valor`, 0) AS `valor`
                 , IFNULL(`recaudado`.`val_recaudado`, 0) AS `valor_pagado`
             FROM
                 `ctb_doc`
@@ -53,15 +59,14 @@ try {
             WHERE (`ctb_doc`.`id_vigencia` = $id_vigencia AND `ctb_fuente`.`cod` = 'FELE' AND `ctb_doc`.`estado` = 2)";
     $rs = $cmd->query($sql);
     $listado = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 ?>
 <script>
     $('#tableObligacionesRads').DataTable({
-        dom: "<'row'<'col-md-2'l><'col-md-10'f>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         language: dataTable_es,
         "order": [
             [0, "desc"]
@@ -71,20 +76,20 @@ try {
 </script>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LISTA DE OBLIGACIONES RECONOCIDAS</h5>
+        <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LISTA DE OBLIGACIONES RECONOCIDAS</h5>
         </div>
         <div class="pb-3"></div>
         <div class="px-3">
             <table id="tableObligacionesRads" class="table table-striped table-bordered nowrap table-sm table-hover shadow" style="width: 100%;">
                 <thead>
                     <tr>
-                        <th style="width: 8%;">Num </th>
-                        <th style="width: 12%;">Fecha</th>
-                        <th style="width: 35%;">Tercero</th>
-                        <th style="width: 15%;">Doc</th>
-                        <th style="width: 20%;">Valor</th>
-                        <th style="width: 10%;">Acciones</th>
+                        <th class="bg-sofia">Num </th>
+                        <th class="bg-sofia">Fecha</th>
+                        <th class="bg-sofia">Tercero</th>
+                        <th class="bg-sofia">Doc</th>
+                        <th class="bg-sofia">Valor</th>
+                        <th class="bg-sofia">Acciones</th>
 
                     </tr>
                 </thead>
@@ -93,17 +98,16 @@ try {
                     foreach ($listado as $ce) {
                         $obligar = null;
                         $id_doc = $ce['id_ctb_doc'];
-                        $fecha = date('Y-m-d', strtotime($ce['fecha']));
-                        $obligar = '<a value="' . $id_doc . '" onclick="cargarListaObligacionRads(' . $id_doc . ')" class="btn btn-outline-success btn-sm btn-circle shadow-gb editar" title="Obligar"><span class="fas fa-plus-square fa-lg"></span></a>';
-                        $saldo = $ce['valor'] - $ce['valor_pagado'];
+                        $obligar = '<a value="' . $id_doc . '" onclick="cargarListaObligacionRads(' . $id_doc . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow editar" title="Obligar"><span class="fas fa-plus-square"></span></a>';
+                        $saldo = $ce['valor_pagado'] - $ce['valor'];
                         if ($saldo > 0) {
                     ?>
                             <tr>
-                                <td class="text-left"><?= $ce['id_manu']  ?></td>
-                                <td class="text-left"><?= $fecha;  ?></td>
-                                <td class="text-left"><?= $ce['nom_tercero']; ?></td>
-                                <td class="text-left"><?= $ce['nit_tercero']; ?></td>
-                                <td class="text-right"><?= number_format($saldo, 2, ',', '.') ?></td>
+                                <td class="text-start"><?= $ce['id_manu']  ?></td>
+                                <td class="text-start"><?= $ce['fecha'];  ?></td>
+                                <td class="text-start"><?= $ce['nom_tercero']; ?></td>
+                                <td class="text-start"><?= $ce['nit_tercero']; ?></td>
+                                <td class="text-end"><?= number_format($saldo, 2, ',', '.') ?></td>
                                 <td class=" text-center"> <?= $obligar ?></td>
                             </tr>
                     <?php
@@ -114,7 +118,7 @@ try {
             </table>
         </div>
     </div>
-    <div class="text-right pt-3">
-        <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Cerrar</a>
+    <div class="text-end pt-3">
+        <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
     </div>
 </div>

@@ -32,7 +32,9 @@ try {
                     ON (`ctb_referencia`.`id_cta_credito` = `pgcp`.`id_pgcp`)
             WHERE `ctb_referencia`.`id_ctb_fuente` = $id_doc";
     $rs = $cmd->query($sql);
-    $referencias = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $referencias = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

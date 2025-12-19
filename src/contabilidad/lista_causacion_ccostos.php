@@ -39,6 +39,8 @@ try {
             WHERE (`ctb_causa_costos`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
     $rubros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -94,7 +96,7 @@ try {
                         <div class="col" id="divCosto"><input type="text" name="c_costo" id="c_costo" class="form-control form-control-sm bg-input" value="" required></div>
                     </div>
                     <div class="col-3">
-                        <div class="btn-group"><input type="text" name="valor_cc" id="valor_cc" class="form-control form-control-sm bg-input" value="" required style="text-align: right;" onkeyup="valorMiles(id)" ondblclick="valorCostoReg('<?php echo $id_doc; ?>');">
+                        <div class="btn-group"><input type="text" name="valor_cc" id="valor_cc" class="form-control form-control-sm bg-input" value="" required style="text-align: right;" onkeyup="NumberMiles(this)" ondblclick="valorCostoReg('<?php echo $id_doc; ?>');">
                             <button type="submit" class="btn btn-primary btn-sm" id="registrarMvtoDetalle">+</button>
                         </div>
                     </div>

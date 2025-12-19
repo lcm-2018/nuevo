@@ -180,7 +180,7 @@ if ($datos['tipo_doc'] == 'ADI' || $datos['tipo_doc'] == 'RED') {
                                             <input type="hidden" name="id_rubroCod" id="id_rubroCod" class="form-control form-control-sm bg-input" value="">
                                         </th>
                                         <th>
-                                            <input type="text" name="valorDeb" id="valorDeb" class="form-control form-control-sm  bg-input" size="6" value="0" style="text-align: right;" onkeyup="valorMiles(id)" required>
+                                            <input type="text" name="valorDeb" id="valorDeb" class="form-control form-control-sm  bg-input" size="6" value="0" style="text-align: right;" onkeyup="NumberMiles(this)" required>
                                         </th>
                                         <th>
                                             <input type="text" id="valorCre" class="form-control form-control-sm " size="6" value="0" style="text-align: right;" readonly ondblclick="valorDif()">

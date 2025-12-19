@@ -4,12 +4,11 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $id_referencia = $_POST['id'];
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `numero`, `id_tes_cuenta`, `fecha`
             FROM `tes_referencia`
@@ -24,11 +23,12 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_tes_cuenta`, `nombre` FROM `tes_cuentas` WHERE `estado` = 1 ORDER BY `nombre`";
     $rs = $cmd->query($sql);
-    $bancos = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $bancos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -36,21 +36,21 @@ try {
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">REFERENCIA DE PAGOS</h5>
+        <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">REFERENCIA DE PAGOS</h5>
         </div>
         <form id="formNumReferencia" class="px-3">
             <input type="hidden" name="id_referencia" id="id_referencia" value="<?php echo $id_referencia; ?>">
-            <div class="form-row pt-2">
-                <div class="form-group col-md-12">
+            <div class="row mb-2 pt-2">
+                <div class="col-md-12">
                     <label for="numRef" class="small">Número</label>
-                    <input type="number" name="numRef" id="numRef" class="form-control form-control-sm" value="<?= $referencia['numero'] ?>" required>
+                    <input type="number" name="numRef" id="numRef" class="form-control form-control-sm bg-input" value="<?= $referencia['numero'] ?>" required>
                 </div>
             </div>
-            <div class="form-row">
-                <div class="form-group col-md-12">
+            <div class="row mb-2">
+                <div class="col-md-12">
                     <label for="banco" class="small">Cuenta Bancaria</label>
-                    <select name="banco" id="banco" class="form-control form-control-sm" required>
+                    <select name="banco" id="banco" class="form-control form-control-sm bg-input" required>
                         <option value="0" class="text-muted">--Seleccionar--</option>
                         <?php foreach ($bancos as $banco) {
                             $slc = ($banco['id_tes_cuenta'] == $referencia['id_tes_cuenta']) ? 'selected' : '';
@@ -59,15 +59,15 @@ try {
                     </select>
                 </div>
             </div>
-            <div class="form-row">
-                <div class="form-group col-md-12">
+            <div class="row mb-2">
+                <div class="col-md-12">
                     <label for="fecha" class="small">Fecha</label>
-                    <input type="date" name="fecha" id="fecha" class="form-control form-control-sm" value="<?= $referencia['fecha'] ?>" required>
+                    <input type="date" name="fecha" id="fecha" class="form-control form-control-sm bg-input" value="<?= $referencia['fecha'] ?>" required>
                 </div>
             </div>
             <div class="text-center">
                 <button class="btn btn-primary btn-sm" onclick="guardarNumReferencia(this)">Guardar</button>
-                <a type="button" class="btn btn-secondary  btn-sm" data-dismiss="modal"> Cancelar</a>
+                <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal"> Cancelar</a>
             </div>
             <br>
         </form>

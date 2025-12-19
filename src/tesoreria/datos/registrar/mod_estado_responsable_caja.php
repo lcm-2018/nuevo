@@ -9,11 +9,10 @@ $estado = $_POST['estado'] == '1' ? 0 : 1;
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $response['status'] = 'error';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $query = "UPDATE `tes_caja_respon` SET `estado` = ? WHERE (`id_caja_respon` = ?)";
     $query = $cmd->prepare($query);
     $query->bindParam(1, $estado, PDO::PARAM_INT);

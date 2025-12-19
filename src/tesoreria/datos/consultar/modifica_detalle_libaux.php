@@ -4,10 +4,9 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../terceros.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+include '../../../../config/autoloader.php';
+
+$cmd = \Config\Clases\Conexion::getConexion();
 function pesos($valor)
 {
     return number_format($valor, 2, '.', ',');
@@ -46,13 +45,13 @@ $res['status'] = 'error';
 if (!empty($detalle)) {
     $tercero = $detalle['nom_tercero'];
     $res['status'] = 'ok';
-    $res[1] = '<input type="text" id="codigoCta" name="codigoCta" class="form-control form-control-sm" value="' .  $detalle['cuenta'] . ' - ' . $detalle['nombre'] . '">
-            <input type="hidden" name="id_codigoCta" id="id_codigoCta" class="form-control form-control-sm" value="' . $detalle['id_cuenta'] . '">
+    $res[1] = '<input type="text" id="codigoCta" name="codigoCta" class="form-control form-control-sm bg-input" value="' .  $detalle['cuenta'] . ' - ' . $detalle['nombre'] . '">
+            <input type="hidden" name="id_codigoCta" id="id_codigoCta" class="form-control form-control-sm bg-input" value="' . $detalle['id_cuenta'] . '">
             <input type="hidden" id="tipoDato" name="tipoDato" value="' . $detalle['tipo_dato'] . '">';
-    $res[2] = '<input type="text" name="bTercero" id="bTercero" class="form-control form-control-sm bTercero" value="' . $tercero . '">
+    $res[2] = '<input type="text" name="bTercero" id="bTercero" class="form-control form-control-sm bg-input bTercero" value="' . $tercero . '">
             <input type="hidden" name="idTercero" id="idTercero" value="' . $detalle['id_tercero_api'] . '">';
-    $res[3] = '<input type="text" name="valorDebito" id="valorDebito" class="form-control form-control-sm " style="text-align: right;" onkeyup="valorMiles(id)" onchange="llenarCero(id)" value="' . pesos($detalle['debito']) . '">';
-    $res[4] = '<input type="text" name="valorCredito" id="valorCredito" class="form-control form-control-sm " style="text-align: right;" onkeyup="valorMiles(id)" onchange="llenarCero(id)" value="' . pesos($detalle['credito']) . '">';
+    $res[3] = '<input type="text" name="valorDebito" id="valorDebito" class="form-control form-control-sm bg-input " style="text-align: right;" onkeyup="NumberMiles(this)" onchange="llenarCero(id)" value="' . pesos($detalle['debito']) . '">';
+    $res[4] = '<input type="text" name="valorCredito" id="valorCredito" class="form-control form-control-sm bg-input " style="text-align: right;" onkeyup="NumberMiles(this)" onchange="llenarCero(id)" value="' . pesos($detalle['credito']) . '">';
     $res[5] = '<div class="text-center"><button text="' . $id_detalle . '" class="btn btn-primary btn-sm" onclick="GestMvtoDetallePag(this)">Modificar</button></div>';
     $res['msg'] = 'Consulta exitosa';
 } else {

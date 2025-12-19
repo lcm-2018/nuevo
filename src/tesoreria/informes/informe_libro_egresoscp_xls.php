@@ -12,10 +12,9 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 //
 try {
     $sql = "SELECT
@@ -42,6 +41,8 @@ ORDER BY `ctb_doc`.`id_manu` ASC ;
 ";
     $res = $cmd->query($sql);
     $causaciones = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -219,18 +220,18 @@ FROM
                 $saldo = $pagado - $pagado;
                 echo "<tr>
                 <td class='text'>" . $fecha .  "</td>
-                <td class='text-left'>" . $rp['id_manu'] . "</td>
-                <td class='text-right'>" .   $tercero   . "</td>
-                <td class='text-right'>" . $ccnit . "</td>
-                <td class='text-right'>" . $rp['detalle']   . "</td>
-                <td class='text-right'>" . $rp['rubro']   . "</td>
-                <td class='text-right'>" . $id_manu   . "</td>
-                <td class='text-right'>" . $fecha_causa   . "</td>
-                <td class='text-right'>" . $cuenta_ban['cta_contable'] . $cuenta_ban['nombre']   . "</td>
-                <td class='text-right'>" . number_format($causado, 2, ".", ",")  . "</td>
-                <td class='text-right'>" . number_format($retenido, 2, ".", ",")  . "</td>
-                <td class='text-right'>" . number_format($pagado, 2, ".", ",")  . "</td>
-                <td class='text-right'>" . number_format($saldo, 2, ".", ",")  . "</td>
+                <td class='text-start'>" . $rp['id_manu'] . "</td>
+                <td class='text-end'>" .   $tercero   . "</td>
+                <td class='text-end'>" . $ccnit . "</td>
+                <td class='text-end'>" . $rp['detalle']   . "</td>
+                <td class='text-end'>" . $rp['rubro']   . "</td>
+                <td class='text-end'>" . $id_manu   . "</td>
+                <td class='text-end'>" . $fecha_causa   . "</td>
+                <td class='text-end'>" . $cuenta_ban['cta_contable'] . $cuenta_ban['nombre']   . "</td>
+                <td class='text-end'>" . number_format($causado, 2, ".", ",")  . "</td>
+                <td class='text-end'>" . number_format($retenido, 2, ".", ",")  . "</td>
+                <td class='text-end'>" . number_format($pagado, 2, ".", ",")  . "</td>
+                <td class='text-end'>" . number_format($saldo, 2, ".", ",")  . "</td>
                 </tr>";
             }
             ?>

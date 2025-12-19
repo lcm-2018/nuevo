@@ -7,6 +7,8 @@ try {
     $sql = "SELECT `id_retencion`, `nombre_retencion` FROM `ctb_retenciones` WHERE `id_retencion_tipo` = 4";
     $rs = $cmd->query($sql);
     $retenciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

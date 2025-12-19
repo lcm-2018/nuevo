@@ -31,6 +31,8 @@ try {
                     ON (`ctb_retencion_tipo`.`id_tercero` = `tb_terceros`.`id_tercero_api`)";
     $rs = $cmd->query($sql);
     $tipos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

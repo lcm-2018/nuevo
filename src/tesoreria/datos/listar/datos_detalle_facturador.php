@@ -4,12 +4,11 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
 $id_arqueo = isset($_POST['id']) ? $_POST['id'] : exit('Acceso no disponible');
 // Consulta tipo de presupuesto
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 try {
     $sql = "SELECT
@@ -84,7 +83,9 @@ try {
                     ON(`tb_terceros`.`nit_tercero` = `tr`.`num_documento`)
             WHERE `tb_terceros`.`id_tercero_api` = $tercero";
     $rs = $cmd->query($sql);
-    $facturado = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $facturado = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -105,7 +106,7 @@ try {
 <div class="px-0">
 
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
+        <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
             <h5 class="mb-0 text-light">LISTA DE ARQUEO DE CAJA<br><?= $data['nom_tercero'] ?></h5>
         </div>
         <div class="px-3 pt-2">
@@ -130,23 +131,23 @@ try {
                 <tbody>
                     <?php
                     foreach ($facturado as $row) {
-                        echo "<tr class='text-left'>";
+                        echo "<tr class='text-start'>";
                         echo "<td>{$row['id_arqueo']}</td>";
                         echo "<td>{$row['nro_factura']}</td>";
                         echo "<td>{$row['tipo_atencion']}</td>";
                         echo "<td>{$row['fec_factura']}</td>";
-                        echo "<td class='text-right'>$ " . number_format($row['valor'], 2) . "</td>";
-                        echo "<td class='text-right'>$ " . number_format($row['val_subsidio'], 2) . "</td>";
-                        echo "<td class='text-right'>$ " . number_format($row['val_copago'], 2) . "</td>";
-                        echo "<td class='text-right'>$ " . number_format($row['valor_anulado'], 2) . "</td>";
+                        echo "<td class='text-end'>$ " . number_format($row['valor'], 2) . "</td>";
+                        echo "<td class='text-end'>$ " . number_format($row['val_subsidio'], 2) . "</td>";
+                        echo "<td class='text-end'>$ " . number_format($row['val_copago'], 2) . "</td>";
+                        echo "<td class='text-end'>$ " . number_format($row['valor_anulado'], 2) . "</td>";
                         echo "<td>{$row['fec_anulado']}</td>";
                         echo "</tr>";
                     }
                     ?>
                 </tbody>
             </table>
-            <div class="text-right py-3">
-                <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</a>
+            <div class="text-end py-3">
+                <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</a>
             </div>
         </div>
     </div>

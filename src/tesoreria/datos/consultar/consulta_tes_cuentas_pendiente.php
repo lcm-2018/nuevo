@@ -1,10 +1,9 @@
 <?php
 // Realiza la suma del valor total asignado a un CDP
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $_post = json_decode(file_get_contents('php://input'), true);
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `ctb_pgcp`.`id_pgcp`
                 , `ctb_pgcp`.`cuenta`
@@ -21,12 +20,14 @@ try {
                 AND `tes_cuentas`.`id_tes_cuenta` IS NULL";
     $rs = $cmd->query($sql);
     $retenciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 $response = '
-<select class="form-control form-control-sm py-0 sm" id="cuentas" name="cuentas"  required>
+<select class="form-control form-control-sm bg-input py-0 sm" id="cuentas" name="cuentas"  required>
 <option value="0">-- Seleccionar --</option>';
 foreach ($retenciones as $ret) {
     $value = base64_encode($ret['id_pgcp'] . '|' . $ret['nombre']);

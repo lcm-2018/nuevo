@@ -45,6 +45,8 @@ try {
             WHERE (`ctb_causa_retencion`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
     $rubros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -54,6 +56,8 @@ try {
     $sql = "SELECT `id_retencion_tipo`, `tipo` FROM `ctb_retencion_tipo` ORDER BY `tipo` ASC;";
     $rs = $cmd->query($sql);
     $retenciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

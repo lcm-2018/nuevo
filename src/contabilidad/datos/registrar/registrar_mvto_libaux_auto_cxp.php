@@ -80,6 +80,8 @@ try {
                     GROUP BY `ctt_adquisiciones`.`id_tipo_bn_sv`))";
     $rs = $cmd->query($query);
     $ctas_debito = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $query = "SELECT
                 `ctb_libaux`.`id_cuenta`
                 , `ctt_adquisiciones`.`id_tipo_bn_sv`
@@ -118,6 +120,8 @@ try {
                     GROUP BY `ctt_adquisiciones`.`id_tipo_bn_sv`))";
     $rs = $cmd->query($query);
     $ctas_credito = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     // Consulto en la tabla de costos cuantos registros tiene asociados
     $sq2 = "SELECT
                 `ctt_adquisiciones`.`id_tipo_bn_sv`
@@ -133,6 +137,8 @@ try {
             WHERE (`ctb_doc`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sq2);
     $datoscostos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 
     // Consulto las retenciones causadas en ctb_causa_retencion
     $sq2 = "SELECT
@@ -149,6 +155,8 @@ try {
             WHERE (`ctb_causa_retencion`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sq2);
     $datosretencion = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 
     $sqla = "SELECT
                 SUM(`vl`.`cantidad` * `vl`.`valor_sin_iva`) AS `base`
@@ -186,7 +194,9 @@ try {
                 WHERE (`far_orden_ingreso`.`id_ctb_doc` = $id_doc)) AS `vl`
             GROUP BY `vl`.`id_cuenta`";
     $rs = $cmd->query($sqla);
-    $ingresos = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $ingresos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $credito = 0;
     $acumulador = 0;
     $ref = 0;

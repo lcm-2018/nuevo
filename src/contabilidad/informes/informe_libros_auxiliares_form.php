@@ -33,9 +33,13 @@ try {
         WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` = 6)";
     $rs = $cmd->query($sql);
     $otras = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $sql = "SELECT `id_doc_fuente`,`cod`,`nombre` FROM `ctb_fuente` ORDER BY `nombre`";
     $rs = $cmd->query($sql);
     $documentos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo 'Error: ' . $e->getMessage();
     exit();

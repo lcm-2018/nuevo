@@ -4,8 +4,14 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../../index.php');
     exit();
 }
-include '../../conexion.php';
-include '../../permisos.php';
+include '../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include '../../financiero/consultas.php';
 
 $vigencia = $_SESSION['vigencia'];
@@ -39,10 +45,10 @@ $fecha_actual = $fecha->format('Y-m-d');
                             </select>
                         </div>
                     </div>
-                    <div class="text-center">
-                        <button value="1" class="btn btn-primary" onclick="InformeFinanciero(this);"><span></span> Consultar</button>
-                    </div>
                 </form>
+                <div class="text-center">
+                    <button value="1" class="btn btn-primary" onclick="InformeFinanciero(this);"><span></span> Consultar</button>
+                </div>
             </div>
             <div id="areaImprimir" class="table-responsive px-2">
             </div>

@@ -14,11 +14,10 @@ $maximo = $_POST['maximo'];
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $response['status'] = 'error';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     if ($id_chequera == 0) {
         $query = "INSERT INTO `fin_chequeras`
                     (`id_cuenta`,`numero`,`fecha`,`inicial`,`maximo`,`id_user_reg`,`fec_reg`)
@@ -53,7 +52,7 @@ try {
         } else {
             if ($query->rowCount() > 0) {
                 $query = "UPDATE `fin_chequeras`
-                            SET `fec_mod` = ?, `id_user_mod` = ?
+                            SET `fec_act` = ?, `id_user_act` = ?
                         WHERE `id_chequera` = ?";
                 $query = $cmd->prepare($query);
                 $query->bindParam(1, $fecha2, PDO::PARAM_STR);

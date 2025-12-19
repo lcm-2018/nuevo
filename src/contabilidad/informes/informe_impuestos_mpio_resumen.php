@@ -56,6 +56,8 @@ GROUP BY `ctb_retenciones`.`nombre_retencion`;
             ";
     $res = $cmd->query($sql);
     $causaciones = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -83,6 +85,8 @@ GROUP BY `ctb_retenciones`.`nombre_retencion`;
             ";
     $res = $cmd->query($sql);
     $sobretasa = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

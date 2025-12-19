@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 if (isset($_POST)) {
     //Recibir variables por POST
@@ -20,14 +20,20 @@ if (isset($_POST)) {
     $sede = 1;
     $vigencia = $_SESSION['vigencia'];
     //
-    include '../../../conexion.php';
-    include '../../../permisos.php';
+    include '../../../../config/autoloader.php';
+    
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
     // Consulto el id_tercero_api del facturador en la tabla tb_terceros
     try {
         // consulto id_auto_dep de la tabla pto_mov segun el id_pto_doc = id_crpp
-        $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-        $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+        $cmd = \Config\Clases\Conexion::getConexion();
         // Consulto tipo de presupuesto
 
         $query = $cmd->prepare("SELECT `id_pto_presupuestos` FROM `pto_presupuestos` WHERE (`vigencia` =$vigencia AND `id_pto_tipo` =1)");
@@ -82,13 +88,15 @@ if (isset($_POST)) {
                             AND `pto_documento_detalles`.`id_detalle` =$id_mvt);";
                     $rs = $cmd->query($sql);
                     $rubros = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
 
                     foreach ($rubros as $ce) {
                         //$id_doc = $ce['id_ctb_doc'];
                         $id = $ce['id_pto_mvto'];
                         if ((intval($permisos['editar'])) === 1) {
-                            $editar = '<a value="' . $id . '" onclick="eliminaRubroIng(' . $id . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb editar" title="Causar"><span class="fas fa-trash-alt fa-lg"></span></a>';
-                            $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
+                            $editar = '<a value="' . $id . '" onclick="eliminaRubroIng(' . $id . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-trash-alt"></span></a>';
+                            $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
                     ...
                     </button>
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -101,8 +109,8 @@ if (isset($_POST)) {
 
                         $valor = number_format($ce['valor'], 2, ".", ",");
                         $tabla = '  <tr id="' . $id . '">
-                            <td class="text-left">' . $ce['rubros'] . ' </td>
-                            <td class="text-right"> ' . $valor . '</td>
+                            <td class="text-start">' . $ce['rubros'] . ' </td>
+                            <td class="text-end"> ' . $valor . '</td>
                             <td> ' . $editar .  $acciones . '</td>
                         </tr>';
                     }
@@ -120,3 +128,4 @@ if (isset($_POST)) {
     }
     echo json_encode($response);
 }
+

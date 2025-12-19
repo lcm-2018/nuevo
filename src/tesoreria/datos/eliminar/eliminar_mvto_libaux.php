@@ -4,11 +4,10 @@ use Config\Clases\Logs;
 
 $_post = json_decode(file_get_contents('php://input'), true);
 $id = $_post['id'];
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $response['status'] = 'error';
 try {
     $pdo = \Config\Clases\Conexion::getConexion();
-
     $query = "DELETE FROM `ctb_libaux` WHERE `id_ctb_libaux` = ?";
     $query = $pdo->prepare($query);
     $query->bindParam(1, $id);

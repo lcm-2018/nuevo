@@ -22,6 +22,8 @@ try {
         $where ORDER BY tb_centrocostos.id_centro DESC";
     $res = $cmd->query($sql);
     $objs = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -97,6 +99,8 @@ try {
                         WHERE SG.id_grupo IN (1,2) ORDER BY SG.id_subgrupo";
                 $rs = $cmd->query($sql);
                 $objs_ctas = $rs->fetchAll();
+                $rs->closeCursor();
+                unset($rs);
 
                 $tabla .=
                     '<tr class="resaltar" style="text-align:left"> 

@@ -16,6 +16,8 @@ try {
             ORDER BY nombre1,nombre2,apellido1,apellido2";
     $rs = $cmd->query($sql);
     $objs = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

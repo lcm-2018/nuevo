@@ -5,11 +5,10 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include 'funciones_generales.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $id_cuenta_ini = isset($_POST['id_cuenta_ini']) ? $_POST['id_cuenta_ini'] : 0;
 $id_cuenta_fin = isset($_POST['id_cuenta_fin']) ? $_POST['id_cuenta_fin'] : 0;
@@ -57,6 +56,8 @@ try {
 
     $rs = $cmd->query($sql);
     $obj_informe = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -80,6 +81,8 @@ try {
 
     $rs = $cmd->query($sql);
     $obj_saldos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -103,12 +106,12 @@ if ($obj_saldos[0]['filas'] > 0) {
 }
 ?>
 
-<div class="text-right py-3">
+<div class="text-end py-3">
     <a type="button" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" value="01" title="Exportar a Excel">
         <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
     </a>
     <a type="button" class="btn btn-primary btn-sm" id="btnImprimir">Imprimir</a>
-    <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Cerrar</a>
+    <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
 </div>
 <div class="content bg-light" id="areaImprimirrr">
     <style>
@@ -137,10 +140,10 @@ if ($obj_saldos[0]['filas'] > 0) {
     <table style="width:100%; font-size:70%">
         <tr style="text-align:center">
             <label style="text-align:center"><b><?php
-                        if ($obj_saldos[0]['filas'] > 0) {
-                            echo  $obj_saldos[0]['cuenta'] . ' - ' . $obj_saldos[0]['nombre'];
-                        }
-                        ?></b></label>
+                                                if ($obj_saldos[0]['filas'] > 0) {
+                                                    echo  $obj_saldos[0]['cuenta'] . ' - ' . $obj_saldos[0]['nombre'];
+                                                }
+                                                ?></b></label>
         </tr>
     </table>
 
@@ -163,8 +166,8 @@ if ($obj_saldos[0]['filas'] > 0) {
             <?php
             $tabla = '';
             echo "<tr>
-            <td class='text-right' colspan='11'>Saldo inicial: </td>
-            <td class='text-right'>" . number_format($saldo_inicial, 2, ".", ",") . "</td>
+            <td class='text-end' colspan='11'>Saldo inicial: </td>
+            <td class='text-end'>" . number_format($saldo_inicial, 2, ".", ",") . "</td>
             </tr>";
             foreach ($obj_informe as $obj) {
 
@@ -194,10 +197,10 @@ if ($obj_saldos[0]['filas'] > 0) {
             echo $tabla;
 
             echo "<tr>
-                <td class='text-right' colspan='9'> Total</td>
-                <td class='text-right'>Debito: " . number_format($total_deb, 2, ".", ",") . "</td>
-                <td class='text-right'>Credito: " . number_format($total_cre, 2, ".", ",") . "</td>
-                <td class='text-right'>Saldo: " . number_format($saldo_inicial, 2, ".", ",") . "</td>
+                <td class='text-end' colspan='9'> Total</td>
+                <td class='text-end'>Debito: " . number_format($total_deb, 2, ".", ",") . "</td>
+                <td class='text-end'>Credito: " . number_format($total_cre, 2, ".", ",") . "</td>
+                <td class='text-end'>Saldo: " . number_format($saldo_inicial, 2, ".", ",") . "</td>
                 </tr>";
             ?>
         </tbody>

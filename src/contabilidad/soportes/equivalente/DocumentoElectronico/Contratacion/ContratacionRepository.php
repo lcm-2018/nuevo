@@ -88,7 +88,7 @@ class ContratacionRepository extends DocumentRepository
 
             $stmt = $this->conexion->prepare($sql);
             $stmt->execute([':id' => $idDoc]);
-            $detalles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $detalles = $stmt->fetchAll();
 
             return $detalles ?: [];
         } catch (\PDOException $e) {

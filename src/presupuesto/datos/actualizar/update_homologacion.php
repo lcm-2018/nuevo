@@ -67,8 +67,7 @@ if ($presupuesto == 1) {
                     $update->execute($paramsUpdate);
                     if ($update->rowCount() > 0) {
                         $suma++;
-                        $con = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-                        $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+                        $con = \Config\Clases\Conexion::getConexion();
                         $query = "UPDATE `pto_homologa_ingresos` SET `id_user_act` = ?, `fec_act` = ? WHERE `id_homologacion` = ?";
                         $query = $con->prepare($query);
                         $query->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -139,8 +138,7 @@ if ($presupuesto == 1) {
                     $update->execute($paramsUpdate);
                     if ($update->rowCount() > 0) {
                         $suma++;
-                        $con = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-                        $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+                        $con = \Config\Clases\Conexion::getConexion();
                         $query = "UPDATE `pto_homologa_gastos` SET `id_user_act` = ?, `fec_act` = ? WHERE `id_homologacion` = ?";
                         $query = $con->prepare($query);
                         $query->bindParam(1, $iduser, PDO::PARAM_INT);

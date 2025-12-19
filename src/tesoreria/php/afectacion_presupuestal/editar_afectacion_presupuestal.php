@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
@@ -12,8 +12,7 @@ $id_usr_crea = $_SESSION['id_user'];
 $res = array();
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
 
     if ($oper == "add") {
         $fecha = $_POST['txt_fecha'];

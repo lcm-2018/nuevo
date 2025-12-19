@@ -1,11 +1,10 @@
 <?php
 // Realiza la suma del valor total asignado a un CDP
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $id_cta = isset($_POST['id']) ? $_POST['id'] : exit('Acceso no autorizado');
 $response['status'] = 'error';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 SUM(`ctb_libaux`.`debito`) - SUM(`ctb_libaux`.`credito`) AS `saldo`
             FROM

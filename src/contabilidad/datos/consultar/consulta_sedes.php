@@ -8,6 +8,8 @@ try {
     $sql = "SELECT id_sede, nom_sede as nombre FROM tb_sedes WHERE id_municipio = $_post[id]";
     $rs = $cmd->query($sql);
     $sedes = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

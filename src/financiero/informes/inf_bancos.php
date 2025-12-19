@@ -10,7 +10,7 @@ header("Content-Disposition: attachment; filename=Movimeinto_Bancos.xls");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 $periodo = $_POST['periodo'];
 $vigencia = $_SESSION['vigencia'];
 $vig_ant = $vigencia - 1;
@@ -47,8 +47,7 @@ if ($periodo == 1) {
     $meses = 'ENERO - DICIEMBRE';
 }
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT
                 `ctb_pgcp`.`cuenta` AS `codigo`
@@ -198,7 +197,7 @@ try {
 $body = '';
 foreach ($lista as $r) {
     $saldo_con = $r['sf_libros'] - ($r['sf_extracto'] + $r['sf_debito'] - $r['sf_credito']);
-    $body .="<tr>
+    $body .= "<tr>
                 <td>{$r['codigo']}</td>
                 <td>{$r['banco']}</td>
                 <td>{$r['numero']}</td>

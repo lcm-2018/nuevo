@@ -94,10 +94,14 @@ if ($tipo_rete != '3') {
     try {
         $sql = "SELECT `id_retencion`,`id_rango`,`tarifa` FROM `ctb_retencion_rango` WHERE `id_retencion` IN ($ids)";
         $rs = $cmd->query($sql);
-        $rangos = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $rangos = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
         $sql = "SELECT `id_municipio`,`id_tercero_api` FROM `tb_sedes` WHERE `id_municipio` IN ($ids_sede)";
         $rs = $cmd->query($sql);
-        $terceros = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $terceros = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
         $query = "UPDATE ctb_causa_retencion
                   SET id_ctb_doc = $id_doc,
                   id_rango = $id_rango,

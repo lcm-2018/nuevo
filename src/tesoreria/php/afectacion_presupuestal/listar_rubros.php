@@ -4,8 +4,16 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
+include '../../../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $id_pto_rad = $_POST['id_pto_rad'];
 
@@ -18,8 +26,7 @@ if ($length != -1) {
 }
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
 
     //Consulta el total de registros de la tabla
     $sql = "SELECT
@@ -56,6 +63,8 @@ try {
             WHERE pto_rad_detalle.id_pto_rad=$id_pto_rad";
     $rs = $cmd->query($sql);
     $obj_rubros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -78,10 +87,10 @@ if (!empty($obj_rubros)) {
             5201 gestion de terceros
             5401 presupuesto gestion
         
-        if (PermisosUsuario($permisos, 5201, 1) || $id_rol == 1 || PermisosUsuario($permisos, 5401, 1)) {
-            $listar = '<a value="' . $id_cdp . '" class="btn btn-outline-primary btn-sm btn-circle shadow-gb btn_listar" title="Listar"><span class="fas fa-clipboard-list fa-lg"></span></a>';
+        if ($permisos->PermisosUsuario($opciones, 5201, 1) || $id_rol == 1 || $permisos->PermisosUsuario($opciones, 5401, 1)) {
+            $listar = '<a value="' . $id_cdp . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_listar" title="Listar"><span class="fas fa-clipboard-list"></span></a>';
         }*/
-        $eliminar = '<a value="' . $id_pto_rad_det . '" class="btn btn-outline-danger btn-sm btn-circle shadow-gb btn_eliminar_rubro" title="Listar"><span class="fas fa-minus fa-lg"></span></a>';
+        $eliminar = '<a value="' . $id_pto_rad_det . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar_rubro" title="Listar"><span class="fas fa-minus"></span></a>';
         $data[] = [
             "id_pto_rad_det" => $obj['id_pto_rad_det'],
             "rubro" => $obj['cod_pptal'] . "-" . mb_strtoupper($obj['nom_rubro']),

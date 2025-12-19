@@ -17,10 +17,9 @@ $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 $id_fte = $_POST['codigo_fuente'];
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $response['status'] = 'error';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     if ($id_tes_cuenta == 0) {
         $estado = 1;

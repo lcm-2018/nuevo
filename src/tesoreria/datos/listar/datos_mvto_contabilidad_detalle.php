@@ -1,18 +1,23 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
-include '../../../terceros.php';
-// Div de acciones de la lista
+include '../../../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 $id_ctb_doc = $_POST['id_doc'];
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `ctb_libaux`.`id_ctb_libaux`
                 , `ctb_libaux`.`id_ctb_doc`
@@ -36,12 +41,13 @@ try {
             WHERE (`ctb_libaux`.`id_ctb_doc` = $id_ctb_doc)";
     $rs = $cmd->query($sql);
     $listappto = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `estado`
             FROM `ctb_doc`
@@ -73,22 +79,22 @@ if (!empty($listappto)) {
         $tercero = $lp['nom_tercero'] != '' ? $lp['nom_tercero'] : '---';
         $borrar = $editar = $detalles = $registrar = null;
         if ($estado == 1) {
-            $detalles = '<a value="' . $id_ctb . '" class="btn btn-outline-warning btn-sm btn-circle shadow-gb detalles" title="Detalles"><span class="fas fa-eye fa-lg"></span></a>';
-            if (PermisosUsuario($permisos, 5603, 2) || PermisosUsuario($permisos, 5501, 2) || $id_rol == 1) {
+            $detalles = '<a value="' . $id_ctb . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow detalles" title="Detalles"><span class="fas fa-eye"></span></a>';
+            if ($permisos->PermisosUsuario($opciones, 5603, 2) || $permisos->PermisosUsuario($opciones, 5501, 2) || $id_rol == 1) {
                 $registrar = '<a value="' . $id_ctb . '" onclick="CargarFormularioCrpp(' . $id_ctb . ')" class="text-blue " role="button" title="Detalles"><span>Registrar</span></a>';
             }
-            if (PermisosUsuario($permisos, 5603, 2) || PermisosUsuario($permisos, 5501, 3) || $id_rol == 1) {
-                $editar = '<a text="' . $id . '" class="btn btn-outline-primary btn-sm btn-circle shadow-gb modificar" title="Editar"><span class="fas fa-pencil-alt fa-lg"></span></a>';
+            if ($permisos->PermisosUsuario($opciones, 5603, 2) || $permisos->PermisosUsuario($opciones, 5501, 3) || $id_rol == 1) {
+                $editar = '<a text="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow modificar" title="Editar"><span class="fas fa-pencil-alt"></span></a>';
             }
-            if (PermisosUsuario($permisos, 5603, 2) || PermisosUsuario($permisos, 5501, 4) || $id_rol == 1) {
-                $borrar = '<a value="' . $id . '" onclick="eliminarRegistroDetalletesPag(' . $id . ')"class="btn btn-outline-danger btn-sm btn-circle shadow-gb" title="Borrar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+            if ($permisos->PermisosUsuario($opciones, 5603, 2) || $permisos->PermisosUsuario($opciones, 5501, 4) || $id_rol == 1) {
+                $borrar = '<a value="' . $id . '" onclick="eliminarRegistroDetalletesPag(' . $id . ')"class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow" title="Borrar"><span class="fas fa-trash-alt"></span></a>';
             }
         }
         $data[] = [
             'cuenta' => $cuenta,
             'tercero' => ltrim($tercero),
-            'debito' => '<div class="text-right">' . $valorDebito . '</div>',
-            'credito' => '<div class="text-right">' . $valorCredito . '</div>',
+            'debito' => '<div class="text-end">' . $valorDebito . '</div>',
+            'credito' => '<div class="text-end">' . $valorCredito . '</div>',
             'botones' => '<div class="text-center" style="position:relative">' . $editar . $borrar . '</div>',
         ];
     }
@@ -96,12 +102,12 @@ if (!empty($listappto)) {
 $debe = number_format($totDebito, 2, '.', ',');
 $haber = number_format($totCredito, 2, '.', ',');
 $valor = $totDebito - $totCredito;
-$msg = $valor == 0 ? '<span class="badge rounded-pill text-bg-success">Correcto</span>' : '<span class="badge rounded-pill text-bg-danger">Incorrecto</span>';
+$msg = $valor == 0 ? '<span class="badge bg-success">Correcto</span>' : '<span class="badge bg-danger">Incorrecto</span>';
 $tfoot = [
     'cuenta' => '1',
     'tercero' => '<div class="text-center"><b>TOTAL</b> (Sumas iguales)</div>',
-    'debito' => '<div class="text-right">' . $debe . '</div>',
-    'credito' => '<div class="text-right">' . $haber . '</div>',
+    'debito' => '<div class="text-end">' . $debe . '</div>',
+    'credito' => '<div class="text-end">' . $haber . '</div>',
     'botones' => '<div class="text-center" style="position:relative">' . $msg . '<input type="hidden" id="total" value="' . $valor . '"></div>',
 ];
 $cmd = null;

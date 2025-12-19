@@ -1,6 +1,6 @@
 <?php
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 session_start();
 $data = file_get_contents("php://input");
 $id_user = $_SESSION['id_user'];
@@ -10,8 +10,7 @@ $estado = '1';
 // update ctb_libaux set estado='C' where id_ctb_doc=$data;
 // Realizo conexion con la base de datos
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "UPDATE `ctb_doc`
                 SET `estado` = ?, `id_user_act` = ?, `fecha_act` = ?
             WHERE `id_ctb_doc` = ?";

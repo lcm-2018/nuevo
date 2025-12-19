@@ -87,7 +87,7 @@ if ($estado == '1') {
     $rubro = ' <input type="text" id="rubroCod" class="form-control form-control-sm bg-input" value="' . $nom_rubro . '">
             <input type="hidden" name="id_rubroCod" id="id_rubroCod" class="form-control form-control-sm bg-input" value="' . $id_rb . '">
             <input type="hidden" id="tipoRubro" name="tipoRubro" value="' . $tp_dt . '">';
-    $debito = '<input type="text" name="valorDeb" id="valorDeb" class="form-control form-control-sm  bg-input" size="6" value="' . $valor . '" style="text-align: right;" onkeyup="valorMiles(id)">';
+    $debito = '<input type="text" name="valorDeb" id="valorDeb" class="form-control form-control-sm  bg-input" size="6" value="' . $valor . '" style="text-align: right;" onkeyup="NumberMiles(this)">';
     $botones = '<input type="hidden" name="id_pto_mod" id="id_pto_mod" value="' . $id_rad . '">
             <a class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow" title="Ver historial del rubro" onclick="verHistorial(this)"><span class="far fa-list-alt "></span></a>
             <button text="0" class="btn btn-primary btn-sm" onclick="RegDetalleRads(this)">Agregar</button>';

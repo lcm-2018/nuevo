@@ -35,6 +35,8 @@ try {
             WHERE ctb_causa_retencion.id_causa_retencion = $id";
     $rs = $cmd->query($sql);
     $retenciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 
     $res['mensaje'] = 'ok';
     $res['value'] = 'ok';

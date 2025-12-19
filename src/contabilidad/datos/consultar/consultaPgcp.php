@@ -12,7 +12,9 @@ try {
             FROM `ctb_pgcp` 
             WHERE (`cuenta` LIKE '$search%' OR `nombre` LIKE '$search%') AND `estado` = 1";
     $rs = $cmd->query($sql);
-    $cuentas = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $cuentas = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

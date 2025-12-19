@@ -13,11 +13,10 @@ $estado = 1;
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $response['status'] = 'error';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     //consulto la id_tes_cuenta  con el id_cuenta
     if ($id_conciliacion == 0) {
         $query = "INSERT INTO `tes_conciliacion`

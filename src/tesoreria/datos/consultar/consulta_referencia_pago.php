@@ -4,10 +4,9 @@ session_start();
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $_post = json_decode(file_get_contents('php://input'), true);
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 // Consulto si exite referencia de pago activa
 try {
     $sql = "SELECT

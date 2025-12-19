@@ -1,14 +1,12 @@
 <?php
 
-include '../../../../config/autoloader.php';
-
 use Config\Clases\Logs;
 
 $_post = json_decode(file_get_contents('php://input'), true);
 $id = $_post['id'];
+include '../../../../config/autoloader.php';
 try {
     $pdo = \Config\Clases\Conexion::getConexion();
-
     $query = $pdo->prepare("DELETE FROM tes_detalle_pago WHERE id_detalle_pago = ?");
     $query->bindParam(1, $id);
     $query->execute();

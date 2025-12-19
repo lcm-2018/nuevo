@@ -52,6 +52,8 @@ try {
             WHERE `ctb_doc`.`id_ctb_doc` IN ($dto)";
     $res = $cmd->query($sql);
     $documentos = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -127,6 +129,8 @@ try {
             WHERE (`ctb_causa_costos`.`id_ctb_doc` = $dto)";
             $res = $cmd->query($sql);
             $costos = $res->fetchAll();
+            $res->closeCursor();
+            unset($res);
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
         }
@@ -180,6 +184,8 @@ try {
             WHERE (`ctb_doc`.`id_ctb_doc` = $dto)";
             $res = $cmd->query($sql);
             $rubros = $res->fetchAll();
+            $res->closeCursor();
+            unset($res);
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
         }
@@ -205,7 +211,9 @@ try {
                     ON (`ctb_factura`.`id_tipo_doc` = `ctb_tipo_doc`.`id_ctb_tipodoc`)
             WHERE (`ctb_doc`.`id_ctb_doc` = $dto)";
             $res = $cmd->query($sql);
-            $facturas = $res->fetchAll(PDO::FETCH_ASSOC);
+            $facturas = $res->fetchAll();
+            $res->closeCursor();
+            unset($res);
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
         }
@@ -234,6 +242,8 @@ try {
                     ORDER BY `ctb_pgcp`.`cuenta`,`ctb_pgcp`.`nombre` DESC";
             $res = $cmd->query($sql);
             $movimiento = $res->fetchAll();
+            $res->closeCursor();
+            unset($res);
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
         }
@@ -263,6 +273,8 @@ try {
             WHERE (`ctb_causa_retencion`.`id_ctb_doc` = $dto)";
             $rs = $cmd->query($sql);
             $retenciones = $rs->fetchAll();
+            $rs->closeCursor();
+            unset($rs);
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
         }
@@ -314,6 +326,8 @@ try {
                 AND `fin_maestro_doc`.`estado` = 1)";
             $res = $cmd->query($sql);
             $responsables = $res->fetchAll();
+            $res->closeCursor();
+            unset($res);
             $key = array_search('4', array_column($responsables, 'tipo_control'));
             $nom_respon = $key !== false ? $responsables[$key]['nom_tercero'] : '';
             $cargo_respon = $key !== false ? $responsables[$key]['cargo'] : '';

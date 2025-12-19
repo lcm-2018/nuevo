@@ -16,12 +16,11 @@ header("Content-Disposition: attachment; filename=FORMATO_201101_F07_AGR.xls");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 
 $id_referencia = $_POST['referencia'];
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 //
 try {
     $sql = "SELECT
@@ -49,6 +48,8 @@ try {
             WHERE (`ctb_doc`.`id_ref` = $id_referencia AND `ctb_doc`.`estado` = 2 AND `ctb_doc`.`id_tipo_doc` = 4)";
     $res = $cmd->query($sql);
     $causaciones = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -61,21 +62,6 @@ foreach ($causaciones as $ca) {
 }
 $payload = json_encode($id_t);
 
-//API URL
-$url = $api . 'terceros/datos/res/datos/cuenta_bancaria';
-$ch = curl_init($url);
-//curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-$result = curl_exec($ch);
-$error = curl_error($ch);
-curl_close($ch);
-$bancos = json_decode($result, true);
-$bancos = $bancos != 0 ? $bancos : [];
 echo "\xEF\xBB\xBF";
 ?>
 <table class="table-bordered bg-light" style="width:100% !important;" border=1>
@@ -103,17 +89,17 @@ echo "\xEF\xBB\xBF";
         $cod_banco = $key !== false ? $bancos[$key]['cod_banco'] : '';
         $val = number_format($c['valor'], 2, ',', '');
         echo "<tr>
-                <td class='text-left'>{$reg}</td>
-                <td class='text-left'>{$c['nit_tercero']}</td>
-                <td class='text-left'>{$c['nom_tercero']}</td>
-                <td class='text-left'>{$c['codigo_ne']}</td>
-                <td class='text-left'>{$producto}</td>
-                <td class='text-left'>{$banco}</td>
-                <td class='text-left'>{$tipo_cuenta}</td>
-                <td class='text-left'>{$detalle_cuenta}</td>
-                <td class='text-left'>{$cod_banco}</td>
-                <td class='text-right'>{$val}</td>
-                <td class='text-left'>{$c['id_manu']}</td>
+                <td class='text-start'>{$reg}</td>
+                <td class='text-start'>{$c['nit_tercero']}</td>
+                <td class='text-start'>{$c['nom_tercero']}</td>
+                <td class='text-start'>{$c['codigo_ne']}</td>
+                <td class='text-start'>{$producto}</td>
+                <td class='text-start'>{$banco}</td>
+                <td class='text-start'>{$tipo_cuenta}</td>
+                <td class='text-start'>{$detalle_cuenta}</td>
+                <td class='text-start'>{$cod_banco}</td>
+                <td class='text-end'>{$val}</td>
+                <td class='text-start'>{$c['id_manu']}</td>
             </tr>";
         $reg++;
     }

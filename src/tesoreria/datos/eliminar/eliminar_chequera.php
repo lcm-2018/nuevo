@@ -4,9 +4,8 @@ use Config\Clases\Logs;
 
 $_post = json_decode(file_get_contents('php://input'), true);
 $id = $_post['id'];
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $pdo = \Config\Clases\Conexion::getConexion();
-
 $response['status'] = 'error';
 // consulto si el id de la chequera fue utilizado en seg_fin_chequera_cont
 try {

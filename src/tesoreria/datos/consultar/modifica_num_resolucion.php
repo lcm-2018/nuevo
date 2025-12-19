@@ -4,8 +4,8 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../terceros.php';
+include '../../../../config/autoloader.php';
+
 $id = $_POST['id_ctb_doc'];
 $id_resolucion = $_POST['id_resol'];
 $id_vigencia = $_SESSION['id_vigencia'];
@@ -13,8 +13,7 @@ $consecutivo = $_POST['numResolucion'];
 $response['status'] = 'error';
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_resol`,`consecutivo`
             FROM `tes_resolucion_pago`
@@ -31,8 +30,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "UPDATE `tes_resolucion_pago`
             SET `consecutivo` = ?
             WHERE `id_ctb_doc` = ?";

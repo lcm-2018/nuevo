@@ -1,16 +1,23 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
+include '../../../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 // Div de acciones de la lista
 $vigencia = $_SESSION['vigencia'];
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `fin_chequeras`.`fecha`
                 , `fin_chequeras`.`id_chequera`
@@ -29,6 +36,8 @@ try {
                     ON (`tes_cuentas`.`id_banco` = `tb_bancos`.`id_banco`)";
     $rs = $cmd->query($sql);
     $lista = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -37,16 +46,16 @@ if (!empty($lista)) {
         $editar = $detalles = $acciones = $borrar = null;
         $fecha = date('Y-m-d', strtotime($lp['fecha']));
 
-        if (PermisosUsuario($permisos, 5608, 3) || $id_rol == 1) {
+        if ($permisos->PermisosUsuario($opciones, 5608, 3) || $id_rol == 1) {
             $id_ctb = $lp['id_chequera'];
-            $editar = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" onclick="editarDatosChequera(' . $id_ctb . ')" class="btn btn-outline-primary btn-sm btn-circle shadow-gb"  title="Editar_' . $id_ctb . '"><span class="fas fa-pencil-alt fa-lg"></span></a>';
-            $detalles = '<a value="' . $id_ctb . '" class="btn btn-outline-warning btn-sm btn-circle shadow-gb detalles" title="Detalles"><span class="fas fa-eye fa-lg"></span></a>';
+            $editar = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" onclick="editarDatosChequera(' . $id_ctb . ')" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow"  title="Editar_' . $id_ctb . '"><span class="fas fa-pencil-alt"></span></a>';
+            $detalles = '<a value="' . $id_ctb . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow detalles" title="Detalles"><span class="fas fa-eye"></span></a>';
             //si es lider de proceso puede abrir o cerrar documentos
 
         }
-        if (PermisosUsuario($permisos, 5608, 3) || $id_rol == 1) {
-            $borrar = '<a value="' . $id_ctb . '" onclick="eliminarChequera(' . $id_ctb . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb "  title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
-            $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
+        if ($permisos->PermisosUsuario($opciones, 5608, 3) || $id_rol == 1) {
+            $borrar = '<a value="' . $id_ctb . '" onclick="eliminarChequera(' . $id_ctb . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow "  title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
+            $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
             ...
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">

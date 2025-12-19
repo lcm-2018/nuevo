@@ -1,6 +1,6 @@
 <?php
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $conexion = new mysqli($bd_servidor, $bd_usuario, $bd_clave, $bd_base);
 if (isset($_POST['search'])) {
     $search = mysqli_real_escape_string($conexion, $_POST['search']);

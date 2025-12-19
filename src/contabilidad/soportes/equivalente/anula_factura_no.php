@@ -141,6 +141,8 @@ try {
             WHERE `id_fno` = '$id_facno'";
     $rs = $cmd->query($sql);
     $detalles = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

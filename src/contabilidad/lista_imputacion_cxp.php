@@ -131,6 +131,8 @@ try {
                 ON (`val_cop`.`id_pto_crp_det` = `val_crp`.`id_pto_crp_det`)";
     $rs = $cmd->query($sql);
     $listado = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -162,6 +164,8 @@ try {
             WHERE (`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
     $detalles = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -216,7 +220,7 @@ try {
                             <?php if ($band) { ?>
                                 <span for="valor" class="small">Valor CxP</span>
                             <?php } ?>
-                            <input type="text" name="valor[<?php echo $id_detalle ?>]" id="valor" onkeyup="valorMiles(id)" class="form-control form-control-sm bg-input text-end ValImputacion" min="0" max="<?php echo $max ?>" value="<?php echo number_format($max, 2) ?>">
+                            <input type="text" name="valor[<?php echo $id_detalle ?>]" id="valor" onkeyup="NumberMiles(this)" class="form-control form-control-sm bg-input text-end ValImputacion" min="0" max="<?php echo $max ?>" value="<?php echo number_format($max, 2) ?>">
                         </div>
                     </div>
                 <?php

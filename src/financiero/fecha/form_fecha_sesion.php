@@ -4,11 +4,10 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 $_post = json_decode(file_get_contents('php://input'), true);
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT id,fecha FROM tb_fin_fecha WHERE vigencia = '$_post[vigencia]' AND id_usuario='$_post[usuario]' ";
     $rs = $cmd->query($sql);
     $row = $rs->fetch();
@@ -28,8 +27,7 @@ try {
 }
 try {
     // seleccionar la fecha minima de tb_fin_periodos cuando vigencia es igual a $vigencia
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT MIN(`fecha_cierre`) as `fecha_cierre` FROM `tb_fin_periodos` WHERE `vigencia` = '$_post[vigencia]'";
     $rs = $cmd->query($sql);
     $datos = $rs->fetch();

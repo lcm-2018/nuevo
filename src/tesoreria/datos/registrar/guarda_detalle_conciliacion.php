@@ -1,7 +1,4 @@
 <?php
-
-use Config\Clases\Logs;
-
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -14,11 +11,10 @@ $vigencia = $_SESSION['vigencia'];
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $response['status'] = 'error';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     // Genero la fecha de marca conciderando el periodo y el mes de id_conciliación 
     try {
         $sql = "SELECT 
@@ -57,8 +53,10 @@ try {
         $query->bindParam(2, $id_libaux, PDO::PARAM_INT);
         $query->execute();
         if ($query->rowCount()) {
+            include '../../../financiero/reg_logs.php';
+            $ruta = '../../../log';
             $consulta = "DELETE FROM `tes_conciliacion_detalle` WHERE `id_concilia` = $id_conciliacion AND `id_ctb_libaux` = $id_libaux";
-            Logs::guardaLog($consulta);
+            RegistraLogs($ruta, $consulta);
             $response['status'] = 'ok';
         } else {
             $response['msg'] = $query->errorInfo()[2];

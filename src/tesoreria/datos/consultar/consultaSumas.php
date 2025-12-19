@@ -1,6 +1,6 @@
 <?php
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $conexion = new mysqli($bd_servidor, $bd_usuario, $bd_clave, $bd_base);
 $data = file_get_contents("php://input");
 $sql = "SELECT sum(debito) as debito, sum(credito) as credito FROM ctb_libaux WHERE id_ctb_doc=$data GROUP BY id_ctb_doc";

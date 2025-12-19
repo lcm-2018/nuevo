@@ -12,12 +12,19 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
-include '../../conexion.php';
-include '../../permisos.php';
+include '../../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include '../../financiero/consultas.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $tipo = $_POST['tipo'];
 
@@ -30,7 +37,7 @@ if ($data['id'] == 0) {
                     `ctb_doc`
                 WHERE (`id_manu` BETWEEN '$docIni' AND '$docFin' AND `id_tipo_doc` = $tipo AND `estado` > 0)";
         $res = $cmd->query($sql);
-        $datos = $res->fetchAll(PDO::FETCH_ASSOC);
+        $datos = $res->fetchAll();
         $res->closeCursor();
         unset($res);
         $ids = array_map(function ($item) {
@@ -75,15 +82,15 @@ try {
                     ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
             WHERE (`ctb_doc`.`id_ctb_doc` IN ($ids))";
     $res = $cmd->query($sql);
-    $documentos_tes = $res->fetchAll(PDO::FETCH_ASSOC);
+    $documentos_tes = $res->fetchAll();
     $res->closeCursor();
     unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 ?>
-<div class="text-right py-3">
-    <?php if (PermisosUsuario($permisos, 5601, 6)  || $id_rol == 1) {
+<div class="text-end py-3">
+    <?php if ($permisos->PermisosUsuario($opciones, 5601, 6)  || $id_rol == 1) {
         if ($tipo == '4') {
             if (strpos($ids, ',') === false) {
                 echo '<a type="button" class="btn btn-warning btn-sm" onclick="CambiaNumResol(' . $ids . ')" title="Cambiar consecutivo de resolución"># Resolución</a>';
@@ -95,7 +102,7 @@ try {
         ?>
         <a type="button" class="btn btn-primary btn-sm" onclick="imprSelecTes('areaImprimir','<?= str_replace(',', '|', $ids); ?>');"> Imprimir</a>
     <?php } ?>
-    <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Cerrar</a>
+    <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
 </div>
 <?php
 $html_doc = '';
@@ -162,7 +169,7 @@ foreach ($documentos_tes as $documento) {
                         ON (`pto_cdp_detalle`.`id_rubro` = `pto_cargue`.`id_cargue`)
                 WHERE (`ctb_doc`.`id_ctb_doc` = $id_doc)";
             $res = $cmd->query($sql);
-            $rubros = $res->fetchAll(PDO::FETCH_ASSOC);
+            $rubros = $res->fetchAll();
             $res->closeCursor();
             unset($res);
         } catch (PDOException $e) {
@@ -224,7 +231,7 @@ foreach ($documentos_tes as $documento) {
             WHERE (`ctb_libaux`.`id_ctb_doc` = $id_doc)
             ORDER BY `ctb_pgcp`.`cuenta` DESC";
         $res = $cmd->query($sql);
-        $movimiento = $res->fetchAll(PDO::FETCH_ASSOC);
+        $movimiento = $res->fetchAll();
         $res->closeCursor();
         unset($res);
     } catch (PDOException $e) {
@@ -271,7 +278,7 @@ foreach ($documentos_tes as $documento) {
                     ON (`tes_cuentas`.`id_banco` = `tb_bancos`.`id_banco`)
             WHERE (`tes_detalle_pago`.`id_ctb_doc` = $id_doc)";
         $rs = $cmd->query($sql);
-        $formapago = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $formapago = $rs->fetchAll();
         $rs->closeCursor();
         unset($rs);
     } catch (PDOException $e) {
@@ -311,7 +318,7 @@ foreach ($documentos_tes as $documento) {
                     ON (`tes_causa_arqueo`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
             WHERE (`tes_causa_arqueo`.`id_ctb_doc` = $id_doc)";
             $res = $cmd->query($sql);
-            $facturadores = $res->fetchAll(PDO::FETCH_ASSOC);
+            $facturadores = $res->fetchAll();
             $res->closeCursor();
             unset($res);
         } catch (PDOException $e) {
@@ -353,7 +360,7 @@ foreach ($documentos_tes as $documento) {
                 AND `fin_respon_doc`.`estado` = 1
                 AND `fin_maestro_doc`.`estado` = 1)";
         $res = $cmd->query($sql);
-        $responsables = $res->fetchAll(PDO::FETCH_ASSOC);
+        $responsables = $res->fetchAll();
         $res->closeCursor();
         unset($res);
         $key = array_search('4', array_column($responsables, 'tipo_control'));
@@ -440,7 +447,7 @@ foreach ($documentos_tes as $documento) {
         </br>
         <table class="table-bordered bg-light" style="width:100% !important;">
             <tr>
-                <td class='text-center' style="width:18%"><label class="small"><img src="../images/logos/logo.png" width="100"></label></td>
+                <td class='text-center' style="width:18%"><label class="small"><img src="../../assets/images/logo.png" width="100"></label></td>
                 <td style="text-align:center">
                     <strong><?php echo $empresa['nombre']; ?> </strong>
                     <div>NIT <?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></div>
@@ -468,24 +475,24 @@ foreach ($documentos_tes as $documento) {
         </div>
         <table class="table-bordered bg-light" style="width:100% !important;">
             <tr>
-                <td class='text-left' style="width:18%">FECHA:</td>
-                <td class='text-left'><?php echo $fecha . ' ' . $hora; ?></td>
+                <td class='text-start' style="width:18%">FECHA:</td>
+                <td class='text-start'><?php echo $fecha . ' ' . $hora; ?></td>
             </tr>
             <tr>
-                <td class='text-left' style="width:18%">TERCERO:</td>
-                <td class='text-left'><?php echo $tercero; ?></td>
+                <td class='text-start' style="width:18%">TERCERO:</td>
+                <td class='text-start'><?php echo $tercero; ?></td>
             </tr>
             <tr>
-                <td class='text-left' style="width:18%">CC/NIT:</td>
-                <td class='text-left'><?php echo number_format($num_doc, 0, '', '.'); ?></td>
+                <td class='text-start' style="width:18%">CC/NIT:</td>
+                <td class='text-start'><?php echo number_format($num_doc, 0, '', '.'); ?></td>
             </tr>
             <tr>
-                <td class='text-left'>OBJETO:</td>
-                <td class='text-left'><?php echo $documento['detalle']; ?></td>
+                <td class='text-start'>OBJETO:</td>
+                <td class='text-start'><?php echo $documento['detalle']; ?></td>
             </tr>
             <tr>
-                <td class='text-left'>VALOR:</td>
-                <td class='text-left'><label><?php echo $enletras . "  $" . number_format($total, 2, ",", "."); ?></label></td>
+                <td class='text-start'>VALOR:</td>
+                <td class='text-start'><label><?php echo $enletras . "  $" . number_format($total, 2, ",", "."); ?></label></td>
             </tr>
         </table>
         </br>
@@ -512,10 +519,10 @@ foreach ($documentos_tes as $documento) {
                     if ($rp['valor'] > 0) {
                 ?>
                         <tr>
-                            <td class='text-left' style='border: 1px solid black '><?= $rp['id_rp']; ?></td>
-                            <td class='text-left' style='border: 1px solid black '><?= $rp['rubro']; ?></td>
-                            <td class='text-left' style='border: 1px solid black '><?= $rp['nom_rubro']; ?></td>
-                            <td class='text-right' style='border: 1px solid black; text-align: right'><?= number_format($rp['valor'], 2, ",", "."); ?></td>
+                            <td class='text-start' style='border: 1px solid black '><?= $rp['id_rp']; ?></td>
+                            <td class='text-start' style='border: 1px solid black '><?= $rp['rubro']; ?></td>
+                            <td class='text-start' style='border: 1px solid black '><?= $rp['nom_rubro']; ?></td>
+                            <td class='text-end' style='border: 1px solid black; text-align: right'><?= number_format($rp['valor'], 2, ",", "."); ?></td>
                         </tr>
                 <?php
                         $total_pto += $rp['valor'];
@@ -594,10 +601,10 @@ foreach ($documentos_tes as $documento) {
                 $total_pago = 0;
                 foreach ($facturadores as $fac) {
                     echo "<tr style='border: 1px solid black'>
-                <td class='text-left' style='border: 1px solid black'>" . $fac['id_tercero'] . "</td>
-                <td class='text-left' style='border: 1px solid black'>" . $fac['facturador'] . "</td>
-                <td class='text-right' style='border: 1px solid black'>" . number_format($fac['valor_fac'], 2, ',', '.') . "</td>
-                <td class='text-right' style='border: 1px solid black'>" . number_format($fac['valor_arq'], 2, ',', '.') . "</td>
+                <td class='text-start' style='border: 1px solid black'>" . $fac['id_tercero'] . "</td>
+                <td class='text-start' style='border: 1px solid black'>" . $fac['facturador'] . "</td>
+                <td class='text-end' style='border: 1px solid black'>" . number_format($fac['valor_fac'], 2, ',', '.') . "</td>
+                <td class='text-end' style='border: 1px solid black'>" . number_format($fac['valor_arq'], 2, ',', '.') . "</td>
                 </tr>";
                 }
                 ?>
@@ -624,11 +631,11 @@ foreach ($documentos_tes as $documento) {
             $total_pago = 0;
             foreach ($formapago as $pg) {
                 echo "<tr style='border: 1px solid black'>
-                <td class='text-left' style='border: 1px solid black'>" . $pg['nom_banco'] . "</td>
-                <td class='text-left' style='border: 1px solid black'>" . $pg['nombre'] . "</td>
-                <td class='text-left' style='border: 1px solid black'>" . $pg['forma_pago'] . "</td>
-                <td class='text-left' style='border: 1px solid black'>" . $pg['documento'] . "</td>
-                <td class='text-right' style='border: 1px solid black'>" . number_format($pg['valor'], 2, ',', '.') . "</td>
+                <td class='text-start' style='border: 1px solid black'>" . $pg['nom_banco'] . "</td>
+                <td class='text-start' style='border: 1px solid black'>" . $pg['nombre'] . "</td>
+                <td class='text-start' style='border: 1px solid black'>" . $pg['forma_pago'] . "</td>
+                <td class='text-start' style='border: 1px solid black'>" . $pg['documento'] . "</td>
+                <td class='text-end' style='border: 1px solid black'>" . number_format($pg['valor'], 2, ',', '.') . "</td>
                 </tr>";
                 if ($pg['id_forma_pago'] == 2) {
                     $id_forma = 2;
@@ -661,11 +668,11 @@ foreach ($documentos_tes as $documento) {
                 foreach ($movimiento as $mv) {
                     $ccnit = $mv['nit_tercero'];
                     echo "<tr style='border: 1px solid black'>
-                    <td class='text-left' style='border: 1px solid black'>" . $mv['cuenta'] . "</td>
-                    <td class='text-left' style='border: 1px solid black'>" . $mv['nombre'] . "</td>
-                    <td class='text-left' style='border: 1px solid black'>" .  $ccnit . "</td>
-                    <td class='text-right' style='border: 1px solid black;text-align: right'>" . number_format($mv['debito'], 2, ",", ".")  . "</td>
-                    <td class='text-right' style='border: 1px solid black;text-align: right'>" . number_format($mv['credito'], 2, ",", ".")  . "</td>
+                    <td class='text-start' style='border: 1px solid black'>" . $mv['cuenta'] . "</td>
+                    <td class='text-start' style='border: 1px solid black'>" . $mv['nombre'] . "</td>
+                    <td class='text-start' style='border: 1px solid black'>" .  $ccnit . "</td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['debito'], 2, ",", ".")  . "</td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['credito'], 2, ",", ".")  . "</td>
                     </tr>";
                     $tot_deb += $mv['debito'];
                     $tot_cre += $mv['credito'];
@@ -673,8 +680,8 @@ foreach ($documentos_tes as $documento) {
                 ?>
                 <tr>
                     <td style="text-align: left;border: 1px solid black" colspan="3">Sumas iguales</td>
-                    <td class='text-right' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_deb, 2, ",", "."); ?></td>
-                    <td class='text-right' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_cre, 2, ",", "."); ?> </td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_deb, 2, ",", "."); ?></td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_cre, 2, ",", "."); ?> </td>
                 </tr>
             <?php
             } else {
@@ -692,10 +699,10 @@ foreach ($documentos_tes as $documento) {
                 foreach ($movimiento as $mv) {
 
                     echo "<tr style='border: 1px solid black'>
-                <td class='text-left' style='border: 1px solid black'>" . $mv['cuenta'] . "</td>
-                <td class='text-left' style='border: 1px solid black'>" . $mv['nombre'] . "</td>
-                <td class='text-right' style='border: 1px solid black;text-align: right'>" . number_format($mv['debito'], 2, ",", ".")  . "</td>
-                <td class='text-right' style='border: 1px solid black;text-align: right'>" . number_format($mv['credito'], 2, ",", ".")  . "</td>
+                <td class='text-start' style='border: 1px solid black'>" . $mv['cuenta'] . "</td>
+                <td class='text-start' style='border: 1px solid black'>" . $mv['nombre'] . "</td>
+                <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['debito'], 2, ",", ".")  . "</td>
+                <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['credito'], 2, ",", ".")  . "</td>
                 </tr>";
                     $tot_deb += $mv['debito'];
                     $tot_cre += $mv['credito'];
@@ -703,8 +710,8 @@ foreach ($documentos_tes as $documento) {
                 ?>
                 <tr>
                     <td style="text-align: left;border: 1px solid black" colspan="2">Sumas iguales</td>
-                    <td class='text-right' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_deb, 2, ",", "."); ?></td>
-                    <td class='text-right' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_cre, 2, ",", "."); ?> </td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_deb, 2, ",", "."); ?></td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_cre, 2, ",", "."); ?> </td>
                 </tr>
             <?php
             }
@@ -792,7 +799,6 @@ foreach ($documentos_tes as $documento) {
     }
     try {
         $pdo = \Config\Clases\Conexion::getConexion();
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
         $sql = "SELECT
                     IF(`fac_facturacion`.`num_efactura` IS NULL,`fac_facturacion`.`num_factura`, CONCAT(`prefijo`, `num_efactura`)) AS `num_factura`      
                     , 'FACTURACION SERVICIOS' AS `detalle` 
@@ -825,7 +831,7 @@ foreach ($documentos_tes as $documento) {
                         WHERE `fac_arqueo`.`estado` >=2  AND `id_venta` IS NOT NULL   ) AS `arqueo` ON (`far_ventas`.`id_venta`=`arqueo`.`id_venta`)
                 WHERE `fec_venta` >= '2025-08-01' AND `far_ventas`.`estado` = 2 AND `arqueo`.`id_venta` IS NULL AND `id_tercero_api` IN ($id_terceros)";
         $res = $cmd->query($sql);
-        $pendientes = $res->fetchAll(PDO::FETCH_ASSOC);
+        $pendientes = $res->fetchAll();
         $res->closeCursor();
         unset($res);
     } catch (PDOException $e) {
@@ -900,7 +906,7 @@ foreach ($documentos_tes as $documento) {
                     AND `fin_respon_doc`.`estado` = 1
                     AND `fin_maestro_doc`.`estado` = 1)";
             $res = $cmd->query($sql);
-            $responsables = $res->fetchAll(PDO::FETCH_ASSOC);
+            $responsables = $res->fetchAll();
             $res->closeCursor();
             unset($res);
             $key = array_search('4', array_column($responsables, 'tipo_control'));
@@ -927,7 +933,7 @@ foreach ($documentos_tes as $documento) {
                         <td>
                             <table class="table-bordered bg-light" style="width:100% !important;">
                                 <tr>
-                                    <td class='text-center' style="width:25%"><label class="small"><img src="../images/logos/logo.png" width="150"></label></td>
+                                    <td class='text-center' style="width:25%"><label class="small"><img src="../../assets/images/logo.png" width="150"></label></td>
                                     <td style="text-align:center">
                                         <strong><?php echo $empresa['nombre']; ?> </strong>
                                         <div>NIT <?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></div>

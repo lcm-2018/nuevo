@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
 $id_ctb_doc = isset($_POST['id_doc'])  ? $_POST['id_doc'] : exit('Acceso no disponible');
 $id_detalle = isset($_POST['id_detalle'])  ? $_POST['id_detalle'] : 0;
@@ -19,8 +19,7 @@ $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 
 $response['status'] = 'error';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $query = "INSERT INTO `tes_detalle_pago`
                     (`id_ctb_doc`,`id_tes_cuenta`,`id_forma_pago`,`documento`,`valor`,`id_user_reg`,`fecha_reg`)

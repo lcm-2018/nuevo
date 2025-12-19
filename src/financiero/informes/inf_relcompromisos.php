@@ -10,7 +10,7 @@ header("Content-Disposition: attachment; filename=Relacion_Compromisos.xls");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 $periodo = $_POST['periodo'];
 $vigencia = $_SESSION['vigencia'];
 $id_vigencia = $_SESSION['id_vigencia'];
@@ -26,8 +26,7 @@ if ($periodo == 1) {
     $meses = 'ANUAL';
 }
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT
                 `taux`.`id_rubro`

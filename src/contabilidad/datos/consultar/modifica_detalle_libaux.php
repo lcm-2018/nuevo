@@ -47,8 +47,8 @@ if (!empty($detalle)) {
             <input type="hidden" id="tipoDato" name="tipoDato" value="' . $detalle['tipo_dato'] . '">';
     $res[2] = '<input type="text" name="bTercero" id="bTercero" class="form-control form-control-sm bg-input bTercero" value="' . $tercero . '">
             <input type="hidden" name="idTercero" id="idTercero" value="' . $detalle['id_tercero_api'] . '">';
-    $res[3] = '<input type="text" name="valorDebito" id="valorDebito" class="form-control form-control-sm bg-input " style="text-align: right;" onkeyup="valorMiles(id)" onchange="llenarCero(id)" value="' . pesos($detalle['debito']) . '">';
-    $res[4] = '<input type="text" name="valorCredito" id="valorCredito" class="form-control form-control-sm bg-input " style="text-align: right;" onkeyup="valorMiles(id)" onchange="llenarCero(id)" value="' . pesos($detalle['credito']) . '">';
+    $res[3] = '<input type="text" name="valorDebito" id="valorDebito" class="form-control form-control-sm bg-input " style="text-align: right;" onkeyup="NumberMiles(this)" onchange="llenarCero(id)" value="' . pesos($detalle['debito']) . '">';
+    $res[4] = '<input type="text" name="valorCredito" id="valorCredito" class="form-control form-control-sm bg-input " style="text-align: right;" onkeyup="NumberMiles(this)" onchange="llenarCero(id)" value="' . pesos($detalle['credito']) . '">';
     $res[5] = '<div class="text-center"><button text="' . $id_detalle . '" class="btn btn-primary btn-sm" onclick="GestMvtoDetalle(this)">Modificar</button></div>';
     $res['msg'] = 'Consulta exitosa';
 } else {

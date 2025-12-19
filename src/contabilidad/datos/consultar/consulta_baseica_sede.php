@@ -27,6 +27,8 @@ try {
             GROUP BY `tb_municipios`.`id_municipio`";
     $rs = $cmd->query($sql);
     $retenciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -34,6 +36,8 @@ try {
     $sql = "SELECT id_retencion, nombre_retencion FROM ctb_retenciones WHERE id_retencion_tipo= 3 ORDER BY nombre_retencion ASC";
     $rs = $cmd->query($sql);
     $retica = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -41,6 +45,8 @@ try {
     $sql = "SELECT `id_retencion`, `nombre_retencion` FROM `ctb_retenciones` WHERE `id_retencion_tipo` = 4";
     $rs = $cmd->query($sql);
     $sobretasa = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -50,6 +56,8 @@ try {
     $sql = "SELECT id_retencion, nombre_retencion FROM ctb_retenciones WHERE id_retencion_tipo= 3 ORDER BY nombre_retencion ASC";
     $rs = $cmd->query($sql);
     $datas = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -59,8 +67,8 @@ $lbl_dat = '<label class="small">Retención</label>';
 $lbl_sob = '<label class="small">Sobretasa</label>';
 $lbl_ret = '<label class="small">Valor retención</label>';
 $lbl_vsb = '<label class="small">Valor sobretasa</label>';
-$val_ret = '<input type="text" name="valor_rte[]" class="form-control form-control-sm bg-input text-end" onkeyup="valorMiles(id)" value="0" disabled>';
-$val_sob = '<input type="text" name="valor_sob[]" class="form-control form-control-sm bg-input text-end" onkeyup="valorMiles(id)" value="0" disabled>';
+$val_ret = '<input type="text" name="valor_rte[]" class="form-control form-control-sm bg-input text-end" onkeyup="NumberMiles(this)" value="0" disabled>';
+$val_sob = '<input type="text" name="valor_sob[]" class="form-control form-control-sm bg-input text-end" onkeyup="NumberMiles(this)" value="0" disabled>';
 $primero = true;
 $response = '<div class="border px-2 rounded mb-1 bg-light" style="max-height: 200px; overflow-y: auto;">';
 foreach ($retenciones as $ret) {

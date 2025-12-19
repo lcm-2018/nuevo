@@ -1407,10 +1407,6 @@ function redireccionar2(ruta) {
     }, 100);
 }
 
-function valorMiles(id) {
-    console.log("valor" + id);
-    milesp(id);
-}
 /*  ========================================================= Certificado de disponibilidad presupuestal ========================================================= */
 // mostrar list_Ejecucion_cdp.php
 function mostrarListaCdp(dato) {

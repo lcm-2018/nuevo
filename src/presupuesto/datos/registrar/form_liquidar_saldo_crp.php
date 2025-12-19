@@ -141,7 +141,7 @@ $fecha = date("Y-m-d");
                                     }
                                     $saldo2 = number_format($saldo, 2, '.', ',');
                                     $campo = '<div class="btn-group">
-                                                 <input type="text" class="form-control form-control-sm text-end bg-input" id="valor' . $j . '" name="valor' . $j . '" required value="' . $saldo2 . '" min="0" max="' . $saldo . '" onkeyup="valorMiles()">
+                                                 <input type="text" class="form-control form-control-sm text-end bg-input" id="valor' . $j . '" name="valor' . $j . '" required value="' . $saldo2 . '" min="0" max="' . $saldo . '" onkeyup="NumberMiles(this)">
                                                   <button type="button" class="btn btn-primary btn-sm"  onclick="registrarLiquidacionDetalleCrp(\'' . $dato . '\')">-</button>
                                             </div>
                                     ';

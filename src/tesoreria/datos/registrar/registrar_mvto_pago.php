@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $id_ctb_doc = isset($_POST['id_pag_doc']) ? $_POST['id_pag_doc'] : exit('Accion no permitida');
 $ids_cops = $_POST['detalle'];
 $tercero = $_POST['id_tercero'];
@@ -16,8 +16,7 @@ $response['status'] = 'error';
 $response['msg'] = '';
 $registros = 0;
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "INSERT INTO `pto_pag_detalle`
                 (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`,`id_user_reg`,`fecha_reg`)
             VALUES (?, ?, ?, ?, ?, ?, ?)";

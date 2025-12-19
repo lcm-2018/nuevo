@@ -1,17 +1,24 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
+include '../../../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 // Div de acciones de la lista
 $mes = $_POST['mes'];
 $vigencia = $_SESSION['vigencia'];
 $data = [];
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT `fin_mes` FROM `nom_meses` WHERE (`codigo` = '$mes')";
     $rs = $cmd->query($sql);
@@ -85,7 +92,9 @@ if ($fin_mes != 0) {
                         ON (`t3`.`id_concilia` = `t2`.`id_conciliacion`)";
         //        echo $sql;
         $rs = $cmd->query($sql);
-        $lista = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $lista = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -93,7 +102,9 @@ if ($fin_mes != 0) {
         $sql = "SELECT `id_cuenta`, `estado` FROM `tes_conciliacion` 
                 WHERE `mes` = '$mes' AND `vigencia` = '$vigencia'";
         $rs = $cmd->query($sql);
-        $estados = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $estados = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -103,20 +114,20 @@ if ($fin_mes != 0) {
             $estado = $editar = $borrar = $acciones = $cerrar = null;
             $id_ctb = $lp['id_tes_cuenta'];
             $key = array_search($id_ctb, array_column($estados, 'id_cuenta'));
-            $estado = '<a href="javascript:void(0)" onclick="ConciliacionBancaria(' . $id_ctb . ')"><span class="badge rounded-pill text-bg-warning">Conciliar</span></a>';
+            $estado = '<a href="javascript:void(0)" onclick="ConciliacionBancaria(' . $id_ctb . ')"><span class="badge bg-warning text-dark">Conciliar</span></a>';
             if ($key !== false) {
                 if ($estados[$key]['estado'] == 1) {
-                    $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-info btn-sm btn-circle shadow-gb" onclick="CerrarConciliacion(' . $id_ctb . ')" title="Cerrar"><span class="fas fa-unlock fa-lg"></span></a>';
+                    $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow" onclick="CerrarConciliacion(' . $id_ctb . ')" title="Cerrar"><span class="fas fa-unlock"></span></a>';
                 } else  if ($id_rol == 1) {
-                    $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-secondary btn-sm btn-circle shadow-gb" onclick="AbrirConciliacion(' . $id_ctb . ')" title="Abrir"><span class="fas fa-lock fa-lg"></span></a>';
+                    $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-secondary btn-xs rounded-circle me-1 shadow" onclick="AbrirConciliacion(' . $id_ctb . ')" title="Abrir"><span class="fas fa-lock"></span></a>';
                     $estado = '';
                 }
                 if ($estados[$key]['estado'] == 2) {
                     $estado = '';
                 }
             }
-            if (PermisosUsuario($permisos, 5606, 6) || $id_rol == 1) {
-                $imprimir = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" onclick="ImpConcBanc(' . $id_ctb . ')" class="btn btn-outline-success btn-sm btn-circle shadow-gb"  title="Editar_' . $id_ctb . '"><span class="fas fa-print fa-lg"></span></a>';
+            if ($permisos->PermisosUsuario($opciones, 5606, 6) || $id_rol == 1) {
+                $imprimir = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" onclick="ImpConcBanc(' . $id_ctb . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow"  title="Editar_' . $id_ctb . '"><span class="fas fa-print"></span></a>';
                 //si es lider de proceso puede abrir o cerrar documentos
             }
             $valor = $lp['debito'] - $lp['credito'];
@@ -135,7 +146,7 @@ if ($fin_mes != 0) {
                     'tipo' => $lp['tipo_cuenta'],
                     'nombre' => $lp['descripcion'],
                     'numero' => $lp['cta_contable'],
-                    'saldo' => '<div class="text-right ' . $color . '">' . $signo . number_format($valor, 2, ',', '.') . '</div>',
+                    'saldo' => '<div class="text-end ' . $color . '">' . $signo . number_format($valor, 2, ',', '.') . '</div>',
                     'estado' => '<div class="text-center">' . $estado . '</div>',
                     'botones' => '<div class="text-center" style="position:relative">' . $imprimir . $cerrar . '</div>',
                 ];

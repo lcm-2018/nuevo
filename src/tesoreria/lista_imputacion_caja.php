@@ -4,14 +4,21 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
+include '../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $id_doc = isset($_POST['id']) ? $_POST['id'] : exit('Acceso no disponible');
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `tes_caja_rubros`.`id_caja_rubros`
                 , `tes_caja_rubros`.`valor`
@@ -31,14 +38,16 @@ try {
             WHERE (`tes_caja_rubros`.`id_caja_const` = $id_doc)";
     $rs = $cmd->query($sql);
     $listado = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LISTA DE IMPUTACIONES CAJA MENOR </h5>
+        <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LISTA DE IMPUTACIONES CAJA MENOR </h5>
         </div>
         <div class="p-3">
             <form id="formImputacion">
@@ -49,30 +58,30 @@ try {
                     $max = $l['valor'] - $l['valor_pag'];
                     $value = $max > 0 ? $max : 0;
                 ?>
-                    <div class="form-row">
-                        <div class="form-group col-md-3">
+                    <div class="row mb-2">
+                        <div class="col-md-3">
                             <?php if ($band) { ?>
                                 <span class="small">Código presupuestal</span>
                             <?php } ?>
-                            <div class="form-control form-control-sm text-left bg-light"><?php echo $l['cod_pptal'] ?></div>
+                            <div class="form-control form-control-sm bg-input text-start bg-light"><?php echo $l['cod_pptal'] ?></div>
                         </div>
-                        <div class="form-group col-md-5">
+                        <div class="col-md-5">
                             <?php if ($band) { ?>
                                 <span class="small">Rubro</span>
                             <?php } ?>
-                            <div class="form-control form-control-sm text-left bg-light"><?php echo $l['nom_rubro'] ?></div>
+                            <div class="form-control form-control-sm bg-input text-start bg-light"><?php echo $l['nom_rubro'] ?></div>
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="col-md-2">
                             <?php if ($band) { ?>
                                 <span for="valor" class="small">Valor RP</span>
                             <?php } ?>
-                            <div class="form-control form-control-sm text-left bg-light"><?php echo number_format($max, 2) ?></div>
+                            <div class="form-control form-control-sm bg-input text-start bg-light"><?php echo number_format($max, 2) ?></div>
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="col-md-2">
                             <?php if ($band) { ?>
                                 <span for="valor" class="small">Valor CxP</span>
                             <?php } ?>
-                            <input type="text" name="valor[<?php echo $l['id_caja_rubros'] ?>]" id="valor" onkeyup="valorMiles(id)" class="form-control form-control-sm text-right ValImputacion" min="0" max="<?php echo $max ?>" value="<?php echo number_format($value, 2) ?>">
+                            <input type="text" name="valor[<?php echo $l['id_caja_rubros'] ?>]" id="valor" onkeyup="NumberMiles(this)" class="form-control form-control-sm bg-input text-end ValImputacion" min="0" max="<?php echo $max ?>" value="<?php echo number_format($value, 2) ?>">
                         </div>
                     </div>
                 <?php
@@ -82,9 +91,9 @@ try {
             </form>
         </div>
     </div>
-    <div class="text-right pt-3">
+    <div class="text-end pt-3">
         <a type="button" class="btn btn-primary btn-sm" onclick="DetalleImputacionCajaMenor()">Guardar</a>
-        <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"> Aceptar</a>
+        <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Aceptar</a>
     </div>
 </div>
 <?php

@@ -21,6 +21,8 @@ try {
             ORDER BY pto_cargue.cod_pptal";
     $rs = $cmd->query($sql);
     $objs = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

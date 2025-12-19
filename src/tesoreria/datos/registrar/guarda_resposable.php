@@ -13,11 +13,10 @@ $estado = 1;
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $response['status'] = 'error';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     if ($id_detalle == 0) {
         $query = "INSERT INTO `tes_caja_respon`
                     (`id_caja_const`,`id_terceros_api`,`fecha_ini`,`fecha_fin`,`estado`,`id_user_reg`,`fec_reg`)

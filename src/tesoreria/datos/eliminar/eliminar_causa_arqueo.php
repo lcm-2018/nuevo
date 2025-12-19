@@ -3,16 +3,15 @@
 use Config\Clases\Logs;
 
 $id = $_POST['id'];
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $response['status'] = 'error';
 try {
     $pdo = \Config\Clases\Conexion::getConexion();
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
     $sql = "SELECT id_arqueo FROM tes_ids_arqueo WHERE id_causa = ?";
     $query = $pdo->prepare($sql);
     $query->bindParam(1, $id, PDO::PARAM_INT);
     $query->execute();
-    $result = $query->fetchAll(PDO::FETCH_ASSOC);
+    $result = $query->fetchAll();
 
     $query = $pdo->prepare("DELETE FROM tes_causa_arqueo WHERE id_causa_arqueo = ?");
     $query->bindParam(1, $id);

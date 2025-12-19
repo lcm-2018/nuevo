@@ -34,10 +34,9 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 //
 try {
     $sql = "SELECT
@@ -59,6 +58,8 @@ try {
 ";
     $res = $cmd->query($sql);
     $causaciones = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -196,13 +197,13 @@ FROM
                 $pagado = $causado - $retenido;
                 echo "<tr>
                 <td class='text'>" . $fecha .  "</td>
-                <td class='text-left'>" . $rp['id_manu'] . "</td>
-                <td class='text-right'>" .   $tercero   . "</td>
-                <td class='text-right'>" . $ccnit . "</td>
-                <td class='text-right'>" . $rp['detalle']   . "</td>
-                <td class='text-right'>" . number_format($causado, 2, ".", ",")  . "</td>
-                <td class='text-right'>" . number_format($retenido, 2, ".", ",")  . "</td>
-                <td class='text-right'>" . number_format($pagado, 2, ".", ",")  . "</td>
+                <td class='text-start'>" . $rp['id_manu'] . "</td>
+                <td class='text-end'>" .   $tercero   . "</td>
+                <td class='text-end'>" . $ccnit . "</td>
+                <td class='text-end'>" . $rp['detalle']   . "</td>
+                <td class='text-end'>" . number_format($causado, 2, ".", ",")  . "</td>
+                <td class='text-end'>" . number_format($retenido, 2, ".", ",")  . "</td>
+                <td class='text-end'>" . number_format($pagado, 2, ".", ",")  . "</td>
                 </tr>";
             }
             ?>

@@ -1,6 +1,6 @@
 <?php
 // Busca consecutivos del tipo de documento recibido para sugerir un numero 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $conexion = new mysqli($bd_servidor, $bd_usuario, $bd_clave, $bd_base);
 $_post = json_decode(file_get_contents('php://input'), true);
 // Buscamos si hay registros posteriores a la fecha recibida

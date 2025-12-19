@@ -10,11 +10,10 @@ header("Content-Disposition: attachment; filename=Ejecucion_presupuestal_ingreso
 header("Pragma: no-cache");
 header("Expires: 0");
 
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 $corte = $_POST['periodo'] == '' ? date('Y-m-d') : $_POST['periodo'];
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 try {
     $sql = "WITH

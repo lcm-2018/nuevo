@@ -4,15 +4,14 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
+include '../../config/autoloader.php';
 include '../financiero/consultas.php';
 
 $id_caja = isset($_POST['id_caja'])  ? $_POST['id_caja'] : exit('Acceso no permitido');
 $id_detalle = isset($_POST['id_detalle']) ? $_POST['id_detalle'] : 0;
 
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 
 $fecha_cierre = fechaCierre($_SESSION['vigencia'], 56, $cmd);
@@ -23,6 +22,8 @@ try {
     $sql = "SELECT `id_caja_concptos`,`concepto` FROM `tes_caja_conceptos` WHERE `estado`= 1 ORDER BY `concepto` ASC";
     $rs = $cmd->query($sql);
     $conceptos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -72,6 +73,8 @@ try {
             WHERE `tes_caja_rubros`.`id_caja_const` = $id_caja";
     $rs = $cmd->query($sql);
     $rubros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -137,18 +140,18 @@ if (empty($detalle)) {
     $('#tableRubrosCaja').wrap('<div class="overflow" />');
 </script>
 <div class="shadow">
-    <div class="card-header" style="background-color: #16a085 !important;">
-        <h5 style="color: white;">RUBROS DE CAJA MENOR </h5>
+    <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+        <h5 class="mb-0" style="color: white;">RUBROS DE CAJA MENOR </h5>
     </div>
     <div class="p-3">
         <form id="formAddRubrosCaja">
             <input type="hidden" id="id_pto_movto" value="2">
             <input type="hidden" id="id_caja_rubros" name="id_caja_rubros" value="<?php echo $detalle['id_caja_rubros']; ?>">
             <input type="hidden" id="id_caja" name="id_caja" value="<?php echo $id_caja ?>">
-            <div class="form-row">
-                <div class="form-group col-md-6">
+            <div class="row mb-2">
+                <div class="col-md-6">
                     <label for="slcConcepto" class="small">TIPO DE GASTO</label>
-                    <select name="slcConcepto" id="slcConcepto" class="form-control form-control-sm">
+                    <select name="slcConcepto" id="slcConcepto" class="form-control form-control-sm bg-input">
                         <option value="0" <?php echo $detalle['id_caja_concepto'] == '0' ? 'selected' : '' ?>>--Seleccione--</option>
                         <?php
                         foreach ($conceptos as $cp) {
@@ -158,22 +161,22 @@ if (empty($detalle)) {
                         ?>
                     </select>
                 </div>
-                <div class="form-group col-md-6">
+                <div class="col-md-6">
                     <label for="numValor" class="small">Valor</label>
-                    <input type="number" name="numValor" id="numValor" class="form-control form-control-sm" value="<?php echo $detalle['valor']; ?>" min="0" max="<?= $max; ?>">
+                    <input type="number" name="numValor" id="numValor" class="form-control form-control-sm bg-input" value="<?php echo $detalle['valor']; ?>" min="0" max="<?= $max; ?>">
                 </div>
             </div>
-            <div class="form-row">
-                <div class="form-group col-md-6">
+            <div class="row mb-2">
+                <div class="col-md-6">
                     <label for="rubroCod" class="small">RUBRO PRESUPUESTAL</label>
-                    <input type="text" name="rubroCod" id="rubroCod" class="form-control form-control-sm" value="<?php echo $detalle['cod_pptal'] != '' ? $detalle['cod_pptal'] . ' - ' . $detalle['nom_rubro'] : ''; ?>">
-                    <input type="hidden" name="id_rubroCod" id="id_rubroCod" class="form-control form-control-sm" value="<?php echo $detalle['id_rubro_gasto']; ?>">
+                    <input type="text" name="rubroCod" id="rubroCod" class="form-control form-control-sm bg-input" value="<?php echo $detalle['cod_pptal'] != '' ? $detalle['cod_pptal'] . ' - ' . $detalle['nom_rubro'] : ''; ?>">
+                    <input type="hidden" name="id_rubroCod" id="id_rubroCod" class="form-control form-control-sm bg-input" value="<?php echo $detalle['id_rubro_gasto']; ?>">
                     <input type="hidden" id="tipoRubro" value="<?php echo $detalle['tipo_dato_rubro']; ?>">
                 </div>
-                <div class="form-group col-md-6">
+                <div class="col-md-6">
                     <label for="codigoCta" class="small">CUENTA CONTABLE</label>
-                    <input type="text" name="codigoCta" id="codigoCta" class="form-control form-control-sm" value="<?php echo $detalle['cuenta'] != '' ? $detalle['cuenta'] . ' - ' . $detalle['nombre'] : ''; ?>">
-                    <input type="hidden" name="id_codigoCta" id="id_codigoCta" class="form-control form-control-sm" value="<?php echo $detalle['id_cta_contable']; ?>">
+                    <input type="text" name="codigoCta" id="codigoCta" class="form-control form-control-sm bg-input" value="<?php echo $detalle['cuenta'] != '' ? $detalle['cuenta'] . ' - ' . $detalle['nombre'] : ''; ?>">
+                    <input type="hidden" name="id_codigoCta" id="id_codigoCta" class="form-control form-control-sm bg-input" value="<?php echo $detalle['id_cta_contable']; ?>">
                     <input type="hidden" id="tipoDato" value="<?php echo $detalle['tipo_dato_cta']; ?>">
                 </div>
             </div>
@@ -191,21 +194,21 @@ if (empty($detalle)) {
             <tbody>
                 <?php
                 foreach ($rubros as $r) {
-                    $editar = '<a class="btn btn-outline-primary btn-sm btn-circle shadow-gb"  onclick="EditRubroCaja(' . $r['id_caja_rubros'] . ')"><span class="fas fa-pencil-alt fa-lg"></span></a>';
+                    $editar = '<a class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow"  onclick="EditRubroCaja(' . $r['id_caja_rubros'] . ')"><span class="fas fa-pencil-alt"></span></a>';
                     echo '<tr>';
                     echo '<td>' . $r['concepto'] . '</td>';
                     echo '<td>' . $r['cod_pptal'] . ' - ' . $r['nom_rubro'] . '</td>';
                     echo '<td>' . $r['cuenta'] . ' - ' . $r['nombre'] . '</td>';
-                    echo '<td class="text-right">' . number_format($r['valor'], 2, ',', '.') . '</td>';
+                    echo '<td class="text-end">' . number_format($r['valor'], 2, ',', '.') . '</td>';
                     echo '<td class="text-center">' . $editar . '</td>';
                     echo '</tr>';
                 }
                 ?>
             </tbody>
         </table>
-        <div class="text-right pt-3">
+        <div class="text-end pt-3">
             <a type="button" class="btn btn-success btn-sm" onclick="GuardarRubrosCaja()">Guardar</a>
-            <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</a>
+            <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</a>
         </div>
     </div>
 </div>

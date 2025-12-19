@@ -1,18 +1,25 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
+include '../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $id_cop = $_POST['id_cop'] ?? '';
 $id_pag_doc = $_POST['id_doc'] ?? '';
 // Consulta tipo de presupuesto
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 pto_cop_detalle.id_tercero_api
                 , pto_cop_detalle.id_pto_crp_det
@@ -60,6 +67,8 @@ try {
             GROUP BY pto_cop_detalle.id_pto_cop_det";
     $rs = $cmd->query($sql);
     $rubros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $tercero = !empty($rubros) ? $rubros[0]['id_tercero_api'] : 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -80,8 +89,8 @@ try {
 <div class="px-0">
 
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LISTA DE REGISTROS PRESUPUESTALES PARA PAGO</h5>
+        <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LISTA DE REGISTROS PRESUPUESTALES PARA PAGO</h5>
         </div>
         <div class="pb-3"></div>
         <input type="hidden" name="id_pto_rp" id="id_pto_rp" value="<?php echo $id_cop; ?>">
@@ -111,26 +120,26 @@ try {
                             $obligado = $ce['val_cop'];
                             $valor =  $obligado - $pagado;
                             $valor_mil = number_format($valor, 2, '.', ',');
-                            if (PermisosUsuario($permisos, 5601, 3) || $id_rol == 1) {
-                                $editar = '<a value="' . $id_doc . '"  class="btn btn-outline-success btn-sm btn-circle shadow-gb editar" title="Causar"><span class="fas fa-print fa-lg"></span></a>';
-                                $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
+                            if ($permisos->PermisosUsuario($opciones, 5601, 3) || $id_rol == 1) {
+                                $editar = '<a value="' . $id_doc . '"  class="btn btn-outline-success btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-print"></span></a>';
+                                $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
                             ...
                             </button>
                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             <a value="' . $id_doc . '" class="dropdown-item sombra carga" href="#">Historial</a>
                             </div>';
                             }
-                            if (PermisosUsuario($permisos, 5601, 4) || $id_rol == 1) {
-                                $borrar = '<a value="' . $id_doc . '" onclick="eliminarImputacionPag(' . $id_doc . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb "  title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+                            if ($permisos->PermisosUsuario($opciones, 5601, 4) || $id_rol == 1) {
+                                $borrar = '<a value="' . $id_doc . '" onclick="eliminarImputacionPag(' . $id_doc . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow "  title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
                             }
                             $valor_obl = number_format($obligado, 2, '.', ',');
                         ?>
                             <tr>
-                                <td class="text-left"><?php echo $ce['rubro'] . ' - ' . $ce['nom_rubro']; ?></td>
-                                <td class="text-right"><?php echo '$ ' . number_format($ce['valor'], 2, '.', ','); ?></td>
-                                <td class="text-right"><?php echo '$ ' . number_format($ce['val_cop'], 2, '.', ','); ?></td>
-                                <td class="text-right">
-                                    <input type="text" name="detalle[<?php echo $id_det_cop; ?>]" id="detalle_<?php echo $id_det_cop; ?>" class="form-control form-control-sm detalle-pag" value="<?php echo $valor_mil; ?>" style="text-align: right;" required onkeyup="valorMiles(id)" max="<?php echo $valor; ?>">
+                                <td class="text-start"><?php echo $ce['rubro'] . ' - ' . $ce['nom_rubro']; ?></td>
+                                <td class="text-end"><?php echo '$ ' . number_format($ce['valor'], 2, '.', ','); ?></td>
+                                <td class="text-end"><?php echo '$ ' . number_format($ce['val_cop'], 2, '.', ','); ?></td>
+                                <td class="text-end">
+                                    <input type="text" name="detalle[<?php echo $id_det_cop; ?>]" id="detalle_<?php echo $id_det_cop; ?>" class="form-control form-control-sm bg-input detalle-pag" value="<?php echo $valor_mil; ?>" style="text-align: right;" required onkeyup="NumberMiles(this)" max="<?php echo $valor; ?>">
                                 </td>
                                 <!--<td class="text-center"> <?php //echo $editar  .  $acciones; 
                                                                 ?></td>-->
@@ -141,9 +150,9 @@ try {
 
                     </tbody>
                 </table>
-                <div class="text-right py-3">
+                <div class="text-end py-3">
                     <button type="button" class="btn btn-success btn-sm" onclick="rubrosaPagar(this);"> Guardar</button>
-                    <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</a>
+                    <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
                 </div>
             </div>
         </form>

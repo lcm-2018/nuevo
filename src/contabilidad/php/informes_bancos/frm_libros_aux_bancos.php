@@ -88,6 +88,8 @@ function tipo_documento($cmd, $titulo = '', $id = 0)
                 FROM ctb_fuente ORDER BY ctb_fuente.nombre";
         $rs = $cmd->query($sql);
         $objs = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
         foreach ($objs as $obj) {
             if ($obj['id_doc_fuente']  == $id) {
                 echo '<option value="' . $obj['id_doc_fuente'] . '" selected="selected">' . $obj['cod'] . ' -> ' . $obj['nombre'] . '</option>';

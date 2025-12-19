@@ -4,17 +4,24 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
-include '../../../terceros.php';
+include '../../../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
+
 // Div de acciones de la lista
 $id_cuenta = isset($_POST['id_cuenta']) ? $_POST['id_cuenta'] : exit('Acceso no disponible');
 $mes = $_POST['mes'];
 $vigencia = $_SESSION['vigencia'];
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_mes`,`codigo`,`nom_mes`,`fin_mes`
             FROM `nom_meses`
@@ -27,8 +34,7 @@ try {
 }
 $fecha = $vigencia . '-' . $mes . '-' . $dia;
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `ctb_doc`.`fecha`
                 , `ctb_fuente`.`cod`
@@ -40,6 +46,8 @@ try {
                 , `ctb_libaux`.`id_ctb_libaux`
                 , `tes_conciliacion_detalle`.`id_ctb_libaux` AS `conciliado`
                 , `tes_conciliacion_detalle`.`fecha_marca` AS `marca`
+                , `tb_terceros`.`nom_tercero`
+                , `tb_terceros`.`nit_tercero`
             FROM
                 `ctb_libaux`
                 INNER JOIN `ctb_pgcp`  ON (`ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
@@ -47,29 +55,24 @@ try {
                 INNER JOIN `ctb_doc`   ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
                 INNER JOIN `ctb_fuente` ON (`ctb_doc`.`id_tipo_doc` = `ctb_fuente`.`id_doc_fuente`)
                 LEFT JOIN `tes_conciliacion_detalle` ON (`tes_conciliacion_detalle`.`id_ctb_libaux` = `ctb_libaux`.`id_ctb_libaux`)
-                LEFT JOIN `tes_conciliacion` ON (`tes_conciliacion`.`id_conciliacion` = `tes_conciliacion_detalle`.`id_concilia`)   
+                LEFT JOIN `tes_conciliacion` ON (`tes_conciliacion`.`id_conciliacion` = `tes_conciliacion_detalle`.`id_concilia`)
+                LEFT JOIN `tb_terceros` ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
             WHERE (`tes_cuentas`.`id_tes_cuenta` = $id_cuenta AND `ctb_doc`.`estado` = 2 
                     AND `ctb_doc`.`fecha` <= '$fecha' AND (`tes_conciliacion_detalle`.`fecha_marca` >= '$fecha' or `tes_conciliacion_detalle`.`fecha_marca` IS NULL)
                     AND (`tes_conciliacion`.`vigencia` = '$vigencia' OR `tes_conciliacion`.`vigencia` IS NULL))";
     $rs = $cmd->query($sql);
     $lista = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 $id_t = [];
-$terceros = [];
 $tot_deb = 0;
 $tot_cre = 0;
 $tdc = 0;
 $tcc = 0;
 if (!empty($lista)) {
-    foreach ($lista as $lp) {
-        if ($lp['id_tercero_api'] != '') {
-            $id_t[] = $lp['id_tercero_api'];
-        }
-    }
-    $ids = implode(',', $id_t);
-    $terceros = getTerceros($ids, $cmd);
     $cmd = null;
     foreach ($lista as $lp) {
         if ($lp['conciliado'] > 0  && $lp['marca'] <= $fecha) {
@@ -91,16 +94,15 @@ if (!empty($lista)) {
             $tcc += $lp['credito'];
         }
         $check = '<input ' . $chk . ' type="checkbox" name="check[]" onclick="GuardaDetalleConciliacion(this)" text="' . $lp['id_ctb_libaux'] . '">';
-        $key = array_search($lp['id_tercero_api'], array_column($terceros, 'id_tercero_api'));
-        $nombre = $key !== false ? ltrim($terceros[$key]['nom_tercero'] . ' -> ' . $terceros[$key]['nit_tercero']) : '---';
+        $nombre = $lp['nom_tercero'] . ' -> ' . $lp['nit_tercero'];
         $data[] = [
 
             'fecha' => date('Y-m-d', strtotime($lp['fecha'])),
             'no_comprobante' => $lp['cod'] . $lp['id_manu'],
             'tercero' => $nombre,
             'documento' => $lp['documento'],
-            'debito' => '<div class="text-right">' . pesos($lp['debito']) . '</div>',
-            'credito' => '<div class="text-right">' . pesos($lp['credito']) . '</div>',
+            'debito' => '<div class="text-end">' . pesos($lp['debito']) . '</div>',
+            'credito' => '<div class="text-end">' . pesos($lp['credito']) . '</div>',
             'estado' => '<div class="text-center">' . $estado . '</div>',
             'accion' => '<div class="text-center vertical-align-middle">' . $check . '</div>',
         ];

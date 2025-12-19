@@ -6,6 +6,8 @@ function regimenes($cmd, $titulo = '', $id = 0)
         $sql = "SELECT id_regimen,descripcion_reg FROM tb_regimenes WHERE id_regimen<>0";
         $rs = $cmd->query($sql);
         $objs = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
         foreach ($objs as $obj) {
             if ($obj['id_regimen']  == $id) {
                 echo '<option value="' . $obj['id_regimen'] . '" selected="selected">' . $obj['descripcion_reg'] . '</option>';
@@ -26,6 +28,8 @@ function cobertura($cmd, $titulo = '', $id = 0)
         $sql = "SELECT id_cobertura,nom_cobertura FROM tb_cobertura WHERE id_cobertura<>0";
         $rs = $cmd->query($sql);
         $objs = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
         foreach ($objs as $obj) {
             if ($obj['id_cobertura']  == $id) {
                 echo '<option value="' . $obj['id_cobertura'] . '" selected="selected">' . $obj['nom_cobertura'] . '</option>';
@@ -46,6 +50,8 @@ function modalidad($cmd, $titulo = '', $id = 0)
         $sql = "SELECT id_modalidad,nom_modalidad FROM tb_modalidad WHERE id_modalidad<>0";
         $rs = $cmd->query($sql);
         $objs = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
         foreach ($objs as $obj) {
             if ($obj['id_modalidad']  == $id) {
                 echo '<option value="' . $obj['id_modalidad'] . '" selected="selected">' . $obj['nom_modalidad'] . '</option>';
@@ -59,7 +65,7 @@ function modalidad($cmd, $titulo = '', $id = 0)
     }
 }
 
-function estados_registros($titulo = '',$estado = -1)
+function estados_registros($titulo = '', $estado = -1)
 {
     echo '<option value="">' . $titulo . '</option>';
     $selected = ($estado == 1) ? 'selected="selected"' : '';
@@ -68,7 +74,7 @@ function estados_registros($titulo = '',$estado = -1)
     echo '<option value="0"' . $selected . '>INACTIVO</option>';
 }
 
-function estados_sino($titulo = '',$estado = -1)
+function estados_sino($titulo = '', $estado = -1)
 {
     echo '<option value="">' . $titulo . '</option>';
     $selected = ($estado == 1) ? 'selected="selected"' : '';
@@ -77,7 +83,7 @@ function estados_sino($titulo = '',$estado = -1)
     echo '<option value="0"' . $selected . '>NO</option>';
 }
 
-function interno_externo($titulo = '',$estado = -1)
+function interno_externo($titulo = '', $estado = -1)
 {
     echo '<option value="">' . $titulo . '</option>';
     $selected = ($estado == 1) ? 'selected="selected"' : '';
@@ -95,6 +101,8 @@ function grupo_articulo($cmd, $titulo = '', $id = 0)
         $sql = "SELECT id_grupo,nom_grupo FROM far_grupos WHERE id_grupo<>0";
         $rs = $cmd->query($sql);
         $objs = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
         foreach ($objs as $obj) {
             if ($obj['id_grupo']  == $id) {
                 echo '<option value="' . $obj['id_grupo'] . '" selected="selected">' . $obj['nom_grupo'] . '</option>';
@@ -107,4 +115,3 @@ function grupo_articulo($cmd, $titulo = '', $id = 0)
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
     }
 }
-

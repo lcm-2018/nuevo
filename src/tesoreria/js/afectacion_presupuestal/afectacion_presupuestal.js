@@ -100,7 +100,7 @@
                 [10, 25, 50, 'TODO'],
             ],
         });
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle fa-lg"></span>');
+        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle"></span>');
         $('#tb_contratos').wrap('<div class="overflow"/>');
 
         //------------ cargar la tabla registro presupuestal
@@ -154,7 +154,7 @@
                 [10, 25, 50, 'TODO'],
             ],
         });
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle fa-lg"></span>');
+        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle"></span>');
         $('#tb_reg_presupuestal').wrap('<div class="overflow"/>');
 
         //------------ cargar la tabla obligaciones
@@ -206,7 +206,7 @@
                 [10, 25, 50, 'TODO'],
             ],
         });
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle fa-lg"></span>');
+        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle"></span>');
         $('#tb_obligaciones').wrap('<div class="overflow"/>');
 
         //------------ cargar la tabla pagos
@@ -255,7 +255,7 @@
                 [10, 25, 50, 'TODO'],
             ],
         });
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle fa-lg"></span>');
+        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle"></span>');
         $('#tb_pagos').wrap('<div class="overflow"/>');
     });
 
@@ -325,7 +325,7 @@
         let id_cdp = $(this).attr('value');
         $('#id_cdp').val(id_cdp);
 
-        $.post(ValueInput('host') + '/src/terceros/php/historialtercero/frm_liberarsaldos.php", { id_cdp: id_cdp }, function (he) {
+        $.post(ValueInput('host') + "/src/terceros/php/historialtercero/frm_liberarsaldos.php", { id_cdp: id_cdp }, function (he) {
             $('#divTamModalReg').removeClass('modal-xl');
             $('#divTamModalReg').removeClass('modal-sm');
             $('#divTamModalReg').addClass('modal-lg');
@@ -366,7 +366,7 @@
         let id_cdp = $(this).attr('value');
         $('#id_cdp').val(id_cdp);
 
-        $.post(ValueInput('host') + '/src/terceros/php/historialtercero/frm_listar_liberaciones_cdp.php", { id_cdp: id_cdp }, function (he) {
+        $.post(ValueInput('host') + "/src/terceros/php/historialtercero/frm_listar_liberaciones_cdp.php", { id_cdp: id_cdp }, function (he) {
             $('#divTamModalReg').removeClass('modal-xl');
             $('#divTamModalReg').removeClass('modal-sm');
             $('#divTamModalReg').addClass('modal-lg');
@@ -430,7 +430,7 @@
     $('#body_tb_reg_presupuestal').on('click', '.btn_liberar_crp', function () {
         let id_crp = $(this).attr('value');
 
-        $.post(ValueInput('host') + '/src/terceros/php/historialtercero/frm_liberarsaldos_crp.php", { id_crp: id_crp }, function (he) {
+        $.post(ValueInput('host') + "/src/terceros/php/historialtercero/frm_liberarsaldos_crp.php", { id_crp: id_crp }, function (he) {
             $('#divTamModalReg').removeClass('modal-xl');
             $('#divTamModalReg').removeClass('modal-sm');
             $('#divTamModalReg').addClass('modal-lg');
@@ -476,7 +476,7 @@
     //----------- listar liberaciones realizadas crp
     $('#body_tb_reg_presupuestal').on('click', '.btn_liberaciones_crp', function () {
         let id_crp = $(this).attr('value');
-        $.post(ValueInput('host') + '/src/terceros/php/historialtercero/frm_listar_liberaciones_crp.php", { id_crp: id_crp }, function (he) {
+        $.post(ValueInput('host') + "/src/terceros/php/historialtercero/frm_listar_liberaciones_crp.php", { id_crp: id_crp }, function (he) {
             $('#divTamModalReg').removeClass('modal-xl');
             $('#divTamModalReg').removeClass('modal-sm');
             $('#divTamModalReg').addClass('modal-lg');
@@ -629,7 +629,7 @@ document.addEventListener("keyup", (e) => {
         $("#txt_rubro").autocomplete({
             source: function (request, response) {
                 $.ajax({
-                    url: ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/buscar_rubros.php",
+                    url: ValueInput('host') + "/src/tesoreria/php/afectacion_presupuestal/buscar_rubros.php",
                     type: "POST",
                     dataType: "json",
                     data: {

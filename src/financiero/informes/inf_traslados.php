@@ -10,7 +10,7 @@ header("Content-Disposition: attachment; filename=Traslado_Fondos.xls");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 $periodo = $_POST['periodo'];
 $vigencia = $_SESSION['vigencia'];
 $meses = '';
@@ -25,8 +25,7 @@ if ($periodo == 1) {
     $meses = 'ANUAL';
 }
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT
                 `ctb_doc`.`id_ctb_doc`

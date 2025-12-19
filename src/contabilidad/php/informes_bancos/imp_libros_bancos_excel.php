@@ -37,9 +37,10 @@ try {
             WHERE ctb_pgcp.estado = 1
             AND ctb_pgcp.id_pgcp BETWEEN '$id_cuenta_ini' AND '$id_cuenta_fin'";
     $rs = $cmd->query($sql);
-    $obj_cuentas = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $obj_cuentas = $rs->fetchAll();
     $rs->closeCursor();
     unset($rs);
+
     $sql = 'SELECT razon_social_ips,nit_ips FROM tb_datos_ips LIMIT 1';
     $rs = $cmd->query($sql);
     $obj_ent = $rs->fetch();
@@ -112,7 +113,7 @@ try {
                         $and_where
                     ORDER BY DATE_FORMAT(ctb_doc.fecha, '%Y-%m-%d') ASC, ctb_libaux.debito DESC, ctb_libaux.credito DESC";
             $rs = $cmd->query($sql);
-            $obj_informe = $rs->fetchAll(PDO::FETCH_ASSOC);
+            $obj_informe = $rs->fetchAll();
             $rs->closeCursor();
             unset($rs);
             if (empty($obj_informe)) {
@@ -140,7 +141,7 @@ try {
                     AND ctb_doc.estado=2 limit 1";
 
             $rs = $cmd->query($sql);
-            $obj_saldos = $rs->fetchAll(PDO::FETCH_ASSOC);
+            $obj_saldos = $rs->fetchAll();
             $rs->closeCursor();
             unset($rs);
         } catch (PDOException $e) {

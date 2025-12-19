@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $id_ctb_doc = isset($_POST['id_pag_doc']) ? $_POST['id_pag_doc'] : exit('Accion no permitida');
 $id_manu = $_POST['id_pto_rp'];
 $ids_cops = $_POST['detalle'];
@@ -24,8 +24,7 @@ $response['msg'] = '';
 $registros = 0;
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_pto` FROM `pto_presupuestos` WHERE `id_vigencia` = $id_vigencia AND `id_tipo` = 1";
     $rs = $cmd->query($sql);
     $id_pto = $rs->fetchColumn();
@@ -37,8 +36,7 @@ try {
 }
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "INSERT INTO `pto_rec`
                 (`id_pto`,`fecha`,`id_manu`,`id_tercero_api`,`objeto`,`num_factura`,`estado`,`id_user_reg`, `fecha_reg`,`id_ctb_doc`)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";

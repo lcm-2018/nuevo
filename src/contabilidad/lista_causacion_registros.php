@@ -52,6 +52,8 @@ try {
             WHERE (`pto_crp`.`estado` = 2 AND `pto_crp`.`causado` = 0 AND `pto_crp`.`id_pto` = {$listappto['id_pto']})";
     $rs = $cmd->query($sql);
     $listado = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -67,6 +69,8 @@ try {
             GROUP BY `pto_crp`.`id_pto_crp`";
     $rs = $cmd->query($sql);
     $liquidados = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -87,6 +91,8 @@ try {
             GROUP BY `pto_crp`.`id_pto_crp`";
     $rs = $cmd->query($sql);
     $causados = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -101,6 +107,8 @@ try {
             WHERE (`pto_crp`.`estado` = 2 AND `pto_crp`.`id_pto` = {$listappto['id_pto']})";
     $rs = $cmd->query($sql);
     $adiciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -140,7 +148,9 @@ if ($id_r == 3) {
                         ON (`nom_nomina_pto_ctb_tes`.`id_nomina` = `nom_nominas`.`id_nomina`)
                 WHERE (`nom_nominas`.`planilla` = 3 AND `nom_nomina_pto_ctb_tes`.`tipo` = 'PL')";
         $rs = $cmd->query($sql);
-        $nominas = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $nominas = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -169,7 +179,9 @@ if ($id_r == 3) {
                     INNER JOIN `pto_crp`
                         ON(`pto_crp`.`id_pto_crp` = `t1`.`id_pto_crp`)";
             $rs = $cmd->query($sql);
-            $valores = $rs->fetchAll(PDO::FETCH_ASSOC);
+            $valores = $rs->fetchAll();
+            $rs->closeCursor();
+            unset($rs);
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
         }

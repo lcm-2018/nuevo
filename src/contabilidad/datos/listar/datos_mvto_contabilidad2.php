@@ -34,6 +34,8 @@ try {
             WHERE `tipo_doc`='$id_ctb_doc' AND `vigencia` = $_SESSION[vigencia]";
     $rs = $cmd->query($sql);
     $listappto = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

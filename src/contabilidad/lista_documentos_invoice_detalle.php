@@ -109,6 +109,8 @@ try {
     $sql = "SELECT `id_ctb_referencia`,`nombre` FROM `ctb_referencia` WHERE `accion` = 1";
     $rs = $cmd->query($sql);
     $referencias = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -166,10 +168,10 @@ if ($datosDoc['estado'] == '1') {
             <input type="hidden" name="idTercero" id="idTercero" value="{$idter}">
         </td>
         <td>
-            <input type="text" name="valorDebito" id="valorDebito" class="form-control form-control-sm bg-input text-end" value="0" required onkeyup="valorMiles(id)" onchange="llenarCero(id)">
+            <input type="text" name="valorDebito" id="valorDebito" class="form-control form-control-sm bg-input text-end" value="0" required onkeyup="NumberMiles(this)" onchange="llenarCero(id)">
         </td>
         <td>
-            <input type="text" name="valorCredito" id="valorCredito" class="form-control form-control-sm bg-input text-end" value="0" required onkeyup="valorMiles(id)" onchange="llenarCero(id)">
+            <input type="text" name="valorCredito" id="valorCredito" class="form-control form-control-sm bg-input text-end" value="0" required onkeyup="NumberMiles(this)" onchange="llenarCero(id)">
         </td>
         <td class="text-center">
             <button text="0" class="btn btn-primary btn-sm" onclick="GestMvtoDetalle(this)">Agregar</button>

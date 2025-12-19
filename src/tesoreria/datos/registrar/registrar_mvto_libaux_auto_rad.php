@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 //Recibir variables por POST
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $_post = json_decode(file_get_contents('php://input'), true);
 $id_doc = $_post['id'];
 $id_crp = $_post['id_crp'];
@@ -18,8 +18,7 @@ $response['status'] = 'error';
 $registros = 0;
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $query = "DELETE FROM `ctb_libaux` WHERE `id_ctb_doc` = ?";
     $query = $cmd->prepare($query);
     $query->bindParam(1, $id_doc, PDO::PARAM_INT);

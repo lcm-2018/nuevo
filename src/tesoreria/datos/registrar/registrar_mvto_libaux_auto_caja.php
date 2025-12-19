@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 //Recibir variables por POST
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $_post = json_decode(file_get_contents('php://input'), true);
 
 $id_doc = $_post['id'];
@@ -15,8 +15,7 @@ $fecha2 = $date->format('Y-m-d H:i:s');
 $response['status'] = 'error';
 $registros = 0;
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `tes_caja_mvto`.`valor`
                 , `tes_caja_rubros`.`id_cta_contable`
@@ -27,13 +26,14 @@ try {
             WHERE (`tes_caja_mvto`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
     $cuentas = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     $response['msg'] =  $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `tes_detalle_pago`.`id_ctb_doc`
                 , `tes_cuentas`.`id_cuenta`
@@ -45,13 +45,14 @@ try {
             WHERE (`tes_detalle_pago`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
     $pago = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     $response['msg'] =  $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_tercero` FROM `ctb_doc` WHERE `id_ctb_doc` = $id_doc";
     $rs = $cmd->query($sql);
     $id_tercero = $rs->fetch(PDO::FETCH_ASSOC)['id_tercero'];
@@ -60,8 +61,7 @@ try {
     $response['msg'] =  $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $query = "DELETE FROM `ctb_libaux` WHERE `id_ctb_doc` = ?";
     $query = $cmd->prepare($query);
     $query->bindParam(1, $id_doc);
@@ -71,8 +71,7 @@ try {
     $response['msg'] =  $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "INSERT INTO `ctb_libaux`
                 (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`)
             VALUES (?, ?, ?, ?, ?, ?, ?)";

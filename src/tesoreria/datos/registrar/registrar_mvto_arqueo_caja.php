@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $id_doc = isset($_POST['id']) ? $_POST['id'] : exit('Acceso no disponible');
 $id_detalle = $_POST['op'];
 $val_fact = str_replace(",", "", $_POST['valor_fact']);
@@ -18,8 +18,7 @@ $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 $response['status'] = 'error';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 try {
     if ($id_detalle == 0) {

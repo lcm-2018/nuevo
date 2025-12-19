@@ -1,9 +1,8 @@
 <?php
 $data = file_get_contents("php://input");
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 try {
     $pdo = \Config\Clases\Conexion::getConexion();
-
     $query = $pdo->prepare("SELECT
         `pto_documento`.`id_doc`
         , `pto_documento`.`id_tercero`

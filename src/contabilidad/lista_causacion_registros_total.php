@@ -55,6 +55,8 @@ try {
             WHERE (`ctb_doc`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
     $listado = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -71,6 +73,8 @@ try {
             WHERE (`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
     $detalles = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

@@ -4,10 +4,9 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../../../../index.php');
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `tb_terceros`.`id_tercero`
                 , `tb_terceros`.`tipo_doc`
@@ -19,6 +18,8 @@ try {
                 `tb_terceros`";
     $rs = $cmd->query($sql);
     $terceros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

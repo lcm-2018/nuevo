@@ -32,6 +32,8 @@ try {
                     ON (`ctb_retenciones`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)";
     $rs = $cmd->query($sql);
     $retenciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

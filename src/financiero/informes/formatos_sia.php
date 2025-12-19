@@ -4,9 +4,8 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../../index.php');
     exit();
 }
-include '../../conexion.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+include '../../../config/autoloader.php';
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT `id`,`formato`,`nombre` FROM `fin_informes`";
     $res = $cmd->query($sql);
@@ -24,17 +23,17 @@ foreach ($formatos as $formato) {
             <td>{$formato['formato']}</td>
             <td>{$formato['nombre']}</td>
             <td class='text-center'>
-                <button class='btn btn-outline-success btn-sm' onclick='LoadInforme({$formato['id']})' title='{$formato['nombre']}'><i class='fas fa-file-excel fa-lg'></i></button>
+                <button class='btn btn-outline-success btn-xs rounded-circle me-1 shadow' onclick='LoadInforme({$formato['id']})' title='{$formato['nombre']}'><i class='fas fa-file-excel'></i></button>
             </td>
         </tr>";
 }
-$tabla = '<table class="table table-sm table-striped table-bordered table-hover" id="tablaInformesFinancieros" style="width:100%">
+$tabla = '<table class="table table-sm table-striped table-bordered table-hover w-100" id="tablaInformesFinancieros">
             <thead>
                 <tr class="text-center">
-                    <th>#</th>
-                    <th>Formato</th>
-                    <th>Nombre</th>
-                    <th>Acción</th>
+                    <th class="bg-sofia">#</th>
+                    <th class="bg-sofia">Formato</th>
+                    <th class="bg-sofia">Nombre</th>
+                    <th class="bg-sofia">Acción</th>
                 </tr>
             </thead>
             <tbody>' . $body . '

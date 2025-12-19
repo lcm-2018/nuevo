@@ -4,8 +4,16 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
+include '../../../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $fecha = $_POST['fecha'];
 
@@ -35,8 +43,7 @@ if (isset($_POST['estado']) && strlen($_POST['estado'])) {
 //----------------------------------------------
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
 
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM ctb_doc WHERE id_ctb_doc<>0";
@@ -154,6 +161,8 @@ try {
 
     $rs = $cmd->query($sql);
     $objs = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 
 
 

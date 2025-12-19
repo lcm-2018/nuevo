@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
+include '../../config/autoloader.php';
 $id = isset($_POST['id']) ? $_POST['id'] : 0;
 $fecha_max = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-12-31'));
 // Estabelcer zona horaria bogota
@@ -19,8 +19,7 @@ $maximo = '';
 $id_chequera = null;
 
 // consultar la fecha de cierre del periodo del módulo de presupuesto 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT
                 `tb_bancos`.`id_banco`
@@ -76,12 +75,13 @@ try {
             ORDER BY `tb_bancos`.`nom_banco` ASC";
     $rs = $cmd->query($sql);
     $listabancos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `tes_cuentas`.`id_tes_cuenta`
                 , `tes_cuentas`.`nombre`
@@ -94,6 +94,8 @@ try {
             ORDER BY `tes_cuentas`.`nombre` ASC;";
     $rs = $cmd->query($sql);
     $retenciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -103,16 +105,16 @@ try {
     <form id="formNuevaChequera">
         <input type="hidden" id="id_chequera" name="id_chequera" value="<?php echo $id_chequera; ?>">
         <div class="shadow mb-3">
-            <div class="card-header" style="background-color: #16a085 !important;">
-                <h6 style="color: white;"><i class="fas fa-lock fa-lg" style="color: #FCF3CF"></i>&nbsp;GESTION DE DATOS DE CHEQUERAS <?php echo ''; ?></h5>
+            <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+                <h5 class="mb-0" style="color: white;"><i class="fas fa-lock fa-lg" style="color: #FCF3CF"></i>&nbsp;GESTION DE DATOS DE CHEQUERAS <?php echo ''; ?></h5>
             </div>
             <div class="py-3 px-3">
                 <div class="row mb-1">
-                    <div class="col-3 text-right">
+                    <div class="col-3 text-end">
                         <label for="banco" class="small">BANCO: </label>
                     </div>
                     <div class="col-8">
-                        <select id="banco" name="banco" class="form-control form-control-sm" required onchange="mostrarCuentas(value);">
+                        <select id="banco" name="banco" class="form-control form-control-sm bg-input" required onchange="mostrarCuentas(value);">
                             <option value="0">--Seleccione--</option>
                             <?php foreach ($listabancos as $lb) {
                                 $scl = $lb['id_banco'] == $id_banco ? 'selected' : '';
@@ -122,11 +124,11 @@ try {
                     </div>
                 </div>
                 <div class="row mb-1">
-                    <div class="col-3 text-right">
+                    <div class="col-3 text-end">
                         <label for="cuentas" class="small">CUENTA: </label>
                     </div>
                     <div class="col-8" id="divBanco">
-                        <select id="cuentas" name="cuentas" class="form-control form-control-sm">
+                        <select id="cuentas" name="cuentas" class="form-control form-control-sm bg-input">
                             <option value="0">--Seleccionar--</option>
                             <?php foreach ($retenciones as $ret) {
                                 $scl = $ret['id_tes_cuenta'] == $cuenta ? 'selected' : '';
@@ -136,42 +138,42 @@ try {
                     </div>
                 </div>
                 <div class="row mb-1">
-                    <div class="col-3 text-right">
+                    <div class="col-3 text-end">
                         <label for="num_chequera" class="small">No. chequera: </label>
                     </div>
                     <div class="col-8">
-                        <input type="text" id="num_chequera" name="num_chequera" class="form-control form-control-sm" value="<?php echo $numero; ?>">
+                        <input type="text" id="num_chequera" name="num_chequera" class="form-control form-control-sm bg-input" value="<?php echo $numero; ?>">
                     </div>
                 </div>
                 <div class="row mb-1">
-                    <div class="col-3 text-right">
+                    <div class="col-3 text-end">
                         <label for="fecha" class="small">FECHA: </label>
                     </div>
                     <div class="col-8">
-                        <input type="date" class="form-control form-control-sm" id="fecha" name="fecha" required value="<?php echo $fecha; ?>">
+                        <input type="date" class="form-control form-control-sm bg-input" id="fecha" name="fecha" required value="<?php echo $fecha; ?>">
                     </div>
                 </div>
                 <div class="row mb-1">
-                    <div class="col-3 text-right">
+                    <div class="col-3 text-end">
                         <label for="inicial" class="small">INICIAL: </label>
                     </div>
                     <div class="col-8">
-                        <input type="text" id="inicial" name="inicial" class="form-control form-control-sm" value="<?php echo $inicial; ?>">
+                        <input type="text" id="inicial" name="inicial" class="form-control form-control-sm bg-input" value="<?php echo $inicial; ?>">
                     </div>
                 </div>
                 <div class="row mb-1">
-                    <div class="col-3 text-right">
+                    <div class="col-3 text-end">
                         <label for="maximo" class="small">FINAL: </label>
                     </div>
                     <div class="col-8">
-                        <input type="text" id="maximo" name="maximo" class="form-control form-control-sm" value="<?php echo $maximo; ?>">
+                        <input type="text" id="maximo" name="maximo" class="form-control form-control-sm bg-input" value="<?php echo $maximo; ?>">
                     </div>
                 </div>
             </div>
         </div>
-        <div class="text-right">
+        <div class="text-end">
             <button type="button" class="btn btn-primary btn-sm" onclick="GuardarChequera(this)">Guardar</button>
-            <a class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</a>
+            <a class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</a>
         </div>
     </form>
 </div>

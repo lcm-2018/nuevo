@@ -7,6 +7,8 @@ try {
     $sql = "SELECT id_retencion, nombre_retencion FROM ctb_retenciones WHERE id_retencion_tipo={$_post['id']} ORDER BY nombre_retencion ASC";
     $rs = $cmd->query($sql);
     $retenciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -22,7 +24,7 @@ $response .= "</select>";
 $response .= '</div>';
 $response .= '<div class="col-md-6">
                 <label for="valor_rte" class="small">Valor retención</label>
-                <input type="text" name="valor_rte" id="valor_rte" class="form-control form-control-sm bg-input text-end" onkeyup="valorMiles(id)" value="0">
+                <input type="text" name="valor_rte" id="valor_rte" class="form-control form-control-sm bg-input text-end" onkeyup="NumberMiles(this)" value="0">
             </div>';
 $response .= '</div>';
 echo $response;

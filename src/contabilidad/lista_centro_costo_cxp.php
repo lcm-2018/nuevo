@@ -37,6 +37,8 @@ try {
             WHERE (`ctb_causa_costos`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
     $rubros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -77,6 +79,8 @@ if ($id_detalle > 0) {
         $sql = "SELECT `id_sede`, `nom_sede` as `nombre` FROM `tb_sedes` WHERE `id_municipio` = $id_municipio";
         $rs = $cmd->query($sql);
         $sedes = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
         $cmd = null;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -91,6 +95,8 @@ if ($id_detalle > 0) {
                 WHERE (`id_sede` = $id_sede)";
         $rs = $cmd->query($sql);
         $centros = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
         $cmd = null;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -176,7 +182,7 @@ $max = $max < 0 ? 0 : $max;
                     </div>
                     <div class="col-md-3">
                         <label for="valor_cc" class="small">VALOR CC</label>
-                        <input type="text" name="valor_cc" id="valor_cc" min="<?= $min; ?>" max="<?= $max; ?>" class="form-control form-control-sm bg-input" required style="text-align: right;" onkeyup="valorMiles(id)" value="<?= isset($value_cc) ? $value_cc : $max; ?>">
+                        <input type="text" name="valor_cc" id="valor_cc" min="<?= $min; ?>" max="<?= $max; ?>" class="form-control form-control-sm bg-input" required style="text-align: right;" onkeyup="NumberMiles(this)" value="<?= isset($value_cc) ? $value_cc : $max; ?>">
                     </div>
                 </div>
             </form>

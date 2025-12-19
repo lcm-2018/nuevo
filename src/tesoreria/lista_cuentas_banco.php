@@ -4,69 +4,61 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
-?>
-<!DOCTYPE html>
-<html lang="es">
-<?php include '../head.php';
-// Consulta la lista de chequeras creadas en el sistema
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
-?>
+include '../../config/autoloader.php';
 
-<body class="sb-nav-fixed <?php echo $_SESSION['navarlat'] === '1' ? 'sb-sidenav-toggled' : ''; ?>">
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
 
-    <?php include '../navsuperior.php' ?>
-    <div id="layoutSidenav">
-        <?php include '../navlateral.php' ?>
-        <div id="layoutSidenav_content">
-            <main>
-                <div class="container-fluid p-2">
-                    <div class="card mb-4">
-                        <div class="card-header" id="divTituloPag">
-                            <div class="row">
-                                <div class="col-md-11">
-                                    <i class="fas fa-users fa-lg" style="color:#1D80F7"></i>
-                                    LISTA DE CUENTAS BANCARIAS
-                                </div>
-                                <?php
-                                if (PermisosUsuario($permisos, 5607, 0) || $id_rol == 1) {
-                                    echo '<input type="hidden" id="peReg" value="1">';
-                                } else {
-                                    echo '<input type="hidden" id="peReg" value="0">';
-                                }
-                                ?>
-                            </div>
-                        </div>
-                        <div class="card-body" id="divCuerpoPag">
-                            <table id="tableCuentasBanco" class="table table-striped table-bordered table-sm table-hover shadow" style="width:100%">
-                                <thead>
-                                    <tr class="text-center">
-                                        <th>Banco</th>
-                                        <th>Tipo de cuenta</th>
-                                        <th>Nombre</th>
-                                        <th>SIA</th>
-                                        <th>Fuente</th>
-                                        <th>Número</th>
-                                        <th>Código</th>
-                                        <th>Estado</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="modificartabletableCuentasBanco">
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </main>
-            <?php include '../footer.php' ?>
-        </div>
-        <?php include '../modales.php' ?>
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
+
+$host = Plantilla::getHost();
+
+// Verificar permisos de registro
+$peReg = ($permisos->PermisosUsuario($opciones, 5607, 0) || $id_rol == 1) ? '1' : '0';
+
+$content = <<<HTML
+<div class="card w-100">
+    <div class="card-header bg-sofia text-white">
+        <button class="btn btn-sm me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
+        <b>LISTA DE CUENTAS BANCARIAS</b>
+        <input type="hidden" id="peReg" value="{$peReg}">
     </div>
-    <?php include '../scripts.php' ?>
+    <div class="card-body p-2 bg-wiev">
+        <table id="tableCuentasBanco" class="table table-striped table-bordered table-sm table-hover shadow w-100">
+            <thead>
+                <tr class="text-center">
+                    <th class="bg-sofia">Banco</th>
+                    <th class="bg-sofia">Tipo de cuenta</th>
+                    <th class="bg-sofia">Nombre</th>
+                    <th class="bg-sofia">SIA</th>
+                    <th class="bg-sofia">Fuente</th>
+                    <th class="bg-sofia">Número</th>
+                    <th class="bg-sofia">Código</th>
+                    <th class="bg-sofia">Estado</th>
+                    <th class="bg-sofia">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="modificartabletableCuentasBanco">
+            </tbody>
+        </table>
+    </div>
+</div>
+HTML;
 
-</body>
+$plantilla = new Plantilla($content, 2);
+$plantilla->addCssFile("{$host}/assets/css/jquery-ui.css?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/assets/js/jquery-ui.js?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/src/tesoreria/js/funciontesoreria.js?v=" . date("YmdHis"));
 
-</html>
+$modal = $plantilla->getModal('divModalForms', 'divTamModalForms', 'divForms');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalReg', 'divTamModalReg', 'divFormsReg');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalAux', 'divTamModalAux', 'divFormsAux');
+$plantilla->addModal($modal);
+
+echo $plantilla->render();

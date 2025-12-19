@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 
 $tercero = $_POST['tercero'];
 $fecha_ini = $_POST['fecha_ini'];
@@ -12,8 +12,7 @@ $fecha_fin = $_POST['fecha_fin'];
 $response['status'] = 'error';
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT  
                 `tb_terceros`.`id_tercero_api`, `tr`.`valor_copago`,`tr`.`val_copago_anulado`
             FROM 

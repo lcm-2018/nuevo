@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 include '../../../financiero/consultas.php';
 $ids = isset($_POST['check']) ? $_POST['check'] : exit('Accion no permitida');
 $ids_cops = implode(',', $ids);
@@ -20,8 +20,7 @@ $response['status'] = 'error';
 $response['msg'] = '';
 $registros = 0;
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 $fecha_cierre = fechaCierre($_SESSION['vigencia'], 56, $cmd);
 try {
     $sql = "SELECT MAX(`id_manu`) AS `id_manu` FROM `ctb_doc` 
@@ -34,8 +33,7 @@ try {
 }
 
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT 
                     `ctb_doc`.`id_ctb_doc`
                     ,`ctb_doc`.`id_tercero`
@@ -79,15 +77,16 @@ try {
                         ON (`ctb_doc`.`id_ctb_doc` = `libros`.`id_ctb_doc`)
                 WHERE (`ctb_doc`.`id_ctb_doc` IN ($ids_cops))";
     $rs = $cmd->query($sql);
-    $causaciones = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $causaciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     //exit(json_encode($causaciones));
     $cmd = null;
 } catch (PDOException $e) {
     $response['msg'] = $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $cmd->beginTransaction();
 
     foreach ($causaciones as $cs) {

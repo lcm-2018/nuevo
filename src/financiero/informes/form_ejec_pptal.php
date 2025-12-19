@@ -4,8 +4,14 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../../index.php');
     exit();
 }
-include '../../conexion.php';
-include '../../permisos.php';
+include '../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include '../../financiero/consultas.php';
 
 $vigencia = $_SESSION['vigencia'];
@@ -51,14 +57,14 @@ $fecha_actual = $fecha->format('Y-m-d');
                             </select>
                         </div>
                     </div>
-                    <div class="text-center">
-                        <button value="4" class="btn btn-primary" onclick="InformeFinanciero(this);"><span></span> Consultar</button>
-                        <a type="" id="btnExcelEntrada" class="btn btn-outline-success" value="01" title="Exprotar a Excel">
-                            <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
-                        </a>
-                        <a type="button" class="btn btn-danger" title="Imprimir" onclick="imprSelecTes('areaImprimir','<?php echo 0; ?>');"><span class="fas fa-print fa-lg" aria-hidden="true"></span></a>
-                    </div>
                 </form>
+                <div class="text-center">
+                    <button value="4" class="btn btn-primary" onclick="InformeFinanciero(this);"><span></span> Consultar</button>
+                    <a type="" id="btnExcelEntrada" class="btn btn-outline-success" value="01" title="Exprotar a Excel">
+                        <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
+                    </a>
+                    <a type="button" class="btn btn-danger" title="Imprimir" onclick="imprSelecTes('areaImprimir','<?php echo 0; ?>');"><span class="fas fa-print fa-lg" aria-hidden="true"></span></a>
+                </div>
             </div>
             <div id="areaImprimir" class="table-responsive px-2">
             </div>

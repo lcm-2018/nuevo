@@ -61,6 +61,8 @@ try {
             GROUP BY cuenta";
     $res = $cmd->query($sql);
     $datos = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (Exception $e) {
     echo $e->getMessage();
 }

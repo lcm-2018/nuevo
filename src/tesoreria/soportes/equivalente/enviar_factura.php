@@ -12,10 +12,9 @@ $id_facno = isset($_POST['id']) ? $_POST['id'] : exit('Acción no permitida');
 $vigencia = $_SESSION['vigencia'];
 $id_empresa = 1;
 $response['status'] = 'error';
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT 
                 `id_valxvig`, `id_concepto`, `valor`,`concepto`
             FROM
@@ -36,8 +35,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `tb_datos_ips`.`id_ips`
                 , `tb_datos_ips`.`nit_ips` AS `nit`
@@ -71,8 +69,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `ctb_doc`.`id_ctb_doc`
                 , `ctb_doc`.`id_tercero`
@@ -116,8 +113,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `ctt_clasificacion_bn_sv`.`cod_unspsc` AS `id_unspsc`
             FROM
@@ -183,8 +179,7 @@ $detalles[0]['p_dcto'] = 0;
 $detalles[0]['val_dcto'] = 0;
 $fail = '';
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `id_resol`, `id_empresa`, `no_resol`, `prefijo`, `consecutivo`, `fin_concecutivo`, `fec_inicia`, `fec_termina`, `tipo`, `entorno`
             FROM
@@ -222,8 +217,7 @@ try {
 }
 try {
     $new = true;
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_soporte`, `referencia` FROM `seg_soporte_fno` WHERE `id_factura_no` = $id_facno LIMIT 1";
     $rs = $cmd->query($sql);
     $referencia = $rs->fetch();
@@ -549,8 +543,7 @@ try {
     $hoy = date('Y-m-d');
     $iduser = $_SESSION['id_user'];
     $date = new DateTime('now', new DateTimeZone('America/Bogota'));
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     if ($new) {
         $sql = "INSERT INTO `seg_soporte_fno` (`id_factura_no`, `shash`, `referencia`, `fecha`, `id_user_reg`, `fec_reg`) 
             VALUES (?, ?, ?, ?, ?, ?)";
@@ -608,8 +601,7 @@ if ($new) {
     $sigue = $secuenciaf + 1;
     $id_sec = $resolucion['id_resol'];
     try {
-        $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-        $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+        $cmd = \Config\Clases\Conexion::getConexion();
         $query = "UPDATE `nom_resoluciones` SET `consecutivo` = ? WHERE `id_resol` = ?";
         $query = $cmd->prepare($query);
         $query->bindParam(1, $sigue, PDO::PARAM_INT);

@@ -4,10 +4,10 @@ use Config\Clases\Logs;
 
 $_post = json_decode(file_get_contents('php://input'), true);
 $id = $_post['id'];
+include '../../../../config/autoloader.php';
 $response['status'] = 'error';
 try {
     $pdo = \Config\Clases\Conexion::getConexion();
-
     $query = "DELETE FROM `tes_referencia` WHERE `id_referencia` = ?";
     $query = $pdo->prepare($query);
     $query->bindParam(1, $id);

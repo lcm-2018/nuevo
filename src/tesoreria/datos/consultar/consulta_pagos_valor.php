@@ -1,6 +1,6 @@
 <?php
 
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $conexion = new mysqli($bd_servidor, $bd_usuario, $bd_clave, $bd_base);
 $_post = json_decode(file_get_contents('php://input'), true);
 $id_doc = $_post['id'][0];

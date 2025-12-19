@@ -37,6 +37,8 @@ $sql = "SELECT
         GROUP BY `tb_sedes`.`id_tercero_api`";
 $rs = $cmd->query($sql);
 $sedes = $rs->fetchAll();
+$rs->closeCursor();
+unset($rs);
 ?>
 
 <div class="row mb-2 justify-content-center">

@@ -378,31 +378,66 @@ table tr:nth-child(even) input {
     z-index: 9999 !important;
 }
 
-/* Fix para modales anidados - backdrop */
+/* ==================================================
+   SISTEMA DE Z-INDEX PARA MODALES ANIDADOS
+   Permite hasta 3 modales simultáneos con backdrops
+   ================================================== */
+
+/* Base z-index para el primer modal y su backdrop */
+.modal {
+    z-index: 1050;
+}
+
 .modal-backdrop {
     z-index: 1040;
 }
 
-.modal-backdrop.show:nth-of-type(even) {
+/* Cuando hay múltiples backdrops, incrementar z-index */
+.modal-backdrop:nth-of-type(1) {
+    z-index: 1040;
+}
+
+.modal-backdrop:nth-of-type(2) {
+    z-index: 1060;
+}
+
+.modal-backdrop:nth-of-type(3) {
+    z-index: 1080;
+}
+
+.modal-backdrop:nth-of-type(4) {
+    z-index: 1100;
+}
+
+/* Incrementar z-index para modales subsecuentes */
+.modal:nth-of-type(1) {
     z-index: 1050;
 }
 
-/* Fix para modales anidados - modales */
-.modal {
-    z-index: 1045;
+.modal:nth-of-type(2) {
+    z-index: 1070;
 }
 
-.modal.show:nth-of-type(even) {
-    z-index: 1055;
+.modal:nth-of-type(3) {
+    z-index: 1090;
 }
 
-/* Asegurar que el segundo modal esté sobre el primero */
-.modal+.modal {
-    z-index: 1055;
+.modal:nth-of-type(4) {
+    z-index: 1110;
 }
 
-.modal+.modal~.modal-backdrop {
-    z-index: 1050;
+/* Asegurar que cuando se muestra un modal, siempre esté visible */
+.modal.show {
+    z-index: auto;
+}
+
+/* Sistema alternativo usando siblings */
+body>.modal:nth-child(n+1) {
+    z-index: calc(1050 + (10 * var(--bs-modal-index, 0)));
+}
+
+body>.modal-backdrop:nth-child(n+1) {
+    z-index: calc(1040 + (10 * var(--bs-backdrop-index, 0)));
 }
 
 /* Estilos adicionales para mejorar la visualización del autocomplete */

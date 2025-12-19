@@ -4,8 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../terceros.php';
+include '../../../../config/autoloader.php';
 include '../../../financiero/consultas.php';
 
 $id = $_POST['id_referencia'];
@@ -17,8 +16,7 @@ $fecha = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $fecha->format('Y-m-d H:i:s');
 $id_user = $_SESSION['id_user'];
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 $fecha_cierre = fechaCierre($_SESSION['vigencia'], 56, $cmd);
 
 

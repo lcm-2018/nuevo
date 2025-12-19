@@ -28,6 +28,8 @@ try {
             WHERE (`ctb_retencion_tipo`.`tipo` LIKE '%{$buscar}%') OR (`ctb_retenciones`.`nombre_retencion` LIKE '%{$buscar}%')";
     $rs = $cmd->query($sql);
     $retenciones = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

@@ -272,6 +272,33 @@ class Terceros
         return json_decode($result, true);
     }
 
+    public static function getTerceroApi($payload)
+    {
+        $api = \Config\Clases\Conexion::Api();
+        $url = $api . 'terceros/datos/res/datos/cuenta_bancaria';
+        $ch = curl_init($url);
+        //curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        $result = curl_exec($ch);
+        $error = curl_error($ch);
+        curl_close($ch);
+        $bancos = json_decode($result, true);
+        $bancos = $bancos != 0 ? $bancos : [];
+        return $bancos;
+    }
+
+    public function getTerceros($ids)
+    {
+        $sql = "SELECT * FROM `tb_terceros` WHERE `id_tercero_api` IN ($ids)";
+        $rs = $this->conexion->query($sql);
+        $terceros = $rs->fetchAll(PDO::FETCH_ASSOC);
+        return $terceros;
+    }
     public function addTercero($array)
     {
         $sql = "INSERT INTO `tb_terceros`

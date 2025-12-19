@@ -1,5 +1,6 @@
 (function ($) {
     $('#frm_libros_aux_bancos').on("click", "#btn_consultar", function () {
+        mostrarOverlay();
         $.post(ValueInput('host') + '/src/tesoreria/php/informes_bancos/imp_libros_bancos.php', {
             id_cuenta_ini: $('#id_txt_cuentainicial').val(),
             id_cuenta_fin: $('#id_txt_cuentafinal').val(),
@@ -13,6 +14,8 @@
             $('#divTamModalImp').addClass('modal-xl');
             $('#divModalImp').modal('show');
             $("#divImp").html(he);
+        }).always(function () {
+            ocultarOverlay();
         });
     });
 })(jQuery);
@@ -22,8 +25,9 @@ document.addEventListener("keyup", (e) => {
     if (e.target.id == "txt_cuentainicial") {
         $("#txt_cuentainicial").autocomplete({
             source: function (request, response) {
+                mostrarOverlay();
                 $.ajax({
-                    url: ValueInput('host') + '/src/tesoreria/php/informes_bancos/buscar_cuentas.php",
+                    url: ValueInput('host') + "/src/tesoreria/php/informes_bancos/buscar_cuentas.php",
                     type: "POST",
                     dataType: "json",
                     data: {
@@ -32,6 +36,8 @@ document.addEventListener("keyup", (e) => {
                     success: function (data) {
                         response(data);
                     },
+                }).always(function () {
+                    ocultarOverlay();
                 });
             },
             select: function (event, ui) {
@@ -48,8 +54,9 @@ document.addEventListener("keyup", (e) => {
     if (e.target.id == "txt_cuentafinal") {
         $("#txt_cuentafinal").autocomplete({
             source: function (request, response) {
+                mostrarOverlay();
                 $.ajax({
-                    url: ValueInput('host') + '/src/tesoreria/php/informes_bancos/buscar_cuentas.php",
+                    url: ValueInput('host') + "/src/tesoreria/php/informes_bancos/buscar_cuentas.php",
                     type: "POST",
                     dataType: "json",
                     data: {
@@ -58,6 +65,8 @@ document.addEventListener("keyup", (e) => {
                     success: function (data) {
                         response(data);
                     },
+                }).always(function () {
+                    ocultarOverlay();
                 });
             },
             select: function (event, ui) {
@@ -74,8 +83,9 @@ document.addEventListener("keyup", (e) => {
     if (e.target.id == "txt_tercero_filtro") {
         $("#txt_tercero_filtro").autocomplete({
             source: function (request, response) {
+                mostrarOverlay();
                 $.ajax({
-                    url: ValueInput('host') + '/src/tesoreria/php/informes_bancos/buscar_terceros.php",
+                    url: ValueInput('host') + "/src/tesoreria/php/informes_bancos/buscar_terceros.php",
                     type: "POST",
                     dataType: "json",
                     data: {
@@ -84,6 +94,8 @@ document.addEventListener("keyup", (e) => {
                     success: function (data) {
                         response(data);
                     },
+                }).always(function () {
+                    ocultarOverlay();
                 });
             },
             select: function (event, ui) {

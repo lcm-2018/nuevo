@@ -21,6 +21,8 @@ FROM
 WHERE (`ctt_destino_contrato`.`id_adquisicion` =73);";
     $rs = $cmd->query($sql);
     $centros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

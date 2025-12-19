@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
+include '../../config/autoloader.php';
 $id_tes_cuenta = isset($_POST['id_tes_cuenta']) ? $_POST['id_tes_cuenta'] : 0;
 $fecha_max = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-12-31'));
 // Estabelcer zona horaria bogota
@@ -13,8 +13,7 @@ date_default_timezone_set('America/Bogota');
 $fecha = date("Y-m-d");
 
 // consultar la fecha de cierre del periodo del módulo de presupuesto 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 if ($id_tes_cuenta > 0) {
     try {
         $sql = "SELECT
@@ -92,6 +91,8 @@ try {
                 $union";
     $rs = $cmd->query($sql);
     $cuentas = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -100,6 +101,8 @@ try {
     $sql = "SELECT `id_banco`, `nom_banco` FROM `tb_bancos` ORDER BY `nom_banco` ASC";
     $rs = $cmd->query($sql);
     $listabancos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -108,6 +111,8 @@ try {
     $sql = "SELECT `id_tipo_cuenta` , `tipo_cuenta` FROM `tes_tipo_cuenta` ORDER BY `tipo_cuenta` ASC";
     $rs = $cmd->query($sql);
     $listatipocuenta = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -115,6 +120,8 @@ try {
     $sql = "SELECT `id`,`codigo`,`nombre` FROM `fin_cod_fuente` ORDER BY `nombre` ASC";
     $rs = $cmd->query($sql);
     $fuente = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -123,8 +130,8 @@ try {
     <form id="formGestionCuenta">
         <input type="hidden" id="id_tes_cuenta" name="id_tes_cuenta" value="<?php echo $id_tes_cuenta ?>">
         <div class="shadow mb-3">
-            <div class="card-header" style="background-color: #16a085 !important;">
-                <h6 style="color: white;"><i class="fas fa-lock fa-lg" style="color: #FCF3CF"></i>&nbsp;GESTION DE CUENTAS BANCARIAS <?php echo ''; ?></h5>
+            <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+                <h5 class="mb-0" style="color: white;"><i class="fas fa-lock fa-lg" style="color: #FCF3CF"></i>&nbsp;GESTION DE CUENTAS BANCARIAS <?php echo ''; ?></h5>
             </div>
             <div class="py-3 px-3">
                 <div class="row mb-1">
@@ -132,7 +139,7 @@ try {
                         <label for="banco" class="small">BANCO: </label>
                     </div>
                     <div class="col-9">
-                        <select id="banco" name="banco" class="form-control form-control-sm" required onchange="mostrarCuentasPendiente(value);">
+                        <select id="banco" name="banco" class="form-control form-control-sm bg-input" required onchange="mostrarCuentasPendiente(value);">
                             <option value="0" <?php echo $id_banco == 0 ? 'selected' : '' ?>>--Seleccione--</option>
                             <?php foreach ($listabancos as $lb) {
                                 $slc = $lb['id_banco'] == $id_banco ? 'selected' : '';
@@ -149,7 +156,7 @@ try {
                     </div>
                     <div class="col-9">
                         <div id="divBanco">
-                            <select id="cuentas" name="cuentas" class="form-control form-control-sm">
+                            <select id="cuentas" name="cuentas" class="form-control form-control-sm bg-input">
                                 <option value="0">-- Seleccionar --</option>
                                 <?php
                                 foreach ($cuentas as $cuenta) {
@@ -167,7 +174,7 @@ try {
                         <label for="tipo_cuenta" class="small">TIPO CUENTA: </label>
                     </div>
                     <div class="col-9">
-                        <select id="tipo_cuenta" name="tipo_cuenta" class="form-control form-control-sm" required>
+                        <select id="tipo_cuenta" name="tipo_cuenta" class="form-control form-control-sm bg-input" required>
                             <option value="0" <?php echo $id_tipo_cuenta == 0 ? 'selected' : '' ?>>--Seleccione--</option>
                             <?php foreach ($listatipocuenta as $lb) {
                                 $slc = $lb['id_tipo_cuenta'] == $id_tipo_cuenta ? 'selected' : '';
@@ -181,7 +188,7 @@ try {
                         <label for="numero" class="small">NUMERO DE CUENTA: </label>
                     </div>
                     <div class="col-9">
-                        <input type="text" id="numero" name="numero" class="form-control form-control-sm" value="<?php echo $numero; ?>">
+                        <input type="text" id="numero" name="numero" class="form-control form-control-sm bg-input" value="<?php echo $numero; ?>">
                     </div>
                 </div>
                 <div class="row mb-1">
@@ -189,7 +196,7 @@ try {
                         <label for="codigo_fuente" class="small">CÓD. FUENTE: </label>
                     </div>
                     <div class="col-9">
-                        <select id="codigo_fuente" name="codigo_fuente" class="form-control form-control-sm">
+                        <select id="codigo_fuente" name="codigo_fuente" class="form-control form-control-sm bg-input">
                             <option value="0">-- Seleccionar --</option>
                             <?php foreach ($fuente as $f) {
                                 $slc = $f['id'] == $id_fte ? 'selected' : '';
@@ -201,8 +208,8 @@ try {
             </div>
         </div>
     </form>
-    <div class="text-right">
+    <div class="text-end">
         <button type="button" class="btn btn-primary btn-sm" onclick="guardarCuentaBanco(this)">Guardar</button>
-        <a class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</a>
+        <a class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</a>
     </div>
 </div>

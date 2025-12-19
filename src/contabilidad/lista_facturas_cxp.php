@@ -46,6 +46,8 @@ try {
             WHERE (`ctb_factura`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
     $facturas = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -75,7 +77,9 @@ try {
                 AND (`tb_tipo_bien_servicio`.`filtro_adq` = 1 OR `tb_tipo_bien_servicio`.`filtro_adq` = 2)
             GROUP BY `far_orden_ingreso`.`id_ingreso`";
     $rs = $cmd->query($sql);
-    $ingresos = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $ingresos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -105,6 +109,8 @@ try {
     $sql = "SELECT `id_ctb_tipodoc`, `tipo` FROM `ctb_tipo_doc` ORDER BY `tipo` ASC";
     $rs = $cmd->query($sql);
     $tipodoc = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -232,15 +238,15 @@ if (empty($detalle)) {
                         <div class="row mb-2">
                             <div class="col-md-3">
                                 <label for="valor_pagar" class="small">VALOR</label>
-                                <input type="text" value="<?php echo pesos($detalle['valor_pago']) ?>" name="valor_pagar" id="valor_pagar" class="form-control form-control-sm bg-input text-end" onkeyup="valorMiles(id)">
+                                <input type="text" value="<?php echo pesos($detalle['valor_pago']) ?>" name="valor_pagar" id="valor_pagar" class="form-control form-control-sm bg-input text-end" onkeyup="NumberMiles(this)">
                             </div>
                             <div class="col-md-3">
                                 <label for="valor_iva" class="small">iva</label>
-                                <input type="text" value="<?php echo pesos($detalle['valor_iva']) ?>" name="valor_iva" id="valor_iva" class="form-control form-control-sm bg-input text-end" onkeyup="valorMiles(id)" onchange="calculoValorBase();" ondblclick="calculoIva();">
+                                <input type="text" value="<?php echo pesos($detalle['valor_iva']) ?>" name="valor_iva" id="valor_iva" class="form-control form-control-sm bg-input text-end" onkeyup="NumberMiles(this)" onchange="calculoValorBase();" ondblclick="calculoIva();">
                             </div>
                             <div class="col-md-3">
                                 <label for="valor_base" class="small">BASE</label>
-                                <input type="text" value="<?php echo pesos($detalle['valor_base']) ?>" name="valor_base" id="valor_base" class="form-control form-control-sm bg-input text-end" onkeyup="valorMiles(id)">
+                                <input type="text" value="<?php echo pesos($detalle['valor_base']) ?>" name="valor_base" id="valor_base" class="form-control form-control-sm bg-input text-end" onkeyup="NumberMiles(this)">
                             </div>
                         </div>
                     </div>

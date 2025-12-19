@@ -1,10 +1,9 @@
 <?php
 $_post = json_decode(file_get_contents('php://input'), true);
 $id = $_post['id'];
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 try {
     $pdo = \Config\Clases\Conexion::getConexion();
-
     $sq2 = "SELECT
         `ctb_libaux`.`id_ctb_libaux`
         , `ctb_pgcp`.`cuenta`

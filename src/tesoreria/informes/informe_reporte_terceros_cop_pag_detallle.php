@@ -36,10 +36,9 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 //
 try {
     $sql = "SELECT
@@ -63,6 +62,8 @@ try {
                 );";
     $res = $cmd->query($sql);
     $causaciones = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -227,20 +228,20 @@ FROM
                 $saldo = 1;
                 if ($saldo > 0) {
                     echo "<tr>
-                    <td class='text-right'>" . $fecha  . "</td>
-                    <td class='text-right'>" . $rp['id_manu'] . "</td>
+                    <td class='text-end'>" . $fecha  . "</td>
+                    <td class='text-end'>" . $rp['id_manu'] . "</td>
                     <td class='text'>" . $tercero .  "</td>
-                    <td class='text-left'>" . $ccnit . "</td>
-                    <td class='text-right'>" .  $rp['detalle']  . "</td>
+                    <td class='text-start'>" . $ccnit . "</td>
+                    <td class='text-end'>" .  $rp['detalle']  . "</td>
                     <td class='text'>" . $nom_banco .  "</td>
                     <td class='text'>" . $cta_banco .  "</td>
                     <td class='text'>" . $rp['num_doc'] . "</td>
-                    <td class='text-right'>" . $rp['rubro'] . "</td>
-                    <td class='text-right'>" . $rp['valor']   . "</td>
-                    <td class='text-right'>" . $val_retenido . "</td>
-                    <td class='text-right'>" . $val_neto . "</td>
-                    <td class='text-right'>" . $pagos  . "</td>
-                    <td class='text-right'>" . $cxp . "</td>
+                    <td class='text-end'>" . $rp['rubro'] . "</td>
+                    <td class='text-end'>" . $rp['valor']   . "</td>
+                    <td class='text-end'>" . $val_retenido . "</td>
+                    <td class='text-end'>" . $val_neto . "</td>
+                    <td class='text-end'>" . $pagos  . "</td>
+                    <td class='text-end'>" . $cxp . "</td>
                     </tr>";
                 }
             }

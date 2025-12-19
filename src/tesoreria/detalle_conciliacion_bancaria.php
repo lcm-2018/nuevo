@@ -1,20 +1,31 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
+include '../../config/autoloader.php';
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Permisos;
+
 function pesos($valor)
 {
     return '$ ' . number_format($valor, 2, ',', '.');
 }
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
+
 $id = isset($_POST['id_cuenta']) ? $_POST['id_cuenta'] : exit('Acceso no disponible');
 $mes = $_POST['mes'];
 $vigencia = $_SESSION['vigencia'];
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
+
 try {
     $sql = "SELECT `fin_mes`, `nom_mes` FROM `nom_meses` WHERE (`codigo` = '$mes')";
     $rs = $cmd->query($sql);
@@ -24,6 +35,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
+
 try {
     $sql = "SELECT
                 `ctb_doc`.`fecha`
@@ -49,9 +61,10 @@ try {
                 LEFT JOIN `tes_conciliacion_detalle`
                     ON (`tes_conciliacion_detalle`.`id_ctb_libaux` = `ctb_libaux`.`id_ctb_libaux`)   
             WHERE (`tes_cuentas`.`id_tes_cuenta` = $id AND `ctb_doc`.`estado` = 2 AND `ctb_doc`.`fecha` <= '$fin_mes' ) ";
-    $sql2 = $sql;
     $rs = $cmd->query($sql);
     $lista = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $tot_deb = 0;
     $tot_cre = 0;
     $tdc = 0;
@@ -69,6 +82,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
+
 try {
     $sql = "SELECT
                 `tes_conciliacion`.`id_conciliacion`
@@ -180,123 +194,121 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
+
 $conciliar = $saldo_libros - ($saldo + $tot_deb - $tot_cre);
+$host = Plantilla::getHost();
 
-$ver = 'readonly';
-?>
-<!DOCTYPE html>
-<html lang="es">
-
-<?php include '../head.php'; ?>
-
-<body class="sb-nav-fixed <?php echo $_SESSION['navarlat'] === '1' ?  'sb-sidenav-toggled' : '' ?>">
-    <?php include '../navsuperior.php' ?>
-    <div id="layoutSidenav">
-        <?php include '../navlateral.php' ?>
-        <div id="layoutSidenav_content">
-            <main>
-                <div class="container-fluid p-2">
-                    <div class="card mb-4">
-                        <div class="card-header" id="divTituloPag">
-                            <div class="row">
-                                <div class="col-md-md-11">
-                                    <i class="fas fa-users fa-lg" style="color:#1D80F7"></i>
-                                    DETALLES CONCILIACIÓN BANCARIA <?php echo "saldo " . $saldo_libros . " debitos " . $tot_deb . " creditos " . $tot_cre . " saldo " . $saldo; ?>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body" id="divCuerpoPag">
-                            <input type="hidden" id="tot_deb" value="<?= $tot_deb; ?>">
-                            <input type="hidden" id="tot_cre" value="<?= $tot_cre; ?>">
-                            <form id="formAddDetallePag">
-                                <input type="hidden" id="id_cuenta" value="<?php echo $id; ?>">
-                                <input type="hidden" id="cod_mes" value="<?php echo $mes; ?>">
-                                <input type="hidden" id="id_conciliacion" value="<?php echo $id_conciliacion; ?>">
-                                <div class="right-block">
-                                    <div class="row mb-1">
-                                        <div class="col-md-2">
-                                            <span class="small">CUENTA </span>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-control form-control-sm" readonly><?php echo $detalles['cta_contable'] ?></div>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <span class="small">SALDO LIBROS </span>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-control form-control-sm text-right" readonly><?php echo pesos($saldo_libros) ?></div>
-                                            <input type="hidden" id="salLib" value="<?php echo $saldo_libros ?>">
-                                        </div>
-                                    </div>
-                                    <div class="row mb-1">
-                                        <div class="col-md-2">
-                                            <span class="small">NOMBRE </span>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-control form-control-sm" readonly><?php echo $detalles['descripcion'] ?></div>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <span class="small">SALDO EXTRACTO:</span>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="input-group input-group-sm">
-                                                <input type="text" name="saldoExtracto" id="saldoExtracto" class="form-control text-right" value="<?php echo $saldo ?>">
-                                                <div class="input-group-append">
-                                                    <button class="btn btn-outline-primary" type="button" onclick="GuardaSaldoExtracto()" title="Guardar Saldo"><i class="far fa-save fa-lg"></i></button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-1">
-                                        <div class="col-md-2">
-                                            <span class="small">MES </span>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-control form-control-sm" readonly><?php echo $dia['nom_mes'] ?></div>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <span class="small">SALDO A CONCILIAR:</span>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <input type="text" name="saldoConcilia" id="saldoConcilia" class="form-control form-control-sm" style="text-align: right;" readonly value="<?php echo pesos($conciliar) ?>">
-                                        </div>
-                                    </div>
-                                </div>
-                                <table id="tableDetConciliacion" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
-                                    <thead>
-                                        <tr class="text-center">
-                                            <th>Fecha</th>
-                                            <th>Comprobante</th>
-                                            <th>Tercero</th>
-                                            <th>Documento</th>
-                                            <th>Débito</th>
-                                            <th>Crédito</th>
-                                            <th>Estado</th>
-                                            <th>Acción</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="modificaDetConciliacion">
-                                    </tbody>
-                                </table>
-                            </form>
-                        </div>
-                    </div>
-
-                    </table>
-                    <div class="text-center pt-4">
-                        <button type="button" class="btn btn-primary btn-sm" onclick="ImpConcBanc(<?= $id; ?>);" style="width: 5rem;"> <span class="fas fa-print "></span></button>
-                        <a class="btn btn-danger btn-sm" style="width: 7rem;" href="conciliacion_bancaria.php"> Terminar</a>
+$content = <<<HTML
+<div class="card w-100">
+    <div class="card-header bg-sofia text-white">
+        <button class="btn btn-sm me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
+        <b>DETALLES CONCILIACIÓN BANCARIA</b>
+    </div>
+    <div class="card-body p-2 bg-wiev">
+        <input type="hidden" id="tot_deb" value="{$tot_deb}">
+        <input type="hidden" id="tot_cre" value="{$tot_cre}">
+        <form id="formAddDetallePag">
+            <input type="hidden" id="id_cuenta" value="{$id}">
+            <input type="hidden" id="cod_mes" value="{$mes}">
+            <input type="hidden" id="id_conciliacion" value="{$id_conciliacion}">
+            
+            <div class="row mb-2">
+                <div class="col-md-2">
+                    <span class="small fw-bold">CUENTA</span>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-control form-control-sm bg-secondary-subtle" readonly>{$detalles['cta_contable']}</div>
+                </div>
+                <div class="col-md-2">
+                    <span class="small fw-bold">SALDO LIBROS</span>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-control form-control-sm bg-secondary-subtle text-end" readonly>
+HTML;
+$content .= pesos($saldo_libros);
+$content .= <<<HTML
+</div>
+                    <input type="hidden" id="salLib" value="{$saldo_libros}">
+                </div>
+            </div>
+            
+            <div class="row mb-2">
+                <div class="col-md-2">
+                    <span class="small fw-bold">NOMBRE</span>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-control form-control-sm bg-secondary-subtle" readonly>{$detalles['descripcion']}</div>
+                </div>
+                <div class="col-md-2">
+                    <span class="small fw-bold">SALDO EXTRACTO</span>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="saldoExtracto" id="saldoExtracto" class="form-control form-control-sm text-end bg-input" value="{$saldo}">
+                        <button class="btn btn-outline-primary" type="button" onclick="GuardaSaldoExtracto()" title="Guardar Saldo">
+                            <i class="far fa-save fa-lg"></i>
+                        </button>
                     </div>
                 </div>
+            </div>
+            
+            <div class="row mb-2">
+                <div class="col-md-2">
+                    <span class="small fw-bold">MES</span>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-control form-control-sm bg-secondary-subtle" readonly>{$dia['nom_mes']}</div>
+                </div>
+                <div class="col-md-2">
+                    <span class="small fw-bold">SALDO A CONCILIAR</span>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" name="saldoConcilia" id="saldoConcilia" class="form-control form-control-sm bg-secondary-subtle text-end" readonly value="
+HTML;
+$content .= pesos($conciliar);
+$content .= <<<HTML
+">
+                </div>
+            </div>
+            
+            <table id="tableDetConciliacion" class="table table-striped table-bordered table-sm nowrap table-hover shadow w-100">
+                <thead>
+                    <tr class="text-center">
+                        <th class="bg-sofia">Fecha</th>
+                        <th class="bg-sofia">Comprobante</th>
+                        <th class="bg-sofia">Tercero</th>
+                        <th class="bg-sofia">Documento</th>
+                        <th class="bg-sofia">Débito</th>
+                        <th class="bg-sofia">Crédito</th>
+                        <th class="bg-sofia">Estado</th>
+                        <th class="bg-sofia">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="modificaDetConciliacion">
+                </tbody>
+            </table>
+        </form>
+        
+        <div class="text-center pt-3">
+            <button type="button" class="btn btn-primary btn-sm" onclick="ImpConcBanc({$id});" style="width: 5rem;">
+                <span class="fas fa-print"></span>
+            </button>
+            <a class="btn btn-danger btn-sm" style="width: 7rem;" href="{$host}/src/tesoreria/conciliacion_bancaria.php">Terminar</a>
         </div>
     </div>
-    </main>
-    <?php include '../footer.php' ?>
-    </div>
-    <?php include '../modales.php' ?>
-    </div>
-    <?php include '../scripts.php' ?>
+</div>
+HTML;
 
-</body>
+$plantilla = new Plantilla($content, 2);
+$plantilla->addCssFile("{$host}/assets/css/jquery-ui.css?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/assets/js/jquery-ui.js?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/src/tesoreria/js/funciontesoreria.js?v=" . date("YmdHis"));
 
-</html>
+$modal = $plantilla->getModal('divModalForms', 'divTamModalForms', 'divForms');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalReg', 'divTamModalReg', 'divFormsReg');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalAux', 'divTamModalAux', 'divFormsAux');
+$plantilla->addModal($modal);
+
+echo $plantilla->render();

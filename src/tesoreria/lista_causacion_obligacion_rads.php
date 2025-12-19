@@ -4,8 +4,16 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
+include '../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $id_cop = $_POST['id_cop'] ?? '';
 $id_pag_doc = $_POST['id_doc'] ?? '';
@@ -14,8 +22,7 @@ $objeto = $_POST['objeto'] ?? 'Recaudación de Obligaciones';
 $factura = $_POST['factura'] ?? '000';
 // Consulta tipo de presupuesto
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `tt`.`id_rubro`
                 , `tt`.`id_pto_rad_det`
@@ -54,6 +61,8 @@ try {
                     ON (`pto_cargue`.`id_cargue` = `tt`.`id_rubro`)";
     $rs = $cmd->query($sql);
     $rubros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $tercero = !empty($rubros) ? $rubros[0]['id_tercero_api'] : 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -74,8 +83,8 @@ try {
 <div class="px-0">
 
     <div class="shadow">
-        <div class="card-header" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LISTA DE REGISTROS PRESUPUESTALES PARA RECAUDACIÓN</h5>
+        <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LISTA DE REGISTROS PRESUPUESTALES PARA RECAUDACIÓN</h5>
         </div>
         <div class="pb-3"></div>
         <form id="rubrosPagar">
@@ -111,11 +120,11 @@ try {
 
                         ?>
                             <tr>
-                                <td class="text-left"><?= $ce['rubro']; ?></td>
-                                <td class="text-right"><?= '$ ' . number_format($ce['reconocido'], 2, '.', ','); ?></td>
-                                <td class="text-right"><?= '$ ' . number_format($obligado, 2, '.', ','); ?></td>
-                                <td class="text-right">
-                                    <input type="text" name="detalle[<?= $id_det; ?>]" id="detalle_<?= $id_det; ?>" class="form-control form-control-sm detalle-pag" value="<?= $valor_mil; ?>" style="text-align: right;" required onkeyup="valorMiles(id)" max="<?= $valor_mil; ?>">
+                                <td class="text-start"><?= $ce['rubro']; ?></td>
+                                <td class="text-end"><?= '$ ' . number_format($ce['reconocido'], 2, '.', ','); ?></td>
+                                <td class="text-end"><?= '$ ' . number_format($obligado, 2, '.', ','); ?></td>
+                                <td class="text-end">
+                                    <input type="text" name="detalle[<?= $id_det; ?>]" id="detalle_<?= $id_det; ?>" class="form-control form-control-sm bg-input detalle-pag" value="<?= $valor_mil; ?>" style="text-align: right;" required onkeyup="NumberMiles(this)" max="<?= $valor_mil; ?>">
                                 </td>
                             </tr>
                         <?php
@@ -124,9 +133,9 @@ try {
 
                     </tbody>
                 </table>
-                <div class="text-right p-3">
+                <div class="text-end p-3">
                     <button type="button" class="btn btn-success btn-sm" onclick="rubrosaPagar(this,1);"> Guardar</button>
-                    <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</a>
+                    <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
                 </div>
             </div>
         </form>

@@ -39,6 +39,8 @@ WHERE (`ctb_retenciones`.`id_retencion` = $id_des
     AND `ctb_doc`.`fecha`  BETWEEN '$fecha_inicial' AND '$fecha_corte');";
     $res = $cmd->query($sql);
     $descuentos = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

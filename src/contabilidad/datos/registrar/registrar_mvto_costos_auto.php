@@ -72,7 +72,9 @@ try {
                     ON (`t1`.`id_pto_crp_det` = `crp`.`id_pto_crp_det`)
             WHERE (`ctb_doc`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
-    $datos = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $datos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -106,7 +108,9 @@ try {
                     ON (`pto_crp`.`id_cdp` = `ctt_novedad_adicion_prorroga`.`id_cdp`)
                 WHERE (`pto_crp`.`id_pto_crp` = $id_crp))";
     $rs = $cmd->query($sql);
-    $centros = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $centros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -143,7 +147,9 @@ if (empty($centros) && !empty($datos) && !empty($doc_anterior)) {
         $sql = "SELECT `id_area_cc`,`valor`/$val_ant AS `porcentaje`
                 FROM `ctb_causa_costos` WHERE `id_ctb_doc` = $id_ant";
         $rs = $cmd->query($sql);
-        $centros = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $centros = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -151,7 +157,9 @@ if (empty($centros) && !empty($datos) && !empty($doc_anterior)) {
         $sql = "SELECT `id_rango`,`valor_base`,`tarifa`,`valor_retencion`,`id_terceroapi` 
                 FROM `ctb_causa_retencion` WHERE `id_ctb_doc` = $id_ant";
         $rs = $cmd->query($sql);
-        $impuestos = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $impuestos = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -201,6 +209,8 @@ try {
     $query = "SELECT `id_area_cc` FROM `ctb_causa_costos` WHERE `id_ctb_doc` = $id_doc";
     $rs = $cmd->query($query);
     $rs = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     if (count($rs) > 0) {
         $response['msg'] = 'Ya se ha registrado el centro de costo para este documento';
     } else {

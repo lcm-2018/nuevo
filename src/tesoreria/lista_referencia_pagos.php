@@ -1,19 +1,26 @@
-<?php
+﻿<?php
 session_start();
 
 if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-include '../conexion.php';
-include '../permisos.php';
+include '../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $vigencia = $_SESSION['vigencia'];
 $inicio = $vigencia . '-01-01';
 $fin = $vigencia . '-12-31';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 // Consultar el valor a de los descuentos realizados a la cuenta de ctb_causa_retencion
 try {
@@ -38,26 +45,48 @@ try {
             WHERE (DATE_FORMAT(`tes_referencia`.`fecha`, '%Y-%m-%d') BETWEEN '$inicio' AND '$fin')
             GROUP BY `tes_referencia`.`id_referencia`";
     $rs = $cmd->query($sql);
-    $referencias = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $referencias = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 ?>
+<style>
+    /* Sobrescribir nowrap solo para la columna Banco */
+    table.nowrap td.wrap-column {
+        white-space: normal !important;
+        word-wrap: break-word;
+        max-width: 150px;
+    }
+</style>
 <script>
     $('#tableReferenciasPagos').DataTable({
         dom: setdom,
         language: dataTable_es,
-        buttons: [{
-            text: ' <span class="fas fa-plus-circle fa-lg"></span>',
+        responsive: false,
+        autoWidth: false,
+        columnDefs: [{
+                targets: 2, // Columna Banco - permite wrap
+                className: 'text-start wrap-column'
+            },
+            {
+                targets: [1, 3, 4, 5, 6], // Otras columnas centradas
+                className: 'text-center'
+            }
+        ],
+        buttons: $('#peReg').val() == 1 ? [{
+            text: '<span class="fa-solid fa-plus "></span>',
+            className: 'btn btn-success btn-sm shadow',
             action: function(e, dt, node, config) {
                 GetFormRefPago(0);
             },
-        }, ],
+        }, ] : [],
         "order": [
             [0, "desc"]
         ]
     });
-    $('#tableReferenciasPagos').wrap('<div class="overflow" />');
+    // Removed wrap - already has table-responsive
     // remover de tableReferenciasPagos_filter el elemento label
     $('#tableReferenciasPagos_filter #verAnulados').remove();
     $('#tableReferenciasPagos_filter label label').remove();
@@ -66,6 +95,7 @@ try {
         GetFormRefPago(id);
     }
     GetFormRefPago = function(id) {
+        mostrarOverlay();
         $.post("datos/registrar/form_referencia_pago.php", {
             id: id
         }, function(he) {
@@ -74,69 +104,72 @@ try {
             $("#divTamModalAux").addClass("modal-sm");
             $("#divModalAux").modal("show");
             $("#divFormsAux").html(he);
+        }).always(function() {
+            ocultarOverlay();
         });
     }
 </script>
-<div class="px-0 text-left">
+<div class="px-0 text-start">
 
     <div class="shadow">
-        <div class="card-header text-center" style="background-color: #16a085 !important;">
-            <h5 style="color: white;">LISTA DE REFERENCIAS DE PAGO </h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="mb-0" style="color: white;">LISTA DE REFERENCIAS DE PAGO </h5>
         </div>
-        <div class="pb-3"></div>
-        <div class="px-3">
-            <table id="tableReferenciasPagos" class="table table-striped table-bordered table-sm table-hover shadow" style="width: 100%;">
-                <thead>
-                    <tr>
-                        <th class="text-center">#</th>
-                        <th class="text-center">Número</th>
-                        <th class="text-center">Banco</th>
-                        <th class="text-center" style="min-width: 50px;">Fecha</th>
-                        <th class="text-center">Estado</th>
-                        <th class="text-center">Valor</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    if (!empty($referencias)) {
-                        foreach ($referencias as $ce) {
-                            $id = $ce['id_referencia'];
-                            if ((PermisosUsuario($permisos, 5601, 3) || PermisosUsuario($permisos, 5602, 3) || PermisosUsuario($permisos, 5603, 3) || PermisosUsuario($permisos, 5604, 3) || $id_rol == 1)) {
-                                $editar = '<a value="' . $id . '" onclick="editarReferenciaPago(' . $id . ')" class="btn btn-outline-primary btn-sm btn-circle shadow-gb editar" title="Editar"><span class="fas fa-pencil-alt fa-lg"></span></a>';
-                            }
-                            if ((PermisosUsuario($permisos, 5601, 4) || PermisosUsuario($permisos, 5602, 4) || PermisosUsuario($permisos, 5603, 4) || PermisosUsuario($permisos, 5604, 4) || $id_rol == 1)) {
-                                $eliminar = '<a value="' . $id . '" onclick="eliminarReferenciaPago(' . $id . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb editar" title="Causar"><span class="fas fa-trash-alt fa-lg"></span></a>';
-                            }
-                            $imprimir = '<a value="' . $id . '" onclick="imprimirReferenciaPago(' . $id . ')" class="btn btn-outline-success btn-sm btn-circle shadow-gb " title="Relación de pagos"><span class="fas fa-file-excel fa-lg"></span></a>';
+        <div class="px-3 mt-2">
+            <div class="table-responsive">
+                <table id="tableReferenciasPagos" class="table table-striped table-bordered table-sm table-hover shadow w-100 align-middle nowrap">
+                    <thead>
+                        <tr>
+                            <th class="bg-sofia">#</th>
+                            <th class="bg-sofia">Num.</th>
+                            <th class="bg-sofia">Banco</th>
+                            <th class="bg-sofia">Fecha</th>
+                            <th class="bg-sofia">Estado</th>
+                            <th class="bg-sofia">Valor</th>
+                            <th class="bg-sofia text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        if (!empty($referencias)) {
+                            foreach ($referencias as $ce) {
+                                $id = $ce['id_referencia'];
+                                if (($permisos->PermisosUsuario($opciones, 5601, 3) || $permisos->PermisosUsuario($opciones, 5602, 3) || $permisos->PermisosUsuario($opciones, 5603, 3) || $permisos->PermisosUsuario($opciones, 5604, 3) || $id_rol == 1)) {
+                                    $editar = '<a value="' . $id . '" onclick="editarReferenciaPago(' . $id . ')" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow editar" title="Editar"><span class="fas fa-pencil-alt"></span></a>';
+                                }
+                                if (($permisos->PermisosUsuario($opciones, 5601, 4) || $permisos->PermisosUsuario($opciones, 5602, 4) || $permisos->PermisosUsuario($opciones, 5603, 4) || $permisos->PermisosUsuario($opciones, 5604, 4) || $id_rol == 1)) {
+                                    $eliminar = '<a value="' . $id . '" onclick="eliminarReferenciaPago(' . $id . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow editar" title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
+                                }
+                                $imprimir = '<a value="' . $id . '" onclick="imprimirReferenciaPago(' . $id . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow " title="Relación de pagos"><span class="fas fa-file-excel"></span></a>';
 
-                            if ($ce['estado'] == '1') {
-                                $estado = '<button onclick="CambiaEstadoReferencia(' . $id . ',0)" class="btn-estado btn btn-outline-success btn-sm btn-circle estado" title="Activo"><span class="fas fa-toggle-on fa-lg" aria-hidden="true"></span></button>';
-                            } else {
-                                $estado = '<button onclick="CambiaEstadoReferencia(' . $id . ',1)" class="btn-estado btn btn-outline-secondary btn-sm btn-circle estado" title="Inactivo"><span class="fas fa-toggle-off fa-lg" aria-hidden="true"></span></button>';
-                            }
-                            if ($ce['estado'] == '0') {
-                                $editar =  $eliminar = '';
-                            }
-                    ?>
-                            <tr id="<?= $id; ?>" class="text-center">
-                                <td><?= $id; ?></td>
-                                <td><?= $ce['numero']; ?></td>
-                                <td><?= $ce['banco']; ?></td>
-                                <td><?= $ce['fecha']; ?></td>
-                                <td> <?= $estado; ?></td>
-                                <td> <?= number_format($ce['valor'], 2, '.', ','); ?></td>
-                                <td> <?= $editar . $imprimir .  $eliminar; ?></td>
+                                if ($ce['estado'] == '1') {
+                                    $estado = '<a href="javascript:void(0)" onclick="CambiaEstadoReferencia(' . $id . ',0)" class="estado" title="Activo"><span class="fas fa-toggle-on fa-lg text-success" aria-hidden="true"></span></button>';
+                                } else {
+                                    $estado = '<a href="javascript:void(0)" onclick="CambiaEstadoReferencia(' . $id . ',1)" class="estado" title="Inactivo"><span class="fas fa-toggle-off fa-lg text-secondary" aria-hidden="true"></span></button>';
+                                }
+                                if ($ce['estado'] == '0') {
+                                    $editar =  $eliminar = '';
+                                }
+                        ?>
+                                <tr id="<?= $id; ?>">
+                                    <td><?= $id; ?></td>
+                                    <td><?= $ce['numero']; ?></td>
+                                    <td><?= $ce['banco']; ?></td>
+                                    <td><?= $ce['fecha']; ?></td>
+                                    <td> <?= $estado; ?></td>
+                                    <td> <?= number_format($ce['valor'], 2, '.', ','); ?></td>
+                                    <td> <?= $editar . $imprimir .  $eliminar; ?></td>
 
-                            </tr>
-                    <?php
+                                </tr>
+                        <?php
+                            }
                         }
-                    }
-                    ?>
-                </tbody>
-            </table>
-            <div class="text-right py-3">
-                <a type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</a>
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-end py-3">
+                <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</a>
             </div>
         </div>
     </div>

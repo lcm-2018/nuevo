@@ -41,11 +41,9 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
-include '../../conexion.php';
+include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
-include '../../terceros.php';
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 // Consulto las cuentas que han tenido movimeiento en el libro auxiliar
 try {
     $sql = "SELECT DISTINCT
@@ -61,6 +59,8 @@ try {
             WHERE (`ctb_doc`.estado =1 AND SUBSTRING(`ctb_libaux`.`cuenta`,1,$long_ini) BETWEEN $cuenta_ini AND $cuenta_fin);";
     $res = $cmd->query($sql);
     $cuentas = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -86,15 +86,11 @@ FROM
 WHERE ( `ctb_doc`.`id_tercero` >0);";
     $res = $cmd->query($sql);
     $id_terceros = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$id_t = [];
-foreach ($id_terceros as $ter) {
-    $id_t[] = $ter['id_tercero'];
-}
-$ids = implode(',', $id_t);
-$terceros = getTerceros($ids, $cmd);
 ?>
 <div class="contenedor bg-light" id="areaImprimir">
     <div class="px-2 " style="width:90% !important;margin: 0 auto;">
@@ -151,6 +147,8 @@ $terceros = getTerceros($ids, $cmd);
                             , `ctb_doc`.`detalle`
                             , `ctb_libaux`.`debito`
                             , `ctb_libaux`.`credito`
+                            , `tb_terceros`.`nom_tercero`
+                            , `tb_terceros`.`nit_tercero`
                         FROM
                             `ctb_libaux`
                             INNER JOIN `ctb_doc` 
@@ -159,10 +157,14 @@ $terceros = getTerceros($ids, $cmd);
                                 ON (`tes_detalle_pago`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
                             LEFT JOIN `tes_forma_pago` 
                                 ON (`tes_detalle_pago`.`id_forma_pago` = `tes_forma_pago`.`id_forma_pago`)
+                            LEFT JOIN `tb_terceros` 
+                                ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
                         WHERE `ctb_libaux`.`cuenta` ='{$cta['cuenta']}' AND `ctb_doc`.`estado`=1 
                             AND `ctb_doc`.`fecha` BETWEEN '$fecha_inicial' AND '$fecha_corte';";
                 $res = $cmd->query($sql);
                 $movimientos = $res->fetchAll();
+                $res->closeCursor();
+                unset($res);
             } catch (PDOException $e) {
                 echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
             }
@@ -189,7 +191,7 @@ $terceros = getTerceros($ids, $cmd);
             // Comportamiento del saldo de acuerdo a la naturaleza de la cuenta
             $primer_caracter = substr($cta['cuenta'], 0, 1);
         ?>
-            <label class="text-right"> <b><?php echo $cta['cuenta'] . ' - ' . $cta['nombre']; ?></b></label>
+            <label class="text-end"> <b><?php echo $cta['cuenta'] . ' - ' . $cta['nombre']; ?></b></label>
             <table class="table-bordered bg-light" style="width:100% !important;" border=1>
                 <tr>
                     <td>Fecha</td>
@@ -210,10 +212,10 @@ $terceros = getTerceros($ids, $cmd);
                     $saldo = $saldo_ini['credito'] - $saldo_ini['debito'];
                 }
                 echo "<tr>
-                 <td class='text-right' colspan='7'> Saldo inicial</td>
-                 <td class='text-right'></td>
-                 <td class='text-right'></td>
-                 <td class='text-right'>" . number_format($saldo, 2, ".", ",")  . "</td>
+                 <td class='text-end' colspan='7'> Saldo inicial</td>
+                 <td class='text-end'></td>
+                 <td class='text-end'></td>
+                 <td class='text-end'>" . number_format($saldo, 2, ".", ",")  . "</td>
                  </tr>
                  ";
                 $total_ret = 0;
@@ -223,30 +225,29 @@ $terceros = getTerceros($ids, $cmd);
                     } else {
                         $saldo = $saldo + $tp['credito'] - $tp['debito'];
                     }
-                    $key = array_search($tp['id_tercero'], array_column($terceros, 'id_tercero_api'));
-                    $nom_ter =  $key !== false ? $terceros[$key]['nom_tercero'] : '---';
-                    $ced_ter =  $key !== false ? $terceros[$key]['nit_tercero'] : '---';
+                    $nom_ter =  $tp['nom_tercero'];
+                    $ced_ter =  $tp['nit_tercero'];
                     $fecha = date('Y-m-d', strtotime($tp['fecha']));
                     echo "<tr>
-                    <td class='text-right'>" .  $fecha . "</td>
-                    <td class='text-right'>" . $tp['tipo_doc'] . "</td>
-                    <td class='text-right'>" . $tp['id_manu'] . "</td>
-                    <td class='text-right'>" . $tp['forma_pago']  . "</td>
+                    <td class='text-end'>" .  $fecha . "</td>
+                    <td class='text-end'>" . $tp['tipo_doc'] . "</td>
+                    <td class='text-end'>" . $tp['id_manu'] . "</td>
+                    <td class='text-end'>" . $tp['forma_pago']  . "</td>
                     <td class='text'>" . $nom_ter . "</td>
                     <td class='text'>" . $ced_ter . "</td>
-                    <td class='text-right'>" . $tp['detalle'] . "</td>
-                    <td class='text-right'>" . number_format($tp['debito'], 2, ".", ",")  . "</td>
-                    <td class='text-right'>" . number_format($tp['credito'], 2, ".", ",")  . "</td>
-                    <td class='text-right'>" . number_format($saldo, 2, ".", ",")  . "</td>
+                    <td class='text-end'>" . $tp['detalle'] . "</td>
+                    <td class='text-end'>" . number_format($tp['debito'], 2, ".", ",")  . "</td>
+                    <td class='text-end'>" . number_format($tp['credito'], 2, ".", ",")  . "</td>
+                    <td class='text-end'>" . number_format($saldo, 2, ".", ",")  . "</td>
                     </tr>";
                     $total_deb = $total_deb + $tp['debito'];
                     $total_cre = $total_cre + $tp['credito'];
                 }
                 echo "<tr>
-                        <td class='text-right' colspan='7'> Total</td>
-                        <td class='text-right'>" . number_format($total_deb, 2, ".", ",")  . "</td>
-                        <td class='text-right'>" . number_format($total_cre, 2, ".", ",")  . "</td>
-                        <td class='text-right'>" . number_format($saldo, 2, ".", ",")  . "</td>
+                        <td class='text-end' colspan='7'> Total</td>
+                        <td class='text-end'>" . number_format($total_deb, 2, ".", ",")  . "</td>
+                        <td class='text-end'>" . number_format($total_cre, 2, ".", ",")  . "</td>
+                        <td class='text-end'>" . number_format($saldo, 2, ".", ",")  . "</td>
                         </tr>
                         ";
                 ?>

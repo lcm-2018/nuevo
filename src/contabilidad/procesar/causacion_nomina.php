@@ -44,7 +44,9 @@ try {
                     ON (`nom_rel_rubro`.`id_tipo` = `nom_tipo_rubro`.`id_rubro`)
             WHERE (`nom_rel_rubro`.`id_vigencia` = $id_vigencia)";
     $rs = $cmd->query($sql);
-    $rubros = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rubros = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -66,7 +68,9 @@ try {
                 INNER JOIN `tb_centrocostos`
                     ON (`nom_causacion`.`centro_costo` = `tb_centrocostos`.`id_centro`)";
     $rs = $cmd->query($sql);
-    $cuentas_causacion = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $cuentas_causacion = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -107,7 +111,9 @@ try {
                 WHERE (`nom_liq_cesantias`.`id_nomina` =  $id_nomina AND `nom_liq_cesantias`.`estado` = 1)
                 GROUP BY `nom_fondo_censan`.`id_tercero_api`";
     $rs = $cmd->query($sql);
-    $cesantias2 = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $cesantias2 = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -170,6 +176,8 @@ try {
             WHERE (`pto_crp_detalle`.`id_pto_crp` = $crp)";
     $rs = $cmd->query($sql);
     $ids_detalle = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -188,7 +196,9 @@ try {
                     ON (`nom_otros_descuentos`.`id_tipo_dcto` = `nom_tipo_descuentos`.`id_tipo`)
             WHERE (`nom_liq_descuento`.`id_nomina` = $id_nomina AND `nom_liq_descuento`.`estado` = 1)";
     $rs = $cmd->query($sql);
-    $descuentos = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $descuentos = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
     $dctoGp = [];
     foreach ($descuentos as $d) {
         $dctoGp[$d['id_empleado']][] = $d;

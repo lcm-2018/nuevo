@@ -4,12 +4,9 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../terceros.php';
-//include 'cargar_combos.php';
+include '../../../../config/autoloader.php';
 
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 
 $id_ctb_fuente = isset($_POST['id_ctb_fuente']) ? $_POST['id_ctb_fuente'] : 0;
 $id_ctb_referencia = isset($_POST['id_ctb_referencia']) ? $_POST['id_ctb_referencia'] : 0;
@@ -77,8 +74,8 @@ if (!empty($obj_id_pto_rec['id_pto_rec'])) {
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
-            <h5 class="mb-0" style="color: white;">LISTA DE AFECTACION PRESUPUESTAL DE INGRESOS</h5>
+        <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
+            <h5 style="color: white;">LISTA DE AFECTACION PRESUPUESTAL DE INGRESOS</h5>
         </div>
         <div class="px-2">
             <form id="frm_afectacion_presupuestal">
@@ -86,32 +83,32 @@ if (!empty($obj_id_pto_rec['id_pto_rec'])) {
                 <input type="hidden" id="hd_id_ctb_referencia" name="hd_id_ctb_referencia" value="<?php echo $id_ctb_referencia ?>">
                 <input type="hidden" id="hd_accion_pto" name="hd_accion_pto" value="<?php echo $accion_pto ?>">
 
-                <div class="form-row" style="text-align: left;">
-                    <div class="form-group col-md-2">
+                <div class="row mb-2" style="text-align: left;">
+                    <div class="col-md-2">
                         <span class="small">Fecha</span>
                     </div>
-                    <div class="form-group col-md-2">
-                        <input type="text" class="form-control form-control-sm" id="txt_fecha" name="txt_fecha" readonly value="<?php echo $fecha ?>">
+                    <div class="col-md-2">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_fecha" name="txt_fecha" readonly value="<?php echo $fecha ?>">
                     </div>
-                    <div class="form-group col-md-1">
+                    <div class="col-md-1">
                         <span class="small"></span>
                     </div>
-                    <div class="form-group col-md-2">
+                    <div class="col-md-2">
                         <span class="small">Id Manu</span>
                     </div>
-                    <div class="form-group col-md-1">
-                        <input type="text" class="form-control form-control-sm" id="txt_id_manu" name="txt_id_manu" value="<?php
-                                                                                                                            if ($id_pto_rad == 0) {
-                                                                                                                                echo $obj_manu['id_manu'];
-                                                                                                                            } else {
-                                                                                                                                echo $obj_id_pto_rad['id_manu'];
-                                                                                                                            }
-                                                                                                                            ?>">
+                    <div class="col-md-1">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_id_manu" name="txt_id_manu" value="<?php
+                                                                                                                                    if ($id_pto_rad == 0) {
+                                                                                                                                        echo $obj_manu['id_manu'];
+                                                                                                                                    } else {
+                                                                                                                                        echo $obj_id_pto_rad['id_manu'];
+                                                                                                                                    }
+                                                                                                                                    ?>">
                     </div>
-                    <div class="form-group col-md-3">
+                    <div class="col-md-3">
                         <span class="small"></span>
                     </div>
-                    <div class="form-group col-md-1">
+                    <div class="col-md-1">
                         <a type="button" id="btn_guardar_encabezado" class="btn btn-outline-success btn-sm" title="Guardar encabezado">
                             <span class="fas fa-save fa-lg" aria-hidden="true"></span>
                         </a>
@@ -121,22 +118,22 @@ if (!empty($obj_id_pto_rec['id_pto_rec'])) {
                     <input type="hidden" id="hd_id_pto_rec" name="hd_id_pto_rec" value=" <?php echo $id_pto_rec ?> ">
                 </div>
 
-                <div class="form-row" style="text-align: left;">
-                    <div class="form-group col-md-2">
+                <div class="row mb-2" style="text-align: left;">
+                    <div class="col-md-2">
                         <span class="small">Tercero</span>
                     </div>
-                    <div class="form-group col-md-10">
-                        <input type="text" class="form-control form-control-sm" id="txt_tercero" name="txt_tercero" readonly value="<?php echo $tercero ?>">
+                    <div class="col-md-10">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_tercero" name="txt_tercero" readonly value="<?php echo $tercero ?>">
                         <input type="hidden" id="hd_id_tercero_api" name="hd_id_tercero_api" value="<?php echo $id_tercero_api ?>">
                     </div>
                 </div>
 
-                <div class="form-row" style="text-align: left;">
-                    <div class="form-group col-md-2">
+                <div class="row mb-2" style="text-align: left;">
+                    <div class="col-md-2">
                         <span class="small">Objeto</span>
                     </div>
-                    <div class="form-group col-md-10">
-                        <input type="text" class="form-control form-control-sm" id="txt_objeto" name="txt_objeto" value="<?php echo $objeto ?>">
+                    <div class="col-md-10">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_objeto" name="txt_objeto" value="<?php echo $objeto ?>">
                     </div>
                 </div>
 
@@ -193,41 +190,41 @@ if (!empty($obj_id_pto_rec['id_pto_rec'])) {
                     <span class="small">&nbsp;</span>
                 </div>
 
-                <div class=" form-row">
-                    <div class="form-group col-md-8">
-                        <input type="text" class="form-control form-control-sm" id="txt_rubro" name="txt_rubro" placeholder="Rubro" value="<?= isset($rubro['rubro']) ? $rubro['rubro'] : ''; ?>">
+                <div class=" row mb-2">
+                    <div class="col-md-8">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_rubro" name="txt_rubro" placeholder="Rubro" value="<?= isset($rubro['rubro']) ? $rubro['rubro'] : ''; ?>">
                         <input type="hidden" id="hd_id_txt_rubro" name="hd_id_txt_rubro" value="<?= isset($rubro['id_rubro']) ? $rubro['id_rubro'] : '0'; ?>">
                         <input type="hidden" id="hd_tipo_dato" name="hd_tipo_dato" value="<?= isset($rubro['tipo_dato']) ? $rubro['tipo_dato'] : '0'; ?>">
                         <input type="hidden" id="hd_anio" name="hd_anio" value="<?= $_SESSION['vigencia'] ?>">
                     </div>
-                    <div class="form-group col-md-3">
-                        <input type="text" class="form-control form-control-sm" id="txt_valor" name="txt_valor" placeholder="Valor">
+                    <div class="col-md-3">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_valor" name="txt_valor" placeholder="Valor">
                     </div>
-                    <div class="form-group col-md-1">
+                    <div class="col-md-1">
                         <a type="button" id="btn_agregar_rubro" class="btn btn-outline-success btn-sm" title="Agregar">
                             <span class="fas fa-plus fa-lg" aria-hidden="true"></span>
                         </a>
                     </div>
                 </div>
 
-                <div class=" w-100 text-left">
+                <div class=" w-100 text-start">
                     <table id="tb_rubros" class="table table-striped table-bordered table-sm nowrap table-hover shadow w-100" style="width:100%; font-size:80%">
                         <thead>
                             <tr class="text-center centro-vertical">
                                 <th>Id rad det</th>
                                 <th style="min-width: 60%;">Rubro</th>
-                                <th class="text-right">Valor</th>
+                                <th class="text-end">Valor</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
-                        <tbody class="text-left centro-vertical" id="body_tb_rubros"></tbody>
+                        <tbody class="text-start centro-vertical" id="body_tb_rubros"></tbody>
                     </table>
                 </div>
             </form>
         </div>
     </div>
     <div class="text-center pt-3">
-        <a type="button" class="btn btn-secondary  btn-sm" data-dismiss="modal">Cancelar</a>
+        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>
 

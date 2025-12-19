@@ -1,16 +1,23 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
-include '../../../permisos.php';
+include '../../../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 // Div de acciones de la lista
 $vigencia = $_SESSION['vigencia'];
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `tb_bancos`.`nom_banco`
                 , `tb_bancos`.`cod_sia`
@@ -35,6 +42,8 @@ try {
                     ON (`tes_cuentas`.`id_fte` = `fin_cod_fuente`.`id`)";
     $rs = $cmd->query($sql);
     $lista = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -43,28 +52,32 @@ if (!empty($lista)) {
         $editar = $borrar = $acciones = $cerrar = null;
         $id_ctb = $lp['id_tes_cuenta'];
         if ($lp['estado'] == 1) {
-            $estado = '<span class="badge rounded-pill text-bg-success">Activa</span>';
-            if (PermisosUsuario($permisos, 5607, 3) || $id_rol == 1) {
-                $editar = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" onclick="editarDatosCuenta(' . $id_ctb . ')" class="btn btn-outline-primary btn-sm btn-circle shadow-gb"  title="Editar_' . $id_ctb . '"><span class="fas fa-pencil-alt fa-lg"></span></a>';
+            $estado = '<span class="badge bg-success">Activa</span>';
+            if ($permisos->PermisosUsuario($opciones, 5607, 3) || $id_rol == 1) {
+                $editar = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" onclick="editarDatosCuenta(' . $id_ctb . ')" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow"  title="Editar_' . $id_ctb . '"><span class="fas fa-pencil-alt"></span></a>';
                 //si es lider de proceso puede abrir o cerrar documentos
             }
-            if (PermisosUsuario($permisos, 5607, 4) || $id_rol == 1) {
-                $borrar = '<a value="' . $id_ctb . '" onclick="eliminarCuentaBancaria(' . $id_ctb . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb "  title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
-                $cerrar = '<a value="' . $id_ctb . '" class="dropdown-item sombra carga" onclick="cerrarCuentaBco(' . $id_ctb . ')" href="#">Desactivar cuenta</a>';
+            if ($permisos->PermisosUsuario($opciones, 5607, 4) || $id_rol == 1) {
+                $borrar = '<a value="' . $id_ctb . '" onclick="eliminarCuentaBancaria(' . $id_ctb . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow "  title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
+                $cerrar = '<li><a value="' . $id_ctb . '" class="dropdown-item sombra carga" onclick="cerrarCuentaBco(' . $id_ctb . ')" href="javascript:void(0);">Desactivar cuenta</a></li>';
             }
         } else {
-            $estado = '<span class="badge rounded-pill text-bg-secondary">Inactiva</span>';
-            if (PermisosUsuario($permisos, 5607, 4) || $id_rol == 1) {
-                $cerrar = '<a value="' . $id_ctb . '" class="dropdown-item sombra carga" onclick="abrirCuentaBco(' . $id_ctb . ')" href="#">Activar cuenta</a>';
+            $estado = '<span class="badge bg-secondary">Inactiva</span>';
+            if ($permisos->PermisosUsuario($opciones, 5607, 4) || $id_rol == 1) {
+                $cerrar = '<li><a value="' . $id_ctb . '" class="dropdown-item sombra carga" onclick="abrirCuentaBco(' . $id_ctb . ')" href="javascript:void(0);">Activar cuenta</a></li>';
             }
         }
 
-        $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
-            ...
-            </button>
-            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            ' . $cerrar . '
-            </div>';
+        $acciones = <<<HTML
+            <div class="dropdown d-inline-block">
+                <button class="btn btn-outline-secondary btn-xs rounded-circle me-1 shadow" type="button" data-bs-toggle="dropdown" data-bs-boundary="window" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-lg"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    $cerrar
+                </ul>
+            </div>
+        HTML;
 
         $data[] = [
 

@@ -59,6 +59,8 @@ try {
             WHERE (SUBSTRING(`ctb_libaux`.`cuenta`,1,$long_ini) BETWEEN $cuenta_ini AND $cuenta_fin);";
     $res = $cmd->query($sql);
     $cuentas = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -142,6 +144,8 @@ FROM
                             ORDER BY  `ctb_doc`.`fecha` ASC;";
                 $res = $cmd->query($sql);
                 $movimientos = $res->fetchAll();
+                $res->closeCursor();
+                unset($res);
             } catch (PDOException $e) {
                 echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
             }

@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include '../../../conexion.php';
+include '../../../../config/autoloader.php';
 $acto = $_POST['slcTipActo'];
 $num_acto = $_POST['numActo'];
 $nom_caja = $_POST['txtNomCaja'];
@@ -19,8 +19,7 @@ $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd = \Config\Clases\Conexion::getConexion();
     if ($id == 0) {
         $estado = 1;
         $query = "INSERT INTO `tes_caja_const`

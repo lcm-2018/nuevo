@@ -1,11 +1,19 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-include_once '../../../conexion.php';
-include_once '../../../permisos.php';
+include_once '../../../../config/autoloader.php';
+
+
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 include_once '../../../financiero/consultas.php';
 // Div de acciones de la lista
 $id_ctb_doc = $_POST['id_doc'];
@@ -31,8 +39,7 @@ function pesos($valor)
 {
     return '$ ' . number_format($valor, 2, ',', '.');
 }
-$cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-$cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+$cmd = \Config\Clases\Conexion::getConexion();
 $fecha_cierre = fechaCierre($vigencia, 56, $cmd);
 try {
     $sql = "SELECT
@@ -55,12 +62,13 @@ try {
             ORDER BY $col $dir $limit";
     $rs = $cmd->query($sql);
     $listado = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 COUNT(*) AS `total`
             FROM
@@ -75,8 +83,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $cmd = new PDO("$bd_driver:host=$bd_servidor;dbname=$bd_base;$charset", $bd_usuario, $bd_clave);
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 COUNT(*) AS `total`
             FROM
@@ -103,38 +110,38 @@ if (!empty($listado)) {
         } else {
             $anular = '<a value="' . $id_ctb . '" class="dropdown-item sombra " href="#" onclick="anularDocumentoTes(' . $id_ctb . ');">Anulación</a>';
         }
-        if ((PermisosUsuario($permisos, 5604, 2) || $id_rol == 1) && $estado == '1') {
-            $responsable = '<a value="' . $id_ctb . '" class="btn btn-outline-primary btn-sm btn-circle shadow-gb" href="#" onclick="cargarResponsableCaja(' . $id_ctb . ',0);" title="Gestionar Responsables"><span class="fas fa-user-tie fa-lg"></span></a>';
-            $rubro = '<a value="' . $id_ctb . '" class="btn btn-outline-secondary btn-sm btn-circle shadow-gb" href="#" onclick="cargarRubrosCaja(' . $id_ctb . ',0);" title="Gestionar Rubros"><span class="far fa-list-alt fa-lg"></span></a>';
+        if (($permisos->PermisosUsuario($opciones, 5604, 2) || $id_rol == 1) && $estado == '1') {
+            $responsable = '<a value="' . $id_ctb . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow" href="#" onclick="cargarResponsableCaja(' . $id_ctb . ',0);" title="Gestionar Responsables"><span class="fas fa-user-tie"></span></a>';
+            $rubro = '<a value="' . $id_ctb . '" class="btn btn-outline-secondary btn-xs rounded-circle me-1 shadow" href="#" onclick="cargarRubrosCaja(' . $id_ctb . ',0);" title="Gestionar Rubros"><span class="far fa-list-alt"></span></a>';
         }
-        if ((PermisosUsuario($permisos, 5604, 3) || $id_rol == 1)) {
-            $editar = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" class="btn btn-outline-primary btn-sm btn-circle shadow-gb editarCaja"  text="' . $id_ctb . '"><span class="fas fa-pencil-alt fa-lg"></span></a>';
-            $detalles = '<a value="' . $id_ctb . '" class="btn btn-outline-warning btn-sm btn-circle shadow-gb" title="Detalles" onclick="cargarListaDetalleCajaEdit(' . $id_ctb . ')"><span class="fas fa-eye fa-lg"></span></a>';
-            $imprimir = '<a value="' . $id_ctb . '" onclick="imprimirFormatoCaja()" class="btn btn-outline-success btn-sm btn-circle shadow-gb " title="Detalles"><span class="fas fa-print fa-lg"></span></a>';
+        if (($permisos->PermisosUsuario($opciones, 5604, 3) || $id_rol == 1)) {
+            $editar = '<a id ="editar_' . $id_ctb . '" value="' . $id_ctb . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow editarCaja"  text="' . $id_ctb . '"><span class="fas fa-pencil-alt"></span></a>';
+            $detalles = '<a value="' . $id_ctb . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow" title="Detalles" onclick="cargarListaDetalleCajaEdit(' . $id_ctb . ')"><span class="fas fa-eye"></span></a>';
+            $imprimir = '<a value="' . $id_ctb . '" onclick="imprimirFormatoCaja()" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow " title="Detalles"><span class="fas fa-print"></span></a>';
             // Acciones teniendo en cuenta el tipo de rol
             //si es lider de proceso puede abrir o cerrar documentos
         }
-        if ((PermisosUsuario($permisos, 5604, 4) || $id_rol == 1)) {
-            $borrar = '<a value="' . $id_ctb . '" onclick="eliminarRegistroCaja(' . $id_ctb . ')" class="btn btn-outline-danger btn-sm btn-circle shadow-gb "  title="Eliminar"><span class="fas fa-trash-alt fa-lg"></span></a>';
+        if (($permisos->PermisosUsuario($opciones, 5604, 4) || $id_rol == 1)) {
+            $borrar = '<a value="' . $id_ctb . '" onclick="eliminarRegistroCaja(' . $id_ctb . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow "  title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
             if ($estado == '1') {
-                $cerrar = '<a value="' . $id_ctb . '" class="dropdown-item sombra carga" onclick="cerrarDocumentoCtb(' . $id_ctb . ')" href="#">Cerrar documento</a>';
+                $cerrar = '<a value="' . $id_ctb . '" class="dropdown-item sombra carga" onclick="cerrarDocumentoCtbTes(' . $id_ctb . ')" href="#">Cerrar documento</a>';
             } else {
                 $cerrar = '<a value="' . $id_ctb . '" class="dropdown-item sombra carga" onclick="abrirDocumentoTes(' . $id_ctb . ')" href="#">Abrir documento</a>';
             }
         }
         if ($estado == '1') {
-            $estado = '<span class="badge rounded-pill text-bg-success">Abierto</span>';
+            $estado = '<span class="badge bg-success">Abierto</span>';
         }
         if ($estado == '2') {
             $editar = null;
             $borrar = null;
-            $estado = '<span class="badge rounded-pill text-bg-secondary">Cerrado</span>';
+            $estado = '<span class="badge bg-secondary">Cerrado</span>';
         }
         if ($estado == '0') {
             $editar = null;
             $borrar = null;
             $imprimir = null;
-            $estado = '<span class="badge rounded-pill text-bg-danger">Anulado</span>';
+            $estado = '<span class="badge bg-danger">Anulado</span>';
         }
         $data[] = [
             'acto' => $lp['acto'],
@@ -142,8 +149,8 @@ if (!empty($listado)) {
             'nombre_caja' => $lp['nombre_caja'],
             'fecha_ini' => $lp['fecha_ini'],
             'fecha_acto' => $lp['fecha_acto'],
-            'valor_total' => '<div class="text-right">' . pesos($lp['valor_total']) . '</div>',
-            'valor_minimo' => '<div class="text-right">' . pesos($lp['valor_minimo']) . '</div>',
+            'valor_total' => '<div class="text-end">' . pesos($lp['valor_total']) . '</div>',
+            'valor_minimo' => '<div class="text-end">' . pesos($lp['valor_minimo']) . '</div>',
             'num_poliza' => $lp['num_poliza'],
             'porcentaje' => $lp['porcentaje'],
             'estado' => '<div class="text-center">' . $estado . '</div>',
