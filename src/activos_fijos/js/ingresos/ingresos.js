@@ -214,65 +214,84 @@
 
     //Cerrar un registro Orden Ingreso
     $('#divForms').on("click", "#btn_cerrar", function () {
-        confirmar_proceso('ingresos_close');
-    });
-    $('#divModalConfDel').on("click", "#ingresos_close", function () {
-        $.ajax({
-            type: 'POST',
-            url: 'editar_orden_ingreso.php',
-            dataType: 'json',
-            data: { id: $('#id_ingreso').val(), oper: 'close' }
-        }).done(function (r) {
+        Swal.fire({
+            title: "¿Confirmar Acción?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_orden_ingreso.php',
+                    dataType: 'json',
+                    data: { id: $('#id_ingreso').val(), oper: 'close' }
+                }).done(function (r) {
 
-            if (r.mensaje == 'ok') {
-                $('#tb_ingresos').DataTable().ajax.reload(null, false);
+                    if (r.mensaje == 'ok') {
+                        $('#tb_ingresos').DataTable().ajax.reload(null, false);
 
-                $('#txt_num_ing').val(r.num_ingreso);
-                $('#txt_est_ing').val('CERRADO');
+                        $('#txt_num_ing').val(r.num_ingreso);
+                        $('#txt_est_ing').val('CERRADO');
 
-                $('#btn_guardar').prop('disabled', true);
-                $('#btn_cerrar').prop('disabled', true);
-                $('#btn_anular').prop('disabled', false);
+                        $('#btn_guardar').prop('disabled', true);
+                        $('#btn_cerrar').prop('disabled', true);
+                        $('#btn_anular').prop('disabled', false);
 
-                mje("Proceso realizado con éxito");
-            } else {
-                mjeError(r.mensaje);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () { }).fail(function (xhr, textStatus, errorThrown) {
-            console.error(xhr.responseText)
-            alert('Ocurrió un error');
         });
     });
 
     //Anular un registro Orden Ingreso
     $('#divForms').on("click", "#btn_anular", function () {
-        confirmar_proceso('ingresos_annul');
-    });
-    $('#divModalConfDel').on("click", "#ingresos_annul", function () {
-        $.ajax({
-            type: 'POST',
-            url: 'editar_orden_ingreso.php',
-            dataType: 'json',
-            data: { id: $('#id_ingreso').val(), oper: 'annul' }
-        }).done(function (r) {
+        Swal.fire({
+            title: "¿Confirmar Acción?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_orden_ingreso.php',
+                    dataType: 'json',
+                    data: { id: $('#id_ingreso').val(), oper: 'annul' }
+                }).done(function (r) {
 
-            if (r.mensaje == 'ok') {
-                $('#tb_ingresos').DataTable().ajax.reload(null, false);
+                    if (r.mensaje == 'ok') {
+                        $('#tb_ingresos').DataTable().ajax.reload(null, false);
 
-                $('#txt_est_ing').val('ANULADO');
+                        $('#txt_est_ing').val('ANULADO');
 
-                $('#btn_guardar').prop('disabled', true);
-                $('#btn_cerrar').prop('disabled', true);
-                $('#btn_anular').prop('disabled', true);
+                        $('#btn_guardar').prop('disabled', true);
+                        $('#btn_cerrar').prop('disabled', true);
+                        $('#btn_anular').prop('disabled', true);
 
-                mje("Proceso realizado con éxito");
-            } else {
-                mjeError(r.mensaje);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () {
-            ocultarOverlay();
-        }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 

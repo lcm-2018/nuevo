@@ -183,7 +183,7 @@ $(function () {
         let xls = ($('#areaImprimir').html());
         var encoded = window.btoa(xls);
 
-        $('<form action="../php/supersalud/reporte_excel.php" method="post"><input type="hidden" name="xls" value="' + encoded + '" /></form>').appendTo('body').submit();
+        $('<form action="' + InputValue('host') + '/src/financiero/reporte_excel.php" method="post"><input type="hidden" name="xls" value="' + encoded + '" /></form>').appendTo('body').submit();
     });
 });
 

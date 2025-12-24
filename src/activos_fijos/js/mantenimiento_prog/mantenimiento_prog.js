@@ -132,7 +132,59 @@
         if (error >= 1) {
             mjeError('Los datos resaltados son obligatorios');
         } else {
-            confirmar_proceso('mantenimiento_final');
+            Swal.fire({
+                title: "¿Confirmar Acción?",
+                text: "No podrá revertir esta acción",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Si",
+                cancelButtonText: "No",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    mostrarOverlay();
+                    $.ajax({
+                        type: 'POST',
+                        url: 'editar_pedidos.php',
+                        dataType: 'json',
+                        data: { id: $('#id_pedido').val(), oper: 'conf' }
+                    }).done(function (r) {
+
+                        if (r.mensaje == 'ok') {
+                            $('#tb_pedidos').DataTable().ajax.reload(null, false);
+
+                            $('#txt_num_ped').val(r.num_pedido);
+                            $('#txt_est_ped').val('CONFIRMADO');
+
+                            $('#btn_guardar').prop('disabled', true);
+                            $('#btn_confirmar').prop('disabled', true);
+                            $('#btn_cerrar').prop('disabled', true);
+                            $('#btn_anular').prop('disabled', false);
+
+                            mje("Proceso realizado correctamente");
+                        } else {
+                            mjeError(r.mensaje);
+                        }
+                    }).always(function () {
+                        ocultarOverlay();
+                    });
+                }
+            }); Swal.fire({
+                title: "¿Confirmar Acción?",
+                text: "No podrá revertir esta acción",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Si",
+                cancelButtonText: "No",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    mostrarOverlay();
+
+                }
+            }); ('mantenimiento_final');
         }
     });
     $('#divModalConfDel').on("click", "#mantenimiento_final", function () {

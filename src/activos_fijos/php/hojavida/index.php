@@ -1,157 +1,150 @@
 <?php
 session_start();
-
-/* Activar si desea verificar Errores desde el Servidor
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-*/
-
 if (!isset($_SESSION['user'])) {
-    echo '<script>window.location.replace("../../../index.php");</script>';
+    header('Location: ../../../index.php');
     exit();
 }
-
 include '../../../../config/autoloader.php';
 
-
+use Config\Clases\Plantilla;
 use Src\Common\Php\Clases\Permisos;
 
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 
-$permisos = new Permisos();
-$opciones = $permisos->PermisoOpciones($id_user);
-include '../common/cargar_combos.php';
-
 $cmd = \Config\Clases\Conexion::getConexion();
 
-?>
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
+$peReg = $permisos->PermisosUsuario($opciones, 5704, 2) || $id_rol == 1 ? 1 : 0;
+$host = Plantilla::getHost();
 
-<!DOCTYPE html>
-<html lang="es">
-<?php include '../../../head.php' ?>
+// Construir opciones de combos
+include '../common/cargar_combos.php';
+ob_start();
+marcas($cmd, '--Marca--');
+$opcionesMarcas = ob_get_clean();
+ob_start();
+estado_general_activo('--Estado General--');
+$opcionesEstadoGeneral = ob_get_clean();
+ob_start();
+estado_activo('--Estado Proceso--');
+$opcionesEstadoProceso = ob_get_clean();
+ob_start();
+sedes($cmd, '--Sede--');
+$opcionesSedes = ob_get_clean();
 
-<body class="sb-nav-fixed <?php if ($_SESSION['navarlat'] == '1') {
-                                echo 'sb-sidenav-toggled';
-                            } ?>">
-    <?php include '../../../navsuperior.php' ?>
-    <div id="layoutSidenav">
-        <?php include '../../../navlateral.php' ?>
-        <div id="layoutSidenav_content">
-            <main>
-                <div class="container-fluid p-2">
-                    <div class="card mb-4">
-                        <div class="card-header" id="divTituloPag">
-                            <div class="row mb-2">
-                                <div class="col-md-11">
-                                    <i class="fas fa-list-ul fa-lg" style="color:#1D80F7"></i>
-                                    HOJA DE VIDA ACTIVOS FIJOS
-                                </div>
-                            </div>
-                        </div>
-
-                        <!--Cuerpo Principal del formulario -->
-                        <div class="card-body" id="divCuerpoPag">
-
-                            <!--Opciones de filtros -->
-                            <div class="row mb-2">
-                                <div class="col-md-1">
-                                    <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_placa_filtro" placeholder="Placa">
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_nombre_filtro" placeholder="Nombre">
-                                </div>
-                                <div class="col-md-1">
-                                    <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_serial_filtro" placeholder="Serial">
-                                </div>
-                                <div class="col-md-2">
-                                    <select class="form-select form-select-sm bg-input" id="sl_marcas_filtro">
-                                        <?php marcas($cmd, '--Marca--') ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <select class="form-select form-select-sm bg-input" id="sl_estadogen_filtro">
-                                        <?php estado_general_activo('--Estado General--') ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <select class="filtro form-control form-control-sm bg-input" id="sl_estado_filtro">
-                                        <?php estado_activo('--Estado Proceso--') ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-1">
-                                    <a type="button" id="btn_buscar_filtro" class="btn btn-outline-success btn-sm" title="Filtrar">
-                                        <span class="fas fa-search fa-lg" aria-hidden="true"></span>
-                                    </a>
-                                    <a type="button" id="btn_imprime_filtro" class="btn btn-outline-success btn-sm" title="Imprimir">
-                                        <span class="fas fa-print" aria-hidden="true"></span>
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="row mb-2">
-                                <div class="col-md-2">
-                                    <select class="form-select form-select-sm bg-input" id="sl_sede_filtro">
-                                        <?php sedes($cmd, '--Sede--') ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <select class="form-select form-select-sm bg-input" id="sl_area_filtro">
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!--Lista de registros-->
-                            <?php
-                            if ($permisos->PermisosUsuario($opciones, 5704, 2) || $id_rol == 1) {
-                                echo '<input type="hidden" id="peReg" value="1">';
-                            } else {
-                                echo '<input type="hidden" id="peReg" value="0">';
-                            }
-                            ?>
-                            <table id="tb_hojavida" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
-                                <thead>
-                                    <tr class="text-center">
-                                        <th>Id</th>
-                                        <th>Placa</th>
-                                        <th>Cod. Articulo</th>
-                                        <th>Articulo</th>
-                                        <th>Nombre Activo Fijo</th>
-                                        <th>No. Serial</th>
-                                        <th>Marca</th>
-                                        <th>Valor</th>
-                                        <th>Sede</th>
-                                        <th>Area</th>
-                                        <th>Responsable</th>
-                                        <th>Id.Estado General</th>
-                                        <th>Estado</br>Funcionam.</th>
-                                        <th>Mantenimiento</br>(Apro.-Eejec.)</th>
-                                        <th>Id.Estado</th>
-                                        <th>Estado</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                            <table class="table-bordered table-sm col-md-5">
-                                <tr>
-                                    <td>Activo</td>
-                                    <td style="background-color:yellow">Para mantenimiento</td>
-                                    <td style="background-color:DodgerBlue">En mantenimiento</td>
-                                    <td style="background-color:green">Inactivo</td>
-                                    <td style="background-color:gray">Dado de baja</td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </main>
-            <?php include '../../../footer.php' ?>
-        </div>
-        <?php include '../../../modales.php' ?>
+$content = <<<HTML
+<div class="card w-100">
+    <div class="card-header bg-sofia text-white">
+        <button class="btn btn-sm me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
+        <b>HOJA DE VIDA ACTIVOS FIJOS</b>
     </div>
-    <?php include '../../../scripts.php' ?>
-    <script type="text/javascript" src="../../js/hojavida/hojavida.js?v=<?php echo date('YmdHis') ?>"></script>
-</body>
+    <div class="card-body p-2 bg-wiev">
+        <input type="hidden" id="peReg" value="{$peReg}">
+        
+        <!-- Opciones de filtros -->
+        <div class="row mb-3">
+            <div class="col-md-1 mb-2">
+                <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_placa_filtro" placeholder="Placa">
+            </div>
+            <div class="col-md-2 mb-2">
+                <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_nombre_filtro" placeholder="Nombre">
+            </div>
+            <div class="col-md-1 mb-2">
+                <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_serial_filtro" placeholder="Serial">
+            </div>
+            <div class="col-md-2 mb-2">
+                <select class="form-select form-select-sm bg-input" id="sl_marcas_filtro">
+                    {$opcionesMarcas}
+                </select>
+            </div>
+            <div class="col-md-2 mb-2">
+                <select class="form-select form-select-sm bg-input" id="sl_estadogen_filtro">
+                    {$opcionesEstadoGeneral}
+                </select>
+            </div>
+            <div class="col-md-2 mb-2">
+                <select class="filtro form-control form-control-sm bg-input" id="sl_estado_filtro">
+                    {$opcionesEstadoProceso}
+                </select>
+            </div>
+            <div class="col-md-1 mb-2">
+                <button type="button" id="btn_buscar_filtro" class="btn btn-outline-success btn-sm" title="Filtrar">
+                    <span class="fas fa-search fa-lg" aria-hidden="true"></span>
+                </button>
+                <button type="button" id="btn_imprime_filtro" class="btn btn-outline-success btn-sm" title="Imprimir">
+                    <span class="fas fa-print" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
 
-</html>
+        <div class="row mb-3">
+            <div class="col-md-2 mb-2">
+                <select class="form-select form-select-sm bg-input" id="sl_sede_filtro">
+                    {$opcionesSedes}
+                </select>
+            </div>
+            <div class="col-md-2 mb-2">
+                <select class="form-select form-select-sm bg-input" id="sl_area_filtro">
+                </select>
+            </div>
+        </div>
+
+        <!-- Tabla de datos -->
+        <div class="table-responsive shadow p-2">
+            <table id="tb_hojavida" class="table table-striped table-bordered table-sm nowrap table-hover shadow w-100 align-middle" style="font-size:80%">
+                <thead class="text-center">
+                    <tr>
+                        <th class="bg-sofia">Id</th>
+                        <th class="bg-sofia">Placa</th>
+                        <th class="bg-sofia">Cod. Articulo</th>
+                        <th class="bg-sofia">Articulo</th>
+                        <th class="bg-sofia">Nombre Activo Fijo</th>
+                        <th class="bg-sofia">No. Serial</th>
+                        <th class="bg-sofia">Marca</th>
+                        <th class="bg-sofia">Valor</th>
+                        <th class="bg-sofia">Sede</th>
+                        <th class="bg-sofia">Area</th>
+                        <th class="bg-sofia">Responsable</th>
+                        <th class="bg-sofia">Id.Estado General</th>
+                        <th class="bg-sofia">Estado<br>Funcionam.</th>
+                        <th class="bg-sofia">Mantenimiento<br>(Apro.-Eejec.)</th>
+                        <th class="bg-sofia">Id.Estado</th>
+                        <th class="bg-sofia">Estado</th>
+                        <th class="bg-sofia">Acciones</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+        
+        <!-- Leyenda de estados -->
+        <div class="mt-3">
+            <table class="table table-bordered table-sm col-md-5 w-50" style="font-size:85%">
+                <tr class="text-center">
+                    <td><b>Activo</b></td>
+                    <td style="background-color:yellow"><b>Para mantenimiento</b></td>
+                    <td style="background-color:DodgerBlue; color:white"><b>En mantenimiento</b></td>
+                    <td style="background-color:green; color:white"><b>Inactivo</b></td>
+                    <td style="background-color:gray; color:white"><b>Dado de baja</b></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+HTML;
+
+$plantilla = new Plantilla($content, 2);
+$plantilla->addCssFile("{$host}/assets/css/jquery-ui.css?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/assets/js/jquery-ui.js?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/src/activos_fijos/js/hojavida/hojavida.js?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/src/activos_fijos/js/common/common.js?v=" . date("YmdHis"));
+$modal = $plantilla->getModal('divModalForms', 'divTamModalForms', 'divForms');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalReg', 'divTamModalReg', 'divFormsReg');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalImp', 'divTamModalImp', 'divImp');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalBus', 'divTamModalBus', 'divFormsBus');
+$plantilla->addModal($modal);
+echo $plantilla->render();

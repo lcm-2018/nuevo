@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    echo '<script>window.location.replace("../../../index.php");</script>';
+    header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
@@ -26,7 +26,7 @@ $obj = $rs->fetch();
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+        <div class="card-header py-2 text-center bg-sofia">
             <h5 class="text-white mb-0">COMPONENTES DEL ACTIVO FIJO</h5>
         </div>
         <div class="p-2">
@@ -48,15 +48,15 @@ $obj = $rs->fetch();
                     </div>
                 </div>
             </form>
-            <table id="tb_componentes_hojavida" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
+            <table id="tb_componentes_hojavida" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle w-100" style="font-size:80%">
                 <thead>
                     <tr class="text-center">
-                        <th>Id</th>
-                        <th>Articulo Componente</th>
-                        <th>No. Serial</th>
-                        <th>Modelo</th>
-                        <th>Marca</th>
-                        <th>Acciones</th>
+                        <th class="bg-sofia">Id</th>
+                        <th class="bg-sofia">Articulo Componente</th>
+                        <th class="bg-sofia">No. Serial</th>
+                        <th class="bg-sofia">Modelo</th>
+                        <th class="bg-sofia">Marca</th>
+                        <th class="bg-sofia">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="text-start"></tbody>

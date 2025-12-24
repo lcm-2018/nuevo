@@ -8,16 +8,6 @@ var confirmar_del = function (tipo, id) {
     return false;
 };
 
-//CONFIRMACIÓN DE CERRAR, ANULAR PARA ORDENES DE INGRESO, ORDENES DE EGRESO, TRASLADOS, ETC.
-var confirmar_proceso = function (tipo) {
-    var msg = "Esta seguro de esta Operación?, <p style='color:red'>ESTE PROCESO ES IRREVERSIBLE</p>";
-    let btns = '<button class="btn btn-primary btn-sm" id="' + tipo + '">Continuar</button><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>';
-    $('#divModalConfDel').modal('show');
-    $('#divMsgConfdel').html(msg);
-    $('#divBtnsModalDel').html(btns);
-    return false;
-};
-
 var reloadtable = function (nom, pag = 0) {
     $(document).ready(function () {
         var table = $('#' + nom).DataTable();
@@ -163,9 +153,10 @@ $(function () {
 
     //Boton de Excel de formulario Impresión
     $('#divModalImp').on('click', '#btnExcelEntrada', function () {
+
         let xls = ($('#areaImprimir').html());
         var encoded = window.btoa(xls);
-        $('<form action="../common/reporte_excel.php" method="post"><input type="hidden" name="xls" value="' + encoded + '" /></form>').appendTo('body').submit();
+        $('<form action="' + ValueInput('host') + '/src/financiero/reporte_excel.php" method="post"><input type="hidden" name="xls" value="' + encoded + '" /></form>').appendTo('body').submit();
     });
 });
 

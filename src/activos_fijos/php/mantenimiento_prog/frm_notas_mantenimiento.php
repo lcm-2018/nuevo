@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    echo '<script>window.location.replace("../../../index.php");</script>';
+    header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
@@ -24,7 +24,7 @@ $obj = $rs->fetch();
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+        <div class="card-header py-2 text-center bg-sofia">
             <h5 class="text-white mb-0">NOTAS DE MANTENIMIENTO</h5>
         </div>
         <div class="p-3">
@@ -50,15 +50,15 @@ $obj = $rs->fetch();
                 </div>
             </form>
             <!--Formulario de registro de Ordenes de Ingreso-->
-            <table id="tb_notas_mantenimiento" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
+            <table id="tb_notas_mantenimiento" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle w-100" style="font-size:80%">
                 <thead>
                     <tr class="text-center">
-                        <th>Id</th>
-                        <th>Fecha</th>
-                        <th>Hora</th>
-                        <th>Observacion</th>
-                        <th>Archivo Documento</th>
-                        <th>Acciones</th>
+                        <th class="bg-sofia">Id</th>
+                        <th class="bg-sofia">Fecha</th>
+                        <th class="bg-sofia">Hora</th>
+                        <th class="bg-sofia">Observacion</th>
+                        <th class="bg-sofia">Archivo Documento</th>
+                        <th class="bg-sofia">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="text-start"></tbody>

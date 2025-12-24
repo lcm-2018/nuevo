@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    echo '<script>window.location.replace("../../../index.php");</script>';
+    header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
@@ -51,7 +51,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+        <div class="card-header py-2 text-center bg-sofia">
             <h5 class="text-white mb-0">REGISTRAR HOJA DE VIDA ACTIVO FIJO</h5>
         </div>
         <div class="p-3">
@@ -295,6 +295,6 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
     <div class="text-center pt-3">
         <button type="button" class="btn btn-primary btn-sm" id="btn_guardar">Guardar</button>
         <button type="button" class="btn btn-primary btn-sm" id="btn_imprimir" <?php echo $imprimir ?>>Imprimir</button>
-        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
+        <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>

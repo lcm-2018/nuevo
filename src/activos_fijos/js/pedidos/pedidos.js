@@ -181,107 +181,132 @@
     //Confirmar un registro Pedido
     $('#divForms').on("click", "#btn_confirmar", function () {
         let id = $(this).attr('value');
-        confirmar_proceso('pedidos_confirmar', id);
-    });
-    $('#divModalConfDel').on("click", "#pedidos_confirmar", function () {
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: 'editar_pedidos.php',
-            dataType: 'json',
-            data: { id: $('#id_pedido').val(), oper: 'conf' }
-        }).done(function (r) {
+        Swal.fire({
+            title: "¿Confirmar Acción?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_pedidos.php',
+                    dataType: 'json',
+                    data: { id: $('#id_pedido').val(), oper: 'conf' }
+                }).done(function (r) {
 
-            if (r.mensaje == 'ok') {
-                $('#tb_pedidos').DataTable().ajax.reload(null, false);
+                    if (r.mensaje == 'ok') {
+                        $('#tb_pedidos').DataTable().ajax.reload(null, false);
 
-                $('#txt_num_ped').val(r.num_pedido);
-                $('#txt_est_ped').val('CONFIRMADO');
+                        $('#txt_num_ped').val(r.num_pedido);
+                        $('#txt_est_ped').val('CONFIRMADO');
 
-                $('#btn_guardar').prop('disabled', true);
-                $('#btn_confirmar').prop('disabled', true);
-                $('#btn_cerrar').prop('disabled', true);
-                $('#btn_anular').prop('disabled', false);
+                        $('#btn_guardar').prop('disabled', true);
+                        $('#btn_confirmar').prop('disabled', true);
+                        $('#btn_cerrar').prop('disabled', true);
+                        $('#btn_anular').prop('disabled', false);
 
-                mje("Proceso realizado correctamente");
-            } else {
-                mjeError(r.mensaje);
+                        mje("Proceso realizado correctamente");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () {
-            ocultarOverlay();
-        }).fail(function () {
-            alert('Ocurrió un error');
         });
+
     });
 
     //Cerrar un registro Pedido
     $('#divForms').on("click", "#btn_cerrar", function () {
         let id = $(this).attr('value');
-        confirmar_proceso('pedidos_cerrar', id);
-    });
-    $('#divModalConfDel').on("click", "#pedidos_cerrar", function () {
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: 'editar_pedidos.php',
-            dataType: 'json',
-            data: { id: $('#id_pedido').val(), oper: 'close' }
-        }).done(function (r) {
+        Swal.fire({
+            title: "¿Confirmar Acción?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_pedidos.php',
+                    dataType: 'json',
+                    data: { id: $('#id_pedido').val(), oper: 'close' }
+                }).done(function (r) {
 
-            if (r.mensaje == 'ok') {
-                $('#tb_pedidos').DataTable().ajax.reload(null, false);
+                    if (r.mensaje == 'ok') {
+                        $('#tb_pedidos').DataTable().ajax.reload(null, false);
 
-                $('#txt_num_ped').val(r.num_pedido);
-                $('#txt_est_ped').val('CONFIRMADO');
+                        $('#txt_num_ped').val(r.num_pedido);
+                        $('#txt_est_ped').val('CONFIRMADO');
 
-                $('#btn_guardar').prop('disabled', true);
-                $('#btn_confirmar').prop('disabled', true);
-                $('#btn_cerrar').prop('disabled', true);
-                $('#btn_anular').prop('disabled', true);
+                        $('#btn_guardar').prop('disabled', true);
+                        $('#btn_confirmar').prop('disabled', true);
+                        $('#btn_cerrar').prop('disabled', true);
+                        $('#btn_anular').prop('disabled', true);
 
-                mje("Proceso realizado correctamente");
-            } else {
-                mjeError(r.mensaje);
+                        mje("Proceso realizado correctamente");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                })
             }
-        }).always(function () {
-            ocultarOverlay();
-        }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 
     //Anular un registro Pedido
     $('#divForms').on("click", "#btn_anular", function () {
         let id = $(this).attr('value');
-        confirmar_proceso('pedidos_annul', id);
-    });
-    $('#divModalConfDel').on("click", "#pedidos_annul", function () {
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: 'editar_pedidos.php',
-            dataType: 'json',
-            data: { id: $('#id_pedido').val(), oper: 'annul' }
-        }).done(function (r) {
+        Swal.fire({
+            title: "¿Confirmar Acción?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_pedidos.php',
+                    dataType: 'json',
+                    data: { id: $('#id_pedido').val(), oper: 'annul' }
+                }).done(function (r) {
 
-            if (r.mensaje == 'ok') {
-                $('#tb_pedidos').DataTable().ajax.reload(null, false);
+                    if (r.mensaje == 'ok') {
+                        $('#tb_pedidos').DataTable().ajax.reload(null, false);
 
-                $('#txt_est_ped').val('ANULADO');
+                        $('#txt_est_ped').val('ANULADO');
 
-                $('#btn_guardar').prop('disabled', true);
-                $('#btn_confirmar').prop('disabled', true);
-                $('#btn_cerrar').prop('disabled', true);
-                $('#btn_anular').prop('disabled', true);
+                        $('#btn_guardar').prop('disabled', true);
+                        $('#btn_confirmar').prop('disabled', true);
+                        $('#btn_cerrar').prop('disabled', true);
+                        $('#btn_anular').prop('disabled', true);
 
-                mje("Proceso realizado correctamente");
-            } else {
-                mjeError(r.mensaje);
+                        mje("Proceso realizado correctamente");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () {
-            ocultarOverlay();
-        }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 
@@ -374,8 +399,6 @@
                     }
                 }).always(function () {
                     ocultarOverlay();
-                }).fail(function () {
-                    alert('Ocurrió un error');
                 });
             }
         });

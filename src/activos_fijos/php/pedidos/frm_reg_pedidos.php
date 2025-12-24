@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    echo '<script>window.location.replace("../../../index.php");</script>';
+    header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
@@ -52,8 +52,8 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
-            <h5 class="text-white mb-0">REGISRTAR PEDIDO DE ACTIVOS FIJOS</h5>
+        <div class="card-header py-2 text-center bg-sofia">
+            <h5 class="text-white mb-0">REGISTRAR PEDIDO DE ACTIVOS FIJOS</h5>
         </div>
         <div class="p-2">
             <!--Formulario de registro de Pedido-->
@@ -61,50 +61,52 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                 <input type="hidden" id="id_pedido" name="id_pedido" value="<?php echo $id ?>">
                 <div class="row mb-2">
                     <div class="col-md-1">
-                        <label for="txt_fec_ing" class="small">Id.</label>
+                        <label for="txt_ide" class="small">Id.</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_ide" name="txt_ide" class="small" value="<?php echo ($id == -1 ? '' : $id) ?>" readonly="readonly">
                     </div>
                     <div class="col-md-3">
-                        <label for="txt_nom_bod" class="small">Sede</label>
+                        <label for="txt_nom_sed" class="small">Sede</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_sed" class="small" value="<?php echo $obj['nom_sede'] ?>" readonly="readonly">
                         <input type="hidden" id="id_txt_nom_sed" name="id_txt_nom_sed" value="<?php echo $obj['id_sede'] ?>">
                     </div>
                     <div class="col-md-2">
-                        <label for="txt_fec_ing" class="small">Fecha pedido</label>
+                        <label for="txt_fec_ped" class="small">Fecha pedido</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_fec_ped" name="txt_fec_ped" class="small" value="<?php echo $obj['fec_pedido'] ?>" readonly="readonly">
                     </div>
                     <div class="col-md-2">
-                        <label for="txt_hor_ing" class="small">Hora pedido</label>
+                        <label for="txt_hor_ped" class="small">Hora pedido</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_hor_ped" name="txt_hor_ped" class="small" value="<?php echo $obj['hor_pedido'] ?>" readonly="readonly">
                     </div>
                     <div class="col-md-2">
-                        <label for="txt_num_ing" class="small">No. pedido</label>
+                        <label for="txt_num_ped" class="small">No. pedido</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_num_ped" name="txt_num_ped" class="small" value="<?php echo $obj['num_pedido'] ?>" readonly="readonly">
                     </div>
                     <div class="col-md-2">
-                        <label for="txt_est_ing" class="small">Estado pedido</label>
+                        <label for="txt_est_ped" class="small">Estado pedido</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_est_ped" name="txt_est_ped" class="small" value="<?php echo $obj['nom_estado'] ?>" readonly="readonly">
                     </div>
+                </div>
+                <div class="row mb-2">
                     <div class="col-md-12">
-                        <label for="txt_det_ing" class="small">Detalle</label>
+                        <label for="txt_det_ped" class="small">Detalle</label>
                         <textarea class="form-control" id="txt_det_ped" name="txt_det_ped" rows="2"><?php echo $obj['detalle'] ?></textarea>
                     </div>
                 </div>
             </form>
-            <table id="tb_pedidos_detalles" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
+            <table id="tb_pedidos_detalles" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle w-100" style="font-size:80%">
                 <thead>
                     <tr class="text-center">
-                        <th rowspan="2">Id</th>
-                        <th rowspan="2">Código</th>
-                        <th rowspan="2">Descripción</th>
-                        <th colspan="2">Cantidad</th>
-                        <th rowspan="2">Vr. Promedio</th>
-                        <th rowspan="2">Total</th>
-                        <th rowspan="2">Acciones</th>
+                        <th class="bg-sofia" rowspan="2">Id</th>
+                        <th class="bg-sofia" rowspan="2">Código</th>
+                        <th class="bg-sofia" rowspan="2">Descripción</th>
+                        <th class="bg-sofia" colspan="2">Cantidad</th>
+                        <th class="bg-sofia" rowspan="2">Vr. Promedio</th>
+                        <th class="bg-sofia" rowspan="2">Total</th>
+                        <th class="bg-sofia" rowspan="2">Acciones</th>
                     </tr>
                     <tr class="text-center">
-                        <th>Solicitada</th>
-                        <th>Aprobada</th>
+                        <th class="bg-sofia">Solicitada</th>
+                        <th class="bg-sofia">Aprobada</th>
                     </tr>
                 </thead>
                 <tbody class="text-start"></tbody>

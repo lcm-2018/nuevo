@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    echo '<script>window.location.replace("../../../index.php");</script>';
+    header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
@@ -31,8 +31,8 @@ if (empty($obj)) {
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
-            <h7 style="color: white;">NOTA DE MANTENIMIENTO</h7>
+        <div class="card-header py-2 text-center bg-sofia">
+            <h5 class="text-white mb-0">NOTA DE MANTENIMIENTO</h5>
         </div>
         <div class="p-3">
             <form id="frm_reg_documento">
@@ -72,7 +72,7 @@ if (empty($obj)) {
     </div>
     <div class="text-center pt-3">
         <button type="button" class="btn btn-primary btn-sm" id="btn_guardar_nota">Guardar</button>
-        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
+        <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>
 

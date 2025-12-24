@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    echo '<script>window.location.replace("../../../index.php");</script>';
+    header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
@@ -61,8 +61,8 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
-            <h5 class="text-white mb-0">REGISRTAR ORDEN DE INGRESO DE ACTIVOS FIJOS</h5>
+        <div class="card-header py-2 text-center bg-sofia">
+            <h5 class="text-white mb-0">REGISTRAR ORDEN DE INGRESO DE ACTIVOS FIJOS</h5>
         </div>
         <div class="p-2">
             <!--Formulario de registro de Ordenes de Ingreso-->
@@ -128,19 +128,19 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     </div>
                 </div>
             </form>
-            <table id="tb_ingresos_detalles" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
+            <table id="tb_ingresos_detalles" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle w-100" style="font-size:80%">
                 <thead>
                     <tr class="text-center">
-                        <th>Id</th>
-                        <th>Código</th>
-                        <th>Descripción</th>
-                        <th>Cantidad</th>
-                        <th>Vr. Unitario</th>
-                        <th>%IVA</th>
-                        <th>Vr. Costo</th>
-                        <th>Total</th>
-                        <th>Observación</th>
-                        <th>Acciones</th>
+                        <th class="bg-sofia">Id</th>
+                        <th class="bg-sofia">Código</th>
+                        <th class="bg-sofia">Descripción</th>
+                        <th class="bg-sofia">Cantidad</th>
+                        <th class="bg-sofia">Vr. Unitario</th>
+                        <th class="bg-sofia">%IVA</th>
+                        <th class="bg-sofia">Vr. Costo</th>
+                        <th class="bg-sofia">Total</th>
+                        <th class="bg-sofia">Observación</th>
+                        <th class="bg-sofia">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="text-start"></tbody>

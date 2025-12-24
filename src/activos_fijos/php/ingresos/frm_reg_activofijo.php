@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    echo '<script>window.location.replace("../../../index.php");</script>';
+    header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
@@ -27,8 +27,8 @@ $obj = $rs->fetch();
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
-            <h7 style="color: white;">REGISRTAR DATOS BÁSICOS DE ACTIVOS FIJOS</h5>
+        <div class="card-header py-2 text-center bg-sofia">
+            <h5 class="text-white mb-0">REGISTRAR DATOS BÁSICOS DE ACTIVOS FIJOS</h5>
         </div>
         <div class="p-2">
             <!--Formulario de registro de Ordenes de Ingreso-->
@@ -58,23 +58,23 @@ $obj = $rs->fetch();
                     </div>
                 </div>
             </form>
-            <table id="tb_lista_activos_fijos" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
+            <table id="tb_lista_activos_fijos" class="table table-striped table-bordered table-sm nowrap table-hover shadow w-100" style="font-size:80%">
                 <thead>
                     <tr class="text-center">
-                        <th>Id</th>
-                        <th>Placa</th>
-                        <th>No. Serial</th>
-                        <th>Marca</th>
-                        <th>Valor</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
+                        <th class="bg-sofia">Id</th>
+                        <th class="bg-sofia">Placa</th>
+                        <th class="bg-sofia">No. Serial</th>
+                        <th class="bg-sofia">Marca</th>
+                        <th class="bg-sofia">Valor</th>
+                        <th class="bg-sofia">Estado</th>
+                        <th class="bg-sofia">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="text-start"></tbody>
             </table>
         </div>
     </div>
-    <div class="text-end pt-3 rigth">
+    <div class="text-end pt-3 right">
         <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Salir</a>
     </div>
 </div>

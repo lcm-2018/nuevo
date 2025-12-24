@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    echo '<script>window.location.replace("../../../index.php");</script>';
+    header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
@@ -22,13 +22,13 @@ $obj = $rs->fetch();
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+        <div class="card-header py-2 text-center bg-sofia">
             <h5 class="text-white mb-0">ADJUNTAR IMAGEN DE ACTIVO FIJO</h5>
         </div>
         <div class="p-3">
             <form id="frm_reg_hojavida" enctype="multipart/formdata">
                 <input type="hidden" id="id_hv" name="id_hv" value="<?php echo $id ?>">
-                <div class=" row">
+                <div class="row mb-2">
                     <div class="col-md-3">
                         <label class="small">Placa</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="placa_componente" value="<?php echo $obj['placa'] ?>" readonly="readonly">
@@ -63,7 +63,7 @@ $obj = $rs->fetch();
     </div>
     <div class="text-center pt-3">
         <button type="button" class="btn btn-primary btn-sm" id="btn_guardar_imagen">Guardar</button>
-        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
+        <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>
 

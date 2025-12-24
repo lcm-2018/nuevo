@@ -172,68 +172,84 @@
     //Cerrar un registro baja
     $('#divForms').on("click", "#btn_cerrar", function () {
         let id = $(this).attr('value');
-        confirmar_proceso('bajas_close', id);
-    });
-    $('#divModalConfDel').on("click", "#bajas_close", function () {
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: 'editar_bajas.php',
-            dataType: 'json',
-            data: { id: $('#id_baja').val(), oper: 'close' }
-        }).done(function (r) {
+        Swal.fire({
+            title: "¿Confirmar Acción?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_bajas.php',
+                    dataType: 'json',
+                    data: { id: $('#id_baja').val(), oper: 'close' }
+                }).done(function (r) {
 
-            if (r.mensaje == 'ok') {
-                $('#tb_bajas').DataTable().ajax.reload(null, false);
+                    if (r.mensaje == 'ok') {
+                        $('#tb_bajas').DataTable().ajax.reload(null, false);
 
-                $('#txt_est_baja').val('CERRADO');
+                        $('#txt_est_baja').val('CERRADO');
 
-                $('#btn_guardar').prop('disabled', true);
-                $('#btn_cerrar').prop('disabled', true);
-                $('#btn_anular').prop('disabled', false);
+                        $('#btn_guardar').prop('disabled', true);
+                        $('#btn_cerrar').prop('disabled', true);
+                        $('#btn_anular').prop('disabled', false);
 
-                mje("Proceso realizado con éxito");
-            } else {
-                mjeError(r.mensaje);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () {
-            ocultarOverlay();
-        }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 
     //Anular un registro baja
     $('#divForms').on("click", "#btn_anular", function () {
         let id = $(this).attr('value');
-        confirmar_proceso('bajas_annul', id);
-    });
-    $('#divModalConfDel').on("click", "#bajas_annul", function () {
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: 'editar_bajas.php',
-            dataType: 'json',
-            data: { id: $('#id_baja').val(), oper: 'annul' }
-        }).done(function (r) {
+        Swal.fire({
+            title: "¿Confirmar Acción?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_bajas.php',
+                    dataType: 'json',
+                    data: { id: $('#id_baja').val(), oper: 'annul' }
+                }).done(function (r) {
 
-            if (r.mensaje == 'ok') {
-                $('#tb_bajas').DataTable().ajax.reload(null, false);
+                    if (r.mensaje == 'ok') {
+                        $('#tb_bajas').DataTable().ajax.reload(null, false);
 
-                $('#txt_est_baja').val('ANULADO');
+                        $('#txt_est_baja').val('ANULADO');
 
-                $('#btn_guardar').prop('disabled', true);
-                $('#btn_cerrar').prop('disabled', true);
-                $('#btn_anular').prop('disabled', true);
+                        $('#btn_guardar').prop('disabled', true);
+                        $('#btn_cerrar').prop('disabled', true);
+                        $('#btn_anular').prop('disabled', true);
 
-                mje("Proceso realizado con éxito");
-            } else {
-                mjeError(r.mensaje);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () {
-            ocultarOverlay();
-        }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 

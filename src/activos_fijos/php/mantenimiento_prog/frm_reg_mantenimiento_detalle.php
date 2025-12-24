@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    echo '<script>window.location.replace("../../../index.php");</script>';
+    header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
@@ -29,15 +29,15 @@ $editar = in_array($obj['estado'], [1, 2]) && $id_md != -1 && in_array($obj['est
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
-            <h7 style="color: white;">OBSERVACIÓN DE FINALIZACIÓN DE MANTENIMIENTO</h7>
+        <div class="card-header py-2 text-center bg-sofia">
+            <h5 class="text-white mb-0">OBSERVACIÓN DE FINALIZACIÓN DE MANTENIMIENTO</h5>
         </div>
         <div class="p-2">
 
             <!--Formulario de registro de Detalle-->
             <form id="frm_reg_mantenimiento_detalle">
                 <input type="hidden" id="id_mant_detalle" name="id_mant_detalle" value="<?php echo $id_md ?>">
-                <div class=" row">
+                <div class="row mb-2">
                     <div class="col-md-3">
                         <label for="txt_placa" class="small">Placa</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_placa" class="small" value="<?php echo $obj['placa'] ?>" readonly="readonly">
@@ -80,6 +80,6 @@ $editar = in_array($obj['estado'], [1, 2]) && $id_md != -1 && in_array($obj['est
         <button type="button" class="btn btn-primary btn-sm" id="btn_guardar_detalle" <?php echo $editar ?>>Guardar</button>
         <button type="button" class="btn btn-primary btn-sm" id="btn_finalizar_detalle" <?php echo $editar ?>>Finalizar</button>
         <button type="button" class="btn btn-primary btn-sm" id="btn_imprimir">Imprimir</button>
-        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
+        <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>

@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    echo '<script>window.location.replace("../../../index.php");</script>';
+    header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
@@ -51,8 +51,8 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
-            <h5 class="text-white mb-0">REGISRTAR ORDEN DE MANTENIMIENTO</h5>
+        <div class="card-header py-2 text-center bg-sofia">
+            <h5 class="text-white mb-0">REGISTRAR ORDEN DE MANTENIMIENTO</h5>
         </div>
         <div class="p-3">
             <form id="frm_reg_mantenimiento">
@@ -107,18 +107,18 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     </div>
                 </div>
             </form>
-            <table id="tb_mantenimientos_detalles" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
+            <table id="tb_mantenimientos_detalles" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle w-100" style="font-size:80%">
                 <thead>
                     <tr class="text-center">
-                        <th>Id</th>
-                        <th>Placa</th>
-                        <th>Articulo</th>
-                        <th>Activo Fijo</th>
-                        <th>Estado General</th>
-                        <th>Area</th>
-                        <th>Observación</th>
-                        <th>Acciones</th>
-                        <th>Estado</th>
+                        <th class="bg-sofia">Id</th>
+                        <th class="bg-sofia">Placa</th>
+                        <th class="bg-sofia">Articulo</th>
+                        <th class="bg-sofia">Activo Fijo</th>
+                        <th class="bg-sofia">Estado General</th>
+                        <th class="bg-sofia">Area</th>
+                        <th class="bg-sofia">Observación</th>
+                        <th class="bg-sofia">Acciones</th>
+                        <th class="bg-sofia">Estado</th>
                     </tr>
                 </thead>
                 <tbody class="text-start"></tbody>

@@ -208,137 +208,173 @@
 
     //Aprobar orden de mantenimiento
     $('#divForms').on("click", "#btn_aprobar", function () {
-        confirmar_proceso('mantenimiento_aprob');
-    });
-    $('#divModalConfDel').on("click", "#mantenimiento_aprob", function () {
-        $.ajax({
-            type: 'POST',
-            url: 'editar_mantenimiento.php',
-            dataType: 'json',
-            data: { id: $('#id_mantenimiento').val(), oper: 'aprob' }
-        }).done(function (r) {
+        Swal.fire({
+            title: "¿Confirmar Acción?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_mantenimiento.php',
+                    dataType: 'json',
+                    data: { id: $('#id_mantenimiento').val(), oper: 'aprob' }
+                }).done(function (r) {
 
-            if (r.mensaje == 'ok') {
-                $('#tb_mantenimientos').DataTable().ajax.reload(null, false);
+                    if (r.mensaje == 'ok') {
+                        $('#tb_mantenimientos').DataTable().ajax.reload(null, false);
 
-                $('#estado').val('APROBADO');
+                        $('#estado').val('APROBADO');
 
-                $('#btn_guardar').prop('disabled', true);
-                $('#btn_aprobar').prop('disabled', true);
-                $('#btn_ejecutar').prop('disabled', false);
-                $('#btn_cerrar').prop('disabled', true);
-                $('#btn_anular').prop('disabled', false);
+                        $('#btn_guardar').prop('disabled', true);
+                        $('#btn_aprobar').prop('disabled', true);
+                        $('#btn_ejecutar').prop('disabled', false);
+                        $('#btn_cerrar').prop('disabled', true);
+                        $('#btn_anular').prop('disabled', false);
 
-                mje("Proceso realizado con éxito");
-            } else {
-                mjeError(r.mensaje);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () {
-            ocultarOverlay();
-        }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 
     //Ejecutar orden de mantenimiento
     $('#divForms').on("click", "#btn_ejecutar", function () {
-        confirmar_proceso('mantenimiento_ejecu');
-    });
-    $('#divModalConfDel').on("click", "#mantenimiento_ejecu", function () {
-        $.ajax({
-            type: 'POST',
-            url: 'editar_mantenimiento.php',
-            dataType: 'json',
-            data: { id: $('#id_mantenimiento').val(), oper: 'ejecu' }
-        }).done(function (r) {
+        Swal.fire({
+            title: "¿Confirmar Acción?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_mantenimiento.php',
+                    dataType: 'json',
+                    data: { id: $('#id_mantenimiento').val(), oper: 'ejecu' }
+                }).done(function (r) {
 
-            if (r.mensaje == 'ok') {
-                $('#tb_mantenimientos').DataTable().ajax.reload(null, false);
+                    if (r.mensaje == 'ok') {
+                        $('#tb_mantenimientos').DataTable().ajax.reload(null, false);
 
-                $('#estado').val('EN EJECUCION');
+                        $('#estado').val('EN EJECUCION');
 
-                $('#btn_guardar').prop('disabled', true);
-                $('#btn_aprobar').prop('disabled', true);
-                $('#btn_ejecutar').prop('disabled', true);
-                $('#btn_cerrar').prop('disabled', false);
-                $('#btn_anular').prop('disabled', true);
+                        $('#btn_guardar').prop('disabled', true);
+                        $('#btn_aprobar').prop('disabled', true);
+                        $('#btn_ejecutar').prop('disabled', true);
+                        $('#btn_cerrar').prop('disabled', false);
+                        $('#btn_anular').prop('disabled', true);
 
-                mje("Proceso realizado con éxito");
-            } else {
-                mjeError(r.mensaje);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () {
-            ocultarOverlay();
-        }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 
     //Cerrar orden de mantenimiento
     $('#divForms').on("click", "#btn_cerrar", function () {
-        confirmar_proceso('mantenimiento_close');
-    });
-    $('#divModalConfDel').on("click", "#mantenimiento_close", function () {
-        $.ajax({
-            type: 'POST',
-            url: 'editar_mantenimiento.php',
-            dataType: 'json',
-            data: { id: $('#id_mantenimiento').val(), oper: 'close' }
-        }).done(function (r) {
+        Swal.fire({
+            title: "¿Confirmar Acción?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_mantenimiento.php',
+                    dataType: 'json',
+                    data: { id: $('#id_mantenimiento').val(), oper: 'close' }
+                }).done(function (r) {
 
-            if (r.mensaje == 'ok') {
-                $('#tb_mantenimientos').DataTable().ajax.reload(null, false);
+                    if (r.mensaje == 'ok') {
+                        $('#tb_mantenimientos').DataTable().ajax.reload(null, false);
 
-                $('#estado').val('CERRADO');
+                        $('#estado').val('CERRADO');
 
-                $('#btn_guardar').prop('disabled', true);
-                $('#btn_aprobar').prop('disabled', true);
-                $('#btn_ejecutar').prop('disabled', true);
-                $('#btn_cerrar').prop('disabled', true);
-                $('#btn_anular').prop('disabled', true);
+                        $('#btn_guardar').prop('disabled', true);
+                        $('#btn_aprobar').prop('disabled', true);
+                        $('#btn_ejecutar').prop('disabled', true);
+                        $('#btn_cerrar').prop('disabled', true);
+                        $('#btn_anular').prop('disabled', true);
 
-                mje("Proceso realizado con éxito");
-            } else {
-                mjeError(r.mensaje);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () {
-            ocultarOverlay();
-        }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 
     //Anular orden de mantenimiento
     $('#divForms').on("click", "#btn_anular", function () {
-        confirmar_proceso('mantenimiento_annul');
-    });
-    $('#divModalConfDel').on("click", "#mantenimiento_annul", function () {
-        $.ajax({
-            type: 'POST',
-            url: 'editar_mantenimiento.php',
-            dataType: 'json',
-            data: { id: $('#id_mantenimiento').val(), oper: 'annul' }
-        }).done(function (r) {
+        Swal.fire({
+            title: "¿Confirmar Acción?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_mantenimiento.php',
+                    dataType: 'json',
+                    data: { id: $('#id_mantenimiento').val(), oper: 'annul' }
+                }).done(function (r) {
 
-            if (r.mensaje == 'ok') {
-                $('#tb_mantenimientos').DataTable().ajax.reload(null, false);
+                    if (r.mensaje == 'ok') {
+                        $('#tb_mantenimientos').DataTable().ajax.reload(null, false);
 
-                $('#estado').val('EN EJECUCION');
+                        $('#estado').val('EN EJECUCION');
 
-                $('#btn_guardar').prop('disabled', true);
-                $('#btn_aprobar').prop('disabled', true);
-                $('#btn_ejecutar').prop('disabled', true);
-                $('#btn_cerrar').prop('disabled', true);
-                $('#btn_anular').prop('disabled', true);
+                        $('#btn_guardar').prop('disabled', true);
+                        $('#btn_aprobar').prop('disabled', true);
+                        $('#btn_ejecutar').prop('disabled', true);
+                        $('#btn_cerrar').prop('disabled', true);
+                        $('#btn_anular').prop('disabled', true);
 
-                mje("Proceso realizado con éxito");
-            } else {
-                mjeError(r.mensaje);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () {
-            ocultarOverlay();
-        }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 
