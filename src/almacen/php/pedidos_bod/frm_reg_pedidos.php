@@ -1,0 +1,144 @@
+<?php
+session_start();
+if (!isset($_SESSION['user'])) {
+    header("Location: ../../../index.php");
+    exit();
+}
+include '../../../../config/autoloader.php';
+include '../common/cargar_combos.php';
+include '../common/funciones_generales.php';
+
+$cmd = \Config\Clases\Conexion::getConexion();
+
+$id = isset($_POST['id']) ? $_POST['id'] : -1;
+$sql = "SELECT far_pedido.*,                    
+            CASE far_pedido.estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CONFIRMADO' WHEN 3 THEN 'FINALIZADO' END AS nom_estado 
+        FROM far_pedido                     
+        WHERE id_pedido=" . $id . " LIMIT 1";
+$rs = $cmd->query($sql);
+$obj = $rs->fetch();
+
+if (empty($obj)) {
+    $n = $rs->columnCount();
+    for ($i = 0; $i < $n; $i++) :
+        $col = $rs->getColumnMeta($i);
+        $name = $col['name'];
+        $obj[$name] = NULL;
+    endfor;
+    //Inicializa variable por defecto
+    $obj['id_sede_origen'] = 0;
+    $obj['id_sede_destino'] = sede_unica_usuario($cmd)['id_sede'];
+    $obj['estado'] = 1;
+    $obj['nom_estado'] = 'PENDIENTE';
+    $obj['val_total'] = 0;
+
+    $fecha = fecha_hora_servidor();
+    $obj['fec_pedido'] = $fecha['fecha'];
+    $obj['hor_pedido'] = $fecha['hora'];
+}
+$guardar = in_array($obj['estado'], [1]) ? '' : 'disabled="disabled"';
+$confirmar = in_array($obj['estado'], [1]) && $id != -1 ? '' : 'disabled="disabled"';
+$finalizar = in_array($obj['estado'], [2]) ? '' : 'disabled="disabled"';
+$anular = in_array($obj['estado'], [2]) ? '' : 'disabled="disabled"';
+$imprimir = $id != -1 ? '' : 'disabled="disabled"';
+
+?>
+
+<div class="px-0">
+    <div class="shadow">
+        <div class="card-header py-2 text-center bg-sofia">
+            <h5 class="text-white mb-0">REGISTRAR PEDIDO DE BODEGA</h5>
+        </div>
+        <div class="p-2">
+            <!--Formulario de registro de Pedido-->
+            <form id="frm_reg_pedidos">
+                <input type="hidden" id="id_pedido" name="id_pedido" value="<?php echo $id ?>">
+                <div class="row mb-2">
+                    <div class="col-md-1">
+                        <label for="txt_ide" class="small">Id.</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_ide" name="txt_ide" class="small" value="<?php echo ($id == -1 ? '' : $id) ?>" readonly="readonly">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="txt_fec_pedido" class="small">Fecha Pedido</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_fec_pedido" name="txt_fec_pedido" class="small" value="<?php echo $obj['fec_pedido'] ?>" readonly="readonly">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="txt_hor_pedido" class="small">Hora Pedido</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_hor_pedido" name="txt_hor_pedido" class="small" value="<?php echo $obj['hor_pedido'] ?>" readonly="readonly">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="txt_num_pedido" class="small">No. Pedido</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_num_pedido" name="txt_num_pedido" class="small" value="<?php echo $obj['num_pedido'] ?>" readonly="readonly">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="txt_est_pedido" class="small">Estado Pedido</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_est_pedido" name="txt_est_pedido" class="small" value="<?php echo $obj['nom_estado'] ?>" readonly="readonly">
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-3">
+                        <label for="sl_sede_solicitante" class="small">Sede DE donde se Solicita</label>
+                        <select class="form-select form-select-sm bg-input" id="sl_sede_solicitante" name="sl_sede_solicitante">
+                            <?php sedes_usuario($cmd, '', $obj['id_sede_destino']) ?>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="sl_bodega_solicitante" class="small">Bodega DE donde se Solicita</label>
+                        <select class="form-select form-select-sm bg-input" id="sl_bodega_solicitante" name="sl_bodega_solicitante">
+                            <?php bodegas_usuario($cmd, '', $obj['id_sede_destino'], $obj['id_bodega_destino']) ?>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="sl_sede_proveedor" class="small">Sede Proveedor</label>
+                        <select class="form-select form-select-sm bg-input" id="sl_sede_proveedor" name="sl_sede_proveedor">
+                            <?php sedes($cmd, '', $obj['id_sede_origen']) ?>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="sl_bodega_proveedor" class="small">Bodega Proveedor</label>
+                        <select class="form-select form-select-sm bg-input" id="sl_bodega_proveedor" name="sl_bodega_proveedor">
+                            <?php bodegas_sede($cmd, '', $obj['id_sede_origen'], $obj['id_bodega_origen']) ?>
+                        </select>
+                    </div>
+                    <div class="col-md-12">
+                        <label for="txt_det_pedido" class="small">DETALLE</label>
+                        <textarea class="form-control" id="txt_det_pedido" name="txt_det_pedido" rows="2"><?php echo $obj['detalle'] ?></textarea>
+                    </div>
+                </div>
+            </form>
+            <table id="tb_pedidos_detalles" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle w-100" style="font-size:80%">
+                <thead>
+                    <tr class="text-center">
+                        <th class="bg-sofia">Id</th>
+                        <th class="bg-sofia">Código</th>
+                        <th class="bg-sofia">Descripción</th>
+                        <th class="bg-sofia">Cantidad</th>
+                        <th class="bg-sofia">Vr. Promedio</th>
+                        <th class="bg-sofia">Total</th>
+                        <th class="bg-sofia">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="text-start"></tbody>
+            </table>
+            <div class="row mb-2">
+                <div class="col-md-4"></div>
+                <div class="col-md-2">
+                    <label for="txt_val_tot" class="small">Total Pedido</label>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control form-control-sm bg-input" id="txt_val_tot" name="txt_val_tot" class="small" value="<?php echo formato_valor($obj['val_total']) ?>" readonly="readonly">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center pt-3">
+        <button type="button" class="btn btn-primary btn-sm" id="btn_guardar" <?php echo $guardar ?>>Guardar</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn_confirmar" <?php echo $confirmar ?>>Confirmar</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn_finalizar" <?php echo $finalizar ?>>Finalizar</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn_anular" <?php echo $anular ?>>Anular</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn_imprimir" <?php echo $imprimir ?>>Imprimir</button>
+        <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
+    </div>
+</div>
+
+<script type="text/javascript" src="../../js/pedidos_bod/pedidos_bod_reg.js?v=<?php echo date('YmdHis') ?>"></script>

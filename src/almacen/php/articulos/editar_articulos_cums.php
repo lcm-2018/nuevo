@@ -1,0 +1,97 @@
+<?php
+session_start();
+if (!isset($_SESSION['user'])) {
+    header("Location: ../../../index.php");
+    exit();
+}
+include '../../../../config/autoloader.php';
+
+use Config\Clases\Logs;
+use Src\Common\Php\Clases\Permisos;
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
+//Permisos: 1-Consultar,2-Crear,3-Editar,4-Eliminar,5-Anular,6-Imprimir
+
+$oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
+$fecha_crea = date('Y-m-d H:i:s');
+$id_usr_crea = $_SESSION['id_user'];
+$res = array();
+
+try {
+    $cmd = \Config\Clases\Conexion::getConexion();
+
+    if (($permisos->PermisosUsuario($opciones, 5002, 2) && $oper == 'add' && $_POST['id_cum'] == -1) ||
+        ($permisos->PermisosUsuario($opciones, 5002, 3) && $oper == 'add' && $_POST['id_cum'] != -1) ||
+        ($permisos->PermisosUsuario($opciones, 5002, 4) && $oper == 'del') || $id_rol == 1
+    ) {
+
+        $id_articulo = $_POST['id_articulo'];
+
+        if ($id_articulo > 0) {
+            if ($oper == 'add') {
+                $id = $_POST['id_cum'];
+                $cod_cum = $_POST['txt_cod_cum'];
+                $cod_ium = $_POST['txt_cod_ium'];
+                $id_lab = $_POST['id_txt_lab_cum'] ? $_POST['id_txt_lab_cum'] : 0;
+                $id_precom = $_POST['id_txt_precom_cum'] ? $_POST['id_txt_precom_cum'] : 0;
+                $reg_inv = $_POST['txt_reg_inv'];
+                $estado_inv = $_POST['sl_estado_inv'] ? $_POST['sl_estado_inv'] : 0;
+                $fec_veninv = $_POST['txt_fec_ven_inv'] ? "'" . $_POST['txt_fec_ven_inv'] . "'" : 'NULL';
+                $estado = $_POST['sl_estado_cum'];
+
+                if ($id == -1) {
+                    $sql = "INSERT INTO far_medicamento_cum(cum,ium,id_lab,id_prescom,estado,id_usr_crea,id_med,con_sismed,uni_fac_sismed,reg_invima,estado_invima,fec_invima)  
+                        VALUES('$cod_cum','$cod_ium',$id_lab,$id_precom,$estado,$id_usr_crea,$id_articulo,1,'C','$reg_inv',$estado_inv,$fec_veninv)";
+                    $rs = $cmd->query($sql);
+
+                    if ($rs) {
+                        $res['mensaje'] = 'ok';
+                        $sql_i = 'SELECT LAST_INSERT_ID() AS id';
+                        $rs = $cmd->query($sql_i);
+                        $obj = $rs->fetch();
+                        $res['id'] = $obj['id'];
+                    } else {
+                        $res['mensaje'] = $cmd->errorInfo()[2];
+                    }
+                } else {
+                    $sql = "UPDATE far_medicamento_cum SET cum='$cod_cum',ium='$cod_ium',id_lab=$id_lab,
+                                    id_prescom=$id_precom,estado=$estado,reg_invima='$reg_inv',estado_invima=$estado_inv,fec_invima=$fec_veninv
+                            WHERE id_cum=" . $id;
+                    $rs = $cmd->query($sql);
+
+                    if ($rs) {
+                        $res['mensaje'] = 'ok';
+                        $res['id'] = $id;
+                    } else {
+                        $res['mensaje'] = $cmd->errorInfo()[2];
+                    }
+                }
+            }
+
+            if ($oper == 'del') {
+                $id = $_POST['id'];
+                $sql = "DELETE FROM far_medicamento_cum WHERE id_cum=" . $id;
+                $rs = $cmd->query($sql);
+                if ($rs) {
+                    Logs::guardaLog($sql);
+                    $res['mensaje'] = 'ok';
+                } else {
+                    $res['mensaje'] = $cmd->errorInfo()[2];
+                }
+            }
+        } else {
+            $res['mensaje'] = 'Primero debe guardar el Articulo';
+        }
+    } else {
+        $res['mensaje'] = 'El Usuario del Sistema no tiene Permisos para esta Acción';
+    }
+
+    $cmd = null;
+} catch (PDOException $e) {
+    $res['mensaje'] = $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+}
+echo json_encode($res);

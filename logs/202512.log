@@ -76,3 +76,16 @@
 [2025-12-18 15:27:43] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_doc` WHERE `id_ctb_doc` = 145267;
 [2025-12-18 17:19:07] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `tes_cuentas` WHERE `id_tes_cuenta` = 119;
 [2025-12-18 17:29:16] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `fin_chequeras` WHERE `id_chequera` = 1;
+[2025-12-23 17:12:24] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_rol_usuario` WHERE `id_usuario` = 5;
+[2025-12-23 17:13:39] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_rol_usuario` WHERE `id_usuario` = 562;
+[2025-12-23 17:13:45] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_rol_usuario` WHERE `id_usuario` = 562;
+[2025-12-23 17:13:52] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_rol_usuario` WHERE `id_usuario` = 562;
+[2025-12-23 17:15:53] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_usuarios_sistema` WHERE `id_usuario` = 562;
+[2025-12-23 17:22:20] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM far_centrocosto_area WHERE id_area=31;
+[2025-12-23 18:02:21] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM far_presentacion_comercial WHERE id_prescom=1149;
+[2025-12-23 18:04:54] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM acf_marca WHERE id=99;
+[2025-12-23 18:06:54] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM far_laboratorios WHERE id_lab=301;
+[2025-12-23 18:23:35] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM far_medicamento_lote WHERE id_lote=8094;
+[2025-12-23 18:23:40] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM far_medicamento_cum WHERE id_cum=643;
+[2025-12-23 19:26:43] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM far_pedido_detalle WHERE id_ped_detalle=2834;
+[2025-12-23 19:44:01] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: SELECT COUNT(*) AS detalles FROM far_orden_egreso_detalle WHERE id_egreso=111220;

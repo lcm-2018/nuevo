@@ -133,7 +133,7 @@ class Users
             $id = -1;
         }
         $sql = "SELECT 
-                    `id_usuario`, `login` ,`clave` , CONCAT(`nombre1`, ' ', `apellido1`) as `nombre` ,`id_rol` , `estado`,`nombre1`,`nombre2`,`apellido1`,`apellido2`, `id_tipo_doc`,`num_documento`,`email`,`telefono`, `direccion`, `descripcion` AS `cargo`, `id_centrocosto`
+                    `id_usuario`, `login` ,`clave` , CONCAT(`nombre1`, ' ', `apellido1`) as `nombre` ,`id_rol` , `estado`,`nombre1`,`nombre2`,`apellido1`,`apellido2`, `id_tipo_doc`,`num_documento`,`email`,`telefono`, `direccion`, `descripcion` AS `cargo`, `id_centrocosto`, `sexo`
                 FROM `seg_usuarios_sistema`  
                 WHERE `id_usuario` = ?";
         $stmt = $this->conexion->prepare($sql);
@@ -161,7 +161,8 @@ class Users
                 'telefono'      => '',
                 'direccion'     => '',
                 'cargo'         => '',
-                'id_centrocosto' => 0
+                'id_centrocosto' => 0,
+                'sexo'          => 'M'
             ];
         }
         return $datos;
@@ -173,6 +174,8 @@ class Users
         $tpDocs = Combos::getTiposDocumento($obj['id_tipo_doc']);
         $rol    = Combos::getRolUser($obj['id_rol']);
         $ccosto = Combos::getCentrosCosto($obj['id_centrocosto']);
+        $M = $obj['sexo'] == 'M' ? 'checked' : '';
+        $F = $obj['sexo'] == 'F' ? 'checked' : '';
         $html =
             <<<HTML
                 <div class="shadow text-center rounded">
@@ -181,6 +184,7 @@ class Users
                     </div>
                     <div class="p-3">
                         <form id="formUserSistema">
+                            <input type="hidden" id="id_usuario" name="id_usuario" value="{$id_user}">
                             <div class="row g-3">
                                 <div class="col-md-2">
                                     <label for="sl_tipoDocumento" class="form-label small">Tipo documento</label>
@@ -200,14 +204,19 @@ class Users
                                     <label for="radioNo" class="small text-muted text-center mb-2">Sexo</label>
                                     <div class="d-flex justify-content-center gap-2 bg-input border rounded-1 pt-1">
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="slcSexo" id="radioM" value="M">
+                                            <input class="form-check-input" type="radio" name="slcSexo" id="radioM" value="M" {$M}>
                                             <label class="form-check-label small text-muted" for="radioM">M</label>
                                         </div>
                                         <div class="form-check form-check-inline me-0">
-                                            <input class="form-check-input" type="radio" name="slcSexo" id="radioF" value="F">
+                                            <input class="form-check-input" type="radio" name="slcSexo" id="radioF" value="F" {$F}>
                                             <label class="form-check-label small text-muted" for="radioF">F</label>
                                         </div>
                                     </div>
+                                </div>
+                                 <div class="col-md-4">
+                                    <label class="form-label small" for="txtPassUser">Contraseña</label>
+                                    <input type="password" class="form-control form-control-sm bg-input" id="txtPassUser" name="txtPassUser" placeholder="Contraseña" value="{$obj['clave']}">
+                                    <input type="hidden" id="hidPassUser" name="hidPassUser" value="{$obj['clave']}">
                                 </div>
                             </div>
                             <div class="row g-3 mt-1">
@@ -243,6 +252,7 @@ class Users
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label small" for="slcRolUser">Rol</label>
+                                    <input type="number" name="hidRol" id="hidRol" value="{$obj['id_rol']}" class="bg-input" hidden>
                                     <select class="form-select form-select-sm bg-input" id="slcRolUser" name="slcRolUser">
                                         {$rol}
                                     </select>
@@ -311,6 +321,138 @@ class Users
                 </div>
             HTML;
         return $html;
+    }
+
+    function addRegistro($d)
+    {
+        try {
+            if (!$this->conexion->inTransaction()) {
+                $this->conexion->beginTransaction();
+            }
+            $sql = "INSERT INTO `seg_usuarios_sistema`
+                        (`login`,`clave`,`id_rol`,`id_tipo_doc`,`num_documento`,`apellido1`,`apellido2`,`nombre1`,`nombre2`,`sexo`,`direccion`,`telefono`,`email`,`descripcion`,`id_centrocosto`,`id_usr_crea`,`fec_creacion`,`estado`,`id_area`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $d['txtlogin'], PDO::PARAM_STR);
+            $stmt->bindValue(2, $d['clave'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $d['slcRolUser'], PDO::PARAM_INT);
+            $stmt->bindValue(4, $d['sl_tipoDocumento'], PDO::PARAM_INT);
+            $stmt->bindValue(5, $d['txtCCuser'], PDO::PARAM_STR);
+            $stmt->bindValue(6, $d['txtApe1user'], PDO::PARAM_STR);
+            $stmt->bindValue(7, $d['txtApe2user'], PDO::PARAM_STR);
+            $stmt->bindValue(8, $d['txtNomb1user'], PDO::PARAM_STR);
+            $stmt->bindValue(9, $d['txtNomb2user'], PDO::PARAM_STR);
+            $stmt->bindValue(10, $d['slcSexo'], PDO::PARAM_STR);
+            $stmt->bindValue(11, $d['txt_direccion'], PDO::PARAM_STR);
+            $stmt->bindValue(12, $d['txt_telefono'], PDO::PARAM_STR);
+            $stmt->bindValue(13, $d['mailuser'], PDO::PARAM_STR);
+            $stmt->bindValue(14, $d['txt_cargo'], PDO::PARAM_STR);
+            $stmt->bindValue(15, $d['sl_centroCosto'] ?? null, PDO::PARAM_INT);
+            $stmt->bindValue(16, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(17, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(18, 1, PDO::PARAM_INT);
+            $stmt->bindValue(19, $d['sl_areaCentroCosto'] ?? null, PDO::PARAM_INT);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                if ($d['slcRolUser'] != 1) {
+                    $Permisos = new Permisos();
+                    $obj    = $Permisos->getPermisosRoles($d['slcRolUser']);
+                    foreach ($obj as $o) {
+                        $o['id_usuario'] = $id;
+                        if ($o['per_consultar'] == 1 || $o['per_adicionar'] == 1 || $o['per_modificar'] == 1 || $o['per_eliminar'] == 1 || $o['per_anular'] == 1 || $o['per_imprimir'] == 1) {
+                            foreach ($o as $key => $value) {
+                                if ($value == '') {
+                                    $o[$key] = 0;
+                                }
+                            }
+                            $resp = $Permisos->addRegistro($o);
+                            if ($resp !== 'si') {
+                                $this->conexion->rollBack();
+                                return $resp;
+                            }
+                        } else {
+                            continue;
+                        }
+                    }
+                }
+                $this->conexion->commit();
+                return 'si';
+            } else {
+                $this->conexion->rollBack();
+                return 'Error al insertar el usuario';
+            }
+        } catch (PDOException $e) {
+            $this->conexion->rollBack();
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    function editRegistro($d)
+    {
+        try {
+            if (!$this->conexion->inTransaction()) {
+                $this->conexion->beginTransaction();
+            }
+            $sql = "UPDATE `seg_usuarios_sistema`
+                        SET `login` = ?, `clave` = ?, `id_rol` = ?, `id_tipo_doc` = ?, `num_documento` = ?, `apellido1` = ?, `apellido2` = ?, `nombre1` = ?, `nombre2` = ?, `sexo` = ?, `direccion` = ?, `telefono` = ?, `email` = ?, `descripcion` = ?, `id_centrocosto` = ?, `id_area` = ?
+                        WHERE `id_usuario` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $d['txtlogin'], PDO::PARAM_STR);
+            $stmt->bindValue(2, $d['clave'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $d['slcRolUser'], PDO::PARAM_INT);
+            $stmt->bindValue(4, $d['sl_tipoDocumento'], PDO::PARAM_INT);
+            $stmt->bindValue(5, $d['txtCCuser'], PDO::PARAM_STR);
+            $stmt->bindValue(6, $d['txtApe1user'], PDO::PARAM_STR);
+            $stmt->bindValue(7, $d['txtApe2user'], PDO::PARAM_STR);
+            $stmt->bindValue(8, $d['txtNomb1user'], PDO::PARAM_STR);
+            $stmt->bindValue(9, $d['txtNomb2user'], PDO::PARAM_STR);
+            $stmt->bindValue(10, $d['slcSexo'], PDO::PARAM_STR);
+            $stmt->bindValue(11, $d['txt_direccion'], PDO::PARAM_STR);
+            $stmt->bindValue(12, $d['txt_telefono'], PDO::PARAM_STR);
+            $stmt->bindValue(13, $d['mailuser'], PDO::PARAM_STR);
+            $stmt->bindValue(14, $d['txt_cargo'], PDO::PARAM_STR);
+            $stmt->bindValue(15, $d['sl_centroCosto'] ?? null, PDO::PARAM_INT);
+            $stmt->bindValue(16, $d['sl_areaCentroCosto'] ?? null, PDO::PARAM_INT);
+            $stmt->bindValue(17, $d['id_usuario'], PDO::PARAM_INT);
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $Permisos = new Permisos();
+                if ($d['hidRol'] != $d['slcRolUser']) {
+                    $sep = $Permisos->delRegistro($d['id_usuario']);
+                    if ($sep !== 'si') {
+                        $this->conexion->rollBack();
+                        return $sep;
+                    } else {
+                        $obj    = $Permisos->getPermisosRoles($d['slcRolUser']);
+                        foreach ($obj as $o) {
+                            $o['id_usuario'] = $d['id_usuario'];
+                            if ($o['per_consultar'] == 1 || $o['per_adicionar'] == 1 || $o['per_modificar'] == 1 || $o['per_eliminar'] == 1 || $o['per_anular'] == 1 || $o['per_imprimir'] == 1) {
+                                foreach ($o as $key => $value) {
+                                    if ($value == '') {
+                                        $o[$key] = 0;
+                                    }
+                                }
+                                $resp = $Permisos->addRegistro($o);
+                                if ($resp !== 'si') {
+                                    $this->conexion->rollBack();
+                                    return $resp;
+                                }
+                            } else {
+                                continue;
+                            }
+                        }
+                    }
+                }
+                $this->conexion->commit();
+                return 'si';
+            } else {
+                $this->conexion->rollBack();
+                return 'No se actualizó ningún registro.';
+            }
+        } catch (PDOException $e) {
+            $this->conexion->rollBack();
+            return 'Error SQL: ' . $e->getMessage();
+        }
     }
 
     public function editClave($d)

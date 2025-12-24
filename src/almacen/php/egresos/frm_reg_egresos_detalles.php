@@ -1,0 +1,83 @@
+<?php
+session_start();
+if (!isset($_SESSION['user'])) {
+    header("Location: ../../../index.php");
+    exit();
+}
+include '../../../../config/autoloader.php';
+include '../common/cargar_combos.php';
+include '../common/funciones_generales.php';
+
+$cmd = \Config\Clases\Conexion::getConexion();
+
+$id_lote = isset($_POST['id_lote']) ? $_POST['id_lote'] : -1;
+$id = isset($_POST['id']) ? $_POST['id'] : -1;
+$sql = "SELECT far_orden_egreso_detalle.*,
+            far_medicamento_lote.lote,far_medicamento_lote.existencia,
+            CONCAT(far_medicamentos.nom_medicamento,IF(far_medicamento_lote.id_marca=0,'',CONCAT(' - ',acf_marca.descripcion))) AS nom_articulo
+        FROM far_orden_egreso_detalle
+        INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_lote=far_orden_egreso_detalle.id_lote)
+        INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)
+        INNER JOIN acf_marca ON (acf_marca.id=far_medicamento_lote.id_marca)
+        WHERE id_egr_detalle=" . $id . " LIMIT 1";
+$rs = $cmd->query($sql);
+$obj = $rs->fetch();
+
+if (empty($obj)) {
+    $n = $rs->columnCount();
+    for ($i = 0; $i < $n; $i++) :
+        $col = $rs->getColumnMeta($i);
+        $name = $col['name'];
+        $obj[$name] = NULL;
+    endfor;
+
+    $lote = datos_lote($cmd, $id_lote);
+    $obj['id_lote'] = $lote['id_lote'];
+    $obj['lote'] = $lote['lote'];
+    $obj['nom_articulo'] = $lote['nom_articulo'];
+    $obj['valor'] = $lote['val_promedio'];
+    $obj['existencia'] = $lote['existencia'];
+}
+?>
+
+<div class="px-0">
+    <div class="shadow">
+        <div class="card-header py-2 text-center bg-sofia">
+            <h5 class="text-white mb-0">REGISTRAR DETALLE EN ORDEN DE EGRESO</h5>
+        </div>
+        <div class="p-2">
+
+            <!--Formulario de registro de Detalle-->
+            <form id="frm_reg_egresos_detalles">
+                <input type="hidden" id="id_detalle" name="id_detalle" value="<?php echo $id ?>">
+                <div class=" row">
+                    <div class="col-md-9">
+                        <label for="txt_nom_art" class="small">Articulo</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_art" class="small" value="<?php echo $obj['nom_articulo'] ?>" readonly="readonly">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="txt_nom_lot" class="small">Lote</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_lot" class="small" value="<?php echo $obj['lote'] ?>" readonly="readonly">
+                        <input type="hidden" id="id_txt_nom_lot" name="id_txt_nom_lot" value="<?php echo $obj['id_lote'] ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="txt_can_egr" class="small">Cantidad</label>
+                        <input type="number" class="form-control form-control-sm bg-input numberint" id="txt_can_egr" name="txt_can_egr" value="<?php echo $obj['cantidad'] ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="txt_val_pro" class="small">Vr. Promedio</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_val_pro" name="txt_val_pro" value="<?php echo $obj['valor'] ?>" readonly="readonly">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="txt_exi_lote" class="small">Existencia Actual</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_exi_lote" name="txt_exi_lote" value="<?php echo $obj['existencia'] ?>" readonly="readonly">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="text-center pt-3">
+        <button type="button" class="btn btn-primary btn-sm" id="btn_guardar_detalle">Guardar</button>
+        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
+    </div>
+</div>

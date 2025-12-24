@@ -107,9 +107,12 @@ class Plantilla
                             <div class="offcanvas-body fs-6">
                                 <ul class="btn-toggle-nav list-unstyled fw-normal">
                                     <li>
-                                        <a href="#nomina-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                            <span class="d-flex align-items-center text-primary">
-                                                <i class="fas fa-table fa-lg me-2"></i> Nómina
+                                        <a href="#nomina-collapse" class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center">
+                                                <div class="menu-icon-wrapper gradient-nomina">
+                                                    <i class="fas fa-users"></i>
+                                                </div>
+                                                <span class="menu-text">Nómina</span>
                                             </span>
                                             <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                         </a>
@@ -201,9 +204,12 @@ class Plantilla
                                     </li>
 
                                     <li>
-                                        <a href="#terceros-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                            <span class="d-flex align-items-center text-success">
-                                                <i class="fas fa-users fa-lg me-2"></i> Terceros
+                                        <a href="#terceros-collapse" class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center">
+                                                <div class="menu-icon-wrapper gradient-terceros">
+                                                    <i class="fas fa-address-book"></i>
+                                                </div>
+                                                <span class="menu-text">Terceros</span>
                                             </span>
                                             <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                         </a>
@@ -229,9 +235,12 @@ class Plantilla
                                     </li>
                                     
                                     <li>
-                                        <a href="#contratacion-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                            <span class="d-flex align-items-center text-info">
-                                                <i class="fas fa-file-contract fa-lg me-2"></i> Contratación
+                                        <a href="#contratacion-collapse" class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center">
+                                                <div class="menu-icon-wrapper gradient-contratacion">
+                                                    <i class="fas fa-file-signature"></i>
+                                                </div>
+                                                <span class="menu-text">Contratación</span>
                                             </span>
                                             <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                         </a>
@@ -262,9 +271,12 @@ class Plantilla
                                     </li>
 
                                     <li>
-                                        <a href="#ppto-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                            <span class="d-flex align-items-center text-muted">
-                                                <i class="fas fa-chart-pie fa-lg me-2"></i> Presupuesto
+                                        <a href="#ppto-collapse" class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center">
+                                                <div class="menu-icon-wrapper gradient-presupuesto">
+                                                    <i class="fas fa-chart-pie"></i>
+                                                </div>
+                                                <span class="menu-text">Presupuesto</span>
                                             </span>
                                             <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                         </a>
@@ -290,9 +302,12 @@ class Plantilla
                                     </li>
 
                                     <li>
-                                        <a href="#conta-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                            <span class="d-flex align-items-center text-warning">
-                                                <i class="fas fa-file-invoice-dollar fa-lg me-2"></i> Contabilidad
+                                        <a href="#conta-collapse" class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center">
+                                                <div class="menu-icon-wrapper gradient-contabilidad">
+                                                    <i class="fas fa-calculator"></i>
+                                                </div>
+                                                <span class="menu-text">Contabilidad</span>
                                             </span>
                                             <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                         </a>
@@ -375,9 +390,12 @@ class Plantilla
                                     </li>
 
                                     <li>
-                                        <a href="#tesoreria-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                            <span class="d-flex align-items-center text-secondary">
-                                                <i class="fas fa-donate fa-lg me-2"></i> Tesorería
+                                        <a href="#tesoreria-collapse" class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center">
+                                                <div class="menu-icon-wrapper gradient-tesoreria">
+                                                    <i class="fas fa-money-bill-wave"></i>
+                                                </div>
+                                                <span class="menu-text">Tesorería</span>
                                             </span>
                                             <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                         </a>
@@ -445,81 +463,159 @@ class Plantilla
                                     </li>
 
                                     <li>
-                                        <a href="#almacen-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                            <span class="d-flex align-items-center text-primary-emphasis">
-                                                <i class="fas fa-file-invoice-dollar fa-lg me-2"></i> Almacén
+                                        <a href="#almacen-collapse" class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center">
+                                                <div class="menu-icon-wrapper gradient-almacen">
+                                                    <i class="fas fa-box"></i>
+                                                </div>
+                                                <span class="menu-text">Almacén</span>
                                             </span>
                                             <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                         </a>
                                         <div class="collapse shadow" id="almacen-collapse">
                                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                <!-- General -->
                                                 <li>
-                                                    <a href="{$host}/src/contabilidad/lista_documentos_mov.php" class="nav-link text-primary px-1 py-2 sombra">
-                                                        <i class="fas fa-copy me-2 fa-fw"></i> Movimientos
-                                                    </a>
-                                                </li>
-                                                    <li>
-                                                    <a href="{$host}/src/contabilidad/lista_documentos_invoice.php" class="nav-link text-success px-1 py-2 sombra">
-                                                        <i class="fas fa-file-invoice me-2 fa-fw"></i> Facturación
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="{$host}/src/contabilidad/informes/lista_informes_contabilidad.php" class="nav-link text-muted px-1 py-2 sombra">
-                                                        <i class="far fa-file me-2 fa-fw"></i> Informes
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="javascript:void(0)" class="nav-link text-secondary px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5599">
-                                                        <i class="fas fa-cogs me-2 fa-fw"></i> Inf. Personalizados
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="#mas-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                                        <span class="d-flex align-items-center text-warning">
-                                                            <i class="fas fa-bars fa-lg me-2"></i> Mas
+                                                    <a href="#almacen-general-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-primary">
+                                                            <i class="fa fa-tags fa-sm me-2"></i> General
                                                         </span>
                                                         <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                                     </a>
-                                                    <div class="collapse shadow" id="mas-collapse">
+                                                    <div class="collapse shadow" id="almacen-general-collapse">
                                                         <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/lista_plan_cuentas.php" class="nav-link text-primary px-1 py-2 sombra">
-                                                                    <i class="fas fa-book me-2 fa-fw"></i> PUC
+                                                                <a href="{$host}/src/almacen/php/centrocosto_areas/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra">
+                                                                    <i class="fa fa-sitemap me-2 fa-fw"></i> Áreas
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/lista_documentos_fuente.php" class="nav-link text-success px-1 py-2 sombra">
-                                                                    <i class="fas fa-file-invoice me-2 fa-fw"></i> Documentos
+                                                                <a href="{$host}/src/almacen/php/pres_comercial/index.php?var=3" class="nav-link text-success px-1 py-2 sombra">
+                                                                    <i class="fas fa-ticket-alt me-2 fa-fw"></i> Presentación Comercial
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/lista_impuestos.php" class="nav-link text-info px-1 py-2 sombra">
-                                                                    <i class="fas fa-folder-open me-2 fa-fw"></i> Impuestos
+                                                                <a href="{$host}/src/almacen/php/marcas/index.php?var=3" class="nav-link text-info px-1 py-2 sombra">
+                                                                    <i class="fab fa-staylinked me-2 fa-fw"></i> Marcas
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/php/cuentas_fac/index.php" class="nav-link text-muted px-1 py-2 sombra">
-                                                                    <i class="fas fa-calculator me-2 fa-fw"></i> Ctas. Facturación
+                                                                <a href="{$host}/src/almacen/php/laboratorios/index.php?var=3" class="nav-link text-warning px-1 py-2 sombra">
+                                                                    <i class="fas fa-bong me-2 fa-fw"></i> Laboratorios
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/php/centro_costos/index.php" class="nav-link text-warning px-1 py-2 sombra">
-                                                                    <i class="fas fa-kaaba me-2 fa-fw"></i> Centros de Costo
+                                                                <a href="{$host}/src/almacen/php/articulos/index.php?var=3" class="nav-link text-danger px-1 py-2 sombra">
+                                                                    <i class="far fa-list-alt me-2 fa-fw"></i> Artículos
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </li>
+                                                <!-- Pedidos -->
+                                                <li>
+                                                    <a href="#almacen-pedidos-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-success">
+                                                            <i class="fa fa-pencil-square-o fa-sm me-2"></i> Pedidos
+                                                        </span>
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                                                    </a>
+                                                    <div class="collapse shadow" id="almacen-pedidos-collapse">
+                                                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                            <li>
+                                                                <a href="{$host}/src/almacen/php/pedidos_alm/index.php" class="nav-link text-primary px-1 py-2 sombra">
+                                                                    <i class="fas fa-kaaba me-2 fa-fw"></i> Almacén
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/php/subgrupos/index.php" class="nav-link text-secondary px-1 py-2 sombra">
-                                                                    <i class="fas fa-layer-group me-2 fa-fw"></i> Subgrupos
+                                                                <a href="{$host}/src/almacen/php/pedidos_bod/index.php" class="nav-link text-success px-1 py-2 sombra">
+                                                                    <i class="fas fa-coins me-2 fa-fw"></i> Bodega
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/php/tipos_orden_egreso/index.php" class="nav-link text-muted px-1 py-2 sombra">
-                                                                    <i class="fas fa-sign-out-alt me-2 fa-fw"></i> Tipo Orden Egreso
+                                                                <a href="{$host}/src/almacen/php/pedidos_cec/index.php" class="nav-link text-info px-1 py-2 sombra">
+                                                                    <i class="fa fa-th-large me-2 fa-fw"></i> Dependencia
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/php/tipos_orden_ingreso/index.php" class="nav-link text-success-emphasis px-1 py-2 sombra">
-                                                                    <i class="fas fa-sign-in-alt me-2 fa-fw"></i> Tipo Orden Ingreso
+                                                                <a href="{$host}/src/almacen/php/pedidos_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra">
+                                                                    <i class="fas fa-coins me-2 fa-fw"></i> Bodega SPSR
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </li>
+                                                <!-- Movimientos -->
+                                                <li>
+                                                    <a href="#almacen-movimientos-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-info">
+                                                            <i class="fas fa-sliders fa-sm me-2"></i> Movimientos
+                                                        </span>
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                                                    </a>
+                                                    <div class="collapse shadow" id="almacen-movimientos-collapse">
+                                                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                            <li>
+                                                                <a href="{$host}/src/almacen/php/ingresos/index.php" class="nav-link text-primary px-1 py-2 sombra">
+                                                                    <i class="fas fa-door-open me-2 fa-fw"></i> Ingresos
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="{$host}/src/almacen/php/egresos/index.php" class="nav-link text-success px-1 py-2 sombra">
+                                                                    <i class="fas fa-sign-out-alt me-2 fa-fw"></i> Egresos
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="{$host}/src/almacen/php/traslados/index.php" class="nav-link text-info px-1 py-2 sombra">
+                                                                    <i class="fas fa-exchange-alt me-2 fa-fw"></i> Traslados
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="{$host}/src/almacen/php/traslados_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra">
+                                                                    <i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados SPSR
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="{$host}/src/almacen/php/recalcular_kardex/index.php" class="nav-link text-danger px-1 py-2 sombra">
+                                                                    <i class="fa fa-cogs me-2 fa-fw"></i> Recalcula Mtos.
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </li>
+                                                <!-- Reportes -->
+                                                <li>
+                                                    <a href="#almacen-reportes-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-warning">
+                                                            <i class="fa fa-map-o fa-sm me-2"></i> Reportes
+                                                        </span>
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                                                    </a>
+                                                    <div class="collapse shadow" id="almacen-reportes-collapse">
+                                                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                            <li>
+                                                                <a href="{$host}/src/almacen/php/existencia_articulo/index.php" class="nav-link text-primary px-1 py-2 sombra">
+                                                                    <i class="fas fa-chart-bar me-2 fa-fw"></i> Ex. General
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="{$host}/src/almacen/php/existencia_lote/index.php" class="nav-link text-success px-1 py-2 sombra">
+                                                                    <i class="fas fa-chart-bar me-2 fa-fw"></i> Ex. Detallada
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="{$host}/src/almacen/php/existencia_fecha/index.php" class="nav-link text-info px-1 py-2 sombra">
+                                                                    <i class="fas fa-chart-bar me-2 fa-fw"></i> Ex. a una Fecha
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="{$host}/src/almacen/php/movimiento_periodo/index.php" class="nav-link text-warning px-1 py-2 sombra">
+                                                                    <i class="fas fa-chart-bar me-2 fa-fw"></i> Mov. Periodo
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="javascript:void(0)" class="nav-link text-danger px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5099">
+                                                                    <i class="fas fa-cogs me-2 fa-fw"></i> Personalizados
                                                                 </a>
                                                             </li>
                                                         </ul>
@@ -530,81 +626,127 @@ class Plantilla
                                     </li>
 
                                     <li>
-                                        <a href="#af-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                            <span class="d-flex align-items-center text-success-emphasis">
-                                                <i class="fas fa-file-invoice-dollar fa-lg me-2"></i> Activos Fijos
+                                        <a href="#af-collapse" class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center">
+                                                <div class="menu-icon-wrapper gradient-activos">
+                                                    <i class="fas fa-building"></i>
+                                                </div>
+                                                <span class="menu-text">Activos Fijos</span>
                                             </span>
                                             <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                         </a>
                                         <div class="collapse shadow" id="af-collapse">
                                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                <!-- General -->
                                                 <li>
-                                                    <a href="{$host}/src/contabilidad/lista_documentos_mov.php" class="nav-link text-primary px-1 py-2 sombra">
-                                                        <i class="fas fa-copy me-2 fa-fw"></i> Movimientos
-                                                    </a>
-                                                </li>
-                                                    <li>
-                                                    <a href="{$host}/src/contabilidad/lista_documentos_invoice.php" class="nav-link text-success px-1 py-2 sombra">
-                                                        <i class="fas fa-file-invoice me-2 fa-fw"></i> Facturación
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="{$host}/src/contabilidad/informes/lista_informes_contabilidad.php" class="nav-link text-muted px-1 py-2 sombra">
-                                                        <i class="far fa-file me-2 fa-fw"></i> Informes
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="javascript:void(0)" class="nav-link text-secondary px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5599">
-                                                        <i class="fas fa-cogs me-2 fa-fw"></i> Inf. Personalizados
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="#mas-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                                        <span class="d-flex align-items-center text-warning">
-                                                            <i class="fas fa-bars fa-lg me-2"></i> Mas
+                                                    <a href="#af-general-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-primary">
+                                                            <i class="fa fa-tags fa-sm me-2"></i> General
                                                         </span>
                                                         <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                                     </a>
-                                                    <div class="collapse shadow" id="mas-collapse">
+                                                    <div class="collapse shadow" id="af-general-collapse">
                                                         <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/lista_plan_cuentas.php" class="nav-link text-primary px-1 py-2 sombra">
-                                                                    <i class="fas fa-book me-2 fa-fw"></i> PUC
+                                                                <a href="{$host}/src/activos_fijos/php/marcas/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra">
+                                                                    <i class="fab fa-staylinked me-2 fa-fw"></i> Marcas
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/lista_documentos_fuente.php" class="nav-link text-success px-1 py-2 sombra">
-                                                                    <i class="fas fa-file-invoice me-2 fa-fw"></i> Documentos
+                                                                <a href="{$host}/src/activos_fijos/php/articulos/index.php?var=3" class="nav-link text-success px-1 py-2 sombra">
+                                                                    <i class="far fa-list-alt me-2 fa-fw"></i> Artículos
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </li>
+                                                <!-- Pedidos -->
+                                                <li>
+                                                    <a href="#af-pedidos-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-success">
+                                                            <i class="fa fa-pencil-square-o fa-sm me-2"></i> Pedidos
+                                                        </span>
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                                                    </a>
+                                                    <div class="collapse shadow" id="af-pedidos-collapse">
+                                                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                            <li>
+                                                                <a href="{$host}/src/activos_fijos/php/pedidos/index.php" class="nav-link text-primary px-1 py-2 sombra">
+                                                                    <i class="fas fa-chalkboard me-2 fa-fw"></i> Activos Fijos
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </li>
+                                                <!-- Movimientos -->
+                                                <li>
+                                                    <a href="#af-movimientos-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-info">
+                                                            <i class="fas fa-sliders fa-sm me-2"></i> Movimientos
+                                                        </span>
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                                                    </a>
+                                                    <div class="collapse shadow" id="af-movimientos-collapse">
+                                                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                            <li>
+                                                                <a href="{$host}/src/activos_fijos/php/ingresos/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra">
+                                                                    <i class="fas fa-door-open me-2 fa-fw"></i> Ingresos
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/lista_impuestos.php" class="nav-link text-info px-1 py-2 sombra">
-                                                                    <i class="fas fa-folder-open me-2 fa-fw"></i> Impuestos
+                                                                <a href="{$host}/src/activos_fijos/php/traslados/index.php?var=3" class="nav-link text-success px-1 py-2 sombra">
+                                                                    <i class="fas fa-luggage-cart me-2 fa-fw"></i> Traslados
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/php/cuentas_fac/index.php" class="nav-link text-muted px-1 py-2 sombra">
-                                                                    <i class="fas fa-calculator me-2 fa-fw"></i> Ctas. Facturación
+                                                                <a href="{$host}/src/activos_fijos/php/bajas/index.php?var=3" class="nav-link text-info px-1 py-2 sombra">
+                                                                    <i class="fas fa-level-down-alt me-2 fa-fw"></i> Dar de baja
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </li>
+                                                <!-- Mantenimiento -->
+                                                <li>
+                                                    <a href="#af-mantenimiento-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-warning">
+                                                            <i class="fas fa-cogs fa-sm me-2"></i> Mantenimiento
+                                                        </span>
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                                                    </a>
+                                                    <div class="collapse shadow" id="af-mantenimiento-collapse">
+                                                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
+                                                            <li>
+                                                                <a href="{$host}/src/activos_fijos/php/hojavida/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra">
+                                                                    <i class="fa fa-newspaper-o me-2 fa-fw"></i> Hoja de Vida
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/php/centro_costos/index.php" class="nav-link text-warning px-1 py-2 sombra">
-                                                                    <i class="fas fa-kaaba me-2 fa-fw"></i> Centros de Costo
+                                                                <a href="{$host}/src/activos_fijos/php/mantenimientos/index.php?var=3" class="nav-link text-success px-1 py-2 sombra">
+                                                                    <i class="fa fa-calendar-check-o me-2 fa-fw"></i> Registros
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/php/subgrupos/index.php" class="nav-link text-secondary px-1 py-2 sombra">
-                                                                    <i class="fas fa-layer-group me-2 fa-fw"></i> Subgrupos
+                                                                <a href="{$host}/src/activos_fijos/php/mantenimiento_prog/index.php?var=3" class="nav-link text-info px-1 py-2 sombra">
+                                                                    <i class="fas fa-sort-amount-down-alt me-2 fa-fw"></i> Progreso
                                                                 </a>
                                                             </li>
+                                                        </ul>
+                                                    </div>
+                                                </li>
+                                                <!-- Reportes -->
+                                                <li>
+                                                    <a href="#af-reportes-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                                        <span class="d-flex align-items-center text-danger">
+                                                            <i class="fa fa-map-o fa-sm me-2"></i> Reportes
+                                                        </span>
+                                                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                                                    </a>
+                                                    <div class="collapse shadow" id="af-reportes-collapse">
+                                                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
                                                             <li>
-                                                                <a href="{$host}/src/contabilidad/php/tipos_orden_egreso/index.php" class="nav-link text-muted px-1 py-2 sombra">
-                                                                    <i class="fas fa-sign-out-alt me-2 fa-fw"></i> Tipo Orden Egreso
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a href="{$host}/src/contabilidad/php/tipos_orden_ingreso/index.php" class="nav-link text-success-emphasis px-1 py-2 sombra">
-                                                                    <i class="fas fa-sign-in-alt me-2 fa-fw"></i> Tipo Orden Ingreso
+                                                                <a href="javascript:void(0)" class="nav-link text-danger px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5799">
+                                                                    <i class="fas fa-chart-bar me-2 fa-fw"></i> Personalizados
                                                                 </a>
                                                             </li>
                                                         </ul>
@@ -615,16 +757,22 @@ class Plantilla
                                     </li>
 
                                     <li>
-                                        <a href="{$host}/src/financiero/informes/lista_informes_financiero.php" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra">
-                                            <span class="d-flex align-items-center text-info-emphasis">
-                                                <i class="fas fa-file-invoice-dollar fa-lg me-2"></i> Informes Financieros
+                                        <a href="{$host}/src/financiero/informes/lista_informes_financiero.php" class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra">
+                                            <span class="d-flex align-items-center">
+                                                <div class="menu-icon-wrapper gradient-financiero">
+                                                    <i class="fas fa-chart-line"></i>
+                                                </div>
+                                                <span class="menu-text">Informes Financieros</span>
                                             </span>
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="#dash-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                            <span class="d-flex align-items-center text-muted-emphasis">
-                                                <i class="fas fa-table fa-lg me-2"></i> Dashboard
+                                        <a href="#dash-collapse" class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                                            <span class="d-flex align-items-center">
+                                                <div class="menu-icon-wrapper gradient-dashboard">
+                                                    <i class="fas fa-chart-bar"></i>
+                                                </div>
+                                                <span class="menu-text">Dashboard</span>
                                             </span>
                                             <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
                                         </a>

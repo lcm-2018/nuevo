@@ -3,8 +3,10 @@
 namespace Src\Common\Php\Clases;
 
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 use Config\Clases\Sesion;
 use PDO;
+use PDOException;
 
 class Permisos
 {
@@ -137,6 +139,50 @@ class Permisos
         return $opciones;
     }
 
+    public function addRegistro($d)
+    {
+        try {
+            $sql = "INSERT INTO `seg_rol_usuario`
+                        (`id_usuario`,`id_opcion`,`per_consultar`,`per_adicionar`,`per_modificar`,`per_eliminar`,`per_anular`,`per_imprimir`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $d['id_usuario'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $d['id_opcion'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $d['per_consultar'], PDO::PARAM_INT);
+            $stmt->bindValue(4, $d['per_adicionar'], PDO::PARAM_INT);
+            $stmt->bindValue(5, $d['per_modificar'], PDO::PARAM_INT);
+            $stmt->bindValue(6, $d['per_eliminar'], PDO::PARAM_INT);
+            $stmt->bindValue(7, $d['per_anular'], PDO::PARAM_INT);
+            $stmt->bindValue(8, $d['per_imprimir'], PDO::PARAM_INT);
+            $stmt->execute();
+            if ($stmt->rowCount() > 0) {
+                return 'si';
+            } else {
+                return 'Sin insertar';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    public function delRegistro($d)
+    {
+        try {
+            $sql = "DELETE FROM `seg_rol_usuario` WHERE `id_usuario` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $d, PDO::PARAM_INT);
+            $stmt->execute();
+            if ($stmt->rowCount() > 0) {
+                $consulta = "DELETE FROM `seg_rol_usuario` WHERE `id_usuario` = {$d}";
+                Logs::guardaLog($consulta);
+                return 'si';
+            } else {
+                return 'Sin insertar';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
     public function getPermisosRoles($id_rol)
     {
         $sql = "SELECT

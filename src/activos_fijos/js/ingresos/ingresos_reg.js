@@ -1,0 +1,57 @@
+(function ($) {
+    $(document).ready(function () {
+        $('#tb_ingresos_detalles').DataTable({
+
+            dom: setdom,
+            buttons: $('#peReg').val() == 1 ? [{
+                text: '<span class="fa-solid fa-plus "></span>',
+                className: 'btn btn-success btn-sm shadow',
+                action: function (e, dt, node, config) {
+                    $.post("../common/buscar_articulos_act_frm.php", function (he) {
+                        $('#divTamModalBus').removeClass('modal-xl');
+                        $('#divTamModalBus').removeClass('modal-sm');
+                        $('#divTamModalBus').addClass('modal-lg');
+                        $('#divModalBus').modal('show');
+                        $("#divFormsBus").html(he);
+                    });
+                }
+            }] : [],
+            language: dataTable_es,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: 'listar_ingresos_detalles.php',
+                type: 'POST',
+                dataType: 'json',
+                data: function (data) {
+                    data.id_ingreso = $('#id_ingreso').val();
+                }
+            },
+            columns: [
+                { 'data': 'id_ing_detalle' }, //Index=0
+                { 'data': 'cod_medicamento' },
+                { 'data': 'nom_medicamento' },
+                { 'data': 'cantidad' },
+                { 'data': 'valor_sin_iva' },
+                { 'data': 'iva' },
+                { 'data': 'valor' },
+                { 'data': 'val_total' },
+                { 'data': 'observacion' },
+                { 'data': 'botones' }
+            ],
+            columnDefs: [
+                { class: 'text-wrap', targets: [2, 8] },
+                { orderable: false, targets: 9 }
+            ],
+            order: [
+                [0, "asc"]
+            ],
+            lengthMenu: [
+                [10, 25, 50, -1],
+                [10, 25, 50, 'TODO'],
+            ],
+        });
+
+        $('#tb_ingresos_detalles').wrap('<div class="overflow"/>');
+    });
+})(jQuery);

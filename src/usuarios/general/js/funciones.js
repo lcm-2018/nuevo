@@ -67,6 +67,7 @@ document.querySelector('#tableUsersSystem').addEventListener('click', function (
 document.querySelector('#modalForms').addEventListener('click', function (event) {
     const btnEstado = event.target.closest('.estado');
     const btnOpciones = event.target.closest('.opciones');
+    const btnGuardar = event.target.closest('#btnGuardaUser');
 
     if (btnEstado) {
         var data = new FormData();
@@ -88,6 +89,46 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
         var id_user = ValueInput('id_user');
         mostrarOverlay();
         VerFormulario('../php/controladores/users.php', 'form4', { id: id, id_user: id_user }, 'modalModulos', 'bodyModulos', 'tamModalModulos', 'modal-xl');
+    }
+
+    if (btnGuardar) {
+        LimpiaInvalid();
+        if (ValueInput('sl_tipoDocumento') === '0') {
+            MuestraError('sl_tipoDocumento', 'Seleccione un tipo de documento');
+        } else if (ValueInput('txtCCuser') === '') {
+            MuestraError('txtCCuser', 'Ingrese un número de documento');
+        } else if (ValueInput('txtlogin') === '') {
+            MuestraError('txtlogin', 'Ingrese un nombre de usuario');
+        } else if (ValueInput('txtPassUser') === '') {
+            MuestraError('txtPassUser', 'Ingrese una contraseña');
+        } else if (ValueInput('txtNomb1user') === '') {
+            MuestraError('txtNomb1user', 'Ingrese un nombre');
+        } else if (ValueInput('txtApe1user') === '') {
+            MuestraError('txtApe1user', 'Ingrese un apellido');
+        } else if (ValueInput('slcRolUser') === '0') {
+            MuestraError('slcRolUser', 'Seleccione un rol');
+        } else {
+            var data = Serializa('formUserSistema');
+            data.append('action', data.get('id_usuario') == 0 ? 'add' : 'edit');
+            if (ValueInput('hidPassUser') === ValueInput('txtPassUser')) {
+                data.append('clave', ValueInput('txtPassUser'));
+            } else {
+                data.append('clave', hex_sha512(ValueInput('txtPassUser')));
+            }
+            mostrarOverlay();
+            SendPost('../php/controladores/users.php', data).then((response) => {
+                if (response.status === 'ok') {
+                    tablaUsersSystem.ajax.reload(null, false);
+                    mje('Guardado correctamente!');
+                    $('#modalForms').modal('hide');
+                } else {
+                    mjeError(response.msg);
+                }
+
+            }).finally(() => {
+                ocultarOverlay();
+            });
+        }
     }
 });
 

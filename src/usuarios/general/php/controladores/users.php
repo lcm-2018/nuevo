@@ -17,7 +17,7 @@ use Src\Usuarios\General\Php\Clases\Users;
 $Usuario = new Users();
 
 $res['status'] = ' error';
-$res['msg'] = 'Acción no válida.';
+$res['msg'] = 'Acción no válida';
 $dt = 'si';
 switch ($action) {
     case 'form1':
@@ -66,8 +66,14 @@ switch ($action) {
     case 'del':
         $dt = $Usuario->delRegistro($id);
         break;
+    case 'add':
+        $dt = $Usuario->addRegistro($_POST);
+        break;
+    case 'edit':
+        $dt = $Usuario->editRegistro($_POST);
+        break;
     default:
-        $dt = 'Acción no válida.';
+        $dt = 'Acción no válida...';
         break;
 }
 if ($dt === 'si') {
