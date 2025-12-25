@@ -18,7 +18,7 @@ if (Sesion::Caracter() == 2) {
         <<<HTML
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divIncrementoSal" aria-expanded="false" aria-controls="divIncrementoSal">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divIncrementoSal" aria-expanded="false" aria-controls="divIncrementoSal">
                         <span class="text-muted"><i class="fas fa-chart-line me-2 fa-lg"></i>VIÑETA. Incremento Salarial.</span>
                     </button>
                 </h2>
@@ -47,7 +47,7 @@ if (Sesion::Pto() == 1) {
         <<<HTML
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divRubroPto" aria-expanded="false" aria-controls="divRubroPto">
+                <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divRubroPto" aria-expanded="false" aria-controls="divRubroPto">
                     <span class="text-warning"><i class="fas fa-chart-bar me-2 fa-lg"></i>VIÑETA. Rubros Presupuestales.</span>
                 </button>
             </h2>
@@ -86,7 +86,7 @@ $content = <<<HTML
         <div class="accordion" id="accNomina">
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divParamsLiq" aria-expanded="true" aria-controls="divParamsLiq">
+                    <button class="accordion-button sombra bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divParamsLiq" aria-expanded="true" aria-controls="divParamsLiq">
                         <span class="text-primary"><i class="far fa-list-alt me-2 fa-lg"></i>VIÑETA. Parametros de liquidación.</span>
                     </button>
                 </h2>
@@ -109,7 +109,7 @@ $content = <<<HTML
             </div>
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divCargos" aria-expanded="false" aria-controls="divCargos">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divCargos" aria-expanded="false" aria-controls="divCargos">
                         <span class="text-success"><i class="fas fa-user-tie me-2 fa-lg"></i>VIÑETA. Cargos.</span>
                     </button>
                 </h2>
@@ -135,7 +135,7 @@ $content = <<<HTML
             </div>
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divTerceros" aria-expanded="false" aria-controls="divTerceros">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divTerceros" aria-expanded="false" aria-controls="divTerceros">
                         <span class="text-info"><i class="fas fa-users me-2 fa-lg"></i>VIÑETA. Terceros.</span>
                     </button>
                 </h2>
@@ -191,7 +191,7 @@ $content = <<<HTML
             {$presupuesto}
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divCtaCtbNom" aria-expanded="false" aria-controls="divCtaCtbNom">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divCtaCtbNom" aria-expanded="false" aria-controls="divCtaCtbNom">
                         <span class="text-secondary"><i class="fas fa-file-import me-2 fa-lg"></i>VIÑETA. Cuentas Contables.</span>
                     </button> 
                 </h2>

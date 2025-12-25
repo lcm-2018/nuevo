@@ -10,7 +10,7 @@ if (!isset($_SESSION['user'])) {
 <html lang="es">
 
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/HTML; charset=utf-8" />
     <title>CONTAFACIL</title>
     <style>
         .text {

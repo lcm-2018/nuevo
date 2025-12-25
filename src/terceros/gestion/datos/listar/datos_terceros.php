@@ -23,14 +23,6 @@ if ($length != -1) {
 $col = $_POST['order'][0]['column'] + 1;
 $dir = $_POST['order'][0]['dir'];
 $dato = null;
-if ($anulados == 1 || $_POST['search']['value'] != '') {
-    $where = '>= 0 ';
-} else {
-    $where = '> 0 ';
-}
-$where .= $_POST['search']['value'] != '' ? "AND (`tb_terceros`.`nit_tercero` LIKE '%{$_POST['search']['value']}%' OR `tb_terceros`.`nom_tercero` LIKE '%{$_POST['search']['value']}%')" : '';
-
-//----------- filtros--------------------------
 
 $andwhere = " ";
 
@@ -57,7 +49,7 @@ try {
                     ON (`tb_rel_tercero`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
                 LEFT JOIN `tb_tipo_tercero` 
                     ON (`tb_rel_tercero`.`id_tipo_tercero` = `tb_tipo_tercero`.`id_tipo`)
-            WHERE `tb_terceros`.`estado` $where $andwhere
+            WHERE `tb_terceros`.`estado` $andwhere
             GROUP BY
                 `tb_terceros`.`id_tercero_api`
             ORDER BY $col $dir $limit";
@@ -90,7 +82,7 @@ try {
                 COUNT(*) AS `total`
             FROM
                 `tb_terceros`
-            WHERE `tb_terceros`.`estado` $where $andwhere";
+            WHERE `tb_terceros`.`estado` $andwhere";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
     $totalRecordsFilter = $total['total'];

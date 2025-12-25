@@ -21,14 +21,21 @@ $content = <<<HTML
 <div class="container-fluid p-4">
     <!-- Welcome Banner -->
     <div class="dashboard-welcome">
-        <div class="position-relative">
-            <h1 class="welcome-title">¡Bienvenido, {$nombre_usuario}!</h1>
-            <p class="welcome-subtitle mb-4">
-                <i class="far fa-calendar-alt me-2"></i>{$fecha_actual} 
-                <i class="far fa-clock ms-3 me-2"></i>{$hora_actual}
-                <i class="fas fa-calendar-check ms-3 me-2"></i>Vigencia {$vigencia}
-            </p>
-            <p class="mb-0 fs-5">Sistema: CRONHIS Financiero.</p>
+        <div class="row align-items-center">
+            <div class="col-md-8 col-lg-9">
+                <h1 class="welcome-title">¡Bienvenido, {$nombre_usuario}!</h1>
+                <p class="welcome-subtitle mb-4">
+                    <i class="far fa-calendar-alt me-2"></i>{$fecha_actual} 
+                    <i class="far fa-clock ms-3 me-2"></i>{$hora_actual}
+                    <i class="fas fa-calendar-check ms-3 me-2"></i>Vigencia {$vigencia}
+                </p>
+                <p class="mb-0 fs-5">Sistema: CRONHIS Financiero.</p>
+            </div>
+            <div class="col-md-4 col-lg-3 d-flex align-items-center justify-content-center">
+                <div class="bg-white rounded-3 shadow" style="display: inline-block; padding: 0.5rem;">
+                    <img src="{$host}/assets/images/logo.png" alt="Logo Empresa" class="d-block" style="max-height: 120px; max-width: 100%; object-fit: contain;">
+                </div>
+            </div>
         </div>
     </div>
 

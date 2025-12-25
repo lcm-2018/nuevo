@@ -210,12 +210,12 @@
 
     //------------ filtros
     $('#divModalForms').on("click", '#btn_buscar_filtro', function () {
-        reloadtable('tb_cdps');
+        $('#tb_cdps').DataTable().ajax.reload(null, false);
     });
 
     $('.filtro').keypress(function (e) {
         if (e.keyCode == 13) {
-            reloadtable('tb_cdps');
+            $('#tb_cdps').DataTable().ajax.reload(null, false);
 
             $('#tb_contratos').empty();
             $('#tb_contratos').DataTable();
@@ -375,9 +375,9 @@
         }).done(function (r) {
             $('#divModalConfDel').modal('hide');
             if (r.mensaje == 'ok') {
-                reloadtable('tb_liberacionescrp');
-                reloadtable('tb_reg_presupuestal');
-                reloadtable('tb_cdps');
+                $('#tb_liberacionescrp').DataTable().ajax.reload(null, false);
+                $('#tb_reg_presupuestal').DataTable().ajax.reload(null, false);
+                $('#tb_cdps').DataTable().ajax.reload(null, false);
             } else {
                 $('#divModalError').modal('show');
                 $('#divMsgError').html(r.mensaje);
@@ -510,10 +510,8 @@ function RegLiberacionCrp() {
             context: this,
             success: function (r) {
                 if (r == '1') {
-                    let id2 = 'tb_cdps';
-                    reloadtable(id2);
-                    let id = 'tb_reg_presupuestal';
-                    reloadtable(id);
+                    $('#tb_cdps').DataTable().ajax.reload(null, false);
+                    $('#tb_reg_presupuestal').DataTable().ajax.reload(null, false);
                     mje('Liberacion ejecutada correctamente');
                     //$(this).closest('.modal').modal('hide');
                 } else {

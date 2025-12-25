@@ -44,6 +44,7 @@ class Permisos
     {
         $sql = "SELECT
                     `id_opcion`, `per_consultar`, `per_adicionar`, `per_modificar`, `per_eliminar`, `per_anular`, `per_imprimir`
+                    , IFNULL(`per_consultar`,0) + IFNULL(`per_adicionar`,0)+ IFNULL(`per_modificar`,0)+ IFNULL(`per_eliminar`,0)+ IFNULL(`per_anular`,0)+ IFNULL(`per_imprimir`,0)  AS `total` 
                 FROM
                     `seg_rol_usuario`
                 WHERE (`id_usuario` = ?)";
@@ -63,22 +64,23 @@ class Permisos
      * @param int $tipo Tipo de permiso (0: sin permiso, 1: consultar, 2: adicionar, 3: modificar, 4: eliminar, 5: anular, 6: imprimir)
      * @return bool Retorna true si tiene permiso, false en caso contrario
      */
-    public function PermisosUsuario($array, $opcion, $tipo)
+    public function PermisosUsuario(array $array, int $opcion, int $tipo): bool
     {
-        $comp = false;
-
-        $key = array_search($opcion, array_column($array, 'id_opcion'));
-
-        if ($key !== false) {
-            if ($tipo == 0) {
-                $comp = true;
-            } else {
-                $permiso = 'per_' . $this->obtenerNombrePermiso($tipo);
-                $comp = $array[$key][$permiso] == 1;
+        foreach ($array as $item) {
+            // Usar comparación no estricta (!=) porque id_opcion viene como string de la BD
+            if ($item['id_opcion'] != $opcion) {
+                continue;
             }
+
+            if ($tipo === 0) {
+                return $item['total'] > 0;
+            }
+
+            $permiso = 'per_' . $this->obtenerNombrePermiso($tipo);
+            return isset($item[$permiso]) && $item[$permiso] == 1;
         }
 
-        return $comp;
+        return false;
     }
 
     private function obtenerNombrePermiso($tipo)

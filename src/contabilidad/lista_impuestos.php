@@ -34,7 +34,7 @@ $content = <<<HTML
         <div class="accordion" id="accImpuestos">
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divTipoRte" aria-expanded="true" aria-controls="divTipoRte">
+                    <button class="accordion-button sombra bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divTipoRte" aria-expanded="true" aria-controls="divTipoRte">
                         <span class="text-primary"><i class="fas fa-hand-holding-usd me-2 fa-lg"></i>VIÑETA. Tipo de Retención.</span>
                     </button>
                 </h2>
@@ -58,7 +58,7 @@ $content = <<<HTML
             
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divRetenciones" aria-expanded="false" aria-controls="divRetenciones">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divRetenciones" aria-expanded="false" aria-controls="divRetenciones">
                         <span class="text-success"><i class="fas fa-money-bill-wave me-2 fa-lg"></i>VIÑETA. Retenciones.</span>
                     </button>
                 </h2>
@@ -83,7 +83,7 @@ $content = <<<HTML
             
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divRangoRet" aria-expanded="false" aria-controls="divRangoRet">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divRangoRet" aria-expanded="false" aria-controls="divRangoRet">
                         <span class="text-info"><i class="fas fa-stream me-2 fa-lg"></i>VIÑETA. Rango Retenciones.</span>
                     </button>
                 </h2>

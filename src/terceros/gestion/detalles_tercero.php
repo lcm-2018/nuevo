@@ -39,7 +39,7 @@ $content = <<<HTML
         <div class="accordion" id="accDetalles">
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodData" aria-expanded="false" aria-controls="collapsemodData">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodData" aria-expanded="false" aria-controls="collapsemodData">
                         <span class="text-primary"><i class="far fa-address-book me-2"></i>VIÑETA. Datos Personales.</span>
                     </button>
                 </h2>
@@ -86,7 +86,7 @@ $content = <<<HTML
             </div>
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodContrata" aria-expanded="false" aria-controls="collapsemodContrata">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodContrata" aria-expanded="false" aria-controls="collapsemodContrata">
                         <span class="text-success"><i class="fas fa-clipboard-list me-2"></i>VIÑETA. Responsabilidades Económicas.</span>
                     </button>
                 </h2>
@@ -109,7 +109,7 @@ $content = <<<HTML
             </div>
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodActividad" aria-expanded="false" aria-controls="collapsemodActividad">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodActividad" aria-expanded="false" aria-controls="collapsemodActividad">
                         <span class="text-info"><i class="fas fa-donate me-2"></i>VIÑETA. Actividades Económicas.</span>
                     </button>
                 </h2>
@@ -132,7 +132,7 @@ $content = <<<HTML
             </div>
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodDocs" aria-expanded="false" aria-controls="collapsemodDocs">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodDocs" aria-expanded="false" aria-controls="collapsemodDocs">
                         <span class="text-muted"><i class="fas fa-copy me-2"></i>VIÑETA. Documentos.</span>
                     </button>
                 </h2>

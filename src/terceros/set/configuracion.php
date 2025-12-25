@@ -36,7 +36,7 @@ $content = <<<HTML
         <div class="accordion" id="accTerceros">
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodContrata" aria-expanded="false" aria-controls="collapsemodContrata">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodContrata" aria-expanded="false" aria-controls="collapsemodContrata">
                         <span class="text-primary"><i class="fas fa-clipboard-list me-2"></i>VIÑETA. Responsabilidades Económicas.</span>
                     </button>
                 </h2>
@@ -59,7 +59,7 @@ $content = <<<HTML
             </div>
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodOrden" aria-expanded="false" aria-controls="collapsemodOrden">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodOrden" aria-expanded="false" aria-controls="collapsemodOrden">
                         <span class="text-success"><i class="fas fa-id-badge me-2"></i>VIÑETA. Perfiles de Terceros.</span>
                     </button>
                 </h2>

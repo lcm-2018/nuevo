@@ -92,7 +92,7 @@ try {
                                 <td class="text-start text-wrap"><i><?= $bs['bien_servicio'] ?></i></td>
                                 <td><input type="number" name="bnsv[<?= $bs['id_b_s'] ?>]" class="form-control form-control-sm cantidad bg-input" value="0" text="<?= $bs['id_b_s'] ?>"></td>
                                 <td><input type="number" name="val_bnsv[<?= $bs['id_b_s'] ?>]" class="form-control form-control-sm val_bnsv bg-input" value="0" text="<?= $bs['id_b_s'] ?>"></td>
-                                <td class="text-end total">0.00</td>
+                                <td class="text-end total"><input type="number" name="total_bnsv[<?= $bs['id_b_s'] ?>]" class="form-control form-control-sm total_bnsv bg-input" value="0" text="<?= $bs['id_b_s'] ?>"></td>
                             </tr>
                         <?php
                         }

@@ -91,3 +91,6 @@
 [2025-12-23 19:44:01] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: SELECT COUNT(*) AS detalles FROM far_orden_egreso_detalle WHERE id_egreso=111220;
 [2025-12-24 09:26:47] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM acf_marca WHERE id=100;
 [2025-12-24 09:31:16] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM far_medicamento_lote WHERE id_med=16762;
+[2025-12-25 14:57:04] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `seg_garantias_compra` WHERE `id_est_prev` = 485;
+[2025-12-25 14:57:18] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_orden_compra_detalle`  WHERE `id_detalle` = 490;
+[2025-12-25 15:17:49] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctt_orden_compra_detalle`  WHERE `id_detalle` = 491;

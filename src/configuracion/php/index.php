@@ -22,7 +22,7 @@ $content = <<<HTML
         <div class="accordion" id="accConfiguracion">
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divConfiguracion" aria-expanded="true" aria-controls="divParamsLiq">
+                    <button class="accordion-button sombra bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#divConfiguracion" aria-expanded="true" aria-controls="divParamsLiq">
                         <span class="text-primary"><i class="far fa-list-alt me-2 fa-lg"></i>Prsonalizadas</span>
                     </button>
                 </h2>

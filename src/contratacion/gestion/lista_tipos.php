@@ -24,7 +24,7 @@ if ($id_rol == 1) {
         <<<HTML
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodConfig" aria-expanded="false" aria-controls="collapsemodConfig">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodConfig" aria-expanded="false" aria-controls="collapsemodConfig">
                         <span class="text-primary"><i class="fas fa-file-contract me-2 fa-lg"></i>VIÑETA. Configuración.</span>
                     </button>
                 </h2>
@@ -40,7 +40,7 @@ if ($id_rol == 1) {
                      <div class="accordion p-3 pt-0" id="accConfig">
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodArea" aria-expanded="false" aria-controls="collapsemodArea">
+                                <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodArea" aria-expanded="false" aria-controls="collapsemodArea">
                                     <span class="text-primary"><i class="fas fa-file-contract me-2 fa-lg"></i>EACII. Area contratación por usuario.</span>
                                 </button>
                             </h2>
@@ -63,7 +63,7 @@ if ($id_rol == 1) {
                         </div>
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodUser" aria-expanded="false" aria-controls="collapsemodUser">
+                                <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodUser" aria-expanded="false" aria-controls="collapsemodUser">
                                     <span class="text-success"><i class="fas fa-file-contract me-2 fa-lg"></i>EACII. Relación de Usuarios.</span>
                                 </button>
                             </h2>
@@ -103,7 +103,7 @@ $content = <<<HTML
             {$configuracion}
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodContrata" aria-expanded="false" aria-controls="collapsemodContrata">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapsemodContrata" aria-expanded="false" aria-controls="collapsemodContrata">
                         <span class="text-success"><i class="fas fa-file-contract me-2 fa-lg"></i>VIÑETA. Modalidad de contratación.</span>
                     </button>
                 </h2>
@@ -125,7 +125,7 @@ $content = <<<HTML
             <!-- parte-->
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTipoSerBien" aria-expanded="false" aria-controls="collapseTipoSerBien">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTipoSerBien" aria-expanded="false" aria-controls="collapseTipoSerBien">
                         <span class="text-info"><i class="fas fa-mail-bulk fa-lg me-2"></i>VIÑETA. Tipo de bien o servicio</span>
                     </button>
                 </h2>
@@ -148,7 +148,7 @@ $content = <<<HTML
             <!--parte-->
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapeseBnSv" aria-expanded="false" aria-controls="collapeseBnSv">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapeseBnSv" aria-expanded="false" aria-controls="collapeseBnSv">
                         <span class="text-muted"><i class="fas fa-cart-arrow-down fa-lg me-2"></i>VIÑETA. Bienes y servicios</span>
                     </button>
                 </h2>
@@ -172,7 +172,7 @@ $content = <<<HTML
             <!--parte-->
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapeseFCtt" aria-expanded="false" aria-controls="collapeseFCtt">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapeseFCtt" aria-expanded="false" aria-controls="collapeseFCtt">
                         <span class="text-warning"><i class="fas fa-file-word fa-lg me-2"></i>VIÑETA. Formatos de contratación</span>
                     </button>
                 </h2>
@@ -201,7 +201,7 @@ $content = <<<HTML
             <!--parte-->
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapeseFirma" aria-expanded="false" aria-controls="collapeseFirma">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapeseFirma" aria-expanded="false" aria-controls="collapeseFirma">
                         <span class="text-secondary"><i class="fas fa-file-signature fa-lg me-2"></i>VIÑETA. Firmas</span>
                     </button>
                 </h2>
@@ -225,7 +225,7 @@ $content = <<<HTML
             <!--parte-->
             <div class="accordion-item">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapeseMsOp" aria-expanded="false" aria-controls="collapeseMsOp">
+                    <button class="accordion-button sombra collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapeseMsOp" aria-expanded="false" aria-controls="collapeseMsOp">
                         <span class="text-primary-emphasis"><i class="fas fa-bars fa-lg me-2"></i>VIÑETA. Más opciones</span>
                     </button>
                 </h2>
