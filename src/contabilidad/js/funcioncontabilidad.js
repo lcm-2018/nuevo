@@ -390,41 +390,46 @@
 				$('#divMsgError').html('¡Documento debe tener un tamaño menor a 2Mb!');
 				return false;
 			}
-			var btns = '<button class="btn btn-primary btn-sm" id="btnConfirCargaPuc">Aceptar</button><button type="button" class="btn btn-secondary  btn-sm"  data-bs-dismiss="modal">Cancelar</button>'
-			$("#divModalConfDel").modal("show");
-			$("#divMsgConfdel").html('Esta acción eliminará el cargue del plan de cuentas.<br> Confirmar.');
-			$("#divBtnsModalDel").html(btns);
-			$('#divModalConfDel').on('click', '#btnConfirCargaPuc', function () {
-				$("#divModalConfDel").modal("hide");
-				let datos = new FormData();
-				datos.append('file', $('#file')[0].files[0]);
-				datos.append('idPto', $('#idPtoEstado').val());
-				$('#btnAddPtoExcel').attr('disabled', true);
-				$('#btnAddPtoExcel').html('<i class="fas fa-spinner fa-pulse"></i> Cargando...');
-				$.ajax({
-					type: 'POST',
-					url: 'datos/registrar/cargar_puc_excel.php',
-					contentType: false,
-					data: datos,
-					processData: false,
-					cache: false,
-					success: function (r) {
-						$('#btnAddPtoExcel').attr('disabled', false);
-						$('#btnAddPtoExcel').html('Subir');
-						if (r == 'ok') {
-							reloadtable('tablePlanCuentas');
-							$('#divModalForms').modal('hide');
-							$('#divModalDone').modal('show');
-							$('#divMsgDone').html('Plan de cuentas Cargado Correctamente');
-						} else {
-							$('#divModalForms').modal('hide');
-							$('#divModalError').modal('show');
-							$('#divMsgError').html(r);
+			Swal.fire({
+				title: "Esta acción eliminará el cargue del plan de cuentas.<br> Confirmar.",
+				icon: "warning",
+				showCancelButton: true,
+				confirmButtonColor: "#00994C",
+				cancelButtonColor: "#d33",
+				confirmButtonText: "Si!",
+				cancelButtonText: "NO",
+			}).then((result) => {
+				if (result.isConfirmed) {
+					mostrarOverlay();
+					let datos = new FormData();
+					datos.append('file', $('#file')[0].files[0]);
+					datos.append('idPto', $('#idPtoEstado').val());
+					$.ajax({
+						type: 'POST',
+						url: 'datos/registrar/cargar_puc_excel.php',
+						contentType: false,
+						data: datos,
+						processData: false,
+						cache: false,
+						success: function (r) {
+							$('#btnAddPtoExcel').attr('disabled', false);
+							$('#btnAddPtoExcel').html('Subir');
+							if (r == 'ok') {
+								reloadtable('tablePlanCuentas');
+								$('#divModalForms').modal('hide');
+								$('#divModalDone').modal('show');
+								$('#divMsgDone').html('Plan de cuentas Cargado Correctamente');
+							} else {
+								$('#divModalForms').modal('hide');
+								$('#divModalError').modal('show');
+								$('#divMsgError').html(r);
+							}
 						}
-					}
-				});
+					}).always(() => {
+						ocultarOverlay();
+					});
+				}
 			});
-			return false;
 		}
 		return false;
 	});
@@ -3949,3 +3954,19 @@ function GuardarCtasTrasladoCostos() {
 		});
 	}
 }
+
+
+document.addEventListener('DOMContentLoaded', function () {
+	const formatoExcelPto = document.getElementById('formatoExcelPto');
+	const formatoExcelPuc = document.getElementById('formatoExcelPuc');
+	if (formatoExcelPto) {
+		formatoExcelPto.addEventListener('click', function () {
+			DownloadFile('cargue_pto.xlsx');
+		});
+	}
+	if (formatoExcelPuc) {
+		formatoExcelPuc.addEventListener('click', function () {
+			DownloadFile('cargue_puc.xlsx');
+		});
+	}
+});

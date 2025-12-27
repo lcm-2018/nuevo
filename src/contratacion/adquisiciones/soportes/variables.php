@@ -1,13 +1,11 @@
 <?php
 
+use Src\Common\Php\Clases\Valores;
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 include_once '../../../../config/autoloader.php';
-$id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
-$id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
-$permisos = new \Src\Common\Php\Clases\Permisos();
-$opciones = $permisos->PermisoOpciones($id_user);
 $cmd = \Config\Clases\Conexion::getConexion();
 
 function pesos($valor)
@@ -186,7 +184,7 @@ try {
                 ON (`ctt_estudios_previos`.`id_forma_pago` = `tb_forma_pago_compras`.`id_form_pago`)
             LEFT JOIN `tb_terceros` 
                 ON (`ctt_estudios_previos`.`id_supervisor` = `tb_terceros`.`id_tercero_api`)
-            WHERE `id_compra` = '$id_adqi'";
+            WHERE `id_compra` = $id_adqi";
     $rs = $cmd->query($sql);
     $estudio_prev = $rs->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -223,6 +221,8 @@ try {
                 , `ctt_contratos`.`fec_fin`
                 , `tb_forma_pago_compras`.`descripcion`
                 , `ctt_contratos`.`id_supervisor`
+                , `ctt_contratos`.`num_contrato`
+                , `ctt_contratos`.`val_contrato`
             FROM
                 `ctt_contratos`
             INNER JOIN `tb_forma_pago_compras` 
@@ -269,87 +269,45 @@ $fecF = explode('-', $estudio_prev['fec_fin_ejec']);
 $fecha = mb_strtoupper($fecI[2] . ' de ' . $meses[intval($fecI[1])] . ' de ' . $fecI[0]);
 $fecha_anexo = $fecI[2] . ' de ' . $meses[intval($fecI[1])] . ' de ' . $fecI[0];
 $letras = new NumberFormatter("es", NumberFormatter::SPELLOUT);
-$diaI = $fecI[2] == '01' ? 'PRIMERO' : mb_strtoupper($letras->format($fecI[2]));
-$diaF = $fecF[2] == '01' ? 'PRIMERO' : mb_strtoupper($letras->format($fecF[2]));
-$fecI_let =  $diaI . ' (' . $fecI[2] . ')' . ' DE ' . mb_strtoupper($meses[intval($fecI[1])]) . ' DE ' . $fecI[0];
-$fecF_let = $diaF . ' (' . $fecF[2] . ')' . ' DE ' . mb_strtoupper($meses[intval($fecF[1])]) . ' DE ' . $fecF[0];
-$fec_inicia = mb_strtolower($fecI_let);
-$fec_fin = mb_strtolower($fecF_let);
+// Convertir fechas a letras usando el método de la clase Valores
+$fec_inicia = Valores::fechaEnLetras($estudio_prev['fec_ini_ejec'], false); // minúsculas
+$fec_fin = Valores::fechaEnLetras($estudio_prev['fec_fin_ejec'], false); // minúsculas
 $valor = $estudio_prev['val_contrata'];
 $val_num = pesos($valor);
 $objeto_ep = mb_strtoupper($compra['objeto']);
 $supervisor = $estudio_prev['nom_tercero'];
 $supervisor = $estudio_prev['id_supervisor'] == '' ? 'PENDIENTE' : $supervisor;
 $val_ep = str_replace('-', '', mb_strtoupper($letras->format($valor, 2)));
-$start = new DateTime($estudio_prev['fec_ini_ejec']);
-$end = new DateTime($estudio_prev['fec_fin_ejec']);
-$plazo = $start->diff($end);
-$p_mes = $plazo->format('%m');
-$p_dia = $plazo->format('%d');
-if ($p_dia >= 29) {
-    $p_mes++;
-    $p_dia = 0;
-}
-if ($p_mes < 1) {
-    $p_mes = '';
-} else if ($p_mes == 1) {
-    $p_mes = 'UN (01) MES';
-} else {
-    $p_mes = mb_strtoupper($letras->format($p_mes)) . ' (' . str_pad($p_mes, 2, '0', STR_PAD_LEFT) . ') MESES';
-}
-$y = ' Y ';
-if ($p_dia < 1) {
-    $y = '';
-    $p_dia = '';
-} else if ($p_dia == 1) {
-    $p_dia = 'UN DÍA';
-} else {
-    $p_dia = mb_strtoupper($letras->format($p_dia)) . ' (' . str_pad($p_dia, 2, '0', STR_PAD_LEFT) . ') DÍAS';
-}
+// Calcular plazo de estudios previos usando el método de la clase Valores
+$plazo_ep = Valores::calcularPlazo($estudio_prev['fec_ini_ejec'], $estudio_prev['fec_fin_ejec']);
 $proyecto = mb_strtoupper($compra['area']);
-$necesidades = explode('||', $estudio_prev['necesidad']);
-$actividades = explode('||', $estudio_prev['act_especificas']);
-$productos = explode('||', $estudio_prev['prod_entrega']);
-$obligaciones = explode('||', $estudio_prev['obligaciones']);
-$forma_pago = explode('||', $estudio_prev['forma_pago']);
-$requisitos = explode('||', $estudio_prev['requisitos']);
-$garantias = explode('||', $estudio_prev['garantia']);
-$valores = explode('||', $estudio_prev['describe_valor']);
-$actividad = [];
-$necesidad = [];
-$producto = [];
-$obligacion = [];
-$pago = [];
-$req_min = [];
-$garantia = [];
-$describ_val = [];
-foreach ($necesidades as $n) {
-    $necesidad[] = ['necesidad' => $n];
+// Convertir strings delimitados a arrays de objetos usando el método de la clase Valores
+$necesidad      = Valores::stringToArrayObjects($estudio_prev['necesidad'], 'necesidad');
+$actividad      = Valores::stringToArrayObjects($estudio_prev['act_especificas'], 'actividad');
+$producto       = Valores::stringToArrayObjects($estudio_prev['prod_entrega'], 'producto');
+$obligacion     = Valores::stringToArrayObjects($estudio_prev['obligaciones'], 'obligacion');
+$pago           = Valores::stringToArrayObjects($estudio_prev['forma_pago'], 'pago');
+$req_min        = Valores::stringToArrayObjects($estudio_prev['requisitos'], 'req_min');
+$garantia       = Valores::stringToArrayObjects($estudio_prev['garantia'], 'garantia');
+$describ_val    = Valores::stringToArrayObjects($estudio_prev['describe_valor'], 'describ_val');
+// Calcular plazo del contrato si existen las fechas
+$plazo              = '';
+$fec_inicia         = '';
+$fec_fin            = '';
+if (isset($contrato['fec_ini']) && isset($contrato['fec_fin'])) {
+    $plazo          = Valores::calcularPlazo($contrato['fec_ini'], $contrato['fec_fin']);
+    $fec_inicia     = Valores::fechaEnLetras($contrato['fec_ini'], false); // minúsculas
+    $fec_fin        = Valores::fechaEnLetras($contrato['fec_fin'], false); // minúsculas
 }
-foreach ($actividades as $ac) {
-    $actividad[] = ['actividad' => $ac];
-}
-foreach ($productos as $pr) {
-    $producto[] = ['producto' => $pr];
-}
-foreach ($obligaciones as $ob) {
-    $obligacion[] = ['obligacion' => $ob];
-}
-foreach ($forma_pago as $fp) {
-    $pago[] = ['pago' => $fp];
-}
-foreach ($requisitos as $rm) {
-    $req_min[] = ['req_min' => $rm];
-}
-foreach ($garantias as $ga) {
-    $garantia[] = ['garantia' => $ga];
-}
-foreach ($valores as $va) {
-    $describ_val[] = ['describ_val' => $va];
-}
-$plazo = $p_mes == '' ? $p_dia : $p_mes . $y . $p_dia;
-$forma_pago = isset($contrato['descripcion']) ? $contrato['descripcion'] : '';
-
+$forma_pago         = isset($contrato['descripcion']) ? $contrato['descripcion'] : '';
+$no_contrato        = isset($contrato['num_contrato']) ? $contrato['num_contrato'] : '-';
+$objeto_ctt         = $compra['objeto'];
+$val_ctt            = mb_strtoupper(Valores::LetrasCOP($contrato['val_contrato']));
+$van_ctt            = pesos($contrato['val_contrato']);
+$cod_presupuesto    = $cod_cargue['cod_pptal'] ?? 'XXX';
+$rubro              = $cod_cargue['nom_rubro'] ?? 'XXX';
+$tercero            = $compra['nom_tercero'] ?? 'XXX';
+$cedula_tercero     = $compra['nit_tercero'] ?? 'XXX';
 /*
 $segmento = !empty($codigo_servicio) ? ($codigo_servicio['codigo'] != '' ? substr($codigo_servicio['codigo'], 0, 2) : 'XX') : 'XX';
 $familia = !empty($codigo_servicio) ? ($codigo_servicio['codigo'] != '' ? substr($codigo_servicio['codigo'], 0, 4) : 'XXXX') : 'XXXX';

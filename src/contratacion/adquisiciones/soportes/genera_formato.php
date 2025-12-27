@@ -26,39 +26,139 @@ include 'variables.php';
 
 $plantilla = new \PhpOffice\PhpWord\TemplateProcessor($docx);
 $marcadores = $plantilla->getVariables();
-foreach ($variables as $v) {
-    $var_ = str_replace(['${', '}'], '', $v['variable']);
-    $tip_ = $v['tipo'];
-    if (in_array($var_, $marcadores)) {
-        if ($tip_ == '1') {
-            $plantilla->setValue($var_, $$var_);
-        } else if ($tip_ == '2') {
-            $plantilla->cloneRowAndSetValues($var_, $$var_);
-        } else if ($tip_ == '3') {
-            // Obtener la ruta absoluta del sistema de archivos
-            $docRoot = $_SERVER['DOCUMENT_ROOT'];
 
-            // Verificar si existe una variable con el nombre del marcador
-            $imgPath = isset($$var_) ? $$var_ : Plantilla::getHost() . '/assets/images/firmas/frm_' . $var_ . '.png';
+// Agrupar marcadores por base (sin el sufijo #N)
+$marcadoresAgrupados = [];
+foreach ($marcadores as $marcador) {
+    $base = preg_replace('/#\d+$/', '', $marcador);
+    if (!isset($marcadoresAgrupados[$base])) {
+        $marcadoresAgrupados[$base] = [];
+    }
+    $marcadoresAgrupados[$base][] = $marcador;
+}
 
-            // Construir la ruta absoluta completa
-            $fullPath = $docRoot . $imgPath;
+// ESTRATEGIA NUEVA: Procesar PRIMERO los marcadores agrupados
+foreach ($marcadoresAgrupados as $varBase => $ocurrencias) {
+    // Si existe la variable PHP correspondiente
+    if (isset($$varBase)) {
+        $valor = $$varBase;
 
-            // Verificar si el archivo existe, si no usar la imagen vacía
-            if (!file_exists($fullPath)) {
-                $fullPath = $docRoot . Plantilla::getHost() . '/assets/images/vacio.png';
+        // Determinar el tipo de dato
+        if (is_array($valor)) {
+            // Es un array - verificar si se usa en tabla o como texto
+            $esTabla = false;
+
+            // Buscar en las variables de BD si está marcado como tipo 2 (tabla)
+            foreach ($variables as $v) {
+                $var_ = str_replace(['${', '}'], '', $v['variable']);
+                if ($var_ === $varBase && $v['tipo'] == '2') {
+                    $esTabla = true;
+                    break;
+                }
             }
 
-            // Insertar la imagen en el documento
-            $plantilla->setImageValue($var_, [
-                'path' => $fullPath,
-                'width' => 200,
-                'height' => 75,
-                'ratio' => false
-            ]);
+            if ($esTabla) {
+                // Es una tabla - clonar filas (solo una vez con el marcador base)
+                if (in_array($varBase, $ocurrencias)) {
+                    $plantilla->cloneRowAndSetValues($varBase, $valor);
+                }
+            } else {
+                // NO es tabla - convertir array a texto
+                // Extraer valores del array y unirlos
+                $textoArray = '';
+
+                if (!empty($valor)) {
+                    $items = [];
+                    foreach ($valor as $item) {
+                        // Si el array tiene estructura ['clave' => 'valor'], extraer el primer valor
+                        if (is_array($item)) {
+                            $items[] = reset($item); // Obtiene el primer valor del array asociativo
+                        } else {
+                            $items[] = $item;
+                        }
+                    }
+
+                    // Unir items con saltos de línea numerados
+                    foreach ($items as $index => $texto) {
+                        $numero = $index + 1;
+                        $textoArray .= $numero . '. ' . $texto . "\n";
+                    }
+                } else {
+                    // Array vacío - poner mensaje
+                    $textoArray = 'N/A';
+                }
+
+                // Reemplazar en TODAS las ocurrencias como texto
+                foreach ($ocurrencias as $marcador) {
+                    $plantilla->setValue($marcador, trim($textoArray));
+                }
+            }
+        } else if (is_string($valor) && strpos($valor, '/') !== false && file_exists($_SERVER['DOCUMENT_ROOT'] . $valor)) {
+            // Es una ruta de imagen
+            $fullPath = $_SERVER['DOCUMENT_ROOT'] . $valor;
+            if (!file_exists($fullPath)) {
+                $fullPath = $_SERVER['DOCUMENT_ROOT'] . Plantilla::getHost() . '/assets/images/vacio.png';
+            }
+
+            // Insertar imagen en TODAS las ocurrencias
+            foreach ($ocurrencias as $marcador) {
+                $plantilla->setImageValue($marcador, [
+                    'path' => $fullPath,
+                    'width' => 200,
+                    'height' => 75,
+                    'ratio' => false
+                ]);
+            }
+        } else {
+            // Es texto simple - REEMPLAZAR EN TODAS LAS OCURRENCIAS
+            foreach ($ocurrencias as $marcador) {
+                $plantilla->setValue($marcador, $valor);
+            }
         }
     }
 }
+
+// LUEGO procesar variables de la BD que no hayan sido procesadas aún
+foreach ($variables as $v) {
+    $var_ = str_replace(['${', '}'], '', $v['variable']);
+    $tip_ = $v['tipo'];
+
+    // Si esta variable NO fue procesada en el loop anterior
+    if (!isset($$var_)) {
+        continue;
+    }
+
+    // Buscar si hay marcadores para esta variable que no fueron procesados
+    foreach ($marcadores as $marcador) {
+        $marcadorBase = preg_replace('/#\d+$/', '', $marcador);
+
+        if ($marcadorBase === $var_ && !isset($marcadoresAgrupados[$var_])) {
+            if ($tip_ == '1') {
+                $plantilla->setValue($marcador, $$var_);
+            } else if ($tip_ == '2') {
+                if ($marcador === $var_) {
+                    $plantilla->cloneRowAndSetValues($var_, $$var_);
+                }
+            } else if ($tip_ == '3') {
+                $docRoot = $_SERVER['DOCUMENT_ROOT'];
+                $imgPath = isset($$var_) ? $$var_ : Plantilla::getHost() . '/assets/images/firmas/frm_' . $var_ . '.png';
+                $fullPath = $docRoot . $imgPath;
+
+                if (!file_exists($fullPath)) {
+                    $fullPath = $docRoot . Plantilla::getHost() . '/assets/images/vacio.png';
+                }
+
+                $plantilla->setImageValue($marcador, [
+                    'path' => $fullPath,
+                    'width' => 200,
+                    'height' => 75,
+                    'ratio' => false
+                ]);
+            }
+        }
+    }
+}
+
 $name = 'formato_doc' . date('YmdHis') . '.docx';
 $plantilla->saveAs($name);
 header("Content-Disposition: attachment; Filename=" . $name);

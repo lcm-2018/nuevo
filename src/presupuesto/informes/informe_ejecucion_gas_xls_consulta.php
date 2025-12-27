@@ -5,28 +5,6 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-?>
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>CONTAFACIL</title>
-    <style>
-        .text {
-            mso-number-format: "\@"
-        }
-    </style>
-    <?php
-    /*
-    header("Content-type: application/vnd.ms-excel charset=utf-8");
-    header("Content-Disposition: attachment; filename=FORMATO_201101_F07_AGR.xls");
-    header("Pragma: no-cache");
-    header("Expires: 0");
-    */
-    ?>
-</head>
-<?php
 $vigencia = $_SESSION['vigencia'];
 $fecha_corte = $_POST['fecha'];
 $fecha_ini = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-01-01'));

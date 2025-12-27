@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
-include '../../../simpleXLSX.php';
+include '../../../../vendor/SimpleXLSX/simpleXLSX.php';
 
 $file_tmp = $_FILES['file']['tmp_name'];
 $id_user = $_SESSION['id_user'];
@@ -42,7 +42,7 @@ if ($registros > 0) {
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
         }
-        $xlsx = new SimpleXLSX('file.xlsx');
+        $xlsx = new \SimpleXLSX\SimpleXLSX('file.xlsx');
         try {
             $cmd = \Config\Clases\Conexion::getConexion();
             $sql = "INSERT INTO `ctb_pgcp`

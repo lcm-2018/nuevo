@@ -1,27 +1,7 @@
 <?php
 session_start();
 set_time_limit(5600);
-?>
-<!DOCTYPE html>
-<html lang="es">
 
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>CONTAFACIL</title>
-    <style>
-        .text {
-            mso-number-format: "\@"
-        }
-    </style>
-
-    <?php
-    header("Content-type: application/vnd.ms-excel charset=utf-8");
-    header("Content-Disposition: attachment; filename=Balance de prueba.xls");
-    header("Pragma: no-cache");
-    header("Expires: 0");
-    ?>
-</head>
-<?php
 include '../../../config/autoloader.php';
 // Consexion a cronhis asistencial
 $vigencia = $_SESSION['vigencia'];
