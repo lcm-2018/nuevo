@@ -401,12 +401,8 @@ const tableAdquisiciones = crearDataTable(
         const calcularYMostrarTotal = (valorUnitario) => {
             let cantidad = Number(fila.find('.cantidad').val()) || 0;
             let valor = cantidad * Number(valorUnitario);
-            let valorFormateado = valor.toLocaleString('es-CO', {
-                style: 'currency',
-                currency: 'COP',
-                minimumFractionDigits: 2
-            });
-            fila.find('.total').html(valorFormateado);
+            //en la fila buscar el name total_bnsv
+            fila.find('.total_bnsv').val(valor);
         };
 
         if (soloCalcular) {

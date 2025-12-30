@@ -10,12 +10,13 @@ $id_adq = isset($_POST['idAdq']) ? $_POST['idAdq'] : exit('Accion no permitida')
 $aprobados = $_POST['check'];
 $cantidades = $_POST['bnsv'];
 $val_unitarios = $_POST['val_bnsv'];
+$totales = $_POST['total_bnsv'];
 $estado = 1;
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $c = 0;
 $cmd = \Config\Clases\Conexion::getConexion();
-
+$total = 0;
 try {
     $sql = "DELETE FROM `ctt_orden_compra` WHERE `id_adq` = ?";
     $sql = $cmd->prepare($sql);
@@ -52,6 +53,7 @@ try {
             $sql->execute();
             if ($cmd->lastInsertId() > 0) {
                 $c++;
+                $total += $totales[$key];
             } else {
                 echo $sql->errorInfo()[2];
                 exit();
@@ -59,6 +61,11 @@ try {
         }
     }
     if ($c > 0) {
+        $sql = "UPDATE `ctt_adquisiciones` SET `val_contrato` = ? WHERE `id_adquisicion` = ?";
+        $sql = $cmd->prepare($sql);
+        $sql->bindParam(1, $total, PDO::PARAM_STR);
+        $sql->bindParam(2, $id_adq, PDO::PARAM_INT);
+        $sql->execute();
         echo 'ok';
     } else {
         echo 'Error al guardar la orden de compra';

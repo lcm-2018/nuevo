@@ -526,10 +526,11 @@ if ($id_estudio == '') {
 }
 if ($adquisicion['estado'] == 9) {
     $pos3 = isset($posicion[3]) ? $posicion[3] : 0;
+    $pos11 = isset($posicion[11]) ? $posicion[11] : 0;
     $btn_ds =
         <<<HTML
-            <a type="button" class="btn btn-warning btn-sm" id="btnFormatoDesigSuper" style="color:white">DESCARGAR FORMATO DESIGNACIÓN DE SUPERVISIÓN&nbsp&nbsp;<span class="fas fa-file-download fa-lg"></span></a>
-            <a type="button" text="{$pos3}" class="btn btn-success btn-sm downloadFormsCtt" id="btnFormatoContrato" style="color:white">DESCARGAR FORMATO CONTRATO&nbsp&nbsp;<span class="fas fa-file-download fa-lg"></span></a>
+            <a type="button" text="{$pos11}" class="btn btn-warning btn-sm downloadFormsCtt" style="color:white">FORMATO DESIGNACIÓN DE SUPERVISIÓN&nbsp&nbsp;<span class="fas fa-file-download fa-lg"></span></a>
+            <a type="button" text="{$pos3}" class="btn btn-success btn-sm downloadFormsCtt" id="btnFormatoContrato" style="color:white">FORMATO CONTRATO&nbsp&nbsp;<span class="fas fa-file-download fa-lg"></span></a>
         HTML;
 }
 //CRP
