@@ -19,7 +19,7 @@ $permisos = new Permisos();
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 $opciones = $permisos->PermisoOpciones($id_user);
-$peReg =  $permisos->PermisosUsuario($opciones, 5302, 0) || $id_rol == 1 ? 1 : 0;
+$peReg =  $permisos->PermisosUsuario($opciones, 5202, 0) || $id_rol == 1 ? 1 : 0;
 
 $estados = Combos::getEstadoAdq();
 $modalidades = Combos::getModalidad();

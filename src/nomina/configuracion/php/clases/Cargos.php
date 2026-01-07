@@ -54,7 +54,7 @@ class Cargos
 
         $sql = "SELECT
                     `nom_cargo_empleado`.`id_cargo`
-                    , `nom_cargo_empleado`.`codigo` AS `id_codigo`
+                    , `nom_cargo_empleado`.`codigo` AS `codigo`
                     , `nom_cargo_empleado`.`descripcion_carg`
                     , `nom_cargo_empleado`.`grado`
                     , `nom_cargo_empleado`.`perfil_siho`
@@ -179,7 +179,7 @@ class Cargos
     public function getCodigos()
     {
         $sql = "SELECT
-                    `id_cod`, `denominacion`, `nivel`
+                    `id_cod`, `codigo`, `denominacion`, `nivel`
                 FROM
                     `nom_cargo_codigo` ORDER BY `nivel`,`denominacion` ASC";
         $stmt = $this->conexion->prepare($sql);
@@ -216,7 +216,7 @@ class Cargos
             $opt_cods = '';
             foreach ($codigos as $c) {
                 $slc = $fila['codigo'] == $c['id_cod'] ? 'selected' : '';
-                $opt_cods .= '<option value="' . $c['id_cod'] . '" ' . $slc . '>' . mb_strtoupper($c['nivel'] . ' -> ' . $c['denominacion']) . '</option>';
+                $opt_cods .= '<option value="' . $c['id_cod'] . '" ' . $slc . '>' . mb_strtoupper($c['codigo'] . ' - ' . $c['nivel'] . ' - ' . $c['denominacion']) . '</option>';
             }
             $opt_noms = '';
             foreach ($nombramientos as $n) {
@@ -295,7 +295,7 @@ class Cargos
                                 {$linea2}
                             </form>
                         </div>
-                        <div class="text-end pb-3">
+                        <div class="text-end pb-3 px-3">
                             <button type="button" class="btn btn-primary btn-sm" id="btnGuardaCargo">Guardar</button>
                             <button type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</button>
                         </div>

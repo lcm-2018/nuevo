@@ -89,7 +89,7 @@ try {
 }
 $fecha = date('Y-m-d', strtotime($rad['fecha']));
 $id_modulo = 54;
-$doc_fte = 21;
+$doc_fte = 'RAD';
 include '../../financiero/encabezado_imp.php';
 try {
     $sql = "SELECT

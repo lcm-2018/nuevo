@@ -87,7 +87,7 @@ try {
 }
 $fecha = date('Y-m-d', strtotime($crp['fecha']));
 $id_modulo = 54;
-$doc_fte = 22;
+$doc_fte = 'CRP';
 include '../../financiero/encabezado_imp.php';
 try {
     $sql = "SELECT

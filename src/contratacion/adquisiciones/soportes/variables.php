@@ -87,10 +87,10 @@ if (!empty($oferta)) {
     foreach ($oferta as $o) {
         $cod[] = $o['id_bn_sv'];
     }
-    $cod = implode(',', $cod);
 } else {
     $cod = '0';
 }
+$cod = implode(',', $cod);
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
@@ -101,7 +101,7 @@ try {
             FROM
                 `ctt_clasificacion_bn_sv`
                 LEFT JOIN  `tb_codificacion_unspsc`
-                ON (`ctt_clasificacion_bn_sv`.`cod_unspsc` = `tb_codificacion_unspsc`.`codigo`)
+                    ON (`ctt_clasificacion_bn_sv`.`cod_unspsc` = `tb_codificacion_unspsc`.`codigo`)
             WHERE `ctt_clasificacion_bn_sv`.`id_b_s` IN($cod) AND `ctt_clasificacion_bn_sv`.`vigencia` = '$vigencia'";
     $rs = $cmd->query($sql);
     $codigo_servicio = $rs->fetch(PDO::FETCH_ASSOC);
@@ -115,6 +115,7 @@ try {
     $sql = "SELECT
                 `ctt_adquisiciones`.`id_adquisicion`
                 , `ctt_adquisiciones`.`id_tipo_bn_sv`
+                , `ttbs`.`tipo_bn_sv`
                 , `ctt_adquisiciones`.`id_modalidad`
                 , `ctt_modalidad`.`modalidad`
                 , `ctt_adquisiciones`.`objeto`
@@ -125,6 +126,8 @@ try {
                 , `tb_area_c`.`area`
             FROM
                 `ctt_adquisiciones`
+            INNER JOIN `tb_tipo_bien_servicio` AS `ttbs`
+                ON (`ctt_adquisiciones`.`id_tipo_bn_sv` = `ttbs`.`id_tipo_b_s`)
             INNER JOIN `ctt_modalidad` 
                 ON (`ctt_adquisiciones`.`id_modalidad` = `ctt_modalidad`.`id_modalidad`)
             INNER JOIN `tb_area_c` 
@@ -178,12 +181,24 @@ try {
                 , `ctt_estudios_previos`.`id_supervisor`
                 , `tb_terceros`.`nom_tercero`
                 , `tb_terceros`.`nit_tercero`
+                , `ncee`.`descripcion_carg` AS `cargo_supervisor`
             FROM
                 `ctt_estudios_previos`
             INNER JOIN `tb_forma_pago_compras` 
                 ON (`ctt_estudios_previos`.`id_forma_pago` = `tb_forma_pago_compras`.`id_form_pago`)
             LEFT JOIN `tb_terceros` 
                 ON (`ctt_estudios_previos`.`id_supervisor` = `tb_terceros`.`id_tercero_api`)
+            LEFT JOIN `nom_empleado` AS `ne` 
+                ON `tb_terceros`.`nit_tercero` = `ne`.`no_documento`
+            LEFT JOIN `nom_contratos_empleados` AS `nce`
+                ON `nce`.`id_empleado` = `ne`.`id_empleado`
+                AND `nce`.`id_contrato_emp` = (
+                    SELECT MAX(`id_contrato_emp`) 
+                    FROM `nom_contratos_empleados` 
+                    WHERE `id_empleado` = `ne`.`id_empleado`
+                )
+            LEFT JOIN `nom_cargo_empleado` AS `ncee` 
+                ON `nce`.`id_cargo` = `ncee`.`id_cargo`
             WHERE `id_compra` = $id_adqi";
     $rs = $cmd->query($sql);
     $estudio_prev = $rs->fetch(PDO::FETCH_ASSOC);
@@ -215,19 +230,32 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
     $sql = "SELECT
-                `ctt_contratos`.`id_contrato_compra`
-                , `ctt_contratos`.`id_compra`
-                , `ctt_contratos`.`fec_ini`
-                , `ctt_contratos`.`fec_fin`
-                , `tb_forma_pago_compras`.`descripcion`
-                , `ctt_contratos`.`id_supervisor`
-                , `ctt_contratos`.`num_contrato`
-                , `ctt_contratos`.`val_contrato`
-            FROM
-                `ctt_contratos`
-            INNER JOIN `tb_forma_pago_compras` 
-                ON (`ctt_contratos`.`id_forma_pago` = `tb_forma_pago_compras`.`id_form_pago`)
-            WHERE `id_compra` = '$id_adqi'";
+                `ctt`.`id_contrato_compra`,
+                `ctt`.`id_compra`,
+                `ctt`.`fec_ini`,
+                `ctt`.`fec_fin`,
+                `fp`.`descripcion`,
+                `ctt`.`id_supervisor`,
+                `ctt`.`num_contrato`,
+                `ctt`.`val_contrato`,
+                `ncee`.`descripcion_carg` AS `cargo_supervisor`
+            FROM `ctt_contratos` AS `ctt`
+            INNER JOIN `tb_forma_pago_compras` AS `fp` 
+                ON `ctt`.`id_forma_pago` = `fp`.`id_form_pago`
+            INNER JOIN `tb_terceros` AS `tt` 
+                ON `ctt`.`id_supervisor` = `tt`.`id_tercero_api`
+            INNER JOIN `nom_empleado` AS `ne` 
+                ON `tt`.`nit_tercero` = `ne`.`no_documento`
+            INNER JOIN `nom_contratos_empleados` AS `nce`
+                ON `nce`.`id_empleado` = `ne`.`id_empleado`
+                AND `nce`.`id_contrato_emp` = (
+                    SELECT MAX(`id_contrato_emp`) 
+                    FROM `nom_contratos_empleados` 
+                    WHERE `id_empleado` = `ne`.`id_empleado`
+                )
+            INNER JOIN `nom_cargo_empleado` AS `ncee` 
+                ON `nce`.`id_cargo` = `ncee`.`id_cargo`
+            WHERE `ctt`.`id_compra` = '$id_adqi'";
     $rs = $cmd->query($sql);
     $contrato = $rs->fetch();
     $cmd = null;
@@ -260,6 +288,8 @@ try {
 }
 
 $servicio = $id_orden == '' ? $oferta[0]['bien_servicio'] : 'XXXXXXXXX';
+$unspsc = $codigo_servicio['codigo'] ?? 'XXXXXXXXX';
+$nombre = $codigo_servicio['descripcion'] ?? 'XXXXXXXXX';
 $empresa = $compania['nombre'];
 $municipio = $compania['nom_municipio'];
 $n_cdp = $adquisicion['id_manu'] == '' ? 'XXXXXXXXX' : $adquisicion['id_manu'];
@@ -290,6 +320,10 @@ $pago           = Valores::stringToArrayObjects($estudio_prev['forma_pago'], 'pa
 $req_min        = Valores::stringToArrayObjects($estudio_prev['requisitos'], 'req_min');
 $garantia       = Valores::stringToArrayObjects($estudio_prev['garantia'], 'garantia');
 $describ_val    = Valores::stringToArrayObjects($estudio_prev['describe_valor'], 'describ_val');
+//De oferta filtrar todos los bienes y servicios en un array
+$bien_servicio = array_filter($oferta, function ($item) {
+    return ucfirst(mb_strtolower($item['bien_servicio']));
+});
 // Calcular plazo del contrato si existen las fechas
 $plazo              = '';
 $fec_inicia         = '';
@@ -308,46 +342,7 @@ $cod_presupuesto    = $cod_cargue['cod_pptal'] ?? 'XXX';
 $rubro              = $cod_cargue['nom_rubro'] ?? 'XXX';
 $tercero            = $compra['nom_tercero'] ?? 'XXX';
 $cedula_tercero     = $compra['nit_tercero'] ?? 'XXX';
-/*
-$segmento = !empty($codigo_servicio) ? ($codigo_servicio['codigo'] != '' ? substr($codigo_servicio['codigo'], 0, 2) : 'XX') : 'XX';
-$familia = !empty($codigo_servicio) ? ($codigo_servicio['codigo'] != '' ? substr($codigo_servicio['codigo'], 0, 4) : 'XXXX') : 'XXXX';
-$clase = !empty($codigo_servicio) ? ($codigo_servicio['codigo'] != '' ? substr($codigo_servicio['codigo'], 0, 6) : 'XXXXXX') : 'XXXXXX';
-if (!empty($cod_cargue)) {
-    $rubro = $cod_cargue['id_pto_cargue'] . '-' . $cod_cargue['nom_rubro'];
-} else {
-    $rubro = 'XXX';
-    $cod_cargue['id_pto_cargue'] = 'XXX';
-    $cod_cargue['nom_rubro'] = 'XXX';
-}
-$listServ = [];
-if (!empty($oferta)) {
-    foreach ($oferta as $o) {
-        $key = array_search($o['id_bn_sv'], array_column($codigo_servicio, 'id_b_s'));
-        $cdg = $key !== false ? $codigo_servicio[$key]['codigo'] : 'XXX';
-        $listServ[] = [
-            'unspsc' => 'XXX',
-            'nombre' => $o['bien_servicio'],
-            'cantidad' => $o['cantidad'],
-            'val_unid' => pesos($o['val_estimado_unid'])
-        ];
-    }
-} else {
-    $listServ[] = [
-        'unspsc' => 'XXX',
-        'nombre' => 'XXX',
-        'cantidad' => 'XXX',
-        'val_unid' => 'XXX'
-    ];
-}
-*/
-
-// ==================== VARIABLES PARA IMÁGENES ====================
-// Define aquí las rutas de las imágenes que se usarán en los marcadores tipo 3
-// La ruta debe ser relativa desde el DOCUMENT_ROOT (ejemplo: /nuevo/assets/images/firma.png)
-
-// Ejemplo: Variable para el marcador ${firma1}
+$cargo_sup_ep       = $estudio_prev['cargo_supervisor'] ?? 'XXX';
+$cargo_supervisor   = $estudio_prev['cargo_supervisor'] ?? $contrato['cargo_supervisor'] ?? 'XXX';
+$tipo_bn_sv         = ucfirst(mb_strtolower($compra['tipo_bn_sv'])) ?? 'XXX';
 $firma1 = '/nuevo/assets/images/vacio.png';
-
-// Si tienes más firmas, agrégalas aquí:
-// $firma2 = '/nuevo/assets/images/firma2.png';
-// $logo1 = '/nuevo/assets/images/logo.png';

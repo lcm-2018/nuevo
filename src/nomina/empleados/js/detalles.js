@@ -1333,3 +1333,12 @@ function CalcDctoMax() {
     }
 
 }
+
+function InputRiesgoLaboral(div, tipo) {
+    var div = document.getElementById(div);
+    if (tipo == 3) {
+        div.classList.remove('d-none');
+    } else {
+        div.classList.add('d-none');
+    }
+}

@@ -288,66 +288,72 @@ try {
             }
             $valor = 0;
             $id_det = NULL;
+
+            // Buscar el id_det correspondiente
             foreach ($ids_detalle as $detalle) {
                 if ($detalle['id_rubro'] == $rubro && $detalle['id_tercero_api'] == $id_ter_api) {
                     $id_det = $detalle['id_pto_crp_det'];
                     break;
                 }
-                switch ($tipo) {
-                    case 1:
-                        $valor = $dd['valor_laborado'];
-                        break;
-                    case 2:
-                        $valor = $dd['horas_ext'];
-                        break;
-                    case 3:
-                        $valor = $dd['g_representa'];
-                        break;
-                    case 4:
-                        $valor = $dd['val_bon_recrea'];
-                        break;
-                    case 5:
-                        $valor = $dd['val_bsp'];
-                        break;
-                    case 6:
-                        $valor = $dd['aux_tran'];
-                        break;
-                    case 7:
-                        $valor = $dd['aux_alim'];
-                        break;
-                    case 9:
-                        $valor = $dd['val_indemniza'];
-                        break;
-                    case 17:
-                        $valor = $dd['valor_vacacion'];
-                        break;
-                    case 18:
-                        $valor = $dd['val_cesantias'];
-                        break;
-                    case 19:
-                        $valor = $dd['val_icesantias'];
-                        break;
-                    case 20:
-                        $valor = $dd['val_prima_vac'];
-                        break;
-                    case 21:
-                        $valor = $dd['valor_pv'];
-                        break;
-                    case 22:
-                        $valor = $dd['valor_ps'];
-                        break;
-                    case 32:
-                        $valor = $dd['pago_empresa'];
-                        break;
-                    default:
-                        $valor = 0;
-                        break;
-                }
-                if ($valor > 0 && $rubro != '') {
-                    $sql0->execute();
-                    if (!($cmd->lastInsertId() > 0)) {
-                        throw new Exception($sql0->errorInfo()[2]);
-                    }
+            }
+
+            // Calcular el valor según el tipo de rubro
+            switch ($tipo) {
+                case 1:
+                    $valor = $dd['valor_laborado'];
+                    break;
+                case 2:
+                    $valor = $dd['horas_ext'];
+                    break;
+                case 3:
+                    $valor = $dd['g_representa'];
+                    break;
+                case 4:
+                    $valor = $dd['val_bon_recrea'];
+                    break;
+                case 5:
+                    $valor = $dd['val_bsp'];
+                    break;
+                case 6:
+                    $valor = $dd['aux_tran'];
+                    break;
+                case 7:
+                    $valor = $dd['aux_alim'];
+                    break;
+                case 9:
+                    $valor = $dd['val_indemniza'];
+                    break;
+                case 17:
+                    $valor = $dd['valor_vacacion'];
+                    break;
+                case 18:
+                    $valor = $dd['val_cesantias'];
+                    break;
+                case 19:
+                    $valor = $dd['val_icesantias'];
+                    break;
+                case 20:
+                    $valor = $dd['val_prima_vac'];
+                    break;
+                case 21:
+                    $valor = $dd['valor_pv'];
+                    break;
+                case 22:
+                    $valor = $dd['valor_ps'];
+                    break;
+                case 32:
+                    $valor = $dd['pago_empresa'];
+                    break;
+                default:
+                    $valor = 0;
+                    break;
+            }
+
+            // Insertar solo si hay valor y rubro válido
+            if ($valor > 0 && $rubro != '' && $id_det !== NULL) {
+                $sql0->execute();
+                if (!($cmd->lastInsertId() > 0)) {
+                    throw new Exception($sql0->errorInfo()[2]);
                 }
             }
         }
@@ -357,10 +363,10 @@ try {
             return $cuentas_causacion["centro_costo"] == $ccosto;
         });
         foreach ($filtro as $ca) {
+            $valor = 0;
             $credito = 0;
             $tipo = $ca['id_tipo'];
             $cuenta = $ca['cuenta'];
-            $valor = 0;
             switch ($tipo) {
                 case 1:
                     $valor = $dd['valor_laborado'];
@@ -422,8 +428,9 @@ try {
             }
         }
 
+        // Filtrar cuentas pasivas (cuentas cuyo centro de costo tiene es_pasivo = 1)
         $cPasivo = [];
-        $cPasivo = array_filter($cuentas_causacion, function ($cuentas_causacion) use ($ccosto) {
+        $cPasivo = array_filter($cuentas_causacion, function ($cuentas_causacion) {
             return $cuentas_causacion["es_pasivo"] == 1;
         });
         if (($tipo_nomina == 'CE' || $tipo_nomina == 'IC')) {
@@ -438,9 +445,9 @@ try {
                         $credito = $ces['val_cesantias'];
                         $id_ter_api = $ces['id_tercero_api'];
                         if ($credito > 0 && $cuenta != '') {
-                            $query->execute();
+                            $sql1->execute();
                             if (!($cmd->lastInsertId() > 0)) {
-                                throw new Exception($query->errorInfo()[2]);
+                                throw new Exception($sql1->errorInfo()[2]);
                             }
                         }
                     }
@@ -450,9 +457,9 @@ try {
                         $credito = $ces['val_icesantias'];
                         $id_ter_api = $ces['id_tercero_api'];
                         if ($credito > 0 && $cuenta != '') {
-                            $query->execute();
+                            $sql1->execute();
                             if (!($cmd->lastInsertId() > 0)) {
-                                throw new Exception($query->errorInfo()[2]);
+                                throw new Exception($sql1->errorInfo()[2]);
                             }
                         }
                     }
@@ -464,9 +471,9 @@ try {
             $dcto = isset($dctoGp[$dd['id_empleado']]) ? $dctoGp[$dd['id_empleado']] : [];
             foreach ($cPasivo as $cp) {
                 $valor = 0;
+                $credito = 0;
                 $tipo = $cp['id_tipo'];
                 $cuenta = $cp['cuenta'];
-                $credito = 0;
                 switch ($tipo) {
                     case 1:
                         $valSind = $dd['valor_sind'];
@@ -515,6 +522,12 @@ try {
                         break;
                     case 17:
                         $credito = $dd['valor_vacacion'] - $restar;
+                        if ($credito < 0) {
+                            $restar = $credito * -1;
+                            $credito = 0;
+                        } else {
+                            $restar = 0;
+                        }
                         break;
                     case 18:
                         $credito = $dd['val_cesantias'];
@@ -559,6 +572,12 @@ try {
                     case 32:
                         $credito = $dd['pago_empresa'];
                         $credito -= $restar;
+                        if ($credito < 0) {
+                            $restar = $credito * -1;
+                            $credito = 0;
+                        } else {
+                            $restar = 0;
+                        }
                         break;
                     case 33:
                         if (!empty($dcto)) {

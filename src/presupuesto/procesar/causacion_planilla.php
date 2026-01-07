@@ -121,7 +121,6 @@ $Nomina = new Nomina();
 
 $datos = $Detalles->getAporteSocial($id_nomina);
 $nomina = $Nomina->getRegistro($id_nomina);
-
 // Agrupar aportes por cargo y tipo
 $sumas = [];
 foreach ($datos as $row) {
@@ -130,11 +129,10 @@ foreach ($datos as $row) {
 
 $admin = $sumas['admin'] ?? [];
 $oper  = $sumas['oper'] ?? [];
-
 // Obtener relación de rubros
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT `r_admin`, `r_operativo`, `id_tipo` FROM `nom_rel_rubro` WHERE (`id_vigencia` = $id_vigencia)";
+    $sql = "SELECT `r_admin`, `r_operativo`, `id_tipo` FROM `nom_rel_rubro` WHERE (`id_vigencia` = $id_vigencia) ORDER BY `id_tipo` ASC";
     $rs = $cmd->query($sql);
     $rubros = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
@@ -154,40 +152,39 @@ try {
     $ids_eps = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'eps'), 'id'));
     $ids_arl = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'arl'), 'id'));
     $ids_afp = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'afp'), 'id'));
-
     // Obtener terceros API de EPS
     if (!empty($ids_eps)) {
         $placeholders_eps = implode(',', array_fill(0, count($ids_eps), '?'));
-        $sql = "SELECT `id_eps`, `id_tercero_api` FROM `nom_epss` WHERE `id_eps` IN ($placeholders_eps)";
+        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_eps)";
         $stmt = $cmd->prepare($sql);
         $stmt->execute(array_values($ids_eps));
         $eps_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($eps_data as $eps) {
-            $idsTercero['eps'][$eps['id_eps']] = $eps['id_tercero_api'];
+            $idsTercero['eps'][$eps['id_tn']] = $eps['id_tercero_api'];
         }
     }
 
     // Obtener terceros API de ARL
     if (!empty($ids_arl)) {
         $placeholders_arl = implode(',', array_fill(0, count($ids_arl), '?'));
-        $sql = "SELECT `id_arl`, `id_tercero_api` FROM `nom_arl` WHERE `id_arl` IN ($placeholders_arl)";
+        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_arl)";
         $stmt = $cmd->prepare($sql);
         $stmt->execute(array_values($ids_arl));
         $arl_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($arl_data as $arl) {
-            $idsTercero['arl'][$arl['id_arl']] = $arl['id_tercero_api'];
+            $idsTercero['arl'][$arl['id_tn']] = $arl['id_tercero_api'];
         }
     }
 
     // Obtener terceros API de AFP
     if (!empty($ids_afp)) {
         $placeholders_afp = implode(',', array_fill(0, count($ids_afp), '?'));
-        $sql = "SELECT `id_afp`, `id_tercero_api` FROM `nom_afp` WHERE `id_afp` IN ($placeholders_afp)";
+        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_afp)";
         $stmt = $cmd->prepare($sql);
         $stmt->execute(array_values($ids_afp));
         $afp_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($afp_data as $afp) {
-            $idsTercero['afp'][$afp['id_afp']] = $afp['id_tercero_api'];
+            $idsTercero['afp'][$afp['id_tn']] = $afp['id_tercero_api'];
         }
     }
 

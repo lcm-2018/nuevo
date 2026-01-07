@@ -24,6 +24,27 @@ $cmd = Conexion::getConexion();
 $docx = $form . '.docx';
 include 'variables.php';
 
+// Función helper para validar si un valor está vacío
+function esVacioParaFormato($valor): bool
+{
+    if (is_array($valor)) {
+        return empty($valor);
+    }
+    if (is_string($valor)) {
+        return trim($valor) === '';
+    }
+    return false;
+}
+
+// Obtener valor de reemplazo: 'xxxx' si está vacío, o el valor original
+function obtenerValorFormato($valor, $tipo = null)
+{
+    if (esVacioParaFormato($valor)) {
+        return 'xxxx';
+    }
+    return $valor;
+}
+
 $plantilla = new \PhpOffice\PhpWord\TemplateProcessor($docx);
 $marcadores = $plantilla->getVariables();
 
@@ -60,7 +81,15 @@ foreach ($marcadoresAgrupados as $varBase => $ocurrencias) {
             if ($esTabla) {
                 // Es una tabla - clonar filas (solo una vez con el marcador base)
                 if (in_array($varBase, $ocurrencias)) {
-                    $plantilla->cloneRowAndSetValues($varBase, $valor);
+                    // Validar si el array de tabla está vacío
+                    if (esVacioParaFormato($valor)) {
+                        // Array vacío - reemplazar con xxxx
+                        foreach ($ocurrencias as $marcador) {
+                            $plantilla->setValue($marcador, 'xxxx');
+                        }
+                    } else {
+                        $plantilla->cloneRowAndSetValues($varBase, $valor);
+                    }
                 }
             } else {
                 // NO es tabla - convertir array a texto
@@ -111,8 +140,10 @@ foreach ($marcadoresAgrupados as $varBase => $ocurrencias) {
             }
         } else {
             // Es texto simple - REEMPLAZAR EN TODAS LAS OCURRENCIAS
+            // Aplicar validación: si está vacío, usar 'xxxx'
+            $valorFinal = obtenerValorFormato($valor);
             foreach ($ocurrencias as $marcador) {
-                $plantilla->setValue($marcador, $valor);
+                $plantilla->setValue($marcador, $valorFinal);
             }
         }
     }
@@ -134,10 +165,17 @@ foreach ($variables as $v) {
 
         if ($marcadorBase === $var_ && !isset($marcadoresAgrupados[$var_])) {
             if ($tip_ == '1') {
-                $plantilla->setValue($marcador, $$var_);
+                // Validar si el valor está vacío para tipo 1 (texto)
+                $valorTipo1 = obtenerValorFormato($$var_);
+                $plantilla->setValue($marcador, $valorTipo1);
             } else if ($tip_ == '2') {
                 if ($marcador === $var_) {
-                    $plantilla->cloneRowAndSetValues($var_, $$var_);
+                    // Validar si el array está vacío para tipo 2 (tabla)
+                    if (esVacioParaFormato($$var_)) {
+                        $plantilla->setValue($marcador, 'xxxx');
+                    } else {
+                        $plantilla->cloneRowAndSetValues($var_, $$var_);
+                    }
                 }
             } else if ($tip_ == '3') {
                 $docRoot = $_SERVER['DOCUMENT_ROOT'];

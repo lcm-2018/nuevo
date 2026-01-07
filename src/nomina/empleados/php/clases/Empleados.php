@@ -207,7 +207,7 @@ class Empleados
                     (SELECT
                         `id_empleado`
                         , `no_documento`
-                        , CONCAT_WS (' ',`nombre2`,`nombre1`,`apellido1`,`apellido2`) AS `nombre`
+                        , CONCAT_WS (' ',`nombre1`,`nombre2`,`apellido1`,`apellido2`) AS `nombre`
                         , `correo`,`telefono`,`direccion`,`estado`
                         , `nom_municipio`
                         , `nom_departamento` 

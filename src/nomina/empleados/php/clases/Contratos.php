@@ -276,9 +276,9 @@ class Contratos
             $stmt->bindValue(3, $array['datFecFin'] != '' ? $array['datFecFin'] : NULL, PDO::PARAM_STR);
             $stmt->bindValue(4, Sesion::Vigencia(), PDO::PARAM_INT);
             $stmt->bindValue(5, $array['slcCargo'], PDO::PARAM_INT);
-            $stmt->bindValue(5, 1, PDO::PARAM_INT);
-            $stmt->bindValue(6, Sesion::IdUser(), PDO::PARAM_INT);
-            $stmt->bindValue(7, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(6, 1, PDO::PARAM_INT);
+            $stmt->bindValue(7, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(8, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {

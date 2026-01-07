@@ -42,80 +42,122 @@ $id_api_icbf = $kpf !== false ? $parafiscales[$kpf]['id_tercero_api'] : exit('No
 $kpf = array_search('CAJA', array_column($parafiscales, 'tipo'));
 $id_api_comfam = $kpf !== false ? $parafiscales[$kpf]['id_tercero_api'] : exit('No se ha configurado el parafiscal CAJA DE COMPENSACION');
 
-// Obtener datos de nómina
+// Usar las clases para obtener datos
+$Detalles = new Detalles();
 $Nomina = new Nomina();
+
+$datos = $Detalles->getAporteSocial($id_nomina);
 $nomina = $Nomina->getRegistro($id_nomina);
 
-exit('Se debe ajustar');
-// Obtener datos patronales con la query corregida que obtiene tipo_cargo desde el contrato
+// Agrupar aportes por cargo y tipo
+// Para parafiscales: valores simples
+// Para seguridad social (eps, arl, afp): arrays por ID de entidad
+$admin = [];
+$oper = [];
+
+foreach ($datos as $row) {
+    $cargo = $row['cargo']; // 'admin' o 'oper'
+    $tipo = $row['tipo']; // 'eps', 'arl', 'afp', 'sena', 'icbf', 'caja'
+    $id_entidad = $row['id']; // ID de la entidad (EPS, ARL, AFP, etc.)
+    $valor = $row['valor'];
+
+    if ($cargo == 'admin') {
+        if (in_array($tipo, ['eps', 'arl', 'afp'])) {
+            // Para seguridad social, agrupar por ID de entidad
+            $admin[$tipo][$id_entidad] = ($admin[$tipo][$id_entidad] ?? 0) + $valor;
+        } else {
+            // Para parafiscales, sumar directamente
+            $admin[$tipo] = ($admin[$tipo] ?? 0) + $valor;
+        }
+    } else { // 'oper'
+        if (in_array($tipo, ['eps', 'arl', 'afp'])) {
+            // Para seguridad social, agrupar por ID de entidad
+            $oper[$tipo][$id_entidad] = ($oper[$tipo][$id_entidad] ?? 0) + $valor;
+        } else {
+            // Para parafiscales, sumar directamente
+            $oper[$tipo] = ($oper[$tipo] ?? 0) + $valor;
+        }
+    }
+}
+
+// Obtener IDs de terceros API para cada EPS, ARL y AFP
+$idsTercero = [];
+try {
+    $cmd = \Config\Clases\Conexion::getConexion();
+
+    // Extraer IDs únicos de EPS, ARL y AFP de los datos
+    $ids_eps = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'eps'), 'id'));
+    $ids_arl = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'arl'), 'id'));
+    $ids_afp = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'afp'), 'id'));
+
+    // Obtener terceros API de EPS
+    if (!empty($ids_eps)) {
+        $placeholders_eps = implode(',', array_fill(0, count($ids_eps), '?'));
+        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_eps)";
+        $stmt = $cmd->prepare($sql);
+        $stmt->execute(array_values($ids_eps));
+        $eps_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($eps_data as $eps) {
+            $idsTercero['eps'][$eps['id_tn']] = $eps['id_tercero_api'];
+        }
+    }
+
+    // Obtener terceros API de ARL
+    if (!empty($ids_arl)) {
+        $placeholders_arl = implode(',', array_fill(0, count($ids_arl), '?'));
+        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_arl)";
+        $stmt = $cmd->prepare($sql);
+        $stmt->execute(array_values($ids_arl));
+        $arl_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($arl_data as $arl) {
+            $idsTercero['arl'][$arl['id_tn']] = $arl['id_tercero_api'];
+        }
+    }
+
+    // Obtener terceros API de AFP
+    if (!empty($ids_afp)) {
+        $placeholders_afp = implode(',', array_fill(0, count($ids_afp), '?'));
+        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_afp)";
+        $stmt = $cmd->prepare($sql);
+        $stmt->execute(array_values($ids_afp));
+        $afp_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($afp_data as $afp) {
+            $idsTercero['afp'][$afp['id_tn']] = $afp['id_tercero_api'];
+        }
+    }
+
+    $cmd = null;
+} catch (PDOException $e) {
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    exit();
+}
+
+// Obtener centros de costo por empleado y tipo de cargo
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT 
-                `t1`.`id_empleado`
+                `nls`.`id_empleado`
+                , IFNULL(`ncc`.`id_ccosto`, 21) AS `id_ccosto`
                 , `nca`.`tipo_cargo`
-                , `t1`.`id_ccosto`
-                , `t1`.`id_eps`
-                , `t1`.`id_arl`
-                , `t1`.`id_afp`
-                , `t1`.`id_api_eps`
-                , `t1`.`id_api_arl`
-                , `t1`.`id_api_afp`
-                , `t1`.`aporte_salud_emp`
-                , `t1`.`aporte_salud_empresa`
-                , `t1`.`aporte_pension_emp`
-                , `t1`.`aporte_solidaridad_pensional`
-                , `t1`.`aporte_pension_empresa`
-                , `t1`.`aporte_rieslab`
-                , `t2`.`val_sena`
-                , `t2`.`val_icbf`
-                , `t2`.`val_comfam`
+                , `nlse`.`id_eps`
+                , `nlse`.`id_arl`
+                , `nlse`.`id_afp`
             FROM 
-                (SELECT
-                    `nls`.`id_empleado`
-                    , `nls`.`id_contrato`
-                    , `ncc`.`id_ccosto`
-                    , `nlse`.`id_eps`
-                    , `nlse`.`id_arl`
-                    , `nlse`.`id_afp`
-                    , `ne`.`id_tercero_api` AS `id_api_eps`
-                    , `na`.`id_tercero_api` AS `id_api_arl`
-                    , `nf`.`id_tercero_api` AS `id_api_afp`
-                    , `nlse`.`aporte_salud_emp`
-                    , `nlse`.`aporte_salud_empresa`
-                    , `nlse`.`aporte_pension_emp`
-                    , `nlse`.`aporte_solidaridad_pensional`
-                    , `nlse`.`aporte_pension_empresa`
-                    , `nlse`.`aporte_rieslab`
-                FROM
-                    `nom_liq_salario` AS `nls`
-                    INNER JOIN `nom_liq_segsocial_empdo` AS `nlse`
-                        ON (`nlse`.`id_empleado` = `nls`.`id_empleado` AND `nlse`.`id_nomina` = `nls`.`id_nomina` AND `nlse`.`estado` = 1)
-                    INNER JOIN `nom_epss` AS `ne`
-                        ON (`nlse`.`id_eps` = `ne`.`id_eps`)
-                    INNER JOIN `nom_arl` AS `na`
-                        ON (`nlse`.`id_arl` = `na`.`id_arl`)
-                    INNER JOIN `nom_afp` AS `nf`
-                        ON (`nlse`.`id_afp` = `nf`.`id_afp`)
-                    LEFT JOIN `nom_ccosto_empleado` AS `ncc`
-                        ON (`nls`.`id_empleado` = `ncc`.`id_empleado`)
-                WHERE `nls`.`id_nomina` = $id_nomina AND `nls`.`estado` = 1) AS `t1`
-            INNER JOIN `nom_contratos_empleados` AS `nce`
-                ON (`t1`.`id_contrato` = `nce`.`id_contrato_emp`)
-            LEFT JOIN `nom_cargo_empleado` AS `nca`
-                ON (`nce`.`id_cargo` = `nca`.`id_cargo`)
-            LEFT JOIN 
-                (SELECT 
-                    `id_empleado`
-                    , `val_sena`
-                    , `val_icbf`
-                    , `val_comfam`
-                FROM 
-                    `nom_liq_parafiscales`
-                WHERE `id_nomina` = $id_nomina AND `estado` = 1) AS `t2`
-            ON (`t1`.`id_empleado` = `t2`.`id_empleado`)
-            ORDER BY `t1`.`id_ccosto` ASC";
+                `nom_liq_salario` AS `nls`
+                INNER JOIN `nom_contratos_empleados` AS `nce`
+                    ON `nce`.`id_contrato_emp` = `nls`.`id_contrato`
+                INNER JOIN `nom_cargo_empleado` AS `nca`
+                    ON `nca`.`id_cargo` = `nce`.`id_cargo`
+                LEFT JOIN `nom_ccosto_empleado` AS `ncc`
+                    ON `nls`.`id_empleado` = `ncc`.`id_empleado`
+                LEFT JOIN `nom_liq_segsocial_empdo` AS `nlse`
+                    ON `nlse`.`id_empleado` = `nls`.`id_empleado` 
+                    AND `nlse`.`id_nomina` = `nls`.`id_nomina` 
+                    AND `nlse`.`estado` = 1
+            WHERE 
+                `nls`.`id_nomina` = $id_nomina AND `nls`.`estado` = 1";
     $rs = $cmd->query($sql);
-    $patronales = $rs->fetchAll();
+    $empleados_ccosto = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -124,78 +166,39 @@ try {
     exit();
 }
 
-// Agrupar totales por centro de costo
+// Reconstruir totales por centro de costo usando los datos de getAporteSocial()
 $totales = [];
-foreach ($patronales as $p) {
-    $ccosto = $p['id_ccosto'] ?? 21;
-    $id_eps = $p['id_eps'];
-    $id_arl = $p['id_arl'];
-    $id_afp = $p['id_afp'];
-    $val_caja = isset($totales[$ccosto]['caja']) ? $totales[$ccosto]['caja'] : 0;
-    $val_icbf = isset($totales[$ccosto]['icbf']) ? $totales[$ccosto]['icbf'] : 0;
-    $val_sena = isset($totales[$ccosto]['sena']) ? $totales[$ccosto]['sena'] : 0;
-    $totales[$ccosto]['caja'] = ($p['val_comfam'] ?? 0) + $val_caja;
-    $totales[$ccosto]['icbf'] = ($p['val_icbf'] ?? 0) + $val_icbf;
-    $totales[$ccosto]['sena'] = ($p['val_sena'] ?? 0) + $val_sena;
-    $valeps = isset($totales[$ccosto]['eps'][$id_eps]) ? $totales[$ccosto]['eps'][$id_eps] : 0;
-    $valarl = isset($totales[$ccosto]['arl'][$id_arl]) ? $totales[$ccosto]['arl'][$id_arl] : 0;
-    $valafp = isset($totales[$ccosto]['afp'][$id_afp]) ? $totales[$ccosto]['afp'][$id_afp] : 0;
-    $totales[$ccosto]['eps'][$id_eps] = $p['aporte_salud_empresa'] + $valeps;
-    $totales[$ccosto]['arl'][$id_arl] = $p['aporte_rieslab'] + $valarl;
-    $totales[$ccosto]['afp'][$id_afp] = $p['aporte_pension_empresa'] + $valafp;
-}
+foreach ($datos as $row) {
+    // Buscar el centro de costo para este empleado y tipo de aporte
+    foreach ($empleados_ccosto as $emp) {
+        $tipo_cargo_calc = $emp['tipo_cargo'] == 1 ? 'admin' : 'oper';
 
-// Agrupar valores por tipo de cargo
-$valores = [];
-foreach ($patronales as $p) {
-    $tipo = $p['tipo_cargo'] == 1 ? 'administrativo' : 'operativo';
-    $id_eps = $p['id_eps'];
-    $id_arl = $p['id_arl'];
-    $id_afp = $p['id_afp'];
-    $totsena = isset($valores[$tipo]['sena']) ? $valores[$tipo]['sena'] : 0;
-    $toticbf = isset($valores[$tipo]['icbf']) ? $valores[$tipo]['icbf'] : 0;
-    $totcomfam = isset($valores[$tipo]['caja']) ? $valores[$tipo]['caja'] : 0;
-    $valores[$tipo]['sena'] = ($p['val_sena'] ?? 0) + $totsena;
-    $valores[$tipo]['icbf'] = ($p['val_icbf'] ?? 0) + $toticbf;
-    $valores[$tipo]['caja'] = ($p['val_comfam'] ?? 0) + $totcomfam;
-    $valeps = isset($valores[$tipo]['eps'][$id_eps]) ? $valores[$tipo]['eps'][$id_eps] : 0;
-    $valarl = isset($valores[$tipo]['arl'][$id_arl]) ? $valores[$tipo]['arl'][$id_arl] : 0;
-    $valafp = isset($valores[$tipo]['afp'][$id_afp]) ? $valores[$tipo]['afp'][$id_afp] : 0;
-    $valores[$tipo]['eps'][$id_eps] = $p['aporte_salud_empresa'] + $valeps;
-    $valores[$tipo]['arl'][$id_arl] = $p['aporte_rieslab'] + $valarl;
-    $valores[$tipo]['afp'][$id_afp] = $p['aporte_pension_empresa'] + $valafp;
-}
+        // Determinar si este registro corresponde a este empleado
+        $coincide = false;
+        if ($row['tipo'] == 'eps' && $emp['id_eps'] == $row['id'] && $row['cargo'] == $tipo_cargo_calc) {
+            $coincide = true;
+        } elseif ($row['tipo'] == 'arl' && $emp['id_arl'] == $row['id'] && $row['cargo'] == $tipo_cargo_calc) {
+            $coincide = true;
+        } elseif ($row['tipo'] == 'afp' && $emp['id_afp'] == $row['id'] && $row['cargo'] == $tipo_cargo_calc) {
+            $coincide = true;
+        } elseif (in_array($row['tipo'], ['sena', 'icbf', 'caja']) && $row['cargo'] == $tipo_cargo_calc) {
+            $coincide = true;
+        }
 
-$administrativo = isset($valores['administrativo']) ? $valores['administrativo'] : [];
-$operativo = isset($valores['operativo']) ? $valores['operativo'] : [];
+        if ($coincide) {
+            $ccosto = $emp['id_ccosto'];
+            $tipo = $row['tipo'];
 
-// Crear mapas de IDs de terceros API
-$admin = [];
-$oper = [];
-$idsTercero = [];
-foreach ($patronales as $p) {
-    $id_eps = $p['id_eps'];
-    $id_arl = $p['id_arl'];
-    $id_afp = $p['id_afp'];
-    $idsTercero['eps'][$id_eps] = $p['id_api_eps'];
-    $idsTercero['arl'][$id_arl] = $p['id_api_arl'];
-    $idsTercero['afp'][$id_afp] = $p['id_api_afp'];
-
-    // Agrupar por admin/oper para compatibilidad con la lógica existente
-    if ($p['tipo_cargo'] == 1) {
-        $admin['caja'] = ($admin['caja'] ?? 0) + ($p['val_comfam'] ?? 0);
-        $admin['icbf'] = ($admin['icbf'] ?? 0) + ($p['val_icbf'] ?? 0);
-        $admin['sena'] = ($admin['sena'] ?? 0) + ($p['val_sena'] ?? 0);
-        $admin['eps'][$id_eps] = ($admin['eps'][$id_eps] ?? 0) + $p['aporte_salud_empresa'];
-        $admin['arl'][$id_arl] = ($admin['arl'][$id_arl] ?? 0) + $p['aporte_rieslab'];
-        $admin['afp'][$id_afp] = ($admin['afp'][$id_afp] ?? 0) + $p['aporte_pension_empresa'];
-    } else {
-        $oper['caja'] = ($oper['caja'] ?? 0) + ($p['val_comfam'] ?? 0);
-        $oper['icbf'] = ($oper['icbf'] ?? 0) + ($p['val_icbf'] ?? 0);
-        $oper['sena'] = ($oper['sena'] ?? 0) + ($p['val_sena'] ?? 0);
-        $oper['eps'][$id_eps] = ($oper['eps'][$id_eps] ?? 0) + $p['aporte_salud_empresa'];
-        $oper['arl'][$id_arl] = ($oper['arl'][$id_arl] ?? 0) + $p['aporte_rieslab'];
-        $oper['afp'][$id_afp] = ($oper['afp'][$id_afp] ?? 0) + $p['aporte_pension_empresa'];
+            if (in_array($tipo, ['eps', 'arl', 'afp'])) {
+                // Para seguridad social, agrupar por ID de entidad
+                $id_entidad = $row['id'];
+                $totales[$ccosto][$tipo][$id_entidad] = ($totales[$ccosto][$tipo][$id_entidad] ?? 0) + $row['valor'];
+            } else {
+                // Para parafiscales (caja, icbf, sena)
+                $totales[$ccosto][$tipo] = ($totales[$ccosto][$tipo] ?? 0) + $row['valor'];
+            }
+            break; // Ya encontramos el empleado, salir del bucle
+        }
     }
 }
 

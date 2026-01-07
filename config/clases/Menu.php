@@ -201,7 +201,6 @@ class Menu
             </li>
         HTML;
         }
-
         // 3. Retorno del bloque completo de Terceros
         return
             <<<HTML

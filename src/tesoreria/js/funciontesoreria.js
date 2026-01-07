@@ -504,10 +504,9 @@ function CausaCENomina(boton) {
 		cancelButtonText: "NO",
 	}).then((result) => {
 		if (result.isConfirmed) {
-			mostrarOverlay();
 			fetch(ruta, {
 				method: "POST",
-				body: data,
+				body: data.join(','),
 			})
 				.then((response) => response.text())
 				.then((response) => {

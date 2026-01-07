@@ -1675,9 +1675,7 @@ function CofirmaCdpRp(boton) {
         cancelButtonText: "NO",
     }).then((result) => {
         if (result.isConfirmed) {
-            boton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-            boton.disabled = true;
-            boton.value = "";
+            mostrarOverlay();
             fetch(ruta, {
                 method: "POST",
                 body: data,
@@ -1685,16 +1683,12 @@ function CofirmaCdpRp(boton) {
                 .then((response) => response.text())
                 .then((response) => {
                     if (response == "ok") {
-                        boton.innerHTML = '<span class="fas fa-thumbs-up "></span>';
                         cant.value = valor - 1;
                         document.getElementById("nCant").innerHTML = valor - 1;
                         $('#tableEjecPresupuesto').DataTable().ajax.reload(null, false);
                         $("#divModalForms").modal("hide");
                         mje("Registro exitoso");
                     } else {
-                        boton.innerHTML = '<span class="fas fa-check-square "></span>';
-                        boton.disabled = false;
-                        boton.value = val;
                         function mjeError(titulo, mensaje) {
                             Swal.fire({
                                 title: titulo,
@@ -1704,6 +1698,8 @@ function CofirmaCdpRp(boton) {
                         }
                         mjeError('', response);
                     }
+                }).finally(() => {
+                    ocultarOverlay();
                 });
         }
     });

@@ -14,7 +14,6 @@ function pesos($valor)
     return '$' . number_format($valor, 2);
 }
 include '../../../config/autoloader.php';
-include '../../terceros.php';
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
@@ -35,6 +34,8 @@ try {
                 , IFNULL(`t1`.`valor`,0) AS `val_crp` 
                 , IFNULL(`t2`.`valor`,0) AS `val_cop`
                 , IFNULL(`t3`.`valor_liberado`,0) AS `val_crp_liberado`
+                , `taux`.`nom_tercero`
+                , `taux`.`nit_tercero`
                 
             FROM 
                 (SELECT
@@ -50,6 +51,8 @@ try {
                     , `pto_cdp_detalle`.`id_rubro`
                     , `pto_cargue`.`cod_pptal` AS `rubro`
                     , `pto_cargue`.`nom_rubro`
+                    , `tb_terceros`.`nom_tercero`
+                    , `tb_terceros`.`nit_tercero`
                 FROM
                     `pto_cdp_detalle`
                     INNER JOIN `pto_cdp` 
@@ -60,6 +63,8 @@ try {
                         ON (`pto_crp_detalle`.`id_pto_crp` = `pto_crp`.`id_pto_crp`)
                     INNER JOIN `pto_cargue` 
                         ON (`pto_cdp_detalle`.`id_rubro` = `pto_cargue`.`id_cargue`)
+                    LEFT JOIN `tb_terceros`
+                        ON (`pto_crp_detalle`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
                 WHERE (`pto_crp`.`fecha` BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_crp`.`estado` = 2)) AS `taux`
                 LEFT JOIN
                         (SELECT
@@ -118,18 +123,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$terceros = [];
-if (!empty($causaciones)) {
-    $id_t = [];
-    foreach ($causaciones as $ca) {
-        if ($ca['id_tercero_api'] != '') {
-            $id_t[] = $ca['id_tercero_api'];
-        }
-    }
 
-    $ids = implode(',', $id_t);
-    $terceros = getTerceros($ids, $cmd);
-}
 $nom_informe = "RELACION DE REGISTROS PRESUPUESTALES";
 include_once '../../financiero/encabezado_empresa.php';
 ?>
@@ -155,9 +149,8 @@ include_once '../../financiero/encabezado_empresa.php';
     <tbody>
         <?php
         foreach ($causaciones as $rp) {
-            $key = array_search($rp['id_tercero_api'], array_column($terceros, 'id_tercero_api'));
-            $tercero = $key !== false ? ltrim($terceros[$key]['nom_tercero']) : '---';
-            $ccnit = $key !== false ? number_format($terceros[$key]['nit_tercero'], 0, "", ".") : '---';
+            $tercero = $rp['nom_tercero'];
+            $ccnit = number_format($rp['nit_tercero'], 0, "", ".");
 
             $fec_cdp = date('Y-m-d', strtotime($rp['fec_cdp']));
             $fec_rp = date('Y-m-d', strtotime($rp['fec_rp']));

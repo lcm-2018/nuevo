@@ -45,7 +45,7 @@ if (!empty($obj)) {
         }
         $datos[] = array(
             'id' => $id,
-            'codigo' => $o['id_codigo'],
+            'codigo' => $o['codigo'],
             'cargo' => $o['descripcion_carg'],
             'grado' => $o['grado'],
             'perfil' => $o['perfil_siho'],

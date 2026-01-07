@@ -30,7 +30,9 @@ try {
                     ON (`fin_respon_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
                 INNER JOIN `fin_tipo_control` 
                     ON (`fin_respon_doc`.`tipo_control` = `fin_tipo_control`.`id_tipo`)
-            WHERE (`fin_maestro_doc`.`id_modulo` = $id_modulo AND `fin_maestro_doc`.`id_doc_fte` = $doc_fte 
+                INNER JOIN `ctb_fuente`
+                    ON (`fin_maestro_doc`.`id_doc_fte` = `ctb_fuente`.`id_doc_fuente`)
+            WHERE (`fin_maestro_doc`.`id_modulo` = $id_modulo AND `ctb_fuente`.`cod` = '$doc_fte' 
                 AND `fin_respon_doc`.`fecha_fin` >= '$fecha' 
                 AND `fin_respon_doc`.`fecha_ini` <= '$fecha'
                 AND `fin_respon_doc`.`estado` = 1

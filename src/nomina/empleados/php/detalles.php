@@ -93,7 +93,7 @@ $content = <<<HTML
             <div class="accordion-item">
                 <h2 class="accordion-header sombra">
                     <button class="accordion-button sombra collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divContratos" aria-expanded="false" aria-controls="divContratos">
-                        <span class="text-success"><i class="fas fa-file-signature me-2 fa-lg"></i>VIÑETA. Contratos.</span>
+                        <span class="text-success"><i class="fas fa-file-signature me-2 fa-lg"></i>VIÑETA. Vinculación laboral.</span>
                     </button>
                 </h2>
                 <div id="divContratos" class="accordion-collapse collapse">

@@ -127,8 +127,6 @@ try {
     $listappto = $rs->fetchAll();
     $rs->closeCursor();
     unset($rs);
-    $rs->closeCursor();
-    unset($rs);
     // contar el total de registros
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

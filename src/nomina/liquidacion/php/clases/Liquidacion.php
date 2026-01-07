@@ -1552,7 +1552,7 @@ class Liquidacion
 
         // Cálculo ARL
         [$idArl, $porcentajeArl] = explode('|', $novedad[3]);
-        $riesgos = $ibc * ($porcentajeArl);
+        $riesgos = Valores::Redondear($ibc * $porcentajeArl, 100);
 
         // Datos a guardar
         $data = [

@@ -85,7 +85,7 @@ try {
 }
 $fecha = date('Y-m-d', strtotime($cdp['fecha']));
 $id_modulo = 54;
-$doc_fte = 21;
+$doc_fte = 'CDP';
 include '../../financiero/encabezado_imp.php';
 try {
     $sql = "SELECT

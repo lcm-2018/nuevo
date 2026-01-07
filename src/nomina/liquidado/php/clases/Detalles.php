@@ -293,13 +293,18 @@ class Detalles
                         ELSE 1
                     END AS `id`,
                     SUM(CASE `tipo_valor`.`tipo`
-                            WHEN 1 THEN `nlse`.`aporte_salud_emp` + `nlse`.`aporte_salud_empresa`
-                            WHEN 2 THEN `nlse`.`aporte_pension_emp` + `nlse`.`aporte_pension_empresa` + `nlse`.`aporte_solidaridad_pensional`
+                            WHEN 1 THEN `nlse`.`aporte_salud_empresa`
+                            WHEN 2 THEN `nlse`.`aporte_pension_empresa`
                             WHEN 3 THEN `nlse`.`aporte_rieslab`
                             WHEN 4 THEN `nlp`.`val_sena`
                             WHEN 5 THEN `nlp`.`val_icbf`
                             WHEN 6 THEN `nlp`.`val_comfam`
-                        END) AS `valor`
+                        END) AS `valor`,
+                    SUM(CASE `tipo_valor`.`tipo`
+                            WHEN 1 THEN `nlse`.`aporte_salud_emp`
+                            WHEN 2 THEN `nlse`.`aporte_pension_emp` + IFNULL(`nlse`.`aporte_solidaridad_pensional`, 0)
+                            ELSE 0
+                        END) AS `valor_emp`
                 FROM 
                     `nom_liq_salario` AS `nls`
                     INNER JOIN `nom_contratos_empleados` AS `nce`

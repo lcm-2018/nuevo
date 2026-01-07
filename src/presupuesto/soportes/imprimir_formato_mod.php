@@ -100,7 +100,7 @@ try {
 $enletras = numeroLetras($total);
 $fecha = date('Y-m-d', strtotime($cdp['fecha']));
 $id_modulo = 54;
-$doc_fte = 23;
+$doc_fte = 'MOD';
 include '../../financiero/encabezado_imp.php';
 ?>
 <div class="text-end py-3">
