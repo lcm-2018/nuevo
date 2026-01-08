@@ -136,7 +136,12 @@ if (!empty($id_t)) {
                     $estado = '<a href="javascript:void(0);" data-id="' . $idT . '" title="Inactivo"><span class="fas fa-toggle-off fa-lg estado inactivo text-secondary" value="' . $idT . '"></span></a>';
                 }
             } else {
-                $estado = $terceros[$key]['estado'];
+                $estado = $terceros[$key]['estado'] ?? '';
+                $editar = null;
+                $borrar = null;
+                $addresponsabilidad = null;
+                $addactividad = null;
+                $histtecero = null;
             }
             if ($permisos->PermisosUsuario($opciones, 5201, 4) || $id_rol == 1) {
                 $borrar = '<button value="' . $idT . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 borrar" title="Eliminar"><span class="fas fa-trash-alt"></span></button>';

@@ -34,6 +34,9 @@ class Menu
      */
     public function render()
     {
+        //$dash = $this->getMenuDashboard();
+        $dash = '';
+
         return <<<HTML
         <div style="background-color: #eafaf1;" class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar">
             <div class="offcanvas-header text-white" style="background: linear-gradient(135deg, #1a659d 0%, #16a085 100%) !important; border-bottom: 5px solid #16a085 !important;">
@@ -51,7 +54,7 @@ class Menu
                     {$this->getMenuAlmacen()}
                     {$this->getMenuActivosFijos()}
                     {$this->getMenuFinanciero()}
-                    {$this->getMenuDashboard()}
+                    {$dash}
                 </ul>
             </div>
         </div>

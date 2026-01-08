@@ -21,6 +21,9 @@ $vigencia = $_SESSION['vigencia'];
 $id_vigencia = $_SESSION['id_vigencia'];
 $id_cop_add = $_POST['id_cop_add'] ?? 0;
 $id_tipo = $_POST['id_tipo'];
+$ini = $vigencia . '-01-01';
+$fin = $vigencia . '-12-31';
+
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -49,7 +52,7 @@ try {
                     , `ctb_doc`.`id_manu` AS `causacion`
                     , `pto_crp`.`id_manu` AS `registro`
                     , `ctb_doc`.`id_tercero`
-                    , `ctb_doc`.`fecha`
+                    , DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') AS `fecha`
                     , `pto_cop_detalle`.`valor`
                     , IFNULL(`pto_pag_detalle`.`valor_pago`,0) AS `valor_pagado`
                     , `ctt_contratos`.`num_contrato`
@@ -79,7 +82,7 @@ try {
                 WHERE `ctb_doc`.`id_crp` IS NOT NULL) AS `t1`
                 LEFT JOIN `tb_terceros` 
                     ON (`t1`.`id_tercero` = `tb_terceros`.`id_tercero_api`) 
-            WHERE  `valor` > `valor_pagado`
+            WHERE  `valor` > `valor_pagado` AND `t1`.`fecha` BETWEEN '$ini' AND '$fin'
             GROUP BY `id_ctb_doc`";
     } else {
         $sql = "SELECT 

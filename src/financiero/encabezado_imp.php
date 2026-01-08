@@ -26,12 +26,12 @@ try {
                 `fin_respon_doc`
                 INNER JOIN `fin_maestro_doc` 
                     ON (`fin_respon_doc`.`id_maestro_doc` = `fin_maestro_doc`.`id_maestro`)
-                INNER JOIN `tb_terceros` 
-                    ON (`fin_respon_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
                 INNER JOIN `fin_tipo_control` 
                     ON (`fin_respon_doc`.`tipo_control` = `fin_tipo_control`.`id_tipo`)
                 INNER JOIN `ctb_fuente`
                     ON (`fin_maestro_doc`.`id_doc_fte` = `ctb_fuente`.`id_doc_fuente`)
+                LEFT JOIN `tb_terceros` 
+                    ON (`fin_respon_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
             WHERE (`fin_maestro_doc`.`id_modulo` = $id_modulo AND `ctb_fuente`.`cod` = '$doc_fte' 
                 AND `fin_respon_doc`.`fecha_fin` >= '$fecha' 
                 AND `fin_respon_doc`.`fecha_ini` <= '$fecha'
@@ -156,3 +156,77 @@ $html = <<<HTML
     </tr>
 </table>
 HTML;
+
+
+$headtb = $nom_respon != '' ?
+    '<tr style="text-align:left">
+    <td style="width:33%">
+        <strong>Elaboró:</strong>
+    </td>
+    <td style="width:33%">
+        <strong>Revisó:</strong>
+    </td>
+    <td style="width:34%">
+        <strong>Aprobó:</strong>
+    </td>
+</tr>' : '';
+$bordes = $nom_respon != '' ? 'table-bordered' : '';
+$lineas =  $nom_respon == '' ? '<div>_______________________</div>' : '';
+
+// Variables para la primera columna (Elaboró)
+$elaboro_nombre = isset($cdp['usuario_act']) && trim($cdp['usuario_act']) != '' ? $cdp['usuario_act'] : (isset($cdp['usuario']) ? $cdp['usuario'] : '');
+$elaboro_cargo = isset($cdp['cargo']) ? $cdp['cargo'] : '';
+$key_prepara = array_search('1', array_column($responsables, 'tipo_control'));
+$prepara_nombre = $key_prepara !== false ? $responsables[$key_prepara]['nom_tercero'] : '';
+$prepara_cargo = $key_prepara !== false ? $responsables[$key_prepara]['cargo'] : '';
+$elaboro_cargo =  $prepara_cargo != '' ? $prepara_cargo : $elaboro_cargo;
+$elaboro_nombre =  $prepara_cargo != '' ? $prepara_nombre : $elaboro_nombre;
+
+// Variables para la segunda columna (Revisó - tipo_control 2)
+$key_reviso = array_search('2', array_column($responsables, 'tipo_control'));
+$reviso_nombre = $key_reviso !== false ? $responsables[$key_reviso]['nom_tercero'] : '';
+$reviso_cargo = $key_reviso !== false ? $responsables[$key_reviso]['cargo'] : '';
+
+// Variables para la tercera columna (Aprobó - tipo_control 3)
+$key_aprobo = array_search('3', array_column($responsables, 'tipo_control'));
+$aprobo_nombre = $key_aprobo !== false ? $responsables[$key_aprobo]['nom_tercero'] : '';
+$aprobo_cargo = $key_aprobo !== false ? $responsables[$key_aprobo]['cargo'] : '';
+
+$table =
+    <<<HTML
+<table class="{$bordes} bg-light" style="width:100% !important;font-size: 10px;">
+    {$headtb}
+    <tr style="text-align:center">
+        <td>
+            <br><br>
+            {$lineas}
+            <div>{$elaboro_nombre}</div>
+            <div>{$elaboro_cargo}</div>
+        </td>
+        <td>
+            <br><br>
+            {$lineas}
+            <div>{$reviso_nombre}</div>
+            <div>{$reviso_cargo}</div>
+        </td>
+        <td>
+            <br><br>
+            {$lineas}
+            <div>{$aprobo_nombre}</div>
+            <div>{$aprobo_cargo}</div>
+        </td>
+    </tr>
+</table>
+HTML;
+
+$firmas =
+    <<<HTML
+        <div style="text-align: center; padding-top: 60px; font-size: 13px;">
+            <div>___________________________________</div>
+            <div>{$nom_respon}</div>
+            <div>{$cargo_respon}</div>
+        </div>
+        <div style="text-align: center; padding-top: 25px;">
+            {$table}
+        </div>
+    HTML;

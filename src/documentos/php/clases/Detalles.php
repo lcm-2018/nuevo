@@ -45,7 +45,7 @@ class Detalles
                     , `frd`.`fecha_fin`
                 FROM
                     `fin_respon_doc` AS `frd`
-                    INNER JOIN `tb_terceros` AS `tt` 
+                    LEFT JOIN `tb_terceros` AS `tt` 
                         ON (`frd`.`id_tercero` = `tt`.`id_tercero_api`)
                 WHERE (`frd`.`id_respon_doc` = $id)";
         $stmt = $this->conexion->prepare($sql);
@@ -80,10 +80,10 @@ class Detalles
                     , `frd`.`estado`
                 FROM
                     `fin_respon_doc` AS `frd`
-                    INNER JOIN `tb_terceros` AS `tt` 
-                        ON (`frd`.`id_tercero` = `tt`.`id_tercero_api`)
                     INNER JOIN `fin_tipo_control` AS `ftc`
                         ON (`frd`.`tipo_control` = `ftc`.`id_tipo`)
+                    LEFT JOIN `tb_terceros` AS `tt` 
+                        ON (`frd`.`id_tercero` = `tt`.`id_tercero_api`)
                 WHERE (`frd`.`id_maestro_doc` = ?)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
@@ -240,6 +240,7 @@ class Detalles
      */
     public function addRegistro($array)
     {
+        $array['id_tercero'] = $array['id_tercero'] > 0 ? $array['id_tercero'] : NULL;
         try {
             $sql = "INSERT INTO `fin_respon_doc`
                         (`id_maestro_doc`,`id_tercero`,`cargo`,`tipo_control`,`fecha_ini`,`fecha_fin`,`id_user_reg`,`fec_reg`)
@@ -298,6 +299,7 @@ class Detalles
      */
     public function editRegistro($array)
     {
+        $array['id_tercero'] = $array['id_tercero'] > 0 ? $array['id_tercero'] : NULL;
         try {
             $sql = "UPDATE `fin_respon_doc`
                         SET `id_tercero` = ?, `cargo` = ?, `tipo_control` = ?, `fecha_ini` = ?, `fecha_fin` = ?

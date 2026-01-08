@@ -1121,6 +1121,32 @@ const EnviarNomina = (boton) => {
 			console.log("Error:");
 		});
 };
+
+document.addEventListener("keyup", (e) => {
+	if (e.target.id == "codigoCta") {
+		$("#codigoCta").autocomplete({
+			source: function (request, response) {
+				$.ajax({
+					url: "datos/consultar/consultaPgcp.php",
+					type: "post",
+					dataType: "json",
+					data: {
+						search: request.term,
+					},
+					success: function (data) {
+						response(data);
+					},
+				});
+			},
+			select: function (event, ui) {
+				$("#codigoCta").val(ui.item.label);
+				$("#id_codigoCta").val(ui.item.id);
+				$("#tipoDato").val(ui.item.tipo_dato);
+				return false;
+			},
+		});
+	}
+});
 // Funcion para agregar o editar registros contables en el libro auxiliar
 function GestMvtoDetallePag(elemento) {
 	$('.is-invalid').removeClass('is-invalid');
