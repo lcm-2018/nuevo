@@ -555,7 +555,7 @@ class Menu
             </a>
         </li>
         <li>
-            <a href="{$this->host}/src/tesoreria/lista_chequeras_gen.php.php" class="nav-link text-info px-1 py-2 sombra">
+            <a href="{$this->host}/src/tesoreria/lista_chequeras_gen.php" class="nav-link text-info px-1 py-2 sombra">
                 <i class="fas fa-money-check-dollar me-2 fa-fw"></i> Chequeras
             </a>
         </li>

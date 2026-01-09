@@ -131,7 +131,7 @@ $content =
     <<<HTML
     <div class="card w-100">
         <div class="card-header bg-sofia text-white">
-            <button class="btn btn-sm me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
+            <button class="btn btn-sm me-1 p-0 volverListaCdps" title="Regresar"><i class="fas fa-arrow-left fa-lg"></i></button>
             <b>DETALLE CERTIFICADO DE DISPONIBILIDAD PRESUPUESTAL</b>
         </div>
         <div id="accordionCtt" class="card-body p-2 bg-wiev">
@@ -197,7 +197,7 @@ $content =
             </form>
             <div class="text-center pt-4">
                 {$imprimir}
-                <a type="button" id="volverListaCdps" class="btn btn-danger btn-sm" style="width: 5rem;" href="#"> VOLVER</a>
+                <a type="button" id="volverListaCdps" class="btn btn-danger btn-sm volverListaCdps" style="width: 5rem;" href="#"> VOLVER</a>
             </div>
         </div>
     </div>

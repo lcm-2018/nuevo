@@ -25,7 +25,7 @@ $peReg = $permisos->PermisosUsuario($opciones, 5506, 2) || $id_rol == 1 ? 1 : 0;
 $content = <<<HTML
 <div class="card w-100">
     <div class="card-header bg-sofia text-white">
-        <i class="fas fa-file-invoice fa-lg me-2"></i>
+        <a class="btn btn-sm me-1 p-0" title="Regresar" href="{$host}/src/inicio.php"><i class="fas fa-arrow-left fa-lg"></i></a>
         <b>LISTA DE IMPUESTOS</b>
     </div>
     <div class="card-body p-2 bg-wiev">

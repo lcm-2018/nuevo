@@ -201,7 +201,7 @@ $host = Plantilla::getHost();
 $content = <<<HTML
 <div class="card w-100">
     <div class="card-header bg-sofia text-white">
-        <button class="btn btn-sm me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
+        <a class="btn btn-sm me-1 p-0" title="Regresar" href="conciliacion_bancaria.php"><i class="fas fa-arrow-left fa-lg"></i></a>
         <b>DETALLES CONCILIACIÓN BANCARIA</b>
     </div>
     <div class="card-body p-2 bg-wiev">
@@ -293,7 +293,7 @@ $content .= <<<HTML
             <button type="button" class="btn btn-primary btn-sm" onclick="ImpConcBanc({$id});" style="width: 5rem;">
                 <span class="fas fa-print"></span>
             </button>
-            <a class="btn btn-danger btn-sm" style="width: 7rem;" href="{$host}/src/tesoreria/conciliacion_bancaria.php">Terminar</a>
+            <a class="btn btn-danger btn-sm" style="width: 7rem;" href="conciliacion_bancaria.php">Terminar</a>
         </div>
     </div>
 </div>

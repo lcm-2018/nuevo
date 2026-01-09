@@ -23,7 +23,7 @@ $content = <<<HTML
 
 <div class="card w-100">
     <div class="card-header bg-sofia text-white">
-        <button class="btn btn-xs me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left"></i></button>
+        <a class="btn btn-xs me-1 p-0" title="Regresar" href="{$host}/src/inicio.php" fff><i class="fas fa-arrow-left"></i></a>
         <b>Reportes Personalizados</b>
     </div>
     <div class="card-body p-2 bg-wiev" id="divCuerpoPag">
