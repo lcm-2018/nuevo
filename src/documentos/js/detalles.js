@@ -6,10 +6,6 @@ document.getElementById('modalForms').addEventListener('click', function (event)
             case 'btnGuardaDetallesDoc':
                 if (ValueInput('slcTipoControl') === '0') {
                     MuestraError('slcTipoControl', 'Seleccione un tipo de control');
-                } else if (ValueInput('buscaTercero') === '') {
-                    MuestraError('buscaTercero', 'Seleccione un responsable');
-                } else if (ValueInput('id_tercero') === '0') {
-                    MuestraError('buscaTercero', 'Seleccione un responsable');
                 } else if (ValueInput('txtCargo') === '') {
                     MuestraError('txtCargo', 'Ingrese un cargo válido');
                 } else if (ValueInput('datFechaIni') === '') {
@@ -20,6 +16,7 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                     mostrarOverlay();
                     var data = Serializa('formDetallesDoc');
                     data.append('action', data.get('detalle') == '0' ? 'add' : 'edit');
+                    data.append('id_tercero', ValueInput('buscaTercero') == '' ? 0 : ValueInput('buscaTercero'));
                     SendPost('../php/controladores/detalles.php', data).then((response) => {
                         if (response.status === 'ok') {
                             mje('Guardado correctamente!');

@@ -221,55 +221,7 @@ include '../../financiero/encabezado_imp.php';
 
                                 </table>
                             </div>
-                            <div style="text-align: center; padding-top: 60px;">
-                                <div>___________________________________</div>
-                                <div><?= $nom_respon; ?> </div>
-                                <div><?= $cargo_respon; ?> </div>
-                            </div>
-                            <div style="text-align: center; padding-top: 30px;">
-                                <?php
-                                if ($control) {
-                                ?>
-                                    <table class="table-bordered bg-light" style="width:100% !important;font-size: 10px;">
-                                        <tr style="text-align:left">
-                                            <td style="width:33%">
-                                                <strong>Elaboró:</strong>
-                                            </td>
-                                            <td style="width:33%">
-                                                <strong>Revisó:</strong>
-                                            </td>
-                                            <td style="width:33%">
-                                                <strong>Aprobó:</strong>
-                                            </td>
-                                        </tr>
-                                        <tr style="text-align:center">
-                                            <td>
-                                                <?= trim($cdp['usuario_act']) == '' ? $crp['usuario'] : $crp['usuario_act'] ?>
-                                            </td>
-                                            <td>
-                                                <br><br>
-                                                <?php
-                                                $key = array_search('2', array_column($responsables, 'tipo_control'));
-                                                $nombre = $key !== false ? $responsables[$key]['nom_tercero'] : '';
-                                                $cargo = $key !== false ? $responsables[$key]['cargo'] : '';
-                                                echo $nombre . '<br> ' . $cargo;
-                                                ?>
-                                            </td>
-                                            <td>
-                                                <br><br>
-                                                <?php
-                                                $key = array_search('3', array_column($responsables, 'tipo_control'));
-                                                $nombre = $key !== false ? $responsables[$key]['nom_tercero'] : '';
-                                                $cargo = $key !== false ? $responsables[$key]['cargo'] : '';
-                                                echo $nombre . '<br> ' . $cargo;
-                                                ?>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                <?php
-                                }
-                                ?>
-                            </div>
+                            <?= $firmas ?>
                         </div>
                     </td>
                 </tr>

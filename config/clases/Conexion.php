@@ -11,8 +11,13 @@ class Conexion
     private $conexion;
 
     private $bd_driver = "mysql";
+<<<<<<< HEAD
     private $bd_servidor = "localhost";
     private $bd_base = "bd_ipsipiales";
+=======
+    private $bd_servidor = "localhost:3308";
+    private $bd_base = "az";
+>>>>>>> 405e1bd6a6383ce519a89137b5eae235266994e1
     private $bd_usuario = "root";
     private $bd_clave = "12345";
     private $charset = "charset=utf8";
@@ -39,7 +44,7 @@ class Conexion
 
     public static function Api()
     {
-        return "http://200.7.102.155/api_terceros/";
+        return "https://200.7.107.59/api_terceros/";
     }
 
     public function __destruct()

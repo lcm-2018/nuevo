@@ -184,7 +184,7 @@ HTML;
     HTML;
         $plantilla = $pl == 1 ? $this->plantilla1 : $this->plantilla2;
         $modalDefault = self::getModal('modalDefault', 'tamDefault', 'bodyDefault');
-        $script_user = $id_rol == 1 ? '<script src="' . $host . '/src/common/js/users.js"></script><script src="' . $host . '/src/usuarios/login/js/sha.js"></script><script src="' . $host . '/src/usuarios/general/js/cierre.js"></script>' : '';
+        $script_user = $id_rol == 1 ? '</script><script src="' . $host . '/src/usuarios/general/js/cierre.js"></script>' : '';
 
         $this->baseHtml =
             <<<HTML
@@ -221,8 +221,11 @@ HTML;
                     <script src="{$host}/src/common/js/common.js"></script>
                     <script src="{$host}/src/common/js/idioma.js"></script>
                     {$script_user}
+                    <script src="{$host}/src/common/js/users.js"></script>
+                    <script src="{$host}/src/usuarios/login/js/sha.js"></script>
                     <script src="{$host}/assets/js/jquery.js"></script>
                     <script src="{$host}/assets/js/bootstrap.bundle.min.js"></script>
+                    <script src="{$host}/assets/js/pinned-menu.js"></script>
                     <script src="{$host}/assets/js/dataTables.js"></script>
                     <script src="{$host}/assets/js/dataTables.bootstrap5.min.js"></script>
                     <script src="{$host}/assets/js/dataTables.buttons.js"></script>

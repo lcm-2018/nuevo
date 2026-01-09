@@ -183,14 +183,12 @@ $tam = $id_ctb_doc == '14' ? 4 : 6;
                             <label for="ref_mov" class="small">CONCEPTO</label>
                             <select name="ref_mov" id="ref_mov" class="form-select form-select-sm bg-input" required>
                                 <option value="0">--Seleccione--</option>
-                                <?php foreach ($referencia as $rf) {
-                                    if ($datos['id_ref_ctb'] == $rf['id_ctb_referencia']) {
-                                        echo '<option value="' . $rf['id_ctb_referencia'] . '" selected>' . $rf['nombre'] . '</option>';
-                                    } else {
-                                        echo '<option value="' . $rf['id_ctb_referencia'] . '">' . $rf['nombre'] . '</option>';
-                                    }
+                                <?php
+                                foreach ($referencia as $rf) {
+                                    $slc = $rf['id_ctb_referencia'] == $datos['id_ref_ctb'] ? 'selected' : '';
+                                    echo '<option value="' . $rf['id_ctb_referencia'] . '" ' . $slc . '>' . $rf['nombre'] . '</option>';
+                                }
                                 ?>
-                                <?php } ?>
                             </select>
                         </div>
                         <div class="col-md-6">

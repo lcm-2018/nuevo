@@ -720,3 +720,192 @@ body>.modal-backdrop:nth-child(n+1) {
         font-size: 1.4rem;
     }
 }
+
+/* ==================================================
+   SISTEMA DE MENÚ FIJO/ANCLADO (PINNED MENU)
+   ================================================== */
+
+/* Estado base del offcanvas en modo anclado */
+.menu-pinned #offcanvasNavbar {
+    transform: translateX(0) !important;
+    visibility: visible !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 280px !important;
+    z-index: 1051 !important;
+    /* Por encima del navbar para que se vea completo */
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Quitar el backdrop cuando está anclado */
+.menu-pinned .offcanvas-backdrop {
+    display: none !important;
+}
+
+/* Header del offcanvas - estado por defecto (degradado) */
+#offcanvasNavbar .offcanvas-header {
+    background: linear-gradient(135deg, #1a659d 0%, #16a085 100%);
+}
+
+/* Header del offcanvas cuando está anclado */
+.menu-pinned #offcanvasNavbar .offcanvas-header {
+    height: 55px !important;
+    min-height: 55px !important;
+    max-height: 55px !important;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    border-bottom: 5px solid #16a085 !important;
+    box-sizing: border-box;
+    background: #196f99 !important;
+    border: #0d6efd;
+    /* Color sólido cuando está anclado */
+}
+
+/* Ajustar el contenido principal cuando el menú está anclado */
+.menu-pinned .page-wrapper {
+    margin-left: 280px !important;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+/* Ajustar la barra de navegación - comienza después del menú */
+.menu-pinned .navbar.fixed-top {
+    left: 280px !important;
+    width: calc(100% - 280px) !important;
+    transition: left 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+/* Ocultar el botón hamburguesa cuando está anclado */
+.menu-pinned .navbar-toggler[data-bs-target="#offcanvasNavbar"] {
+    display: none !important;
+}
+
+/* Estilo del botón de anclar */
+#btnPinMenu {
+    transition: all 0.3s ease;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#btnPinMenu:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+/* Rotación del icono cuando está anclado */
+.menu-pinned #iconPinMenu {
+    transform: rotate(45deg);
+    color: #ffc107 !important;
+}
+
+#iconPinMenu {
+    transition: transform 0.3s ease, color 0.3s ease;
+    font-size: 0.9rem;
+}
+
+/* Estado activo del botón pin cuando está anclado */
+.menu-pinned #btnPinMenu {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+    border-color: #ffc107 !important;
+}
+
+/* Ocultar botón cerrar cuando está anclado (opcional) */
+.menu-pinned #btnCloseMenu {
+    display: none !important;
+}
+
+/* Ajustar altura del header del offcanvas cuando está anclado */
+.menu-pinned #offcanvasNavbar .offcanvas-header {
+    padding: 0.75rem 1rem;
+}
+
+/* Transición suave para el contenido */
+.page-wrapper {
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.navbar.fixed-top {
+    transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+/* En móviles, siempre usar el comportamiento flotante */
+@media (max-width: 991.98px) {
+    .menu-pinned #offcanvasNavbar {
+        position: fixed !important;
+        top: 0 !important;
+        transform: translateX(-100%) !important;
+        width: 100% !important;
+        max-width: 320px !important;
+    }
+
+    .menu-pinned #offcanvasNavbar.show {
+        transform: translateX(0) !important;
+    }
+
+    .menu-pinned .page-wrapper {
+        margin-left: 0 !important;
+    }
+
+    .menu-pinned .navbar.fixed-top {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    .menu-pinned .navbar-toggler[data-bs-target="#offcanvasNavbar"] {
+        display: block !important;
+    }
+
+    .menu-pinned #btnCloseMenu {
+        display: block !important;
+    }
+
+    /* Ocultar botón pin en móviles */
+    #btnPinMenu {
+        display: none !important;
+    }
+}
+
+/* Mostrar botón pin solo en pantallas grandes */
+@media (min-width: 992px) {
+    #btnPinMenu {
+        display: flex !important;
+    }
+}
+
+/* Animación suave cuando se muestra/oculta el offcanvas */
+#offcanvasNavbar {
+    transition: transform 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+/* Scrollbar estilizado para el menú */
+#offcanvasNavbar .offcanvas-body {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #16a085 #eafaf1;
+}
+
+#offcanvasNavbar .offcanvas-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+#offcanvasNavbar .offcanvas-body::-webkit-scrollbar-track {
+    background: #eafaf1;
+    border-radius: 3px;
+}
+
+#offcanvasNavbar .offcanvas-body::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #1a659d, #16a085);
+    border-radius: 3px;
+}
+
+#offcanvasNavbar .offcanvas-body::-webkit-scrollbar-thumb:hover {
+    background: #16a085;
+}

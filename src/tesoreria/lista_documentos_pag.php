@@ -456,6 +456,7 @@ $content = <<<HTML
                 </div>
                 <div class="col-md-10">
                     <select name="ref_mov" id="ref_mov" class="form-select form-select-sm bg-input" readonly>
+                        <option value="0">---</option>
                         {$optionsReferencia}
                     </select>
                 </div>

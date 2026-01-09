@@ -182,6 +182,7 @@ try {
                 <input type="hidden" name="id_doc" value="<?php echo $id_doc ?>">
                 <?php
                 $band = true;
+                $contar = count($listado);
                 foreach ($listado as $l) {
                     $max = $l['valor_crp'] - $l['valor_cop'];
                     $key = array_search($l['id_pto_crp_det'], array_column($detalles, 'id_pto_crp_det'));
@@ -190,6 +191,7 @@ try {
                     $id_detalle = $id_detalle . '-' . $l['id_tercero_api'];
                     $value = $key !== false ? $detalles[$key]['valor'] : $max;
                     $max = $key !== false ? $max + $detalles[$key]['valor'] : $max;
+                    $val_sugerido = $contar == 1 ? $val_sugerido : $max;
                 ?>
                     <div class="row mb-2">
                         <div class="col-md-1">
@@ -220,7 +222,7 @@ try {
                             <?php if ($band) { ?>
                                 <span for="valor" class="small">Valor CxP</span>
                             <?php } ?>
-                            <input type="text" name="valor[<?php echo $id_detalle ?>]" id="valor" onkeyup="NumberMiles(this)" class="form-control form-control-sm bg-input text-end ValImputacion" min="0" max="<?php echo $max ?>" value="<?php echo number_format($max, 2) ?>">
+                            <input type="text" name="valor[<?php echo $id_detalle ?>]" id="valor" onkeyup="NumberMiles(this)" class="form-control form-control-sm bg-input text-end ValImputacion" min="0" max="<?php echo $max ?>" value="<?php echo number_format($val_sugerido, 2) ?>">
                         </div>
                     </div>
                 <?php
