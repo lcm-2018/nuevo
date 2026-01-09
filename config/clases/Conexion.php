@@ -12,7 +12,7 @@ class Conexion
 
     private $bd_driver = "mysql";
     private $bd_servidor = "localhost:3308";
-    private $bd_base = "cronhis";
+    private $bd_base = "az";
     private $bd_usuario = "root";
     private $bd_clave = "12345";
     private $charset = "charset=utf8";
@@ -39,7 +39,7 @@ class Conexion
 
     public static function Api()
     {
-        return "http://200.7.102.155/api_terceros/";
+        return "https://200.7.107.59/api_terceros/";
     }
 
     public function __destruct()

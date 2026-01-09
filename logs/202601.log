@@ -10,3 +10,6 @@
 [2026-01-07 15:01:37] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_doc` WHERE `id_ctb_doc` = 145290;
 [2026-01-07 15:25:13] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_doc` WHERE `id_ctb_doc` = 145291;
 [2026-01-07 15:25:17] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `ctb_doc` WHERE `id_ctb_doc` = 145292;
+[2026-01-08 17:14:39] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM ctb_causa_retencion WHERE id_causa_retencion = 9874;
+[2026-01-08 17:14:45] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM ctb_causa_costos WHERE id = 3252;
+[2026-01-08 17:19:57] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM ctb_doc WHERE id_ctb_doc = 230108;

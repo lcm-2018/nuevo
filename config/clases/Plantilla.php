@@ -225,6 +225,7 @@ HTML;
                     <script src="{$host}/src/usuarios/login/js/sha.js"></script>
                     <script src="{$host}/assets/js/jquery.js"></script>
                     <script src="{$host}/assets/js/bootstrap.bundle.min.js"></script>
+                    <script src="{$host}/assets/js/pinned-menu.js"></script>
                     <script src="{$host}/assets/js/dataTables.js"></script>
                     <script src="{$host}/assets/js/dataTables.bootstrap5.min.js"></script>
                     <script src="{$host}/assets/js/dataTables.buttons.js"></script>

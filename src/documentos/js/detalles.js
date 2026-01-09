@@ -16,6 +16,7 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                     mostrarOverlay();
                     var data = Serializa('formDetallesDoc');
                     data.append('action', data.get('detalle') == '0' ? 'add' : 'edit');
+                    data.append('id_tercero', ValueInput('buscaTercero') == '' ? 0 : ValueInput('buscaTercero'));
                     SendPost('../php/controladores/detalles.php', data).then((response) => {
                         if (response.status === 'ok') {
                             mje('Guardado correctamente!');

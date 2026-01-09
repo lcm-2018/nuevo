@@ -1473,7 +1473,7 @@ var DetalleImputacionCtasPorPagar = function (boton) {
 				if (r.status == 'ok') {
 					mje('Proceso realizado correctamente');
 					ImputacionCtasPorPagar($('#id_ctb_doc').val());
-					$('#valImputacion').html(r.acumulado);
+					$('#valImputacion').val(r.acumulado);
 				} else {
 					mjeError('Error: ' + r.msg);
 				}
@@ -1660,7 +1660,7 @@ var guardarCostos = function (boton) {
 				if (r.status == 'ok') {
 					mje('Proceso realizado correctamente');
 					CentroCostoCtasPorPagar($('#id_ctb_doc').val(), 0);
-					$('#valCentroCosto').html(r.acumulado);
+					$('#valCentroCosto').val(r.acumulado);
 				} else {
 					mjeError('Error:', r.msg);
 				}
@@ -1751,7 +1751,7 @@ const eliminarCentroCosto = (dato) => {
 					if (response[0].value == "ok") {
 						mje("Registro eliminado exitosamente");
 						CentroCostoCtasPorPagar($('#id_ctb_doc').val(), 0);
-						$('#valCentroCosto').html(response[0].acumulado);
+						$('#valCentroCosto').val(response[0].acumulado);
 					} else {
 						mjeError("Error al eliminar");
 					}
@@ -2038,7 +2038,7 @@ function enviaRetenciones() {
 			if (r.status == 'ok') {
 				mje('Proceso realizado correctamente');
 				DesctosCtasPorPagar($('#id_ctb_doc').val(), $('#factura_des').val());
-				$('#valDescuentos').html(r.acumulado);
+				$('#valDescuentos').val(r.acumulado);
 			} else {
 				mjeError('Error:', r.msg);
 			}
@@ -2159,7 +2159,7 @@ const eliminarRetencion = (id) => {
 			if (response[0].value == "ok") {
 				mje("Registro eliminado");
 				DesctosCtasPorPagar($('#id_ctb_doc').val(), $('#factura_des').val());
-				$('#valDescuentos').html(response[0].acumulado);
+				$('#valDescuentos').val(response[0].acumulado);
 			} else {
 				mjeError("Error al eliminar");
 			}
@@ -2307,7 +2307,7 @@ const ProcesaFacturas = (boton) => {
 					} else {
 						FacturarCtasPorPagar(id);
 					}
-					$('#valFactura').html(response.acumulado);
+					$('#valFactura').val(response.acumulado);
 					mje("Registro guardado");
 				} else {
 					mjeError("Error: " + response.msg);
@@ -2414,7 +2414,7 @@ const eliminarFactura = (boton) => {
 						} else {
 							FacturarCtasPorPagar(response.id);
 						}
-						$('#valFactura').html(response.acumulado);
+						$('#valFactura').val(response.acumulado);
 					} else {
 						mjeError("Error: " + response.msg);
 					}
