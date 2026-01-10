@@ -90,9 +90,6 @@ $meses = [
 ?>
 <script>
     $('#tableContrtacionCdp').DataTable({
-        dom: "<'row'<'col-md-2'l><'col-md-10'f>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         language: dataTable_es,
         "order": [
             [0, "desc"]
@@ -107,7 +104,7 @@ $meses = [
         </div>
         <div class="pb-3"></div>
         <div class="px-3">
-            <table id="tableContrtacionCdp" class="table table-striped table-bordered  table-sm table-hover shadow" style="width: 100%;">
+            <table id="tableContrtacionCdp" class="table table-striped table-bordered table-sm table-hover shadow w-100 align-middle">
                 <thead>
                     <tr>
                         <th class="bg-sofia">ID</th>
@@ -138,7 +135,7 @@ $meses = [
                             <td class="text-start"><?= $ce['id_nomina'] ?></td>
                             <td class="text-start"><?= $ce['descripcion'] . ' - ' . $meses[$mesu] . ' DE ' . $ce['vigencia'] . $patronal ?></td>
                             <td class="text-end">$ <?= number_format($total, 2, ',', '.') ?></td>
-                            <td class="text-center"><input type="date" class="form-control form-control-sm bg-input" name="fec_doc[]" value="<?= date('Y-m-d') ?>"></td>
+                            <td class="text-center p-0"><input type="date" class="form-control form-control-sm bg-input border-0" name="fec_doc[]" value="<?= date('Y-m-d') ?>"></td>
                             <td class="text-center"> <?= $editar ?></td>
                         </tr>
                     <?php

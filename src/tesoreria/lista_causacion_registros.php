@@ -79,7 +79,7 @@ try {
         </div>
         <div class="pb-3"></div>
         <div class="px-3">
-            <table id="tableContrtacionRp" class="table table-striped table-bordered nowrap table-sm table-hover shadow" style="width: 100%;">
+            <table id="tableContrtacionRp" class="table table-striped table-bordered nowrap table-sm table-hover shadow w-100 align-middle">
                 <thead>
                     <tr>
                         <th class="bg-sofia">ID</th>
@@ -102,7 +102,7 @@ try {
                             <tr>
                                 <td class="text-center"><?= $id_nomina ?></td>
                                 <td class="text-start"><?= $nm['descripcion'] . ' ' . $pl . ', NÓMINA No. ' . $nm['id_nomina'] . ' DE ' . $vigencia ?></td>
-                                <td class="text-start"><?= '<input type="date" name="fec_doc[]" class="form-control form-control-sm bg-input" value="' . $nm['fecha'] . '" min="' . $nm['fecha'] . '" max="' . $vigencia . '-12-31">' ?></td>
+                                <td class="text-start p-0"><input type="date" name="fec_doc[]" class="form-control form-control-sm bg-input border-0" value="' . $nm['fecha'] . '" min="' . $nm['fecha'] . '" max="' . $vigencia . '-12-31"></td>
                                 <td class="text-start"><?= $nm['nom_tercero'] ?></td>
                                 <td class="text-start text-end"><?= '$ ' . number_format($nm['valor'], 2, ',', '.') ?></td>
                                 <td class="text-center"> <?= $causar ?></td>
