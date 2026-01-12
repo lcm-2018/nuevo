@@ -67,7 +67,6 @@
             ],
         });
 
-
         $('#tb_articulos').wrap('<div class="overflow"/>');
     });
 
@@ -323,7 +322,7 @@
     /* ---------------------------------------------------
     LOTES
     -----------------------------------------------------*/
-    $('#divForms').on("click", "#chk_lotes_con_exi", function () {
+    $('#divForms').on("click", ".filtro_lotes", function () {
         $('#tb_articulos_lotes').DataTable().ajax.reload(null, false);
     });
 

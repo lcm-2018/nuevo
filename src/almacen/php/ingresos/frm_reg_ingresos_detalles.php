@@ -39,6 +39,7 @@ if (empty($obj)) {
         $obj[$name] = NULL;
     endfor;
     $obj['iva'] = 0;
+    $obj['id_presentacion'] = 0;
     $obj['id_med'] = $id_articulo;
     $obj['nom_articulo'] = $articulo;
     $obj['id_lote'] = $id_lote;
@@ -58,7 +59,7 @@ if (empty($obj)) {
             <form id="frm_reg_ingresos_detalles">
                 <input type="hidden" id="id_detalle" name="id_detalle" value="<?php echo $id ?>">
                 <div class=" row">
-                    <div class="col-md-8">
+                    <div class="col-md-7">
                         <label for="txt_nom_art" class="small">Articulo</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_art" class="small" value="<?php echo $obj['nom_articulo'] ?>" readonly="readonly">
                         <input type="hidden" id="id_txt_nom_art" name="id_txt_nom_art" value="<?php echo $obj['id_med'] ?>">

@@ -135,7 +135,7 @@ $id_bodega = isset($_POST['id_bodega']) && $_POST['id_bodega'] ? $_POST['id_bode
         }
     });
 
-    $('.filtro_ped').mouseup(function(e) {
+    $('.filtro_ped').click(function(e) {
         $('#tb_pedidos_ing').DataTable().ajax.reload(null, false);
     });
 </script>

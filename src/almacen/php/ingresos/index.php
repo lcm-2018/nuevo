@@ -159,4 +159,6 @@ $modal = $plantilla->getModal('divModalImp', 'divTamModalImp', 'divImp');
 $plantilla->addModal($modal);
 $modal = $plantilla->getModal('divModalBus', 'divTamModalBus', 'divFormsBus');
 $plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalAux', 'divTamModalAux', 'divFormsAux');
+$plantilla->addModal($modal);
 echo $plantilla->render();

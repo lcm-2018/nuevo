@@ -158,7 +158,7 @@ $fecha_sis = date('Y-m-d');
         }
     });
 
-    $('.filtro_ped').mouseup(function(e) {
+    $('.filtro_ped').click(function(e) {
         $('#tb_pedidos_tra').DataTable().ajax.reload(null, false);
     });
 </script>

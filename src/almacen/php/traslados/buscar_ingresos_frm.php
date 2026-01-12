@@ -152,7 +152,7 @@ $fecha_sis = date('Y-m-d');
         }
     });
 
-    $('.filtro_ing').mouseup(function(e) {
+    $('.filtro_ing').click(function(e) {
         $('#tb_ingresos_tra').DataTable().ajax.reload(null, false);
     });
 </script>

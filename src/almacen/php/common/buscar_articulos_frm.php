@@ -165,7 +165,7 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
         }
     });
 
-    $('.filtro_art').mouseup(function(e) {
+    $('.filtro_art').click(function(e) {
         $('#tb_articulos_bodega').DataTable().ajax.reload(null, false);
     });
 

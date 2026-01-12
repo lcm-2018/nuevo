@@ -80,6 +80,7 @@
                 dataType: 'json',
                 data: function (data) {
                     data.id_articulo = $('#id_articulo').val();
+                    data.est_activo = $('#chk_lotes_activos').is(':checked') ? 1 : 0;
                     data.con_existencia = $('#chk_lotes_con_exi').is(':checked') ? 1 : 0;
                 }
             },

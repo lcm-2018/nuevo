@@ -383,13 +383,14 @@
             data: data + "&oper=add" + '&generar_traslado=' + generar_traslado
         }).done(function (r) {
             if (r.mensaje == 'ok') {
+                $('#id_traslado').val(r.id);
+                $('#txt_ide').val(r.id);
+
                 $('#tb_traslados').DataTable().ajax.reload(null, false);
                 if (generar_traslado == 1 || generar_traslado == 2) {
                     $('#tb_traslados_detalles').DataTable().ajax.reload(null, false);
                     $('#txt_val_tot').val(r.val_total);
                 }
-                $('#id_traslado').val(r.id);
-                $('#txt_ide').val(r.id);
 
                 $('#btn_cerrar').prop('disabled', false);
                 $('#btn_imprimir').prop('disabled', false);

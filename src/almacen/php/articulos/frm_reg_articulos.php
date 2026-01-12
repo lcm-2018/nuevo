@@ -163,7 +163,9 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                             </thead>
                             <tbody class="text-start"></tbody>
                         </table>
-                        <label class="block text-start"><input type="checkbox" id="chk_lotes_con_exi" />&nbsp;Listar solo Lotes con Existencia </label>
+                        <label class="block text-start filtro_lotes"><input type="checkbox" id="chk_lotes_activos" checked="checked"/>&nbsp;Lotes Activos </label>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <label class="block text-start filtro_lotes"><input type="checkbox" id="chk_lotes_con_exi" />&nbsp;Lotes con Existencia </label>
                     </div>
                 </div>
             </div>

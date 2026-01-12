@@ -55,7 +55,7 @@ try {
                     if ($id_tipo_ing2 == $id_tipo_ing && ($orden_compra == 0 || ($orden_compra == 1 && $id_pedido2 == $id_pedido))) {
                         $id = $_POST['id_detalle'];
                         $id_lote = $_POST['sl_lote_art'];
-                        $id_pre_lot = $_POST['id_txt_pre_lot'];
+                        $id_pre_lot = $_POST['id_txt_pre_lot'] ? $_POST['id_txt_pre_lot'] : 0;
                         $cant_umpl = $_POST['txt_can_lot'];
                         $cantidad = $_POST['txt_can_ing'] ? $_POST['txt_can_ing'] : 1;
                         $vr_unidad = $_POST['txt_val_uni'] ? $_POST['txt_val_uni'] : 0;

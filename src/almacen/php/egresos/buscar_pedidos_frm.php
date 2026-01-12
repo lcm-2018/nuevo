@@ -162,7 +162,7 @@ $cmd = \Config\Clases\Conexion::getConexion();
         }
     });
 
-    $('.filtro_ped').mouseup(function(e) {
+    $('.filtro_ped').click(function(e) {
         $('#tb_pedidos_egr').DataTable().ajax.reload(null, false);
     });
 </script>

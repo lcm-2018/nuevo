@@ -391,8 +391,6 @@
         }
     });
 
-
-
     function guardar_egreso(generar_egreso) {
         var data = $('#frm_reg_orden_egreso').serialize();
         $.ajax({
@@ -402,14 +400,14 @@
             data: data + "&oper=add" + '&generar_egreso=' + generar_egreso
         }).done(function (r) {
             if (r.mensaje == 'ok') {
-                $('#tb_egresos').DataTable().ajax.reload(null, false);
+                $('#id_egreso').val(r.id);
+                $('#txt_ide').val(r.id);
 
+                $('#tb_egresos').DataTable().ajax.reload(null, false);
                 if (generar_egreso == 1 || generar_egreso == 2) {
                     $('#tb_egresos_detalles').DataTable().ajax.reload(null, false);
                     $('#txt_val_tot').val(r.val_total);
                 }
-                $('#id_egreso').val(r.id);
-                $('#txt_ide').val(r.id);
 
                 $('#btn_cerrar').prop('disabled', false);
                 $('#btn_imprimir').prop('disabled', false);

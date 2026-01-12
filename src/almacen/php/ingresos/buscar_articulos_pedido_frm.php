@@ -145,7 +145,7 @@ $id_pedido = isset($_POST['id_pedido']) && $_POST['id_pedido'] ? $_POST['id_pedi
         }
     });
 
-    $('.filtro_art').mouseup(function(e) {
+    $('.filtro_art').click(function(e) {
         $('#tb_articulos_pedido').DataTable().ajax.reload(null, false);
     });
 </script>

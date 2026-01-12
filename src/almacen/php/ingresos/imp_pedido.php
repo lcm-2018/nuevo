@@ -27,8 +27,8 @@ try {
     $obj_e = $rs->fetch();
 
     $sql = "SELECT far_medicamentos.cod_medicamento,far_medicamentos.nom_medicamento,
-            far_alm_pedido_detalle.cantidad,far_alm_pedido_detalle.valor,
-            (far_alm_pedido_detalle.cantidad*far_alm_pedido_detalle.valor) AS val_total,
+            far_alm_pedido_detalle.aprobado,far_alm_pedido_detalle.valor,
+            (far_alm_pedido_detalle.aprobado*far_alm_pedido_detalle.valor) AS val_total,
             IFNULL(INGRESO.cantidad,0) AS cantidad_in,
             IFNULL(INGRESO.valor,0) AS val_total_in
         FROM far_alm_pedido_detalle
@@ -118,7 +118,7 @@ try {
             <tr style="background-color:#CED3D3; color:#000000; text-align:center">
                 <th>Código</th>
                 <th>Descripción</th>
-                <th>Cantidad</th>
+                <th>Cantidad Aprobada</th>
                 <th>Valor Promedio</th>
                 <th>Valor Total</th>
                 <th>Cantidad Ingresada</th>
@@ -134,12 +134,12 @@ try {
                 $tabla .=  '<tr class="resaltar"> 
                         <td>' . $obj['cod_medicamento'] . '</td>
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_medicamento']) . '</td>   
-                        <td>' . $obj['cantidad'] . '</td>
+                        <td>' . $obj['aprobado'] . '</td>
                         <td>' . formato_valor($obj['valor']) . '</td>   
                         <td>' . formato_valor($obj['val_total']) . '</td>
                         <td>' . $obj['cantidad_in'] . '</td>
                         <td>' . formato_valor($obj['val_total_in']) . '</td>                        
-                        <td>' . ($obj['cantidad'] - $obj['cantidad_in']) . '</td></tr>';
+                        <td>' . ($obj['aprobado'] - $obj['cantidad_in']) . '</td></tr>';
                 $val_total_in += $obj['val_total_in'];
             }
             echo $tabla;

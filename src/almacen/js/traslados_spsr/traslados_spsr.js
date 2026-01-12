@@ -10,7 +10,6 @@
     $(document).ready(function () {
         //Tabla de Registros
         $('#tb_traslados').DataTable({
-
             dom: setdom,
             buttons: $('#peReg').val() == 1 ? [{
                 text: '<span class="fa-solid fa-plus "></span>',
@@ -92,7 +91,6 @@
                 [10, 25, 50, 'TODO'],
             ],
         });
-
 
         $('#tb_traslados').wrap('<div class="overflow"/>');
     });
@@ -349,8 +347,6 @@
         }
     });
 
-
-
     function guardar_traslado(generar_traslado) {
         var data = $('#frm_reg_traslados').serialize();
         $.ajax({
@@ -360,13 +356,14 @@
             data: data + "&oper=add" + '&generar_traslado=' + generar_traslado
         }).done(function (r) {
             if (r.mensaje == 'ok') {
+                $('#id_traslado').val(r.id);
+                $('#txt_ide').val(r.id);
+
                 $('#tb_traslados').DataTable().ajax.reload(null, false);
                 if (generar_traslado == 1 || generar_traslado == 2) {
                     $('#tb_traslados_detalles').DataTable().ajax.reload(null, false);
                     $('#txt_val_tot').val(r.val_total);
                 }
-                $('#id_traslado').val(r.id);
-                $('#txt_ide').val(r.id);
 
                 $('#btn_cerrar').prop('disabled', false);
                 $('#btn_imprimir').prop('disabled', false);

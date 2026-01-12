@@ -183,7 +183,7 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
         }
     });
 
-    $('.filtro_lot').mouseup(function(e) {
+    $('.filtro_lot').click(function(e) {
         $('#tb_lotes_articulos').DataTable().ajax.reload(null, false);
     });
 

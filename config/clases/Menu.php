@@ -680,7 +680,7 @@ class Menu
                 <<<HTML
                     <li>
                         <a href="javascript:void(0)" class="nav-link text-danger px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5099">
-                            <i class="fas fa-cogs me-2 fa-fw"></i> Personalizados
+                            <i class="fas fa-cogs me-2 fa-fw"></i> Inf.Personalizados
                         </a>
                     </li>
                 HTML;

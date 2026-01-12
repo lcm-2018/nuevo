@@ -124,7 +124,7 @@ $id_subgrupo = isset($_POST['id_subgrupo']) ? $_POST['id_subgrupo'] : 0;
         });
     })(jQuery);
 
-    //Buascar registros de articulos de Articulos
+    //Buscar registros de articulos de Articulos
     $('#btn_buscar_articulo_fil').on("click", function() {
         $('#tb_articulos_activos').DataTable().ajax.reload(null, false);
     });
@@ -135,8 +135,8 @@ $id_subgrupo = isset($_POST['id_subgrupo']) ? $_POST['id_subgrupo'] : 0;
         }
     });
 
-    $('.filtro_art').mouseup(function(e) {
-        $('#tb_articulos_activos').DataTable().ajax.reload(null, false);
+    $('.filtro_art').click(function(e) {
+        $('#tb_articulos_activos').DataTable().ajax.reload(null, false);        
     });
 
     $('#sl_subgrupo_art_fil').on("change", function() {
