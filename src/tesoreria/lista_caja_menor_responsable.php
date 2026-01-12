@@ -76,9 +76,6 @@ if (empty($detalle)) {
 ?>
 <script>
     $('#tableResponsableCaja').DataTable({
-        dom: "<'row'<'col-md-2'l><'col-md-10'f>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         language: dataTable_es,
         "order": [
             [0, "desc"]
@@ -100,7 +97,7 @@ if (empty($detalle)) {
                 <div class="row mb-2">
                     <div class="col-md-6">
                         <label for="tercerocrp" class="small">RESPONSABLE</label>
-                        <input type="text" id="tercerocrp" class="form-control form-control-sm bg-input" value="<?php echo $nombre ?>" required>
+                        <input type="text" id="tercerocrp" class="form-control form-control-sm bg-input" value="<?php echo $detalle['nom_tercero']; ?>" required>
                         <input type="hidden" name="id_tercero" id="id_tercero" value="<?php echo $detalle['id_terceros_api']; ?>">
                     </div>
                     <div class="col-md-3">
@@ -116,11 +113,11 @@ if (empty($detalle)) {
             <table id="tableResponsableCaja" class="table table-striped table-bordered table-sm table-hover shadow" style="width: 100%">
                 <thead>
                     <tr>
-                        <th>Responsable</th>
-                        <th>Fecha inicial</th>
-                        <th>Fecha final</th>
-                        <th>Estado</th>
-                        <th>Acciones </th>
+                        <th class="bg-sofia">Responsable</th>
+                        <th class="bg-sofia">Fecha inicial</th>
+                        <th class="bg-sofia">Fecha final</th>
+                        <th class="bg-sofia">Estado</th>
+                        <th class="bg-sofia">Acciones </th>
                     </tr>
                 </thead>
                 <tbody>

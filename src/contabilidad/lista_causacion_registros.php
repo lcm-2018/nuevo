@@ -202,9 +202,6 @@ if ($id_r == 3) {
 ?>
 <script>
     $('#tableContrtacionRp').DataTable({
-        dom: "<'row'<'col-md-2'l><'col-md-10'f>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         language: dataTable_es,
         "order": [
             [0, "desc"]
@@ -222,7 +219,7 @@ if ($id_r == 3) {
             <h5 class="mb-0" style="color: white;">LISTA DE REGISTROS PRESUPUESTALES PARA OBLIGACION </h5>
         </div>
         <div class="p-3">
-            <table id="tableContrtacionRp" class="table table-striped table-bordered nowrap table-sm table-hover shadow" style="width: 100%;">
+            <table id="tableContrtacionRp" class="table table-striped table-bordered nowrap table-sm table-hover shadow w-100 align-middle">
                 <thead>
                     <tr>
                         <th class="bg-sofia">Num</th>
@@ -286,12 +283,12 @@ if ($id_r == 3) {
                     ?>
                                     <tr>
                                         <td class="text-center"><input type="checkbox" value="" id="defaultCheck1"></td>
-                                        <td class="text-start"><?php echo $ce['id_manu']; ?></td>
-                                        <td class="text-start"><?php echo $numeroc  ?></td>
-                                        <td class="text-start"><?php echo $fecha; ?></td>
-                                        <td class="text-start"><?php echo $tercero; ?></td>
-                                        <td class="text-end"> <?php echo  $saldo_rp; ?></td>
-                                        <td class="text-center"> <?php echo $editar .  $acciones; ?></td>
+                                        <td class="text-start"><?= $ce['id_manu']; ?></td>
+                                        <td class="text-start"><?= $numeroc  ?></td>
+                                        <td class="text-start"><?= $fecha; ?></td>
+                                        <td class="text-start"><?= $tercero; ?></td>
+                                        <td class="text-end"> <?= $saldo_rp; ?></td>
+                                        <td class="text-center"> <?= $editar .  $acciones; ?></td>
                                     </tr>
                                 <?php
                                 }
@@ -307,12 +304,12 @@ if ($id_r == 3) {
                                     $causar = '<button value="' . $id_nomina . '" onclick="CausaNomina(this)" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-plus-square "></span></button>';
                                 ?>
                                     <tr>
-                                        <td class="text-center"><?php echo $nominas[$key]['id_nomina'] ?></td>
+                                        <td class="text-center"><?= $nominas[$key]['id_nomina'] ?></td>
                                         <?= $_SESSION['pto'] == '1' ? '<td class="text-start">' . $vl['id_manu'] . '</td><td class="text-start">-</td>' : ''; ?>
-                                        <td class="text-start"><?php echo '<input type="date" class="form-control form-control-sm bg-input" name="fec_doc[]" value="' . date('Y-m-d', strtotime($vl['fecha'])) . '" min="' . date('Y-m-d', strtotime($vl['fecha'])) . '" max="' . $_SESSION['vigencia'] . '-12-31">'; ?></td>
-                                        <td class="text-start"><?php echo $vl['objeto']; ?></td>
+                                        <td class="text-start"><?= '<input type="date" class="form-control form-control-sm bg-input" name="fec_doc[]" value="' . date('Y-m-d', strtotime($vl['fecha'])) . '" min="' . date('Y-m-d', strtotime($vl['fecha'])) . '" max="' . $_SESSION['vigencia'] . '-12-31">'; ?></td>
+                                        <td class="text-start"><?= $vl['objeto']; ?></td>
                                         <?= $_SESSION['pto'] == '1' ? '<td class="text-end">' . pesos($vl['valor']) . '</td>' : ''; ?>
-                                        <td class="text-center"> <?php echo $causar ?></td>
+                                        <td class="text-center"> <?= $causar ?></td>
                                     </tr>
                     <?php
                                 } else {

@@ -9,6 +9,7 @@ include_once '../../../config/autoloader.php';
 use Config\Clases\Plantilla;
 use Src\Common\Php\Clases\Combos;
 use Src\Common\Php\Clases\Permisos;
+use Src\Terceros\Php\Clases\Api_SecopII;
 
 $host = Plantilla::getHost();
 $numeral = 1;
@@ -262,6 +263,13 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
+$urlProceso = '';
+if (isset($contrato['id_secop'])) {
+    $SecopII = new Api_SecopII();
+    $urlProceso = $SecopII->consultarContratoPorId(trim($contrato['id_secop']), "urlproceso");
+    $urlProceso = isset($urlProceso['url']) ? $urlProceso['url'] : '';
+}
+
 $id_orden = $adquisicion['id_orden'] == '' ? '' : '<input type="hidden" name="id_orden" id="id_orden" value="' . $adquisicion['id_orden'] . '">';
 
 // destinación de contrato
@@ -527,10 +535,12 @@ if ($id_estudio == '') {
 if ($adquisicion['estado'] == 9) {
     $pos3 = isset($posicion[3]) ? $posicion[3] : 0;
     $pos11 = isset($posicion[11]) ? $posicion[11] : 0;
+    $secop = $urlProceso != '' ? '<a href="' . $urlProceso . '" target="_blank" class="btn btn-link btn-sm">Ver en SECOP II</a>' : '';
     $btn_ds =
         <<<HTML
             <a type="button" text="{$pos11}" class="btn btn-warning btn-sm downloadFormsCtt" style="color:white">FORMATO DESIGNACIÓN DE SUPERVISIÓN&nbsp&nbsp;<span class="fas fa-file-download fa-lg"></span></a>
             <a type="button" text="{$pos3}" class="btn btn-success btn-sm downloadFormsCtt" id="btnFormatoContrato" style="color:white">FORMATO CONTRATO&nbsp&nbsp;<span class="fas fa-file-download fa-lg"></span></a>
+            {$secop}
         HTML;
 }
 //CRP
@@ -635,7 +645,7 @@ $content =
     <<<HTML
     <div class="card w-100">
         <div class="card-header bg-sofia text-white">
-            <button class="btn btn-xs me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
+            <a class="btn btn-xs me-1 p-0" title="Regresar" href="lista_adquisiciones.php"><i class="fas fa-arrow-left fa-lg"></i></a>
             <b>CONFIGURACIÓN DE CONTRATACIÓN</b>
         </div>
         <div id="accordionCtt" class="card-body p-2 bg-wiev">

@@ -15,7 +15,7 @@ $host = Plantilla::getHost();
 $content = <<<HTML
     <div class="card w-100">
         <div class="card-header bg-sofia text-white">
-            <button class="btn btn-xs me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
+            <a class="btn btn-xs me-1 p-0" title="Regresar" href="{$host}/src/inicio.php" fff><i class="fas fa-arrow-left fa-lg"></i></a>
             <b>GESTIÓN DE USUARIOS DEL SISTEMA</b>
         </div>
         <div class="card-body p-2 bg-wiev">

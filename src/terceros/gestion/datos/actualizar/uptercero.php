@@ -215,7 +215,7 @@ if (isset($tercero['id_tercero'])) {
                     </div>
                     <div class="col-md-3">
                         <label for="slcDptoEmp" class="small">Departamento</label>
-                        <select id="slcDptoEmp" name="slcDptoEmp" class="form-select form-select-sm bg-input" aria-label="Default select example">
+                        <select id="slcDptoEmp" name="slcDptoEmp" class="form-select form-select-sm bg-input" aria-label="Default select example" onchange="CargaCombos('slcMunicipioEmp','mun',this.value)">
                             <?php
                             foreach ($dpto as $d) {
                                 if ($d['id_departamento'] !== $tercero['departamento']) {
@@ -229,7 +229,7 @@ if (isset($tercero['id_tercero'])) {
                     </div>
                     <div class="col-md-3">
                         <label for="slcMunicipioEmp" class="small">Municipio</label>
-                        <select id="slcMunicipioEmp" name="slcMunicipioEmp" class="form-select form-select-sm bg-input" aria-label="Default select example" placeholder="elegir mes">
+                        <select id="slcMunicipioEmp" name="slcMunicipioEmp" class="form-select form-select-sm bg-input" aria-label="Default select example">
                             <?php
                             foreach ($municipios as $m) {
                                 if ($tercero['municipio'] !== $m['id_municipio']) {

@@ -24,7 +24,8 @@ try {
                 , `tipo_dato`
             FROM
                 `pto_cargue`
-            WHERE `id_pto` = $id_pto_presupuestos";
+            WHERE `id_pto` = $id_pto_presupuestos
+            ORDER BY `cod_pptal` ASC";
     $rs = $cmd->query($sql);
     $listappto = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();

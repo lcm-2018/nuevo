@@ -1403,8 +1403,37 @@ function cargarResponsableCaja(id_caja, id_detalle) {
 		$("#divTamModalForms").addClass("modal-xl");
 		$("#divModalForms").modal("show");
 		$("#divForms").html(he);
+		ocultarOverlay();
 	});
 }
+
+document.addEventListener("keyup", (e) => {
+	if (e.target.id == "tercerocrp") {
+		$("#tercerocrp").autocomplete({
+			source: function (request, response) {
+				mostrarOverlay();
+				$.ajax({
+					url: "datos/consultar/buscar_terceros.php",
+					type: "post",
+					dataType: "json",
+					data: {
+						term: request.term
+					},
+					success: function (data) {
+						response(data);
+					}
+				}).always(function () {
+					ocultarOverlay();
+				});
+			},
+			minLength: 2,
+			select: function (event, ui) {
+				$('#id_tercero').val(ui.item.id);
+			}
+		});
+	}
+});
+
 function cargarListaDetallePag(id_doc) {
 	/* $('<form action="lista_documentos_det.php" method="post"><input type="hidden" name="id_doc" value="' + id_doc + '" /></form>')
 	  .appendTo("body")

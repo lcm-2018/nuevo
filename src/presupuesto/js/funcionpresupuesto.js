@@ -1057,7 +1057,7 @@
             .submit();
     });
     // 4. Volver de edición de cdp a listado de documentos cdp
-    $("#volverListaCdps").on("click", function () {
+    $(".volverListaCdps").on("click", function () {
         let id_pto = $("#id_pto_presupuestos").val();
         $('<form action="lista_ejecucion_pto.php" method="post"><input type="hidden" name="id_pto" value="' + id_pto + '" /></form>')
             .appendTo("body")

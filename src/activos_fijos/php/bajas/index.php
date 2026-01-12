@@ -29,7 +29,7 @@ $opcionesEstado = ob_get_clean();
 $content = <<<HTML
 <div class="card w-100">
     <div class="card-header bg-sofia text-white">
-        <button class="btn btn-sm me-1 p-0" title="Regresar" onclick="window.history.back();"><i class="fas fa-arrow-left fa-lg"></i></button>
+        <a class="btn btn-sm me-1 p-0" title="Regresar" href="{$host}/src/inicio.php" fff><i class="fas fa-arrow-left fa-lg"></i></a>
         <b>BAJAS DE ACTIVOS FIJOS</b>
     </div>
     <div class="card-body p-2 bg-wiev">

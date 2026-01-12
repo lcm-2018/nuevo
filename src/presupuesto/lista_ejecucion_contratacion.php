@@ -39,9 +39,7 @@ try {
 ?>
 <script>
     $('#tableContrtacionCdp').DataTable({
-        dom: "<'row'<'col-md-2'l><'col-md-10'f>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
         language: dataTable_es,
         "order": [
             [0, "desc"]
@@ -66,7 +64,7 @@ try {
         </div>
         <div class="pb-3"></div>
         <div class="px-3">
-            <table id="tableContrtacionCdp" class="table table-striped table-bordered  table-sm table-hover shadow" style="width: 100%;">
+            <table id="tableContrtacionCdp" class="table table-striped table-bordered table-sm table-hover shadow w-100 align-middle">
                 <thead>
                     <tr>
                         <th></th>

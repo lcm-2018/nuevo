@@ -136,9 +136,6 @@ try {
 ?>
 <script>
     $('#tableObligacionesPago').DataTable({
-        dom: "<'row'<'col-md-2'l><'col-md-10'f>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         language: dataTable_es,
         "order": [
             [0, "desc"]
@@ -161,7 +158,7 @@ try {
         <div class="px-3">
             <form id="formObligacionesPago">
                 <input type="hidden" name="id_tipo" value="<?= $id_tipo; ?>">
-                <table id="tableObligacionesPago" class="table table-striped table-bordered nowrap table-sm table-hover shadow" style="width: 100%;">
+                <table id="tableObligacionesPago" class="table table-striped table-bordered nowrap table-sm table-hover shadow w-100 align-middle">
                     <thead>
                         <tr>
                             <th class="bg-sofia" title="Seleccionar todos"><input type="checkbox" id="checkAll" onclick="checkAll(this)"></th>

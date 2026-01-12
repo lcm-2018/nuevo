@@ -129,9 +129,6 @@ if (empty($detalle)) {
 ?>
 <script>
     $('#tableRubrosCaja').DataTable({
-        dom: "<'row'<'col-md-2'l><'col-md-10'f>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         language: dataTable_es,
         "order": [
             [0, "desc"]
@@ -184,11 +181,11 @@ if (empty($detalle)) {
         <table id="tableRubrosCaja" class="table table-striped table-bordered table-sm table-hover shadow" style="width: 100%">
             <thead>
                 <tr>
-                    <th>Concepto</th>
-                    <th>Rubro</th>
-                    <th>Cuenta</th>
-                    <th>Valor</th>
-                    <th>Acciones </th>
+                    <th class="bg-sofia">Concepto</th>
+                    <th class="bg-sofia">Rubro</th>
+                    <th class="bg-sofia">Cuenta</th>
+                    <th class="bg-sofia">Valor</th>
+                    <th class="bg-sofia">Acciones </th>
                 </tr>
             </thead>
             <tbody>
