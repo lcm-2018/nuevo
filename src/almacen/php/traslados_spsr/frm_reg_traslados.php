@@ -192,16 +192,16 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
             <table id="tb_traslados_detalles" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
                 <thead>
                     <tr class="text-center">
-                        <th>Id</th>
-                        <th>Código</th>
-                        <th>Descripción</th>
-                        <th>Lote</th>
-                        <th>Existencia</th>
-                        <th>Fecha Vencimiento</th>
-                        <th>Cantidad</th>
-                        <th>Vr. Unitario</th>
-                        <th>Total</th>
-                        <th>Acciones</th>
+                        <th class="bg-sofia">Id</th>
+                        <th class="bg-sofia">Código</th>
+                        <th class="bg-sofia">Descripción</th>
+                        <th class="bg-sofia">Lote</th>
+                        <th class="bg-sofia">Existencia</th>
+                        <th class="bg-sofia">Fecha Vencimiento</th>
+                        <th class="bg-sofia">Cantidad</th>
+                        <th class="bg-sofia">Vr. Unitario</th>
+                        <th class="bg-sofia">Total</th>
+                        <th class="bg-sofia">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="text-start"></tbody>

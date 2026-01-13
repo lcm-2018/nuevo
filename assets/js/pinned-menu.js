@@ -72,6 +72,9 @@
             body.classList.remove('menu-pinned');
             localStorage.setItem(STORAGE_KEY_PINNED, 'false');
 
+            // Rehabilitar el comportamiento normal del offcanvas
+            enableOffcanvasNormalBehavior(offcanvas);
+
             // Cerrar el offcanvas
             const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
             if (bsOffcanvas) {
@@ -87,6 +90,9 @@
             // Asegurar que el offcanvas esté visible
             offcanvas.classList.add('show');
 
+            // Deshabilitar el focus trap del offcanvas para permitir interacción con inputs
+            disableOffcanvasFocusTrap(offcanvas);
+
             // Remover backdrop si existe
             const backdrop = document.querySelector('.offcanvas-backdrop');
             if (backdrop) {
@@ -98,6 +104,54 @@
 
             updatePinButtonTooltip(true);
         }
+    }
+
+    /**
+     * Deshabilita el focus trap del offcanvas cuando está anclado
+     * Esto permite que los inputs fuera del offcanvas sean interactivos
+     */
+    function disableOffcanvasFocusTrap(offcanvas) {
+        // Remover el atributo aria-modal que indica que es un modal
+        offcanvas.removeAttribute('aria-modal');
+        offcanvas.removeAttribute('role');
+
+        // Remover el tabindex negativo que puede causar problemas
+        offcanvas.removeAttribute('tabindex');
+
+        // Agregar atributos data-bs para prevenir comportamiento modal
+        offcanvas.setAttribute('data-bs-backdrop', 'false');
+        offcanvas.setAttribute('data-bs-keyboard', 'false');
+        offcanvas.setAttribute('data-bs-focus', 'false');
+
+        // Destruir la instancia de Bootstrap Offcanvas si existe
+        // para evitar que capture eventos
+        const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
+        if (bsOffcanvas) {
+            bsOffcanvas.dispose();
+        }
+
+        // Asegurar que el body no tenga estilos de overflow restrictivos
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+        document.body.classList.remove('offcanvas-open');
+
+        // Remover cualquier clase que Bootstrap haya agregado al body
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+    }
+
+    /**
+     * Rehabilita el comportamiento normal del offcanvas cuando se desancla
+     */
+    function enableOffcanvasNormalBehavior(offcanvas) {
+        // Restaurar atributos necesarios para el offcanvas
+        offcanvas.setAttribute('tabindex', '-1');
+
+        // Restaurar atributos data-bs originales
+        offcanvas.setAttribute('data-bs-scroll', 'true');
+        offcanvas.removeAttribute('data-bs-backdrop');
+        offcanvas.removeAttribute('data-bs-keyboard');
+        offcanvas.removeAttribute('data-bs-focus');
     }
 
     /**
@@ -116,19 +170,23 @@
             document.body.classList.add('menu-pinned');
             offcanvas.classList.add('show');
 
-            // Remover backdrop si existe
+            // Usar un delay más largo para asegurar que Bootstrap esté completamente inicializado
+            // antes de deshabilitar el focus trap
             setTimeout(function () {
+                disableOffcanvasFocusTrap(offcanvas);
+
+                // Remover backdrop si existe
                 const backdrop = document.querySelector('.offcanvas-backdrop');
                 if (backdrop) {
                     backdrop.remove();
                 }
-            }, 50);
+            }, 100);
 
             // Restaurar collapses después de un pequeño delay
-            setTimeout(restoreCollapsesState, 100);
+            setTimeout(restoreCollapsesState, 150);
 
             // Restaurar posición de scroll
-            setTimeout(restoreScrollPosition, 150);
+            setTimeout(restoreScrollPosition, 200);
 
             updatePinButtonTooltip(true);
         }
@@ -223,10 +281,15 @@
             // En móviles, quitar el estado anclado visualmente pero mantener la preferencia
             document.body.classList.remove('menu-pinned');
             offcanvas.classList.remove('show');
+            // Restaurar comportamiento normal para móviles
+            enableOffcanvasNormalBehavior(offcanvas);
         } else if (isPinned) {
             // En escritorio, restaurar si estaba anclado
             document.body.classList.add('menu-pinned');
             offcanvas.classList.add('show');
+
+            // Deshabilitar focus trap para permitir interacción con inputs
+            disableOffcanvasFocusTrap(offcanvas);
 
             // Remover backdrop
             const backdrop = document.querySelector('.offcanvas-backdrop');
