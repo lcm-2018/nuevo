@@ -38,7 +38,7 @@ class Menu
         $dash = '';
 
         return <<<HTML
-        <div style="background-color: #eafaf1;" class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" data-bs-scroll="true">
+        <div style="background-color: #eafaf1;" class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" data-bs-scroll="true" data-bs-backdrop="false" data-bs-focus="false">
             <div class="offcanvas-header text-white d-flex justify-content-between w-100" style="border-bottom: 5px solid #16a085 !important;">
                 <h6 class="offcanvas-title mb-0"><strong>MENÚ PRINCIPAL</strong></h6>
                 <div class="d-flex align-items-center gap-2 ms-auto">

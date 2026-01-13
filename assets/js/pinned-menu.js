@@ -75,11 +75,8 @@
             // Rehabilitar el comportamiento normal del offcanvas
             enableOffcanvasNormalBehavior(offcanvas);
 
-            // Cerrar el offcanvas
-            const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
-            if (bsOffcanvas) {
-                bsOffcanvas.hide();
-            }
+            // Ocultar el offcanvas removiendo la clase show
+            offcanvas.classList.remove('show');
 
             updatePinButtonTooltip(false);
         } else {
@@ -93,19 +90,12 @@
             // Deshabilitar el focus trap del offcanvas para permitir interacción con inputs
             disableOffcanvasFocusTrap(offcanvas);
 
-            // Remover backdrop si existe
-            const backdrop = document.querySelector('.offcanvas-backdrop');
-            if (backdrop) {
-                backdrop.remove();
-            }
-
             // Restaurar collapses abiertos
             restoreCollapsesState();
 
             updatePinButtonTooltip(true);
         }
     }
-
     /**
      * Deshabilita el focus trap del offcanvas cuando está anclado
      * Esto permite que los inputs fuera del offcanvas sean interactivos
@@ -123,21 +113,23 @@
         offcanvas.setAttribute('data-bs-keyboard', 'false');
         offcanvas.setAttribute('data-bs-focus', 'false');
 
-        // Destruir la instancia de Bootstrap Offcanvas si existe
-        // para evitar que capture eventos
-        const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
-        if (bsOffcanvas) {
-            bsOffcanvas.dispose();
-        }
+        // NO destruir la instancia de Bootstrap ya que causa errores
+        // En su lugar, solo ocultamos el backdrop y limpiamos el body
 
         // Asegurar que el body no tenga estilos de overflow restrictivos
         document.body.style.overflow = '';
         document.body.style.paddingRight = '';
         document.body.classList.remove('offcanvas-open');
 
-        // Remover cualquier clase que Bootstrap haya agregado al body
+        // Remover cualquier propiedad que Bootstrap haya agregado al body
         document.body.style.removeProperty('overflow');
         document.body.style.removeProperty('padding-right');
+
+        // Remover el backdrop si existe
+        const backdrop = document.querySelector('.offcanvas-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
     }
 
     /**
@@ -147,11 +139,10 @@
         // Restaurar atributos necesarios para el offcanvas
         offcanvas.setAttribute('tabindex', '-1');
 
-        // Restaurar atributos data-bs originales
+        // Mantener los atributos data-bs originales del HTML
         offcanvas.setAttribute('data-bs-scroll', 'true');
-        offcanvas.removeAttribute('data-bs-backdrop');
-        offcanvas.removeAttribute('data-bs-keyboard');
-        offcanvas.removeAttribute('data-bs-focus');
+        offcanvas.setAttribute('data-bs-backdrop', 'false');
+        offcanvas.setAttribute('data-bs-focus', 'false');
     }
 
     /**
