@@ -153,8 +153,8 @@ $cmd = \Config\Clases\Conexion::getConexion();
             $('#tb_activos_fijos').DataTable().ajax.reload(null, false);
         }
     });
-
-    $('.filtro_acf').mouseup(function(e) {
+    
+    $('.filtro_acf').click(function(e) {
         $('#tb_activos_fijos').DataTable().ajax.reload(null, false);
     });
 </script>

@@ -372,8 +372,6 @@
         }
     });
 
-
-
     function guardar_traslado(generar_traslado) {
         var data = $('#frm_reg_traslados').serialize();
         $.ajax({
@@ -626,6 +624,7 @@
             }
         });
     });
+
     //Imprimir listado de registros
     $('#btn_imprime_filtro').on('click', function () {
         $('#tb_traslados').DataTable().ajax.reload(null, false);

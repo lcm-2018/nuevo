@@ -124,7 +124,7 @@ $cmd = \Config\Clases\Conexion::getConexion();
         }
     });
 
-    $('.filtro_art').mouseup(function(e) {
+    $('.filtro_art').click(function(e) {
         $('#tb_articulos_activos').DataTable().ajax.reload(null, false);
     });
 </script>
