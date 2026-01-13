@@ -232,6 +232,7 @@ HTML;
                     <script src="{$host}/assets/js/buttons.bootstrap5.js"></script>
                     <script src="{$host}/assets/js/sweetalert.js"></script>
                     <script src="{$host}/assets/js/modal-manager.js"></script>
+                    <script src="{$host}/src/common/js/draggable-modals.js"></script>
                     <script src="{$host}/assets/js/all.min.js"></script>
                     {additional_scripts} 
                 </body>
