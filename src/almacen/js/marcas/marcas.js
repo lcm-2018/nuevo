@@ -149,7 +149,6 @@
         });
     });
 
-
     //Imprimir registros
     $('#btn_imprime_filtro').on('click', function () {
         $('#tb_marcas').DataTable().ajax.reload(null, false);

@@ -339,6 +339,7 @@
     /* ---------------------------------------------------
     DETALLES
     -----------------------------------------------------*/
+
     $('#divModalBus').on('dblclick', '#tb_articulos_bodega tr', function () {
         let id_med = $(this).find('td:eq(0)').text();
         $.post("frm_reg_pedidos_detalles.php", { id_med: id_med }, function (he) {

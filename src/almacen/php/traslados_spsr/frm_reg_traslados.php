@@ -61,7 +61,7 @@ if (empty($obj)) {
 $guardar = in_array($obj['estado'], [1]) ? '' : 'disabled="disabled"';
 $cerrar = in_array($obj['estado'], [1]) && $id != -1 ? '' : 'disabled="disabled"';
 $enviar = in_array($obj['estado'], [2]) ? '' : 'disabled="disabled"';
-$anular = in_array($obj['estado'], [3]) && in_array($obj['estado2'], [5]) ? '' : 'disabled="disabled"';
+$anular = in_array($obj['estado'], [2]) || in_array($obj['estado'], [3]) && in_array($obj['estado2'], [5]) ? '' : 'disabled="disabled"';
 $imprimir = $id != -1 ? '' : 'disabled="disabled"';
 
 ?>

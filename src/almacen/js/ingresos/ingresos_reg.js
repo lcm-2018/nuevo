@@ -87,7 +87,6 @@
             }
         });
 
-
         $('#tb_ingresos_detalles').wrap('<div class="overflow"/>');
     });
 })(jQuery);

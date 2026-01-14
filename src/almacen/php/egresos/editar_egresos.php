@@ -395,11 +395,9 @@ try {
                 }
                 if ($rs) {
                     $cmd->commit();
-                    $res['mensaje'] = 'ok';
-                    $accion = 'Anular';
-                    $opcion = 'Orden de Egreso';
-                    $detalle = 'Anulo Orden Egreso Id: ' . $id;
-                    bitacora($accion, $opcion, $detalle, $id_usr_ope, $_SESSION['user']);
+                    $res['mensaje'] = 'ok';                    
+                    $consulta = "Anula Orden de Egreso Id: " . $id . ", Anula los movimientos del kardex"
+                    Logs::guardaLog($consulta);
                 } else {
                     $cmd->rollBack();
                     $res['mensaje'] = $cmd->errorInfo()[2];

@@ -397,6 +397,8 @@ try {
                 }
 
                 if ($continuar) {
+                    $bd_driver = "mysql";
+                    $charset = "charset=utf8";
                     $cmd1 = new PDO("$bd_driver:host=$ip;port=$port;dbname=$database;$charset", $user, $password);
 
                     // Verificar los medicamentos y lotes que existan en la sede remota
@@ -431,7 +433,7 @@ try {
                         //Crea el traslado en la sede remota
                         $cmd1->beginTransaction();
 
-                        // Consulta el usuario qen la sede remota
+                        // Consulta el usuario en la sede remota
                         $sql = "SELECT id_usuario FROM seg_usuarios_sistema WHERE id_origen=" . $id_usr_ope;
                         $rs = $cmd1->query($sql);
                         $obj = $rs->fetch();
@@ -482,10 +484,8 @@ try {
                         if ($rs) {
                             $cmd1->commit();
                             $res['mensaje'] = 'ok';
-                            $accion = 'Enviar';
-                            $opcion = 'Traslado SPSR ';
-                            $detalle = 'Enviado Traslado SPSR Id: ' . $id;
-                            bitacora($accion, $opcion, $detalle, $id_usr_ope, $_SESSION['user']);
+                            $consulta = "Enviar el Traslado SPSR Id: " . $id . " de la sede principal a la sede remota: " . $id_sede_destino;
+                            Logs::guardaLog($consulta);
                         } else {
                             $cmd1->rollBack();
                             $res['mensaje'] = $cmd->errorInfo()[2];
@@ -528,10 +528,8 @@ try {
                 if ($rs) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
-                    $accion = 'Anular';
-                    $opcion = 'Traslado SPSR ';
-                    $detalle = 'Anulo Traslado SPSR Id: ' . $id;
-                    bitacora($accion, $opcion, $detalle, $id_usr_ope, $_SESSION['user']);
+                    $consulta = "Anula el Traslado SPSR Id: " . $id . ", Anula los movimientos del kardex";
+                    Logs::guardaLog($consulta);
                 } else {
                     $cmd->rollBack();
                     $res['mensaje'] = $cmd->errorInfo()[2];

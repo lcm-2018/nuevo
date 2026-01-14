@@ -458,7 +458,6 @@
                 });
             }
         });
-
     });
 
     //Cerrar un registro Orden Egreso

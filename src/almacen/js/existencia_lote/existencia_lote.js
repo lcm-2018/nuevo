@@ -59,7 +59,6 @@
             ],
         });
 
-
         $('#tb_lotes').wrap('<div class="overflow"/>');
     });
 
