@@ -1,5 +1,6 @@
 <?php
 
+use Src\Common\Php\Clases\Logs;
 use Src\Common\Php\Clases\Permisos;
 
 if (isset($_POST['tipo'])) {
@@ -8,7 +9,6 @@ if (isset($_POST['tipo'])) {
     include '../../../../config/autoloader.php';
     include '../common/funciones_generales.php';
     include '../common/funciones_kardex.php';
-
 
     $id_rol = $_SESSION['rol'];
     $id_user = $_SESSION['id_user'];
@@ -48,10 +48,8 @@ if (isset($_POST['tipo'])) {
                 if (!$errores) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
-                    $accion = 'Actualizar';
-                    $opcion = 'Recalcular Kardex';
-                    $detalle = 'Recalcular Kardex en la fecha : ' . date('Y-m-d H:i:s');
-                    bitacora($accion, $opcion, $detalle, $_SESSION['id_user'], $_SESSION['user']);
+                    $consulta = "Recalcula el Kardex desde la fecha : " . $fecini . " hasta la fecha : " . date('Y-m-d H:i:s');
+                    Logs::guardaLog($consulta);
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
                     $cmd->rollBack();

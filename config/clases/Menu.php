@@ -641,7 +641,7 @@ class Menu
                     <li><a href="{$this->host}/src/almacen/php/pedidos_alm/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-kaaba me-2 fa-fw"></i> Almacén</a></li>
                     <li><a href="{$this->host}/src/almacen/php/pedidos_bod/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-coins me-2 fa-fw"></i> Bodega</a></li>
                     <li><a href="{$this->host}/src/almacen/php/pedidos_cec/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fa fa-th-large me-2 fa-fw"></i> Dependencia</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/pedidos_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-coins me-2 fa-fw"></i> Bodega SPSR</a></li>
+                    <li class="d-none"><a href="{$this->host}/src/almacen/php/pedidos_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-coins me-2 fa-fw"></i> Bodega SPSR</a></li>
                 HTML;
             $alm_pedidos = $this->wrapCollapse('almacen-pedidos-collapse', 'fa fa-pencil-square-o', 'Pedidos', $ped_items, 'text-success');
         }
@@ -654,7 +654,7 @@ class Menu
                     <li><a href="{$this->host}/src/almacen/php/ingresos/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-door-open me-2 fa-fw"></i> Ingresos</a></li>
                     <li><a href="{$this->host}/src/almacen/php/egresos/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-sign-out-alt me-2 fa-fw"></i> Egresos</a></li>
                     <li><a href="{$this->host}/src/almacen/php/traslados/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-exchange-alt me-2 fa-fw"></i> Traslados</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/traslados_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados SPSR</a></li>
+                    <li class="d-none"><a href="{$this->host}/src/almacen/php/traslados_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados SPSR</a></li>
                     <li><a href="{$this->host}/src/almacen/php/recalcular_kardex/index.php" class="nav-link text-danger px-1 py-2 sombra"><i class="fa fa-cogs me-2 fa-fw"></i> Recalcula Mtos.</a></li>
                 HTML;
             $alm_movimientos = $this->wrapCollapse('almacen-movimientos-collapse', 'fas fa-sliders', 'Movimientos', $mov_items, 'text-info');

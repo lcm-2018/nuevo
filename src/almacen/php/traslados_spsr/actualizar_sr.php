@@ -1,28 +1,26 @@
 <?php
+use Config\Clases\Logs;
+use Src\Common\Php\Clases\Permisos;
 
 if (isset($_POST['id_seddes'])) {
     session_start();
 
     include '../../../../config/autoloader.php';
     include '../common/funciones_generales.php';
-    
-use Src\Common\Php\Clases\Permisos;
 
-$id_rol = $_SESSION['rol'];
-$id_user = $_SESSION['id_user'];
+    $id_rol = $_SESSION['rol'];
+    $id_user = $_SESSION['id_user'];
 
-$permisos = new Permisos();
-$opciones = $permisos->PermisoOpciones($id_user);
+    $permisos = new Permisos();
+    $opciones = $permisos->PermisoOpciones($id_user);
+
     //Permisos: 1-Consultar,2-Crear,3-Editar,4-Eliminar,5-Anular,6-Imprimir
-
-    $idusr = $_SESSION['id_user'];
-    $idrol = $_SESSION['rol'];
-
+    
     try {
         $cmd = \Config\Clases\Conexion::getConexion();
 
         $res['mensaje'] = 'Error';
-        if ($permisos->PermisosUsuario($opciones, 5017, 2) || $permisos->PermisosUsuario($opciones, 5017, 3) || $idrol == 1) {
+        if ($permisos->PermisosUsuario($opciones, 5017, 2) || $permisos->PermisosUsuario($opciones, 5017, 3) || $id_rol == 1) {
 
             $sql = "SELECT ip_sede,bd_sede,pw_sede,us_sede,pt_http FROM tb_sedes WHERE id_sede=" . $_POST['id_seddes'] . " LIMIT 1";
             $rs = $cmd->query($sql);
@@ -59,8 +57,8 @@ $opciones = $permisos->PermisoOpciones($id_user);
                 $id_bodega_origen = $bodega['id_bodega'] ? $bodega['id_bodega'] : 0;
 
                 $where = " WHERE id_traslado_origen IS NULL AND id_bodega_origen=$id_bodega_origen";
-                if ($idrol != 1) {
-                    $where .= " AND id_bodega_origen IN (SELECT id_bodega FROM seg_bodegas_usuario WHERE id_usuario=$idusr)";
+                if ($id_rol != 1) {
+                    $where .= " AND id_bodega_origen IN (SELECT id_bodega FROM seg_bodegas_usuario WHERE id_usuario=$id_user)";
                 }
                 $where .= " AND fec_traslado BETWEEN '" . $_POST['fec_ini'] . "' AND '" . $_POST['fec_fin'] . "'";
                 $where .= " AND id_sede_destino='" . $_POST['id_seddes'] . "'";
@@ -89,6 +87,8 @@ $opciones = $permisos->PermisoOpciones($id_user);
                     $ids = !empty($obj['ids']) ? $obj['ids'] : '';
 
                     if ($ids) {
+                        $bd_driver = "mysql";
+                        $charset = "charset=utf8";
                         $cmd1 = new PDO("$bd_driver:host=$ip;port=$port;dbname=$database;$charset", $user, $password);
                         $res['mensaje'] = 'ok';
 

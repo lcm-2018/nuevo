@@ -59,3 +59,7 @@
 [2026-01-13 09:20:36] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM far_alm_pedido_detalle WHERE id_ped_detalle=29;
 [2026-01-13 09:20:41] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM far_alm_pedido WHERE id_pedido=16;
 [2026-01-13 09:44:04] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM acf_traslado_detalle WHERE id_traslado_detalle=478;
+[2026-01-13 22:47:08] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: DELETE FROM far_traslado_r WHERE id_traslado=23;
+[2026-01-13 23:55:47] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: Inserta la Orden de Egreso Id: 2;
+[2026-01-13 23:55:49] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: Inserta la Orden de Egreso Id: 2;
+[2026-01-14 00:19:04] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: Anula el Traslado SPSR Id: 24, Anula los movimientos del kardex;
