@@ -1,6 +1,0 @@
-[2025-04-28 18:28:37] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: SELECT * FROM `nom_valxvigencia` WHERE `id_valxvig` = 9
-[2025-04-28 18:39:41] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_valxvigencia` WHERE `id_valxvig` = 9
-[2025-04-29 12:15:52] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_valxvigencia` WHERE `id_valxvig` = 9
-[2025-04-29 14:28:14] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_valxvigencia` WHERE `id_valxvig` = 10
-[2025-04-30 10:01:53] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_valxvigencia` WHERE `id_valxvig` = 11
-[2025-04-30 10:11:36] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_cargo_empleado` WHERE `id_cargo_` = 39

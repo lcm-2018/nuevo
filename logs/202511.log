@@ -1,6 +1,0 @@
-
-[2025-11-25 18:33:29] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `fin_respon_doc` WHERE `id_respon_doc` = 5;
-[2025-11-25 18:34:17] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `fin_respon_doc` WHERE `id_respon_doc` = 8;
-[2025-11-25 18:34:30] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `fin_respon_doc` WHERE `id_respon_doc` = 4;
-[2025-11-25 18:36:04] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `fin_respon_doc` WHERE `id_respon_doc` = 6;
-[2025-11-25 18:37:44] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `fin_respon_doc` WHERE `id_respon_doc` = 16;
