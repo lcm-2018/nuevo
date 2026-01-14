@@ -347,11 +347,11 @@ class Users
             $stmt->bindValue(12, $d['txt_telefono'], PDO::PARAM_STR);
             $stmt->bindValue(13, $d['mailuser'], PDO::PARAM_STR);
             $stmt->bindValue(14, $d['txt_cargo'], PDO::PARAM_STR);
-            $stmt->bindValue(15, $d['sl_centroCosto'] ?? null, PDO::PARAM_INT);
+            $stmt->bindValue(15, NULL, PDO::PARAM_INT);
             $stmt->bindValue(16, Sesion::IdUser(), PDO::PARAM_INT);
             $stmt->bindValue(17, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->bindValue(18, 1, PDO::PARAM_INT);
-            $stmt->bindValue(19, $d['sl_areaCentroCosto'] ?? null, PDO::PARAM_INT);
+            $stmt->bindValue(19, NULL, PDO::PARAM_INT);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
@@ -380,7 +380,7 @@ class Users
                 return 'si';
             } else {
                 $this->conexion->rollBack();
-                return 'Error al insertar el usuario';
+                return 'Error al insertar el usuario: ' . $id;
             }
         } catch (PDOException $e) {
             $this->conexion->rollBack();

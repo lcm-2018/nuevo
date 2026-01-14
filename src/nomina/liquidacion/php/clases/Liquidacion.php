@@ -10,6 +10,7 @@ use PDO;
 use PDOException;
 use Src\Common\Php\Clases\Valores;
 use Src\Nomina\Empleados\Php\Clases\Bsp;
+use Src\Nomina\Empleados\Php\Clases\Cesantias;
 use Src\Nomina\Empleados\Php\Clases\Embargos;
 use Src\Nomina\Empleados\Php\Clases\Empleados;
 use Src\Nomina\Empleados\Php\Clases\Incapacidades;
@@ -1321,7 +1322,13 @@ class Liquidacion
 
         return $response;
     }
-
+    /**
+     * Liquida cesantías y interés de cesantías
+     * $param: array con los parámetros
+     * $cortes: array con los cortes
+     * $dliq: días laborados
+     * $opcion: 1 inserta, 0 no inserta y obtiene el valor
+     */
     public function LiquidaCesantias($param, $cortes, $dliq, $opcion = 1)
     {
         $response = [
@@ -1350,8 +1357,13 @@ class Liquidacion
         $val_icesantias =   $val_cesantias * 0.12;
 
         if ($opcion == 1) {
+            if ($param['tipo'] == 8) {
+                $val_icesantias = 0;
+            } elseif ($param['tipo'] == 9) {
+                $val_cesantias = 0;
+            }
             $data = compact('id_empleado', 'cant_dias', 'val_cesantias', 'val_icesantias', 'corte', 'id_nomina');
-            $res = (new Primas($this->conexion))->addRegistroLiq2($data);
+            $res = (new Cesantias($this->conexion))->addRegistroLiq($data);
 
             if ($res != 'si') {
                 $response['insert'] = false;

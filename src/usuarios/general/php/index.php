@@ -19,7 +19,7 @@ $content = <<<HTML
             <b>GESTIÓN DE USUARIOS DEL SISTEMA</b>
         </div>
         <div class="card-body p-2 bg-wiev">
-            <table id="tableUsersSystem" class="table table-striped table-bordered table-sm nowrap table-hover shadow tableCotRecibidas" style="width:100%">
+            <table id="tableUsersSystem" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
                 <thead>
                     <tr class="text-center">
                         <th class="bg-sofia">#</th>

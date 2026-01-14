@@ -44,7 +44,7 @@ try {
     $cargo_respon = $key !== false ? $responsables[$key]['cargo'] : '';
     $gen_respon = $key !== false ? $responsables[$key]['genero'] : '';
     $control = $key !== false ? $responsables[$key]['control_doc'] : '';
-    $control = $control == '' || $control == '0' ? false : true;
+    $control = !empty($control) && intval($control) !== 0;
     if (!isset($responsables[0]['acumula'])) {
         $responsables[0]['acumula'] = 0;
     }
@@ -191,40 +191,58 @@ $reviso_cargo = $key_reviso !== false ? $responsables[$key_reviso]['cargo'] : ''
 $key_aprobo = array_search('3', array_column($responsables, 'tipo_control'));
 $aprobo_nombre = $key_aprobo !== false ? $responsables[$key_aprobo]['nom_tercero'] : '';
 $aprobo_cargo = $key_aprobo !== false ? $responsables[$key_aprobo]['cargo'] : '';
-
-$table =
-    <<<HTML
-<table class="{$bordes} bg-light" style="width:100% !important;font-size: 10px;">
-    {$headtb}
-    <tr style="text-align:center">
-        <td>
-            <br><br>
-            {$lineas}
-            <div>{$elaboro_nombre}</div>
-            <div>{$elaboro_cargo}</div>
-        </td>
-        <td>
-            <br><br>
-            {$lineas}
-            <div>{$reviso_nombre}</div>
-            <div>{$reviso_cargo}</div>
-        </td>
-        <td>
-            <br><br>
-            {$lineas}
-            <div>{$aprobo_nombre}</div>
-            <div>{$aprobo_cargo}</div>
-        </td>
-    </tr>
-</table>
+$table = '';
+if ($control) {
+    $table =
+        <<<HTML
+        <table class="{$bordes} bg-light" style="width:100% !important;font-size: 10px;">
+            {$headtb}
+            <tr style="text-align:center">
+                <td>
+                    <br><br>
+                    {$lineas}
+                    <div>{$elaboro_nombre}</div>
+                    <div>{$elaboro_cargo}</div>
+                </td>
+                <td>
+                    <br><br>
+                    {$lineas}
+                    <div>{$reviso_nombre}</div>
+                    <div>{$reviso_cargo}</div>
+                </td>
+                <td>
+                    <br><br>
+                    {$lineas}
+                    <div>{$aprobo_nombre}</div>
+                    <div>{$aprobo_cargo}</div>
+                </td>
+            </tr>
+        </table>
 HTML;
+}
+$terRecibe = '';
+if ($doc_fte == 'CEVA' || $doc_fte == 'CICP') {
+    if ($_SESSION['nit_emp'] != '844001355') {
+        $terRecibe = "
+        <div class='col'>
+            <div>___________________________________</div>
+            <div>$tercero</div>
+            <div>RECIBE CC/NIT:</div>
+        </div>";
+    }
+}
 
 $firmas =
     <<<HTML
         <div style="text-align: center; padding-top: 60px; font-size: 13px;">
-            <div>___________________________________</div>
-            <div>{$nom_respon}</div>
-            <div>{$cargo_respon}</div>
+            <div class="row">
+                <div class="col">
+                    <div>___________________________________</div>
+                    <div>{$nom_respon}</div>
+                    <div>{$cargo_respon}</div>
+                </div>
+                {$terRecibe}
+            </div>
         </div>
         <div style="text-align: center; padding-top: 25px;">
             {$table}

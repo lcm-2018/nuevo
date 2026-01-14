@@ -265,6 +265,8 @@ function GetValoresCxP($id_doc, $cmd)
                     , IFNULL(`centro_costo`.`val_ccosto`,0) AS `val_ccosto`
                     , IFNULL(`retencion`.`val_retencion`,0) AS `val_retencion`
                     , `pto_crp`.`fecha` AS `fecha_crp`
+                    , `tb_terceros`.`nom_tercero`
+                    , `tb_terceros`.`nit_tercero`
                 FROM
                     `ctb_doc`
                     INNER JOIN `ctb_fuente` 
@@ -303,6 +305,8 @@ function GetValoresCxP($id_doc, $cmd)
                             `ctb_causa_retencion`
                         WHERE (`id_ctb_doc` = $id_doc)) AS `retencion`
                         ON (`ctb_doc`.`id_ctb_doc` = `retencion`.`id_ctb_doc`)
+                    LEFT JOIN `tb_terceros`
+                        ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
                 WHERE (`ctb_doc`.`id_ctb_doc` = $id_doc)";
         $rs = $cmd->query($sql);
         $datosDoc = $rs->fetch(PDO::FETCH_ASSOC);

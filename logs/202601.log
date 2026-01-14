@@ -55,3 +55,15 @@
 [2026-01-12 13:45:50] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: SELECT COUNT(*) AS detalles FROM far_orden_egreso_detalle WHERE id_egreso=123922;
 [2026-01-12 13:45:53] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: UPDATE far_orden_egreso SET id_ingreso_fz=NULL WHERE id_egreso=123922;
 [2026-01-12 13:46:03] Usuario: 365-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM far_orden_egreso WHERE id_egreso=123922;
+[2026-01-14 08:53:13] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 103;
+[2026-01-14 09:24:32] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 102;
+[2026-01-14 09:32:37] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 104;
+[2026-01-14 09:36:43] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 105;
+[2026-01-14 10:10:02] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 106;
+[2026-01-14 10:10:06] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 107;
+[2026-01-14 14:47:20] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 108;
+[2026-01-14 14:47:23] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 109;
+[2026-01-14 14:57:58] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 111;
+[2026-01-14 14:58:01] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 110;
+[2026-01-14 17:40:25] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 114;
+[2026-01-14 17:48:03] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 115;

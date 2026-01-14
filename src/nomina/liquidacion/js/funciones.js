@@ -1,6 +1,17 @@
+// Función para determinar la URL basada en el tipo de liquidación seleccionado
+function getUrlListado() {
+    const tipo = ValueInput('filter_tipo');
+    if (tipo == 2) {
+        return 'lista_liquidacion.php';
+    } else if (tipo == 6 || tipo == 7 || tipo == 8 || tipo == 9) {
+        return 'lista_cesantias.php';
+    }
+    return 'lista_liquidacion.php'; // URL por defecto
+}
+
 const tableLiqMesEmpleados = crearDataTable(
     '#tableLiqMesEmpleados',
-    'lista_liquidacion.php',
+    getUrlListado(),
     [
         { data: 'check' },
         { data: 'doc' },
@@ -23,36 +34,36 @@ const tableLiqMesEmpleados = crearDataTable(
                 mjeError('Debe seleccionar al menos un empleado para liquidar.');
             } else {
                 let valid = true;
-                document.querySelectorAll('.bg-danger').forEach((el) => {
-                    el.classList.remove('bg-danger');
-                });
-                checkboxes.forEach((checkbox) => {
-                    var row = checkbox.closest('tr');
-                    var lab = row.querySelector('input[name^="lab"]');
-                    var pago = row.querySelector('select[name^="metodo"]');
-                    var min = parseFloat(lab.getAttribute('min'));
-                    var max = parseFloat(lab.getAttribute('max'));
+                LimpiaInvalid();
+                if (ValueInput('filter_tipo') == 2) {
+                    checkboxes.forEach((checkbox) => {
+                        var row = checkbox.closest('tr');
+                        var lab = row.querySelector('input[name^="lab"]');
+                        var pago = row.querySelector('select[name^="metodo"]');
+                        var min = parseFloat(lab.getAttribute('min'));
+                        var max = parseFloat(lab.getAttribute('max'));
 
-                    if (lab && pago) {
-                        const valLab = parseFloat(lab.value);
-                        const valPag = parseFloat(pago.value);
+                        if (lab && pago) {
+                            const valLab = parseFloat(lab.value);
+                            const valPag = parseFloat(pago.value);
 
-                        if (valLab < min || valLab > max) {
-                            lab.classList.add('bg-danger');
-                            lab.focus();
-                            mjeError('El valor de los días laborados debe estar entre ' + min + ' y ' + max + '.');
-                            valid = false;
-                        } else if (valPag === 0) {
-                            pago.classList.add('bg-danger');
-                            pago.focus();
-                            mjeError('Debe seleccionar un método de pago.');
-                            valid = false;
+                            if (valLab < min || valLab > max) {
+                                lab.classList.add('bg-danger');
+                                lab.focus();
+                                mjeError('El valor de los días laborados debe estar entre ' + min + ' y ' + max + '.');
+                                valid = false;
+                            } else if (valPag === 0) {
+                                pago.classList.add('bg-danger');
+                                pago.focus();
+                                mjeError('Debe seleccionar un método de pago.');
+                                valid = false;
+                            }
                         }
-                    }
-                    if (!valid) {
-                        return false;
-                    }
-                });
+                        if (!valid) {
+                            return false;
+                        }
+                    });
+                }
                 if (valid) {
                     mostrarOverlay();
                     var data = Serializa('formLiquidacion');
@@ -103,6 +114,11 @@ const tableLiqMesEmpleados = crearDataTable(
     },
     false
 );
+
+// Función para filtrar que actualiza la URL dinámicamente antes de recargar
+function FiltraLiquidacion() {
+    tableLiqMesEmpleados.ajax.url(getUrlListado()).load();
+}
 tableLiqMesEmpleados.on('draw', function () {
     const filas = document.querySelectorAll('#tableLiqMesEmpleados tbody tr');
 
@@ -128,3 +144,14 @@ tableLiqMesEmpleados.on('init', function () {
     BuscaDataTable(tableLiqMesEmpleados);
 });
 
+function eventFilterTipo(value) {
+    var mes = document.getElementById('filter_mes');
+    if (value == 7 || value == 8 || value == 9) {
+        mes.value = '12'
+    } else if (value == 6) {
+        mes.value = '06'
+    } else {
+        mes.value = '0'
+    }
+    FiltraLiquidacion();
+}

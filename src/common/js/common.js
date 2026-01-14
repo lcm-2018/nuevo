@@ -197,7 +197,11 @@ const EliminaRegistro = (url, id, tabla, action = 'del') => {
             SendPost(url, data).then((response) => {
                 if (response.status === 'ok') {
                     mje('Proceso realizado correctamente!');
-                    $("#" + tabla).DataTable().ajax.reload(null, false);
+                    if (typeof tabla === 'object' && tabla.ajax && typeof tabla.ajax.reload === 'function') {
+                        tabla.ajax.reload(null, false);
+                    } else if (typeof tabla === 'string') {
+                        $("#" + tabla).DataTable().ajax.reload(null, false);
+                    }
                 } else {
                     mjeError('Error!', response.msg);
                 }

@@ -35,7 +35,7 @@ $content = <<<HTML
                         <th><input type="text" class="form-control form-control-sm bg-input" placeholder="Nombre" id="filter_nombre"></th>
                         <th><input type="text" class="form-control form-control-sm bg-input" placeholder="Observación" id="filter_observacion"></th>
                         <th colspan="2" class="text-center">
-                            <select class="form-select form-select-sm bg-input w-100" id="filter_tipo" title="Tipo de liquidación">
+                            <select class="form-select form-select-sm bg-input w-100" id="filter_tipo" title="Tipo de liquidación" onchange="eventFilterTipo(this.value)">
                                 {$liquidacion}
                             </select>
                         </th>
@@ -45,7 +45,7 @@ $content = <<<HTML
                             </select>
                         </th>
                         <th>
-                            <button class="btn btn-sm btn-outline-warning" type="button" onclick="FiltraDatos(tableLiqMesEmpleados);" title="Filtrar">
+                            <button class="btn btn-sm btn-outline-warning" type="button" onclick="FiltraLiquidacion();" title="Filtrar">
                                 <i class="fas fa-filter"></i>
                             </button>
                         </th>

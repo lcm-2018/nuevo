@@ -59,8 +59,8 @@ if (!empty($obj)) {
         if (($permisos->PermisosUsuario($opciones, 5101, 6) || $id_rol == 1) && $o['estado'] >= 2) {
             $imprimir1 = '<button data-id="' . $id . '" text="M" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 imprimir" title="Solicitud de CDP"><span class="fas fa-print fa-sm"></span></button>';
             $imprimir2 = '<button data-id="' . $id . '" text="P" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 imprimir" title="Solicitud de CDP Patronal"><span class="fas fa-print fa-sm"></span></button>';
-            $pdfMensual = '<button data-id="' . $id . '" text="M" class="btn btn-outline-primary btn-xs rounded-circle shadow me-1 descargar-pdf" title="Descargar PDF CDP Mensual"><span class="fas fa-download fa-sm"></span></button>';
-            $pdfPatronal = '<button data-id="' . $id . '" text="P" class="btn btn-outline-dark btn-xs rounded-circle shadow me-1 descargar-pdf" title="Descargar PDF CDP Patronal"><span class="fas fa-download fa-sm"></span></button>';
+            //$pdfMensual = '<button data-id="' . $id . '" text="M" class="btn btn-outline-primary btn-xs rounded-circle shadow me-1 descargar-pdf" title="Descargar PDF CDP Mensual"><span class="fas fa-download fa-sm"></span></button>';
+            //$pdfPatronal = '<button data-id="' . $id . '" text="P" class="btn btn-outline-dark btn-xs rounded-circle shadow me-1 descargar-pdf" title="Descargar PDF CDP Patronal"><span class="fas fa-download fa-sm"></span></button>';
         }
 
         $datos[] = [

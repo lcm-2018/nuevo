@@ -2056,7 +2056,7 @@ function RegDetalleMod(boton) {
                 } else {
                     mjeError(response, "Verifique la información ingresada");
                 }
-            }).always(function () {
+            }).finally(() => {
                 ocultarOverlay();
             });
     }
@@ -2113,7 +2113,7 @@ function RegDetalleCDPs(boton) {
                                     mjeError(response.msg, "Verifique la información ingresada");
                                 }
                             })
-                            .always(function () {
+                            .finally(() => {
                                 ocultarOverlay();
                             });
                     } else {
@@ -2151,6 +2151,8 @@ function RegDetalleCDPs(boton) {
             } else {
                 mjeError(response.msg, "Verifique la información ingresada");
             }
+        }).finally(() => {
+            ocultarOverlay();
         });
     }
     return false;
@@ -2189,7 +2191,7 @@ function RegDetalleRads(boton) {
                     mjeError(response.msg, "Verifique la información ingresada");
                 }
             })
-            .always(function () {
+            .finally(() => {
                 ocultarOverlay();
             });
     }
@@ -2332,6 +2334,7 @@ let terminarDetalleMod = function (dato) {
 };
 // Cerrar documento presupuestal modificacion
 var cerrarCDP = function (dato) {
+    mostrarOverlay();
     fetch("datos/actualizar/cerrar_cdp.php", {
         method: "POST",
         body: dato,
@@ -2344,10 +2347,14 @@ var cerrarCDP = function (dato) {
             } else {
                 mjeError("No se puede cerrar documento actual", "--");
             }
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 
 var cerrarRad = function (dato) {
+    mostrarOverlay();
     fetch("datos/actualizar/cerrar_rad.php", {
         method: "POST",
         body: dato,
@@ -2360,10 +2367,14 @@ var cerrarRad = function (dato) {
             } else {
                 mjeError("No se puede cerrar documento actual", "--");
             }
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 
 var cerrarMod = function (dato) {
+    mostrarOverlay();
     fetch("datos/actualizar/cerrar_mod.php", {
         method: "POST",
         body: dato,
@@ -2376,9 +2387,13 @@ var cerrarMod = function (dato) {
             } else {
                 mjeError("No se puede cerrar documento actual", "--");
             }
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 var cerrarCRP = function (dato) {
+    mostrarOverlay();
     fetch("datos/actualizar/cerrar_crp.php", {
         method: "POST",
         body: dato,
@@ -2391,6 +2406,9 @@ var cerrarCRP = function (dato) {
             } else {
                 mjeError("No se puede cerrar documento actual", "--");
             }
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 // Abrir documento modificación presupuestal
@@ -2475,6 +2493,7 @@ function abrirCrp(id) {
     });
 };
 var abrirDocumentoMod = function (dato) {
+    mostrarOverlay();
     fetch("datos/consultar/consultaAbrir.php", {
         method: "POST",
         body: dato,
@@ -2487,6 +2506,9 @@ var abrirDocumentoMod = function (dato) {
             } else {
                 mjeError("Documento no abierto", "Verifique sumas iguales");
             }
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 // Editar rubros de modificacion presupuestal
@@ -2530,6 +2552,7 @@ $('#modificarModDetalle').on('click', '.borrar', function () {
         cancelButtonText: "Cancelar",
     }).then((result) => {
         if (result.value) {
+            mostrarOverlay();
             fetch("datos/eliminar/del_eliminar_movimiento.php", {
                 method: "POST",
                 body: JSON.stringify({ id: id }),
@@ -2543,6 +2566,9 @@ $('#modificarModDetalle').on('click', '.borrar', function () {
                     } else {
                         mjeError("No se puede eliminar el registro");
                     }
+                })
+                .finally(() => {
+                    ocultarOverlay();
                 });
         }
     });
@@ -2554,6 +2580,7 @@ let buscarConsecutivo = function (doc, campo) {
     if (id_doc) {
         let id_pto_doc = $("#numCdp").val();
     } else {
+        mostrarOverlay();
         fetch("datos/consultar/consultaConsecutivo.php", {
             method: "POST",
             body: JSON.stringify({ fecha: fecha, documento: doc }),
@@ -2561,6 +2588,9 @@ let buscarConsecutivo = function (doc, campo) {
             .then((response) => response.json())
             .then((response) => {
                 $("#numCdp").val(response[0].numero);
+            })
+            .finally(() => {
+                ocultarOverlay();
             });
     }
 };
@@ -2575,6 +2605,7 @@ function eliminarCdp(id) {
         cancelButtonText: "NO",
     }).then((result) => {
         if (result.isConfirmed) {
+            mostrarOverlay();
             fetch("datos/eliminar/del_eliminar_cdp.php", {
                 method: "POST",
                 body: id,
@@ -2589,6 +2620,9 @@ function eliminarCdp(id) {
                     } else {
                         mjeError("No se puede eliminar el registro:" + response);
                     }
+                })
+                .finally(() => {
+                    ocultarOverlay();
                 });
         }
     });
@@ -2605,6 +2639,7 @@ function eliminarRad(id) {
         cancelButtonText: "NO",
     }).then((result) => {
         if (result.isConfirmed) {
+            mostrarOverlay();
             fetch("datos/eliminar/del_eliminar_rad.php", {
                 method: "POST",
                 body: id,
@@ -2617,12 +2652,16 @@ function eliminarRad(id) {
                     } else {
                         mjeError("No se puede eliminar el registro:" + response);
                     }
+                })
+                .finally(() => {
+                    ocultarOverlay();
                 });
         }
     });
 }
 // Buscar si numero de documento ya existe
 let buscarCdp = function (doc, campo) {
+    mostrarOverlay();
     fetch("datos/consultar/consultaDocumento.php", {
         method: "POST",
         body: JSON.stringify({ doc: doc, tipo: campo }),
@@ -2635,6 +2674,9 @@ let buscarCdp = function (doc, campo) {
                 $("#numCdp").val(numini);
                 mje("El documento ya existe");
             }
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 // Redireccionar a lista_ejecucion_cdp
@@ -2652,6 +2694,7 @@ const redirecionarListacdp = (id, id_manu) => {
 const cambiarFechaSesion = (anno, user, url) => {
     // enviar anno y user a php para cargar informacion registrada
     let servidor = location.origin;
+    mostrarOverlay();
     fetch(servidor + url + "/financiero/fecha/form_fecha_sesion.php", {
         method: "POST",
         body: JSON.stringify({ vigencia: anno, usuario: user }),
@@ -2666,12 +2709,16 @@ const cambiarFechaSesion = (anno, user, url) => {
         })
         .catch((error) => {
             console.log("Error:");
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 // funcion para cambiar sessión de usuario
 const changeFecha = (url) => {
     let servidor = location.origin;
     let fromEnviar = new FormData(formFechaSesion);
+    mostrarOverlay();
     fetch(servidor + url + "/financiero/fecha/change_fecha_sesion.php", {
         method: "POST",
         body: fromEnviar,
@@ -2687,6 +2734,12 @@ const changeFecha = (url) => {
                 $("#modalDefault").modal("hide");
                 mje("Fecha actualizada");
             }
+        })
+        .catch((error) => {
+            console.log("Error:");
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 // Funcion para generar formato de cdp
@@ -2734,6 +2787,7 @@ const eliminarModPresupuestal = (id) => {
         cancelButtonText: "NO",
     }).then((result) => {
         if (result.isConfirmed) {
+            mostrarOverlay();
             fetch("datos/eliminar/del_eliminar_cdp.php", {
                 method: "POST",
                 body: id,
@@ -2752,6 +2806,12 @@ const eliminarModPresupuestal = (id) => {
                     } else {
                         mjeError("No se puede eliminar el registro:" + response);
                     }
+                })
+                .catch((error) => {
+                    console.log("Error:");
+                })
+                .finally(() => {
+                    ocultarOverlay();
                 });
         }
     });
@@ -2802,7 +2862,7 @@ document.addEventListener("submit", (e) => {
                 return false;
             }
         }
-
+        mostrarOverlay();
         fetch("datos/registrar/registrar_desaplazamiento_apl.php", {
             method: "POST",
             body: formEnvioApl,
@@ -2821,12 +2881,19 @@ document.addEventListener("submit", (e) => {
                 }
                 let id = "tableAplDetalle";
                 reloadtable(id);
+            })
+            .catch((error) => {
+                console.log("Error:");
+            })
+            .finally(() => {
+                ocultarOverlay();
             });
     }
 });
 
 // Funcióm para editar el valor del aplazamiento
 function editarAplazamiento(id) {
+    mostrarOverlay();
     fetch("datos/consultar/editarRubrosApl.php", {
         method: "POST",
         body: id,
@@ -2838,6 +2905,12 @@ function editarAplazamiento(id) {
             id_rubroCod.value = response.rubro;
             valorDeb.value = response.valor;
             valorDeb.max = response.valor;
+        })
+        .catch((error) => {
+            console.log("Error:");
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 }
 
@@ -2869,6 +2942,7 @@ const verHistorial = (boton) => {
 const verHistorialCdp = (anno) => {
     let rubro = id_rubroCdp.value;
     let fecha = ""; //fecha.value;
+    mostrarOverlay();
     fetch("datos/reportes/form_resumen_rubro.php", {
         method: "POST",
         body: JSON.stringify({ vigencia: anno, rubro: rubro, fecha: fecha }),
@@ -2883,6 +2957,9 @@ const verHistorialCdp = (anno) => {
         })
         .catch((error) => {
             console.log("Error:");
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 
@@ -2891,6 +2968,7 @@ const consultaSaldoCdp = (anno) => {
     let rubro = id_rubroCdp.value;
     let valor = valorCdp.value;
     valor = parseFloat(valor.replace(/\,/g, "", ""));
+    mostrarOverlay();
     fetch("datos/consultar/consultaSaldoCdp.php", {
         method: "POST",
         body: JSON.stringify({ vigencia: anno, rubro: rubro }),
@@ -2907,6 +2985,9 @@ const consultaSaldoCdp = (anno) => {
         })
         .catch((error) => {
             console.log("Error:");
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 
@@ -3097,6 +3178,7 @@ $('.btnOptionPto').on('click', function () {
 });
 // Ver historial de CDP para liquidación de saldos sin ejecutar
 const verLiquidarCdp = (id) => {
+    mostrarOverlay();
     fetch("lista_historial_cdp.php", {
         method: "POST",
         body: JSON.stringify({ id: id }),
@@ -3111,10 +3193,14 @@ const verLiquidarCdp = (id) => {
         })
         .catch((error) => {
             console.log("Error:");
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 // Ver historial de CDP para liquidación de saldos sin ejecutar
 const CargarFormularioLiquidar = (id) => {
+    mostrarOverlay();
     fetch("datos/registrar/form_liquidar_saldo_cdp.php", {
         method: "POST",
         body: JSON.stringify({ id: id }),
@@ -3129,10 +3215,14 @@ const CargarFormularioLiquidar = (id) => {
         })
         .catch((error) => {
             console.log("Error:");
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 // Ver historial de CDP para liquidación de saldos sin ejecutar
 const CargarFormularioLiquidarCrp = (id) => {
+    mostrarOverlay();
     fetch("datos/registrar/form_liquidar_saldo_crp.php", {
         method: "POST",
         body: JSON.stringify({ id: id }),
@@ -3147,6 +3237,9 @@ const CargarFormularioLiquidarCrp = (id) => {
         })
         .catch((error) => {
             console.log("Error:");
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 
@@ -3555,6 +3648,7 @@ const cargarReportePresupuesto = (id) => {
     if (id == 8) {
         url = "informes/informe_ejecucion2_form.php";
     }
+    mostrarOverlay();
     fetch(url, {
         method: "POST",
         body: JSON.stringify({ id: id }),
@@ -3565,6 +3659,9 @@ const cargarReportePresupuesto = (id) => {
         })
         .catch((error) => {
             console.log("Error:");
+        })
+        .finally(() => {
+            ocultarOverlay();
         });
 };
 
