@@ -19,10 +19,11 @@ class Imprimir
     private $empresa = "";
     private $host = "";
 
-    public function __construct($titulo = "Documento", $hoja = "letter")
+    public function __construct($titulo = "Documento", $hoja = "letter", $orientacion = "P")
     {
         $this->titulo = $titulo;
-        $this->hoja = $hoja;
+        // Si la orientación es "L" (landscape), añadir "landscape" al tamaño de página
+        $this->hoja = strtoupper($orientacion) === "L" ? "{$hoja} landscape" : $hoja;
         $this->cssBase();
         $usuario = new Usuario();
         $this->empresa = $usuario->getEmpresa();

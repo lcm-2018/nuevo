@@ -232,17 +232,32 @@ if ($doc_fte == 'CEVA' || $doc_fte == 'CICP') {
     }
 }
 
+$terRecibeCell = '';
+if ($terRecibe != '') {
+    $terRecibeCell = "
+        <td style=\"width:50%; text-align:center; vertical-align:top;\">
+            <div>___________________________________</div>
+            <div>$tercero</div>
+            <div>RECIBE CC/NIT:</div>
+        </td>";
+    $responsableWidth = "50%";
+} else {
+    $responsableWidth = "100%";
+}
+
 $firmas =
     <<<HTML
         <div style="text-align: center; padding-top: 60px; font-size: 13px;">
-            <div class="row">
-                <div class="col">
-                    <div>___________________________________</div>
-                    <div>{$nom_respon}</div>
-                    <div>{$cargo_respon}</div>
-                </div>
-                {$terRecibe}
-            </div>
+            <table style="width:100%; border-collapse: collapse;">
+                <tr>
+                    <td style="width:{$responsableWidth}; text-align:center; vertical-align:top;">
+                        <div>___________________________________</div>
+                        <div>{$nom_respon}</div>
+                        <div>{$cargo_respon}</div>
+                    </td>
+                    {$terRecibeCell}
+                </tr>
+            </table>
         </div>
         <div style="text-align: center; padding-top: 25px;">
             {$table}

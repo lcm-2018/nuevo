@@ -22,8 +22,19 @@ class Logs
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
+
+        // Verificar y crear directorio con mejor manejo de errores
         if (!file_exists($url)) {
-            mkdir($url, 0777, true);
+            if (!mkdir($url, 0777, true)) {
+                error_log("Logs.php - No se pudo crear el directorio: $url");
+                return; // Salir silenciosamente si no se puede crear
+            }
+        }
+
+        // Verificar si el directorio es escribible
+        if (!is_writable($url)) {
+            error_log("Logs.php - El directorio no tiene permisos de escritura: $url");
+            return; // Salir silenciosamente
         }
 
         $fecha = new DateTime('now', new DateTimeZone('America/Bogota'));
@@ -36,12 +47,13 @@ class Logs
         $cadena = "[{$fecha->format('Y-m-d H:i:s')}] Usuario: $id_user-$usuario, 127.0.0.1, SQL: $sql;" . PHP_EOL;
 
         // Intentar escribir al archivo con manejo de errores
-        try {
-            if (!file_put_contents($archivo, $cadena, FILE_APPEND | LOCK_EX)) {
-                throw new Exception("Error al escribir el log");
-            }
-        } catch (Exception $e) {
-            echo "Error al registrar log: " . $e->getMessage();
+        $resultado = @file_put_contents($archivo, $cadena, FILE_APPEND | LOCK_EX);
+
+        if ($resultado === false) {
+            $error = error_get_last();
+            $errorMsg = $error ? $error['message'] : 'Error desconocido';
+            error_log("Logs.php - Error al escribir: $archivo - $errorMsg");
+            // No mostrar error al usuario, solo registrar en error_log del servidor
         }
     }
 }

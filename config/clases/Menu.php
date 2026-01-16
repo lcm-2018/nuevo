@@ -599,6 +599,26 @@ class Menu
 
     /**
      * MODULO ALMACÉN (50)
+     * IDs según tabla:
+     * 5001: [General][Laboratorios]
+     * 5002: [General][Artículos]
+     * 5003: [Pedidos][De Bodega]
+     * 5004: [Pedidos][De Dependencia]
+     * 5005: [Pedidos][De Almacén]
+     * 5006: [Movimientos][Ingresos]
+     * 5007: [Movimientos][Egresos]
+     * 5008: [Movimientos][Traslados]
+     * 5009: [Movimientos][Recalcular]
+     * 5010: [General][Marcas]
+     * 5011: [Reporte][Existencia General]
+     * 5012: [Reporte][Existencia Detallada]
+     * 5013: [Reporte][Existencia a una Fecha]
+     * 5014: [Reporte][Movimientos por Periodo]
+     * 5015: [General][Areas-Centros Costo]
+     * 5016: [General][Presentaciones Comerciales]
+     * 5017: [Movimientos][Traslado SPSR]
+     * 5018: [Pedidos][De Bodega SPSR]
+     * 5099: [Reporte][Personalizados]
      */
     private function getMenuAlmacen(): string
     {
@@ -613,77 +633,140 @@ class Menu
             $this->permisos->PermisosUsuario($this->opciones, 5002, 0) ||
             $this->permisos->PermisosUsuario($this->opciones, 5003, 0) ||
             $this->permisos->PermisosUsuario($this->opciones, 5004, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5005, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5006, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5007, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5008, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5009, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5010, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5011, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5012, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5013, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5014, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5015, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5016, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5017, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5018, 0) ||
             $this->permisos->PermisosUsuario($this->opciones, 5099, 0) ||
             $this->id_rol == 1
         )) {
             return '';
         }
 
-        // --- SECCIÓN: GENERAL (5001) ---
-        $alm_general = '';
+        // --- SECCIÓN: GENERAL ---
+        // 5001: Laboratorios, 5002: Artículos, 5010: Marcas, 5015: Areas-Centros Costo, 5016: Presentaciones Comerciales
+        $gen_items = '';
+
+        // 5015: [General][Areas-Centros Costo]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5015, 0) || $this->id_rol == 1) {
+            $gen_items .= '<li><a href="' . $this->host . '/src/almacen/php/centrocosto_areas/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra"><i class="fa fa-sitemap me-2 fa-fw"></i> Áreas</a></li>';
+        }
+        // 5016: [General][Presentaciones Comerciales]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5016, 0) || $this->id_rol == 1) {
+            $gen_items .= '<li><a href="' . $this->host . '/src/almacen/php/pres_comercial/index.php?var=3" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-ticket-alt me-2 fa-fw"></i> Presentación Comercial</a></li>';
+        }
+        // 5010: [General][Marcas]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5010, 0) || $this->id_rol == 1) {
+            $gen_items .= '<li><a href="' . $this->host . '/src/almacen/php/marcas/index.php?var=3" class="nav-link text-info px-1 py-2 sombra"><i class="fab fa-staylinked me-2 fa-fw"></i> Marcas</a></li>';
+        }
+        // 5001: [General][Laboratorios]
         if ($this->permisos->PermisosUsuario($this->opciones, 5001, 0) || $this->id_rol == 1) {
-            $gen_items =
-                <<<HTML
-                    <li><a href="{$this->host}/src/almacen/php/centrocosto_areas/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra"><i class="fa fa-sitemap me-2 fa-fw"></i> Áreas</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/pres_comercial/index.php?var=3" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-ticket-alt me-2 fa-fw"></i> Presentación Comercial</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/marcas/index.php?var=3" class="nav-link text-info px-1 py-2 sombra"><i class="fab fa-staylinked me-2 fa-fw"></i> Marcas</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/laboratorios/index.php?var=3" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-bong me-2 fa-fw"></i> Laboratorios</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/articulos/index.php?var=3" class="nav-link text-danger px-1 py-2 sombra"><i class="far fa-list-alt me-2 fa-fw"></i> Artículos</a></li>
-                HTML;
+            $gen_items .= '<li><a href="' . $this->host . '/src/almacen/php/laboratorios/index.php?var=3" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-bong me-2 fa-fw"></i> Laboratorios</a></li>';
+        }
+        // 5002: [General][Artículos]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5002, 0) || $this->id_rol == 1) {
+            $gen_items .= '<li><a href="' . $this->host . '/src/almacen/php/articulos/index.php?var=3" class="nav-link text-danger px-1 py-2 sombra"><i class="far fa-list-alt me-2 fa-fw"></i> Artículos</a></li>';
+        }
+
+        $alm_general = '';
+        if (!empty($gen_items)) {
             $alm_general = $this->wrapCollapse('almacen-general-collapse', 'fa fa-tags', 'General', $gen_items, 'text-primary');
         }
 
-        // --- SECCIÓN: PEDIDOS (5002) ---
+        // --- SECCIÓN: PEDIDOS ---
+        // 5003: De Bodega, 5004: De Dependencia, 5005: De Almacén, 5018: De Bodega SPSR
+        $ped_items = '';
+
+        // 5005: [Pedidos][De Almacén]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5005, 0) || $this->id_rol == 1) {
+            $ped_items .= '<li><a href="' . $this->host . '/src/almacen/php/pedidos_alm/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-kaaba me-2 fa-fw"></i> Almacén</a></li>';
+        }
+        // 5003: [Pedidos][De Bodega]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5003, 0) || $this->id_rol == 1) {
+            $ped_items .= '<li><a href="' . $this->host . '/src/almacen/php/pedidos_bod/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-coins me-2 fa-fw"></i> Bodega</a></li>';
+        }
+        // 5004: [Pedidos][De Dependencia]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5004, 0) || $this->id_rol == 1) {
+            $ped_items .= '<li><a href="' . $this->host . '/src/almacen/php/pedidos_cec/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fa fa-th-large me-2 fa-fw"></i> Dependencia</a></li>';
+        }
+        // 5018: [Pedidos][De Bodega SPSR]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5018, 0) || $this->id_rol == 1) {
+            $ped_items .= '<li><a href="' . $this->host . '/src/almacen/php/pedidos_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-coins me-2 fa-fw"></i> Bodega SPSR</a></li>';
+        }
+
         $alm_pedidos = '';
-        if ($this->permisos->PermisosUsuario($this->opciones, 5002, 0) || $this->id_rol == 1) {
-            $ped_items =
-                <<<HTML
-                    <li><a href="{$this->host}/src/almacen/php/pedidos_alm/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-kaaba me-2 fa-fw"></i> Almacén</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/pedidos_bod/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-coins me-2 fa-fw"></i> Bodega</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/pedidos_cec/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fa fa-th-large me-2 fa-fw"></i> Dependencia</a></li>
-                    <li class="d-none"><a href="{$this->host}/src/almacen/php/pedidos_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-coins me-2 fa-fw"></i> Bodega SPSR</a></li>
-                HTML;
+        if (!empty($ped_items)) {
             $alm_pedidos = $this->wrapCollapse('almacen-pedidos-collapse', 'fa fa-pencil-square-o', 'Pedidos', $ped_items, 'text-success');
         }
 
-        // --- SECCIÓN: MOVIMIENTOS (5003) ---
+        // --- SECCIÓN: MOVIMIENTOS ---
+        // 5006: Ingresos, 5007: Egresos, 5008: Traslados, 5009: Recalcular, 5017: Traslado SPSR
+        $mov_items = '';
+
+        // 5006: [Movimientos][Ingresos]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5006, 0) || $this->id_rol == 1) {
+            $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/ingresos/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-door-open me-2 fa-fw"></i> Ingresos</a></li>';
+        }
+        // 5007: [Movimientos][Egresos]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5007, 0) || $this->id_rol == 1) {
+            $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/egresos/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-sign-out-alt me-2 fa-fw"></i> Egresos</a></li>';
+        }
+        // 5008: [Movimientos][Traslados]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5008, 0) || $this->id_rol == 1) {
+            $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-exchange-alt me-2 fa-fw"></i> Traslados</a></li>';
+        }
+        // 5017: [Movimientos][Traslado SPSR]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5017, 0) || $this->id_rol == 1) {
+            $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados SPSR</a></li>';
+        }
+        // 5009: [Movimientos][Recalcular]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5009, 0) || $this->id_rol == 1) {
+            $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/recalcular_kardex/index.php" class="nav-link text-danger px-1 py-2 sombra"><i class="fa fa-cogs me-2 fa-fw"></i> Recalcula Mtos.</a></li>';
+        }
+
         $alm_movimientos = '';
-        if ($this->permisos->PermisosUsuario($this->opciones, 5003, 0) || $this->id_rol == 1) {
-            $mov_items =
-                <<<HTML
-                    <li><a href="{$this->host}/src/almacen/php/ingresos/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-door-open me-2 fa-fw"></i> Ingresos</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/egresos/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-sign-out-alt me-2 fa-fw"></i> Egresos</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/traslados/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-exchange-alt me-2 fa-fw"></i> Traslados</a></li>
-                    <li class="d-none"><a href="{$this->host}/src/almacen/php/traslados_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados SPSR</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/recalcular_kardex/index.php" class="nav-link text-danger px-1 py-2 sombra"><i class="fa fa-cogs me-2 fa-fw"></i> Recalcula Mtos.</a></li>
-                HTML;
+        if (!empty($mov_items)) {
             $alm_movimientos = $this->wrapCollapse('almacen-movimientos-collapse', 'fas fa-sliders', 'Movimientos', $mov_items, 'text-info');
         }
 
-        // --- SECCIÓN: REPORTES (5004) ---
-        $alm_reportes = '';
-        if ($this->permisos->PermisosUsuario($this->opciones, 5004, 0) || $this->id_rol == 1) {
-            $rep_items =
-                <<<HTML
-                    <li><a href="{$this->host}/src/almacen/php/existencia_articulo/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-chart-bar me-2 fa-fw"></i> Ex. General</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/existencia_lote/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-chart-bar me-2 fa-fw"></i> Ex. Detallada</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/existencia_fecha/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-chart-bar me-2 fa-fw"></i> Ex. a una Fecha</a></li>
-                    <li><a href="{$this->host}/src/almacen/php/movimiento_periodo/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-chart-bar me-2 fa-fw"></i> Mov. Periodo</a></li>
-                HTML;
-            $alm_reportes = $this->wrapCollapse('almacen-reportes-collapse', 'fa fa-map-o', 'Reportes', $rep_items, 'text-warning');
+        // --- SECCIÓN: REPORTES ---
+        // 5011: Existencia General, 5012: Existencia Detallada, 5013: Existencia a una Fecha, 5014: Movimientos por Periodo, 5099: Personalizados
+        $rep_items = '';
+
+        // 5011: [Reporte][Existencia General]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5011, 0) || $this->id_rol == 1) {
+            $rep_items .= '<li><a href="' . $this->host . '/src/almacen/php/existencia_articulo/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-chart-bar me-2 fa-fw"></i> Ex. General</a></li>';
+        }
+        // 5012: [Reporte][Existencia Detallada]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5012, 0) || $this->id_rol == 1) {
+            $rep_items .= '<li><a href="' . $this->host . '/src/almacen/php/existencia_lote/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-chart-bar me-2 fa-fw"></i> Ex. Detallada</a></li>';
+        }
+        // 5013: [Reporte][Existencia a una Fecha]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5013, 0) || $this->id_rol == 1) {
+            $rep_items .= '<li><a href="' . $this->host . '/src/almacen/php/existencia_fecha/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-chart-bar me-2 fa-fw"></i> Ex. a una Fecha</a></li>';
+        }
+        // 5014: [Reporte][Movimientos por Periodo]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5014, 0) || $this->id_rol == 1) {
+            $rep_items .= '<li><a href="' . $this->host . '/src/almacen/php/movimiento_periodo/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-chart-bar me-2 fa-fw"></i> Mov. Periodo</a></li>';
+        }
+        // 5099: [Reporte][Personalizados]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5099, 0) || $this->id_rol == 1) {
+            $rep_items .= '<li><a href="javascript:void(0)" class="nav-link text-danger px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5099"><i class="fas fa-cogs me-2 fa-fw"></i> Inf.Personalizados</a></li>';
         }
 
-        // --- PERSONALIZADOS (5099) ---
-        $alm_personalizados = '';
-        if ($this->permisos->PermisosUsuario($this->opciones, 5099, 0) || $this->id_rol == 1) {
-            $alm_personalizados =
-                <<<HTML
-                    <li>
-                        <a href="javascript:void(0)" class="nav-link text-danger px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5099">
-                            <i class="fas fa-cogs me-2 fa-fw"></i> Inf.Personalizados
-                        </a>
-                    </li>
-                HTML;
+        $alm_reportes = '';
+        if (!empty($rep_items)) {
+            $alm_reportes = $this->wrapCollapse('almacen-reportes-collapse', 'fa fa-map-o', 'Reportes', $rep_items, 'text-warning');
         }
 
         // 3. Retorno de la estructura HTML final
@@ -705,7 +788,6 @@ class Menu
                             {$alm_pedidos}
                             {$alm_movimientos}
                             {$alm_reportes}
-                            {$alm_personalizados}
                         </ul>
                     </div>
                 </li>
@@ -714,6 +796,17 @@ class Menu
 
     /**
      * MODULO ACTIVOS FIJOS (57)
+     * IDs según tabla:
+     * 5701: [Entradas][Entradas]
+     * 5702: [Pedidos][Activos Fijos]
+     * 5703: [Movimientos][Ingresos]
+     * 5704: [Mantenimiento][Hoja de Vida]
+     * 5705: [Mantenimiento][Registro]
+     * 5706: [Mantenimiento][Progreso]
+     * 5707: [General][Marcas]
+     * 5708: [Movimientos][Traslados]
+     * 5709: [Movimientos][Bajas]
+     * 5799: [Reporte][Personalizados]
      */
     private function getMenuActivosFijos(): string
     {
@@ -728,64 +821,114 @@ class Menu
             $this->permisos->PermisosUsuario($this->opciones, 5702, 0) ||
             $this->permisos->PermisosUsuario($this->opciones, 5703, 0) ||
             $this->permisos->PermisosUsuario($this->opciones, 5704, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5705, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5706, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5707, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5708, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5709, 0) ||
             $this->permisos->PermisosUsuario($this->opciones, 5799, 0) ||
             $this->id_rol == 1
         )) {
             return '';
         }
 
-        // --- SECCIÓN: GENERAL (5701) ---
+        // --- SECCIÓN: GENERAL ---
+        // 5707: [General][Marcas]
+        $gen_items = '';
+
+        // 5707: [General][Marcas]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5707, 0) || $this->id_rol == 1) {
+            $gen_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/marcas/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra"><i class="fab fa-staylinked me-2 fa-fw"></i> Marcas</a></li>';
+        }
+
         $af_general = '';
-        if ($this->permisos->PermisosUsuario($this->opciones, 5701, 0) || $this->id_rol == 1) {
-            $gen_items =
-                <<<HTML
-                    <li><a href="{$this->host}/src/activos_fijos/php/marcas/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra"><i class="fab fa-staylinked me-2 fa-fw"></i> Marcas</a></li>
-                    <li><a href="{$this->host}/src/activos_fijos/php/articulos/index.php?var=3" class="nav-link text-success px-1 py-2 sombra"><i class="far fa-list-alt me-2 fa-fw"></i> Artículos</a></li>
-                HTML;
+        if (!empty($gen_items)) {
             $af_general = $this->wrapCollapse('af-general-collapse', 'fa fa-tags', 'General', $gen_items, 'text-primary');
         }
 
-        // --- SECCIÓN: PEDIDOS (5702) ---
-        $af_pedidos = '';
+        // --- SECCIÓN: ENTRADAS ---
+        // 5701: [Entradas][Entradas]
+        $ent_items = '';
+
+        // 5701: [Entradas][Entradas]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5701, 0) || $this->id_rol == 1) {
+            $ent_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/articulos/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra"><i class="far fa-list-alt me-2 fa-fw"></i> Entradas</a></li>';
+        }
+
+        $af_entradas = '';
+        if (!empty($ent_items)) {
+            $af_entradas = $this->wrapCollapse('af-entradas-collapse', 'fas fa-sign-in-alt', 'Entradas', $ent_items, 'text-info');
+        }
+
+        // --- SECCIÓN: PEDIDOS ---
+        // 5702: [Pedidos][Activos Fijos]
+        $ped_items = '';
+
+        // 5702: [Pedidos][Activos Fijos]
         if ($this->permisos->PermisosUsuario($this->opciones, 5702, 0) || $this->id_rol == 1) {
-            $ped_items =
-                <<<HTML
-                    <li><a href="{$this->host}/src/activos_fijos/php/pedidos/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-chalkboard me-2 fa-fw"></i> Activos Fijos</a></li>
-                HTML;
+            $ped_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/pedidos/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-chalkboard me-2 fa-fw"></i> Activos Fijos</a></li>';
+        }
+
+        $af_pedidos = '';
+        if (!empty($ped_items)) {
             $af_pedidos = $this->wrapCollapse('af-pedidos-collapse', 'fa fa-pencil-square-o', 'Pedidos', $ped_items, 'text-success');
         }
 
-        // --- SECCIÓN: MOVIMIENTOS (5703) ---
-        $af_movimientos = '';
+        // --- SECCIÓN: MOVIMIENTOS ---
+        // 5703: Ingresos, 5708: Traslados, 5709: Bajas
+        $mov_items = '';
+
+        // 5703: [Movimientos][Ingresos]
         if ($this->permisos->PermisosUsuario($this->opciones, 5703, 0) || $this->id_rol == 1) {
-            $mov_items =
-                <<<HTML
-                    <li><a href="{$this->host}/src/activos_fijos/php/ingresos/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-door-open me-2 fa-fw"></i> Ingresos</a></li>
-                    <li><a href="{$this->host}/src/activos_fijos/php/traslados/index.php?var=3" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-luggage-cart me-2 fa-fw"></i> Traslados</a></li>
-                    <li><a href="{$this->host}/src/activos_fijos/php/bajas/index.php?var=3" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-level-down-alt me-2 fa-fw"></i> Dar de baja</a></li>
-                HTML;
+            $mov_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/ingresos/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-door-open me-2 fa-fw"></i> Ingresos</a></li>';
+        }
+        // 5708: [Movimientos][Traslados]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5708, 0) || $this->id_rol == 1) {
+            $mov_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/traslados/index.php?var=3" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-luggage-cart me-2 fa-fw"></i> Traslados</a></li>';
+        }
+        // 5709: [Movimientos][Bajas]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5709, 0) || $this->id_rol == 1) {
+            $mov_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/bajas/index.php?var=3" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-level-down-alt me-2 fa-fw"></i> Dar de baja</a></li>';
+        }
+
+        $af_movimientos = '';
+        if (!empty($mov_items)) {
             $af_movimientos = $this->wrapCollapse('af-movimientos-collapse', 'fas fa-sliders', 'Movimientos', $mov_items, 'text-info');
         }
 
-        // --- SECCIÓN: MANTENIMIENTO (5704) ---
-        $af_mantenimiento = '';
+        // --- SECCIÓN: MANTENIMIENTO ---
+        // 5704: Hoja de Vida, 5705: Registro, 5706: Progreso
+        $mant_items = '';
+
+        // 5704: [Mantenimiento][Hoja de Vida]
         if ($this->permisos->PermisosUsuario($this->opciones, 5704, 0) || $this->id_rol == 1) {
-            $mant_items =
-                <<<HTML
-                    <li><a href="{$this->host}/src/activos_fijos/php/hojavida/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra"><i class="fa fa-newspaper-o me-2 fa-fw"></i> Hoja de Vida</a></li>
-                    <li><a href="{$this->host}/src/activos_fijos/php/mantenimientos/index.php?var=3" class="nav-link text-success px-1 py-2 sombra"><i class="fa fa-calendar-check-o me-2 fa-fw"></i> Registros</a></li>
-                    <li><a href="{$this->host}/src/activos_fijos/php/mantenimiento_prog/index.php?var=3" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-sort-amount-down-alt me-2 fa-fw"></i> Progreso</a></li>
-                HTML;
+            $mant_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/hojavida/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra"><i class="fa fa-newspaper-o me-2 fa-fw"></i> Hoja de Vida</a></li>';
+        }
+        // 5705: [Mantenimiento][Registro]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5705, 0) || $this->id_rol == 1) {
+            $mant_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/mantenimientos/index.php?var=3" class="nav-link text-success px-1 py-2 sombra"><i class="fa fa-calendar-check-o me-2 fa-fw"></i> Registros</a></li>';
+        }
+        // 5706: [Mantenimiento][Progreso]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5706, 0) || $this->id_rol == 1) {
+            $mant_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/mantenimiento_prog/index.php?var=3" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-sort-amount-down-alt me-2 fa-fw"></i> Progreso</a></li>';
+        }
+
+        $af_mantenimiento = '';
+        if (!empty($mant_items)) {
             $af_mantenimiento = $this->wrapCollapse('af-mantenimiento-collapse', 'fas fa-cogs', 'Mantenimiento', $mant_items, 'text-warning');
         }
 
-        // --- SECCIÓN: REPORTES (5799) ---
-        $af_reportes = '';
+        // --- SECCIÓN: REPORTES ---
+        // 5799: [Reporte][Personalizados]
+        $rep_items = '';
+
+        // 5799: [Reporte][Personalizados]
         if ($this->permisos->PermisosUsuario($this->opciones, 5799, 0) || $this->id_rol == 1) {
-            $rep_items =
-                <<<HTML
-                    <li><a href="javascript:void(0)" class="nav-link text-danger px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5799"><i class="fas fa-chart-bar me-2 fa-fw"></i> Personalizados</a></li>
-                HTML;
+            $rep_items .= '<li><a href="javascript:void(0)" class="nav-link text-danger px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5799"><i class="fas fa-chart-bar me-2 fa-fw"></i> Personalizados</a></li>';
+        }
+
+        $af_reportes = '';
+        if (!empty($rep_items)) {
             $af_reportes = $this->wrapCollapse('af-reportes-collapse', 'fa fa-map-o', 'Reportes', $rep_items, 'text-danger');
         }
 
@@ -805,6 +948,7 @@ class Menu
                     <div class="collapse shadow rounded-3" id="af-collapse">
                         <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 pt-2 small ps-4 pe-3">
                             {$af_general}
+                            {$af_entradas}
                             {$af_pedidos}
                             {$af_movimientos}
                             {$af_mantenimiento}

@@ -200,7 +200,7 @@ foreach ($documentos_tes as $documento) {
                                         `pto_pag_detalle`
                                         INNER JOIN `pto_cop_detalle` 
                                         ON (`pto_pag_detalle`.`id_pto_cop_det` = `pto_cop_detalle`.`id_pto_cop_det`)
-                                        INNER JOIN `ctb_causa_retencion` 
+                                        LEFT JOIN `ctb_causa_retencion` 
                                         ON (`pto_cop_detalle`.`id_ctb_doc` = `ctb_causa_retencion`.`id_ctb_doc`)
                                     WHERE (`pto_pag_detalle`.`id_ctb_doc` = $id_doc) LIMIT 1))";
             $rs = $cmd->query($sql);
@@ -496,43 +496,39 @@ foreach ($documentos_tes as $documento) {
             <?php
             if (!empty($data)) {
             ?>
-                <div class="row">
-                    <div class="col-12">
-                        <div style="text-align: left">
-                            <div><strong>Datos de la factura: </strong></div>
-                        </div>
-                    </div>
+                <div style="text-align: left; width: 100%">
+                    <div><strong>Datos de la factura: </strong></div>
                 </div>
                 <?php
 
                 $total_pto = 0;
                 ?>
 
-                <table class="table-bordered bg-light" style="width:100% !important;">
+                <table style="width:100% !important; border-collapse: collapse;">
                     <tr>
-                        <td style="text-align: left">Causación</td>
-                        <td>Documento</td>
-                        <td colspan="3">Número(s)</td>
+                        <td style="text-align: left;border: 1px solid black">Causación</td>
+                        <td style="border: 1px solid black">Documento</td>
+                        <td colspan="3" style="border: 1px solid black">Número(s)</td>
 
                     </tr>
                     <tr>
-                        <td><?= $data['id_manu']; ?></td>
-                        <td><?php echo $data['tipo']; ?></td>
-                        <td colspan="3"><?php echo $data['num_doc']; ?></td>
+                        <td style="border: 1px solid black"><?= $data['id_manu']; ?></td>
+                        <td style="border: 1px solid black"><?php echo $data['tipo']; ?></td>
+                        <td colspan="3" style="border: 1px solid black"><?php echo $data['num_doc']; ?></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left">Valor factura(s)</td>
-                        <td>Valor IVA</td>
-                        <td>Base</td>
-                        <td>Descuentos</td>
-                        <td>Neto</td>
+                        <td style="text-align: left;border: 1px solid black">Valor factura(s)</td>
+                        <td style="border: 1px solid black">Valor IVA</td>
+                        <td style="border: 1px solid black">Base</td>
+                        <td style="border: 1px solid black">Descuentos</td>
+                        <td style="border: 1px solid black">Neto</td>
                     </tr>
                     <tr>
-                        <td><?php echo number_format($data['valor_pago'], 2, ',', '.'); ?></td>
-                        <td><?php echo  number_format($data['valor_iva'], 2, ',', '.');; ?></td>
-                        <td><?php echo number_format($data['valor_base'], 2, ',', '.'); ?></td>
-                        <td><?php echo number_format($descuentos['dcto'], 2, ',', '.'); ?></td>
-                        <td><?php echo number_format(($data['valor_pago'] - $descuentos['dcto']), 2, ',', '.'); ?></td>
+                        <td style="border: 1px solid black"><?php echo number_format($data['valor_pago'], 2, ',', '.'); ?></td>
+                        <td style="border: 1px solid black"><?php echo  number_format($data['valor_iva'], 2, ',', '.');; ?></td>
+                        <td style="border: 1px solid black"><?php echo number_format($data['valor_base'], 2, ',', '.'); ?></td>
+                        <td style="border: 1px solid black"><?php echo number_format($descuentos['dcto'], 2, ',', '.'); ?></td>
+                        <td style="border: 1px solid black"><?php echo number_format(($data['valor_pago'] - $descuentos['dcto']), 2, ',', '.'); ?></td>
                     </tr>
                 </table>
                 </br>
