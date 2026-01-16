@@ -45,7 +45,7 @@ if (!empty($obj)) {
         if ($permisos->PermisosUsuario($opciones, 5101, 6) || $id_rol == 1) {
             $imprimir = '<button data-id="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 imprimir" title="Imprimir"><span class="fas fa-print fa-sm"></span></button>';
         }
-        if ($o['estado'] == '2') {
+        if ($o['estado'] == '2' || $o['liq'] > 0) {
             $actualizar = $eliminar = '';
         }
 

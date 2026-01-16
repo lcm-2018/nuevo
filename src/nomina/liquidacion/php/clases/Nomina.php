@@ -407,15 +407,16 @@ class Nomina
     public static function getIDNomina($mes, $tipo)
     {
         try {
-            $sql = "SELECT
-                        MAX(`nom_nominas`.`id_nomina`) AS `id_nomina`, `nom_nominas`.`estado`
-                    FROM
-                        `nom_nominas`
-                        INNER JOIN `nom_tipo_liquidacion` 
-                            ON (`nom_nominas`.`tipo` = `nom_tipo_liquidacion`.`codigo`)
-                    WHERE (`nom_tipo_liquidacion`.`id_tipo` = ? AND `nom_nominas`.`mes` = ?
-                        AND `nom_nominas`.`vigencia` = ? AND `nom_nominas`.`estado` > 0)
-                    GROUP BY `nom_tipo_liquidacion`.`id_tipo`, `nom_nominas`.`mes`";
+            $sql = "SELECT `nn`.`id_nomina`, `nn`.`estado`
+                    FROM `nom_nominas` `nn`
+                    INNER JOIN `nom_tipo_liquidacion` `ntl` 
+                        ON (`nn`.`tipo` = `ntl`.`codigo`)
+                    WHERE `ntl`.`id_tipo` = ? 
+                        AND `nn`.`mes` = ?
+                        AND `nn`.`vigencia` = ? 
+                        AND `nn`.`estado` > 0
+                    ORDER BY `nn`.`id_nomina` DESC
+                    LIMIT 1";
             $stmt = Conexion::getConexion()->prepare($sql);
             $stmt->bindParam(1, $tipo, PDO::PARAM_INT);
             $stmt->bindParam(2, $mes, PDO::PARAM_STR);

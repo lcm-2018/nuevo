@@ -96,7 +96,7 @@ class Seguridad_Social
                         FROM
                             `nom_terceros_novedad` `ntn`
                             INNER JOIN `nom_terceros` `nt` ON `ntn`.`id_tercero` = `nt`.`id_tn`
-                        WHERE `ntn`.`id_empleado` = 62
+                        WHERE `ntn`.`id_empleado` = $id_empleado
                             AND `ntn`.`fec_inicia` = (
                                 SELECT MAX(`ntn2`.`fec_inicia`)
                                 FROM `nom_terceros_novedad` `ntn2`

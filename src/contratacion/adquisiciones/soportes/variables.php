@@ -327,17 +327,19 @@ $bien_servicio = array_filter($oferta, function ($item) {
 // Calcular plazo del contrato si existen las fechas
 $plazo              = '';
 $fec_inicia         = '';
-$fec_fin            = '';
+$fec_fin_ctt            = '';
 if (isset($contrato['fec_ini']) && isset($contrato['fec_fin'])) {
     $plazo          = Valores::calcularPlazo($contrato['fec_ini'], $contrato['fec_fin']);
     $fec_inicia     = Valores::fechaEnLetras($contrato['fec_ini'], false); // minúsculas
-    $fec_fin        = Valores::fechaEnLetras($contrato['fec_fin'], false); // minúsculas
+    $fec_fin_ctt    = Valores::fechaEnLetras($contrato['fec_fin'], false); // minúsculas
 }
 $forma_pago         = isset($contrato['descripcion']) ? $contrato['descripcion'] : '';
 $no_contrato        = isset($contrato['num_contrato']) ? $contrato['num_contrato'] : '-';
 $objeto_ctt         = $compra['objeto'];
 $val_ctt            = mb_strtoupper(Valores::LetrasCOP($contrato['val_contrato']));
+
 $van_ctt            = pesos($contrato['val_contrato']);
+$van_ep             = pesos($estudio_prev['val_contrata']);
 $cod_presupuesto    = $cod_cargue['cod_pptal'] ?? 'XXX';
 $rubro              = $cod_cargue['nom_rubro'] ?? 'XXX';
 $tercero            = $compra['nom_tercero'] ?? 'XXX';

@@ -5,6 +5,8 @@ function getUrlListado() {
         return 'lista_liquidacion.php';
     } else if (tipo == 6 || tipo == 7 || tipo == 8 || tipo == 9) {
         return 'lista_cesantias.php';
+    } else if (tipo == 4) {
+        return 'lista_vacaciones.php';
     }
     return 'lista_liquidacion.php'; // URL por defecto
 }

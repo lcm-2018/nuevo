@@ -170,7 +170,6 @@
     //Enviar archivo csv
     $('#btn_exportar_consulta').on('click', function () {
         if ($('#txt_id_consulta').val()) {
-            $('#divModalEspera').modal('show');
             var parametros = new Array(),
                 i = 1,
                 id = $('#txt_id_consulta').val();
@@ -188,23 +187,22 @@
                 parametros[parametros.length] = parametro;
                 i++;
             });
-
-            $('#divModalEspera').show();
+            mostrarOverlay();
             $.ajax({
                 url: 'exportar_consulta.php',
                 type: 'POST',
                 dataType: 'json',
                 data: 'id=' + id + '&parametros=' + JSON.stringify(parametros)
             }).done(function (data) {
-                $('#divModalEspera').fadeOut(0);
                 if (data.mensaje == 'ok') {
                     $('#lbl_archivo').html('<a href="' + data.archivo + '">' + data.archivo + '</a>');
-                    setTimeout(function () { $('#divModalEspera').modal('hide'); }, 1000);
                 } else {
                     $('#lbl_archivo').html(data.mensaje);
                 }
             }).fail(function () {
-                alert('Ocurrió un error');
+                mjeError('Ocurrió un error');
+            }).always(function () {
+                ocultarOverlay();
             });
         }
     });

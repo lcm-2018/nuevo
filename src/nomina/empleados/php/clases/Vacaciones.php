@@ -5,9 +5,12 @@ namespace Src\Nomina\Empleados\Php\Clases;
 use Config\Clases\Conexion;
 use Config\Clases\Logs;
 use Config\Clases\Sesion;
-
+use Exception;
 use PDO;
 use PDOException;
+use Src\Nomina\Liquidacion\Php\Clases\Liquidacion;
+use Src\Nomina\Liquidacion\Php\Clases\Nomina;
+use Src\Usuarios\Login\Php\Clases\Usuario;
 
 class Vacaciones
 {
@@ -38,23 +41,34 @@ class Vacaciones
         $where = '';
         if (!empty($array)) {
             if (isset($array['value']) && $array['value'] != '') {
-                $where .= " AND (`nom_vacaciones`.`fec_inicial` LIKE '%{$array['value']}%' 
-                            OR `nom_vacaciones`.`fec_fin` LIKE '%{$array['value']}%'
-                            OR `nom_vacaciones`.`dias_inactivo` LIKE '%{$array['value']}%'
-                            OR `nom_vacaciones`.`dias_habiles` LIKE '%{$array['value']}%'
-                            OR `nom_vacaciones`.`corte` LIKE '%{$array['value']}%'
-                            OR `nom_vacaciones`.`dias_liquidar` LIKE '%{$array['value']}%')";
+                $where .= " AND (`nv`.`fec_inicial` LIKE '%{$array['value']}%' 
+                            OR `nv`.`fec_fin` LIKE '%{$array['value']}%'
+                            OR `nv`.`dias_inactivo` LIKE '%{$array['value']}%'
+                            OR `nv`.`dias_habiles` LIKE '%{$array['value']}%'
+                            OR `nv`.`corte` LIKE '%{$array['value']}%'
+                            OR `nv`.`dias_liquidar` LIKE '%{$array['value']}%')";
             }
 
             if (isset($array['id']) && $array['id'] > 0) {
-                $where .= " AND `nom_vacaciones`.`id_empleado` = {$array['id']}";
+                $where .= " AND `nv`.`id_empleado` = {$array['id']}";
             }
         }
 
         $sql = "SELECT
-                    `id_vac`, `anticipo`, `fec_inicial`, `fec_fin`, `dias_inactivo`, `dias_habiles`, `corte`, `dias_liquidar`, `estado`
+                    `nv`.`id_vac`, `nv`.`anticipo`, `nv`.`fec_inicial`, `nv`.`fec_fin`, `nv`.`dias_inactivo`, `nv`.`dias_habiles`, `nv`.`corte`, `nv`.`dias_liquidar`, `nv`.`estado`, IFNULL(`liquidado`.`dias_liqs`,0) AS `liq`, `nv`.`id_empleado`
                 FROM
-                    `nom_vacaciones`
+                    `nom_vacaciones` AS `nv`
+                    LEFT JOIN 
+                        (SELECT
+                            `nlv`.`id_vac`
+                            , SUM(`nlv`.`dias_liqs`) AS `dias_liqs`
+                        FROM
+                            `nom_liq_vac` AS `nlv`
+                            INNER JOIN `nom_nominas` 
+                                ON (`nlv`.`id_nomina` = `nom_nominas`.`id_nomina`)
+                        WHERE (`nlv`.`estado` = 1 AND `nom_nominas`.`estado` > 0)
+                        GROUP BY `nlv`.`id_vac`) AS `liquidado`
+                        ON (`liquidado`.`id_vac` = `nv`.`id_vac`)
                 WHERE (1 = 1 $where)
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
@@ -187,6 +201,25 @@ class Vacaciones
         return $registro;
     }
 
+    public function getLiquidados()
+    {
+        $sql = "SELECT
+                    `nlv`.`id_vac`
+                    , SUM(`nlv`.`dias_liqs`) AS `dias_liqs`
+                FROM
+                    `nom_liq_vac` AS `nlv`
+                    INNER JOIN `nom_nominas` 
+                        ON (`nlv`.`id_nomina` = `nom_nominas`.`id_nomina`)
+                WHERE (`nlv`.`estado` = 1 AND `nom_nominas`.`estado` > 0)
+                GROUP BY `nlv`.`id_vac`";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return $registro;
+    }
+
     public function getRegistroPorEmpleado($inicia, $fin)
     {
         $sql = "SELECT
@@ -204,11 +237,14 @@ class Vacaciones
                 FROM `nom_vacaciones`
                     LEFT JOIN 
                         (SELECT
-                            `id_vac`, SUM(`dias_liqs`) AS `dias_liqs`
+                            `nlv`.`id_vac`
+                            , SUM(`nlv`.`dias_liqs`) AS `dias_liqs`
                         FROM
-                            `nom_liq_vac`
-                        WHERE (`estado` = 1)
-                        GROUP BY `id_vac`) AS `liquidado`
+                            `nom_liq_vac` AS `nlv`
+                            INNER JOIN `nom_nominas` 
+                                ON (`nlv`.`id_nomina` = `nom_nominas`.`id_nomina`)
+                        WHERE (`nlv`.`estado` = 1 AND `nom_nominas`.`estado` > 0)
+                        GROUP BY `nlv`.`id_vac`) AS `liquidado`
                         ON (`liquidado`.`id_vac` = `nom_vacaciones`.`id_vac`)
                     LEFT JOIN
                         (SELECT
@@ -219,7 +255,7 @@ class Vacaciones
                         WHERE (`id_tipo` = 2 AND `fecha` BETWEEN ? AND ?)
                         GROUP BY `id_novedad`, `id_empleado`) AS `calendario`
                         ON (`nom_vacaciones`.`id_vac` = `calendario`.`id_novedad`) 
-                WHERE `estado` = 1";
+                WHERE `estado` = 1 AND IFNULL(`liquidado`.`dias_liqs`,0) = 0";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
         $stmt->bindParam(2, $fin, PDO::PARAM_STR);
@@ -339,7 +375,196 @@ class Vacaciones
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+    /**
+     * Agrega un nuevo registro.
+     *
+     * @param array $array Datos del registro a agregar
+     * @return string Mensaje de éxito o error
+     */
+    public function addRegistroNoVc($array, $opcion = 0)
+    {
+        $ids =          $array['chk_liquidacion'];
+        $contratos =    $array['id_contrato'];
+        $mpago =        $array['metodo'];
+        $tipo =         $array['tipo'];
+        $mes =          $array['mes'];
+        $incremento =   isset($array['incremento']) ? $array['incremento'] : NULL;
+        $nomina =       Nomina::getIDNomina($mes, $tipo);
 
+        if (($nomina['id_nomina'] > 0 && $nomina['estado'] >= 2) || $nomina['id_nomina'] == 0) {
+            $res = Nomina::addRegistro($mes, $tipo, $incremento);
+            if ($res['status'] == 'si') {
+                $id_nomina = $res['id'];
+            } else {
+                return $res['msg'];
+            }
+        } else {
+            $id_nomina = $nomina['id_nomina'];
+        }
+
+        $data = Nomina::getParamLiq();
+        if (empty($data)) {
+            return 'No se han configurado los parámetros de liquidación.';
+        }
+
+        $parametro = array_column($data, 'valor', 'id_concepto');
+
+        if (empty($parametro[1]) || empty($parametro[6])) {
+            return 'No se han Configurado los parámetros de liquidación.';
+        }
+
+        $inicia = Sesion::Vigencia() . '-' . $mes . '-01';
+        $fin = date('Y-m-t', strtotime($inicia));
+
+        $Empleado =     new Empleados();
+        $empleados =    array_column($Empleado->getEmpleados(), null, 'id_empleado');
+        $salarios =     $Empleado->getSalarioMasivo($mes);
+        $salarios =     array_column($salarios, 'basico', 'id_empleado');
+        $terceros_ss =  $Empleado->getRegistro();
+        $empresa =      (new Usuario())->getEmpresa();
+        //Devengados
+        $vacaciones =       (new Vacaciones())->getRegistroPorEmpleado($inicia, $fin);
+
+        $cortes =       array_column((new Liquidacion)->getCortes($ids, $fin), null, 'id_empleado');
+        $liquidados =   (new Liquidacion)->getEmpleadosLiq($id_nomina, $ids);
+        $liquidados =   array_column($liquidados, 'id_sal_liq', 'id_empleado');
+        $error = '';
+
+        if ($opcion == 0) {
+            $param['smmlv'] =           $parametro[1];
+            $param['uvt'] =             $parametro[6];
+            $param['base_bsp'] =        $parametro[7];
+            $param['grep'] =            $parametro[8];
+            $param['base_alim'] =       $parametro[9];
+            $param['min_vital'] =       $parametro[10] ?? 0;
+            $param['id_nomina'] =       $id_nomina;
+        }
+
+        $inserts = 0;
+        foreach ($ids as $id_empleado) {
+            if (!(isset($liquidados[$id_empleado]) && isset($salarios[$id_empleado]))) {
+                try {
+                    $filtro = [];
+                    $filtro = array_filter($terceros_ss, function ($terceros_ss) use ($id_empleado) {
+                        return $terceros_ss["id_empleado"] == $id_empleado;
+                    });
+
+                    $novedad = array_column($filtro, 'id_tercero', 'id_tipo');
+                    if (!(isset($novedad[1]) && isset($novedad[2]) && isset($novedad[3]) && isset($novedad[4]))) {
+                        throw new Exception("No tiene registrado novedades de seguridad social");
+                    }
+
+                    $cortes_empleado =  $cortes[$id_empleado] ?? [];
+                    if (!$this->conexion->inTransaction()) {
+                        $this->conexion->beginTransaction();
+                    }
+
+                    if ($opcion == 0) {
+                        $param['id_empleado'] =     $id_empleado;
+                        $param['salario'] =         $salarios[$id_empleado];
+                        $param['tiene_grep'] =      $cortes_empleado['tiene_grep'] ?? 0;
+                        $param['bsp_ant'] =         $cortes_empleado['val_bsp'] ?? 0;
+                        $param['pri_ser_ant'] =     $cortes_empleado['val_liq_ps'] ?? 0;
+                        $param['pri_vac_ant'] =     $cortes_empleado['val_liq_pv'] ?? 0;
+                        $param['pri_nav_ant'] =     $cortes_empleado['val_liq'] ?? 0;
+                        $param['prom_horas'] =      $cortes_empleado['prom'] ?? 0;
+                    } else if ($opcion == 1) {
+                        $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
+                    }
+
+                    $param['aux_trans'] =   $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
+                    $param['aux_alim'] =    $salarios[$id_empleado] <= $param['base_alim'] ? $parametro[3] : 0;
+                    $tipo_emp =             $empleados[$id_empleado]['tipo_empleado'];
+                    $subtipo_emp =          $empleados[$id_empleado]['subtipo_empleado'];
+
+                    if ($tipo_emp == 12 || $tipo_emp == 8) {
+                        $param['aux_trans'] =   0;
+                        $param['aux_alim'] =    0;
+                    }
+
+                    if ($opcion == 0) {
+                        $res = (new Valores_Liquidacion($this->conexion))->addRegistro($param);
+                        if ($res != 'si') {
+                            throw new Exception("Valores de liquidación: $res");
+                        }
+                    }
+                    //liquidar vacaciones
+                    $valTotVac =        0;
+                    $valTotPrimVac =    0;
+                    $valBonRec =        0;
+
+                    $filtro = $vacaciones[$id_empleado][0] ?? [];
+                    if (!empty($filtro)) {
+                        $Vcc = new Vacaciones($this->conexion);
+                        $rt = $Vcc->getRegistroLiq(['id_empleado' => $id_empleado, 'id_nomina' => $id_nomina]);
+                        if (!empty($rt) && $rt['tipo'] == 'M') {
+                            $valTotVac =        $rt['val_vac'];
+                            $valTotPrimVac =    $rt['prima_vac'];
+                            $valBonRec =        $rt['bon_recrea'];
+                        } else {
+                            $response =         (new Liquidacion($this->conexion))->LiquidaVacaciones($filtro, $param);
+                            $valTotVac =        $response['valor'];
+                            $valTotPrimVac =    $response['prima'];
+                            $valBonRec =        $response['bono'];
+                            if (!$response['insert']) {
+                                throw new Exception("Vacaciones: {$response['msg']}");
+                            }
+                        }
+                    }
+
+                    //Seguridad social
+                    $ibc = $valTotVac;
+                    $dias = $vacaciones[$id_empleado][0]['dias_inactivo'] ?? 22;
+                    $response = (new Liquidacion($this->conexion))->LiquidaSeguridadSocial($param, $novedad, $ibc, $tipo_emp, $subtipo_emp, $dias);
+                    $valTotSegSoc = $response['valor'];
+                    if (!$response['insert']) {
+                        throw new Exception("Seguridad social: {$response['msg']}");
+                    }
+
+                    $response = (new Liquidacion($this->conexion))->LiquidaParafiscales($param, $ibc, $empresa['exonera_aportes'], $tipo_emp);
+                    if (!$response['insert']) {
+                        throw new Exception("Parafiscales: {$response['msg']}");
+                    }
+
+                    $baseDctos = $valTotVac + $valTotPrimVac + $valBonRec - ($valTotSegSoc ?? 0);
+
+                    $neto = $baseDctos;
+                    $data = [
+                        'id_empleado'   =>  $id_empleado,
+                        'id_nomina'     =>  $id_nomina,
+                        'metodo_pago'   =>  $mpago[$id_empleado],
+                        'val_liq'       =>  $neto,
+                        'forma_pago'    =>  1,
+                        'sal_base'      =>  $salarios[$id_empleado],
+                        'id_contrato'   =>  $contratos[$id_empleado],
+                    ];
+                    $response = (new Liquidacion($this->conexion))->LiquidaSalarioNeto($data);
+                    if (!$response['insert']) {
+                        throw new Exception("Salario neto: {$response['msg']}");
+                    }
+                    if ($opcion == 0) {
+                        $this->conexion->commit();
+                    }
+                    $inserts++;
+                    unset($filtro, $response);
+                    gc_collect_cycles();
+                } catch (Exception $e) {
+                    if ($this->conexion->inTransaction()) {
+                        $this->conexion->rollBack();
+                    }
+                    $error .= "<p>ID: $id_empleado ({$empleados[$id_empleado]['no_documento']}), {$e->getMessage()}</p>";
+                    continue;
+                }
+            }
+        }
+        if ($error != '') {
+            return $error;
+        } else if ($inserts == 0) {
+            return 'No se liquidó ningún empleado.';
+        } else {
+            return 'Liquidación realizada con éxito.';
+        }
+    }
     /**
      * Agrega un nuevo registro.
      *
