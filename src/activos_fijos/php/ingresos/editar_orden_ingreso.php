@@ -221,10 +221,8 @@ try {
                     if ($error == 0) {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
-                        $accion = 'Anular';
-                        $opcion = 'Orden de Ingreso Activos Fijos';
-                        $detalle = 'Anulo Orden Ingreso Id: ' . $id;
-                        bitacora($accion, $opcion, $detalle, $id_usr_ope, $_SESSION['user']);
+                        $consulta = "Anula Orden de Ingreso de Activos Fijos Id: " . $id . ", Elimina las hojas de vida de los Activos Fijos";
+                        Logs::guardaLog($consulta);                        
                     } else {
                         $res['mensaje'] = 'Error de Ejecución de Proceso';
                         $cmd->rollBack();

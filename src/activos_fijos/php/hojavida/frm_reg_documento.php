@@ -54,8 +54,7 @@ if (empty($obj)) {
                     <div class="col-md-12">
                         <div class="input-group mb-3">
                             <div class="custom-file">
-                                <input type="file" class="custom-file-input form-control-sm" id="uploadDocAcf" accept=".pdf">
-                                <label class="custom-file-label" for="customFile">Seleccionar archivo</label>
+                                <input class="form-control form-control-sm" type="file" id="uploadDocAcf" accept="application/pdf,.pdf"/>
                             </div>
                         </div>
                     </div>

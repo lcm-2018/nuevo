@@ -52,8 +52,7 @@ $obj = $rs->fetch();
                     <div class="col-md-12">
                         <div class="input-group mb-3">
                             <div class="custom-file">
-                                <input type="file" class="custom-file-input form-control-sm" id="uploadImageAcf" accept=".jpg,.jpeg,.png">
-                                <label class="custom-file-label" for="customFile" id="imagen_sel">Seleccionar archivo</label>
+                                <input class="form-control form-control-sm" type="file" id="uploadImageAcf" accept="image/jpeg,image/png,.jpg,.jpeg,.png"/>
                             </div>
                         </div>
                     </div>

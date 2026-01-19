@@ -158,6 +158,8 @@ try {
                     $res['mensaje'] = 'Error en base de datos-far_alm_pedido:' . $error[2];
                 } else {
                     $res['mensaje'] = 'ok';
+                    $consulta = "Anula Pedido de Activos Fijos Id: " . $id;
+                    Logs::guardaLog($consulta); 
                 }
             } else {
                 $res['mensaje'] = 'Solo se puede Anular Pedidos en estado Confirmado.<br/>';

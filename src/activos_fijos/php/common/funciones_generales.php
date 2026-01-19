@@ -1,5 +1,8 @@
 <?php
 
+$ruta_firmas = "/cronhis/img/firmas/";
+$ruta_firmas = "/proyecto/hc/img/firmas/";
+
 //FUNCION QUE RETORNAR FECHA Y HORA DEL SERVIDOR
 function fecha_hora_servidor(){
     $res = array();
@@ -90,8 +93,8 @@ function edit_estados_activo_fijo($cmd, $id_acf){
         $edit_art = 1;
         $edit_est = 1;
         $sql = "SELECT COUNT(*) AS total FROM acf_traslado_detalle
-                INNER JOIN far_traslado ON (far_traslado.id_traslado=acf_traslado_detalle.id_traslado)
-                WHERE far_traslado.estado IN (1,2) AND acf_traslado_detalle.id_activo_fijo=$id_acf";
+                INNER JOIN acf_traslado ON (acf_traslado.id_traslado=acf_traslado_detalle.id_traslado)
+                WHERE acf_traslado.estado IN (1,2) AND acf_traslado_detalle.id_activo_fijo=$id_acf";
         $rs = $cmd->query($sql);
         $obj = $rs->fetch();
         if ($obj['total'] > 0) {

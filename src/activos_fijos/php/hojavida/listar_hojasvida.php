@@ -126,7 +126,7 @@ if (!empty($objs)) {
             $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
         }
         if ($permisos->PermisosUsuario($opciones, 5704, 3) || $id_rol == 1) {
-            $imagen =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_imagen" title="Imagen"><span class="fas fa-file-image-o "></span></a>';
+            $imagen =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_imagen" title="Imagen"><span class="fas fa-image "></span></a>';
         }
         if ($permisos->PermisosUsuario($opciones, 5704, 3) || $id_rol == 1) {
             $componente =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_componente" title="Componentes"><span class="fas fa-laptop "></span></a>';

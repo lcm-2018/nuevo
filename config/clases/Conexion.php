@@ -11,7 +11,7 @@ class Conexion
     private $conexion;
     private $bd_driver = "mysql";
     private $bd_servidor = "localhost";
-    private $bd_base = "bd_redsalud";
+    private $bd_base = "bd_pupiales";
     private $bd_usuario = "root";
     private $bd_clave = "12345";
     private $charset = "charset=utf8";

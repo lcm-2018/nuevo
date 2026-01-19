@@ -475,6 +475,7 @@
             }
         });
     });
+
     //Imprimir listado de registros
     $('#btn_imprime_filtro').on('click', function () {
         $('#tb_mantenimientos').DataTable().ajax.reload(null, false);

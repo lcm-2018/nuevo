@@ -84,16 +84,29 @@ try {
 
         if ($oper == 'del') {
             $id = $_POST['id'];
-            $sql = "DELETE FROM far_medicamentos WHERE id_med=" . $id;
+            $sql = "SELECT COUNT(*) AS existe
+                    FROM far_medicamentos
+                    INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
+                    INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_med=far_medicamentos.id_med)
+                    WHERE far_subgrupos.af_menor_cuantia=1 AND far_medicamentos.id_med=" . $id;
             $rs = $cmd->query($sql);
-            if ($rs) {
-                $consulta = "DELETE FROM far_medicamento_lote WHERE id_med=" . $id;
-                Logs::guardaLog($consulta);
-                $res['mensaje'] = 'ok';
+            $obj_existe = $rs->fetch();
+
+            if ($obj_existe['existe'] == 0) {
+                $sql = "DELETE FROM far_medicamentos WHERE id_med=" . $id;
+                $rs = $cmd->query($sql);
+                if ($rs) {
+                    $consulta = "DELETE FROM far_medicamento_lote WHERE id_med=" . $id;
+                    Logs::guardaLog($consulta);
+                    $res['mensaje'] = 'ok';
+                } else {
+                    $res['mensaje'] = $cmd->errorInfo()[2];
+                }
             } else {
-                $res['mensaje'] = $cmd->errorInfo()[2];
+                $res['mensaje'] = 'El Articulo tiene registrado lotes. Elimine el registro desde le Módulo de Almacén';
             }
-        }
+        } 
+         
     } else {
         $res['mensaje'] = 'El Usuario del Sistema no tiene Permisos para esta Acción';
     }

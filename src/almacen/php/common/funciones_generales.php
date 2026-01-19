@@ -1,4 +1,6 @@
 <?php
+$ruta_firmas = "/cronhis/img/firmas/";
+$ruta_firmas = "/proyecto/hc/img/firmas/";
 
 //FUNCION QUE RETORNA LA BODEGA PRINCIPAL DE LA ENTIDAD VALIDANDO PERMISO DEL USUARIO
 function bodega_principal($cmd){
