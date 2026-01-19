@@ -34,6 +34,9 @@ const tableDetallesNomina = crearDataTable(
         { data: 'valor_salud' },
         { data: 'valor_pension' },
         { data: 'val_psolidaria' },
+        { data: 'val_rlaboral' },
+        { data: 'valor_salud_patronal' },
+        { data: 'valor_pension_patronal' },
         { data: 'valor_libranza' },
         { data: 'valor_embargo' },
         { data: 'valor_sind' },
@@ -41,6 +44,7 @@ const tableDetallesNomina = crearDataTable(
         { data: 'valor_dcto' },
         { data: 'deducciones' },
         { data: 'neto' },
+        { data: 'patronal' },
         { data: 'accion' },
     ],
     [
@@ -48,7 +52,19 @@ const tableDetallesNomina = crearDataTable(
             extend: 'excelHtml5',
             text: '<i class="fa fa-file-excel fa-lg"></i>',
             className: 'btn btn-outline-success',
-            titleAttr: 'Exportar a Excel',
+            titleAttr: 'Exportar a Excel Empleados',
+            exportOptions: {
+                columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 38, 39, 40, 41]
+            }
+        },
+        {
+            extend: 'excelHtml5',
+            text: '<i class="fa fa-file-excel fa-lg"></i>',
+            className: 'btn btn-outline-info',
+            titleAttr: 'Exportar a Excel Patronal',
+            exportOptions: {
+                columns: [0, 1, 2, 3, 4, 29, 30, 31, 32, 33, 34, 42]
+            }
         }
     ],
     {
@@ -61,6 +77,12 @@ const tableDetallesNomina = crearDataTable(
         scrollCollapse: true,
         scrollX: true,
         scrollY: '80vh',
+        columnDefs: [
+            {
+                targets: [32, 33, 34, 42],
+                visible: false
+            }
+        ]
     },
     function (d) {
         d.id_nomina = ValueInput('id_nomina');

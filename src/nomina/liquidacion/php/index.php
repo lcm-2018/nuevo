@@ -35,17 +35,17 @@ $content = <<<HTML
                         <th><input type="text" class="form-control form-control-sm bg-input" placeholder="Nombre" id="filter_nombre"></th>
                         <th><input type="text" class="form-control form-control-sm bg-input" placeholder="Observación" id="filter_observacion"></th>
                         <th colspan="2" class="text-center">
-                            <select class="form-select form-select-sm bg-input w-100" id="filter_tipo" title="Tipo de liquidación">
+                            <select class="form-select form-select-sm bg-input w-100" id="filter_tipo" title="Tipo de liquidación" onchange="eventFilterTipo(this.value)">
                                 {$liquidacion}
                             </select>
                         </th>
                         <th colspan="3" class="text-center">
-                            <select class="form-select form-select-sm bg-input w-100" id="filter_mes" title="Mes de liquidación">
+                            <select class="form-select form-select-sm bg-input w-100" id="filter_mes" title="Mes de liquidación" onchange="FiltraLiquidacion();">
                                 {$meses}
                             </select>
                         </th>
                         <th>
-                            <button class="btn btn-sm btn-outline-warning" type="button" onclick="FiltraDatos(tableLiqMesEmpleados);" title="Filtrar">
+                            <button class="btn btn-sm btn-outline-warning" type="button" onclick="FiltraLiquidacion();" title="Filtrar">
                                 <i class="fas fa-filter"></i>
                             </button>
                         </th>
@@ -79,3 +79,9 @@ $plantilla->addScriptFile("{$host}/src/nomina/liquidacion/js/funciones.js?v=" . 
 $modal = $plantilla->getModal('modalForms', 'tamModalForms', 'bodyModal');
 $plantilla->addModal($modal);
 echo $plantilla->render();
+
+
+/*
+ 
+2930e8d6f40f5f12acd29f568e84a29a9303352c0d9b8737b6ec0883de022f119a9d347ff1fb9c437877b8a7f5170513fd8d3003d66f91101352111e1a0b815e
+ */

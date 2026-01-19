@@ -1,0 +1,5 @@
+# Ignorar archivo de configuración de conexión a base de datos
+config/clases/Conexion.php
+
+# Ignorar carpeta de logs
+logs/

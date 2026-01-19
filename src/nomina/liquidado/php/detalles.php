@@ -61,9 +61,10 @@ $content = <<<HTML
                         <th rowspan="2" class="text-center bg-sofia" title="Intereses Cesantías">I. CES.</th>
                         <th rowspan="2" class="text-center bg-sofia" title="Compensatorio">COMP.</th>
                         <th rowspan="2" class="text-center bg-sofia" title="Total Devengado">T. DEV.</th>
-                        <th colspan="8" class="text-center bg-sofia">DEDUCCIONES</th>
+                        <th colspan="11" class="text-center bg-sofia">DEDUCCIONES</th>
                         <th rowspan="2" class="text-center bg-sofia" title="Total Deducciones">T. DED.</th> 
                         <th rowspan="2" class="text-center bg-sofia" title="Neto a Pagar">NETO</th>
+                        <th rowspan="2" class="text-center bg-sofia">Patronal</th>
                         <th rowspan="2" class="text-center bg-sofia">ACCIONES</th>
                     </tr>
                     <tr>
@@ -80,6 +81,9 @@ $content = <<<HTML
                         <th class="text-center bg-sofia border" title="Salud">SALUD</th>
                         <th class="text-center bg-sofia border" title="Pensión">PENS.</th>
                         <th class="text-center bg-sofia border" title="Pensión solidaria">P. SOLID.</th>
+                        <th class="text-center bg-sofia border" title="Riesgo Laboral">RLAB.</th>
+                        <th class="text-center bg-sofia border" title="Salud Patronal">SALUD</th>
+                        <th class="text-center bg-sofia border" title="Pensión Patronal">PENS.</th>
                         <th class="text-center bg-sofia border" title="Libranzas">LIB.</th>
                         <th class="text-center bg-sofia border" title="Embargos">EMB.</th>
                         <th class="text-center bg-sofia border" title="Sindicatos">SIND.</th>

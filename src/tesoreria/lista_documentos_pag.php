@@ -340,7 +340,7 @@ if ($tipo_dato == '6' || $tipo_dato == '16' || $tipo_dato == '7' || $tipo_dato =
 $btnFormaPago = ($estado == 1 && $id_doc_pag > 0) ? '<button class="btn btn-outline-primary" onclick="cargaFormaPago(' . $id_cop . ',0,this)"><span class="fas fa-wallet fa-lg"></span></button>' : '';
 
 $seccionFormaPago = '';
-if (($id_cop > 0 && $_SESSION['pto'] == '1') || $tipo_dato == '8' || $tipo_dato == '9' || ($id_doc_rad > 0 && $_SESSION['pto'] == '1')  || ($tipo_dato == '6' || $tipo_dato == '16' || $tipo_dato == '7' || $tipo_dato == '10' || $tipo_dato == '11' || $tipo_dato == '12')) {
+if (true) {
     if ($id_doc_rad > 0) {
         $forma = 'FORMA DE RECAUDO :';
     } else {

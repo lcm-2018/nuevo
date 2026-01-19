@@ -70,9 +70,16 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
         event.preventDefault();
         const id = btnImprimir.dataset.id;
         const text = btnImprimir.getAttribute('text');
-        var url = text === 'M' ? 'mensual' : 'patronal';
+        var url = '';
+        if (text === 'M') {
+            url = 'cdp_mensual';
+        } else if (text === 'P') {
+            url = 'cdp_patronal';
+        } else if (text === 'N') {
+            url = 'nomina_general';
+        }
         var pdf = false;
-        ImprimirReporte('../php/reportes/cdp_' + url + '.php', { id: id, pdf: pdf });
+        ImprimirReporte('../php/reportes/' + url + '.php', { id: id, pdf: pdf });
 
     }
     /*

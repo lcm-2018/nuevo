@@ -250,7 +250,7 @@ try {
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
-                `id_contrato_compra`, `id_compra`, `fec_ini`, `fec_fin`, `val_contrato`, `id_forma_pago`, `id_supervisor`, `id_secop`, `num_contrato`
+                `id_contrato_compra`, `id_compra`, `fec_ini`, `fec_fin`, `val_contrato`, `id_forma_pago`, `id_supervisor`, `id_secop`, `num_contrato`, `url_secop`
             FROM
                 `ctt_contratos`
             WHERE (`id_compra` = $id_adq) LIMIT 1";
@@ -263,11 +263,17 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
-$urlProceso = '';
-if (isset($contrato['id_secop'])) {
+
+if (isset($contrato['id_secop']) && $contrato['url_secop'] == '') {
     $SecopII = new Api_SecopII();
     $urlProceso = $SecopII->consultarContratoPorId(trim($contrato['id_secop']), "urlproceso");
     $urlProceso = isset($urlProceso['url']) ? $urlProceso['url'] : '';
+    $sql = "UPDATE `ctt_contratos` SET `url_secop` = '{$urlProceso}' WHERE `id_secop` = '{$contrato['id_secop']}'";
+    $cmd = \Config\Clases\Conexion::getConexion();
+    $cmd->query($sql);
+    $cmd = null;
+} else {
+    $urlProceso = $contrato['url_secop'];
 }
 
 $id_orden = $adquisicion['id_orden'] == '' ? '' : '<input type="hidden" name="id_orden" id="id_orden" value="' . $adquisicion['id_orden'] . '">';

@@ -62,7 +62,7 @@ if (!empty($obj)) {
             'nit'           => $o['nit_tercero'],
             'afiliacion'    => $o['fec_inicia'],
             'retiro'        => $o['fec_fin'],
-            'riesgo'        => '<div class="text-center ' . $texto . '">' . $o['riesgo'] . '</div>',
+            'riesgo'        => '<div class="text-center ' . $texto . ' ">' . $o['riesgo'] . '</div>',
             'acciones'      => '<div class="text-center">' . $actualizar . $eliminar . '</div>',
         ];
     }

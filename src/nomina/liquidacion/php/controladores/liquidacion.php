@@ -10,10 +10,16 @@ $id = $_POST['id'] ?? null;
 
 include_once '../../../../../config/autoloader.php';
 
+use Src\Nomina\Empleados\Php\Clases\Cesantias;
 use Src\Nomina\Empleados\Php\Clases\Empleados;
 use Src\Nomina\Liquidacion\Php\Clases\Liquidacion;
+use Src\Nomina\Empleados\Php\Clases\Primas;
+use Src\Nomina\Empleados\Php\Clases\Vacaciones;
 
 $Liquidacion = new Liquidacion();
+$Cesantias = new Cesantias();
+$Primas = new Primas();
+$Vacaciones = new Vacaciones();
 
 $res['status'] = ' error';
 $res['msg'] = 'Acción no válida.';
@@ -22,7 +28,22 @@ switch ($action) {
         $res['msg'] = 'Sin formulario definido.';
         break;
     case 'add':
-        $data = $Liquidacion->addRegistro($_POST);
+        switch ($_POST['tipo']) {
+            case 2:
+                $data = $Liquidacion->addRegistro($_POST);
+                break;
+            case 4:
+                $data = $Vacaciones->addRegistroNoVc($_POST);
+                break;
+            case 6:
+            case 7:
+                $data = $Primas->addRegistroPsPn($_POST);
+                break;
+            case 8:
+            case 9:
+                $data = $Cesantias->addRegistroN($_POST);
+                break;
+        }
         if ($data == 'si') {
             $res['status'] = 'ok';
         } else {

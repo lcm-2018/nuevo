@@ -822,10 +822,9 @@ class Empleados
 
     public function delEmpleado($id)
     {
-        return 'Falta programar la eliminación de empleados.';
         try {
-            $sql = "DELETE FROM `nom_cargo_empleado` WHERE `id_cargo` = ?";
-            $consulta  = "DELETE FROM `nom_cargo_empleado` WHERE `id_cargo` = $id";
+            $sql = "DELETE FROM `nom_empleado` WHERE `id_empleado` = ?";
+            $consulta  = "DELETE FROM `nom_empleado` WHERE `id_empleado` = $id";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->execute();

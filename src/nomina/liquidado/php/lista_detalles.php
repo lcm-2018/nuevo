@@ -46,6 +46,10 @@ if (!empty($obj)) {
             + $o['valor_libranza'] + $o['valor_embargo'] + $o['valor_sind']
             + $o['val_retencion'] + $o['valor_dcto'];
 
+        $patronal = $o['valor_salud'] + $o['valor_pension'] + $o['val_psolidaria']
+            + $o['val_rieslab'] + $o['val_salud_empresa'] + $o['val_pension_empresa'];
+
+
         $neto = $devengado - $deducciones;
 
         if ($permisos->PermisosUsuario($opciones, 5101, 1) || $id_rol == 1) {
@@ -87,6 +91,9 @@ if (!empty($obj)) {
             'valor_salud'       => Valores::formatNumber($o['valor_salud']),
             'valor_pension'     => Valores::formatNumber($o['valor_pension']),
             'val_psolidaria'    => Valores::formatNumber($o['val_psolidaria']),
+            'val_rlaboral'      => Valores::formatNumber($o['val_rieslab']),
+            'valor_salud_patronal' => Valores::formatNumber($o['val_salud_empresa']),
+            'valor_pension_patronal' => Valores::formatNumber($o['val_pension_empresa']),
             'valor_libranza'    => Valores::formatNumber($o['valor_libranza']),
             'valor_embargo'     => Valores::formatNumber($o['valor_embargo']),
             'valor_sind'        => Valores::formatNumber($o['valor_sind']),
@@ -94,6 +101,7 @@ if (!empty($obj)) {
             'valor_dcto'        => Valores::formatNumber($o['valor_dcto']),
             'deducciones'       => Valores::formatNumber($deducciones),
             'neto'              => Valores::formatNumber($neto),
+            'patronal'          => $patronal,
             'accion'            => '<div class="text-center">' . ($detalles ?? '') . ($anular ?? '') . '</div>',
         ];
     }

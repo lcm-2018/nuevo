@@ -200,7 +200,7 @@ foreach ($documentos_tes as $documento) {
                                         `pto_pag_detalle`
                                         INNER JOIN `pto_cop_detalle` 
                                         ON (`pto_pag_detalle`.`id_pto_cop_det` = `pto_cop_detalle`.`id_pto_cop_det`)
-                                        INNER JOIN `ctb_causa_retencion` 
+                                        LEFT JOIN `ctb_causa_retencion` 
                                         ON (`pto_cop_detalle`.`id_ctb_doc` = `ctb_causa_retencion`.`id_ctb_doc`)
                                     WHERE (`pto_pag_detalle`.`id_ctb_doc` = $id_doc) LIMIT 1))";
             $rs = $cmd->query($sql);
@@ -294,7 +294,7 @@ foreach ($documentos_tes as $documento) {
                 LEFT JOIN `tb_terceros`
                     ON (`tb_datos_ips`.`nit_ips` = `tb_terceros`.`nit_tercero`)";
         $res = $cmd->query($sql);
-        $empresa = $res->fetch();
+        $ips = $res->fetch();
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -328,52 +328,10 @@ foreach ($documentos_tes as $documento) {
     }
     $fecha = date('Y-m-d', strtotime($documento['fecha']));
     $hora = date('H:i:s', strtotime($documento['fecha_reg']));
-    // fechas para factua
-    // Consulto responsable del documento
-    try {
-        $sql = "SELECT
-                `fin_maestro_doc`.`control_doc`
-                , `fin_maestro_doc`.`id_doc_fte`
-                , `fin_maestro_doc`.`costos`
-                , `ctb_fuente`.`nombre`
-                , `tb_terceros`.`nom_tercero`
-                , `tb_terceros`.`nit_tercero`
-                , `tb_terceros`.`genero`
-                , `fin_respon_doc`.`cargo`
-                , `fin_respon_doc`.`tipo_control`
-                , `fin_tipo_control`.`descripcion` AS `nom_control`
-                , `fin_respon_doc`.`fecha_ini`
-                , `fin_respon_doc`.`fecha_fin`
-            FROM
-                `fin_respon_doc`
-                INNER JOIN `fin_maestro_doc` 
-                    ON (`fin_respon_doc`.`id_maestro_doc` = `fin_maestro_doc`.`id_maestro`)
-                INNER JOIN `ctb_fuente` 
-                    ON (`ctb_fuente`.`id_doc_fuente` = `fin_maestro_doc`.`id_doc_fte`)
-                INNER JOIN `tb_terceros` 
-                    ON (`fin_respon_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
-                INNER JOIN `fin_tipo_control` 
-                    ON (`fin_respon_doc`.`tipo_control` = `fin_tipo_control`.`id_tipo`)
-            WHERE (`fin_maestro_doc`.`id_modulo` = 56 AND `ctb_fuente`.`cod` = '$cod_doc'
-                AND `fin_respon_doc`.`fecha_fin` >= '$fecha' 
-                AND `fin_respon_doc`.`fecha_ini` <= '$fecha'
-                AND `fin_respon_doc`.`estado` = 1
-                AND `fin_maestro_doc`.`estado` = 1)";
-        $res = $cmd->query($sql);
-        $responsables = $res->fetchAll();
-        $res->closeCursor();
-        unset($res);
-        $key = array_search('4', array_column($responsables, 'tipo_control'));
-        $nom_respon = $key !== false ? $responsables[$key]['nom_tercero'] : '';
-        $cargo_respon = $key !== false ? $responsables[$key]['cargo'] : '';
-        $gen_respon = $key !== false ? $responsables[$key]['genero'] : '';
-        $control = $key !== false ? $responsables[$key]['control_doc'] : '';
-        $control = $control == '' || $control == '0' ? false : true;
-        $nombre_doc = $key !== false ? $responsables[$key]['nombre'] : '';
-        $ver_costos = isset($responsables[0]) && $responsables[0]['costos'] == 1 ? false : true;
-    } catch (PDOException $e) {
-        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-    }
+    $id_modulo = 56;
+    $doc_fte = $cod_doc;
+    include '../../financiero/encabezado_imp.php';
+
     $id_vigencia = $_SESSION['id_vigencia'];
     try {
         $sql = "SELECT 	
@@ -449,8 +407,8 @@ foreach ($documentos_tes as $documento) {
             <tr>
                 <td class='text-center' style="width:18%"><label class="small"><img src="../../assets/images/logo.png" width="100"></label></td>
                 <td style="text-align:center">
-                    <strong><?php echo $empresa['nombre']; ?> </strong>
-                    <div>NIT <?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></div>
+                    <strong><?php echo $ips['nombre']; ?> </strong>
+                    <div>NIT <?php echo $ips['nit'] . '-' . $ips['dig_ver']; ?></div>
                 </td>
             </tr>
         </table>
@@ -538,43 +496,39 @@ foreach ($documentos_tes as $documento) {
             <?php
             if (!empty($data)) {
             ?>
-                <div class="row">
-                    <div class="col-12">
-                        <div style="text-align: left">
-                            <div><strong>Datos de la factura: </strong></div>
-                        </div>
-                    </div>
+                <div style="text-align: left; width: 100%">
+                    <div><strong>Datos de la factura: </strong></div>
                 </div>
                 <?php
 
                 $total_pto = 0;
                 ?>
 
-                <table class="table-bordered bg-light" style="width:100% !important;">
+                <table style="width:100% !important; border-collapse: collapse;">
                     <tr>
-                        <td style="text-align: left">Causación</td>
-                        <td>Documento</td>
-                        <td colspan="3">Número(s)</td>
+                        <td style="text-align: left;border: 1px solid black">Causación</td>
+                        <td style="border: 1px solid black">Documento</td>
+                        <td colspan="3" style="border: 1px solid black">Número(s)</td>
 
                     </tr>
                     <tr>
-                        <td><?= $data['id_manu']; ?></td>
-                        <td><?php echo $data['tipo']; ?></td>
-                        <td colspan="3"><?php echo $data['num_doc']; ?></td>
+                        <td style="border: 1px solid black"><?= $data['id_manu']; ?></td>
+                        <td style="border: 1px solid black"><?php echo $data['tipo']; ?></td>
+                        <td colspan="3" style="border: 1px solid black"><?php echo $data['num_doc']; ?></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left">Valor factura(s)</td>
-                        <td>Valor IVA</td>
-                        <td>Base</td>
-                        <td>Descuentos</td>
-                        <td>Neto</td>
+                        <td style="text-align: left;border: 1px solid black">Valor factura(s)</td>
+                        <td style="border: 1px solid black">Valor IVA</td>
+                        <td style="border: 1px solid black">Base</td>
+                        <td style="border: 1px solid black">Descuentos</td>
+                        <td style="border: 1px solid black">Neto</td>
                     </tr>
                     <tr>
-                        <td><?php echo number_format($data['valor_pago'], 2, ',', '.'); ?></td>
-                        <td><?php echo  number_format($data['valor_iva'], 2, ',', '.');; ?></td>
-                        <td><?php echo number_format($data['valor_base'], 2, ',', '.'); ?></td>
-                        <td><?php echo number_format($descuentos['dcto'], 2, ',', '.'); ?></td>
-                        <td><?php echo number_format(($data['valor_pago'] - $descuentos['dcto']), 2, ',', '.'); ?></td>
+                        <td style="border: 1px solid black"><?php echo number_format($data['valor_pago'], 2, ',', '.'); ?></td>
+                        <td style="border: 1px solid black"><?php echo  number_format($data['valor_iva'], 2, ',', '.');; ?></td>
+                        <td style="border: 1px solid black"><?php echo number_format($data['valor_base'], 2, ',', '.'); ?></td>
+                        <td style="border: 1px solid black"><?php echo number_format($descuentos['dcto'], 2, ',', '.'); ?></td>
+                        <td style="border: 1px solid black"><?php echo number_format(($data['valor_pago'] - $descuentos['dcto']), 2, ',', '.'); ?></td>
                     </tr>
                 </table>
                 </br>
@@ -719,80 +673,12 @@ foreach ($documentos_tes as $documento) {
 
         </table>
         </br>
-        </br>
-        <table style="width: 100%;">
-            <tr>
-                <td style="text-align: center">
-                    <div>___________________________________</div>
-                    <div><?php echo $nom_respon; ?> </div>
-                    <div><?php echo $cargo_respon; ?> </div>
-                </td>
-                <?php
-                if ($tipo == '4' || $cod_doc == '9' || $tipo == '34' || $cod_doc == 'CICP') {
-                    if ($_SESSION['nit_emp'] != '844001355' || $id_forma == 2 || $cod_doc == 'CICP' || $tipo == '34') {
-                ?>
-                        <td>
-                            <div>___________________________________</div>
-                            <div><?= $tercero; ?></div>
-                            <div>RECIBE CC/NIT:</div>
-                        </td>
-                <?php
-                    }
-                }
-                ?>
-            </tr>
-        </table>
-        </br> </br> </br>
-        <?php
-        if ($control) {
-        ?>
-            <table class="table-bordered bg-light" style="width:100% !important;font-size: 10px;">
-                <tr style="text-align:left">
-                    <td style="width:33%">
-                        <strong>Elaboró:</strong>
-                    </td>
-                    <td style="width:33%">
-                        <strong>Revisó:</strong>
-                    </td>
-                    <td style="width:33%">
-                        <strong>Aprobó:</strong>
-                    </td>
-                </tr>
-                <tr style="text-align:center">
-                    <td>
-                        <br><br>
-                        <?= trim($documento['usuario']) ?>
-                        <br>
-                        <?= trim($documento['cargo']) ?>
-                    </td>
-                    <td>
-                        <br><br>
-                        <?php
-                        $key = array_search('2', array_column($responsables, 'tipo_control'));
-                        $nombre = $key !== false ? $responsables[$key]['nom_tercero'] : '';
-                        $cargo = $key !== false ? $responsables[$key]['cargo'] : '';
-                        echo $nombre . '<br> ' . $cargo;
-                        ?>
-                    </td>
-                    <td>
-                        <br><br>
-                        <?php
-                        $key = array_search('3', array_column($responsables, 'tipo_control'));
-                        $nombre = $key !== false ? $responsables[$key]['nom_tercero'] : '';
-                        $cargo = $key !== false ? $responsables[$key]['cargo'] : '';
-                        echo $nombre . '<br> ' . $cargo;
-                        ?>
-                    </td>
-                </tr>
-            </table>
-        <?php
-        }
-        ?>
+        <?= $firmas ?>
         </br> </br>
     </div>
     <div class="page-break"></div>
     <?php
-    if ($id_tercero == $empresa['id_tercero_api']) {
+    if (isset($ips['id_tercero_api']) && $id_tercero == $ips['id_tercero_api']) {
         $id_terceros = $ids_terceros ?? 0;
     } else {
         $id_terceros = $id_tercero;
@@ -837,7 +723,7 @@ foreach ($documentos_tes as $documento) {
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
-    if (!empty($pendientes)) {
+    if (!empty($pendientes) && $tipo == '9') {
     ?>
         <div class="px-2 " style="width:90% !important;margin: 0 auto;">
             <table style="width: 100%; border-collapse: collapse;" class="page_break_avoid table-bordered bg-light" border="1">
@@ -876,45 +762,6 @@ foreach ($documentos_tes as $documento) {
     $html_doc .= ob_get_clean();
     ob_start();
     if ($tipo == '4') {
-        try {
-            $sql = "SELECT
-                    `fin_maestro_doc`.`control_doc`
-                    , `fin_maestro_doc`.`id_doc_fte`
-                    , `fin_maestro_doc`.`costos`
-                    , `ctb_fuente`.`nombre`
-                    , `tb_terceros`.`nom_tercero`
-                    , `tb_terceros`.`nit_tercero`
-                    , `tb_terceros`.`genero`
-                    , `fin_respon_doc`.`cargo`
-                    , `fin_respon_doc`.`tipo_control`
-                    , `fin_tipo_control`.`descripcion` AS `nom_control`
-                    , `fin_respon_doc`.`fecha_ini`
-                    , `fin_respon_doc`.`fecha_fin`
-                FROM
-                    `fin_respon_doc`
-                    INNER JOIN `fin_maestro_doc` 
-                        ON (`fin_respon_doc`.`id_maestro_doc` = `fin_maestro_doc`.`id_maestro`)
-                    INNER JOIN `ctb_fuente` 
-                        ON (`ctb_fuente`.`id_doc_fuente` = `fin_maestro_doc`.`id_doc_fte`)
-                    INNER JOIN `tb_terceros` 
-                        ON (`fin_respon_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
-                    INNER JOIN `fin_tipo_control` 
-                        ON (`fin_respon_doc`.`tipo_control` = `fin_tipo_control`.`id_tipo`)
-                WHERE (`fin_maestro_doc`.`id_modulo` = 56 AND `ctb_fuente`.`cod` = 'REVA'
-                    AND `fin_respon_doc`.`fecha_fin` >= '$fecha' 
-                    AND `fin_respon_doc`.`fecha_ini` <= '$fecha'
-                    AND `fin_respon_doc`.`estado` = 1
-                    AND `fin_maestro_doc`.`estado` = 1)";
-            $res = $cmd->query($sql);
-            $responsables = $res->fetchAll();
-            $res->closeCursor();
-            unset($res);
-            $key = array_search('4', array_column($responsables, 'tipo_control'));
-            $nom_respon = $key !== false ? $responsables[$key]['nom_tercero'] : '';
-            $cargo_respon = $key !== false ? $responsables[$key]['cargo'] : '';
-        } catch (PDOException $e) {
-            echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-        }
         $f_exp = explode('-', $fecha);
         $cadena = [];
         $cad_rubros = [];
@@ -935,8 +782,8 @@ foreach ($documentos_tes as $documento) {
                                 <tr>
                                     <td class='text-center' style="width:25%"><label class="small"><img src="../../assets/images/logo.png" width="150"></label></td>
                                     <td style="text-align:center">
-                                        <strong><?php echo $empresa['nombre']; ?> </strong>
-                                        <div>NIT <?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></div>
+                                        <strong><?php echo $ips['nombre']; ?> </strong>
+                                        <div>NIT <?php echo $ips['nit'] . '-' . $ips['dig_ver']; ?></div>
                                     </td>
                                 </tr>
                             </table>
@@ -950,29 +797,20 @@ foreach ($documentos_tes as $documento) {
                             <p style="text-align:center;"><b>RESOLUCIÓN No.: <?php echo $num_resolucion; ?></b></p>
                             <p style="text-align:center;"><b><?= $f_exp[2] . '-' . $meses[$f_exp[1]] . '-' . $f_exp[0] ?></b></p>
                             <p style="text-align:center;">Por medio de la cual se ordena un pago</p>
-                            <p>EL <?= $cargo_respon; ?> DE EL(LA) <?= $empresa['nombre'] ?> EN USO DE SUS FACULTADES CONSTITUCIONALES, LEGALES Y ESTATUTARIAS Y CONSIDERANDO</p>
-                            <p>Que, dentro del presupuesto de gastos de el(la) <?= $empresa['nombre'] ?>, para la vigencia fiscal del año <?= $vigencia ?>, se encuentra previsto un(os) rubro(s) radicado bajo código(s): <?= $cadena ?>.</p>
+                            <p>EL(LA) <?= $aprobo_cargo; ?> DE EL(LA) <?= $ips['nombre'] ?> EN USO DE SUS FACULTADES CONSTITUCIONALES, LEGALES Y ESTATUTARIAS Y CONSIDERANDO</p>
+                            <p>Que, dentro del presupuesto de gastos de el(la) <?= $ips['nombre'] ?>, para la vigencia fiscal del año <?= $vigencia ?>, se encuentra previsto un(os) rubro(s) radicado bajo código(s): <?= $cadena ?>.</p>
                             <p>Que durante la presente vigencia se generaron obligaciones por concepto de: <?= mb_strtoupper($documento['detalle']); ?>, para lo cual se expidieron los respectivos actos administrativos.</p>
                             <p>Por lo anteriormente expuesto:</p>
                             <p style="text-align:center;"><b>RESUELVE</b></p>
                             <p>ARTICULO PRIMERO: Reconocer y ordenar el pago al TESORERO GENERAL, a favor de I<?= $tercero; ?> por la suma de <?php echo $enletras . "  ($" . number_format($total, 2, ",", ".") . ')'; ?> por concepto de <?= mb_strtoupper($documento['detalle']); ?>.</p>
                             <p>ARTICULO SEGUNDO: El valor reconocido en el artículo primero se imputará al (los) rubro(s) <?= $cad_rubros; ?>.</p>
-                            <p>ARTICULO TERCERO: Entréguese copia de la presente resolución con sus respectivos anexos para su correspondiente pago a la oficina de Tesorería de el(la) <?= $empresa['nombre'] ?> para lo de su competencia.</p>
+                            <p>ARTICULO TERCERO: Entréguese copia de la presente resolución con sus respectivos anexos para su correspondiente pago a la oficina de Tesorería de el(la) <?= $ips['nombre'] ?> para lo de su competencia.</p>
                             <p style="text-align:center; padding-bottom:30px;"><b>COMUNÍQUESE Y CÚMPLASE.</b></p>
-                            <p style="padding-bottom:40px;">Dada en <?= $empresa['nom_municipio'] ?>, a los <?= $f_exp[2] ?> días del mes de <?= $meses[$f_exp[1]] ?> del año <?= $f_exp[0] ?>.</p>
+                            <p style="padding-bottom:40px;">Dada en <?= $ips['nom_municipio'] ?>, a los <?= $f_exp[2] ?> días del mes de <?= $meses[$f_exp[1]] ?> del año <?= $f_exp[0] ?>.</p>
                             <div class="row">
                                 <div class="col-12">
                                     <div style="text-align: center;">
-                                        <table style="width: 100%;">
-                                            <tr>
-                                                <td style="text-align: center">
-                                                    <div>___________________________________</div>
-                                                    <!--<div><?php //echo $nom_respon; 
-                                                                ?> </div>-->
-                                                    <div><?php echo $cargo_respon; ?> </div>
-                                                </td>
-                                            </tr>
-                                        </table>
+                                        <?= $aprobo_nombre . '<br>' . $aprobo_cargo ?>
                                     </div>
                                 </div>
                             </div>
@@ -985,7 +823,7 @@ foreach ($documentos_tes as $documento) {
                             <?php
                             if ($_SESSION['nit_emp'] == '900190473') {
                             ?>
-                                <?= $empresa['nombre'] ?><br>
+                                <?= $ips['nombre'] ?><br>
                                 Sede Administrativa calle 26 No 8-114<br>
                                 Sede Asistencial carrera 1 con calle 18 esquina vía Pupiales<br>
                                 Fax 773 2413 - Teléfono 773 2394 Página web: www.ipsipialesese.gov.co<br>

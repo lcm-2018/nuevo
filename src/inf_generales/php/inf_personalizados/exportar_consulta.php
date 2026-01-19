@@ -36,10 +36,8 @@ try {
     }
 
     $rs = $cmd->query($cnsql);
-    $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $objs = $rs->fetchAll(PDO::FETCH_NUM);
     $n = $rs->columnCount();
-    $rs->closeCursor();
-    unset($rs);
 
 
     $archivo = fopen('consulta_' . $id_usr . '.csv', 'w+b');

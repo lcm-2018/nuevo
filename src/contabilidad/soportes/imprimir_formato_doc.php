@@ -24,9 +24,10 @@ use Src\Common\Php\Clases\Permisos;
 
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_user);
+$cmd = \Config\Clases\Conexion::getConexion();
+
 include '../../financiero/consultas.php';
 
-$cmd = \Config\Clases\Conexion::getConexion();
 $id_t = [];
 try {
     $sql = "SELECT 
@@ -109,6 +110,16 @@ try {
         }
     </style>
     <?php
+    try {
+        $sql = "SELECT `cod`, `nombre` FROM `ctb_fuente` WHERE `id_doc_fuente` = $tipo_doc";
+        $res = $cmd->query($sql);
+        $dss = $res->fetch();
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    }
+    $doc_fte = $dss['cod'];
+    $id_modulo = 55;
+    $nombre_doc = $dss['nombre'];
     foreach ($documentos as $doc) {
         $dto = $doc['id_ctb_doc'];
         try {
@@ -292,54 +303,9 @@ try {
         }
         // consulto el tipo de control del documento
         $fecha = date('Y-m-d', strtotime($doc['fecha']));
-        $hora = date('H:i:s', strtotime($doc['fecha_reg']));
+        include_once '../../financiero/encabezado_imp.php';
 
-        try {
-            $sql = "SELECT
-                `fin_maestro_doc`.`control_doc`
-                , `fin_maestro_doc`.`id_doc_fte`
-                , `fin_maestro_doc`.`costos`
-                , `ctb_fuente`.`nombre`
-                , `ctb_fuente`.`cod`
-                , `tb_terceros`.`nom_tercero`
-                , `tb_terceros`.`nit_tercero`
-                , `tb_terceros`.`genero`
-                , `fin_respon_doc`.`cargo`
-                , `fin_respon_doc`.`tipo_control`
-                , `fin_tipo_control`.`descripcion` AS `nom_control`
-                , `fin_respon_doc`.`fecha_ini`
-                , `fin_respon_doc`.`fecha_fin`
-            FROM
-                `fin_respon_doc`
-                INNER JOIN `fin_maestro_doc` 
-                    ON (`fin_respon_doc`.`id_maestro_doc` = `fin_maestro_doc`.`id_maestro`)
-                INNER JOIN `ctb_fuente` 
-                    ON (`ctb_fuente`.`id_doc_fuente` = `fin_maestro_doc`.`id_doc_fte`)
-                INNER JOIN `tb_terceros` 
-                    ON (`fin_respon_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
-                INNER JOIN `fin_tipo_control` 
-                    ON (`fin_respon_doc`.`tipo_control` = `fin_tipo_control`.`id_tipo`)
-            WHERE (`fin_maestro_doc`.`id_modulo` = 55 AND `fin_maestro_doc`.`id_doc_fte` = $tipo_doc 
-                AND `fin_respon_doc`.`fecha_fin` >= '$fecha' 
-                AND `fin_respon_doc`.`fecha_ini` <= '$fecha'
-                AND `fin_respon_doc`.`estado` = 1
-                AND `fin_maestro_doc`.`estado` = 1)";
-            $res = $cmd->query($sql);
-            $responsables = $res->fetchAll();
-            $res->closeCursor();
-            unset($res);
-            $key = array_search('4', array_column($responsables, 'tipo_control'));
-            $nom_respon = $key !== false ? $responsables[$key]['nom_tercero'] : '';
-            $cargo_respon = $key !== false ? $responsables[$key]['cargo'] : '';
-            $gen_respon = $key !== false ? $responsables[$key]['genero'] : '';
-            $control = $key !== false ? $responsables[$key]['control_doc'] : '';
-            $control = $control == '' || $control == '0' ? false : true;
-            $nombre_doc = $key !== false ? $responsables[$key]['nombre'] : '';
-            $ver_costos = !empty($responsables) ? ($responsables[0]['costos'] == 1 ? false : true) : false;
-            $cod_doc = $key !== false ? $responsables[$key]['cod'] : '';
-        } catch (PDOException $e) {
-            echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-        }
+        $hora = date('H:i:s', strtotime($doc['fecha_reg']));
 
         try {
             $sql = "SELECT 
@@ -712,62 +678,7 @@ try {
                     ?>
                 </table>
                 </br>
-                </br>
-                <div class="row mb-2">
-                    <div class="col-12">
-                        <div style="text-align: center; font-size: 10px;">
-                            <div>___________________________________</div>
-                            <div><?= $nom_respon; ?> </div>
-                            <div><?= $cargo_respon; ?> </div>
-                        </div>
-                    </div>
-                </div>
-                </br>
-                </br>
-                <?php
-                if ($control) {
-                ?>
-                    <table class="table-bordered bg-light" style="width:100% !important;font-size: 10px;">
-                        <tr style="text-align:left">
-                            <td style="width:33%">
-                                <strong>Elaboró:</strong>
-                            </td>
-                            <td style="width:33%">
-                                <strong>Revisó:</strong>
-                            </td>
-                            <td style="width:33%">
-                                <strong>Aprobó:</strong>
-                            </td>
-                        </tr>
-                        <tr style="text-align:center">
-                            <td>
-                                <br><br>
-                                <?= trim($doc['usuario_act']) == '' ? $doc['usuario_reg'] : $doc['usuario_act'] ?>
-                            </td>
-                            <td>
-                                <br><br>
-                                <?php
-                                $key = array_search('2', array_column($responsables, 'tipo_control'));
-                                $nombre = $key !== false ? $responsables[$key]['nom_tercero'] : '';
-                                $cargo = $key !== false ? $responsables[$key]['cargo'] : '';
-                                echo $nombre . '<br> ' . $cargo;
-                                ?>
-                            </td>
-                            <td>
-                                <br><br>
-                                <?php
-                                $key = array_search('3', array_column($responsables, 'tipo_control'));
-                                $nombre = $key !== false ? $responsables[$key]['nom_tercero'] : '';
-                                $cargo = $key !== false ? $responsables[$key]['cargo'] : '';
-                                echo $nombre . '<br> ' . $cargo;
-                                ?>
-                            </td>
-                        </tr>
-                    </table>
-                <?php
-                }
-                ?>
-                </br> </br> </br>
+                <?= $firmas ?>
         </div>
         <div class="page-break"></div>
     <?php

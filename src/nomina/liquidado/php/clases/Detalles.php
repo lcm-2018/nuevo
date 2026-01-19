@@ -173,7 +173,7 @@ class Detalles
                         WHERE (`nom_liq_indemniza_vac`.`estado` = 1
                             AND `nom_liq_indemniza_vac`.`id_nomina` = :id_nomina)),
                     `ccosto` AS
-                        (SELECT `id_empleado`, `id_ccosto` FROM `nom_ccosto_empleado`)
+                        (SELECT `id_empleado`, GROUP_CONCAT(`id_ccosto` SEPARATOR ',') AS `id_ccosto` FROM `nom_ccosto_empleado` GROUP BY `id_empleado`)
                 SELECT 
                     `e`.`id_empleado`
                     , `ts`.`nom_sede` AS `sede`

@@ -108,7 +108,7 @@ $fecha = date('Y-m-d', strtotime($datosDoc['fecha']));
 
 // Consulto tercero registrado en contratación
 $tercero = '---';
-if (!empty($datosDoc) && !empty($datosDoc['nom_tercero'])) {
+if (isset($datosDoc['nom_tercero'])) {
     $tercero = ltrim($datosDoc['nom_tercero']);
 }
 
