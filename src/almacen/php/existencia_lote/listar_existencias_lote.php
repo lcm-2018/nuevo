@@ -27,7 +27,7 @@ $dir = $_POST['order'][0]['dir'];
 $idusr = $_SESSION['id_user'];
 $idrol = $_SESSION['rol'];
 
-$where_usr = " WHERE 1";
+$where_usr = " WHERE far_subgrupos.id_grupo IN (0,1,2)";
 if ($idrol != 1) {
     $where_usr .= " AND far_medicamento_lote.id_bodega IN (SELECT id_bodega FROM seg_bodegas_usuario WHERE id_usuario=$idusr)";
 }
@@ -78,6 +78,7 @@ try {
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM far_medicamento_lote
             INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
             $where_usr";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
@@ -86,6 +87,7 @@ try {
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM far_medicamento_lote
             INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
             $where";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();

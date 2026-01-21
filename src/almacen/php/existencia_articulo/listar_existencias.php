@@ -25,7 +25,7 @@ if ($length != -1) {
 $col = $_POST['order'][0]['column'] + 1;
 $dir = $_POST['order'][0]['dir'];
 
-$where = " WHERE 1";
+$where = " WHERE far_subgrupos.id_grupo IN (0,1,2)";
 if (isset($_POST['codigo']) && $_POST['codigo']) {
     $where .= " AND far_medicamentos.cod_medicamento LIKE '" . $_POST['codigo'] . "%'";
 }
@@ -53,13 +53,17 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
     //Consulta el total de registros de la tabla
-    $sql = "SELECT COUNT(*) AS total FROM far_medicamentos";
+    $sql = "SELECT COUNT(*) AS total FROM far_medicamentos
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
+            WHERE far_subgrupos.id_grupo IN (0,1,2)";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
     $totalRecords = $total['total'];
 
     //Consulta el total de registros aplicando el filtro
-    $sql = "SELECT COUNT(*) AS total FROM far_medicamentos $where";
+    $sql = "SELECT COUNT(*) AS total FROM far_medicamentos 
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
+            $where";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
     $totalRecordsFilter = $total['total'];

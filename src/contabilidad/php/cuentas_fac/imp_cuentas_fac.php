@@ -29,7 +29,8 @@ try {
                 IF(c_gloini_deb.cuenta IS NULL,'',CONCAT_WS(' - ',c_gloini_deb.cuenta,c_gloini_deb.nombre)) AS cta_glosaini_debito,
                 IF(c_gloini_cre.cuenta IS NULL,'',CONCAT_WS(' - ',c_gloini_cre.cuenta,c_gloini_cre.nombre)) AS cta_glosaini_credito,
                 IF(c_glo_def.cuenta IS NULL,'',CONCAT_WS(' - ',c_glo_def.cuenta,c_glo_def.nombre)) AS cta_glosadefinitiva,
-                IF(c_devol.cuenta IS NULL,'',CONCAT_WS(' - ',c_devol.cuenta,c_devol.nombre)) AS cta_devolucion,            
+                IF(c_devol.cuenta IS NULL,'',CONCAT_WS(' - ',c_devol.cuenta,c_devol.nombre)) AS cta_devolucion,   
+                IF(c_devol_ant.cuenta IS NULL,'',CONCAT_WS(' - ',c_devol_ant.cuenta,c_devol_ant.nombre)) AS cta_devolucion_anterior,         
                 IF(c_caja.cuenta IS NULL,'',CONCAT_WS(' - ',c_caja.cuenta,c_caja.nombre)) AS cta_caja,
                 IF(c_fac_glo.cuenta IS NULL,'',CONCAT_WS(' - ',c_fac_glo.cuenta,c_fac_glo.nombre)) AS cta_fac_global,
                 IF(c_x_ide.cuenta IS NULL,'',CONCAT_WS(' - ',c_x_ide.cuenta,c_x_ide.nombre)) AS cta_x_ident,
@@ -49,6 +50,7 @@ try {
             LEFT JOIN ctb_pgcp AS c_gloini_cre ON (c_gloini_cre.id_pgcp=tb_homologacion.id_cta_glosaini_credito)
             LEFT JOIN ctb_pgcp AS c_glo_def ON (c_glo_def.id_pgcp=tb_homologacion.id_cta_glosadefinitiva)        
             LEFT JOIN ctb_pgcp AS c_devol ON (c_devol.id_pgcp=tb_homologacion.id_cta_devolucion)
+            LEFT JOIN ctb_pgcp AS c_devol_ant ON (c_devol_ant.id_pgcp=tb_homologacion.id_cta_devolucion_anterior)
             LEFT JOIN ctb_pgcp AS c_caja ON (c_caja.id_pgcp=tb_homologacion.id_cta_caja)
             LEFT JOIN ctb_pgcp AS c_fac_glo ON (c_fac_glo.id_pgcp=tb_homologacion.id_cta_fac_global)
             LEFT JOIN ctb_pgcp AS c_x_ide ON (c_x_ide.id_pgcp=tb_homologacion.id_cta_x_ident)
@@ -159,6 +161,10 @@ try {
                                 <tr>
                                     <td>Cta. Devolución:</td>
                                     <td>' . $obj['cta_devolucion'] . '</td>
+                                </tr>
+                                <tr>
+                                    <td>Cta. Devolución Anterior:</td>
+                                    <td>' . $obj['cta_devolucion_anterior'] . '</td>
                                 </tr>
                                 <tr>
                                     <td>Cta. Caja:</td>

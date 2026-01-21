@@ -54,6 +54,7 @@
                 { 'data': 'cta_glosaini_credito' },
                 { 'data': 'cta_glosadefinitiva' },
                 { 'data': 'cta_devolucion' },
+                { 'data': 'cta_devolucion_anterior' },
                 { 'data': 'cta_caja' },
                 { 'data': 'cta_fac_global' },
                 { 'data': 'cta_x_ident' },
@@ -64,8 +65,8 @@
             ],
             columnDefs: [
                 { class: 'text-wrap', targets: [2, 3] },
-                { visible: false, targets: 19 },
-                { orderable: false, targets: 21 },
+                { visible: false, targets: 20 },
+                { orderable: false, targets: 22 },
             ],
             rowCallback: function (row, data, index) {
                 if (data.vigente == 'X') {
@@ -216,6 +217,7 @@
         error += verifica_vacio_2($('#id_txt_cta_gli_cre'), $('#txt_cta_gli_cre'));
         error += verifica_vacio_2($('#id_txt_cta_glo_def'), $('#txt_cta_glo_def'));
         error += verifica_vacio_2($('#id_txt_cta_dev'), $('#txt_cta_dev'));
+        error += verifica_vacio_2($('#id_txt_cta_dev_ant'), $('#txt_cta_dev_ant'));
         error += verifica_vacio_2($('#id_txt_cta_caj'), $('#txt_cta_caj'));
         error += verifica_vacio_2($('#id_txt_cta_fac_glo'), $('#txt_cta_fac_glo'));
         error += verifica_vacio_2($('#id_txt_cta_x_ide'), $('#txt_cta_x_ide'));
@@ -233,6 +235,7 @@
         error1 += verifica_valmin_2($('#id_txt_cta_gli_cre'), $('#txt_cta_gli_cre'), 0);
         error1 += verifica_valmin_2($('#id_txt_cta_glo_def'), $('#txt_cta_glo_def'), 0);
         error1 += verifica_valmin_2($('#id_txt_cta_dev'), $('#txt_cta_dev'), 0);
+        error1 += verifica_valmin_2($('#id_txt_cta_dev_ant'), $('#txt_cta_dev_ant'), 0);
         error1 += verifica_valmin_2($('#id_txt_cta_caj'), $('#txt_cta_caj'), 0);
         error1 += verifica_valmin_2($('#id_txt_cta_fac_glo'), $('#txt_cta_fac_glo'), 0);
         error1 += verifica_valmin_2($('#id_txt_cta_x_ide'), $('#txt_cta_x_ide'), 0);

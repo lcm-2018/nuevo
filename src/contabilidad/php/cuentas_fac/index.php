@@ -62,7 +62,7 @@ $content = <<<HTML
                         <th rowspan="2" class="bg-sofia align-middle">COBERTURA</th>
                         <th rowspan="2" class="bg-sofia align-middle">MODALIDAD</th>
                         <th rowspan="2" class="bg-sofia align-middle">FECHA INICIO VIGENCIA</th>
-                        <th colspan="15" class="bg-sofia">CUENTAS CONTABLES</th>
+                        <th colspan="16" class="bg-sofia">CUENTAS CONTABLES</th>
                         <th rowspan="2" class="bg-sofia align-middle">ESTADO</th>
                         <th rowspan="2" class="bg-sofia align-middle">ACCIONES</th>
                     </tr>
@@ -77,6 +77,7 @@ $content = <<<HTML
                         <th class="bg-sofia">GLO.INI.CRE.</th>
                         <th class="bg-sofia">GLO_DEF.</th>
                         <th class="bg-sofia">DEVOL.</th>
+                        <th class="bg-sofia">DEVOL.ANT.</th>
                         <th class="bg-sofia">CAJA</th>
                         <th class="bg-sofia">FAC.GLOB.</th>
                         <th class="bg-sofia">POR IDEN.</th>

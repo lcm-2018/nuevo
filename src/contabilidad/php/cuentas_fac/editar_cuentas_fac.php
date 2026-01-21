@@ -46,6 +46,7 @@ try {
             $id_cta_gli_cre = $_POST['id_txt_cta_gli_cre'] ? $_POST['id_txt_cta_gli_cre'] : 'NULL';
             $id_cta_glo_def = $_POST['id_txt_cta_glo_def'] ? $_POST['id_txt_cta_glo_def'] : 'NULL';
             $id_cta_dev = $_POST['id_txt_cta_dev'] ? $_POST['id_txt_cta_dev'] : 'NULL';
+            $id_cta_dev_ant = $_POST['id_txt_cta_dev_ant'] ? $_POST['id_txt_cta_dev_ant'] : 'NULL';
             $id_cta_caj = $_POST['id_txt_cta_caj'] ? $_POST['id_txt_cta_caj'] : 'NULL';
             $id_cta_fac_glo = $_POST['id_txt_cta_fac_glo'] ? $_POST['id_txt_cta_fac_glo'] : 'NULL';
             $id_cta_x_ide = $_POST['id_txt_cta_x_ide'] ? $_POST['id_txt_cta_x_ide'] : 'NULL';
@@ -59,7 +60,8 @@ try {
                                 id_cta_debito,id_cta_credito,
                                 id_cta_copago,id_cta_copago_capitado,
                                 id_cta_glosaini_debito,id_cta_glosaini_credito,
-                                id_cta_glosadefinitiva,id_cta_devolucion,id_cta_caja,
+                                id_cta_glosadefinitiva,id_cta_devolucion,
+                                id_cta_devolucion_anterior,id_cta_caja,
                                 id_cta_fac_global,id_cta_x_ident,id_cta_baja,
                                 fecha_vigencia,estado,id_usr_crea,fec_creacion) 
                         VALUES($id_regimen,$id_cobertura,$id_modalidad,
@@ -67,7 +69,8 @@ try {
                                 $id_cta_deb,$id_cta_cre,
                                 $id_cta_cop,$id_cta_cop_cap,
                                 $id_cta_gli_deb,$id_cta_gli_cre,
-                                $id_cta_glo_def,$id_cta_dev,$id_cta_caj,
+                                $id_cta_glo_def,$id_cta_dev,
+                                $id_cta_dev_ant,$id_cta_caj,
                                 $id_cta_fac_glo,$id_cta_x_ide,$id_cta_baja,
                                 $fec_vig,$estado,$id_usr_ope,'$fecha_ope')";
                 $rs = $cmd->query($sql);
@@ -84,12 +87,21 @@ try {
             } else {
                 $sql = "UPDATE tb_homologacion 
                         SET id_regimen=$id_regimen,id_cobertura=$id_cobertura,id_modalidad=$id_modalidad,
-                            id_cta_presupuesto=$id_cta_pre,id_cta_presupuesto_ant=$id_cta_pre_ant,
-                            id_cta_debito=$id_cta_deb,id_cta_credito=$id_cta_cre,
-                            id_cta_copago=$id_cta_cop,id_cta_copago_capitado=$id_cta_cop_cap,
-                            id_cta_glosaini_debito=$id_cta_gli_deb,id_cta_glosaini_credito=$id_cta_gli_cre,
-                            id_cta_glosadefinitiva=$id_cta_glo_def,id_cta_devolucion=$id_cta_dev,id_cta_caja=$id_cta_caj,
-                            id_cta_fac_global=$id_cta_fac_glo,id_cta_x_ident=$id_cta_x_ide,id_cta_baja=$id_cta_baja,
+                            id_cta_presupuesto=$id_cta_pre,
+                            id_cta_presupuesto_ant=$id_cta_pre_ant,
+                            id_cta_debito=$id_cta_deb,
+                            id_cta_credito=$id_cta_cre,
+                            id_cta_copago=$id_cta_cop,
+                            id_cta_copago_capitado=$id_cta_cop_cap,
+                            id_cta_glosaini_debito=$id_cta_gli_deb,
+                            id_cta_glosaini_credito=$id_cta_gli_cre,
+                            id_cta_glosadefinitiva=$id_cta_glo_def,
+                            id_cta_devolucion=$id_cta_dev,
+                            id_cta_devolucion_anterior=$id_cta_dev_ant,
+                            id_cta_caja=$id_cta_caj,
+                            id_cta_fac_global=$id_cta_fac_glo,
+                            id_cta_x_ident=$id_cta_x_ide,
+                            id_cta_baja=$id_cta_baja,
                             fecha_vigencia=$fec_vig,estado=$estado
                         WHERE id_homo=" . $id;
                 $rs = $cmd->query($sql);

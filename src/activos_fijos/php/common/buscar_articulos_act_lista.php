@@ -49,7 +49,7 @@ try {
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT far_medicamentos.id_med,far_medicamentos.cod_medicamento,far_medicamentos.nom_medicamento,
-                    acf_orden_ingreso_detalle.valor,e.existencia
+                    acf_orden_ingreso_detalle.valor,IF(e.existencia IS NULL,0,e.existencia) AS existencia
             FROM far_medicamentos
             INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
             LEFT JOIN (SELECT acf_orden_ingreso_detalle.id_articulo,MAX(acf_orden_ingreso_detalle.id_ing_detalle) AS id 

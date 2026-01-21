@@ -41,7 +41,7 @@ if (isset($_POST['lote_ven']) && $_POST['lote_ven']) {
     }
 }
 
-$where_art = " WHERE 1";
+$where_art = " WHERE far_subgrupos.id_grupo IN (0,1,2)";
 if (isset($_POST['codigo']) && $_POST['codigo']) {
     $where_art .= " AND far_medicamentos.cod_medicamento LIKE '" . $_POST['codigo'] . "%'";
 }
@@ -95,6 +95,7 @@ try {
 
     $sql = "SELECT SUM(e.existencia_fecha*v.val_promedio_fecha) AS val_total
             FROM far_medicamentos
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
             INNER JOIN (SELECT ke.id_med,SUM(ke.existencia_lote) AS existencia_fecha 
                         FROM far_kardex AS ke
                         WHERE ke.id_kardex IN (SELECT MAX(far_kardex.id_kardex) 

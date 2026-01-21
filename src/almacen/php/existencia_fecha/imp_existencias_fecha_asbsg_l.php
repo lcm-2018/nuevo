@@ -40,7 +40,7 @@ if (isset($_POST['fecha']) && $_POST['fecha']) {
     $where_kar .= " AND far_kardex.fec_movimiento<='" . $_POST['fecha'] . "'";
 }
 
-$where_art = " WHERE 1";
+$where_art = " WHERE far_subgrupos.id_grupo IN (0,1,2)";
 if (isset($_POST['codigo']) && $_POST['codigo']) {
     $where_art .= " AND far_medicamentos.cod_medicamento LIKE '" . $_POST['codigo'] . "%'";
 }
@@ -79,6 +79,7 @@ try {
                 SUM(e.existencia_lote*v.val_promedio) AS val_total_sb
             FROM far_medicamento_lote
             INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
             INNER JOIN far_bodegas ON (far_bodegas.id_bodega = far_medicamento_lote.id_bodega)
             INNER JOIN tb_sedes_bodega ON (tb_sedes_bodega.id_bodega = far_bodegas.id_bodega)
             INNER JOIN tb_sedes ON (tb_sedes.id_sede = tb_sedes_bodega.id_sede)
@@ -115,6 +116,7 @@ try {
                 far_medicamento_lote.fec_vencimiento
             FROM far_medicamento_lote
             INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
             INNER JOIN tb_sedes_bodega ON (tb_sedes_bodega.id_bodega = far_medicamento_lote.id_bodega)
             INNER JOIN (SELECT id_lote,MAX(id_kardex) AS id FROM far_kardex $where_kar GROUP BY id_lote) AS kei ON (kei.id_lote=far_medicamento_lote.id_lote)
             INNER JOIN far_kardex AS e ON (e.id_kardex=kei.id)

@@ -21,7 +21,7 @@ switch ($id_reporte) {
         break;
 }
 
-$where = " WHERE 1";
+$where = " WHERE far_subgrupos.id_grupo IN (0,1,2)";
 if ($idrol != 1) {
     $where .= " AND far_medicamento_lote.id_bodega IN (SELECT id_bodega FROM seg_bodegas_usuario WHERE id_usuario=$idusr)";
 }
@@ -69,6 +69,7 @@ try {
                 SUM(far_medicamento_lote.existencia*far_medicamentos.val_promedio) AS val_total_sb
             FROM far_medicamento_lote
             INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
             INNER JOIN far_bodegas ON (far_bodegas.id_bodega = far_medicamento_lote.id_bodega)
             INNER JOIN tb_sedes_bodega ON (tb_sedes_bodega.id_bodega = far_bodegas.id_bodega)
             INNER JOIN tb_sedes ON (tb_sedes.id_sede = tb_sedes_bodega.id_sede)
@@ -102,6 +103,7 @@ try {
                 far_medicamento_lote.reg_invima,far_medicamento_lote.fec_vencimiento,DATEDIFF(far_medicamento_lote.fec_vencimiento,NOW()) AS dias
             FROM far_medicamento_lote
             INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
             INNER JOIN far_presentacion_comercial ON (far_presentacion_comercial.id_prescom=far_medicamento_lote.id_presentacion)
             INNER JOIN acf_marca ON (acf_marca.id=far_medicamento_lote.id_marca)
             INNER JOIN far_bodegas ON (far_bodegas.id_bodega = far_medicamento_lote.id_bodega)

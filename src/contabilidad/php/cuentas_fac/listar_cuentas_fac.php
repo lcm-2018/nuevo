@@ -59,6 +59,7 @@ try {
                 c_gloini_cre.cuenta AS cta_glosaini_credito,
                 c_glo_def.cuenta AS cta_glosadefinitiva,
                 c_devol.cuenta AS cta_devolucion,
+                c_devol_ant.cuenta AS cta_devolucion_anterior,
                 c_caja.cuenta AS cta_caja,
                 c_fac_glo.cuenta AS cta_fac_global,
                 c_x_ide.cuenta AS cta_x_ident,
@@ -79,6 +80,7 @@ try {
             LEFT JOIN ctb_pgcp AS c_gloini_cre ON (c_gloini_cre.id_pgcp=tb_homologacion.id_cta_glosaini_credito)
             LEFT JOIN ctb_pgcp AS c_glo_def ON (c_glo_def.id_pgcp=tb_homologacion.id_cta_glosadefinitiva)        
             LEFT JOIN ctb_pgcp AS c_devol ON (c_devol.id_pgcp=tb_homologacion.id_cta_devolucion)
+            LEFT JOIN ctb_pgcp AS c_devol_ant ON (c_devol_ant.id_pgcp=tb_homologacion.id_cta_devolucion_anterior)
             LEFT JOIN ctb_pgcp AS c_caja ON (c_caja.id_pgcp=tb_homologacion.id_cta_caja)
             LEFT JOIN ctb_pgcp AS c_fac_glo ON (c_fac_glo.id_pgcp=tb_homologacion.id_cta_fac_global)
             LEFT JOIN ctb_pgcp AS c_x_ide ON (c_x_ide.id_pgcp=tb_homologacion.id_cta_x_ident)
@@ -129,6 +131,7 @@ if (!empty($objs)) {
             "cta_glosaini_credito" => $obj['cta_glosaini_credito'],
             "cta_glosadefinitiva" => $obj['cta_glosadefinitiva'],
             "cta_devolucion" => $obj['cta_devolucion'],
+            "cta_devolucion_anterior" => $obj['cta_devolucion_anterior'],
             "cta_caja" => $obj['cta_caja'],
             "cta_fac_global" => $obj['cta_fac_global'],
             "cta_x_ident" => $obj['cta_x_ident'],

@@ -25,6 +25,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 ?>
+
 <div class="text-end py-3">
     <a type="button" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" value="01" title="Exprotar a Excel">
         <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>

@@ -396,7 +396,7 @@ try {
                 if ($rs) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';                    
-                    $consulta = "Anula Orden de Egreso Id: " . $id . ", Anula los movimientos del kardex"
+                    $consulta = "Anula Orden de Egreso Id: " . $id . ", Anula los movimientos del kardex";
                     Logs::guardaLog($consulta);
                 } else {
                     $cmd->rollBack();

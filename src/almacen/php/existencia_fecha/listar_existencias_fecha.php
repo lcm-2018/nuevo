@@ -55,7 +55,7 @@ if (isset($_POST['lote_ven']) && $_POST['lote_ven']) {
     }
 }
 
-$where_art = " WHERE 1";
+$where_art = " WHERE far_subgrupos.id_grupo IN (0,1,2)";
 if (isset($_POST['codigo']) && $_POST['codigo']) {
     $where_art .= " AND far_medicamentos.cod_medicamento LIKE '" . $_POST['codigo'] . "%'";
 }
@@ -85,13 +85,15 @@ try {
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total
             FROM far_medicamentos
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
             INNER JOIN (SELECT ke.id_med 
                         FROM far_kardex AS ke
                         WHERE ke.id_kardex IN (SELECT MAX(far_kardex.id_kardex) 
                                                FROM far_kardex $where_usr 
                                                GROUP BY far_kardex.id_lote)
                         GROUP BY ke.id_med	
-                        ) AS e ON (e.id_med = far_medicamentos.id_med)";
+                        ) AS e ON (e.id_med = far_medicamentos.id_med)
+            WHERE far_subgrupos.id_grupo IN (0,1,2)";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
     $totalRecords = $total['total'];
