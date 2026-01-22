@@ -266,7 +266,7 @@ class Embargos
                             <div class="row mb-2">
                                 <div class="col-md-6">
                                     <label for="numTotLib" class="small text-muted">Total</label>
-                                    <input type="number" class="form-control form-control-sm bg-input text-end" id="numTotLib" name="numTotLib" value="{$registro['valor_total']}" min="0" onblur="CalcDctoMax()" readonly disabled>
+                                    <input type="number" class="form-control form-control-sm bg-input text-end" id="numTotLib" name="numTotLib" value="{$registro['valor_total']}" min="0" onblur="CalcDctoMax()">
                                 </div>
                                 <div class="col-md-6">
                                     <label for="numDctoMax" class="small text-muted">Dcto. Máximo</label>

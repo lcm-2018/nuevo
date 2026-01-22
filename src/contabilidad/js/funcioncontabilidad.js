@@ -75,6 +75,7 @@
 				url: "datos/listar/datos_mvto_contabilidad.php",
 				data: function (d) {
 					d.id_manu = $('#txt_idmanu_filtro').val();
+					d.option = $('#txt_bandera_filtro').is(':checked') ? 1 : 0;
 					d.fec_ini = $('#txt_fecini_filtro').val();
 					d.fec_fin = $('#txt_fecfin_filtro').val();
 					d.rp = $('#txt_rp_filtro').val();
@@ -147,6 +148,7 @@
 				url: "datos/listar/datos_mvto_ctb_invoice.php",
 				data: function (d) {
 					d.id_manu = $('#txt_idmanu_filtro').val();
+					d.option = $('#txt_bandera_filtro').is(':checked') ? 1 : 0;
 					d.fec_ini = $('#txt_fecini_filtro').val();
 					d.fec_fin = $('#txt_fecfin_filtro').val();
 					d.rad = $('#txt_rad_filtro').val();

@@ -45,7 +45,12 @@ $content =
             </div>
             <div class="row">
                 <div class="mb-3 col-md-1">
-                    <input type="text" class="filtrocrp form-control form-control-sm bg-input" id="txt_idmanu_filtrocrp" placeholder="Id. Manu CRP">
+                    <div class="input-group">
+                        <div class="input-group-text">
+                            <input class="form-check-input mt-0" type="checkbox" value="" title="Marcar para filtrar por valor exacto" id="txt_bandera_filtro">
+                        </div>
+                        <input type="text" class="filtrocrp form-control form-control-sm bg-input" id="txt_idmanu_filtrocrp" placeholder="Id. Manu CRP">
+                    </div>
                 </div>
                 <div class="mb-3 col-md-1">
                     <input type="text" class="filtrocrp form-control form-control-sm bg-input" id="txt_idmanucdp_filtrocrp" placeholder="Id. Manu CDP">

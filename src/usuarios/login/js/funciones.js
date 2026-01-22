@@ -11,12 +11,15 @@ document.addEventListener('DOMContentLoaded', function () {
             MuestraError('pssClave', 'Contraseña requerida');
         } else {
             var data = Serializa('formLogin');
+            mostrarOverlay();
             SendPost('src/usuarios/login/php/valida_login.php', data).then(he => {
                 if (he.status === 'ok') {
                     window.location = "src/inicio.php";
                 } else {
                     mjeError(he.msg);
                 }
+            }).finally(() => {
+                ocultarOverlay();
             });
         }
     }

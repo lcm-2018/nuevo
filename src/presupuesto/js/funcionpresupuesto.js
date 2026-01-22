@@ -259,6 +259,7 @@
                 data: function (d) {
                     // -- datos de filtros
                     d.id_manu = $('#txt_idmanu_filtro').val();
+                    d.option = $('#txt_bandera_filtro').is(':checked') ? 1 : 0;
                     d.fec_ini = $('#txt_fecini_filtro').val();
                     d.fec_fin = $('#txt_fecfin_filtro').val();
                     d.objeto = $('#txt_objeto_filtro').val();
@@ -330,6 +331,7 @@
                 data: function (d) {
                     // -- datos de filtros
                     d.id_manu = $('#txt_idmanu_filtro').val();
+                    d.option = $('#txt_bandera_filtro').is(':checked') ? 1 : 0;
                     d.fec_ini = $('#txt_fecini_filtro').val();
                     d.fec_fin = $('#txt_fecfin_filtro').val();
                     d.objeto = $('#txt_objeto_filtro').val();
@@ -456,6 +458,7 @@
 
                     //-- datos para filtros
                     d.id_manu = $('#txt_idmanu_filtrocrp').val();
+                    d.option = $('#txt_bandera_filtro').is(':checked') ? 1 : 0;
                     d.id_manucdp = $('#txt_idmanucdp_filtrocrp').val();
                     d.fec_ini = $('#txt_fecini_filtrocrp').val();
                     d.fec_fin = $('#txt_fecfin_filtrocrp').val();
@@ -3121,33 +3124,81 @@ $('#registrarMovDetalle').on('click', function () {
         mjeError('El contrato no puede estar vacio', '');
     } else {
         var validar = true;
-        $('.valor-detalle').each(function () {
-            var valor = parseFloat($(this).val().replace(/\,/g, "", ""));
-            if (valor < 0 || $(this).val() == '') {
-                validar = false;
-                $(this).focus();
-                $(this).addClass('is-invalid');
-                mjeError('El valor no puede ser menor a cero', '');
-                return false;
-            } else {
-                let min = $(this).attr('min');
-                let max = $(this).attr('max');
-                if (valor < min || valor > max) {
+
+        // Obtener la instancia de DataTables
+        var table = $("#tableEjecCrpNuevo").DataTable();
+
+        // Validar TODAS las filas de la DataTable (incluyendo las paginadas)
+        table.rows().every(function () {
+            var row = this.node();
+            var input = $(row).find('.valor-detalle');
+            if (input.length > 0) {
+                var valor = parseFloat(input.val().replace(/\,/g, ""));
+                if (valor < 0 || input.val() == '') {
                     validar = false;
-                    $(this).focus();
-                    $(this).addClass('is-invalid');
-                    mjeError('El valor no puede ser menor a ' + min + ' o mayor a ' + max, '');
+                    // Ir a la página donde está la fila con error
+                    table.row(row).show().draw(false);
+                    input.focus();
+                    input.addClass('is-invalid');
+                    mjeError('El valor no puede ser menor a cero', '');
                     return false;
+                } else {
+                    let min = parseFloat(input.attr('min'));
+                    let max = parseFloat(input.attr('max').replace(/\,/g, ""));
+                    if (valor < min || valor > max) {
+                        validar = false;
+                        // Ir a la página donde está la fila con error
+                        table.row(row).show().draw(false);
+                        input.focus();
+                        input.addClass('is-invalid');
+                        mjeError('El valor no puede ser menor a ' + min + ' o mayor a ' + max, '');
+                        return false;
+                    }
                 }
             }
         });
+
         if (validar) {
-            var datos = $("#formGestionaCrp").serialize();
+            // Construir los datos del formulario manualmente
+            var formData = {
+                fec_cierre: $('#fec_cierre').val(),
+                id_pto_presupuestos: $('#id_pto_ppto').val(),
+                id_cdp: $('#id_cdp').val(),
+                id_crp: $('#id_crp').val(),
+                id_tercero: $('#id_tercero').val(),
+                id_pto_save: $('#id_pto_save').val(),
+                numCdp: $('#numCdp').val(),
+                fecha: $('#fecha').val(),
+                objeto: $('#objeto').val(),
+                contrato: $('#contrato').val(),
+                detalle: {}
+            };
+
+            // Agregar checkbox de tesorería si está marcado
+            if ($('#chDestTes').is(':checked')) {
+                formData.chDestTes = 'on';
+            }
+
+            // Recopilar los valores de TODAS las filas de la DataTable
+            table.rows().every(function () {
+                var row = this.node();
+                var input = $(row).find('.valor-detalle');
+                if (input.length > 0) {
+                    var name = input.attr('name');
+                    // Extraer el ID del nombre del campo (detalle[id])
+                    var match = name.match(/detalle\[(\d+)\]/);
+                    if (match) {
+                        var id = match[1];
+                        formData.detalle[id] = input.val();
+                    }
+                }
+            });
+
             mostrarOverlay();
             $.ajax({
                 type: "POST",
                 url: "datos/registrar/registrar_crp.php",
-                data: datos,
+                data: formData,
                 dataType: "json",
                 success: function (res) {
                     if (res.status === "ok") {

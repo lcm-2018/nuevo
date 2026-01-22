@@ -151,6 +151,7 @@
 					url: "datos/listar/datos_mvto_tesoreria.php",
 					data: function (d) {
 						d.id_manu = $('#txt_idmanu_filtro').val();
+						d.option = $('#txt_bandera_filtro').is(':checked') ? 1 : 0;
 						d.fec_ini = $('#txt_fecini_filtro').val();
 						d.fec_fin = $('#txt_fecfin_filtro').val();
 						d.ccnit = $('#txt_ccnit_filtro').val();
@@ -177,6 +178,7 @@
 					{ data: "fecha" },
 					{ data: "ccnit" },
 					{ data: "tercero" },
+					{ data: "ref" },
 					{ data: "valor" },
 					{ data: "botones" }
 				],

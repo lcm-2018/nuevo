@@ -44,7 +44,7 @@ $mp =                   Combos::getMetodoPago();
 $liquidados =           $Vacaciones->getRegistrosDT(0, -1, [], 1, 'asc');
 $liq = [];
 foreach ($liquidados as $l) {
-    $id = $l['id_empleado'];
+    $id = $l['id_vac'];
     if (isset($liq[$id])) {
         $liq[$id] += $l['liq'];
     } else {
@@ -57,7 +57,21 @@ if (!empty($obj)) {
         $id = $o['id_empleado'];
         $id_contrato = $o['id_contrato'];
         $metodo = '<select style="height:auto !important; max-width: 110px;" class="no-focus border-0 rounded p-0 w-100" name="metodo[' . $id . ']">' . $mp . '</select>';
-        if ($o['vac'] > 0 && $liq[$id] == 0) {
+
+        // Verificar si alguno de los ids_vac tiene liq = 0
+        $tieneVacSinLiquidar = false;
+        if (!empty($o['ids_vac'])) {
+            $idsVacArray = explode(',', $o['ids_vac']);
+            foreach ($idsVacArray as $idVac) {
+                $idVac = trim($idVac);
+                if (!isset($liq[$idVac]) || $liq[$idVac] == 0) {
+                    $tieneVacSinLiquidar = true;
+                    break;
+                }
+            }
+        }
+
+        if ($o['vac'] > 0 && $tieneVacSinLiquidar) {
             $datos[] = [
                 'check'        => '<div class="text-center"><input type="checkbox" name="chk_liquidacion[]" value="' . $id . '" checked><input type="hidden" name="id_contrato[' . $id . ']" value="' . $id_contrato . '"></div>',
                 'doc'          => $o['no_documento'],

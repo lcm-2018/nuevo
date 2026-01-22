@@ -75,7 +75,6 @@ class Liquidacion
         $tipo = $array['filter_tipo'];
         $fec_inicio = Sesion::Vigencia() . '-' . $mes . '-01';
         $fec_fin = date('Y-m-t', strtotime($fec_inicio));
-
         $sql = "SELECT 
                     `taux`.`id_empleado`
                     , `taux`.`no_documento`
@@ -85,6 +84,7 @@ class Liquidacion
                     , IFNULL(`tt`.`lic`,0) AS `lic`
                     , IFNULL(`tt`.`vac`,0) AS `vac`
                     , IFNULL(`tt`.`ivac`,0) AS `ivac`
+                    , `tt`.`ids_vac`
                     , DATEDIFF(
                         LEAST('$fec_fin', `taux`.`fec_fin`),
                         GREATEST('$fec_inicio', `taux`.`fec_inicio`)) + 1 AS `dias_mes`
@@ -121,6 +121,7 @@ class Liquidacion
                             , SUM(CASE WHEN `id_tipo` = 2 THEN 1 ELSE 0 END) AS `vac`
                             , SUM(CASE WHEN `id_tipo` IN (3, 4, 5) THEN 1 ELSE 0 END) AS `lic`
                             , SUM(CASE WHEN `id_tipo` = 6 THEN 1 ELSE 0 END) AS `ivac`
+                            , GROUP_CONCAT(DISTINCT CASE WHEN `id_tipo` = 2 THEN `id_novedad` END) AS `ids_vac`
                         FROM 
                             `nom_calendar_novedad`
                         WHERE 
@@ -1724,7 +1725,8 @@ class Liquidacion
         $minVital = $param['min_vital'] > 0 ? $param['min_vital'] : $smmlv;
 
         $sindicalizacion = !empty((new Sindicatos($this->conexion))->getRegistroLiq($filtro['id_sindicato'])) ? 0 : $filtro['val_sidicalizacion'];
-        $dcto = $filtro['val_fijo'] + $sindicalizacion;
+        $val = Valores::Redondear((($filtro['porcentaje_cuota'] / 100) * $param['salario']), 1);
+        $dcto = $val + $sindicalizacion;
         $data['valor_fijo']    =  $dcto;
 
         if ($base  > $dcto && $base > $minVital) {

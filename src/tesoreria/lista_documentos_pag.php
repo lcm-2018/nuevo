@@ -387,8 +387,8 @@ if ($estado == '1' && $id_doc_pag > 0) {
             <input type="hidden" name="tipoDato" id="tipoDato" value="0">
         </td>
         <td>
-            <input type="text" name="bTercero" id="bTercero" class="form-control form-control-sm bg-input bTercero" required>
-            <input type="hidden" name="idTercero" id="idTercero" value="0">
+            <input type="text" name="bTercero" id="bTercero" class="form-control form-control-sm bg-input bTercero" value="{$tercero}" required>
+            <input type="hidden" name="idTercero" id="idTercero" value="{$id_tercero}">
         </td>
         <td>
             <input type="text" name="valorDebito" id="valorDebito" class="form-control form-control-sm bg-input text-end" value="0" required onkeyup="NumberMiles(this)" onchange="llenarCero(id)">

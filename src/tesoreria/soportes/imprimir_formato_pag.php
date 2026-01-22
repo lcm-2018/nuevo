@@ -108,6 +108,7 @@ try {
 $html_doc = '';
 $html_res = '';
 foreach ($documentos_tes as $documento) {
+    $cdp = $documento;
     $id_doc = $documento['id_ctb_doc'];
     $nom_doc = $documento['nombre'];
     $cod_doc = $documento['cod'];

@@ -25,14 +25,13 @@ $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 
 use Src\Common\Php\Clases\Combos;
-use Src\Nomina\Liquidacion\Php\Clases\Liquidacion;
 use Src\Common\Php\Clases\Permisos;
 use Src\Common\Php\Clases\Valores;
+use Src\Nomina\Empleados\Php\Clases\Prestaciones_Sociales;
 
-$sql        = new Liquidacion();
+$sql        = new Prestaciones_Sociales();
 $permisos   = new Permisos();
 $Valores    = new Valores();
-
 $opciones =             $permisos->PermisoOpciones($id_user);
 $obj =                  $sql->getRegistrosDT($start, $length, $filtros, $col, $dir);
 $totalRecordsFilter =   $sql->getRegistrosFilter($filtros);
@@ -44,31 +43,18 @@ if (!empty($obj)) {
     foreach ($obj as $o) {
         $id = $o['id_empleado'];
         $id_contrato = $o['id_contrato'];
-        if ($_POST['filter_mes'] == '02' && $o['inc'] >= 28 || $o['inc'] > 30) {
-            $o['inc'] = 30;
-        }
-        if ($_POST['filter_mes'] == '02' && $o['lic'] >= 28 || $o['lic'] > 30) {
-            $o['lic'] = 30;
-        }
-        if ($_POST['filter_mes'] == '02' && $o['vac'] >= 28 || $o['vac'] > 30) {
-            $o['vac'] = 30;
-        }
-        if ($_POST['filter_mes'] == '02' && $o['dias_mes'] >= 28 || $o['dias_mes'] > 30) {
-            $o['dias_mes'] = 30;
-        }
-
-        $laborado = $o['dias_mes'] - $o['inc'] - $o['lic'] - $o['vac'] + $o['ivac'];
-        $input = '<input type="number" style="height: auto !important;" class="no-focus text-end border-0 rounded p-0 w-100" name="lab[' . $id . ']" value="' . $laborado . '" min="0" max="' . $laborado . '" step="1">';
+        $input = '<input type="number" style="height: auto !important;" class="no-focus text-end border-0 rounded p-0 w-100" name="lab[' . $id . ']" value="0" min="0" step="1">';
         $metodo = '<select style="height:auto !important; max-width: 110px;" class="no-focus border-0 rounded p-0 w-100" name="metodo[' . $id . ']">' . $mp . '</select>';
+
         $datos[] = [
             'check'        => '<div class="text-center"><input type="checkbox" name="chk_liquidacion[]" value="' . $id . '" checked><input type="hidden" name="id_contrato[' . $id . ']" value="' . $id_contrato . '"></div>',
             'doc'          => $o['no_documento'],
             'nombre'       => mb_strtoupper($o['nombre']),
-            'observacion'  => $o['observacion'] >= 365 ? '<span class="text-danger"><b>Vacaciones: ' . ($o['observacion']) . ' días</b></span>' :  '',
+            'observacion'  => '',
             'laborado'     => $input,
-            'incapacidad'  => $o['inc'],
-            'licencia'     => $o['lic'],
-            'vacacion'     => $o['vac'],
+            'incapacidad'  => 0,
+            'licencia'     => 0,
+            'vacacion'     => 0,
             'otro'         => 0,
             'pago'         => $metodo,
         ];

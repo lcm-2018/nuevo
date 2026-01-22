@@ -39,8 +39,9 @@ try {
                 , `ctb_doc`.`fecha_reg`
                 , `ctb_doc`.`id_tipo_doc` AS `tipo_doc`
                 , `ctb_doc`.`estado`
-                , CONCAT_WS (' ',`us1`.`nombre1`, `us1`.`nombre2`, `us1`.`apellido1`, `us1`.`apellido2`) AS `usuario_reg`
+                , CONCAT_WS (' ',`us1`.`nombre1`, `us1`.`nombre2`, `us1`.`apellido1`, `us1`.`apellido2`) AS `usuario`
                 , CONCAT_WS (' ',`us2`.`nombre1`, `us2`.`nombre2`, `us2`.`apellido1`, `us2`.`apellido2`) AS `usuario_act`
+                , `us1`.`descripcion` as `cargo`
                 , `tb_terceros`.`nom_tercero`
                 , `tb_terceros`.`nit_tercero`
             FROM `ctb_doc`
@@ -121,6 +122,7 @@ try {
     $id_modulo = 55;
     $nombre_doc = $dss['nombre'];
     foreach ($documentos as $doc) {
+        $cdp = $doc;
         $dto = $doc['id_ctb_doc'];
         try {
             $sql = "SELECT

@@ -41,7 +41,7 @@ if ($anulados == 1 || $_POST['search']['value'] != '') {
 $andwhere = " ";
 
 if (isset($_POST['id_manu']) && $_POST['id_manu']) {
-    $andwhere .= " AND ctb_doc.id_manu LIKE '%" . $_POST['id_manu'] . "%'";
+    $andwhere .= $_POST['option'] == 0 ? " AND ctb_doc.id_manu LIKE '%" . $_POST['id_manu'] . "%'" : " AND ctb_doc.id_manu = '" . $_POST['id_manu'] . "'";
 }
 if (isset($_POST['fec_ini']) && $_POST['fec_ini'] && isset($_POST['fec_fin']) && $_POST['fec_fin']) {
     $andwhere .= " AND ctb_doc.fecha BETWEEN '" . $_POST['fec_ini'] . "' AND '" . $_POST['fec_fin'] . "'";
@@ -101,8 +101,11 @@ try {
                 , `ctb_doc`.`id_vigencia`
                 , `ctb_doc`.`doc_soporte`
                 , `causaciones`.`id_manu` AS `causacion`
+                , `ctb_referencia`.`nombre` AS `referencia`  
             FROM
                 `ctb_doc`
+                LEFT JOIN `ctb_referencia`
+                    ON (`ctb_doc`.`id_ref_ctb` = `ctb_referencia`.`id_ctb_referencia`)
                 LEFT JOIN `nom_nomina_pto_ctb_tes` 
                     ON (`ctb_doc`.`id_ctb_doc` = `nom_nomina_pto_ctb_tes`.`ceva`)
                 LEFT JOIN `nom_nominas` 
@@ -285,6 +288,7 @@ if (!empty($listappto)) {
             'fecha' => $fecha,
             'ccnit' => $ccnit,
             'tercero' => $tercero,
+            'ref' => $lp['referencia'],
             'valor' => '<div class="text-end">' . $valor_total . '</div>',
             'botones' => '<div class="text-center" style="position:relative">' . $editar . $detalles . $borrar . $imprimir . $enviar . $dato . $cerrar . $doc_soporte . $anular . '</div>',
         ];

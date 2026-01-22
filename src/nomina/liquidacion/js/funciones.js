@@ -3,6 +3,8 @@ function getUrlListado() {
     const tipo = ValueInput('filter_tipo');
     if (tipo == 2) {
         return 'lista_liquidacion.php';
+    } else if (tipo == 3) {
+        return 'lista_prestaciones_sociales.php';
     } else if (tipo == 6 || tipo == 7 || tipo == 8 || tipo == 9) {
         return 'lista_cesantias.php';
     } else if (tipo == 4) {
@@ -37,7 +39,7 @@ const tableLiqMesEmpleados = crearDataTable(
             } else {
                 let valid = true;
                 LimpiaInvalid();
-                if (ValueInput('filter_tipo') == 2) {
+                if (ValueInput('filter_tipo') == 2 || ValueInput('filter_tipo') == 3) {
                     checkboxes.forEach((checkbox) => {
                         var row = checkbox.closest('tr');
                         var lab = row.querySelector('input[name^="lab"]');

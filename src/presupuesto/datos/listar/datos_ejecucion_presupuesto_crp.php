@@ -41,7 +41,7 @@ $fecha_cierre = fechaCierre($_SESSION['vigencia'], 54, $cmd);
 $andwhere = " ";
 
 if (isset($_POST['id_manu']) && $_POST['id_manu']) {
-    $andwhere .= " AND pto_crp.id_manu LIKE '%" . $_POST['id_manu'] . "%'";
+    $andwhere .= $_POST['option'] == 0 ? " AND pto_crp.id_manu LIKE '%" . $_POST['id_manu'] . "%'" : " AND pto_crp.id_manu = '" . $_POST['id_manu'] . "'";
 }
 if (isset($_POST['id_manucdp']) && $_POST['id_manucdp']) {
     $andwhere .= " AND detalle.id_cdp LIKE '%" . $_POST['id_manucdp'] . "%'";
