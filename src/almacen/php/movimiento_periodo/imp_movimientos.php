@@ -36,7 +36,7 @@ if (isset($_POST['id_bodega']) && $_POST['id_bodega']) {
 
 $where_mov = $where_kar . ' AND (id_ingreso IS NOT NULL OR id_egreso IS NOT NULL)';
 
-$where_art = " WHERE 1";
+$where_art = " WHERE far_subgrupos.id_grupo IN (0,1,2)";
 if (isset($_POST['codigo']) && $_POST['codigo']) {
     $where_art .= " AND far_medicamentos.cod_medicamento LIKE '" . $_POST['codigo'] . "%'";
 }
@@ -108,6 +108,7 @@ try {
                 SUM(es.valores_ent) AS valores_ent,
                 SUM(es.valores_sal) AS valores_sal
             FROM far_medicamentos
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
             INNER JOIN (SELECT id_med,SUM(existencia_lote) AS existencia_fin FROM far_kardex
                         WHERE id_kardex IN (SELECT MAX(id_kardex) FROM far_kardex $where_kar AND fec_movimiento<='$fecfin' GROUP BY id_lote)                        
                         GROUP BY id_med	

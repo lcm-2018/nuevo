@@ -423,3 +423,19 @@ function estados_sino($titulo = '', $estado = -1)
     $selected = ($estado == 0) ? 'selected="selected"' : '';
     echo '<option value="0"' . $selected . '>NO</option>';
 }
+
+function con_existencia($titulo = '', $estado = -1)
+{
+    echo '<option value="">' . $titulo . '</option>';
+    $selected = ($estado == 1) ? 'selected="selected"' : '';
+    echo '<option value="1"' . $selected . '>Existencia > 0</option>';
+    $selected = ($estado == 2) ? 'selected="selected"' : '';
+    echo '<option value="2"' . $selected . '>Existencia = 0</option>';
+}
+
+function tipo_reporte_activos($titulo = '')
+{
+    echo '<option value="">' . $titulo . '</option>';
+    echo '<option value="1">Detallado por Articulo -> Agrupado por Sede</option>';
+    echo '<option value="2">Detallado por Articulo -> Agrupado por Sede-Area</option>';    
+}

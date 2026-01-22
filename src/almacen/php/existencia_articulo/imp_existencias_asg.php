@@ -21,7 +21,7 @@ switch ($id_reporte) {
         break;
 }
 
-$where = "WHERE 1";
+$where = "WHERE far_subgrupos.id_grupo IN (0,1,2)";
 if (isset($_POST['codigo']) && $_POST['codigo']) {
     $where .= " AND far_medicamentos.cod_medicamento LIKE '" . $_POST['codigo'] . "%'";
 }
@@ -49,7 +49,8 @@ try {
     $sql = "SELECT far_subgrupos.id_subgrupo,CONCAT_WS(' - ',far_subgrupos.cod_subgrupo,far_subgrupos.nom_subgrupo) AS nom_subgrupo,                
                 SUM(far_medicamentos.existencia*far_medicamentos.val_promedio) AS val_totsbg
             FROM far_medicamentos
-            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo) $where 
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo) 
+            $where 
             GROUP BY far_subgrupos.id_subgrupo
             ORDER BY far_subgrupos.id_subgrupo ASC";
     $rs = $cmd->query($sql);
@@ -61,7 +62,9 @@ try {
                 far_medicamentos.top_min,far_medicamentos.top_max,
                 far_medicamentos.existencia,far_medicamentos.val_promedio,
                 (far_medicamentos.existencia*far_medicamentos.val_promedio) AS val_total
-            FROM far_medicamentos $where AND far_medicamentos.id_subgrupo=:id_subgrupo 
+            FROM far_medicamentos 
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo) 
+            $where AND far_medicamentos.id_subgrupo=:id_subgrupo 
             ORDER BY far_medicamentos.nom_medicamento";
     $rs_d = $cmd->prepare($sql);
 } catch (PDOException $e) {

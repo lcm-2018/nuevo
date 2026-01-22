@@ -163,6 +163,8 @@ try {
                 if ($error == 0) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
+                    $consulta = "Anula Orden de Baja de Activos Fijos Id: " . $id;
+                    Logs::guardaLog($consulta); 
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
                     $cmd->rollBack();

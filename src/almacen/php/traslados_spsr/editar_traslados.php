@@ -380,10 +380,10 @@ try {
                 $continuar = true;
 
                 // Verifica conexión a servicio remoto
-                if (!isHostReachable($ip) && $continuar) {
+                /*if (!isHostReachable($ip) && $continuar) {
                     $res['mensaje'] = "Error: No hay respuesta de la IP del servidor ($ip). Verifique la red.";
                     $continuar = false;
-                }
+                }*/
                 if (!isMySQLPortOpen($ip, $port) && $continuar) {
                     $res['mensaje'] = "Error: El servidor MySQL no responde en $ip:$port. Verifique el servicio.";
                     $continuar = false;

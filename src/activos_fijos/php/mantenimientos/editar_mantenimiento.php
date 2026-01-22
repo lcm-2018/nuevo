@@ -270,6 +270,8 @@ try {
                 if ($error == 0) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
+                    $consulta = "Anula Orden de Mantenimiento de Activos Fijos Id: " . $id;
+                    Logs::guardaLog($consulta); 
                 } else {
                     $cmd->rollBack();
                     $res['mensaje'] = $cmd->errorInfo()[2];

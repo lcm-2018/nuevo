@@ -1,0 +1,140 @@
+(function ($) {
+    $(document).on('show.bs.modal', '.modal', function () {
+        var zIndex = 1040 + (10 * $('.modal:visible').length);
+        $(this).css('z-index', zIndex);
+        setTimeout(function () {
+            $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
+        }, 0);
+    });
+
+    $(document).ready(function () {
+        //Tabla de Registros
+        $('#tb_articulos').DataTable({
+            language: dataTable_es,
+            processing: true,
+            serverSide: true,
+            searching: false,
+            ajax: {
+                url: 'listar_existencias.php',
+                type: 'POST',
+                dataType: 'json',
+                data: function (data) {
+                    data.codigo = $('#txt_codigo_filtro').val();
+                    data.nombre = $('#txt_nombre_filtro').val();
+                    data.id_subgrupo = $('#sl_subgrupo_filtro').val();
+                    data.tipo_asis = $('#sl_tipoasis_filtro').val();
+                    data.con_existencia = $('#sl_conexi_filtro').val();
+                    data.artactivo = $('#chk_artact_filtro').is(':checked') ? 1 : 0;
+                }
+            },
+            columns: [
+                { 'data': 'id_med' }, //Index=0
+                { 'data': 'cod_medicamento' },
+                { 'data': 'nom_medicamento' },
+                { 'data': 'nom_subgrupo' },
+                { 'data': 'top_min' },
+                { 'data': 'top_max' },
+                { 'data': 'existencia' },
+                { 'data': 'val_promedio' },
+                { 'data': 'val_total' },
+                { 'data': 'estado' },
+                { 'data': 'botones' }
+            ],
+            columnDefs: [
+                { class: 'text-wrap', targets: [2, 3] },
+                { orderable: false, targets: 10 }
+            ],
+            order: [
+                [2, "ASC"]
+            ],
+            lengthMenu: [
+                [10, 25, 50, -1],
+                [10, 25, 50, 'TODO'],
+            ],
+        });
+
+
+        $('#tb_articulos').wrap('<div class="overflow"/>');
+    });
+
+    //Buascar registros de Articulos
+    $('#btn_buscar_filtro').on("click", function () {
+        $('#tb_articulos').DataTable().ajax.reload(null, false);
+    });
+
+    $('.filtro').keypress(function (e) {
+        if (e.keyCode == 13) {
+            $('#tb_articulos').DataTable().ajax.reload(null, false);
+        }
+    });
+
+    //Examinar una tarjeta kardex
+    $('#tb_articulos').on('click', '.btn_examinar', function () {
+        let id = $(this).attr('value');
+        $.post("frm_kardex.php", { id: id }, function (he) {
+            $('#divTamModalForms').addClass('modal-xl');
+            $('#divModalForms').modal('show');
+            $("#divForms").html(he);
+        });
+    });
+
+    /* ---------------------------------------------------
+    TARJETA KARDEX
+    -----------------------------------------------------*/
+    $('#divForms').on('click', '#btn_buscar_fil_kar', function () {
+        $('#tb_kardex').DataTable().ajax.reload(null, false);
+    });
+
+    /* ---------------------------------------------------
+    IMPRESORA
+    -----------------------------------------------------*/
+    //Imprimir listado de registros
+    $('#btn_imprime_filtro').on('click', function () {
+        $('#tb_articulos').DataTable().ajax.reload(null, false);
+        $('.is-invalid').removeClass('is-invalid');
+        let id_reporte = $('#sl_tipo_reporte').val();
+        let reporte = "imp_existencias.php";
+
+        switch (id_reporte) {
+            case '1':
+                reporte = "imp_existencias_asg.php";
+                break;
+            case '2':
+                reporte = "imp_existencias_asg.php";
+                break;
+        }
+
+        $.post(reporte, {
+            codigo: $('#txt_codigo_filtro').val(),
+            nombre: $('#txt_nombre_filtro').val(),
+            id_subgrupo: $('#sl_subgrupo_filtro').val(),
+            tipo_asis: $('#sl_tipoasis_filtro').val(),
+            con_existencia: $('#sl_conexi_filtro').val(),
+            artactivo: $('#chk_artact_filtro').is(':checked') ? 1 : 0,
+            id_reporte: id_reporte
+        }, function (he) {
+            $('#divTamModalImp').removeClass('modal-sm');
+            $('#divTamModalImp').removeClass('modal-lg');
+            $('#divTamModalImp').addClass('modal-xl');
+            $('#divModalImp').modal('show');
+            $("#divImp").html(he);
+        });
+    });
+
+    //Imprimit una Tarjeta Kardex
+    $('#divForms').on("click", "#btn_imprimir", function () {
+        $('#tb_kardex').DataTable().ajax.reload(null, false);
+        $.post("imp_kardex.php", {
+            id_articulo: $('#id_articulo').val(),
+            fec_ini: $('#txt_fecini_fil').val(),
+            fec_fin: $('#txt_fecfin_fil').val()
+        }, function (he) {
+            $('#divTamModalImp').removeClass('modal-sm');
+            $('#divTamModalImp').removeClass('modal-lg');
+            $('#divTamModalImp').addClass('modal-xl');
+            $('#divModalImp').modal('show');
+            $("#divImp").html(he);
+        });
+    });
+
+})(jQuery);

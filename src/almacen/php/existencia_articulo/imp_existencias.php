@@ -10,7 +10,7 @@ include '../common/funciones_generales.php';
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
-$where = "WHERE 1";
+$where = "WHERE far_subgrupos.id_grupo IN (0,1,2)";
 if (isset($_POST['codigo']) && $_POST['codigo']) {
     $where .= " AND far_medicamentos.cod_medicamento LIKE '" . $_POST['codigo'] . "%'";
 }
@@ -41,7 +41,8 @@ try {
             (far_medicamentos.existencia*far_medicamentos.val_promedio) AS val_total,
             IF(far_medicamentos.estado=1,'ACTIVO','INACTIVO') AS estado
             FROM far_medicamentos
-            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo) $where 
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo) 
+            $where 
             ORDER BY far_medicamentos.nom_medicamento ASC";
     $rs = $cmd->query($sql);
     $objs = $rs->fetchAll();
@@ -49,7 +50,9 @@ try {
     unset($rs);
 
     $sql = "SELECT SUM(far_medicamentos.existencia*far_medicamentos.val_promedio) AS val_total
-            FROM far_medicamentos $where";
+            FROM far_medicamentos 
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo) 
+            $where";
     $rs = $cmd->query($sql);
     $obj_tot = $rs->fetch();
 } catch (PDOException $e) {

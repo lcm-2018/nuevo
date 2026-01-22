@@ -13,7 +13,7 @@ $cmd = \Config\Clases\Conexion::getConexion();
 $idusr = $_SESSION['id_user'];
 $idrol = $_SESSION['rol'];
 
-$where = " WHERE 1";
+$where = " WHERE far_subgrupos.id_grupo IN (0,1,2)";
 if ($idrol != 1) {
     $where .= " AND far_medicamento_lote.id_bodega IN (SELECT id_bodega FROM seg_bodegas_usuario WHERE id_usuario=$idusr)";
 }
@@ -78,6 +78,7 @@ try {
     $sql = "SELECT SUM(far_medicamento_lote.existencia*far_medicamentos.val_promedio) AS val_total
             FROM far_medicamento_lote 
             INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
             $where";
     $rs = $cmd->query($sql);
     $obj_tot = $rs->fetch();
