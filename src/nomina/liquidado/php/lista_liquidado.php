@@ -39,7 +39,7 @@ $datos = [];
 if (!empty($obj)) {
     foreach ($obj as $o) {
         $id = $o['id_nomina'];
-        $detalles = $borrar = $anular = $imprimir1 = $imprimir2 = $imprimir3 = $estado = $reportes = '';
+        $detalles = $borrar = $anular = $imprimir1 = $imprimir2 = $imprimir3 = $estado = $reportes = $editar = '';
         if ($o['estado'] >= 2) {
             $estado = '<span class="badge bg-success">DEFINITIVA</span>';
         } elseif ($o['estado'] == 1) {
@@ -49,6 +49,9 @@ if (!empty($obj)) {
         }
         if ($permisos->PermisosUsuario($opciones, 5101, 1) || $id_rol == 1) {
             $detalles = '<button data-id="' . $id . '" class="btn btn-outline-warning btn-xs rounded-circle shadow me-1 detalles" title="Ver detalles"><span class="fas fa-eye fa-sm"></span></button>';
+        }
+        if (($permisos->PermisosUsuario($opciones, 5101, 3) || $id_rol == 1) && $o['estado'] == 1) {
+            $editar = '<button data-id="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle shadow me-1 editar" title="Editar Registro"><span class="fas fa-pencil-alt fa-sm"></span></button>';
         }
         if (($permisos->PermisosUsuario($opciones, 5101, 4) || $id_rol == 1) && $o['estado'] == 1) {
             $borrar = '<button data-id="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 borrar" title="Borrar Registro"><span class="fas fa-trash-alt fa-sm"></span></button>';
@@ -76,7 +79,7 @@ if (!empty($obj)) {
             'mes'           =>  mb_strtoupper($o['nom_mes']),
             'tipo'          =>  mb_strtoupper($o['tipo']),
             'estado'        =>  '<div class="text-center">' . $estado . '</div>',
-            'accion'        =>  '<div class="text-center">' . $detalles . $borrar . $anular . $imprimir1 . $imprimir2 . $imprimir3 . $reportes . '</div>',
+            'accion'        =>  '<div class="text-center">' . $editar . $detalles . $borrar . $anular . $imprimir1 . $imprimir2 . $imprimir3 . $reportes . '</div>',
         ];
     }
 }

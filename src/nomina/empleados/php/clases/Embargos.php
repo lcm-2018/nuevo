@@ -211,11 +211,14 @@ class Embargos
     public function getRegistroPorEmpleado($inicia)
     {
         $sql = "SELECT
-                    `id_embargo`, `tipo_embargo`,`valor_mes`, `porcentaje`, `fec_inicio`, `fec_fin`
+                    `id_embargo`, `id_empleado`, `tipo_embargo`, `valor_mes`, `porcentaje`, `fec_inicio`, `fec_fin`
                 FROM `nom_embargos`
-                WHERE `estado` = 1 AND (`fec_fin` >= ? OR `fec_fin` IS NULL)";
+                WHERE `estado` = 1 
+                    AND `fec_inicio` <= ? 
+                    AND (`fec_fin` >= ? OR `fec_fin` IS NULL)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
+        $stmt->bindParam(2, $inicia, PDO::PARAM_STR);
         $stmt->execute();
         $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();

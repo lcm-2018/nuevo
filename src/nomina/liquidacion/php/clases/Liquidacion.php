@@ -1686,11 +1686,11 @@ class Liquidacion
         $minVital = $param['min_vital'] > 0 ? $param['min_vital'] : $smmlv;
 
         foreach ($filtro as $f) {
-            $base -= $f['val_mes'];
-            if ($base  > $f['val_mes'] && $base > $minVital) {
+            // Validar primero si hay suficiente base para descontar
+            if ($base > $f['valor_mes'] && $base > $minVital) {
                 $data = [
                     'id_embargo'   =>   $f['id_embargo'],
-                    'val_mes'      =>   $f['val_mes'],
+                    'val_mes'      =>   $f['valor_mes'],
                     'id_nomina'    =>   $param['id_nomina']
                 ];
 
@@ -1700,9 +1700,12 @@ class Liquidacion
                     $response['msg'] = "<p>$res</p>";
                     break;
                 } else {
-                    $response['valor'] += $f['val_mes'];
+                    // Restar de la base solo después de validar y registrar exitosamente
+                    $base -= $f['valor_mes'];
+                    $response['valor'] += $f['valor_mes'];
                 }
             } else {
+                // No hay suficiente base para este embargo, continuar con el siguiente
                 continue;
             }
         }
