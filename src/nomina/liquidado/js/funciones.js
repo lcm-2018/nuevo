@@ -49,6 +49,7 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
     const btnAnular = event.target.closest('.anular');
     const btnImprimir = event.target.closest('.imprimir');
     const btnDescargarPdf = event.target.closest('.descargar-pdf');
+    const btnReportes = event.target.closest('.reportes');
 
     if (btnDetalles) {
         event.preventDefault();
@@ -91,4 +92,41 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
         var pdf = true;
         ImprimirReporte('../php/reportes/cdp_' + url + '.php', { id: id, pdf: pdf });
     }*/
+
+    if (btnReportes) {
+        event.preventDefault();
+        const id = btnReportes.dataset.id;
+        mostrarOverlay();
+        VerFormulario('../php/controladores/reportes.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+    }
+});
+
+//evento click en el modal
+document.querySelector('#modalForms').addEventListener('click', function (event) {
+    const btnReportes = event.target.closest('.reportes');
+    if (btnReportes) {
+        event.preventDefault();
+        const id_nomina = document.getElementById('id_nomina').value; // Obtener id_nomina del input hidden
+        const tipo_reporte = btnReportes.dataset.id; // 1=Libranzas, 2=Embargos, 3=Sindicatos
+        const text = btnReportes.getAttribute('text'); // E=Excel, P=PDF
+
+        // Determinar el archivo según el tipo de reporte
+        let archivo = '';
+        switch (tipo_reporte) {
+            case '1':
+                archivo = 'libranzas';
+                break;
+            case '2':
+                archivo = 'embargos';
+                break;
+            case '3':
+                archivo = 'sindicatos';
+                break;
+            default:
+                console.error('Tipo de reporte no válido');
+                return;
+        }
+
+        ImprimirReporte('../php/reportes/' + archivo + '.php', { id: id_nomina, tipo: text });
+    }
 });

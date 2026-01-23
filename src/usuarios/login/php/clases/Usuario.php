@@ -23,7 +23,7 @@ class Usuario
     public function getUser($usuario)
     {
         $sql = "SELECT 
-                    `id_usuario`, `login` ,`clave` , CONCAT(`nombre1`, ' ', `apellido1`) as `nombre` ,`id_rol` , `estado` 
+                    `id_usuario`, `login` ,`clave` , CONCAT(`nombre1`, ' ', `apellido1`) as `nombre` ,`id_rol` , `estado`, `fec_finalizacion`
                 FROM `seg_usuarios_sistema`  
                 WHERE `login` = ?";
         $stmt = $this->conexion->prepare($sql);

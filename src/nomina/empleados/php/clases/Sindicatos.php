@@ -477,4 +477,70 @@ class Sindicatos
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+
+    /**
+     * Obtiene los sindicatos de una nómina agrupados por sindicato
+     *
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos de sindicatos agrupados por sindicato
+     */
+    public function getSindicatosPorNomina($id_nomina)
+    {
+        try {
+            $sql = "SELECT
+                        IFNULL(`tb_terceros`.`nit_tercero`, '') AS `nit_entidad`,
+                        IFNULL(`tb_terceros`.`nom_tercero`, '') AS `nom_entidad`,
+                        `nom_empleado`.`no_documento`,
+                        CONCAT_WS(' ', `nom_empleado`.`nombre1`, `nom_empleado`.`nombre2`, `nom_empleado`.`apellido1`, `nom_empleado`.`apellido2`) AS `nombre_empleado`,
+                        `nom_liq_sindicato_aportes`.`val_aporte` AS `valor`
+                    FROM
+                        `nom_liq_sindicato_aportes`
+                        INNER JOIN `nom_cuota_sindical` 
+                            ON (`nom_liq_sindicato_aportes`.`id_cuota_sindical` = `nom_cuota_sindical`.`id_cuota_sindical`)
+                        INNER JOIN `nom_terceros` 
+                            ON (`nom_cuota_sindical`.`id_sindicato` = `nom_terceros`.`id_tn`)
+                        LEFT JOIN `tb_terceros` 
+                            ON (`nom_terceros`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
+                        INNER JOIN `nom_empleado` 
+                            ON (`nom_cuota_sindical`.`id_empleado` = `nom_empleado`.`id_empleado`)
+                    WHERE 
+                        `nom_liq_sindicato_aportes`.`id_nomina` = ?
+                        AND `nom_liq_sindicato_aportes`.`estado` = 1
+                        AND `nom_liq_sindicato_aportes`.`val_aporte` > 0
+                    ORDER BY 
+                        `nom_entidad` ASC, 
+                        `nombre_empleado` ASC";
+
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $id_nomina, PDO::PARAM_INT);
+            $stmt->execute();
+            $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            unset($stmt);
+
+            // Agrupar por entidad (sindicato)
+            $agrupado = [];
+            foreach ($datos as $dato) {
+                $nit = $dato['nit_entidad'];
+                if (!isset($agrupado[$nit])) {
+                    $agrupado[$nit] = [
+                        'nit_entidad' => $dato['nit_entidad'],
+                        'nom_entidad' => $dato['nom_entidad'],
+                        'empleados' => [],
+                        'total' => 0
+                    ];
+                }
+                $agrupado[$nit]['empleados'][] = [
+                    'no_documento' => $dato['no_documento'],
+                    'nombre_empleado' => $dato['nombre_empleado'],
+                    'valor' => $dato['valor']
+                ];
+                $agrupado[$nit]['total'] += $dato['valor'];
+            }
+
+            return array_values($agrupado);
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
 }

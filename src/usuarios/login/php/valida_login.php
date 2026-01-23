@@ -15,7 +15,7 @@ $vigencia = $user->getvigencia();
 $res['status'] = 'error';
 
 if (($obj != null) && $obj['login'] === $usuario && ($obj['clave'] === $clave)) {
-    if ($obj['estado'] == 1) {
+    if ($obj['estado'] == 1 && ($obj['fec_finalizacion'] == '' || $obj['fec_finalizacion'] >= date('Y-m-d'))) {
         $_SESSION['id_user'] = $obj['id_usuario'];
         $_SESSION['user'] = $obj['nombre'];
         $_SESSION['login'] = $obj['login'];
@@ -29,6 +29,8 @@ if (($obj != null) && $obj['login'] === $usuario && ($obj['clave'] === $clave)) 
         $res['status'] = 'ok';
     } else if ($obj['estado'] == 0) {
         $res['msg'] = 'Usuario inactivo, por favor comuníquese con el administrador del sistema.';
+    } else if ($obj['fec_finalizacion'] != '' && $obj['fec_finalizacion'] < date('Y-m-d')) {
+        $res['msg'] = 'Su acceso ha expirado, por favor comuníquese con el administrador del sistema.';
     }
 } else {
     $res['msg'] = 'Usuario o contraseña incorrectos.';

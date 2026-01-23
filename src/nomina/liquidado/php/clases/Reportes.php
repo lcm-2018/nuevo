@@ -108,4 +108,60 @@ class Reportes
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+
+    public function getFormulario($id_nomina)
+    {
+        $html =
+            <<<HTML
+                <div>
+                    <div class="shadow text-center rounded">
+                        <div class="rounded-top py-2" style="background-color: #16a085 !important;">
+                            <h5 style="color: white;" class="mb-0"><b>REPORTES DE NOMINA LIQUIDADA No. {$id_nomina}</b></h5>
+                        </div>
+                        <div class="p-3">
+                            <input type="hidden" id="id_nomina" name="id_nomina" value="{$id_nomina}">
+                            <table class="table table-sm table-striped table-bordered table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th class= "bg-sofia">ID</th>
+                                        <th class= "bg-sofia">REPORTE</th>
+                                        <th class= "bg-sofia">ACCION</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableReportesNomina">
+                                    <tr>
+                                        <td>1</td>
+                                        <td class="text-start">LIBRANZAS</td>
+                                        <td class="text-center">
+                                            <button data-id="1" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 reportes" title="Excel" text="E"><span class="fas fa-file-excel fa-sm"></span></button>
+                                            <button data-id="1" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 reportes" title="Imprimir" text="P"><span class="fas fa-print fa-sm"></span></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td class="text-start">EMBARGOS</td>
+                                        <td class="text-center">
+                                            <button data-id="2" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 reportes" title="Excel" text="E"><span class="fas fa-file-excel fa-sm"></span></button>
+                                            <button data-id="2" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 reportes" title="Imprimir" text="P"><span class="fas fa-print fa-sm"></span></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td class="text-start">SINDICATOS</td>
+                                        <td class="text-center">
+                                            <button data-id="3" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 reportes" title="Excel" text="E"><span class="fas fa-file-excel fa-sm"></span></button>
+                                            <button data-id="3" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 reportes" title="Imprimir" text="P"><span class="fas fa-print fa-sm"></span></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>   
+                        </div>
+                        <div class="text-end pb-3 px-3">
+                            <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
+                        </div>
+                    </div>
+                </div>
+            HTML;
+        return $html;
+    }
 }
