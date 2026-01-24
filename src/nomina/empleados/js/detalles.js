@@ -1285,7 +1285,7 @@ function CalcValorPorcentaje() {
     var total = Number(ValueInput('numTotLib'));
     var valMes = Number(ValueInput('numValMes'));
 
-    var porcentaje = (valMes * 100) / total;
+    var porcentaje = (valMes) / total;
     InputValue('numPorcentaje', porcentaje);
 }
 
@@ -1293,7 +1293,7 @@ function CalcValorMes() {
     var total = Number(ValueInput('numTotLib'));
     var porcentaje = Number(ValueInput('numPorcentaje'));
 
-    var valMes = (total * porcentaje) / 100;
+    var valMes = (total * porcentaje);
     InputValue('numValMes', valMes);
 }
 

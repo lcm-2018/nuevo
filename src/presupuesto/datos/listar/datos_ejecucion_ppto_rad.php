@@ -42,7 +42,7 @@ if ($anulados == 1 || !empty($search_value)) {
 $andwhere = " ";
 
 if (isset($_POST['id_manu']) && $_POST['id_manu']) {
-    $andwhere .= " AND pto_rad.id_manu LIKE '%" . $_POST['id_manu'] . "%'";
+    $andwhere .= $_POST['option'] == 0 ? " AND pto_rad.id_manu LIKE '%" . $_POST['id_manu'] . "%'" : " AND pto_rad.id_manu = '" . $_POST['id_manu'] . "'";
 }
 if (isset($_POST['fec_ini']) && $_POST['fec_ini'] && isset($_POST['fec_fin']) && $_POST['fec_fin']) {
     $andwhere .= " AND pto_rad.fecha BETWEEN '" . $_POST['fec_ini'] . "' AND '" . $_POST['fec_fin'] . "'";

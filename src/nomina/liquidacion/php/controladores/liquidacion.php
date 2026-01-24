@@ -15,11 +15,13 @@ use Src\Nomina\Empleados\Php\Clases\Empleados;
 use Src\Nomina\Liquidacion\Php\Clases\Liquidacion;
 use Src\Nomina\Empleados\Php\Clases\Primas;
 use Src\Nomina\Empleados\Php\Clases\Vacaciones;
+use Src\Nomina\Empleados\Php\Clases\Prestaciones_Sociales;
 
 $Liquidacion = new Liquidacion();
 $Cesantias = new Cesantias();
 $Primas = new Primas();
 $Vacaciones = new Vacaciones();
+$Prestaciones_Sociales = new Prestaciones_Sociales();
 
 $res['status'] = ' error';
 $res['msg'] = 'Acción no válida.';
@@ -31,6 +33,9 @@ switch ($action) {
         switch ($_POST['tipo']) {
             case 2:
                 $data = $Liquidacion->addRegistro($_POST);
+                break;
+            case 3:
+                $data = $Prestaciones_Sociales->addRegistro($_POST);
                 break;
             case 4:
                 $data = $Vacaciones->addRegistroNoVc($_POST);

@@ -211,11 +211,14 @@ class Embargos
     public function getRegistroPorEmpleado($inicia)
     {
         $sql = "SELECT
-                    `id_embargo`, `tipo_embargo`,`valor_mes`, `porcentaje`, `fec_inicio`, `fec_fin`
+                    `id_embargo`, `id_empleado`, `tipo_embargo`, `valor_mes`, `porcentaje`, `fec_inicio`, `fec_fin`
                 FROM `nom_embargos`
-                WHERE `estado` = 1 AND (`fec_fin` >= ? OR `fec_fin` IS NULL)";
+                WHERE `estado` = 1 
+                    AND `fec_inicio` <= ? 
+                    AND (`fec_fin` >= ? OR `fec_fin` IS NULL)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
+        $stmt->bindParam(2, $inicia, PDO::PARAM_STR);
         $stmt->execute();
         $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
@@ -266,7 +269,7 @@ class Embargos
                             <div class="row mb-2">
                                 <div class="col-md-6">
                                     <label for="numTotLib" class="small text-muted">Total</label>
-                                    <input type="number" class="form-control form-control-sm bg-input text-end" id="numTotLib" name="numTotLib" value="{$registro['valor_total']}" min="0" onblur="CalcDctoMax()" readonly disabled>
+                                    <input type="number" class="form-control form-control-sm bg-input text-end" id="numTotLib" name="numTotLib" value="{$registro['valor_total']}" min="0" onblur="CalcDctoMax()">
                                 </div>
                                 <div class="col-md-6">
                                     <label for="numDctoMax" class="small text-muted">Dcto. Máximo</label>
@@ -499,5 +502,75 @@ class Embargos
         $sql = "SELECT `id_tipo_emb`, `tipo` FROM `nom_tipo_embargo` ORDER BY `tipo` ASC";
         $combos = new Combos();
         return $combos->setConsulta($sql, $id);
+    }
+
+    /**
+     * Obtiene los embargos de una nómina agrupados por juzgado
+     *
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos de embargos agrupados por juzgado
+     */
+    public function getEmbargosPorNomina($id_nomina)
+    {
+        try {
+            $sql = "SELECT
+                        IFNULL(`tb_terceros`.`nit_tercero`, '') AS `nit_entidad`,
+                        IFNULL(`tb_terceros`.`nom_tercero`, '') AS `nom_entidad`,
+                        `nom_tipo_embargo`.`tipo` AS `tipo_embargo`,
+                        `nom_empleado`.`no_documento`,
+                        CONCAT_WS(' ', `nom_empleado`.`nombre1`, `nom_empleado`.`nombre2`, `nom_empleado`.`apellido1`, `nom_empleado`.`apellido2`) AS `nombre_empleado`,
+                        `nom_liq_embargo`.`val_mes_embargo` AS `valor`
+                    FROM
+                        `nom_liq_embargo`
+                        INNER JOIN `nom_embargos` 
+                            ON (`nom_liq_embargo`.`id_embargo` = `nom_embargos`.`id_embargo`)
+                        INNER JOIN `nom_terceros` 
+                            ON (`nom_embargos`.`id_juzgado` = `nom_terceros`.`id_tn`)
+                        LEFT JOIN `tb_terceros` 
+                            ON (`nom_terceros`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
+                        INNER JOIN `nom_tipo_embargo` 
+                            ON (`nom_embargos`.`tipo_embargo` = `nom_tipo_embargo`.`id_tipo_emb`)
+                        INNER JOIN `nom_empleado` 
+                            ON (`nom_embargos`.`id_empleado` = `nom_empleado`.`id_empleado`)
+                    WHERE 
+                        `nom_liq_embargo`.`id_nomina` = ?
+                        AND `nom_liq_embargo`.`estado` = 1
+                        AND `nom_liq_embargo`.`val_mes_embargo` > 0
+                    ORDER BY 
+                        `nom_entidad` ASC, 
+                        `nombre_empleado` ASC";
+
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $id_nomina, PDO::PARAM_INT);
+            $stmt->execute();
+            $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            unset($stmt);
+
+            // Agrupar por entidad (juzgado)
+            $agrupado = [];
+            foreach ($datos as $dato) {
+                $nit = $dato['nit_entidad'];
+                if (!isset($agrupado[$nit])) {
+                    $agrupado[$nit] = [
+                        'nit_entidad' => $dato['nit_entidad'],
+                        'nom_entidad' => $dato['nom_entidad'],
+                        'empleados' => [],
+                        'total' => 0
+                    ];
+                }
+                $agrupado[$nit]['empleados'][] = [
+                    'no_documento' => $dato['no_documento'],
+                    'nombre_empleado' => $dato['nombre_empleado'],
+                    'tipo_embargo' => $dato['tipo_embargo'],
+                    'valor' => $dato['valor']
+                ];
+                $agrupado[$nit]['total'] += $dato['valor'];
+            }
+
+            return array_values($agrupado);
+        } catch (PDOException $e) {
+            return [];
+        }
     }
 }

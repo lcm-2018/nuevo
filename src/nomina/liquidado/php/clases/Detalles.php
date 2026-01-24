@@ -73,7 +73,8 @@ class Detalles
                             `nom_liq_embargo`
                             INNER JOIN `nom_embargos` 
                             ON (`nom_liq_embargo`.`id_embargo` = `nom_embargos`.`id_embargo`)
-                        WHERE (`nom_liq_embargo`.`id_nomina` = :id_nomina AND `nom_liq_embargo`.`estado` = 1)),
+                        WHERE (`nom_liq_embargo`.`id_nomina` = :id_nomina AND `nom_liq_embargo`.`estado` = 1)
+                        GROUP BY `nom_embargos`.`id_empleado`),
                     `inc` AS
                         (SELECT
                             `nom_incapacidad`.`id_empleado`, SUM(`nom_liq_incap`.`pago_empresa`) AS `pago_empresa`, SUM(`nom_liq_incap`.`pago_empresa` + `nom_liq_incap`.`pago_eps` + `nom_liq_incap`.`pago_arl`) AS `valor`, SUM(`nom_liq_incap`.`dias_liq`) AS `dias`

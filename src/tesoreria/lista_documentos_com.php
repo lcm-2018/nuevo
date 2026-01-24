@@ -152,6 +152,7 @@ if ($tipo_doc != '0') {
                     <th class="bg-sofia">Fecha</th>
                     <th class="bg-sofia">CC/Nit</th>
                     <th class="bg-sofia">Tercero</th>
+                    <th class="bg-sofia">Referencia</th>
                     <th class="bg-sofia">Valor</th>
                     <th class="bg-sofia">Acciones</th>
                 </tr>
@@ -218,7 +219,12 @@ $content = <<<HTML
         <!-- Opciones de filtros -->
         <div class="row mb-2 py-3">
             <div class="col-md-1">
-                <input type="text" class="filtro form-control form-control-sm bg-input bg-input" id="txt_idmanu_filtro" placeholder="Id. Manu">
+                <div class="input-group">
+                    <div class="input-group-text">
+                        <input class="form-check-input mt-0" type="checkbox" value="" title="Marcar para filtrar por valor exacto" id="txt_bandera_filtro">
+                    </div>
+                    <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_idmanu_filtro" placeholder="Id. Manu">
+                </div>
             </div>
             <div class="col-md-3">
                 <div class="row mb-2">

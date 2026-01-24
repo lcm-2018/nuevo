@@ -85,3 +85,7 @@
 [2026-01-19 11:54:32] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: DELETE FROM acf_mantenimiento_detalle_nota WHERE id_det_nota=6;
 [2026-01-19 11:56:57] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: DELETE FROM acf_mantenimiento_detalle_nota WHERE id_det_nota=7;
 [2026-01-19 11:57:18] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: DELETE FROM acf_mantenimiento_detalle_nota WHERE id_det_nota=8;
+[2026-01-23 16:51:35] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 140;
+[2026-01-23 16:53:28] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 141;
+[2026-01-23 16:54:56] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 142;
+[2026-01-23 17:09:15] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 143;

@@ -193,10 +193,9 @@ class Otros_Descuentos
         $sql = "SELECT
                     `id_dcto`,`id_empleado`,`id_tipo_dcto`,`fecha_fin`,`concepto`,`valor`
                 FROM `nom_otros_descuentos`
-                WHERE `estado`  = 1 AND `fecha` BETWEEN ? AND ?";
+                WHERE `estado`  = 1 AND `fecha_fin` >= ?";
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bindParam(1, $i, PDO::PARAM_STR);
-        $stmt->bindParam(2, $f, PDO::PARAM_STR);
+        $stmt->bindParam(1, $f, PDO::PARAM_STR);
         $stmt->execute();
         $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();

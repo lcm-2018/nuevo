@@ -134,7 +134,12 @@ $content =
             </div>
             <div class="row">
                 <div class="mb-3 col-md-1">
-                    <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_idmanu_filtro" placeholder="Id. Manu">
+                    <div class="input-group">
+                        <div class="input-group-text">
+                            <input class="form-check-input mt-0" type="checkbox" value="" title="Marcar para filtrar por valor exacto" id="txt_bandera_filtro">
+                        </div>
+                        <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_idmanu_filtro" placeholder="Id. Manu">
+                    </div>
                 </div>
                 <div class="mb-3 col-md-3">
                     <div class="row">

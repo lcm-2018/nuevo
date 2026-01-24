@@ -26,6 +26,7 @@ try {
                 , `taux`.`id_rubro`
                 , `taux`.`rubro`
                 , `taux`.`nom_rubro`
+                , `taux`.`num_solicitud`
                 , IFNULL(`t1`.`valor`,0) AS `val_cdp`
                 , IFNULL(`t2`.`valor`,0) AS `val_crp`
                 , IFNULL(`t3`.`valor_liberado`,0) AS `val_cdp_liberado`
@@ -38,6 +39,7 @@ try {
                     , `pto_cdp_detalle`.`id_rubro`
                     , `pto_cargue`.`cod_pptal` AS `rubro`
                     , `pto_cargue`.`nom_rubro`
+                    , `pto_cdp`.`num_solicitud`
                 FROM
                     `pto_cdp_detalle`
                     INNER JOIN `pto_cdp` 
@@ -97,11 +99,12 @@ include_once '../../financiero/encabezado_empresa.php';
 
 ?>
 
-<table class="table-hover" style="width:100% !important; border-collapse: collapse;" border="1">
+<table class="table table-sm table-hover table-striped" style="width:100% !important; border-collapse: collapse;" border="1">
     <thead>
         <tr class="centrar">
             <th>CDP</th>
             <th>Fecha</th>
+            <th>Solicitud</th>
             <th>Objeto</th>
             <th>Rubro</th>
             <th>Nombre rubro</th>
@@ -123,6 +126,7 @@ include_once '../../financiero/encabezado_empresa.php';
                 echo "<tr>";
                 echo "<td>" . $rp['id_manu'] . "</td>";
                 echo "<td style='white-space: nowrap;'>" . $fecha . "</td>";
+                echo "<td class='text-end'>" . $rp['num_solicitud'] . "</td>";
                 echo "<td>" . $rp['objeto'] . "</td>";
                 echo "<td>" . $rp['rubro'] . "</td>";
                 echo "<td>" . $rp['nom_rubro'] . "</td>";

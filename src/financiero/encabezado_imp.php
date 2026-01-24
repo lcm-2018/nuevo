@@ -179,8 +179,8 @@ $elaboro_cargo = isset($cdp['cargo']) ? $cdp['cargo'] : '';
 $key_prepara = array_search('1', array_column($responsables, 'tipo_control'));
 $prepara_nombre = $key_prepara !== false ? $responsables[$key_prepara]['nom_tercero'] : '';
 $prepara_cargo = $key_prepara !== false ? $responsables[$key_prepara]['cargo'] : '';
-$elaboro_cargo =  $prepara_cargo != '' ? $prepara_cargo : $elaboro_cargo;
-$elaboro_nombre =  $prepara_cargo != '' ? $prepara_nombre : $elaboro_nombre;
+$elaboro_cargo =  $key_prepara !== false ? $prepara_cargo : $elaboro_cargo;
+$elaboro_nombre =  $key_prepara !== false ? $prepara_nombre : $elaboro_nombre;
 
 // Variables para la segunda columna (Revisó - tipo_control 2)
 $key_reviso = array_search('2', array_column($responsables, 'tipo_control'));

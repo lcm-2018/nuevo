@@ -10,8 +10,13 @@ class Conexion
     private static $instancia = null;
     private $conexion;
     private $bd_driver = "mysql";
+<<<<<<< HEAD
     private $bd_servidor = "localhost";
     private $bd_base = "bd_redsalud";
+=======
+    private $bd_servidor = "localhost:3308";
+    private $bd_base = "cronhis";
+>>>>>>> 2a24ed16363670fd4b318493ce628e1d91c26b2d
     private $bd_usuario = "root";
     private $bd_clave = "12345";
     private $charset = "charset=utf8";
