@@ -11,6 +11,8 @@ use PDOException;
 use Src\Common\Php\Clases\Combos;
 use DateTime;
 use Exception;
+use Src\Common\Php\Clases\Valores;
+use Src\Usuarios\Login\Php\Clases\Usuario;
 
 /**
  * Clase para gestionar nominas de los empleados.
@@ -287,6 +289,49 @@ class Nomina
         unset($stmt);
         return !empty($registro) ? $registro['total'] : 0;
     }
+
+    public function getFormulario($id)
+    {
+        $data = $this->getRegistro($id);
+        $html =
+            <<<HTML
+                <div>
+                    <div class="shadow text-center rounded">
+                        <div class="rounded-top py-2" style="background-color: #16a085 !important;">
+                            <h5 style="color: white;" class="mb-0"><b>MODIFICACIÓN DE NOMINA No. {$id}</b></h5>
+                        </div>
+                        <div class="p-3">
+                            <input type="hidden" id="id_nomina" name="id_nomina" value="{$id}">
+                            <div class="row">
+                                <div class="col-8">
+                                    <label for="tipo" class="form-label small">Tipo</label>
+                                    <input type="text" class="form-control form-control-sm bg-secondary-subtle" id="tipo" name="tipo" value="{$data['tipo_nomina']}" readonly>
+                                </div>
+                                <div class="col-2">
+                                    <label for="mes" class="form-label small">Mes</label>
+                                    <input type="text" class="form-control form-control-sm bg-secondary-subtle" id="mes" name="mes" value="{$data['mes']}" readonly>
+                                </div>
+                                <div class="col-2">
+                                    <label for="vigencia" class="form-label small">Vigencia</label>
+                                    <input type="text" class="form-control form-control-sm bg-secondary-subtle" id="vigencia" name="vigencia" value="{$data['vigencia']}" readonly>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <label for="descripcion" class="form-label small">Descripción</label>
+                                    <textarea type="text" class="form-control form-control-sm bg-input" id="descripcion" name="descripcion" rows="3">{$data['descripcion']}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end pb-3 px-3">
+                            <button type="button" class="btn btn-success btn-sm" id="btnGuardaNomina">Guardar</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            HTML;
+        return $html;
+    }
     /**
      * Elimina un registro.
      *
@@ -343,6 +388,10 @@ class Nomina
             if ($id > 0) {
                 $res['status'] = 'si';
                 $res['id'] = $id;
+                $mes = mb_strtoupper(Valores::nombreMes($mes));
+                $empresa = (new Usuario())->getEmpresa();
+                $descripcion = 'NOMINA N° ' . $id . ', ' . $mes . ' VIGENCIA ' . Sesion::Vigencia() . ', ADMINISTRATIVO-ASISTENCIAL, EMPLEADOS ADSCRITOS A ' . $empresa['nombre'];
+                (new self())->editRegistro(['id_nomina' => $id, 'descripcion' => $descripcion]);
             } else {
                 $res['msg'] = 'No se insertó el registro.';
             }
@@ -361,7 +410,20 @@ class Nomina
      */
     public function editRegistro($array)
     {
-        return 'No se ha definido la edición de registros.';
+        try {
+            $sql = "UPDATE `nom_nominas` SET `descripcion` = ? WHERE `id_nomina` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['descripcion'], PDO::PARAM_STR);
+            $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+
+            if ($stmt->execute() && $stmt->rowCount() > 0) {
+                return 'si';
+            } else {
+                return 'No se actualizó el registro.';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
     }
 
     public static function getRegistro($id)
@@ -378,10 +440,13 @@ class Nomina
                     , CONCAT_WS(' ', `sus`.`nombre1`, `sus`.`nombre2`, `sus`.`apellido1`, `sus`.`apellido2`) AS `elabora`
                     , `sus`.`descripcion` AS `cargo`
                     , `nn`.`tipo`
+                    , `ntl`.`descripcion` AS `tipo_nomina`
                 FROM
                     `nom_nominas` AS `nn`
                     LEFT JOIN `seg_usuarios_sistema` AS `sus` 
                         ON (`nn`.`id_user_reg` = `sus`.`id_usuario`)
+                    LEFT JOIN `nom_tipo_liquidacion` AS `ntl` 
+                        ON (`nn`.`tipo` = `ntl`.`codigo`)
                 WHERE (`nn`.`id_nomina` = ?)";
         $stmt = Conexion::getConexion()->prepare($sql);
         $stmt->bindParam(1, $id, PDO::PARAM_INT);

@@ -181,14 +181,10 @@ $body .= "<tr style='background-color: #f0f0f0; font-weight: bold;'>
     <td style='text-align: right; font-size: 7px;'>" . number_format($totales['deducciones'], 0, ',', '.') . "</td>
     <td style='text-align: right; font-size: 7px;'>" . number_format($totales['neto'], 0, ',', '.') . "</td>
 </tr>";
-$objeto = "<p style='text-align: justify; font-size: 10px; margin-bottom: 10px;'><strong>OBJETO:</strong> PAGO NÓMINA N° {$id_nomina}, {$mes} VIGENCIA {$nomina['vigencia']}, ADMINISTRATIVO-ASISTENCIAL, {$count} EMPLEADOS ADSCRITOS A {$empresa['nombre']}.</p>";
 $html =
     <<<HTML
-    {$objeto}
+    <b>OBJETO:</b> {$nomina['descripcion']}
     <table border='1' cellpadding='2' cellspacing='0' style='width: 100%; border-collapse: collapse; font-size: 7px;'>
-        <tr>
-            <th colspan='39' style='text-align: center; font-size: 9px; padding: 5px;'>{$nomina['descripcion']} N° {$id_nomina} - MES DE {$mes} VIGENCIA {$nomina['vigencia']} - {$count} EMPLEADOS</th>
-        </tr>
         <tr>
             <th rowspan='2' style='text-align: center; font-size: 6px;'>ID</th>
             <th rowspan='2' style='text-align: center; font-size: 6px;'>NOMBRE</th>

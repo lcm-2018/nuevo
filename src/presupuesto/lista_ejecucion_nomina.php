@@ -133,7 +133,7 @@ $meses = [
                         $mesu = $ce['mes'] == '' ? '00' : $ce['mes'];
                     ?> <tr>
                             <td class="text-start"><?= $ce['id_nomina'] ?></td>
-                            <td class="text-start"><?= $ce['descripcion'] . ' - ' . $meses[$mesu] . ' DE ' . $ce['vigencia'] . $patronal ?></td>
+                            <td class="text-start text-wrap"><?= $ce['descripcion'] . $patronal ?></td>
                             <td class="text-end">$ <?= number_format($total, 2, ',', '.') ?></td>
                             <td class="text-center p-0"><input type="date" class="form-control form-control-sm bg-input border-0" name="fec_doc[]" value="<?= date('Y-m-d') ?>"></td>
                             <td class="text-center"> <?= $editar ?></td>

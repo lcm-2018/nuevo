@@ -14,7 +14,7 @@ const tablenNominasEmpleados = crearDataTable(
         pageLength: -1,
         order: [[0, 'desc']],
         columnDefs: [
-            { targets: [2], className: 'text-nowrap' },
+            { targets: [1, 2], className: 'text-wrap' },
             { "orderable": false, "targets": [0, 5] },
             { targets: [4], className: 'p-1' },
         ],
@@ -50,6 +50,7 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
     const btnImprimir = event.target.closest('.imprimir');
     const btnDescargarPdf = event.target.closest('.descargar-pdf');
     const btnReportes = event.target.closest('.reportes');
+    const btnEditar = event.target.closest('.editar');
 
     if (btnDetalles) {
         event.preventDefault();
@@ -99,11 +100,18 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
         mostrarOverlay();
         VerFormulario('../php/controladores/reportes.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
     }
+    if (btnEditar) {
+        event.preventDefault();
+        const id = btnEditar.dataset.id;
+        mostrarOverlay();
+        VerFormulario('../../liquidacion/php/controladores/liquidacion.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+    }
 });
 
 //evento click en el modal
 document.querySelector('#modalForms').addEventListener('click', function (event) {
     const btnReportes = event.target.closest('.reportes');
+    const btnGuardarNomina = event.target.closest('#btnGuardaNomina');
     if (btnReportes) {
         event.preventDefault();
         const id_nomina = document.getElementById('id_nomina').value; // Obtener id_nomina del input hidden
@@ -128,5 +136,25 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
         }
 
         ImprimirReporte('../php/reportes/' + archivo + '.php', { id: id_nomina, tipo: text });
+    }
+
+    if (btnGuardarNomina) {
+        event.preventDefault();
+        var data = new FormData();
+        data.append('id_nomina', ValueInput('id_nomina'));
+        data.append('descripcion', ValueInput('descripcion'));
+        data.append('action', 'edit2');
+        mostrarOverlay();
+        SendPost('../../liquidacion/php/controladores/liquidacion.php', data).then((response) => {
+            if (response.status === 'ok') {
+                mje('Guardado correctamente!');
+                tablenNominasEmpleados.ajax.reload(null, false);
+                $('#modalForms').modal('hide');
+            } else {
+                mjeAlert('', '', response.msg);
+            }
+        }).finally(() => {
+            ocultarOverlay();
+        });
     }
 });

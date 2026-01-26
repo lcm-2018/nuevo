@@ -136,7 +136,7 @@ $meses = array(
 );
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha = $data[3];
-$objeto = $nomina['descripcion'] . ' DE EMPLEADO(S), NÓMINA No. ' . $id_nomina . ' VIGENCIA ' . $vigencia;
+$objeto = $nomina['descripcion'];
 $iduser = $_SESSION['id_user'];
 $fecha2 = $date->format('Y-m-d H:i:s');
 

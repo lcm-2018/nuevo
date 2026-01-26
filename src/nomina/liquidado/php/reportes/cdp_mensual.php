@@ -109,7 +109,7 @@ $html =
     <table border='1' cellpadding='3' cellspacing='1' style='width: 100%; border-collapse: collapse; border: none !important;'>
         <tr>
             <th style='text-align: left; aling-middle: center; border: none !important;'>OBJETO:</th>
-            <th colspan='2' style='text-align: justify; border: none !important;'>{$nomina['descripcion']} N° {$id_nomina} MES DE {$mes} VIGENCIA {$nomina['vigencia']}, ADMINISTRATIVO - ASISTENCIAL, {$count} EMPLEADOS ADSCRITOS A {$empresa['nombre']}.</th>
+            <th colspan='2' style='text-align: justify; border: none !important;'>{$nomina['descripcion']}</th>
         </tr>
         <tr>
             <th style='text-align: center;'>CÓDIGO </th>

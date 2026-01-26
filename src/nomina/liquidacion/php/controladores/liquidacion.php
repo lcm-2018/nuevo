@@ -16,18 +16,21 @@ use Src\Nomina\Liquidacion\Php\Clases\Liquidacion;
 use Src\Nomina\Empleados\Php\Clases\Primas;
 use Src\Nomina\Empleados\Php\Clases\Vacaciones;
 use Src\Nomina\Empleados\Php\Clases\Prestaciones_Sociales;
+use Src\Nomina\Liquidacion\Php\Clases\Nomina;
 
 $Liquidacion = new Liquidacion();
 $Cesantias = new Cesantias();
 $Primas = new Primas();
 $Vacaciones = new Vacaciones();
 $Prestaciones_Sociales = new Prestaciones_Sociales();
+$Nomina = new Nomina();
 
 $res['status'] = ' error';
 $res['msg'] = 'Acción no válida.';
 switch ($action) {
     case 'form':
-        $res['msg'] = 'Sin formulario definido.';
+        $res['status'] = 'ok';
+        $res['msg'] = $Nomina->getFormulario($id);
         break;
     case 'add':
         switch ($_POST['tipo']) {
@@ -57,6 +60,14 @@ switch ($action) {
         break;
     case 'edit':
         $data = $Liquidacion->editRegistro($_POST);
+        if ($data == 'si') {
+            $res['status'] = 'ok';
+        } else {
+            $res['msg'] = $data;
+        }
+        break;
+    case 'edit2':
+        $data = $Nomina->editRegistro($_POST);
         if ($data == 'si') {
             $res['status'] = 'ok';
         } else {

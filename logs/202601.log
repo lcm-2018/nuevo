@@ -89,3 +89,4 @@
 [2026-01-23 16:53:28] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 141;
 [2026-01-23 16:54:56] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 142;
 [2026-01-23 17:09:15] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 143;
+[2026-01-26 09:49:54] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 145;

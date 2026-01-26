@@ -310,7 +310,7 @@ $terceros_map = [
 ];
 
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
-$objeto = "PAGO NOMINA PATRONAL " . $nomina['descripcion'] . " N° " . $id_nomina . ' ' . $nom_mes . " VIGENCIA " . $nomina['vigencia'];
+$objeto = $nomina['descripcion'] . ' (PATRONAL).';
 $iduser = $_SESSION['id_user'];
 $fecha2 = $date->format('Y-m-d H:i:s');
 $cnom = 5;

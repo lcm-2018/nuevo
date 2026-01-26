@@ -99,7 +99,7 @@ $terceros = array_column($terceros, 'id', 'cedula');
 $id_pto = $pto['id_pto'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha = $date->format('Y-m-d');
-$objeto = $nomina['descripcion'] . ' DE EMPLEADO(S), NÓMINA No. ' . $idNomina . ' VIGENCIA ' . $vigencia;
+$objeto = $nomina['descripcion'];
 $iduser = $_SESSION['id_user'];
 $fecha2 = $date->format('Y-m-d H:i:s');
 //CDP
