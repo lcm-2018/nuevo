@@ -322,14 +322,30 @@ function mje(titulo, html, timer = 2000) {
     });
 }
 
+/*
 function mjeError(titulo, texto, html, timer = 2000) {
     Swal.fire({
         title: titulo,
         text: texto,
+        html: html,
         icon: "error",
         showConfirmButton: true,
         timer: timer,
+        
+    });
+}
+*/
+
+function mjeError(titulo, texto, html, timer = 2000) {
+    Swal.fire({
+        title: titulo,
+        text: texto,
         html: html,
+        icon: "error",
+        showConfirmButton: true,
+        timer: timer > 0 ? timer : null,
+        allowOutsideClick: timer > 0,
+        allowEscapeKey: timer > 0
     });
 }
 
