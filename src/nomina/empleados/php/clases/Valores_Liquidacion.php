@@ -130,22 +130,22 @@ class Valores_Liquidacion
         $stmt->closeCursor();
         unset($stmt);
         return !empty($valores) ? $valores : [
-            'id_empleado'   => 0,
+            'id_empleado'   => $id_empleado,
             'smmlv'         => 0,
-            'aux_trans'     => '',
-            'aux_alim'      => '',
-            'uvt'           => '',
-            'base_bsp'      => '',
-            'base_alim'     => '',
-            'min_vital'     => '',
-            'salario'       => '',
+            'aux_trans'     => 0,
+            'aux_alim'      => 0,
+            'uvt'           => 0,
+            'base_bsp'      => 0,
+            'base_alim'     => 0,
+            'min_vital'     => 0,
+            'salario'       => 0,
             'tiene_grep'    => 0,
-            'grep'          => '',
-            'prom_horas'    => '',
-            'bsp_ant'       => '',
-            'pri_ser_ant'   => '',
-            'pri_vac_ant'   => '',
-            'pri_nav_ant'   => '',
+            'grep'          => 0,
+            'prom_horas'    => 0,
+            'bsp_ant'       => 0,
+            'pri_ser_ant'   => 0,
+            'pri_vac_ant'   => 0,
+            'pri_nav_ant'   => 0,
             'id_nomina'     => 0
         ];
     }

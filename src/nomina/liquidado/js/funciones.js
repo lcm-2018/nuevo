@@ -12,6 +12,7 @@ const tablenNominasEmpleados = crearDataTable(
     [],
     {
         pageLength: -1,
+        scrollX: false,
         order: [[0, 'desc']],
         columnDefs: [
             { targets: [1, 2], className: 'text-wrap' },

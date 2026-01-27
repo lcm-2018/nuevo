@@ -50,7 +50,7 @@ class Novedades
      * @param array $array Datos del registro a agregar
      * @return string Mensaje de éxito o error
      */
-    public function addRegistro($array)
+    public function addRegistro($array, $op = true)
     {
         try {
             $fecha_inicio = new DateTime($array['datFecInicia']);
@@ -67,8 +67,10 @@ class Novedades
             $stmt->bindValue(6, Sesion::Hoy(), PDO::PARAM_STR);
             while ($fecha_inicio <= $fecha_fin) {
                 // Verificar si ya existe un cruce de fechas
-                if (($this->getCruceFechas($array['id_empleado'], $fecha_inicio->format('Y-m-d'))) == 1 && $array['tipo'] != 6) {
-                    return 'Existe cruce de fecha: ' . $fecha_inicio->format('Y-m-d');
+                if ($op) {
+                    if (($this->getCruceFechas($array['id_empleado'], $fecha_inicio->format('Y-m-d'))) == 1 && $array['tipo'] != 6) {
+                        return 'Existe cruce de fecha: ' . $fecha_inicio->format('Y-m-d');
+                    }
                 }
                 $stmt->bindValue(4, $fecha_inicio->format('Y-m-d'), PDO::PARAM_STR);
                 $stmt->execute();

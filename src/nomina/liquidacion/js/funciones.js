@@ -77,7 +77,9 @@ const tableLiqMesEmpleados = crearDataTable(
                     SendPost('../php/controladores/liquidacion.php', data).then((response) => {
                         if (response.status === 'ok') {
                             mje('Guardado correctamente!');
-                            tableLiqMesEmpleados.ajax.reload(null, false);
+                            setTimeout(function () {
+                                tableLiqMesEmpleados.ajax.url(getUrlListado()).load(null, false);
+                            }, 500);
                             $('#modalForms').modal('hide');
                         } else {
                             mjeAlert('', '', response.msg);

@@ -25,7 +25,7 @@ $Vacaciones = new Vacaciones();
 $Prestaciones_Sociales = new Prestaciones_Sociales();
 $Nomina = new Nomina();
 
-$res['status'] = ' error';
+$res['status'] = 'error';
 $res['msg'] = 'Acción no válida.';
 switch ($action) {
     case 'form':
