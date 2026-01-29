@@ -110,7 +110,7 @@ switch ($action) {
                             'mes'             => $_POST['mes'],
                         ];
                         $rstd = $Liquidacion->addRegistro($array, 1);
-                        if ($rstd == 'Liquidación realizada con éxito.') {
+                        if ($rstd == 'si') {
                             $suma++;
                         } else {
                             $conexion->rollBack();
@@ -125,6 +125,7 @@ switch ($action) {
                 $val_liq        = (new Valores_Liquidacion($conexion))->editRegistroLiq($_POST);
                 if ($val_liq == 'si') {
                     $suma++;
+                    $valida = true; // Activar re-liquidación
                     //echo 'Actualizado valores de liquidación.';
                 } else if ($val_liq != 'no') {
                     $conexion->rollBack();
@@ -152,6 +153,7 @@ switch ($action) {
                     }
                     if ($Servicio == 'si') {
                         $suma++;
+                        $valida = true; // Activar re-liquidación
                         //echo 'Actualizado prima de servicio.';
                     } else if ($Servicio != 'no') {
                         $conexion->rollBack();
@@ -178,6 +180,7 @@ switch ($action) {
                     }
                     if ($Navidad == 'si') {
                         $suma++;
+                        $valida = true; // Activar re-liquidación
                         //echo 'Actualizado prima de navidad.';
                     } else if ($Navidad != 'no') {
                         $conexion->rollBack();
@@ -205,6 +208,7 @@ switch ($action) {
                     }
                     if ($ces == 'si') {
                         $suma++;
+                        $valida = true; // Activar re-liquidación
                         //echo 'Actualizado cesantías.';
                     } else if ($ces != 'no') {
                         $conexion->rollBack();
@@ -299,7 +303,7 @@ switch ($action) {
                             'mes'             => $_POST['mes'],
                         ];
                         $rstd = $Liquidacion->addRegistro($array, 1);
-                        if ($rstd == 'Liquidación realizada con éxito.') {
+                        if ($rstd == 'si') {
                             $suma++;
                             //echo 'Recalculada liquidación.';
                         } else {

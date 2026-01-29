@@ -46,43 +46,91 @@ $content = <<<HTML
                     </button>
                 </h2>
                 <div id="divParamsLiq" class="accordion-collapse collapse show">
-                    <div class="accordion-body bg-wiev">
-                        <div class=" px-3 shadow rounded">
-                            <div class="card-body">
-                                <div class="row mb-0 border border-bottom-0 rounded-top">
-                                    <div class="col-md-3 border-end">
-                                        <span class="text-muted small">IDENTIFICACIÓN</span><br>
-                                        <span class="fw-bold">{$obj['no_documento']}</span>
-                                    </div>
-                                    <div class="col-md-5 border-end">
-                                        <span class="text-muted small">NOMBRE COMPLETO</span><br>
-                                        <span class="fw-bold">{$obj['nombre']}</span>
-                                    </div>
-                                    <div class="col-md-2 border-end">
-                                        <span class="text-muted small">DEPARTAMENTO</span><br>
-                                        <span class="fw-bold">{$obj['nom_departamento']}</span>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <span class="text-muted small">MUNICIPIO</span><br>
-                                        <span class="fw-bold">{$obj['nom_municipio']}</span>
+                    <div class="accordion-body bg-body-tertiary">
+                        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                            <div class="card-body p-0">
+                                <!-- Header con avatar e info principal -->
+                                <div class="bg-success bg-gradient text-white p-2">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center shadow" style="width: 80px; height: 80px; font-size: 2rem; font-weight: 700;">
+                                                {$obj['nombre'][0]}
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <h4 class="mb-1 fw-bold">{$obj['nombre']}</h4>
+                                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                                <span class="badge bg-light text-primary rounded-pill px-3 py-2">
+                                                    <i class="fas fa-id-card me-1"></i>{$obj['no_documento']}
+                                                </span>
+                                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                                    <i class="fas fa-briefcase me-1"></i>{$cargo}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="row mb-0 border rounded-bottom">
-                                    <div class="col-md-3 border-end">
-                                        <span class="text-muted small">DIRECCIÓN</span><br>
-                                        <span class="fw-bold">{$obj['direccion']}</span>
-                                    </div>
-                                    <div class="col-md-4 border-end">
-                                        <span class="text-muted small">CORREO</span><br>
-                                        <span class="fw-bold">{$obj['correo']}</span>
-                                    </div>
-                                    <div class="col-md-2 border-end">
-                                        <span class="text-muted small">CONTACTO</span><br>
-                                        <span class="fw-bold">{$obj['telefono']}</span>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <span class="text-muted small">CARGO ACTUAL</span><br>
-                                        <span class="fw-bold">{$cargo}</span>
+                                <!-- Info detallada -->
+                                <div class="p-4">
+                                    <div class="row g-4">
+                                        <!-- Ubicación -->
+                                        <div class="col-md-6">
+                                            <div class="card h-100 border-0 bg-light rounded-3">
+                                                <div class="card-body">
+                                                    <h6 class="text-uppercase text-muted small mb-3">
+                                                        <i class="fas fa-map-marker-alt text-danger me-2"></i>Ubicación
+                                                    </h6>
+                                                    <div class="row g-3">
+                                                        <div class="col-6">
+                                                            <span class="text-muted small d-block">Departamento</span>
+                                                            <span class="fw-semibold">{$obj['nom_departamento']}</span>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <span class="text-muted small d-block">Municipio</span>
+                                                            <span class="fw-semibold">{$obj['nom_municipio']}</span>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <span class="text-muted small d-block">Dirección</span>
+                                                            <span class="fw-semibold">{$obj['direccion']}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Contacto -->
+                                        <div class="col-md-6">
+                                            <div class="card h-100 border-0 bg-light rounded-3">
+                                                <div class="card-body">
+                                                    <h6 class="text-uppercase text-muted small mb-3">
+                                                        <i class="fas fa-address-book text-info me-2"></i>Contacto
+                                                    </h6>
+                                                    <div class="row g-3">
+                                                        <div class="col-12">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                                    <i class="fas fa-envelope"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <span class="text-muted small d-block">Correo electrónico</span>
+                                                                    <span class="fw-semibold">{$obj['correo']}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                                    <i class="fas fa-phone"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <span class="text-muted small d-block">Teléfono</span>
+                                                                    <span class="fw-semibold">{$obj['telefono']}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

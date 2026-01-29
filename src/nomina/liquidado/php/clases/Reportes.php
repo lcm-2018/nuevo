@@ -113,6 +113,9 @@ class Reportes
     public function getFormulario($id_nomina)
     {
         $conceptos = Combos::getConceptosNom(0);
+        $buscar = '<option value="17" >EMBARGO</option>';
+        $reemplazar = '<option value="90" >CONSOLIDADO</option>' . $buscar;
+        $conceptos = str_replace($buscar, $reemplazar, $conceptos);
         $html =
             <<<HTML
                 <div>
