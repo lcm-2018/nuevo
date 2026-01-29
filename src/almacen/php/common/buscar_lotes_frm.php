@@ -9,8 +9,8 @@ include '../common/cargar_combos.php';
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
+$proceso = isset($_POST['proceso']) && $_POST['proceso'] ? $_POST['proceso'] : '';
 $id_subgrupo = isset($_POST['id_subgrupo']) ? $_POST['id_subgrupo'] : 0;
-
 $id_sede = isset($_POST['id_sede']) ? $_POST['id_sede'] : -1;
 $id_bodega = isset($_POST['id_bodega']) && $_POST['id_bodega'] ? $_POST['id_bodega'] : -1;
 $tipo = isset($_POST['tipo']) ? $_POST['tipo']  : '';
@@ -31,6 +31,7 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
 
             <!--Formulario de busqueda de lotes-->
             <form id="frm_buscar_lotes">
+                <input type="hidden" id="proceso_fil" value="<?php echo $proceso ?>">
                 <input type="hidden" id="id_sede_fil" value="<?php echo $id_sede ?>">
                 <input type="hidden" id="id_bodega_fil" value="<?php echo $id_bodega ?>">
                 <div class="row mb-2">
@@ -111,6 +112,7 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
                     type: 'POST',
                     dataType: 'json',
                     data: function(data) {
+                        data.proceso = $('#proceso_fil').val();
                         data.id_sede = $('#id_sede_fil').val();
                         data.id_bodega = $('#id_bodega_fil').val();
                         data.id_subgrupo = $('#sl_subgrupo_art_fil').val();

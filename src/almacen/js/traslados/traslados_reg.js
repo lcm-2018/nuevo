@@ -22,6 +22,7 @@
                         mjeError('Debe seleccionar un Número de Orden de Ingreso');
                     } else {
                         $.post("../common/buscar_lotes_frm.php", {
+                            proceso: 'mtras',
                             id_sede: $('#sl_sede_origen').val(),
                             id_bodega: $('#sl_bodega_origen').val(),
                             id_subgrupo: sessionStorage.getItem("id_subgrupo")

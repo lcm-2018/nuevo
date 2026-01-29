@@ -1,6 +1,6 @@
 <?php
 
-use Src\Common\Php\Clases\Logs;
+use Config\Clases\Logs;
 use Src\Common\Php\Clases\Permisos;
 
 if (isset($_POST['tipo'])) {

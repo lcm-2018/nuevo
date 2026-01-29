@@ -42,7 +42,7 @@ $content = <<<HTML
 <div class="card w-100">
     <div class="card-header bg-sofia text-white">
         <a class="btn btn-sm me-1 p-0" title="Regresar" href="{$host}/src/inicio.php"><i class="fas fa-arrow-left fa-lg"></i></a>
-        <b>ORDENES DE TRASLADO SPSR</b>
+        <b>ORDENES DE TRASLADO EGRESO SPSR</b>
     </div>
     <div class="card-body p-2 bg-wiev">
         <input type="hidden" id="peReg" value="{$peReg}">

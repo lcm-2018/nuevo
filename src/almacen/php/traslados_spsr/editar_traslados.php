@@ -100,102 +100,129 @@ try {
                     if ($generar_traslado == 1) {
 
                         $id_pedido = $_POST['txt_id_pedido'];
-                        $sql = "SELECT far_pedido_detalle.id_ped_detalle,far_pedido_detalle.id_medicamento,
-                                        far_pedido_detalle.cantidad-IFNULL(TRASLADO.cantidad,0) AS cantidad,
-                                        far_medicamentos.val_promedio,
-                                        far_medicamentos.cod_medicamento,far_medicamentos.nom_medicamento	
-                                    FROM far_pedido_detalle 
-                                    INNER JOIN far_medicamentos ON (far_medicamentos.id_med = far_pedido_detalle.id_medicamento) 
-                                    LEFT JOIN (SELECT TRD.id_ped_detalle,SUM(TRD.cantidad) AS cantidad     
-                                            FROM far_traslado_r_detalle AS TRD
-                                            INNER JOIN far_traslado_r AS TR ON (TR.id_traslado=TRD.id_traslado)
-                                            WHERE TR.estado<>0 AND TRD.id_ped_detalle IS NOT NULL
-                                            GROUP BY TRD.id_ped_detalle
-                                        ) AS TRASLADO ON (TRASLADO.id_ped_detalle=far_pedido_detalle.id_ped_detalle) 
-                                    WHERE far_pedido_detalle.cantidad>IFNULL(TRASLADO.cantidad,0) AND far_pedido_detalle.id_pedido=" . $id_pedido;
-                        $rs = $cmd->query($sql);
-                        $objs = $rs->fetchAll();
-                        $rs->closeCursor();
-                        unset($rs);
 
-                        $fec_actual = date('Y-m-d');
-                        $sql = "SELECT id_lote,existencia 
-                                FROM far_medicamento_lote 
-                                WHERE id_med=:id_med AND existencia>=0 AND id_bodega=$id_bodega_origen AND estado=1 AND fec_vencimiento>='$fec_actual' 
-                                ORDER BY fec_vencimiento,existencia";
-                        $rs1 = $cmd->prepare($sql);
+                        $sql = "SELECT GROUP_CONCAT(CONCAT(FM.cod_medicamento,'-',FM.nom_medicamento)) AS articulos,COUNT(*) AS cant_articulos
+                                FROM far_pedido_detalle AS PD                                                                
+                                INNER JOIN far_medicamentos AS FM ON (FM.id_med = PD.id_medicamento) 
+                                WHERE FM.es_clinico<>1 AND PD.id_pedido=" . $id_pedido;
+                        $rs0 = $cmd->query($sql);
+                        $obj0 = $rs0->fetch();
+                        
+                        if ($obj0['cant_articulos'] == 0) {
+                        
+                            $sql = "SELECT far_pedido_detalle.id_ped_detalle,far_pedido_detalle.id_medicamento,
+                                            far_pedido_detalle.cantidad-IFNULL(TRASLADO.cantidad,0) AS cantidad,
+                                            far_medicamentos.val_promedio,
+                                            far_medicamentos.cod_medicamento,far_medicamentos.nom_medicamento	
+                                        FROM far_pedido_detalle 
+                                        INNER JOIN far_medicamentos ON (far_medicamentos.id_med = far_pedido_detalle.id_medicamento) 
+                                        LEFT JOIN (SELECT TRD.id_ped_detalle,SUM(TRD.cantidad) AS cantidad     
+                                                FROM far_traslado_r_detalle AS TRD
+                                                INNER JOIN far_traslado_r AS TR ON (TR.id_traslado=TRD.id_traslado)
+                                                WHERE TR.estado<>0 AND TRD.id_ped_detalle IS NOT NULL
+                                                GROUP BY TRD.id_ped_detalle
+                                            ) AS TRASLADO ON (TRASLADO.id_ped_detalle=far_pedido_detalle.id_ped_detalle) 
+                                        WHERE far_pedido_detalle.cantidad>IFNULL(TRASLADO.cantidad,0) AND far_pedido_detalle.id_pedido=" . $id_pedido;
+                            $rs = $cmd->query($sql);
+                            $objs = $rs->fetchAll();
+                            $rs->closeCursor();
+                            unset($rs);
 
-                        $lotes = array();
-                        foreach ($objs as $obj) {
-                            $rs1->bindParam(':id_med', $obj['id_medicamento']);
-                            $rs1->execute();
-                            $obj_lotes = $rs1->fetchAll();
-                            $cantidad = $obj['cantidad'];
-                            $val_promedio = $obj['val_promedio'];
-                            $id_detalle = $obj['id_ped_detalle'];
+                            $fec_actual = date('Y-m-d');
+                            $sql = "SELECT id_lote,existencia 
+                                    FROM far_medicamento_lote 
+                                    WHERE id_med=:id_med AND existencia>=0 AND id_bodega=$id_bodega_origen AND estado=1 AND fec_vencimiento>='$fec_actual' 
+                                    ORDER BY fec_vencimiento,existencia";
+                            $rs1 = $cmd->prepare($sql);
 
-                            if (count($obj_lotes) >= 1) {
-                                $i = 0;
-                                while ($cantidad >= 1) {
-                                    if (!isset($obj_lotes[$i])) {
-                                        break;
+                            $lotes = array();
+                            foreach ($objs as $obj) {
+                                $rs1->bindParam(':id_med', $obj['id_medicamento']);
+                                $rs1->execute();
+                                $obj_lotes = $rs1->fetchAll();
+                                $cantidad = $obj['cantidad'];
+                                $val_promedio = $obj['val_promedio'];
+                                $id_detalle = $obj['id_ped_detalle'];
+
+                                if (count($obj_lotes) >= 1) {
+                                    $i = 0;
+                                    while ($cantidad >= 1) {
+                                        if (!isset($obj_lotes[$i])) {
+                                            break;
+                                        }
+                                        $id_lote = $obj_lotes[$i]['id_lote'];
+                                        $cantidad_lote = $obj_lotes[$i]['existencia'];
+
+                                        $q = 0;
+                                        if ($cantidad_lote >= $cantidad) {
+                                            $q = $cantidad;
+                                            $cantidad = 0;
+                                        } else {
+                                            $q = $cantidad_lote;
+                                            $cantidad = $cantidad - $cantidad_lote;
+                                        }
+                                        $lotes[] = array('id_lote' => $id_lote, 'cantidad' => (int) $q, 'val_promedio' => $val_promedio, 'id_detalle' => $id_detalle);
+                                        $i++;
                                     }
-                                    $id_lote = $obj_lotes[$i]['id_lote'];
-                                    $cantidad_lote = $obj_lotes[$i]['existencia'];
 
-                                    $q = 0;
-                                    if ($cantidad_lote >= $cantidad) {
-                                        $q = $cantidad;
-                                        $cantidad = 0;
-                                    } else {
-                                        $q = $cantidad_lote;
-                                        $cantidad = $cantidad - $cantidad_lote;
+                                    if ($cantidad >= 1) {/* Completar la cantidad cuando ya no hay mas lotes en el ultimo lote encontrado */
+                                        $index = count($lotes) - 1;
+                                        $id_lote = $lotes[$index]['id_lote'];
+                                        $q = $lotes[$index]['cantidad'] + $cantidad;
+                                        $lotes[$index] = array('id_lote' => $id_lote, 'cantidad' => (int) $q, 'val_promedio' => $val_promedio, 'id_detalle' => $id_detalle);
                                     }
-                                    $lotes[] = array('id_lote' => $id_lote, 'cantidad' => (int) $q, 'val_promedio' => $val_promedio, 'id_detalle' => $id_detalle);
-                                    $i++;
-                                }
-
-                                if ($cantidad >= 1) {/* Completar la cantidad cuando ya no hay mas lotes en el ultimo lote encontrado */
-                                    $index = count($lotes) - 1;
-                                    $id_lote = $lotes[$index]['id_lote'];
-                                    $q = $lotes[$index]['cantidad'] + $cantidad;
-                                    $lotes[$index] = array('id_lote' => $id_lote, 'cantidad' => (int) $q, 'val_promedio' => $val_promedio, 'id_detalle' => $id_detalle);
-                                }
-                            } else {
-                                if ($res['mensaje'] == 'ok') {
-                                    $res['mensaje'] = 'Los Artículos no tienen lotes disponibles para generar el traslado: ' . $obj['cod_medicamento'] . '-' . $obj['nom_medicamento'];
                                 } else {
-                                    $res['mensaje'] .= ', ' . $obj['cod_medicamento'] . '-' . $obj['nom_medicamento'];
+                                    if ($res['mensaje'] == 'ok') {
+                                        $res['mensaje'] = 'Los Artículos no tienen lotes disponibles para generar el traslado: ' . $obj['cod_medicamento'] . '-' . $obj['nom_medicamento'];
+                                    } else {
+                                        $res['mensaje'] .= ', ' . $obj['cod_medicamento'] . '-' . $obj['nom_medicamento'];
+                                    }
                                 }
-                            }
-                        }
+                            }                           
 
-                        if ($res['mensaje'] == 'ok') {
-                            $sql = "INSERT INTO far_traslado_r_detalle(id_traslado,id_lote_origen,cantidad,valor,id_ped_detalle) 
-                                    VALUES (:id_traslado,:id_loteorigen,:cantidad,:val_promedio,:id_detalle)";
-                            $rs2 = $cmd->prepare($sql);
-                            foreach ($lotes as $lt) {
-                                if ($lt['cantidad'] > 0) {
-                                    $rs2->bindParam(':id_traslado', $id_traslado);
-                                    $rs2->bindParam(':id_loteorigen', $lt['id_lote']);
-                                    $rs2->bindParam(':cantidad', $lt['cantidad']);
-                                    $rs2->bindParam(':val_promedio', $lt['val_promedio']);
-                                    $rs2->bindParam(':id_detalle', $lt['id_detalle']);
-                                    $rs2->execute();
+                            if ($res['mensaje'] == 'ok') {
+                                $sql = "INSERT INTO far_traslado_r_detalle(id_traslado,id_lote_origen,cantidad,valor,id_ped_detalle) 
+                                        VALUES (:id_traslado,:id_loteorigen,:cantidad,:val_promedio,:id_detalle)";
+                                $rs2 = $cmd->prepare($sql);
+                                foreach ($lotes as $lt) {
+                                    if ($lt['cantidad'] > 0) {
+                                        $rs2->bindParam(':id_traslado', $id_traslado);
+                                        $rs2->bindParam(':id_loteorigen', $lt['id_lote']);
+                                        $rs2->bindParam(':cantidad', $lt['cantidad']);
+                                        $rs2->bindParam(':val_promedio', $lt['val_promedio']);
+                                        $rs2->bindParam(':id_detalle', $lt['id_detalle']);
+                                        $rs2->execute();
+                                    }
                                 }
                             }
-                        }
+                        } else {
+                            $res['mensaje'] = 'Los siguientes Artículos no son de uso Clínico: ' . $obj0['articulos'];
+                        } 
+                            
                     } else if ($generar_traslado == 2) {
 
                         $id_ingreso = $_POST['txt_id_ingreso'];
-                        $sql = "INSERT INTO far_traslado_r_detalle(id_traslado,id_lote_origen,cantidad,valor) 
-                                SELECT $id_traslado,ID.id_lote,(ID.cantidad*PC.cantidad),FM.val_promedio
-                                FROM far_orden_ingreso_detalle AS ID
-                                INNER JOIN far_presentacion_comercial AS PC ON (PC.id_prescom=ID.id_presentacion)
+
+                        $sql = "SELECT GROUP_CONCAT(CONCAT(FM.cod_medicamento,'-',FM.nom_medicamento)) AS articulos,COUNT(*) AS cant_articulos
+                                FROM far_orden_ingreso_detalle AS ID                                
                                 INNER JOIN far_medicamento_lote AS ML ON (ML.id_lote=ID.id_lote)
                                 INNER JOIN far_medicamentos AS FM ON (FM.id_med = ML.id_med) 
-                                WHERE ID.id_ingreso=" . $id_ingreso;
-                        $rs = $cmd->query($sql);
+                                WHERE FM.es_clinico<>1 AND ID.id_ingreso=" . $id_ingreso;
+                        $rs0 = $cmd->query($sql);
+                        $obj0 = $rs0->fetch();
+                        
+                        if ($obj0['cant_articulos'] == 0) {
+                            $sql = "INSERT INTO far_traslado_r_detalle(id_traslado,id_lote_origen,cantidad,valor) 
+                                    SELECT $id_traslado,ID.id_lote,(ID.cantidad*PC.cantidad),FM.val_promedio
+                                    FROM far_orden_ingreso_detalle AS ID
+                                    INNER JOIN far_presentacion_comercial AS PC ON (PC.id_prescom=ID.id_presentacion)
+                                    INNER JOIN far_medicamento_lote AS ML ON (ML.id_lote=ID.id_lote)
+                                    INNER JOIN far_medicamentos AS FM ON (FM.id_med = ML.id_med) 
+                                    WHERE ID.id_ingreso=" . $id_ingreso;
+                            $rs = $cmd->query($sql);
+                        } else {
+                            $res['mensaje'] = 'Los siguientes Artículos no son de uso Clínico: ' . $obj0['articulos'];
+                        }    
                     }
 
                     $sql = "UPDATE far_traslado_r SET val_total=(SELECT SUM(valor*cantidad) FROM far_traslado_r_detalle WHERE id_traslado=$id_traslado) WHERE id_traslado=$id_traslado";

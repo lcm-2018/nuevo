@@ -89,3 +89,18 @@
 [2026-01-23 16:53:28] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 141;
 [2026-01-23 16:54:56] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 142;
 [2026-01-23 17:09:15] Usuario: 1-ADMINN ADMINP, 127.0.0.1, SQL: DELETE FROM `nom_nominas` WHERE `id_nomina` = 143;
+[2026-01-28 16:44:39] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: Recalcula el Kardex desde la fecha : 2025-07-28 hasta la fecha : 2026-01-28 21:44:39;
+[2026-01-28 16:44:53] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: Recalcula el Kardex desde la fecha : 2025-07-28 hasta la fecha : 2026-01-28 21:44:53;
+[2026-01-28 16:47:00] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: Recalcula el Kardex desde la fecha : 2025-07-28 hasta la fecha : 2026-01-28 21:47:00;
+[2026-01-28 19:25:25] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: DELETE FROM far_traslado_r WHERE id_traslado=3;
+[2026-01-28 19:37:19] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: SELECT COUNT(*) AS detalles FROM far_traslado_r_detalle WHERE id_traslado=4;
+[2026-01-28 19:37:22] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: SELECT COUNT(*) AS detalles FROM far_traslado_r_detalle WHERE id_traslado=4;
+[2026-01-28 19:37:25] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: UPDATE far_traslado_r SET id_ingreso=NULL WHERE id_traslado=4;
+[2026-01-28 20:08:04] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: SELECT COUNT(*) AS detalles FROM far_traslado_r_detalle WHERE id_traslado=4;
+[2026-01-28 20:08:07] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: SELECT COUNT(*) AS detalles FROM far_traslado_r_detalle WHERE id_traslado=4;
+[2026-01-28 20:08:10] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: UPDATE far_traslado_r SET id_ingreso=NULL WHERE id_traslado=4;
+[2026-01-28 22:07:40] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: SELECT COUNT(*) AS detalles FROM far_traslado_r_detalle WHERE id_traslado=4;
+[2026-01-28 22:07:44] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: SELECT COUNT(*) AS detalles FROM far_traslado_r_detalle WHERE id_traslado=4;
+[2026-01-28 22:07:46] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: UPDATE far_traslado_r SET id_ingreso=NULL WHERE id_traslado=4;
+[2026-01-28 22:08:35] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: Enviar el Traslado SPSR Id: 4 de la sede principal a la sede remota: 16;
+[2026-01-28 22:12:32] Usuario: 1-ADMIN ADMIN, 127.0.0.1, SQL: Enviar el Traslado SPSR Id: 5 de la sede principal a la sede remota: 8;
