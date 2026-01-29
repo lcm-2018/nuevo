@@ -344,6 +344,9 @@ try {
                 case 9:
                     $valor = $dd['val_indemniza'];
                     break;
+                case 10:
+                    $valor = $dd['valor_luto'];
+                    break;
                 case 17:
                     $valor = $dd['valor_vacacion'];
                     break;
@@ -423,6 +426,9 @@ try {
                         break;
                     case 9:
                         $valor = $dd['val_indemniza'] / $num_ccostos;
+                        break;
+                    case 10:
+                        $valor = $dd['valor_luto'] / $num_ccostos;
                         break;
                     case 17:
                         $valor = $dd['valor_vacacion'] / $num_ccostos;
@@ -549,6 +555,15 @@ try {
                         break;
                     case 9:
                         $credito = $dd['val_indemniza'];
+                        break;
+                    case 10:
+                        $credito = $dd['valor_luto'] - $restar;
+                        if ($credito < 0) {
+                            $restar = $credito * -1;
+                            $credito = 0;
+                        } else {
+                            $restar = 0;
+                        }
                         break;
                     case 17:
                         $credito = $dd['valor_vacacion'] - $restar;

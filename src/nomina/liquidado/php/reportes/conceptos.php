@@ -52,7 +52,8 @@ $columnaExtra = '';
 // 8=BONIFICACIÓN DE RECREACIÓN, 9=INCAPACIDAD, 10=LICENCIA REMUNERADA,
 // 11=GASTOS DE REPRESENTACIÓN, 12=INDEMNIZACIÓN POR VACACIONES, 13=APORTE A SALUD,
 // 14=APORTE A PENSIÓN, 15=APORTE A SOLIDARIDAD PENSIONAL, 16=LIBRANZA, 17=EMBARGO,
-// 18=SINDICATO, 19=RETENCIÓN EN LA FUENTE, 20=NETO
+// 18=SINDICATO, 19=RETENCIÓN EN LA FUENTE, 20=NETO, 21=APORTE ARL, 22=CESANTÍAS,
+// 23=INTERESES CESANTÍAS, 90=CONSOLIDADO
 switch ($id_concepto) {
     case 1: // SUELDO BÁSICO
     case 2: // AUXILIO DE TRANSPORTE
@@ -110,14 +111,14 @@ switch ($id_concepto) {
 
     case 13: // APORTE A SALUD
         $datos = $detallesObj->getDatosReporteSeguridadSocial($id_nomina, 'salud');
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'VALOR'];
-        $columnaExtra = 'general';
+        $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. EPS', 'NIT EPS', 'DIAS', 'VALOR'];
+        $columnaExtra = 'seg_social';
         break;
 
     case 14: // APORTE A PENSIÓN
         $datos = $detallesObj->getDatosReporteSeguridadSocial($id_nomina, 'pension');
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'VALOR'];
-        $columnaExtra = 'general';
+        $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. AFP', 'NIT AFP', 'DIAS', 'VALOR'];
+        $columnaExtra = 'seg_social';
         break;
 
     case 16: // LIBRANZA
@@ -148,6 +149,30 @@ switch ($id_concepto) {
         $datos = $detallesObj->getDatosReporteConcepto($id_nomina, $id_concepto);
         $columnas = ['DOCUMENTO', 'MUNICIPIO', 'NOMBRE', 'BANCO', 'COD_BANCO', 'TIPO', 'CUENTA', 'DIAS LIQUIDADO', 'VALOR'];
         $columnaExtra = 'netos';
+        break;
+
+    case 90: // CONSOLIDADO
+        $datos = $detallesObj->getDatosReporteConsolidado($id_nomina);
+        $columnas = ['CONCEPTO', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL'];
+        $columnaExtra = 'consolidado';
+        break;
+
+    case 21: // APORTE ARL (RIESGO LABORAL)
+        $datos = $detallesObj->getDatosReporteSeguridadSocial($id_nomina, 'arl');
+        $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. ARL', 'NIT ARL', 'DIAS', 'VALOR'];
+        $columnaExtra = 'seg_social';
+        break;
+
+    case 22: // CESANTÍAS
+        $datos = $detallesObj->getDatosReporteCesantias($id_nomina);
+        $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. CESANTIAS', 'NIT CESANTIAS', 'DIAS', 'VALOR'];
+        $columnaExtra = 'cesantias';
+        break;
+
+    case 23: // INTERESES CESANTÍAS
+        $datos = $detallesObj->getDatosReporteCesantias($id_nomina);
+        $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. CESANTIAS', 'NIT CESANTIAS', 'DIAS', 'INT. CESANTÍAS'];
+        $columnaExtra = 'int_cesantias';
         break;
 
     default:
@@ -191,8 +216,20 @@ if (empty($datos)) {
 
 // Calcular total
 $total = 0;
+$totalDevengado = 0;
+$totalDeducido = 0;
+$totalPatronal = 0;
 foreach ($datos as $d) {
-    $total += floatval($d['valor'] ?? 0);
+    if ($columnaExtra === 'consolidado') {
+        // Solo sumar grupos principales para los totales
+        if ($d['es_grupo'] ?? false) {
+            $totalDevengado += floatval($d['devengado'] ?? 0);
+            $totalDeducido += floatval($d['deducido'] ?? 0);
+            $totalPatronal += floatval($d['patronal'] ?? 0);
+        }
+    } else {
+        $total += floatval($d['valor'] ?? 0);
+    }
 }
 
 // Función para obtener el valor de una celda según el tipo de columna extra
@@ -244,6 +281,24 @@ function getCeldaValor($d, $campo, $columnaExtra)
             return $d['tipo_licencia'] ?? '';
         case 'CONCEPTO':
             return $d['concepto'] ?? '';
+        case 'DEVENGADO':
+            return $d['devengado'] ?? 0;
+        case 'DEDUCIDO':
+            return $d['deducido'] ?? 0;
+        case 'PATRONAL':
+            return $d['patronal'] ?? 0;
+        case 'NOM. EPS':
+        case 'NOM. AFP':
+        case 'NOM. ARL':
+        case 'NOM. CESANTIAS':
+            return $d['nom_fondo'] ?? 'N/A';
+        case 'NIT EPS':
+        case 'NIT AFP':
+        case 'NIT ARL':
+        case 'NIT CESANTIAS':
+            return $d['nit_fondo'] ?? 'N/A';
+        case 'INT. CESANTÍAS':
+            return $d['valor_intereses'] ?? 0;
         default:
             return '';
     }
@@ -252,7 +307,7 @@ function getCeldaValor($d, $campo, $columnaExtra)
 // Función para formatear valor según el tipo de campo
 function formatearCelda($valor, $campo)
 {
-    $camposNumericos = ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN'];
+    $camposNumericos = ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'INT. CESANTÍAS'];
     $camposCentrados = ['DIAS LIQUIDADO', 'DIAS', 'DIAS INACTIVOS', 'DIAS HABILES', 'DIAS BR', 'CANTIDAD', 'COD_BANCO', 'TIPO'];
 
     if (in_array($campo, $camposNumericos)) {
@@ -284,27 +339,38 @@ if ($tipo == 'E') {
     echo "<tr><td colspan='{$numColumnas}' style='text-align: center;'>NÓMINA No. {$id_nomina} - MES: {$mes} - VIGENCIA: {$nomina['vigencia']}</td></tr>";
     echo "<tr><td colspan='{$numColumnas}'>&nbsp;</td></tr>";
 
-    // Total por concepto
-    echo "<tr style='background-color: #d0d0d0; font-weight: bold;'>";
-    echo "<td colspan='" . ($numColumnas - 1) . "' style='text-align: left; padding: 5px;'>TOTAL POR CONCEPTO</td>";
-    echo "<td style='text-align: right; padding: 5px;'>$ " . number_format($total, 0, ',', '.') . "</td>";
-    echo "</tr>";
+    // Total por concepto (diferente para consolidado)
+    if ($columnaExtra === 'consolidado') {
+        echo "<tr style='background-color: #d0d0d0; font-weight: bold;'>";
+        echo "<td style='text-align: left; padding: 5px;'>RESUMEN CONSOLIDADO</td>";
+        echo "<td style='text-align: right; padding: 5px;'>$ " . number_format($totalDevengado, 0, ',', '.') . "</td>";
+        echo "<td style='text-align: right; padding: 5px;'>$ " . number_format($totalDeducido, 0, ',', '.') . "</td>";
+        echo "<td style='text-align: right; padding: 5px;'>$ " . number_format($totalPatronal, 0, ',', '.') . "</td>";
+        echo "</tr>";
+    } else {
+        echo "<tr style='background-color: #d0d0d0; font-weight: bold;'>";
+        echo "<td colspan='" . ($numColumnas - 1) . "' style='text-align: left; padding: 5px;'>TOTAL POR CONCEPTO</td>";
+        echo "<td style='text-align: right; padding: 5px;'>$ " . number_format($total, 0, ',', '.') . "</td>";
+        echo "</tr>";
+    }
 
     // Encabezados de columnas
     echo "<tr style='background-color: #e0e0e0; font-weight: bold;'>";
     foreach ($columnas as $col) {
-        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN']) ? 'right' : 'left';
+        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL']) ? 'right' : 'left';
         echo "<td style='text-align: {$align};'>{$col}</td>";
     }
     echo "</tr>";
 
     // Datos
     foreach ($datos as $d) {
-        echo "<tr>";
+        $esGrupo = $d['es_grupo'] ?? false;
+        $bgColor = ($columnaExtra === 'consolidado' && $esGrupo) ? "background-color: #f0f0f0; font-weight: bold;" : "";
+        echo "<tr style='{$bgColor}'>";
         foreach ($columnas as $col) {
             $valor = getCeldaValor($d, $col, $columnaExtra);
             $valorFormateado = formatearCelda($valor, $col);
-            $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN']) ? 'right' : 'left';
+            $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL']) ? 'right' : 'left';
             if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO'])) {
                 $align = 'center';
             }
@@ -321,13 +387,24 @@ if ($tipo == 'E') {
 // Si es tipo PDF, generar PDF
 $html = '';
 
-// Total por concepto
-$html .= "<table style='width: 100%; border-collapse: collapse; margin-bottom: 10px;' border='1'>";
-$html .= "<tr style='background-color: #d0d0d0;'>";
-$html .= "<th style='text-align: left; padding: 8px; font-size: 11px; font-weight: bold;'>TOTAL POR CONCEPTO</th>";
-$html .= "<th style='text-align: right; padding: 8px; font-size: 11px; font-weight: bold;'>$ " . number_format($total, 0, ',', '.') . "</th>";
-$html .= "</tr>";
-$html .= "</table>";
+// Total por concepto (diferente para consolidado)
+if ($columnaExtra === 'consolidado') {
+    $html .= "<table style='width: 100%; border-collapse: collapse; margin-bottom: 10px;' border='1'>";
+    $html .= "<tr style='background-color: #d0d0d0;'>";
+    $html .= "<th style='text-align: left; padding: 8px; font-size: 11px; font-weight: bold;'>RESUMEN CONSOLIDADO</th>";
+    $html .= "<th style='text-align: right; padding: 8px; font-size: 11px; font-weight: bold;'>$ " . number_format($totalDevengado, 0, ',', '.') . "</th>";
+    $html .= "<th style='text-align: right; padding: 8px; font-size: 11px; font-weight: bold;'>$ " . number_format($totalDeducido, 0, ',', '.') . "</th>";
+    $html .= "<th style='text-align: right; padding: 8px; font-size: 11px; font-weight: bold;'>$ " . number_format($totalPatronal, 0, ',', '.') . "</th>";
+    $html .= "</tr>";
+    $html .= "</table>";
+} else {
+    $html .= "<table style='width: 100%; border-collapse: collapse; margin-bottom: 10px;' border='1'>";
+    $html .= "<tr style='background-color: #d0d0d0;'>";
+    $html .= "<th style='text-align: left; padding: 8px; font-size: 11px; font-weight: bold;'>TOTAL POR CONCEPTO</th>";
+    $html .= "<th style='text-align: right; padding: 8px; font-size: 11px; font-weight: bold;'>$ " . number_format($total, 0, ',', '.') . "</th>";
+    $html .= "</tr>";
+    $html .= "</table>";
+}
 
 // Tabla de datos
 $html .= "<table style='width: 100%; border-collapse: collapse;' border='1'>";
@@ -335,7 +412,7 @@ $html .= "<table style='width: 100%; border-collapse: collapse;' border='1'>";
 // Encabezados
 $html .= "<tr style='background-color: #e0e0e0;'>";
 foreach ($columnas as $col) {
-    $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN']) ? 'right' : 'left';
+    $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL']) ? 'right' : 'left';
     if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO'])) {
         $align = 'center';
     }
@@ -345,15 +422,18 @@ $html .= "</tr>";
 
 // Datos
 foreach ($datos as $d) {
-    $html .= "<tr>";
+    $esGrupo = $d['es_grupo'] ?? false;
+    $bgColor = ($columnaExtra === 'consolidado' && $esGrupo) ? "background-color: #f0f0f0;" : "";
+    $fontWeight = ($columnaExtra === 'consolidado' && $esGrupo) ? "font-weight: bold;" : "";
+    $html .= "<tr style='{$bgColor}'>";
     foreach ($columnas as $col) {
         $valor = getCeldaValor($d, $col, $columnaExtra);
         $valorFormateado = formatearCelda($valor, $col);
-        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN']) ? 'right' : 'left';
+        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL']) ? 'right' : 'left';
         if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO'])) {
             $align = 'center';
         }
-        $html .= "<td style='padding: 3px; font-size: 7px; text-align: {$align};'>{$valorFormateado}</td>";
+        $html .= "<td style='padding: 3px; font-size: 7px; text-align: {$align}; {$fontWeight}'>{$valorFormateado}</td>";
     }
     $html .= "</tr>";
 }

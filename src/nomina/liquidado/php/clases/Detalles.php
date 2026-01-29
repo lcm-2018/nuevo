@@ -1183,31 +1183,104 @@ class Detalles
     }
 
     /**
-     * Obtiene los datos para el reporte de Seguridad Social Empleado (Salud, Pensión)
+     * Obtiene los datos para el reporte de Seguridad Social Empleado (Salud, Pensión, ARL)
      * 
      * @param int $id_nomina ID de la nómina
-     * @param string $tipo 'salud' o 'pension'
-     * @return array Datos de empleados
+     * @param string $tipo 'salud', 'pension' o 'arl'
+     * @return array Datos de empleados con información del fondo
      */
     public function getDatosReporteSeguridadSocial($id_nomina, $tipo = 'salud')
     {
-        $campo = $tipo == 'salud' ? 'aporte_salud_emp' : 'aporte_pension_emp';
+        // Determinar el campo de valor y el campo del fondo según el tipo
+        switch ($tipo) {
+            case 'pension':
+                $campo = 'aporte_pension_emp';
+                $campoFondo = 'id_afp';
+                break;
+            case 'arl':
+                $campo = 'aporte_rieslab';
+                $campoFondo = 'id_arl';
+                break;
+            default: // salud
+                $campo = 'aporte_salud_emp';
+                $campoFondo = 'id_eps';
+                break;
+        }
 
         $sql = "SELECT 
                     `e`.`no_documento` AS `documento`,
                     CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
                     IFNULL(`l`.`dias_liq`, 0) AS `dias`,
-                    `ss`.`{$campo}` AS `valor`
+                    `ss`.`{$campo}` AS `valor`,
+                    IFNULL(`tt`.`nom_tercero`, 'N/A') AS `nom_fondo`,
+                    IFNULL(`tt`.`nit_tercero`, 'N/A') AS `nit_fondo`
                 FROM 
                     `nom_liq_segsocial_empdo` AS `ss`
                     INNER JOIN `nom_empleado` AS `e` 
                         ON (`ss`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `nom_liq_dlab_auxt` AS `l` 
                         ON (`e`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
+                    LEFT JOIN `nom_terceros` AS `nt` 
+                        ON (`ss`.`{$campoFondo}` = `nt`.`id_tn`)
+                    LEFT JOIN `tb_terceros` AS `tt` 
+                        ON (`nt`.`id_tercero_api` = `tt`.`id_tercero_api`)
                 WHERE 
                     `ss`.`id_nomina` = :id_nomina AND `ss`.`estado` = 1 AND `ss`.`{$campo}` > 0
                 ORDER BY 
-                    `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+                    `tt`.`nom_tercero` ASC, `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los datos para el reporte de Cesantías con información del fondo
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos de empleados con información del fondo de cesantías
+     */
+    public function getDatosReporteCesantias($id_nomina)
+    {
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    `ces`.`cant_dias` AS `dias`,
+                    `ces`.`val_cesantias` AS `valor`,
+                    `ces`.`val_icesantias` AS `valor_intereses`,
+                    IFNULL(`tt`.`nom_tercero`, 'N/A') AS `nom_fondo`,
+                    IFNULL(`tt`.`nit_tercero`, 'N/A') AS `nit_fondo`
+                FROM 
+                    `nom_liq_cesantias` AS `ces`
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`ces`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT 
+                            `ntn`.`id_empleado`,
+                            `nt`.`id_tercero_api`
+                        FROM 
+                            `nom_terceros_novedad` `ntn`
+                            INNER JOIN `nom_terceros` `nt` ON (`ntn`.`id_tercero` = `nt`.`id_tn`)
+                        WHERE 
+                            `nt`.`id_tipo` = 4
+                            AND `ntn`.`fec_inicia` = (
+                                SELECT MAX(`ntn2`.`fec_inicia`)
+                                FROM `nom_terceros_novedad` `ntn2`
+                                INNER JOIN `nom_terceros` `nt2` ON (`ntn2`.`id_tercero` = `nt2`.`id_tn`)
+                                WHERE `ntn2`.`id_empleado` = `ntn`.`id_empleado` AND `nt2`.`id_tipo` = 4
+                            )
+                    ) AS `fondo_ces` ON (`ces`.`id_empleado` = `fondo_ces`.`id_empleado`)
+                    LEFT JOIN `tb_terceros` AS `tt` 
+                        ON (`fondo_ces`.`id_tercero_api` = `tt`.`id_tercero_api`)
+                WHERE 
+                    `ces`.`id_nomina` = :id_nomina AND `ces`.`estado` = 1 AND `ces`.`val_cesantias` > 0
+                ORDER BY 
+                    `tt`.`nom_tercero` ASC, `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
 
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
@@ -1462,5 +1535,359 @@ class Detalles
         unset($stmt);
 
         return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los datos para el reporte CONSOLIDADO de nómina
+     * Agrupa todos los conceptos por tipo y tercero
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos consolidados con concepto, devengado, deducido, patronal
+     */
+    public function getDatosReporteConsolidado($id_nomina)
+    {
+        $consolidado = [];
+
+        // 1. Obtener aportes de seguridad social y parafiscales con nombres de terceros
+        $sqlSegSocial = "SELECT 
+                CASE `tipo_valor`.`tipo`
+                    WHEN 1 THEN 'SALUD'
+                    WHEN 2 THEN 'PENSION'
+                    WHEN 3 THEN 'ARL'
+                    WHEN 4 THEN 'APORTE SENA'
+                    WHEN 5 THEN 'APORTE ICBF'
+                    WHEN 6 THEN 'APORTE CAJA DE COMPENSACION'
+                    ELSE 'OTRO'
+                END AS `grupo`,
+                `tipo_valor`.`tipo` AS `tipo_orden`,
+                COALESCE(`tbt`.`nom_tercero`, 
+                    CASE `tipo_valor`.`tipo`
+                        WHEN 4 THEN 'SENA'
+                        WHEN 5 THEN 'ICBF'
+                        WHEN 6 THEN 'CAJA DE COMPENSACION'
+                        ELSE 'NO DEFINIDO'
+                    END
+                ) AS `concepto`,
+                SUM(CASE `tipo_valor`.`tipo`
+                    WHEN 1 THEN IFNULL(`nlse`.`aporte_salud_emp`, 0)
+                    WHEN 2 THEN IFNULL(`nlse`.`aporte_pension_emp`, 0) + IFNULL(`nlse`.`aporte_solidaridad_pensional`, 0)
+                    ELSE 0
+                END) AS `deducido`,
+                SUM(CASE `tipo_valor`.`tipo`
+                    WHEN 1 THEN IFNULL(`nlse`.`aporte_salud_empresa`, 0)
+                    WHEN 2 THEN IFNULL(`nlse`.`aporte_pension_empresa`, 0)
+                    WHEN 3 THEN IFNULL(`nlse`.`aporte_rieslab`, 0)
+                    WHEN 4 THEN IFNULL(`nlp`.`val_sena`, 0)
+                    WHEN 5 THEN IFNULL(`nlp`.`val_icbf`, 0)
+                    WHEN 6 THEN IFNULL(`nlp`.`val_comfam`, 0)
+                    ELSE 0
+                END) AS `patronal`,
+                0 AS `devengado`,
+                CASE `tipo_valor`.`tipo`
+                    WHEN 1 THEN `nlse`.`id_eps`
+                    WHEN 2 THEN `nlse`.`id_afp`
+                    WHEN 3 THEN `nlse`.`id_arl`
+                    ELSE 0
+                END AS `id_tercero`
+            FROM 
+                `nom_liq_salario` AS `nls`
+                CROSS JOIN (
+                    SELECT 1 AS `tipo` UNION ALL SELECT 2 UNION ALL SELECT 3 
+                    UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6
+                ) AS `tipo_valor`
+                LEFT JOIN `nom_liq_segsocial_empdo` AS `nlse`
+                    ON `nlse`.`id_empleado` = `nls`.`id_empleado` 
+                    AND `nlse`.`id_nomina` = `nls`.`id_nomina` 
+                    AND `nlse`.`estado` = 1
+                LEFT JOIN `nom_liq_parafiscales` AS `nlp`
+                    ON `nlp`.`id_empleado` = `nls`.`id_empleado` 
+                    AND `nlp`.`id_nomina` = `nls`.`id_nomina` 
+                    AND `nlp`.`estado` = 1
+                LEFT JOIN `nom_terceros` AS `nt`
+                    ON `nt`.`id_tn` = CASE `tipo_valor`.`tipo`
+                        WHEN 1 THEN `nlse`.`id_eps`
+                        WHEN 2 THEN `nlse`.`id_afp`
+                        WHEN 3 THEN `nlse`.`id_arl`
+                        ELSE NULL
+                    END
+                LEFT JOIN `tb_terceros` AS `tbt`
+                    ON `tbt`.`id_tercero_api` = `nt`.`id_tercero_api`
+            WHERE 
+                `nls`.`id_nomina` = :id_nomina AND `nls`.`estado` = 1
+                AND (
+                    (`tipo_valor`.`tipo` IN (1, 2, 3) AND `nlse`.`id_empleado` IS NOT NULL)
+                    OR (`tipo_valor`.`tipo` IN (4, 5, 6) AND `nlp`.`id_empleado` IS NOT NULL)
+                )
+            GROUP BY 
+                `tipo_valor`.`tipo`,
+                CASE `tipo_valor`.`tipo`
+                    WHEN 1 THEN `nlse`.`id_eps`
+                    WHEN 2 THEN `nlse`.`id_afp`
+                    WHEN 3 THEN `nlse`.`id_arl`
+                    ELSE 0
+                END,
+                `tbt`.`nom_tercero`
+            ORDER BY 
+                `tipo_valor`.`tipo` ASC, `tbt`.`nom_tercero` ASC";
+
+        $stmt = $this->conexion->prepare($sqlSegSocial);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $segSocial = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+
+        // Agrupar por tipo
+        $grupos = [];
+        foreach ($segSocial as $row) {
+            $grupo = $row['grupo'];
+            if (!isset($grupos[$grupo])) {
+                $grupos[$grupo] = [
+                    'orden' => $row['tipo_orden'],
+                    'total_devengado' => 0,
+                    'total_deducido' => 0,
+                    'total_patronal' => 0,
+                    'detalles' => []
+                ];
+            }
+            $grupos[$grupo]['total_devengado'] += floatval($row['devengado']);
+            $grupos[$grupo]['total_deducido'] += floatval($row['deducido']);
+            $grupos[$grupo]['total_patronal'] += floatval($row['patronal']);
+
+            // Solo agregar detalle si hay un tercero específico
+            if (!empty($row['concepto']) && $row['id_tercero'] > 0) {
+                $grupos[$grupo]['detalles'][] = [
+                    'concepto' => $row['concepto'],
+                    'devengado' => floatval($row['devengado']),
+                    'deducido' => floatval($row['deducido']),
+                    'patronal' => floatval($row['patronal'])
+                ];
+            }
+        }
+
+        // 2. Obtener Libranzas agrupadas por tercero (banco/entidad)
+        $sqlLibranzas = "SELECT 
+                'LIBRANZAS' AS `grupo`,
+                `b`.`nom_banco` AS `concepto`,
+                0 AS `devengado`,
+                SUM(`ll`.`val_mes_lib`) AS `deducido`,
+                0 AS `patronal`
+            FROM 
+                `nom_liq_libranza` AS `ll`
+                INNER JOIN `nom_libranzas` AS `lib` ON (`ll`.`id_libranza` = `lib`.`id_libranza`)
+                INNER JOIN `tb_bancos` AS `b` ON (`lib`.`id_banco` = `b`.`id_banco`)
+            WHERE 
+                `ll`.`id_nomina` = :id_nomina AND `ll`.`estado` = 1
+            GROUP BY 
+                `lib`.`id_banco`, `b`.`nom_banco`
+            ORDER BY 
+                `b`.`nom_banco` ASC";
+
+        $stmt = $this->conexion->prepare($sqlLibranzas);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $libranzas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+
+        if (!empty($libranzas)) {
+            $grupos['LIBRANZAS'] = [
+                'orden' => 10,
+                'total_devengado' => 0,
+                'total_deducido' => 0,
+                'total_patronal' => 0,
+                'detalles' => []
+            ];
+            foreach ($libranzas as $row) {
+                $grupos['LIBRANZAS']['total_deducido'] += floatval($row['deducido']);
+                $grupos['LIBRANZAS']['detalles'][] = [
+                    'concepto' => $row['concepto'],
+                    'devengado' => 0,
+                    'deducido' => floatval($row['deducido']),
+                    'patronal' => 0
+                ];
+            }
+        }
+
+        // 3. Obtener Embargos agrupados por juzgado
+        $sqlEmbargos = "SELECT 
+                'EMBARGOS' AS `grupo`,
+                `tbt`.`nom_tercero` AS `concepto`,
+                0 AS `devengado`,
+                SUM(`le`.`val_mes_embargo`) AS `deducido`,
+                0 AS `patronal`
+            FROM 
+                `nom_liq_embargo` AS `le`
+                INNER JOIN `nom_embargos` AS `emb` ON (`le`.`id_embargo` = `emb`.`id_embargo`)
+                INNER JOIN `nom_terceros` AS `nt` ON (`emb`.`id_juzgado` = `nt`.`id_tn`)
+                INNER JOIN `tb_terceros` AS `tbt` ON (`nt`.`id_tercero_api` = `tbt`.`id_tercero_api`)
+            WHERE 
+                `le`.`id_nomina` = :id_nomina AND `le`.`estado` = 1
+            GROUP BY 
+                `emb`.`id_juzgado`, `tbt`.`nom_tercero`
+            ORDER BY 
+                `tbt`.`nom_tercero` ASC";
+
+        $stmt = $this->conexion->prepare($sqlEmbargos);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $embargos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+
+        if (!empty($embargos)) {
+            $grupos['EMBARGOS'] = [
+                'orden' => 11,
+                'total_devengado' => 0,
+                'total_deducido' => 0,
+                'total_patronal' => 0,
+                'detalles' => []
+            ];
+            foreach ($embargos as $row) {
+                $grupos['EMBARGOS']['total_deducido'] += floatval($row['deducido']);
+                $grupos['EMBARGOS']['detalles'][] = [
+                    'concepto' => $row['concepto'],
+                    'devengado' => 0,
+                    'deducido' => floatval($row['deducido']),
+                    'patronal' => 0
+                ];
+            }
+        }
+
+        // 4. Obtener Sindicatos agrupados por sindicato
+        $sqlSindicatos = "SELECT 
+                'SINDICATOS' AS `grupo`,
+                `tbt`.`nom_tercero` AS `concepto`,
+                0 AS `devengado`,
+                SUM(`ls`.`val_aporte`) AS `deducido`,
+                0 AS `patronal`
+            FROM 
+                `nom_liq_sindicato_aportes` AS `ls`
+                INNER JOIN `nom_cuota_sindical` AS `cs` ON (`ls`.`id_cuota_sindical` = `cs`.`id_cuota_sindical`)
+                INNER JOIN `nom_terceros` AS `nt` ON (`cs`.`id_sindicato` = `nt`.`id_tn`)
+                INNER JOIN `tb_terceros` AS `tbt` ON (`nt`.`id_tercero_api` = `tbt`.`id_tercero_api`)
+            WHERE 
+                `ls`.`id_nomina` = :id_nomina AND `ls`.`estado` = 1
+            GROUP BY 
+                `cs`.`id_sindicato`, `tbt`.`nom_tercero`
+            ORDER BY 
+                `tbt`.`nom_tercero` ASC";
+
+        $stmt = $this->conexion->prepare($sqlSindicatos);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $sindicatos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+
+        if (!empty($sindicatos)) {
+            $grupos['SINDICATOS'] = [
+                'orden' => 12,
+                'total_devengado' => 0,
+                'total_deducido' => 0,
+                'total_patronal' => 0,
+                'detalles' => []
+            ];
+            foreach ($sindicatos as $row) {
+                $grupos['SINDICATOS']['total_deducido'] += floatval($row['deducido']);
+                $grupos['SINDICATOS']['detalles'][] = [
+                    'concepto' => $row['concepto'],
+                    'devengado' => 0,
+                    'deducido' => floatval($row['deducido']),
+                    'patronal' => 0
+                ];
+            }
+        }
+
+        // 5. Obtener Retención en la Fuente
+        $sqlRetencion = "SELECT 
+                SUM(`val_ret`) AS `deducido`
+            FROM 
+                `nom_retencion_fte`
+            WHERE 
+                `id_nomina` = :id_nomina AND `estado` = 1";
+
+        $stmt = $this->conexion->prepare($sqlRetencion);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $retencion = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+
+        if (!empty($retencion) && floatval($retencion['deducido']) > 0) {
+            $grupos['RETENCION FUENTE UVT P1'] = [
+                'orden' => 7,
+                'total_devengado' => 0,
+                'total_deducido' => floatval($retencion['deducido']),
+                'total_patronal' => 0,
+                'detalles' => []
+            ];
+        }
+
+        // 6. Obtener Otros Descuentos (Cooperativas, etc.)
+        $sqlDescuentos = "SELECT 
+                `od`.`concepto` AS `concepto`,
+                0 AS `devengado`,
+                SUM(`ld`.`valor`) AS `deducido`,
+                0 AS `patronal`
+            FROM 
+                `nom_liq_descuento` AS `ld`
+                INNER JOIN `nom_otros_descuentos` AS `od` ON (`ld`.`id_dcto` = `od`.`id_dcto`)
+            WHERE 
+                `ld`.`id_nomina` = :id_nomina AND `ld`.`estado` = 1
+            GROUP BY 
+                `od`.`id_dcto`, `od`.`concepto`
+            ORDER BY 
+                `od`.`concepto` ASC";
+
+        $stmt = $this->conexion->prepare($sqlDescuentos);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $descuentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+
+        if (!empty($descuentos)) {
+            $grupos['OTROS DESCUENTOS'] = [
+                'orden' => 13,
+                'total_devengado' => 0,
+                'total_deducido' => 0,
+                'total_patronal' => 0,
+                'detalles' => []
+            ];
+            foreach ($descuentos as $row) {
+                $grupos['OTROS DESCUENTOS']['total_deducido'] += floatval($row['deducido']);
+                $grupos['OTROS DESCUENTOS']['detalles'][] = [
+                    'concepto' => $row['concepto'],
+                    'devengado' => 0,
+                    'deducido' => floatval($row['deducido']),
+                    'patronal' => 0
+                ];
+            }
+        }
+
+        // Convertir a array final ordenado
+        uasort($grupos, function ($a, $b) {
+            return $a['orden'] <=> $b['orden'];
+        });
+
+        // Construir el array de resultado final
+        foreach ($grupos as $nombreGrupo => $grupo) {
+            // Agregar fila del grupo (totales)
+            $consolidado[] = [
+                'concepto' => $nombreGrupo,
+                'devengado' => $grupo['total_devengado'],
+                'deducido' => $grupo['total_deducido'],
+                'patronal' => $grupo['total_patronal'],
+                'es_grupo' => true
+            ];
+
+            // Agregar detalles del grupo
+            foreach ($grupo['detalles'] as $detalle) {
+                $consolidado[] = [
+                    'concepto' => '- ' . $detalle['concepto'],
+                    'devengado' => $detalle['devengado'],
+                    'deducido' => $detalle['deducido'],
+                    'patronal' => $detalle['patronal'],
+                    'es_grupo' => false
+                ];
+            }
+        }
+
+        return $consolidado;
     }
 }
