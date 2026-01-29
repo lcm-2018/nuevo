@@ -89,7 +89,7 @@ $content =
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="tableEjecPresupuestoCrp" class="table table-striped table-bordered table-sm table-hover shadow w-100">
+                <table id="tableEjecPresupuestoCrp" class="table table-striped table-bordered table-sm table-hover shadow w-100 align-middle">
                     <thead>
                         <tr class="text-center">
                             <th class="bg-sofia">Numero</th>

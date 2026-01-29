@@ -349,7 +349,7 @@ class Cesantias
         } else if ($inserts == 0) {
             return 'No se liquidó ningún empleado.';
         } else {
-            return 'Liquidación realizada con éxito.';
+            return 'si';
         }
     }
 

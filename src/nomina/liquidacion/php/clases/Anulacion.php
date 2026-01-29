@@ -6,6 +6,7 @@ use Config\Clases\Conexion;
 
 use PDO;
 use PDOException;
+use Src\Nomina\Empleados\Php\Clases\Contratos;
 
 class Anulacion
 {
@@ -34,6 +35,7 @@ class Anulacion
      */
     public function anulaRegistros($id_empleado, $id_nomina, $tipo = 1)
     {
+
         if ($tipo == 1) {
             $tipo = " AND `tipo`  = 'S'";
             $tp = " AND `nllm`.`tipo`  = 'S'";
@@ -41,6 +43,12 @@ class Anulacion
             $tipo = "";
             $tp = "";
         }
+        $nomina = (new Nomina())->getRegistro($id_nomina);
+        if ($nomina['tipo'] == 'PS') {
+            $contrato = (new Liquidacion())->getEmpleadosLiq($id_nomina, [$id_empleado]);
+            $response = (new Contratos())->editEstadoContrato($contrato[0]['id_contrato'], 1);
+        }
+
         $queries = [
             // horas extra
             "UPDATE `nom_liq_horex` AS `nlhe`

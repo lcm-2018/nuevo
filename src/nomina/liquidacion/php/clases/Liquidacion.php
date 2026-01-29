@@ -85,9 +85,8 @@ class Liquidacion
                     , IFNULL(`tt`.`vac`,0) AS `vac`
                     , IFNULL(`tt`.`ivac`,0) AS `ivac`
                     , `tt`.`ids_vac`
-                    , DATEDIFF(
-                        LEAST('$fec_fin', `taux`.`fec_fin`),
-                        GREATEST('$fec_inicio', `taux`.`fec_inicio`)) + 1 AS `dias_mes`
+                    , IF(DATE_FORMAT(LEAST('$fec_fin', `taux`.`fec_fin`), '%Y-%m-%d') = DATE_FORMAT(LAST_DAY(LEAST('$fec_fin', `taux`.`fec_fin`)), '%Y-%m-%d'), 30, LEAST(30, DAY(LEAST('$fec_fin', `taux`.`fec_fin`))))
+                        - IF(DATE_FORMAT(GREATEST('$fec_inicio', `taux`.`fec_inicio`), '%d') = '01', 1, LEAST(30, DAY(GREATEST('$fec_inicio', `taux`.`fec_inicio`)))) + 1 AS `dias_mes`
                     , IF(`obs`.`corte` > 0,  DATEDIFF('$fec_fin', `obs`.`corte`), 0) AS `observacion`
                 FROM
                     (SELECT 
@@ -802,7 +801,7 @@ class Liquidacion
         } else if ($inserts == 0) {
             return 'No se liquidó ningún empleado.';
         } else {
-            return 'Liquidación realizada con éxito.';
+            return 'si';
         }
     }
     /**
@@ -874,7 +873,7 @@ class Liquidacion
             $ids = implode(',', $ids);
         }
         try {
-            $sql = "SELECT `id_empleado`,`id_sal_liq`
+            $sql = "SELECT `id_empleado`,`id_sal_liq`, `id_contrato`
                     FROM `nom_liq_salario`
                     WHERE (`id_nomina` = ? AND `nom_liq_salario`.`estado` = 1 AND `id_empleado` IN ($ids))";
             $stmt = Conexion::getConexion()->prepare($sql);
@@ -1074,6 +1073,7 @@ class Liquidacion
                         `e`.`id_empleado`,
                         `ctt`.`contrato`,
 	                    `ct`.`fec_inicio` AS `inicia_ctt`,
+                        `ct`.`fec_fin` AS `fin_ctt`,
                         `e`.`representacion`,
                         `t1`.`val_bsp`,
                         `t1`.`fec_corte` AS `corte_bsp`,
@@ -1203,13 +1203,13 @@ class Liquidacion
             'bono' => 0
         ];
 
-        $salbas =   $param['salario'];
-        $grepre =   ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
-        $auxtra =   $param['aux_trans'];
-        $auxali =   $param['aux_alim'];
-        $bspant =   $param['bsp_ant'] ?? 0;
-        $psvant =   $param['pri_ser_ant'] ?? 0;
-        $base =     $salbas + $grepre + $auxtra + $auxali + $bspant  / 12 + $psvant / 12;
+        $salbas =   floatval($param['salario']);
+        $grepre =   ($cortes['representacion'] ?? 0) == 1 ? floatval($param['grep']) : 0;
+        $auxtra =   floatval($param['aux_trans']);
+        $auxali =   floatval($param['aux_alim']);
+        $bspant =   floatval($param['bsp_ant'] ?? 0);
+        $psvant =   floatval($param['pri_ser_ant'] ?? 0);
+        $base =     $salbas + $grepre + $auxtra + $auxali + $bspant / 12 + $psvant / 12;
         $idvac =    $filtro['id_vac'];
         $dhabiles = $filtro['dias_habiles'] ?? 15;
         $dinactiv = $filtro['dias_inactivo'] ?? 22;
@@ -1258,8 +1258,8 @@ class Liquidacion
         $grepre         =   ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
         $auxtra         =   $param['aux_trans'];
         $auxali         =   $param['aux_alim'];
-        $bspant         =   $param['val_bsp'] ?? 0;
-        $base           =   $salbas + $grepre + $auxtra + $auxali + $bspant  / 12;
+        $bspant         =   floatval($param['val_bsp'] ?? 0);
+        $base           =   $salbas + $grepre + $auxtra + $auxali + $bspant / 12;
         $corte          =   $param['corte_prim_sv'] ?? NULL;
         $id_nomina      =   $param['id_nomina'];
 
@@ -1298,10 +1298,10 @@ class Liquidacion
         $grepre         =   ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
         $auxtra         =   $param['aux_trans'];
         $auxali         =   $param['aux_alim'];
-        $bspant         =   $param['val_bsp'] ?? 0;
-        $prima_ant      =   $param['val_liq_ps'] ?? 0;
-        $vac_ant        =   $param['val_prima_vac'] ?? 0;
-        $base           =   $salbas + $grepre + $auxtra + $auxali + ($bspant  / 12) + ($prima_ant / 12) + ($vac_ant / 12);
+        $bspant         =   floatval($param['val_bsp'] ?? 0);
+        $prima_ant      =   floatval($param['val_liq_ps'] ?? 0);
+        $vac_ant        =   floatval($param['val_prima_vac'] ?? 0);
+        $base           =   $salbas + $grepre + $auxtra + $auxali + ($bspant / 12) + ($prima_ant / 12) + ($vac_ant / 12);
         $corte          =   $param['corte_psv'] ?? NULL;
         $id_nomina      =   $param['id_nomina'];
 
@@ -1344,12 +1344,12 @@ class Liquidacion
         $grepre         =   ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
         $auxtra         =   $param['aux_trans'];
         $auxali         =   $param['aux_alim'];
-        $bspant         =   $param['bsp_ant'] ?? 0;
-        $prima_ant      =   $param['pri_ser_ant'] ?? 0;
-        $vac_ant        =   $param['pri_vac_ant'] ?? 0;
-        $prima_nav_ant  =   $param['pri_nav_ant'] ?? 0;
-        $promHoEx       =   $param['prom_horas'] ?? 0;
-        $base           =   $salbas + $grepre + $auxtra + $auxali + ($bspant  / 12) + ($prima_ant / 12) + ($vac_ant / 12) + ($prima_nav_ant / 12) + $promHoEx;
+        $bspant         =   floatval($param['bsp_ant'] ?? 0);
+        $prima_ant      =   floatval($param['pri_ser_ant'] ?? 0);
+        $vac_ant        =   floatval($param['pri_vac_ant'] ?? 0);
+        $prima_nav_ant  =   floatval($param['pri_nav_ant'] ?? 0);
+        $promHoEx       =   floatval($param['prom_horas'] ?? 0);
+        $base           =   $salbas + $grepre + $auxtra + $auxali + ($bspant / 12) + ($prima_ant / 12) + ($vac_ant / 12) + ($prima_nav_ant / 12) + $promHoEx;
         $corte          =   $param['corte_psv'] ?? NULL;
         $id_nomina      =   $param['id_nomina'];
 
@@ -1358,9 +1358,9 @@ class Liquidacion
         $val_icesantias =   $val_cesantias * 0.12;
 
         if ($opcion == 1) {
-            if ($param['tipo'] == 8) {
+            if (isset($param['tipo']) && $param['tipo'] == 8) {
                 $val_icesantias = 0;
-            } elseif ($param['tipo'] == 9) {
+            } elseif (isset($param['tipo']) && $param['tipo'] == 9) {
                 $val_cesantias = 0;
             }
             $data = compact('id_empleado', 'cant_dias', 'val_cesantias', 'val_icesantias', 'corte', 'id_nomina');
@@ -1494,8 +1494,12 @@ class Liquidacion
             'insert' => true,
             'valor' => 0
         ];
-        $val_grep = $param['tiene_grep'] == 1 ? $param['greps'] : 0;
-        $bsp = (($param['salario'] + $val_grep) <= $param['base_bsp'] ? ($param['salario'] + $val_grep) * 0.5 : ($param['salario'] + $val_grep) * 0.35);
+        $dias = floatval($param['dias_bsp'] ?? 360);
+        $salario = floatval($param['salario'] ?? 0);
+        $base_bsp = floatval($param['base_bsp'] ?? 0);
+        $val_grep = $param['tiene_grep'] == 1 ? floatval($param['greps'] ?? 0) : 0;
+        $bsp = (($salario + $val_grep) <= $base_bsp ? ($salario + $val_grep) * 0.5 : ($salario + $val_grep) * 0.35);
+        $bsp = $bsp * $dias / 360;
         $data = [
             'id_empleado' =>   $param['id_empleado'],
             'corte' =>         $param['corte'],

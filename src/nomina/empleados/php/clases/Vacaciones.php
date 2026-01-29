@@ -562,7 +562,7 @@ class Vacaciones
         } else if ($inserts == 0) {
             return 'No se liquidó ningún empleado.';
         } else {
-            return 'Liquidación realizada con éxito.';
+            return 'si';
         }
     }
     /**
@@ -571,11 +571,14 @@ class Vacaciones
      * @param array $array Datos del registro a agregar
      * @return string Mensaje de éxito o error
      */
-    public function addRegistro($array)
+    public function addRegistro($array, $op = true)
     {
         try {
             // iniciar transacción
-            $this->conexion->beginTransaction();
+            //verificar si no existe una transacion
+            if (!($this->conexion->inTransaction())) {
+                $this->conexion->beginTransaction();
+            }
             $sql = "INSERT INTO `nom_vacaciones`
                         (`id_empleado`,`anticipo`,`fec_inicial`,`fec_fin`,`dias_inactivo`,`dias_habiles`,`corte`,`dias_liquidar`,`estado`,`fec_reg`)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -597,10 +600,10 @@ class Vacaciones
                 $array['novedad'] = $id;
                 $array['tipo'] = 2;
                 $Novedad = new Novedades($this->conexion);
-                $resultado = $Novedad->addRegistro($array);
+                $resultado = $Novedad->addRegistro($array, $op);
                 if ($resultado === 'si') {
                     $this->conexion->commit();
-                    return 'si';
+                    return $op ? 'si' : $id;
                 } else {
                     $this->conexion->rollBack();
                     return $resultado;
@@ -689,7 +692,10 @@ class Vacaciones
     public function editRegistro($array)
     {
         try {
-            $this->conexion->beginTransaction();
+            //verificar si no existe una transacion
+            if (!($this->conexion->inTransaction())) {
+                $this->conexion->beginTransaction();
+            }
             $sql = "UPDATE `nom_vacaciones`
                         SET `anticipo` = ?, `fec_inicial` = ?, `fec_fin` = ?, `dias_inactivo` = ?, `dias_habiles` = ?, `corte` = ?, `dias_liquidar` = ?
                     WHERE `id_vac` = ?";

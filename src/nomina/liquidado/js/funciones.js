@@ -12,9 +12,10 @@ const tablenNominasEmpleados = crearDataTable(
     [],
     {
         pageLength: -1,
+        scrollX: false,
         order: [[0, 'desc']],
         columnDefs: [
-            { targets: [2], className: 'text-nowrap' },
+            { targets: [1, 2], className: 'text-wrap' },
             { "orderable": false, "targets": [0, 5] },
             { targets: [4], className: 'p-1' },
         ],
@@ -50,6 +51,7 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
     const btnImprimir = event.target.closest('.imprimir');
     const btnDescargarPdf = event.target.closest('.descargar-pdf');
     const btnReportes = event.target.closest('.reportes');
+    const btnEditar = event.target.closest('.editar');
 
     if (btnDetalles) {
         event.preventDefault();
@@ -97,13 +99,20 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
         event.preventDefault();
         const id = btnReportes.dataset.id;
         mostrarOverlay();
-        VerFormulario('../php/controladores/reportes.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+        VerFormulario('../php/controladores/reportes.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
+    }
+    if (btnEditar) {
+        event.preventDefault();
+        const id = btnEditar.dataset.id;
+        mostrarOverlay();
+        VerFormulario('../../liquidacion/php/controladores/liquidacion.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
     }
 });
 
 //evento click en el modal
 document.querySelector('#modalForms').addEventListener('click', function (event) {
     const btnReportes = event.target.closest('.reportes');
+    const btnGuardarNomina = event.target.closest('#btnGuardaNomina');
     if (btnReportes) {
         event.preventDefault();
         const id_nomina = document.getElementById('id_nomina').value; // Obtener id_nomina del input hidden
@@ -112,6 +121,8 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
 
         // Determinar el archivo según el tipo de reporte
         let archivo = '';
+        let params = { id: id_nomina, tipo: text };
+
         switch (tipo_reporte) {
             case '1':
                 archivo = 'libranzas';
@@ -122,11 +133,41 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
             case '3':
                 archivo = 'sindicatos';
                 break;
+            case '4':
+                archivo = 'conceptos';
+                // Obtener el concepto seleccionado
+                const id_concepto = document.getElementById('concepto').value;
+                if (!id_concepto || id_concepto == '0') {
+                    mjeAlert('Atención', 'Debe seleccionar un concepto', 'warning');
+                    return;
+                }
+                params.id_concepto = id_concepto;
+                break;
             default:
                 console.error('Tipo de reporte no válido');
                 return;
         }
 
-        ImprimirReporte('../php/reportes/' + archivo + '.php', { id: id_nomina, tipo: text });
+        ImprimirReporte('../php/reportes/' + archivo + '.php', params);
+    }
+
+    if (btnGuardarNomina) {
+        event.preventDefault();
+        var data = new FormData();
+        data.append('id_nomina', ValueInput('id_nomina'));
+        data.append('descripcion', ValueInput('descripcion'));
+        data.append('action', 'edit2');
+        mostrarOverlay();
+        SendPost('../../liquidacion/php/controladores/liquidacion.php', data).then((response) => {
+            if (response.status === 'ok') {
+                mje('Guardado correctamente!');
+                tablenNominasEmpleados.ajax.reload(null, false);
+                $('#modalForms').modal('hide');
+            } else {
+                mjeAlert('', '', response.msg);
+            }
+        }).finally(() => {
+            ocultarOverlay();
+        });
     }
 });

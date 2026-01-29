@@ -211,7 +211,7 @@ class Horas_Extra
      * @param string $fin Fecha de fin
      * @return array|[] Retorna un array con las horas extras o un mensaje de error
      */
-    public function getHorasPorMes($inicia, $fin)
+    public function getHorasPorMes($inicia, $fin, $tipo = 1)
     {
         try {
             $sql = "SELECT 
@@ -220,7 +220,7 @@ class Horas_Extra
                     `nom_horas_ex_trab`
                     INNER JOIN `nom_tipo_horaex`
                         ON (`nom_horas_ex_trab`.`id_he` = `nom_tipo_horaex`.`id_he`)
-                WHERE `fec_inicio` BETWEEN '$inicia' AND '$fin' AND `tipo` = 1 AND `estado` = 1";
+                WHERE `fec_inicio` BETWEEN '$inicia' AND '$fin' AND `tipo` = $tipo AND `estado` = 1";
             $stmt = $this->conexion->prepare($sql);
             $stmt->execute();
             $horas = $stmt->fetchAll(PDO::FETCH_ASSOC);

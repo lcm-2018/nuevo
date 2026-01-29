@@ -256,15 +256,13 @@ try {
             WHERE (`id_compra` = $id_adq) LIMIT 1";
     $rs = $cmd->query($sql);
     $contrato = $rs->fetch();
-    if (empty($contrato)) {
-        $contrato['id_contrato_compra'] = '';
-    }
+
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
-if (isset($contrato['id_secop']) && $contrato['url_secop'] == '') {
+if (!empty($contrato) && isset($contrato['id_secop']) && $contrato['url_secop'] == '') {
     $SecopII = new Api_SecopII();
     $urlProceso = $SecopII->consultarContratoPorId(trim($contrato['id_secop']), "urlproceso");
     $urlProceso = isset($urlProceso['url']) ? $urlProceso['url'] : '';
@@ -273,7 +271,10 @@ if (isset($contrato['id_secop']) && $contrato['url_secop'] == '') {
     $cmd->query($sql);
     $cmd = null;
 } else {
-    $urlProceso = $contrato['url_secop'];
+    $urlProceso = $contrato['url_secop'] ?? '';
+}
+if (empty($contrato)) {
+    $contrato['id_contrato_compra'] = '';
 }
 
 $id_orden = $adquisicion['id_orden'] == '' ? '' : '<input type="hidden" name="id_orden" id="id_orden" value="' . $adquisicion['id_orden'] . '">';
@@ -664,35 +665,89 @@ $content =
                         </button>
                     </h2>
                     <div id="collapsemodContrata" class="accordion-collapse collapse show" data-bs-parent="#accContrata">
-                        <div class="accordion-body bg-wiev">
-                            <div class=" px-3 shadow rounded">
-                                <div class="card-body">
-                                    <input type="hidden" id="tipo_contrato" value="{$adquisicion['id_tipo']}">
-                                    <input type="hidden" id="tipo_servicio" value="{$adquisicion['id_tipo_bn_sv']}">
-                                    <div class="row mb-0 border border-bottom-0 rounded-top">
-                                        <div class="border-end col-md-4">
-                                            <span class="text-muted small">MODALIDAD CONTRATACIÓN</span><br>
-                                            <span class="fw-bold">{$adquisicion['modalidad']}</span>
-                                        </div>
-                                        <div class="border-end col-md-2">
-                                            <span class="text-muted small">ADQUISICIÓN</span><br>
-                                            <input type="hidden" id="id_compra" value="{$id_adq}">
-                                            <input type="hidden" id="id_contrato_compra" value="{$contrato['id_contrato_compra']}">
-                                            <span class="fw-bold">ADQ-{$adquisicion['id_adquisicion']}</span>
-                                        </div>
-                                        <div class="border-end col-md-3">
-                                            <span class="text-muted small">FECHA</span><br>
-                                            <span class="fw-bold">{$adquisicion['fecha_adquisicion']}</span>
-                                        </div>
-                                        <div class="border-end col-md-3">
-                                            <span class="text-muted small">ESTADO</span><br>
-                                            <span class="fw-bold">{$adquisicion['descripcion']}</span>
+                        <div class="accordion-body bg-body-tertiary">
+                            <input type="hidden" id="tipo_contrato" value="{$adquisicion['id_tipo']}">
+                            <input type="hidden" id="tipo_servicio" value="{$adquisicion['id_tipo_bn_sv']}">
+                            <input type="hidden" id="id_compra" value="{$id_adq}">
+                            <input type="hidden" id="id_contrato_compra" value="{$contrato['id_contrato_compra']}">
+                            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                                <div class="card-body p-0">
+                                    <!-- Header con info principal -->
+                                    <div class="bg-success bg-gradient text-white p-2">
+                                        <div class="row align-items-center">
+                                            <div class="col-auto">
+                                                <div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center shadow" style="width: 80px; height: 80px; font-size: 1.5rem; font-weight: 700;">
+                                                    <i class="fas fa-file-contract fa-lg"></i>
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <h5 class="mb-1 fw-bold">{$adquisicion['modalidad']}</h5>
+                                                <div class="d-flex flex-wrap gap-2 align-items-center">
+                                                    <span class="badge bg-light text-success rounded-pill px-3 py-2">
+                                                        <i class="fas fa-hashtag me-1"></i>ADQ-{$adquisicion['id_adquisicion']}
+                                                    </span>
+                                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                                        <i class="fas fa-info-circle me-1"></i>{$adquisicion['descripcion']}
+                                                    </span>
+                                                    <span class="badge bg-light text-success rounded-pill px-3 py-2">
+                                                        <i class="fas fa-calendar-alt me-1"></i>{$adquisicion['fecha_adquisicion']}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="row border">
-                                        <div class="col-md-12">
-                                            <span class="text-muted small">OBJETO</span><br>
-                                            <span class="fw-bold">{$adquisicion['objeto']}</span>
+                                    <!-- Info detallada -->
+                                    <div class="p-4">
+                                        <div class="row g-4">
+                                            <!-- Objeto del contrato -->
+                                            <div class="col-12">
+                                                <div class="card h-100 border-0 bg-light rounded-3">
+                                                    <div class="card-body">
+                                                        <h6 class="text-uppercase text-muted small mb-3">
+                                                            <i class="fas fa-bullseye text-primary me-2"></i>Objeto del Contrato
+                                                        </h6>
+                                                        <p class="fw-semibold mb-0" style="line-height: 1.6;">{$adquisicion['objeto']}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Tipo de Contrato y Servicio -->
+                                            <div class="col-md-6">
+                                                <div class="card h-100 border-0 bg-light rounded-3">
+                                                    <div class="card-body">
+                                                        <h6 class="text-uppercase text-muted small mb-3">
+                                                            <i class="fas fa-tag text-info me-2"></i>Tipo de Compra
+                                                        </h6>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="rounded-circle bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                                <i class="fas fa-shopping-cart"></i>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-muted small d-block">Categoría</span>
+                                                                <span class="fw-semibold">{$adquisicion['tipo_compra']}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Bien o Servicio -->
+                                            <div class="col-md-6">
+                                                <div class="card h-100 border-0 bg-light rounded-3">
+                                                    <div class="card-body">
+                                                        <h6 class="text-uppercase text-muted small mb-3">
+                                                            <i class="fas fa-boxes text-success me-2"></i>Bien o Servicio
+                                                        </h6>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                                <i class="fas fa-cubes"></i>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-muted small d-block">Tipo</span>
+                                                                <span class="fw-semibold">{$adquisicion['tipo_bn_sv']}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

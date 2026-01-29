@@ -32,8 +32,6 @@ $terceros = $Terceros->getTerceros();
 $terceros = array_column($terceros, 'id', 'cedula');
 
 $tipo_nomina = $nomina['tipo'];
-$descripcion = $nomina['descripcion'];
-$mes = $nomina['mes'] == '' ? '00' : $nomina['mes'];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -92,16 +90,11 @@ try {
     exit();
 }
 
-$meses = ['00' => '', '01' => 'Enero', '02' => 'Febrero', '03' => 'Marzo', '04' => 'Abril', '05' => 'Mayo', '06' => 'Junio', '07' => 'Julio', '08' => 'Agosto', '09' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 $iduser = $_SESSION['id_user'];
 
-if ($tipo_nomina == 'N') {
-    $objeto = 'LIQUIDACIÓN MENSUAL EMPLEADOS, ' . mb_strtoupper($meses[$mes]) . ' DE ' . $vigencia;
-} else {
-    $objeto = $descripcion . ' DE EMPLEADOS, NÓMINA No. ' . $id_nomina . ' VIGENCIA ' . $vigencia;
-}
+$objeto = $nomina['descripcion'];
 
 $tipo_doc_ceva = '4'; // CEVA - Comprobante de Egreso
 try {

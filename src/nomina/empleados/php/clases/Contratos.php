@@ -359,8 +359,21 @@ class Contratos
         }
     }
 
-    public function annulContrato($array)
+    public function editEstadoContrato($id, $estado)
     {
-        return 'Falta programar la anulación de contrato.';
+        try {
+            $sql = "UPDATE `nom_contratos_empleados` SET `estado` = ? WHERE (`id_contrato_emp` = ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $estado, PDO::PARAM_INT);
+            $stmt->bindValue(2, $id, PDO::PARAM_INT);
+            $stmt->execute();
+            if ($stmt->rowCount() > 0) {
+                return 'si';
+            } else {
+                return 'No se anuló el registro.';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
     }
 }

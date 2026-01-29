@@ -188,6 +188,16 @@ class Combos
         return (new self())->setConsulta($sql, $id);
     }
 
+    public  static function getConceptosNom($id)
+    {
+        $sql = "SELECT
+                    `id_concepto`, `concepto`
+                FROM
+                    `nom_conceptos_liquidacion`
+                ORDER BY `concepto` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
+
     public  static function getArea($id)
     {
         $sql = "SELECT `id_area`,`area` FROM `tb_area_c` ORDER BY `area` ASC";

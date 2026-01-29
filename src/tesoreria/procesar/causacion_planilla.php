@@ -192,37 +192,7 @@ foreach ($datos as $d) {
 $administrativo = $valores['administrativo'];
 $operativo = $valores['operativo'];
 
-// Configuración de meses y objeto
-$meses = [
-    '00' => '',
-    '01' => 'Enero',
-    '02' => 'Febrero',
-    '03' => 'Marzo',
-    '04' => 'Abril',
-    '05' => 'Mayo',
-    '06' => 'Junio',
-    '07' => 'Julio',
-    '08' => 'Agosto',
-    '09' => 'Septiembre',
-    '10' => 'Octubre',
-    '11' => 'Noviembre',
-    '12' => 'Diciembre'
-];
-
-$tiposNomina = [
-    'N' => 'MENSUAL',
-    'PS' => 'DE PRESTACIONES SOCIALES',
-    'VC' => 'DE VACACIONES',
-    'PV' => 'DE PRIMA DE SERVICIOS',
-    'RA' => 'DE RETROACTIVO',
-    'CE' => 'DE CESANTIAS',
-    'IC' => 'DE INTERESES DE CESANTIAS',
-    'VS' => 'DE VACACIONES'
-];
-$cual = $tiposNomina[$nomina['tipo']] ?? 'OTRAS';
-
-$nom_mes = isset($meses[$nomina['mes']]) ? 'MES DE ' . mb_strtoupper($meses[$nomina['mes']]) : '';
-$objeto = "PAGO NOMINA PATRONAL " . $cual . " N° " . $nomina['id_nomina'] . ' ' . $nom_mes . " VIGENCIA " . $nomina['vigencia'];
+$objeto = $nomina['descripcion'];
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');

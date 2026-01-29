@@ -6,6 +6,7 @@ use Config\Clases\Conexion;
 use Config\Clases\Sesion;
 use PDO;
 use PDOException;
+use Src\Common\Php\Clases\Combos;
 
 /**
  * Clase para gestionar de nomina de los empleados Liquidado.
@@ -111,6 +112,10 @@ class Reportes
 
     public function getFormulario($id_nomina)
     {
+        $conceptos = Combos::getConceptosNom(0);
+        $buscar = '<option value="17" >EMBARGO</option>';
+        $reemplazar = '<option value="90" >CONSOLIDADO</option>' . $buscar;
+        $conceptos = str_replace($buscar, $reemplazar, $conceptos);
         $html =
             <<<HTML
                 <div>
@@ -125,13 +130,15 @@ class Reportes
                                     <tr>
                                         <th class= "bg-sofia">ID</th>
                                         <th class= "bg-sofia">REPORTE</th>
-                                        <th class= "bg-sofia">ACCION</th>
+                                        <th class= "bg-sofia">OPCIONES</th>
+                                        <th class= "bg-sofia">ACCIÓN</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableReportesNomina">
                                     <tr>
                                         <td>1</td>
                                         <td class="text-start">LIBRANZAS</td>
+                                        <td></td>
                                         <td class="text-center">
                                             <button data-id="1" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 reportes" title="Excel" text="E"><span class="fas fa-file-excel fa-sm"></span></button>
                                             <button data-id="1" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 reportes" title="Imprimir" text="P"><span class="fas fa-print fa-sm"></span></button>
@@ -140,6 +147,7 @@ class Reportes
                                     <tr>
                                         <td>2</td>
                                         <td class="text-start">EMBARGOS</td>
+                                        <td></td>
                                         <td class="text-center">
                                             <button data-id="2" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 reportes" title="Excel" text="E"><span class="fas fa-file-excel fa-sm"></span></button>
                                             <button data-id="2" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 reportes" title="Imprimir" text="P"><span class="fas fa-print fa-sm"></span></button>
@@ -148,9 +156,23 @@ class Reportes
                                     <tr>
                                         <td>3</td>
                                         <td class="text-start">SINDICATOS</td>
+                                        <td></td>
                                         <td class="text-center">
                                             <button data-id="3" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 reportes" title="Excel" text="E"><span class="fas fa-file-excel fa-sm"></span></button>
                                             <button data-id="3" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 reportes" title="Imprimir" text="P"><span class="fas fa-print fa-sm"></span></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td class="text-start">CONCEPTOS LIQUIDADOS</td>
+                                        <td class="p-0">
+                                            <select id="concepto" class="form-select form-select-sm border-0 rounded-0">
+                                                {$conceptos}
+                                            </select>
+                                        </td>
+                                        <td class="text-center">
+                                            <button data-id="4" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 reportes" title="Excel" text="E"><span class="fas fa-file-excel fa-sm"></span></button>
+                                            <button data-id="4" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 reportes" title="Imprimir" text="P"><span class="fas fa-print fa-sm"></span></button>
                                         </td>
                                     </tr>
                                 </tbody>

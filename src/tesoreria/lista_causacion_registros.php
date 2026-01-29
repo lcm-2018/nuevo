@@ -101,7 +101,7 @@ try {
                     ?>
                             <tr>
                                 <td class="text-center"><?= $id_nomina ?></td>
-                                <td class="text-start"><?= $nm['descripcion'] . ' ' . $pl . ', NÓMINA No. ' . $nm['id_nomina'] . ' DE ' . $vigencia ?></td>
+                                <td class="text-start"><?= $nm['descripcion'] ?></td>
                                 <td class="text-start p-0"><input type="date" name="fec_doc[]" class="form-control form-control-sm bg-input border-0" value="' . $nm['fecha'] . '" min="' . $nm['fecha'] . '" max="' . $vigencia . '-12-31"></td>
                                 <td class="text-start"><?= $nm['nom_tercero'] ?></td>
                                 <td class="text-start text-end"><?= '$ ' . number_format($nm['valor'], 2, ',', '.') ?></td>

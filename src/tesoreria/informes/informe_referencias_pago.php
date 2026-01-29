@@ -1,4 +1,7 @@
 <?php
+
+use Config\Clases\Conexion;
+
 session_start();
 set_time_limit(5600);
 ini_set('display_errors', 1);
@@ -31,6 +34,10 @@ try {
                 , `tb_tipos_documento`.`codigo_ne`
                 , `ctb_doc`.`id_manu`
                 , `tt`.`valor`
+                , `cb`.`num_cuenta`
+                , `cb`.`tipo_cuenta`
+                , `b`.`cod_banco`
+                , `b`.`nom_banco`
             FROM
                 `ctb_doc`
                 INNER JOIN `tb_terceros` 
@@ -38,13 +45,17 @@ try {
                 INNER JOIN `tb_tipos_documento` 
                     ON (`tb_terceros`.`tipo_doc` = `tb_tipos_documento`.`id_tipodoc`)
                 INNER JOIN 
-                (SELECT
-                    SUM(`credito`) AS `valor`
-                    , `id_ctb_doc`
-                FROM
-                    `ctb_libaux`
-                GROUP BY `id_ctb_doc`) AS `tt`
-                    ON (`tt`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
+                    (SELECT
+                        SUM(`credito`) AS `valor`
+                        , `id_ctb_doc`
+                    FROM
+                        `ctb_libaux`
+                    GROUP BY `id_ctb_doc`) AS `tt`
+                        ON (`tt`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
+                LEFT JOIN `ctt_cuenta_bancaria` AS `cb`
+                    ON (`cb`.`id_tercero` = `ctb_doc`.`id_tercero`)
+                LEFT JOIN `tb_bancos` AS `b`
+                    ON (`b`.`id_banco` = `cb`.`id_banco`)
             WHERE (`ctb_doc`.`id_ref` = $id_referencia AND `ctb_doc`.`estado` = 2 AND `ctb_doc`.`id_tipo_doc` = 4)";
     $res = $cmd->query($sql);
     $causaciones = $res->fetchAll();
@@ -53,14 +64,6 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$id_t = [];
-
-foreach ($causaciones as $ca) {
-    if ($ca['id_tercero'] > 0) {
-        $id_t[] = $ca['id_tercero'];
-    }
-}
-$payload = json_encode($id_t);
 
 echo "\xEF\xBB\xBF";
 ?>
@@ -81,12 +84,11 @@ echo "\xEF\xBB\xBF";
     <?php
     $reg = 1;
     foreach ($causaciones as $c) {
-        $key = array_search($c['id_tercero'], array_column($bancos, 'id_tercero'));
-        $producto = $key !== false ? $bancos[$key]['num_cuenta'] : '';
-        $banco = $key !== false ? $bancos[$key]['nom_banco'] : '';
-        $tipo_cuenta = $key !== false ? $bancos[$key]['tipo_cuenta'] : '';
+        $producto = $c['num_cuenta'];
+        $banco = $c['nom_banco'];
+        $tipo_cuenta = $c['tipo_cuenta'];
         $detalle_cuenta = $tipo_cuenta != '' ? ($tipo_cuenta == 'Ahorros' ? 'CA' : 'CC') : '';
-        $cod_banco = $key !== false ? $bancos[$key]['cod_banco'] : '';
+        $cod_banco = $c['cod_banco'];
         $val = number_format($c['valor'], 2, ',', '');
         echo "<tr>
                 <td class='text-start'>{$reg}</td>

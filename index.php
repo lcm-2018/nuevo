@@ -351,14 +351,31 @@ $content = <<<HTML
     const pssClave = document.getElementById('pssClave');
     const eyeIcon = togglePassword.querySelector('i');
 
-    // Toggle password visibility on click
-    togglePassword.addEventListener('click', function(e) {
+    const showPassword = (e) => {
         e.preventDefault();
-        const type = pssClave.getAttribute('type') === 'password' ? 'text' : 'password';
-        pssClave.setAttribute('type', type);
-        eyeIcon.classList.toggle('fa-eye');
-        eyeIcon.classList.toggle('fa-eye-slash');
-    });
+        pssClave.setAttribute('type', 'text');
+        eyeIcon.classList.remove('fa-eye');
+        eyeIcon.classList.add('fa-eye-slash');
+    };
+
+    const hidePassword = (e) => {
+        e.preventDefault();
+        // In case the mouse is released outside the button
+        if (pssClave.getAttribute('type') === 'text') {
+            pssClave.setAttribute('type', 'password');
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        }
+    };
+
+    // Desktop events
+    togglePassword.addEventListener('mousedown', showPassword);
+    togglePassword.addEventListener('mouseup', hidePassword);
+    togglePassword.addEventListener('mouseleave', hidePassword);
+
+    // Mobile events
+    togglePassword.addEventListener('touchstart', showPassword, { passive: true });
+    togglePassword.addEventListener('touchend', hidePassword);
 
     // Efecto de focus en los inputs
     document.querySelectorAll('.form-control-login').forEach(input => {
