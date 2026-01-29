@@ -8,6 +8,7 @@
                 className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     $.post("../common/buscar_articulos_frm.php", {
+                        proceso: 'pceco',
                         id_sede: $('#sl_sede_prov').val(),
                         id_bodega: $('#sl_bodega_prov').val(),
                         id_subgrupo: sessionStorage.getItem("id_subgrupo")

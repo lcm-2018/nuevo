@@ -21,6 +21,7 @@
                         });
                     } else {
                         $.post("../common/buscar_lotes_frm.php", {
+                            proceso: 'mingr',
                             id_sede: $('#id_txt_sede').val(),
                             id_bodega: $('#id_txt_nom_bod').val(),
                             tipo: 'I',

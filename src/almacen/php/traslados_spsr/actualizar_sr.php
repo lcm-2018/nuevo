@@ -92,7 +92,8 @@ if (isset($_POST['id_seddes'])) {
                         $cmd1 = new PDO("$bd_driver:host=$ip;port=$port;dbname=$database;$charset", $user, $password);
                         $res['mensaje'] = 'ok';
 
-                        $sql = "SELECT id_traslado_origen,estado2 FROM far_traslado_r WHERE id_traslado_origen IN (" . $ids . ")";
+                        $sql = "SELECT id_traslado_origen,estado2 FROM far_traslado_r 
+                                WHERE id_traslado_origen IN (" . $ids . ") AND id_bodega_origen=$id_bodega_origen";
                         $rsR = $cmd1->query($sql);
                         if (!$rsR) {
                             $res['mensaje'] = 'Se perdió la conexión con el equipo remoto';

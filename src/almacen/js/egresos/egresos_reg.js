@@ -23,6 +23,7 @@
                         mjeError('Debe seleccionar un Número de Orden de Ingreso Fianza');
                     } else {
                         $.post("../common/buscar_lotes_frm.php", {
+                            proceso: 'megre',
                             id_sede: $('#sl_sede_egr').val(),
                             id_bodega: $('#sl_bodega_egr').val(),
                             id_subgrupo: sessionStorage.getItem("id_subgrupo")

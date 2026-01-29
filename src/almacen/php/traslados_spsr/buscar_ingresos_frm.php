@@ -5,9 +5,13 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+include '../common/funciones_generales.php';
 
 $cmd = \Config\Clases\Conexion::getConexion();
-$fecha_sis = date('Y-m-d');
+
+$fecha = fecha_hora_servidor();
+$fecha_sis = $fecha['fecha'];
+
 ?>
 
 <div class="px-0">

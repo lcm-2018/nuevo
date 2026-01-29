@@ -711,7 +711,7 @@ class Menu
         }
 
         // --- SECCIÓN: MOVIMIENTOS ---
-        // 5006: Ingresos, 5007: Egresos, 5008: Traslados, 5009: Recalcular, 5017: Traslado SPSR
+        // 5006: Ingresos, 5007: Egresos, 5008: Traslados, 5009: Recalcular, 5017: Traslados Egreso SPSR
         $mov_items = '';
 
         // 5006: [Movimientos][Ingresos]
@@ -727,9 +727,14 @@ class Menu
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-exchange-alt me-2 fa-fw"></i> Traslados</a></li>';
         }
         // 5017: [Movimientos][Traslado SPSR]
+<<<<<<< HEAD
+        /*if ($this->permisos->PermisosUsuario($this->opciones, 5017, 0) || $this->id_rol == 1) {
+            $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados Egreso SPSR</a></li>';
+=======
         /*
         if ($this->permisos->PermisosUsuario($this->opciones, 5017, 0) || $this->id_rol == 1) {
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados SPSR</a></li>';
+>>>>>>> cf06f2b0d4c8420b729084ac7f1d91c9937eb971
         }*/
         // 5009: [Movimientos][Recalcular]
         if ($this->permisos->PermisosUsuario($this->opciones, 5009, 0) || $this->id_rol == 1) {
