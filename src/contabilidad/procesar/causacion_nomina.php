@@ -98,18 +98,39 @@ try {
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT
-                    SUM(`nom_liq_cesantias`.`val_cesantias`) AS `val_cesantias`
-                    , SUM(`nom_liq_cesantias`.`val_icesantias`) AS `val_icesantias`
-                    , `nom_fondo_censan`.`id_tercero_api`
-                FROM
-                    `nom_liq_cesantias`
-                    INNER JOIN `nom_novedades_fc` 
-                        ON (`nom_liq_cesantias`.`id_empleado` = `nom_novedades_fc`.`id_empleado`)
-                    INNER JOIN `nom_fondo_censan` 
-                        ON (`nom_novedades_fc`.`id_fc` = `nom_fondo_censan`.`id_fc`)
-                WHERE (`nom_liq_cesantias`.`id_nomina` =  $id_nomina AND `nom_liq_cesantias`.`estado` = 1)
-                GROUP BY `nom_fondo_censan`.`id_tercero_api`";
+    // Para tipo CE: obtener id_tercero_api desde nom_terceros via nom_terceros_novedad (id_tipo=4 es fondo cesantías)
+    // Para tipo IC: obtener id_tercero_api desde tb_terceros usando no_documento del empleado
+    if ($tipo_nomina == 'CE') {
+        $sql = "SELECT
+                        SUM(`nom_liq_cesantias`.`val_cesantias`) AS `val_cesantias`
+                        , SUM(`nom_liq_cesantias`.`val_icesantias`) AS `val_icesantias`
+                        , `nom_terceros`.`id_tercero_api`
+                    FROM
+                        `nom_liq_cesantias`
+                        INNER JOIN `nom_terceros_novedad` 
+                            ON (`nom_liq_cesantias`.`id_empleado` = `nom_terceros_novedad`.`id_empleado`)
+                        INNER JOIN `nom_terceros` 
+                            ON (`nom_terceros_novedad`.`id_tercero` = `nom_terceros`.`id_tn`)
+                    WHERE (`nom_liq_cesantias`.`id_nomina` = $id_nomina 
+                        AND `nom_liq_cesantias`.`estado` = 1
+                        AND `nom_terceros`.`id_tipo` = 4)
+                    GROUP BY `nom_terceros`.`id_tercero_api`";
+    } else {
+        // Tipo IC: obtener id_tercero_api desde tb_terceros usando no_documento = nit_tercero
+        $sql = "SELECT
+                        SUM(`nom_liq_cesantias`.`val_cesantias`) AS `val_cesantias`
+                        , SUM(`nom_liq_cesantias`.`val_icesantias`) AS `val_icesantias`
+                        , `tb_terceros`.`id_tercero_api`
+                    FROM
+                        `nom_liq_cesantias`
+                        INNER JOIN `nom_empleado` 
+                            ON (`nom_liq_cesantias`.`id_empleado` = `nom_empleado`.`id_empleado`)
+                        INNER JOIN `tb_terceros` 
+                            ON (`nom_empleado`.`no_documento` = `tb_terceros`.`nit_tercero`)
+                    WHERE (`nom_liq_cesantias`.`id_nomina` = $id_nomina 
+                        AND `nom_liq_cesantias`.`estado` = 1)
+                    GROUP BY `tb_terceros`.`id_tercero_api`";
+    }
     $rs = $cmd->query($sql);
     $cesantias2 = $rs->fetchAll();
     $rs->closeCursor();
@@ -349,6 +370,7 @@ try {
                     break;
             }
 
+
             // Insertar solo si hay valor y rubro válido
             if ($valor > 0 && $rubro != '' && $id_det !== NULL) {
                 $sql0->execute();
@@ -358,72 +380,80 @@ try {
             }
         }
 
-        $filtro = [];
-        $filtro = array_filter($cuentas_causacion, function ($cuentas_causacion) use ($ccosto) {
-            return $cuentas_causacion["centro_costo"] == $ccosto;
-        });
-        foreach ($filtro as $ca) {
-            $valor = 0;
-            $credito = 0;
-            $tipo = $ca['id_tipo'];
-            $cuenta = $ca['cuenta'];
-            switch ($tipo) {
-                case 1:
-                    $valor = $dd['valor_laborado'];
-                    break;
-                case 2:
-                    $valor = $dd['horas_ext'];
-                    break;
-                case 3:
-                    $valor = $dd['g_representa'];
-                    break;
-                case 4:
-                    $valor = $dd['val_bon_recrea'];
-                    break;
-                case 5:
-                    $valor = $dd['val_bsp'];
-                    break;
-                case 6:
-                    $valor = $dd['aux_tran'];
-                    break;
-                case 7:
-                    $valor = $dd['aux_alim'];
-                    break;
-                case 8:
-                    $valor = $dd['valor_incap'] - $dd['pago_empresa'];
-                    break;
-                case 9:
-                    $valor = $dd['val_indemniza'];
-                    break;
-                case 17:
-                    $valor = $dd['valor_vacacion'];
-                    break;
-                case 18:
-                    $valor = $dd['val_cesantias'];
-                    break;
-                case 19:
-                    $valor = $dd['val_icesantias'];
-                    break;
-                case 20:
-                    $valor = $dd['val_prima_vac'];
-                    break;
-                case 21:
-                    $valor = $dd['valor_pv'];
-                    break;
-                case 22:
-                    $valor = $dd['valor_ps'];
-                    break;
-                case 32:
-                    $valor = $dd['pago_empresa'];
-                    break;
-                default:
-                    $valor = 0;
-                    break;
-            }
-            if ($valor > 0 && $cuenta != '') {
-                $sql1->execute();
-                if (!($cmd->lastInsertId() > 0)) {
-                    throw new Exception($sql1->errorInfo()[2]);
+        // Manejar múltiples centros de costo separados por comas
+        $ccosto = strval($ccosto); // Asegurar que sea string
+        $ccostos_array = strpos($ccosto, ',') !== false ? explode(',', $ccosto) : [$ccosto];
+        $num_ccostos = count($ccostos_array);
+
+        foreach ($ccostos_array as $ccosto_individual) {
+            $ccosto_individual = trim($ccosto_individual);
+            $filtro = [];
+            $filtro = array_filter($cuentas_causacion, function ($cuentas_causacion) use ($ccosto_individual) {
+                return $cuentas_causacion["centro_costo"] == $ccosto_individual;
+            });
+            foreach ($filtro as $ca) {
+                $valor = 0;
+                $credito = 0;
+                $tipo = $ca['id_tipo'];
+                $cuenta = $ca['cuenta'];
+                switch ($tipo) {
+                    case 1:
+                        $valor = $dd['valor_laborado'] / $num_ccostos;
+                        break;
+                    case 2:
+                        $valor = $dd['horas_ext'] / $num_ccostos;
+                        break;
+                    case 3:
+                        $valor = $dd['g_representa'] / $num_ccostos;
+                        break;
+                    case 4:
+                        $valor = $dd['val_bon_recrea'] / $num_ccostos;
+                        break;
+                    case 5:
+                        $valor = $dd['val_bsp'] / $num_ccostos;
+                        break;
+                    case 6:
+                        $valor = $dd['aux_tran'] / $num_ccostos;
+                        break;
+                    case 7:
+                        $valor = $dd['aux_alim'] / $num_ccostos;
+                        break;
+                    case 8:
+                        $valor = ($dd['valor_incap'] - $dd['pago_empresa']) / $num_ccostos;
+                        break;
+                    case 9:
+                        $valor = $dd['val_indemniza'] / $num_ccostos;
+                        break;
+                    case 17:
+                        $valor = $dd['valor_vacacion'] / $num_ccostos;
+                        break;
+                    case 18:
+                        $valor = $dd['val_cesantias'] / $num_ccostos;
+                        break;
+                    case 19:
+                        $valor = $dd['val_icesantias'] / $num_ccostos;
+                        break;
+                    case 20:
+                        $valor = $dd['val_prima_vac'] / $num_ccostos;
+                        break;
+                    case 21:
+                        $valor = $dd['valor_pv'] / $num_ccostos;
+                        break;
+                    case 22:
+                        $valor = $dd['valor_ps'] / $num_ccostos;
+                        break;
+                    case 32:
+                        $valor = $dd['pago_empresa'] / $num_ccostos;
+                        break;
+                    default:
+                        $valor = 0;
+                        break;
+                }
+                if ($valor > 0 && $cuenta != '') {
+                    $sql1->execute();
+                    if (!($cmd->lastInsertId() > 0)) {
+                        throw new Exception($sql1->errorInfo()[2]);
+                    }
                 }
             }
         }

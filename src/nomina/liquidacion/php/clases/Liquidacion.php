@@ -85,9 +85,8 @@ class Liquidacion
                     , IFNULL(`tt`.`vac`,0) AS `vac`
                     , IFNULL(`tt`.`ivac`,0) AS `ivac`
                     , `tt`.`ids_vac`
-                    , DATEDIFF(
-                        LEAST('$fec_fin', `taux`.`fec_fin`),
-                        GREATEST('$fec_inicio', `taux`.`fec_inicio`)) + 1 AS `dias_mes`
+                    , IF(DATE_FORMAT(LEAST('$fec_fin', `taux`.`fec_fin`), '%Y-%m-%d') = DATE_FORMAT(LAST_DAY(LEAST('$fec_fin', `taux`.`fec_fin`)), '%Y-%m-%d'), 30, LEAST(30, DAY(LEAST('$fec_fin', `taux`.`fec_fin`))))
+                        - IF(DATE_FORMAT(GREATEST('$fec_inicio', `taux`.`fec_inicio`), '%d') = '01', 1, LEAST(30, DAY(GREATEST('$fec_inicio', `taux`.`fec_inicio`)))) + 1 AS `dias_mes`
                     , IF(`obs`.`corte` > 0,  DATEDIFF('$fec_fin', `obs`.`corte`), 0) AS `observacion`
                 FROM
                     (SELECT 

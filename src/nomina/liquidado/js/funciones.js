@@ -99,7 +99,7 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
         event.preventDefault();
         const id = btnReportes.dataset.id;
         mostrarOverlay();
-        VerFormulario('../php/controladores/reportes.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+        VerFormulario('../php/controladores/reportes.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
     }
     if (btnEditar) {
         event.preventDefault();
@@ -121,6 +121,8 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
 
         // Determinar el archivo según el tipo de reporte
         let archivo = '';
+        let params = { id: id_nomina, tipo: text };
+
         switch (tipo_reporte) {
             case '1':
                 archivo = 'libranzas';
@@ -131,12 +133,22 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
             case '3':
                 archivo = 'sindicatos';
                 break;
+            case '4':
+                archivo = 'conceptos';
+                // Obtener el concepto seleccionado
+                const id_concepto = document.getElementById('concepto').value;
+                if (!id_concepto || id_concepto == '0') {
+                    mjeAlert('Atención', 'Debe seleccionar un concepto', 'warning');
+                    return;
+                }
+                params.id_concepto = id_concepto;
+                break;
             default:
                 console.error('Tipo de reporte no válido');
                 return;
         }
 
-        ImprimirReporte('../php/reportes/' + archivo + '.php', { id: id_nomina, tipo: text });
+        ImprimirReporte('../php/reportes/' + archivo + '.php', params);
     }
 
     if (btnGuardarNomina) {

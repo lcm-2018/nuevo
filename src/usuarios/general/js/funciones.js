@@ -118,7 +118,7 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
             mostrarOverlay();
             SendPost('../php/controladores/users.php', data).then((response) => {
                 if (response.status === 'ok') {
-                    tableUsersSystem.ajax.reload(null, false);
+                    tablaUsersSystem.ajax.reload(null, false);
                     mje('Guardado correctamente!');
                     $('#modalForms').modal('hide');
                 } else {

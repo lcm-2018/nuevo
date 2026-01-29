@@ -63,7 +63,8 @@ class Detalles
                             `nom_liq_descuento`
                             INNER JOIN `nom_otros_descuentos` 
                             ON (`nom_liq_descuento`.`id_dcto` = `nom_otros_descuentos`.`id_dcto`)
-                        WHERE (`nom_liq_descuento`.`estado` = 1 AND `nom_liq_descuento`.`id_nomina` = :id_nomina)),
+                        WHERE (`nom_liq_descuento`.`estado` = 1 AND `nom_liq_descuento`.`id_nomina` = :id_nomina)
+                        GROUP BY `nom_otros_descuentos`.`id_empleado`),
                     `liq` AS 
                         (SELECT `id_empleado`,`dias_liq`,`val_liq_dias`,`val_liq_auxt`,`aux_alim`,`g_representa`,`horas_ext` FROM `nom_liq_dlab_auxt` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `emb` AS 
@@ -107,13 +108,14 @@ class Detalles
                         GROUP BY `nom_licencia_luto`.`id_empleado`),
                     `lmp` AS 
                         (SELECT
-                            `nom_licenciasmp`.`id_empleado`, `nom_liq_licmp`.`val_liq`, `nom_liq_licmp`.`dias_liqs`
+                            `nom_licenciasmp`.`id_empleado`, SUM(`nom_liq_licmp`.`val_liq`) AS `val_liq`, SUM(`nom_liq_licmp`.`dias_liqs`) AS `dias_liqs`
                         FROM
                             `nom_liq_licmp`
                             INNER JOIN `nom_licenciasmp` 
                             ON (`nom_liq_licmp`.`id_licmp` = `nom_licenciasmp`.`id_licmp`)
                         WHERE (`nom_liq_licmp`.`estado` = 1
-                            AND `nom_liq_licmp`.`id_nomina` = :id_nomina)),
+                            AND `nom_liq_licmp`.`id_nomina` = :id_nomina)
+                        GROUP BY `nom_licenciasmp`.`id_empleado`),
                     `lcnr` AS
                         (SELECT
                             `nom_licenciasnr`.`id_empleado`, SUM(`nom_liq_licnr`.`dias_licnr`) AS `dias`
@@ -131,20 +133,28 @@ class Detalles
                         (SELECT `id_empleado`,`aporte_salud_emp`,`aporte_pension_emp`, `aporte_solidaridad_pensional`, `aporte_salud_empresa`, `aporte_pension_empresa`, `aporte_rieslab` FROM `nom_liq_segsocial_empdo` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `sind` AS 
                         (SELECT
-                            `nom_cuota_sindical`.`id_empleado`, `nom_liq_sindicato_aportes`.`val_aporte`
+                            `nom_cuota_sindical`.`id_empleado`, SUM(`nom_liq_sindicato_aportes`.`val_aporte`) AS `val_aporte`
                         FROM
                             `nom_liq_sindicato_aportes`
                             INNER JOIN `nom_cuota_sindical` 
                             ON (`nom_liq_sindicato_aportes`.`id_cuota_sindical` = `nom_cuota_sindical`.`id_cuota_sindical`)
-                        WHERE (`nom_liq_sindicato_aportes`.`id_nomina` = :id_nomina AND `nom_liq_sindicato_aportes`.`estado` = 1)),
+                        WHERE (`nom_liq_sindicato_aportes`.`id_nomina` = :id_nomina AND `nom_liq_sindicato_aportes`.`estado` = 1)
+                        GROUP BY `nom_cuota_sindical`.`id_empleado`),
                     `vac` AS 
                         (SELECT
-                            `nom_vacaciones`.`id_empleado`, `nom_liq_vac`.`val_liq`, `nom_liq_vac`.`val_prima_vac`, `nom_liq_vac`.`val_bon_recrea`, `nom_vacaciones`.`dias_habiles`, `nom_vacaciones`.`corte` AS `corte_vac`, `nom_vacaciones`.`dias_inactivo`
+                            `nom_vacaciones`.`id_empleado`, 
+                            SUM(`nom_liq_vac`.`val_liq`) AS `val_liq`, 
+                            SUM(`nom_liq_vac`.`val_prima_vac`) AS `val_prima_vac`, 
+                            SUM(`nom_liq_vac`.`val_bon_recrea`) AS `val_bon_recrea`, 
+                            SUM(`nom_vacaciones`.`dias_habiles`) AS `dias_habiles`, 
+                            MAX(`nom_vacaciones`.`corte`) AS `corte_vac`, 
+                            SUM(`nom_vacaciones`.`dias_inactivo`) AS `dias_inactivo`
                         FROM
                             `nom_liq_vac`
                             INNER JOIN `nom_vacaciones` 
                             ON (`nom_liq_vac`.`id_vac` = `nom_vacaciones`.`id_vac`)
-                        WHERE (`nom_liq_vac`.`estado` = 1 AND `nom_liq_vac`.`id_nomina` = :id_nomina)),
+                        WHERE (`nom_liq_vac`.`estado` = 1 AND `nom_liq_vac`.`id_nomina` = :id_nomina)
+                        GROUP BY `nom_vacaciones`.`id_empleado`),
                     `sal` AS 
                         (SELECT `id_empleado`,`sal_base`,`id_contrato`,`val_liq`, `metodo_pago` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `cargo` AS 
@@ -794,5 +804,663 @@ class Detalles
                 </div>
             HTML;
         return $html;
+    }
+
+    /**
+     * Obtiene los datos para el reporte por concepto (Netos u otros conceptos)
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @param int $id_concepto ID del concepto (1=Netos, etc.)
+     * @return array Datos de empleados con información bancaria y valores
+     */
+    public function getDatosReporteConcepto($id_nomina, $id_concepto)
+    {
+        // Concepto 1 = Netos (valor neto a pagar)
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    `m`.`nom_municipio` AS `municipio`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    `b`.`nom_banco` AS `banco`,
+                    `b`.`cod_banco`,
+                    `e`.`tipo_cta`,
+                    `e`.`cuenta_bancaria` AS `cuenta`,
+                    IFNULL(`l`.`dias_liq`, 0) AS `dias_liquidado`,
+                    (
+                        -- Devengados
+                        IFNULL(`l`.`val_liq_dias`, 0) + 
+                        IFNULL(`l`.`val_liq_auxt`, 0) + 
+                        IFNULL(`l`.`aux_alim`, 0) + 
+                        IFNULL(`l`.`g_representa`, 0) +
+                        IFNULL(`l`.`horas_ext`, 0) +
+                        IFNULL(`bsp`.`val_bsp`, 0) +
+                        IFNULL(`vac`.`val_liq`, 0) +
+                        IFNULL(`vac`.`val_prima_vac`, 0) +
+                        IFNULL(`vac`.`val_bon_recrea`, 0) +
+                        IFNULL(`pris`.`val_liq_ps`, 0) +
+                        IFNULL(`prin`.`val_liq_pv`, 0) +
+                        IFNULL(`ces`.`val_cesantias`, 0) +
+                        IFNULL(`ces`.`val_icesantias`, 0) +
+                        IFNULL(`com`.`val_compensa`, 0) +
+                        IFNULL(`inc`.`pago_empresa`, 0) +
+                        IFNULL(`inc`.`pago_eps`, 0) +
+                        IFNULL(`inc`.`pago_arl`, 0) +
+                        IFNULL(`luto`.`valor`, 0) +
+                        IFNULL(`lmp`.`val_liq`, 0)
+                        -- Deducciones
+                        - IFNULL(`segs`.`aporte_salud_emp`, 0) 
+                        - IFNULL(`segs`.`aporte_pension_emp`, 0) 
+                        - IFNULL(`segs`.`aporte_solidaridad_pensional`, 0)
+                        - IFNULL(`lib`.`valor`, 0)
+                        - IFNULL(`emb`.`valor`, 0)
+                        - IFNULL(`sind`.`val_aporte`, 0)
+                        - IFNULL(`rfte`.`val_ret`, 0)
+                        - IFNULL(`dcto`.`valor`, 0)
+                    ) AS `valor`
+                FROM 
+                    `nom_liq_salario` AS `sal`
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`sal`.`id_empleado` = `e`.`id_empleado`)
+                    INNER JOIN `tb_sedes` AS `s`
+                        ON (`e`.`sede_emp` = `s`.`id_sede`)
+                    LEFT JOIN `tb_municipios` AS `m` 
+                        ON (`s`.`id_municipio` = `m`.`id_municipio`)
+                    LEFT JOIN `tb_bancos` AS `b` 
+                        ON (`e`.`id_banco` = `b`.`id_banco`)
+                    LEFT JOIN `nom_liq_dlab_auxt` AS `l` 
+                        ON (`sal`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
+                    LEFT JOIN (
+                        SELECT `id_empleado`, `val_bsp` 
+                        FROM `nom_liq_bsp` 
+                        WHERE `id_nomina` = :id_nomina AND `estado` = 1
+                    ) AS `bsp` ON (`sal`.`id_empleado` = `bsp`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `id_empleado`, `val_cesantias`, `val_icesantias` 
+                        FROM `nom_liq_cesantias` 
+                        WHERE `id_nomina` = :id_nomina AND `estado` = 1
+                    ) AS `ces` ON (`sal`.`id_empleado` = `ces`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `id_empleado`, `val_compensa` 
+                        FROM `nom_liq_compesatorio` 
+                        WHERE `id_nomina` = :id_nomina AND `estado` = 1
+                    ) AS `com` ON (`sal`.`id_empleado` = `com`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `nom_incapacidad`.`id_empleado`, SUM(`nom_liq_incap`.`pago_empresa`) AS `pago_empresa`, SUM(`nom_liq_incap`.`pago_eps`) AS `pago_eps`, SUM(`nom_liq_incap`.`pago_arl`) AS `pago_arl`
+                        FROM `nom_liq_incap`
+                        INNER JOIN `nom_incapacidad` ON (`nom_liq_incap`.`id_incapacidad` = `nom_incapacidad`.`id_incapacidad`)
+                        WHERE `nom_liq_incap`.`estado` = 1 AND `nom_liq_incap`.`id_nomina` = :id_nomina
+                        GROUP BY `nom_incapacidad`.`id_empleado`
+                    ) AS `inc` ON (`sal`.`id_empleado` = `inc`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `nom_licencia_luto`.`id_empleado`, SUM(`nom_liq_licluto`.`val_liq`) AS `valor`
+                        FROM `nom_liq_licluto`
+                        INNER JOIN `nom_licencia_luto` ON (`nom_liq_licluto`.`id_licluto` = `nom_licencia_luto`.`id_licluto`)
+                        WHERE `nom_liq_licluto`.`estado` = 1 AND `nom_liq_licluto`.`id_nomina` = :id_nomina
+                        GROUP BY `nom_licencia_luto`.`id_empleado`
+                    ) AS `luto` ON (`sal`.`id_empleado` = `luto`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `nom_licenciasmp`.`id_empleado`, SUM(`nom_liq_licmp`.`val_liq`) AS `val_liq`
+                        FROM `nom_liq_licmp`
+                        INNER JOIN `nom_licenciasmp` ON (`nom_liq_licmp`.`id_licmp` = `nom_licenciasmp`.`id_licmp`)
+                        WHERE `nom_liq_licmp`.`estado` = 1 AND `nom_liq_licmp`.`id_nomina` = :id_nomina
+                        GROUP BY `nom_licenciasmp`.`id_empleado`
+                    ) AS `lmp` ON (`sal`.`id_empleado` = `lmp`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `nom_vacaciones`.`id_empleado`, 
+                               SUM(`nom_liq_vac`.`val_liq`) AS `val_liq`, 
+                               SUM(`nom_liq_vac`.`val_prima_vac`) AS `val_prima_vac`, 
+                               SUM(`nom_liq_vac`.`val_bon_recrea`) AS `val_bon_recrea`
+                        FROM `nom_liq_vac`
+                        INNER JOIN `nom_vacaciones` ON (`nom_liq_vac`.`id_vac` = `nom_vacaciones`.`id_vac`)
+                        WHERE `nom_liq_vac`.`estado` = 1 AND `nom_liq_vac`.`id_nomina` = :id_nomina
+                        GROUP BY `nom_vacaciones`.`id_empleado`
+                    ) AS `vac` ON (`sal`.`id_empleado` = `vac`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `id_empleado`, `val_liq_ps` FROM `nom_liq_prima` WHERE `estado` = 1 AND `id_nomina` = :id_nomina
+                    ) AS `pris` ON (`sal`.`id_empleado` = `pris`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `id_empleado`, `val_liq_pv` FROM `nom_liq_prima_nav` WHERE `estado` = 1 AND `id_nomina` = :id_nomina
+                    ) AS `prin` ON (`sal`.`id_empleado` = `prin`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `id_empleado`, `aporte_salud_emp`, `aporte_pension_emp`, `aporte_solidaridad_pensional`
+                        FROM `nom_liq_segsocial_empdo` 
+                        WHERE `id_nomina` = :id_nomina AND `estado` = 1
+                    ) AS `segs` ON (`sal`.`id_empleado` = `segs`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `nom_libranzas`.`id_empleado`, SUM(`nom_liq_libranza`.`val_mes_lib`) AS `valor`
+                        FROM `nom_liq_libranza`
+                        INNER JOIN `nom_libranzas` ON (`nom_liq_libranza`.`id_libranza` = `nom_libranzas`.`id_libranza`)
+                        WHERE `nom_liq_libranza`.`id_nomina` = :id_nomina AND `nom_liq_libranza`.`estado` = 1
+                        GROUP BY `nom_libranzas`.`id_empleado`
+                    ) AS `lib` ON (`sal`.`id_empleado` = `lib`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `nom_embargos`.`id_empleado`, SUM(`nom_liq_embargo`.`val_mes_embargo`) AS `valor`
+                        FROM `nom_liq_embargo`
+                        INNER JOIN `nom_embargos` ON (`nom_liq_embargo`.`id_embargo` = `nom_embargos`.`id_embargo`)
+                        WHERE `nom_liq_embargo`.`id_nomina` = :id_nomina AND `nom_liq_embargo`.`estado` = 1
+                        GROUP BY `nom_embargos`.`id_empleado`
+                    ) AS `emb` ON (`sal`.`id_empleado` = `emb`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `nom_cuota_sindical`.`id_empleado`, SUM(`nom_liq_sindicato_aportes`.`val_aporte`) AS `val_aporte`
+                        FROM `nom_liq_sindicato_aportes`
+                        INNER JOIN `nom_cuota_sindical` ON (`nom_liq_sindicato_aportes`.`id_cuota_sindical` = `nom_cuota_sindical`.`id_cuota_sindical`)
+                        WHERE `nom_liq_sindicato_aportes`.`id_nomina` = :id_nomina AND `nom_liq_sindicato_aportes`.`estado` = 1
+                        GROUP BY `nom_cuota_sindical`.`id_empleado`
+                    ) AS `sind` ON (`sal`.`id_empleado` = `sind`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `id_empleado`, `val_ret` FROM `nom_retencion_fte` WHERE `id_nomina` = :id_nomina AND `estado` = 1
+                    ) AS `rfte` ON (`sal`.`id_empleado` = `rfte`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `nom_otros_descuentos`.`id_empleado`, SUM(`nom_liq_descuento`.`valor`) AS `valor`
+                        FROM `nom_liq_descuento`
+                        INNER JOIN `nom_otros_descuentos` ON (`nom_liq_descuento`.`id_dcto` = `nom_otros_descuentos`.`id_dcto`)
+                        WHERE `nom_liq_descuento`.`estado` = 1 AND `nom_liq_descuento`.`id_nomina` = :id_nomina
+                        GROUP BY `nom_otros_descuentos`.`id_empleado`
+                    ) AS `dcto` ON (`sal`.`id_empleado` = `dcto`.`id_empleado`)
+                WHERE 
+                    `sal`.`id_nomina` = :id_nomina AND `sal`.`estado` = 1
+                ORDER BY 
+                    `m`.`nom_municipio` ASC, `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene el nombre del concepto por su ID
+     * 
+     * @param int $id_concepto ID del concepto
+     * @return string Nombre del concepto
+     */
+    public static function getNombreConcepto($id_concepto)
+    {
+        $sql = "SELECT `concepto` FROM `nom_conceptos_liquidacion` WHERE `id_concepto` = ?";
+        $stmt = Conexion::getConexion()->prepare($sql);
+        $stmt->bindValue(1, $id_concepto, PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($data) ? $data['concepto'] : 'CONCEPTO NO DEFINIDO';
+    }
+
+    /**
+     * Obtiene los datos para el reporte general (DOCUMENTO, NOMBRE, DIAS, VALOR)
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @param string $campoValor Campo de valor a obtener
+     * @param string $tablaOrigen Tabla de origen
+     * @return array Datos de empleados
+     */
+    public function getDatosReporteGeneral($id_nomina, $campoValor, $tablaOrigen, $joinExtra = '')
+    {
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    IFNULL(`l`.`dias_liq`, 0) AS `dias`,
+                    IFNULL(`t`.`{$campoValor}`, 0) AS `valor`
+                FROM 
+                    `nom_liq_salario` AS `sal`
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`sal`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `nom_liq_dlab_auxt` AS `l` 
+                        ON (`sal`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
+                    LEFT JOIN `{$tablaOrigen}` AS `t` 
+                        ON (`sal`.`id_empleado` = `t`.`id_empleado` AND `t`.`id_nomina` = :id_nomina {$joinExtra})
+                WHERE 
+                    `sal`.`id_nomina` = :id_nomina AND `sal`.`estado` = 1 AND `t`.`{$campoValor}` > 0
+                ORDER BY 
+                    `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los datos para el reporte de Horas Extras (con tipo de hora)
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos de empleados con detalle por tipo de hora
+     */
+    public function getDatosReporteHorasExtras($id_nomina)
+    {
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    IFNULL(`l`.`dias_liq`, 0) AS `dias`,
+                    `th`.`desc_he` AS `tipo_hora`,
+                    `het`.`cantidad_he` AS `cantidad`,
+                    `lhe`.`val_liq` AS `valor`
+                FROM 
+                    `nom_liq_horex` AS `lhe`
+                    INNER JOIN `nom_horas_ex_trab` AS `het` 
+                        ON (`lhe`.`id_he_lab` = `het`.`id_he_trab`)
+                    INNER JOIN `nom_tipo_horaex` AS `th` 
+                        ON (`het`.`id_he` = `th`.`id_he`)
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`het`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `nom_liq_dlab_auxt` AS `l` 
+                        ON (`e`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
+                WHERE 
+                    `lhe`.`id_nomina` = :id_nomina AND `lhe`.`estado` = 1
+                ORDER BY 
+                    `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC, `th`.`desc_he` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los datos para el reporte de Retención en la Fuente (con base de retención)
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos de empleados con base de retención
+     */
+    public function getDatosReporteRetencion($id_nomina)
+    {
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    IFNULL(`l`.`dias_liq`, 0) AS `dias`,
+                    `r`.`base` AS `base_retencion`,
+                    `r`.`val_ret` AS `valor`
+                FROM 
+                    `nom_retencion_fte` AS `r`
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`r`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `nom_liq_dlab_auxt` AS `l` 
+                        ON (`e`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
+                WHERE 
+                    `r`.`id_nomina` = :id_nomina AND `r`.`estado` = 1 AND `r`.`val_ret` > 0
+                ORDER BY 
+                    `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los datos para el reporte de Libranzas (con banco/entidad)
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos de empleados con detalle de banco
+     */
+    public function getDatosReporteLibranzas($id_nomina)
+    {
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    IFNULL(`l`.`dias_liq`, 0) AS `dias`,
+                    `t`.`nom_banco` AS `banco`,
+                    `ll`.`val_mes_lib` AS `valor`
+                FROM 
+                    `nom_liq_libranza` AS `ll`
+                    INNER JOIN `nom_libranzas` AS `lib` 
+                        ON (`ll`.`id_libranza` = `lib`.`id_libranza`)
+                    INNER JOIN `tb_bancos` AS `t` 
+                        ON (`lib`.`id_banco` = `t`.`id_banco`)
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`lib`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `nom_liq_dlab_auxt` AS `l` 
+                        ON (`e`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
+                WHERE 
+                    `ll`.`id_nomina` = :id_nomina AND `ll`.`estado` = 1
+                ORDER BY 
+                    `t`.`nom_banco` ASC, `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los datos para el reporte de Embargos (con juzgado)
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos de empleados con detalle de juzgado
+     */
+    public function getDatosReporteEmbargos($id_nomina)
+    {
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    IFNULL(`l`.`dias_liq`, 0) AS `dias`,
+                    `nt`.`nom_tercero` AS `juzgado`,
+                    `le`.`val_mes_embargo` AS `valor`
+                FROM 
+                    `nom_liq_embargo` AS `le`
+                    INNER JOIN `nom_embargos` AS `emb` 
+                        ON (`le`.`id_embargo` = `emb`.`id_embargo`)
+                    INNER JOIN `nom_terceros` AS `t` 
+                        ON (`emb`.`id_juzgado` = `t`.`id_tn`)
+                    INNER JOIN `tb_terceros` AS `nt` 
+                        ON (`t`.`id_tercero_api` = `nt`.`id_tercero_api`)
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`emb`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `nom_liq_dlab_auxt` AS `l` 
+                        ON (`e`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
+                WHERE 
+                    `le`.`id_nomina` = :id_nomina AND `le`.`estado` = 1
+                ORDER BY 
+                    `nt`.`nom_tercero` ASC, `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los datos para el reporte de Seguridad Social Empleado (Salud, Pensión)
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @param string $tipo 'salud' o 'pension'
+     * @return array Datos de empleados
+     */
+    public function getDatosReporteSeguridadSocial($id_nomina, $tipo = 'salud')
+    {
+        $campo = $tipo == 'salud' ? 'aporte_salud_emp' : 'aporte_pension_emp';
+
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    IFNULL(`l`.`dias_liq`, 0) AS `dias`,
+                    `ss`.`{$campo}` AS `valor`
+                FROM 
+                    `nom_liq_segsocial_empdo` AS `ss`
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`ss`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `nom_liq_dlab_auxt` AS `l` 
+                        ON (`e`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
+                WHERE 
+                    `ss`.`id_nomina` = :id_nomina AND `ss`.`estado` = 1 AND `ss`.`{$campo}` > 0
+                ORDER BY 
+                    `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los datos para el reporte de Sindicatos
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos de empleados con detalle de sindicato
+     */
+    public function getDatosReporteSindicatos($id_nomina)
+    {
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    IFNULL(`l`.`dias_liq`, 0) AS `dias`,
+                    `t`.`nom_tercero` AS `sindicato`,
+                    `ls`.`val_aporte` AS `valor`
+                FROM 
+                    `nom_liq_sindicato_aportes` AS `ls`
+                    INNER JOIN `nom_cuota_sindical` AS `cs` 
+                        ON (`ls`.`id_cuota_sindical` = `cs`.`id_cuota_sindical`)
+                    INNER JOIN `nom_terceros` AS `nt` 
+                        ON (`cs`.`id_sindicato` = `nt`.`id_tn`)
+                    INNER JOIN `tb_terceros` AS `t` 
+                        ON (`nt`.`id_tercero_api` = `t`.`id_tercero_api`)
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`cs`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `nom_liq_dlab_auxt` AS `l` 
+                        ON (`e`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
+                WHERE 
+                    `ls`.`id_nomina` = :id_nomina AND `ls`.`estado` = 1
+                ORDER BY 
+                    `t`.`nom_tercero` ASC, `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los datos para el reporte de Vacaciones
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos de empleados con detalle de vacaciones
+     */
+    public function getDatosReporteVacaciones($id_nomina)
+    {
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    `vac`.`dias_inactivo` AS `diasi`,
+                    `vac`.`dias_habiles` AS `diash`,
+                    2 AS `diasbr`,
+                    `lv`.`val_liq` AS `valor`,
+                    `lv`.`val_prima_vac` AS `prima_vac`,
+                    `lv`.`val_bon_recrea` AS `bon_recrea`
+                FROM 
+                    `nom_liq_vac` AS `lv`
+                    INNER JOIN `nom_vacaciones` AS `vac` 
+                        ON (`lv`.`id_vac` = `vac`.`id_vac`)
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`vac`.`id_empleado` = `e`.`id_empleado`)
+                WHERE 
+                    `lv`.`id_nomina` = :id_nomina AND `lv`.`estado` = 1
+                ORDER BY 
+                    `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los datos para el reporte de Incapacidades
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos de empleados con detalle de incapacidades
+     */
+    public function getDatosReporteIncapacidades($id_nomina)
+    {
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    `li`.`dias_liq` AS `dias`,
+                    `ti`.`tipo` AS `tipo_incapacidad`,
+                    `li`.`pago_empresa` + `li`.`pago_eps` + `li`.`pago_arl` AS `valor`
+                FROM 
+                    `nom_liq_incap` AS `li`
+                    INNER JOIN `nom_incapacidad` AS `inc` 
+                        ON (`li`.`id_incapacidad` = `inc`.`id_incapacidad`)
+                    INNER JOIN `nom_tipo_incapacidad` AS `ti` 
+                        ON (`inc`.`id_tipo` = `ti`.`id_tipo`)
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`inc`.`id_empleado` = `e`.`id_empleado`)
+                WHERE 
+                    `li`.`id_nomina` = :id_nomina AND `li`.`estado` = 1
+                ORDER BY 
+                    `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los datos para el reporte de Otros Descuentos
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos de empleados con detalle de descuentos
+     */
+    public function getDatosReporteOtrosDescuentos($id_nomina)
+    {
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    IFNULL(`l`.`dias_liq`, 0) AS `dias`,
+                    `od`.`descripcion` AS `concepto`,
+                    `ld`.`valor` AS `valor`
+                FROM 
+                    `nom_liq_descuento` AS `ld`
+                    INNER JOIN `nom_otros_descuentos` AS `od` 
+                        ON (`ld`.`id_dcto` = `od`.`id_dcto`)
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`od`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `nom_liq_dlab_auxt` AS `l` 
+                        ON (`e`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
+                WHERE 
+                    `ld`.`id_nomina` = :id_nomina AND `ld`.`estado` = 1
+                ORDER BY 
+                    `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los datos para el reporte de Indemnización de Vacaciones
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos de empleados con indemnización de vacaciones
+     */
+    public function getDatosReporteIndemnizacionVac($id_nomina)
+    {
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    `li`.`dias_liq` AS `dias`,
+                    `li`.`val_liq` AS `valor`
+                FROM 
+                    `nom_liq_indemniza_vac` AS `li`
+                    INNER JOIN `nom_indemniza_vac` AS `iv` 
+                        ON (`li`.`id_indemnizacion` = `iv`.`id_indemniza`)
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`iv`.`id_empleado` = `e`.`id_empleado`)
+                WHERE 
+                    `li`.`id_nomina` = :id_nomina AND `li`.`estado` = 1
+                ORDER BY 
+                    `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los datos para el reporte de Licencias Remuneradas
+     * Combina licencias de luto y licencias de maternidad/paternidad
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos de empleados con licencias remuneradas
+     */
+    public function getDatosReporteLicenciasRemuneradas($id_nomina)
+    {
+        $sql = "SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    `ll`.`dias_licluto` AS `dias`,
+                    'LICENCIA DE LUTO' AS `tipo_licencia`,
+                    `ll`.`val_liq` AS `valor`
+                FROM 
+                    `nom_liq_licluto` AS `ll`
+                    INNER JOIN `nom_licencia_luto` AS `lic` 
+                        ON (`ll`.`id_licluto` = `lic`.`id_licluto`)
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`lic`.`id_empleado` = `e`.`id_empleado`)
+                WHERE 
+                    `ll`.`id_nomina` = :id_nomina AND `ll`.`estado` = 1
+                
+                UNION ALL
+                
+                SELECT 
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    `lm`.`dias_liqs` AS `dias`,
+                    CASE `lic`.`tipo`
+                        WHEN 1 THEN 'LICENCIA DE MATERNIDAD'
+                        WHEN 2 THEN 'LICENCIA DE PATERNIDAD'
+                        ELSE 'LICENCIA REMUNERADA'
+                    END AS `tipo_licencia`,
+                    `lm`.`val_liq` AS `valor`
+                FROM 
+                    `nom_liq_licmp` AS `lm`
+                    INNER JOIN `nom_licenciasmp` AS `lic` 
+                        ON (`lm`.`id_licmp` = `lic`.`id_licmp`)
+                    INNER JOIN `nom_empleado` AS `e` 
+                        ON (`lic`.`id_empleado` = `e`.`id_empleado`)
+                WHERE 
+                    `lm`.`id_nomina` = :id_nomina AND `lm`.`estado` = 1
+                
+                ORDER BY 
+                    `nombre` ASC, `tipo_licencia` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
     }
 }
