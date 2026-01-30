@@ -69,7 +69,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
 <div class="px-0">
     <div class="shadow">
         <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
-            <h5 class="text-white mb-0">REGISTRAR TRASLADO SPSR</h5>
+            <h5 class="text-white mb-0">REGISTRAR TRASLADO EGRESO SPSR</h5>
         </div>
         <div class="p-2">
             <!--Formulario de registro de traslado-->

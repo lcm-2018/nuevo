@@ -701,9 +701,9 @@ class Menu
             $ped_items .= '<li><a href="' . $this->host . '/src/almacen/php/pedidos_cec/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fa fa-th-large me-2 fa-fw"></i> Dependencia</a></li>';
         }
         // 5018: [Pedidos][De Bodega SPSR]
-        /*if ($this->permisos->PermisosUsuario($this->opciones, 5018, 0) || $this->id_rol == 1) {
+        if ($this->permisos->PermisosUsuario($this->opciones, 5018, 0) || $this->id_rol == 1) {
             $ped_items .= '<li><a href="' . $this->host . '/src/almacen/php/pedidos_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-coins me-2 fa-fw"></i> Bodega SPSR</a></li>';
-        }*/
+        }
 
         $alm_pedidos = '';
         if (!empty($ped_items)) {
@@ -727,15 +727,9 @@ class Menu
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-exchange-alt me-2 fa-fw"></i> Traslados</a></li>';
         }
         // 5017: [Movimientos][Traslado SPSR]
-<<<<<<< HEAD
-        /*if ($this->permisos->PermisosUsuario($this->opciones, 5017, 0) || $this->id_rol == 1) {
-            $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados Egreso SPSR</a></li>';
-=======
-        /*
         if ($this->permisos->PermisosUsuario($this->opciones, 5017, 0) || $this->id_rol == 1) {
-            $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados SPSR</a></li>';
->>>>>>> cf06f2b0d4c8420b729084ac7f1d91c9937eb971
-        }*/
+            $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados Egreso SPSR</a></li>';
+        }
         // 5009: [Movimientos][Recalcular]
         if ($this->permisos->PermisosUsuario($this->opciones, 5009, 0) || $this->id_rol == 1) {
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/recalcular_kardex/index.php" class="nav-link text-danger px-1 py-2 sombra"><i class="fa fa-cogs me-2 fa-fw"></i> Recalcula Mtos.</a></li>';

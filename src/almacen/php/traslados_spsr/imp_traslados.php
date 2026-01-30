@@ -17,7 +17,7 @@ try {
     $bodega = bodega_principal($cmd);
     $id_bodega_origen = $bodega['id_bodega'] ? $bodega['id_bodega'] : 0;
 
-    $where = " WHERE far_traslado_r.id_traslado_origen IS NULL AND tb_bo.es_principal=1 AND far_traslado_r.id_bodega_origen=$id_bodega_origen";
+    $where = " WHERE far_traslado_r.id_traslado_origen IS NULL AND AND tb_bo.es_principal=1far_traslado_r.id_bodega_origen=$id_bodega_origen";
     if ($idrol != 1) {
         $where .= " AND far_traslado_r.id_bodega_origen IN (SELECT id_bodega FROM seg_bodegas_usuario WHERE id_usuario=$idusr)";
     }
@@ -91,7 +91,7 @@ try {
 
     <table style="width:100%; font-size:80%">
         <tr style="text-align:center">
-            <th>REPORTE DE TRASLADOS ENTRE: <?php echo $_POST['fec_ini'] . ' y ' . $_POST['fec_fin'] ?></th>
+            <th>REPORTE DE TRASLADOS EGRESO SPSR ENTRE: <?php echo $_POST['fec_ini'] . ' y ' . $_POST['fec_fin'] ?></th>
         </tr>
     </table>
 

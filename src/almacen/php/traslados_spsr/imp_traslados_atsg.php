@@ -17,7 +17,7 @@ $id_reporte = $_POST['id_reporte'];
 $titulo = '';
 switch ($id_reporte) {
     case '1':
-        $titulo = 'REPORTE DE TRASLADOS ENTRE:' . $_POST['fec_ini'] . ' y ' .  $_POST['fec_fin'] . ', TOTALIZADOS POR SUBGRUPO';
+        $titulo = 'REPORTE DE TRASLADOS EGRESO SPSR ENTRE:' . $_POST['fec_ini'] . ' y ' .  $_POST['fec_fin'] . ', TOTALIZADOS POR SUBGRUPO';
         break;
 }
 
