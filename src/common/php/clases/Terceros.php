@@ -27,7 +27,7 @@ class Terceros
             $where = " AND `tb_rel_tercero`.`id_tipo_tercero` = :tipo ";
         }
         if ($busca !== NULL) {
-            $where .= " AND `tb_terceros`.`id_tercero_api` LIKE :busca OR `nom_tercero` LIKE :busca OR `nit_tercero` LIKE :busca";
+            $where .= " AND (`tb_terceros`.`id_tercero_api` LIKE :busca OR `nom_tercero` LIKE :busca OR `nit_tercero` LIKE :busca)`";
         }
         $sql = "SELECT 
                     `tb_terceros`.`id_tercero_api` AS `id`

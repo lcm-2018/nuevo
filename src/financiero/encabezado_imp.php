@@ -14,6 +14,7 @@ try {
     $sql = "SELECT
                 `fin_maestro_doc`.`control_doc`
                 , `fin_maestro_doc`.`acumula`
+                , `fin_maestro_doc`.`costos`
                 , `tb_terceros`.`nom_tercero`
                 , `tb_terceros`.`nit_tercero`
                 , `tb_terceros`.`genero`
@@ -48,6 +49,9 @@ try {
     if (!isset($responsables[0]['acumula'])) {
         $responsables[0]['acumula'] = 0;
     }
+    $ver_costos = !empty($responsables) && isset($responsables[0]['costos'])
+        ? ($responsables[0]['costos'] != 1)
+        : true;
     $ver_acumula = $responsables[0]['acumula'] == 1 ?  true : false;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

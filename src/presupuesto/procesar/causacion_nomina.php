@@ -207,6 +207,7 @@ try {
         6  => 'aux_tran',
         7  => 'aux_alim',
         9  => 'val_indemniza',
+        10 => 'valor_luto',
         17 => 'valor_vacacion',
         18 => 'val_cesantias',
         19 => 'val_icesantias',
