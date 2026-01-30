@@ -227,4 +227,4 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
     </div>
 </div>
 
-<script type="text/javascript" src="../../js/traslados_spsr/traslados_spsr_reg.js?v=<?php echo date('YmdHis') ?>"></script>
+<script type="text/javascript" src="../../js/trasladose_spsr/trasladose_spsr_reg.js?v=<?php echo date('YmdHis') ?>"></script>

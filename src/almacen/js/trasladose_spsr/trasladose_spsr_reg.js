@@ -95,7 +95,6 @@
             }
         });
 
-
         $('#tb_traslado_detalles').wrap('<div class="overflow"/>');
     });
 })(jQuery);
