@@ -82,7 +82,7 @@ try {
                 WHERE `ctb_doc`.`id_crp` IS NOT NULL) AS `t1`
                 LEFT JOIN `tb_terceros` 
                     ON (`t1`.`id_tercero` = `tb_terceros`.`id_tercero_api`) 
-            WHERE  `valor` > `valor_pagado` AND `t1`.`fecha` BETWEEN '$ini' AND '$fin'
+            WHERE  `valor` > `valor_pagado` AND DATE_FORMAT(`t1`.`fecha`,'%Y-%m-%d') BETWEEN '$ini' AND '$fin'
             GROUP BY `id_ctb_doc`";
     } else {
         $sql = "SELECT 
@@ -122,7 +122,8 @@ try {
                         GROUP BY `ctb_libaux`.`id_ctb_doc`) AS `pagado`
                         ON(`causado`.`id_ctb_doc` = `pagado`.`id_ctb_doc_tipo3`)
                         LEFT JOIN `tb_terceros` 
-                            ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)";
+                            ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
+                WHERE DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') BETWEEN '$ini' AND '$fin'";
     }
     $sql2 = $sql;
     $rs = $cmd->query($sql);

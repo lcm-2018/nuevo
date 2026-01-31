@@ -86,9 +86,15 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
     // Extraer IDs únicos de EPS, ARL y AFP de los datos
-    $ids_eps = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'eps'), 'id'));
-    $ids_arl = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'arl'), 'id'));
-    $ids_afp = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'afp'), 'id'));
+    $ids_eps = array_unique(array_column(array_filter($datos, function ($d) {
+        return $d['tipo'] == 'eps';
+    }), 'id'));
+    $ids_arl = array_unique(array_column(array_filter($datos, function ($d) {
+        return $d['tipo'] == 'arl';
+    }), 'id'));
+    $ids_afp = array_unique(array_column(array_filter($datos, function ($d) {
+        return $d['tipo'] == 'afp';
+    }), 'id'));
 
     // Obtener terceros API de EPS
     if (!empty($ids_eps)) {

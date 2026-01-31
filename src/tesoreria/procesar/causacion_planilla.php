@@ -64,9 +64,15 @@ try {
     $idsTercero = [];
 
     // Extraer IDs únicos de cada tipo
-    $ids_eps = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'eps'), 'id'));
-    $ids_arl = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'arl'), 'id'));
-    $ids_afp = array_unique(array_column(array_filter($datos, fn($d) => $d['tipo'] == 'afp'), 'id'));
+    $ids_eps = array_unique(array_column(array_filter($datos, function ($d) {
+        return $d['tipo'] == 'eps';
+    }), 'id'));
+    $ids_arl = array_unique(array_column(array_filter($datos, function ($d) {
+        return $d['tipo'] == 'arl';
+    }), 'id'));
+    $ids_afp = array_unique(array_column(array_filter($datos, function ($d) {
+        return $d['tipo'] == 'afp';
+    }), 'id'));
 
     // Obtener terceros API de EPS desde nom_terceros
     if (!empty($ids_eps)) {

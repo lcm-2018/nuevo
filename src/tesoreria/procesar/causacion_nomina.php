@@ -73,12 +73,32 @@ try {
     $stmt->execute();
     $rubros = $stmt->fetchAll();
 
-    if ($tipo_nomina == 'CE' || $tipo_nomina == 'IC') {
+    if ($tipo_nomina == 'CE') {
         $sql = "SELECT SUM(`val_cesantias`) AS `val_cesantias`, SUM(`val_icesantias`) AS `val_icesantias`, `nom_fondo_censan`.`id_tercero_api`
                 FROM `nom_liq_cesantias`
-                INNER JOIN `nom_novedades_fc` ON (`nom_liq_cesantias`.`id_empleado` = `nom_novedades_fc`.`id_empleado`)
-                INNER JOIN `nom_fondo_censan` ON (`nom_novedades_fc`.`id_fc` = `nom_fondo_censan`.`id_fc`)
-                WHERE (`nom_liq_cesantias`.`id_nomina` =  ?) GROUP BY `nom_fondo_censan`.`id_tercero_api`";
+                INNER JOIN (
+                    SELECT `nf1`.`id_empleado`, `nf1`.`id_fc`
+                    FROM `nom_novedades_fc` `nf1`
+                    WHERE `nf1`.`id` = (
+                        SELECT MAX(`nf2`.`id`)
+                        FROM `nom_novedades_fc` `nf2`
+                        WHERE `nf2`.`id_empleado` = `nf1`.`id_empleado`
+                    )
+                ) AS `ultimo_fondo` ON (`nom_liq_cesantias`.`id_empleado` = `ultimo_fondo`.`id_empleado`)
+                INNER JOIN `nom_fondo_censan` ON (`ultimo_fondo`.`id_fc` = `nom_fondo_censan`.`id_fc`)
+                WHERE (`nom_liq_cesantias`.`id_nomina` = ? AND `nom_liq_cesantias`.`estado` = 1) 
+                GROUP BY `nom_fondo_censan`.`id_tercero_api`";
+        $stmt = $cmd->prepare($sql);
+        $stmt->bindParam(1, $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $cesantias2 = $stmt->fetchAll();
+    } elseif ($tipo_nomina == 'IC') {
+        $sql = "SELECT SUM(`val_cesantias`) AS `val_cesantias`, SUM(`val_icesantias`) AS `val_icesantias`, `tb_terceros`.`id_tercero_api`
+                FROM `nom_liq_cesantias`
+                INNER JOIN `nom_empleado` ON (`nom_liq_cesantias`.`id_empleado` = `nom_empleado`.`id_empleado`)
+                INNER JOIN `tb_terceros` ON (`nom_empleado`.`no_documento` = `tb_terceros`.`nit_tercero`)
+                WHERE (`nom_liq_cesantias`.`id_nomina` = ? AND `nom_liq_cesantias`.`estado` = 1) 
+                GROUP BY `tb_terceros`.`id_tercero_api`";
         $stmt = $cmd->prepare($sql);
         $stmt->bindParam(1, $id_nomina, PDO::PARAM_INT);
         $stmt->execute();
@@ -134,12 +154,103 @@ try {
     $stmt_libaux = $cmd->prepare($sql_libaux);
 
     $con_ces = 0;
+    // Preparar INSERT para pto_pag_detalle si el módulo presupuestal está activo
+    $stmt_pto_pag = null;
+    if ($_SESSION['pto'] == '1') {
+        $sql_pto_pag = "INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`)
+                        VALUES (?, ?, ?, ?, ?)";
+        $stmt_pto_pag = $cmd->prepare($sql_pto_pag);
+    }
+
     // Iterar sobre cada empleado liquidado
     foreach ($datos as $d) {
         $id_empleado = $d['id_empleado'];
         $id_ter_api = $terceros[$d['no_documento']];
         $total_pago_empleado = 0;
         $restar = 0;
+        $tipoCargo = $d['tipo_cargo'] ?? '1';
+
+        // Insertar registros de pago presupuestal si el módulo está activo
+        if ($_SESSION['pto'] == '1' && $stmt_pto_pag) {
+            $liberado = 0;
+            foreach ($rubros as $rb) {
+                $tipo = $rb['id_tipo'];
+                $rubro = ($tipoCargo == '1') ? $rb['r_admin'] : $rb['r_operativo'];
+                $valor_pto = 0;
+                $id_det = null;
+
+                // Buscar el detalle de COP correspondiente
+                foreach ($ids_detalle as $detalle) {
+                    if ($detalle['id_rubro'] == $rubro && $detalle['id_tercero_api'] == $id_ter_api) {
+                        $id_det = $detalle['id_pto_cop_det'];
+                        break;
+                    }
+                }
+
+                // Determinar el valor según el tipo de rubro
+                switch ($tipo) {
+                    case 1: // Salario básico
+                        $valor_pto = $d['valor_laborado'] + $d['val_compensa'];
+                        break;
+                    case 2: // Horas extras
+                        $valor_pto = $d['horas_ext'];
+                        break;
+                    case 3: // Gastos de representación
+                        $valor_pto = $d['g_representa'];
+                        break;
+                    case 4: // Bonificación recreación
+                        $valor_pto = $d['val_bon_recrea'];
+                        break;
+                    case 5: // BSP
+                        $valor_pto = $d['val_bsp'];
+                        break;
+                    case 6: // Auxilio de transporte
+                        $valor_pto = $d['aux_tran'];
+                        break;
+                    case 7: // Auxilio de alimentación
+                        $valor_pto = $d['aux_alim'];
+                        break;
+                    case 8: // Incapacidades (pago EPS/ARL)
+                        $valor_pto = $d['valor_incap'] - $d['pago_empresa'];
+                        break;
+                    case 9: // Indemnización
+                        $valor_pto = $d['val_indemniza'];
+                        break;
+                    case 10: // Indemnización
+                        $valor_pto = $d['valor_luto'];
+                        break;
+                    case 17: // Vacaciones
+                        $valor_pto = $d['valor_vacacion'];
+                        break;
+                    case 18: // Cesantías
+                        $valor_pto = $d['val_cesantias'];
+                        break;
+                    case 19: // Intereses cesantías
+                        $valor_pto = $d['val_icesantias'];
+                        break;
+                    case 20: // Prima de vacaciones
+                        $valor_pto = $d['val_prima_vac'];
+                        break;
+                    case 21: // Prima de navidad
+                        $valor_pto = $d['valor_pv'];
+                        break;
+                    case 22: // Prima de servicios
+                        $valor_pto = $d['valor_ps'];
+                        break;
+                    case 32: // Pago empresa (incapacidades)
+                        $valor_pto = $d['pago_empresa'];
+                        break;
+                    default:
+                        $valor_pto = 0;
+                        break;
+                }
+
+                if ($valor_pto > 0 && !empty($rubro) && $id_det !== null) {
+                    $stmt_pto_pag->execute([$id_ctb_doc_ceva, $id_det, $valor_pto, $liberado, $id_ter_api]);
+                }
+            }
+        }
+
 
         if (($tipo_nomina == 'CE' || $tipo_nomina == 'IC')) {
             if ($con_ces == 0) {
@@ -208,6 +319,9 @@ try {
                     case 9:
                         $valor = $d['val_indemniza'];
                         break;
+                    case 10:
+                        $valor = $d['valor_luto'];
+                        break;
                     case 17:
                         $valor = $d['valor_vacacion'] - $restar;
                         if ($valor < 0) {
@@ -237,24 +351,6 @@ try {
                         break;
                     case 22:
                         $valor = $d['valor_ps'];
-                        break;
-                    case 24:
-                        $valor = $d['valor_pension'] + $d['val_psolidaria'];
-                        break;
-                    case 25:
-                        $valor = $d['valor_salud'];
-                        break;
-                    case 26:
-                        $valor = $d['valor_sind'];
-                        break;
-                    case 28:
-                        $valor = $d['valor_libranza'];
-                        break;
-                    case 29:
-                        $valor = $d['valor_embargo'];
-                        break;
-                    case 30:
-                        $valor = $d['val_retencion'];
                         break;
                     case 32:
                         $valor = $d['pago_empresa'] - $restar;

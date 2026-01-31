@@ -98,8 +98,6 @@ try {
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    // Para tipo CE: obtener id_tercero_api desde nom_terceros via nom_terceros_novedad (id_tipo=4 es fondo cesantías)
-    // Para tipo IC: obtener id_tercero_api desde tb_terceros usando no_documento del empleado
     if ($tipo_nomina == 'CE') {
         $sql = "SELECT
                         SUM(`nom_liq_cesantias`.`val_cesantias`) AS `val_cesantias`
@@ -107,16 +105,25 @@ try {
                         , `nom_terceros`.`id_tercero_api`
                     FROM
                         `nom_liq_cesantias`
-                        INNER JOIN `nom_terceros_novedad` 
-                            ON (`nom_liq_cesantias`.`id_empleado` = `nom_terceros_novedad`.`id_empleado`)
+                        INNER JOIN (
+                            SELECT `tn1`.`id_empleado`, `tn1`.`id_tercero`
+                            FROM `nom_terceros_novedad` `tn1`
+                            INNER JOIN `nom_terceros` `nt1` ON (`tn1`.`id_tercero` = `nt1`.`id_tn`)
+                            WHERE `nt1`.`id_tipo` = 4
+                            AND `tn1`.`id_novedad` = (
+                                SELECT MAX(`tn2`.`id_novedad`)
+                                FROM `nom_terceros_novedad` `tn2`
+                                INNER JOIN `nom_terceros` `nt2` ON (`tn2`.`id_tercero` = `nt2`.`id_tn`)
+                                WHERE `tn2`.`id_empleado` = `tn1`.`id_empleado`
+                                AND `nt2`.`id_tipo` = 4
+                            )
+                        ) AS `ultimo_fondo` ON (`nom_liq_cesantias`.`id_empleado` = `ultimo_fondo`.`id_empleado`)
                         INNER JOIN `nom_terceros` 
-                            ON (`nom_terceros_novedad`.`id_tercero` = `nom_terceros`.`id_tn`)
+                            ON (`ultimo_fondo`.`id_tercero` = `nom_terceros`.`id_tn`)
                     WHERE (`nom_liq_cesantias`.`id_nomina` = $id_nomina 
-                        AND `nom_liq_cesantias`.`estado` = 1
-                        AND `nom_terceros`.`id_tipo` = 4)
+                        AND `nom_liq_cesantias`.`estado` = 1)
                     GROUP BY `nom_terceros`.`id_tercero_api`";
     } else {
-        // Tipo IC: obtener id_tercero_api desde tb_terceros usando no_documento = nit_tercero
         $sql = "SELECT
                         SUM(`nom_liq_cesantias`.`val_cesantias`) AS `val_cesantias`
                         , SUM(`nom_liq_cesantias`.`val_icesantias`) AS `val_icesantias`
@@ -529,13 +536,16 @@ try {
                         $val_dcto = $dd['valor_dcto'];
 
                         $sgs = $dd['valor_salud'] + $dd['valor_pension'] + $dd['val_psolidaria'];
-                        $credito = $dd['valor_laborado'] + $dd['horas_ext'] + $dd['g_representa'] + $dd['aux_tran'] + $dd['aux_alim'] - ($sgs + $valSind + $valLib + $valEmb + $valRteFte + $val_dcto);
+                        $credito = $dd['valor_laborado'] + $dd['horas_ext'] + $dd['aux_tran'] + $dd['aux_alim'] - ($sgs + $valSind + $valLib + $valEmb + $valRteFte + $val_dcto);
                         if ($credito < 0) {
                             $restar = $credito * -1;
                             $credito = 0;
                         } else {
                             $restar = 0;
                         }
+                        break;
+                    case 3:
+                        $credito = $dd['g_representa'];
                         break;
                     case 4:
                         $credito = $dd['val_bsp'];
