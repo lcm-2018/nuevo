@@ -66,6 +66,9 @@ $content = <<<HTML
                         <th rowspan="2" class="text-center bg-sofia" title="Neto a Pagar">NETO</th>
                         <th rowspan="2" class="text-center bg-sofia">Patronal</th>
                         <th rowspan="2" class="text-center bg-sofia">ACCIONES</th>
+                        <th rowspan="2" class="text-center bg-sofia" title="NIT EPS">NIT EPS</th>
+                        <th rowspan="2" class="text-center bg-sofia" title="NIT AFP">NIT AFP</th>
+                        <th rowspan="2" class="text-center bg-sofia" title="NIT ARL">NIT ARL</th>
                     </tr>
                     <tr>
                         <th class="text-center bg-sofia border" title="Incapacidades">INC.</th>

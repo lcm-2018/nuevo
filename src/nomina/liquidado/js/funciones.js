@@ -143,6 +143,67 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
                 }
                 params.id_concepto = id_concepto;
                 break;
+            case '5':
+                // Envío masivo de desprendibles
+                Swal.fire({
+                    title: '¿Enviar desprendibles masivamente?',
+                    html: `<p>Se enviarán los desprendibles de nómina a <strong>todos los empleados</strong> de esta liquidación que tengan correo electrónico registrado.</p>
+                           <p class="text-warning"><i class="fas fa-exclamation-triangle"></i> Este proceso puede tardar varios minutos dependiendo del número de empleados.</p>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#16a085',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: '<i class="fas fa-paper-plane"></i> Sí, enviar a todos',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        mostrarOverlay();
+                        Swal.fire({
+                            title: 'Enviando desprendibles...',
+                            html: 'Por favor espere, este proceso puede tardar varios minutos.<br><br><i class="fas fa-spinner fa-spin fa-2x"></i>',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                var data = new FormData();
+                                data.append('id_nomina', id_nomina);
+                                SendPost('../php/reportes/enviar_masivo.php', data).then((response) => {
+                                    Swal.close();
+                                    if (response.status === 'ok') {
+                                        let detalles = '';
+                                        if (response.stats) {
+                                            detalles = `<br><br><strong>Resumen:</strong><br>
+                                                        ✅ Enviados: ${response.stats.enviados}<br>
+                                                        📭 Sin correo: ${response.stats.sin_correo}<br>
+                                                        ❌ Fallidos: ${response.stats.fallidos}`;
+                                        }
+                                        Swal.fire({
+                                            title: '¡Proceso completado!',
+                                            html: response.msg + detalles,
+                                            icon: 'success'
+                                        });
+                                    } else {
+                                        Swal.fire({
+                                            title: 'Error',
+                                            text: response.msg,
+                                            icon: 'error'
+                                        });
+                                    }
+                                }).catch((error) => {
+                                    Swal.close();
+                                    Swal.fire({
+                                        title: 'Error',
+                                        text: 'Ocurrió un error durante el envío: ' + error,
+                                        icon: 'error'
+                                    });
+                                }).finally(() => {
+                                    ocultarOverlay();
+                                });
+                            }
+                        });
+                    }
+                });
+                return; // Salir porque el envío masivo maneja su propia lógica
             default:
                 console.error('Tipo de reporte no válido');
                 return;

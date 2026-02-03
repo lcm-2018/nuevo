@@ -5,6 +5,10 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
+ini_set('memory_limit', '-1');
+//tiempo de espera ilimitado
+set_time_limit(0);
+
 header("Content-type: application/vnd.ms-excel charset=utf-8");
 header("Content-Disposition: attachment; filename=Relacion_Ingresos.xls");
 header("Pragma: no-cache");
@@ -196,6 +200,7 @@ try {
 }
 $body = '';
 foreach ($lista as $r) {
+    $valor = $r['valor'] > 0 ? $r['valor'] : $r['liberado'] * -1;
     $body .= "<tr>
                 <td>{$r['cod_rubro']}</td>
                 <td>{$r['fecha']}</td>
@@ -203,8 +208,7 @@ foreach ($lista as $r) {
                 <td>{$r['id_manu']}</td>
                 <td>{$r['nom_tercero']}</td>
                 <td>{$r['objeto']}</td>
-                <td>{$r['valor']}</td>
-                <td>{$r['liberado']}</td>
+                <td>{$valor}</td>
                 <td>{$r['cuenta']}</td>
                 <td>{$r['sia']}</td>
             </tr>";
@@ -229,7 +233,6 @@ echo "\xEF\xBB\xBF";
         <th>Recibido De</th>
         <th>Concepto Recaudo</th>
         <th>Valor</th>
-        <th>Liberado</th>
         <th>No.Cuenta Bancaria Destino</th>
         <th>Banco</th>
     </tr>

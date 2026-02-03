@@ -392,6 +392,7 @@ class Liquidacion
         $horas =            (new Horas_Extra())->getHorasPorMes($inicia, $fin);
         $incapacidades =    (new Incapacidades())->getRegistroPorEmpleado($inicia, $fin);
         $vacaciones =       (new Vacaciones())->getRegistroPorEmpleado($inicia, $fin);
+        $vacPagadas =       (new Vacaciones())->getRegistroPago($inicia, $fin);
         $licenciasMP =      (new Licencias_MoP())->getRegistroPorEmpleado($inicia, $fin);
         $licenciaNR =       (new Licencias_Norem())->getRegistroPorEmpleado($inicia, $fin);
         $licenciaLuto =     (new Licencias_Luto())->getRegistroPorEmpleado($inicia, $fin);
@@ -517,6 +518,20 @@ class Liquidacion
                         }
                     }
 
+                    $valTotVacIbc = $valTotVac;
+                    $valTotPrimVacIbc = $valTotPrimVac;
+                    $valBonRecIbc = $valBonRec;
+
+                    //verificar si $valTotVac es igual a 0
+                    if ($valTotVac == 0) {
+                        if (isset($vacPagadas[$id_empleado])) {
+                            foreach ($vacPagadas[$id_empleado] as $vp) {
+                                $valTotVacIbc += $vp['val_vac'];
+                                $valTotPrimVacIbc += $vp['prima_vac'];
+                                $valBonRecIbc += $vp['bon_recrea'];
+                            }
+                        }
+                    }
                     //liquidar licencias mop
                     $valTotLicMP = 0;
                     $filtro = $licenciasMP[$id_empleado][0] ?? [];
@@ -630,7 +645,7 @@ class Liquidacion
                     if ($empleados[$id_empleado]['salario_integral'] == 1) {
                         $ibc = $valTotalLab * 0.7;
                     } else {
-                        $ibc = $valTotalLab + $valTotalHe + $valTotIncap + $valTotalBSP + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVac;
+                        $ibc = $valTotalLab + $valTotalHe + $valTotIncap + $valTotalBSP + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVacIbc;
                     }
 
                     $response = $this->LiquidaSeguridadSocial($param, $novedad, $ibc, $tipo_emp, $subtipo_emp, $laborado[$id_empleado]);

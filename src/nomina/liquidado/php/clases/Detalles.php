@@ -130,7 +130,31 @@ class Detalles
                     `prin` AS
                         (SELECT `id_empleado`,`val_liq_pv`, `cant_dias` AS `dias_pn`, `corte` AS `corte_pn` FROM `nom_liq_prima_nav` WHERE `estado` = 1 AND `id_nomina` = :id_nomina),
                     `segs` AS
-                        (SELECT `id_empleado`,`aporte_salud_emp`,`aporte_pension_emp`, `aporte_solidaridad_pensional`, `aporte_salud_empresa`, `aporte_pension_empresa`, `aporte_rieslab` FROM `nom_liq_segsocial_empdo` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT 
+                            `nlsse`.`id_empleado`,
+                            `tbt`.`nit_tercero` AS `nit_eps`,
+                            `nlsse`.`aporte_salud_emp`,
+                            `tbt2`.`nit_tercero` AS `nit_afp`,
+                            `nlsse`.`aporte_pension_emp`, 
+                            `nlsse`.`aporte_solidaridad_pensional`, 
+                            `nlsse`.`aporte_salud_empresa`, 
+                            `nlsse`.`aporte_pension_empresa`, 
+                            `tbt3`.`nit_tercero` AS `nit_arl`,
+                            `nlsse`.`aporte_rieslab` 
+                        FROM `nom_liq_segsocial_empdo`  as `nlsse`
+                            INNER JOIN `nom_terceros` as `eps`
+                                ON (`nlsse`.`id_eps` = `eps`.`id_tn`)
+                            INNER JOIN `nom_terceros` as `afp`
+                                ON (`nlsse`.`id_afp` = `afp`.`id_tn`)
+                            INNER JOIN `nom_terceros` as `arl`
+                                ON (`nlsse`.`id_arl` = `arl`.`id_tn`)
+                            LEFT JOIN `tb_terceros` as `tbt`
+                                ON (`eps`.`id_tercero_api` = `tbt`.`id_tercero_api`)
+                            LEFT JOIN `tb_terceros` as `tbt2`
+                                ON (`afp`.`id_tercero_api` = `tbt2`.`id_tercero_api`)
+                            LEFT JOIN `tb_terceros` as `tbt3`
+                                ON (`arl`.`id_tercero_api` = `tbt3`.`id_tercero_api`)
+                        WHERE `nlsse`.`id_nomina` = :id_nomina AND `nlsse`.`estado` = 1),
                     `sind` AS 
                         (SELECT
                             `nom_cuota_sindical`.`id_empleado`, SUM(`nom_liq_sindicato_aportes`.`val_aporte`) AS `val_aporte`
@@ -247,6 +271,9 @@ class Detalles
                     , `nom`.`tipo` AS `codigo_nomina`
                     , `nom`.`estado` AS `estado_nomina`
                     , IFNULL(`ccosto`.`id_ccosto`,21) AS `id_ccosto`
+                    , `segs`.`nit_eps`
+                    , `segs`.`nit_afp`
+                    , `segs`.`nit_arl`
                 FROM `nom_empleado` `e`
                     INNER JOIN `sal` ON (`sal`.`id_empleado` = `e`.`id_empleado`)
                     INNER JOIN `tb_sedes` `ts` ON (`ts`.`id_sede` = `e`.`sede_emp`)
@@ -456,6 +483,7 @@ class Detalles
                             <div class="accordion" id="acordeonDetallesNom">
                                 <div class="text-end mb-2">
                                     <button type="button" class="btn btn-outline-warning btn-sm" id="btnImprimir" title="Imprimir desprendible de nómina" data-id="{$dataid}"><i class="fas fa-print"></i></button>
+                                    <button type="button" class="btn btn-outline-info btn-sm" id="btnEnviarCorreo" title="Enviar desprendible por correo" data-id="{$dataid}"><i class="fas fa-envelope"></i></button>
                                 </div>
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">

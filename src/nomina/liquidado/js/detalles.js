@@ -46,6 +46,9 @@ const tableDetallesNomina = crearDataTable(
         { data: 'neto' },
         { data: 'patronal' },
         { data: 'accion' },
+        { data: 'nit_eps' },
+        { data: 'nit_afp' },
+        { data: 'nit_arl' },
     ],
     [
         {
@@ -54,7 +57,7 @@ const tableDetallesNomina = crearDataTable(
             className: 'btn btn-outline-success',
             titleAttr: 'Exportar a Excel Empleados',
             exportOptions: {
-                columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 38, 39, 40, 41]
+                columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 38, 39, 40, 41, 43, 44, 45, 46]
             }
         },
         {
@@ -63,7 +66,7 @@ const tableDetallesNomina = crearDataTable(
             className: 'btn btn-outline-info',
             titleAttr: 'Exportar a Excel Patronal',
             exportOptions: {
-                columns: [0, 1, 2, 3, 4, 29, 30, 31, 32, 33, 34, 42]
+                columns: [0, 1, 2, 3, 4, 29, 30, 31, 32, 33, 34, 42, 43, 44, 45, 46]
             }
         }
     ],
@@ -79,7 +82,7 @@ const tableDetallesNomina = crearDataTable(
         scrollY: '80vh',
         columnDefs: [
             {
-                targets: [32, 33, 34, 42],
+                targets: [32, 33, 34, 42, 43, 44, 45, 46],
                 visible: false
             }
         ]
@@ -187,6 +190,35 @@ document.getElementById('modalForms').addEventListener('click', function (event)
             event.preventDefault();
             const id = boton.dataset.id;
             ImprimirReporte('../php/reportes/desprendible.php', { id: id });
+            break;
+        case 'btnEnviarCorreo':
+            event.preventDefault();
+            const idCorreo = boton.dataset.id;
+            Swal.fire({
+                title: '¿Enviar desprendible por correo?',
+                text: 'Se enviará el desprendible de nómina al correo registrado del empleado.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, enviar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    mostrarOverlay();
+                    var data = new FormData();
+                    data.append('id', idCorreo);
+                    SendPost('../php/reportes/enviar_desprendible.php', data).then((response) => {
+                        if (response.status === 'ok') {
+                            mje(response.msg);
+                        } else {
+                            mjeError('Error!', response.msg);
+                        }
+                    }).finally(() => {
+                        ocultarOverlay();
+                    });
+                }
+            });
             break;
     }
 });

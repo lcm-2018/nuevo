@@ -262,7 +262,7 @@ if ($id_r == 3) {
                             $valor_liquidado = $key !== false ? $liquidados[$key]['valor'] : 0;
                             $key = array_search($id_crp, array_column($causados, 'id_pto_crp'));
                             $valor_causado = $key !== false ? $causados[$key]['valor'] : 0;
-                            $saldo_rp = $valor_liquidado + $sum_lq - $sum_cs - $valor_causado;
+                            $saldo_rp = $valor_liquidado - $valor_causado;
                             if ($ce['num_contrato'] != '') {
                                 $numeroc = $ce['num_contrato'];
                                 if ($permisos->PermisosUsuario($opciones, 5501, 3)  || $id_rol == 1) {

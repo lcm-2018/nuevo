@@ -67,7 +67,7 @@ if (!empty($obj)) {
             'sal_base'          => Valores::formatNumber($o['sal_base']),
             'dias_incapacidad'  => $o['dias_incapacidad'],
             'dias_licencias'    => $o['dias_licencias'],
-            'dias_vacaciones'   => $o['dias_vacaciones'],
+            'dias_vacaciones'   => $o['dias_inactivo'],
             'dias_otros'        => $o['dias_otros'],
             'dias_lab'          => $o['dias_lab'],
             'valor_incap'       => Valores::formatNumber($o['valor_incap']),
@@ -103,6 +103,9 @@ if (!empty($obj)) {
             'neto'              => Valores::formatNumber($neto),
             'patronal'          => $patronal,
             'accion'            => '<div class="text-center">' . ($detalles ?? '') . ($anular ?? '') . '</div>',
+            'nit_eps'           => $o['nit_eps'],
+            'nit_afp'           => $o['nit_afp'],
+            'nit_arl'           => $o['nit_arl'],
         ];
     }
 }

@@ -78,8 +78,12 @@ function generarDesprendible($d)
     ];
 
     // Filtrar solo los que tienen valor > 0
-    $devengados = array_filter($devengados, fn($v) => $v > 0);
-    $deducciones = array_filter($deducciones, fn($v) => $v > 0);
+    $devengados = array_filter($devengados, function ($v) {
+        return $v > 0;
+    });
+    $deducciones = array_filter($deducciones, function ($v) {
+        return $v > 0;
+    });
 
     // Calcular totales
     $total_devengado = array_sum($devengados);

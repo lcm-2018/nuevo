@@ -175,6 +175,14 @@ class Reportes
                                             <button data-id="4" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 reportes" title="Imprimir" text="P"><span class="fas fa-print fa-sm"></span></button>
                                         </td>
                                     </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td class="text-start">ENVIAR DESPRENDIBLES DE NÓMINA</td>
+                                        <td></td>
+                                        <td class="text-center">
+                                            <button data-id="5" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 reportes" title="Enviar" text="E"><span class="fas fa-envelope fa-sm"></span></button>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>   
                         </div>

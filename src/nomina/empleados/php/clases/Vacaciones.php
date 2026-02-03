@@ -273,6 +273,68 @@ class Vacaciones
         return $index;
     }
 
+    /**
+     * Obtiene las vacaciones por empleado que ya han sido pagadas.
+     * 
+     * Verifica que la nómina esté en estado >= 2 y que la vacación tenga 
+     * una fecha de inicio dentro del mes que se está liquidando.
+     *
+     * @param string $inicia Fecha de inicio del período (YYYY-MM-DD)
+     * @param string $fin Fecha de fin del período (YYYY-MM-DD)
+     * @return array Datos de vacaciones pagadas indexados por id_empleado
+     */
+    public function getRegistroPago($inicia, $fin)
+    {
+        $sql = "SELECT
+                    `nv`.`id_vac`
+                    , `nv`.`id_empleado`
+                    , `nv`.`fec_inicial`
+                    , `nv`.`fec_inicio`
+                    , `nv`.`fec_fin`
+                    , `nv`.`dias_inactivo`
+                    , `nv`.`dias_habiles`
+                    , `nv`.`corte`
+                    , `nv`.`dias_liquidar`
+                    , IFNULL(`liquidado`.`dias_liqs`, 0) AS `liq`
+                    , IFNULL(`liquidado`.`val_liq`, 0) AS `val_vac`
+                    , IFNULL(`liquidado`.`val_prima_vac`, 0) AS `prima_vac`
+                    , IFNULL(`liquidado`.`val_bon_recrea`, 0) AS `bon_recrea`
+                    , `liquidado`.`id_nomina`
+                FROM `nom_vacaciones` AS `nv`
+                    INNER JOIN 
+                        (SELECT
+                            `nlv`.`id_vac`
+                            , SUM(`nlv`.`dias_liqs`) AS `dias_liqs`
+                            , SUM(`nlv`.`val_liq`) AS `val_liq`
+                            , SUM(`nlv`.`val_prima_vac`) AS `val_prima_vac`
+                            , SUM(`nlv`.`val_bon_recrea`) AS `val_bon_recrea`
+                            , `nlv`.`id_nomina`
+                        FROM
+                            `nom_liq_vac` AS `nlv`
+                            INNER JOIN `nom_nominas` 
+                                ON (`nlv`.`id_nomina` = `nom_nominas`.`id_nomina`)
+                        WHERE (`nlv`.`estado` = 1 AND `nom_nominas`.`estado` >= 2)
+                        GROUP BY `nlv`.`id_vac`, `nlv`.`id_nomina`) AS `liquidado`
+                        ON (`liquidado`.`id_vac` = `nv`.`id_vac`)
+                WHERE `nv`.`estado` = 1 
+                    AND `nv`.`fec_inicial` BETWEEN ? AND ?";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
+        $stmt->bindParam(2, $fin, PDO::PARAM_STR);
+        $stmt->execute();
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmt->closeCursor();
+        unset($stmt);
+
+        $index = [];
+        foreach ($data as $row) {
+            $index[$row['id_empleado']][] = $row;
+        }
+
+        return $index;
+    }
 
     /**
      * Obtiene el formulario para agregar o editar un registro.
