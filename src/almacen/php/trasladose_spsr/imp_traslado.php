@@ -80,7 +80,7 @@ try {
 
     <table style="width:100%; font-size:70%">
         <tr style="text-align:center">
-            <th>ORDEN DE TRASLADO SPSR</th>
+            <th>ORDEN DE TRASLADO EGRESO SPSR</th>
         </tr>
     </table>
 

@@ -701,9 +701,9 @@ class Menu
             $ped_items .= '<li><a href="' . $this->host . '/src/almacen/php/pedidos_cec/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fa fa-th-large me-2 fa-fw"></i> Dependencia</a></li>';
         }
         // 5018: [Pedidos][De Bodega SPSR]
-        /*if ($this->permisos->PermisosUsuario($this->opciones, 5018, 0) || $this->id_rol == 1) {
+        if ($this->permisos->PermisosUsuario($this->opciones, 5018, 0) || $this->id_rol == 1) {
             $ped_items .= '<li><a href="' . $this->host . '/src/almacen/php/pedidos_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-coins me-2 fa-fw"></i> Bodega SPSR</a></li>';
-        }*/
+        }
 
         $alm_pedidos = '';
         if (!empty($ped_items)) {
