@@ -58,19 +58,24 @@ try {
         'errores' => []
     ];
 
-    // Generar el PDF usando DOMPDF
+    // Preparar datos comunes
     $documento = "Desprendible de Nómina";
     $subtitulo = "NÓMINA No. {$id_nomina} - MES: {$mes} - VIGENCIA: {$nomina['vigencia']}";
 
-    $generadorPDF = new GeneradorPDF('letter', 'portrait');
+    // Obtener firmas (se usan para todos los empleados)
+    $firmas = (new \Src\Common\Php\Clases\Reportes())->getFormFirmas(
+        ['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']],
+        51,
+        $nomina['vigencia'] . '-' . $nomina['mes'] . '-01',
+        ''
+    );
 
     // =====================================================
-    // MODO PRUEBA: Limitar a 2 empleados y enviar a tu correo
-    // COMENTAR ESTAS LÍNEAS DESPUÉS DE PROBAR
+    // MODO PRUEBA: Limitar a 2 empleados
+    // DESCOMENTAR SOLO PARA PRUEBAS
     // =====================================================
-    // $empleados = array_slice($empleados, 0, 2); // Solo 2 empleados
+    // $empleados = array_slice($empleados, 0, 2);
     // $stats['total'] = count($empleados);
-    // $CORREO_PRUEBA = 'eachitanc@gmail.com'; // Tu correo para pruebas
     // =====================================================
 
     foreach ($empleados as $datosEmpleado) {
@@ -87,8 +92,10 @@ try {
                 continue;
             }
 
-            // Generar PDF del desprendible para este empleado
-            $pdfContent = $generadorPDF->generarDesprendiblePDF($datosEmpleado, $documento, $subtitulo);
+            // Generar PDF usando GeneradorPDF con detalles discriminados
+            // Crear nueva instancia para cada empleado (evita acumulación de memoria)
+            $generadorPDF = new GeneradorPDF('letter', 'portrait');
+            $pdfContent = $generadorPDF->generarDesprendiblePDF($datosEmpleado, $documento, $subtitulo, $firmas, $detalles, $id_nomina);
 
             // Preparar y enviar correo
             $correo = new Correo();
@@ -125,7 +132,11 @@ HTML;
             }
 
             // Limpiar memoria para el siguiente correo
-            unset($pdfContent, $correo);
+            unset($pdfContent, $correo, $generadorPDF);
+
+            // Opcional: Pequeña pausa para evitar sobrecarga del servidor SMTP
+            usleep(100000); // 0.1 segundos
+
         } catch (Exception $e) {
             $stats['fallidos']++;
             $stats['errores'][] = [

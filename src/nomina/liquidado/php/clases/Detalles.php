@@ -132,14 +132,14 @@ class Detalles
                     `segs` AS
                         (SELECT 
                             `nlsse`.`id_empleado`,
-                            `tbt`.`nit_tercero` AS `nit_eps`,
+                            `tbt`.`nom_tercero` AS `nom_eps`,
                             `nlsse`.`aporte_salud_emp`,
-                            `tbt2`.`nit_tercero` AS `nit_afp`,
+                            `tbt2`.`nom_tercero` AS `nom_afp`,
                             `nlsse`.`aporte_pension_emp`, 
                             `nlsse`.`aporte_solidaridad_pensional`, 
                             `nlsse`.`aporte_salud_empresa`, 
                             `nlsse`.`aporte_pension_empresa`, 
-                            `tbt3`.`nit_tercero` AS `nit_arl`,
+                            `tbt3`.`nom_tercero` AS `nom_arl`,
                             `nlsse`.`aporte_rieslab` 
                         FROM `nom_liq_segsocial_empdo`  as `nlsse`
                             INNER JOIN `nom_terceros` as `eps`
@@ -271,9 +271,9 @@ class Detalles
                     , `nom`.`tipo` AS `codigo_nomina`
                     , `nom`.`estado` AS `estado_nomina`
                     , IFNULL(`ccosto`.`id_ccosto`,21) AS `id_ccosto`
-                    , `segs`.`nit_eps`
-                    , `segs`.`nit_afp`
-                    , `segs`.`nit_arl`
+                    , `segs`.`nom_eps`
+                    , `segs`.`nom_afp`
+                    , `segs`.`nom_arl`
                 FROM `nom_empleado` `e`
                     INNER JOIN `sal` ON (`sal`.`id_empleado` = `e`.`id_empleado`)
                     INNER JOIN `tb_sedes` `ts` ON (`ts`.`id_sede` = `e`.`sede_emp`)
@@ -1917,5 +1917,162 @@ class Detalles
         }
 
         return $consolidado;
+    }
+
+    /**
+     * Obtiene el detalle discriminado de horas extras para un empleado en una nómina
+     * @param int $id_empleado ID del empleado
+     * @param int $id_nomina ID de la nómina
+     * @return array Detalle de horas extras con tipo, cantidad y valor
+     */
+    public function getDetalleHorasExtras($id_empleado, $id_nomina)
+    {
+        $sql = "SELECT
+                    `nom_tipo_horaex`.`desc_he` AS `tipo`,
+                    SUM(`nom_horas_ex_trab`.`cantidad_he`) AS `cantidad`,
+                    SUM(`nom_liq_horex`.`val_liq`) AS `valor`
+                FROM `nom_liq_horex`
+                    INNER JOIN `nom_horas_ex_trab`
+                        ON (`nom_liq_horex`.`id_he_lab` = `nom_horas_ex_trab`.`id_he_trab`)
+                    INNER JOIN `nom_tipo_horaex`
+                        ON (`nom_horas_ex_trab`.`id_he` = `nom_tipo_horaex`.`id_he`)
+                WHERE `nom_liq_horex`.`id_nomina` = :id_nomina
+                    AND `nom_horas_ex_trab`.`id_empleado` = :id_empleado
+                    AND `nom_liq_horex`.`estado` = 1
+                GROUP BY `nom_tipo_horaex`.`id_he`, `nom_tipo_horaex`.`desc_he`
+                ORDER BY `nom_tipo_horaex`.`desc_he` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->bindValue(':id_empleado', $id_empleado, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene el detalle discriminado de libranzas para un empleado en una nómina
+     * @param int $id_empleado ID del empleado
+     * @param int $id_nomina ID de la nómina
+     * @return array Detalle de libranzas con entidad y valor
+     */
+    public function getDetalleLibranzas($id_empleado, $id_nomina)
+    {
+        $sql = "SELECT
+                    `nom_libranzas`.`descripcion_lib` AS `entidad`,
+                    SUM(`nom_liq_libranza`.`val_mes_lib`) AS `valor`
+                FROM `nom_liq_libranza`
+                    INNER JOIN `nom_libranzas`
+                        ON (`nom_liq_libranza`.`id_libranza` = `nom_libranzas`.`id_libranza`)
+                WHERE `nom_liq_libranza`.`id_nomina` = :id_nomina
+                    AND `nom_libranzas`.`id_empleado` = :id_empleado
+                    AND `nom_liq_libranza`.`estado` = 1
+                GROUP BY `nom_libranzas`.`id_libranza`, `nom_libranzas`.`descripcion_lib`
+                ORDER BY `nom_libranzas`.`descripcion_lib` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->bindValue(':id_empleado', $id_empleado, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene el detalle discriminado de embargos para un empleado en una nómina
+     * @param int $id_empleado ID del empleado
+     * @param int $id_nomina ID de la nómina
+     * @return array Detalle de embargos con descripción y valor
+     */
+    public function getDetalleEmbargos($id_empleado, $id_nomina)
+    {
+        $sql = "SELECT
+                    `nom_tipo_embargo`.`tipo` AS `descripcion`,
+                    SUM(`nom_liq_embargo`.`val_mes_embargo`) AS `valor`
+                FROM `nom_liq_embargo`
+                    INNER JOIN `nom_embargos`
+                        ON (`nom_liq_embargo`.`id_embargo` = `nom_embargos`.`id_embargo`)
+                    INNER JOIN `nom_tipo_embargo`
+                        ON (`nom_embargos`.`tipo_embargo` = `nom_tipo_embargo`.`id_tipo_emb`)
+                WHERE `nom_liq_embargo`.`id_nomina` = :id_nomina
+                    AND `nom_embargos`.`id_empleado` = :id_empleado
+                    AND `nom_liq_embargo`.`estado` = 1
+                GROUP BY `nom_tipo_embargo`.`id_tipo_emb`, `nom_tipo_embargo`.`tipo`
+                ORDER BY `nom_tipo_embargo`.`tipo` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->bindValue(':id_empleado', $id_empleado, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene el detalle discriminado de aportes sindicales para un empleado en una nómina
+     * @param int $id_empleado ID del empleado
+     * @param int $id_nomina ID de la nómina
+     * @return array Detalle de aportes sindicales con sindicato y valor
+     */
+    public function getDetalleSindicatos($id_empleado, $id_nomina)
+    {
+        $sql = "SELECT
+                    `tb_terceros`.`nom_tercero` AS `sindicato`,
+                    SUM(`nom_liq_sindicato_aportes`.`val_aporte`) AS `valor`
+                FROM `nom_liq_sindicato_aportes`
+                    INNER JOIN `nom_cuota_sindical`
+                        ON (`nom_liq_sindicato_aportes`.`id_cuota_sindical` = `nom_cuota_sindical`.`id_cuota_sindical`)
+                    INNER JOIN `nom_terceros`
+                        ON (`nom_cuota_sindical`.`id_sindicato` = `nom_terceros`.`id_tn`)
+                    LEFT JOIN `tb_terceros`
+                        ON (`nom_terceros`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
+                WHERE `nom_liq_sindicato_aportes`.`id_nomina` = :id_nomina
+                    AND `nom_cuota_sindical`.`id_empleado` = :id_empleado
+                    AND `nom_liq_sindicato_aportes`.`estado` = 1
+                GROUP BY `nom_terceros`.`id_tn`, `tb_terceros`.`nom_tercero`
+                ORDER BY `tb_terceros`.`nom_tercero` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->bindValue(':id_empleado', $id_empleado, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene el detalle discriminado de otros descuentos para un empleado en una nómina
+     * @param int $id_empleado ID del empleado
+     * @param int $id_nomina ID de la nómina
+     * @return array Detalle de otros descuentos con tipo y valor
+     */
+    public function getDetalleOtrosDescuentos($id_empleado, $id_nomina)
+    {
+        $sql = "SELECT
+                    `nom_tipo_descuentos`.`descripcion` AS `tipo`,
+                    `nom_otros_descuentos`.`concepto`,
+                    SUM(`nom_liq_descuento`.`valor`) AS `valor`
+                FROM `nom_liq_descuento`
+                    INNER JOIN `nom_otros_descuentos`
+                        ON (`nom_liq_descuento`.`id_dcto` = `nom_otros_descuentos`.`id_dcto`)
+                    INNER JOIN `nom_tipo_descuentos`
+                        ON (`nom_otros_descuentos`.`id_tipo_dcto` = `nom_tipo_descuentos`.`id_tipo`)
+                WHERE `nom_liq_descuento`.`id_nomina` = :id_nomina
+                    AND `nom_otros_descuentos`.`id_empleado` = :id_empleado
+                    AND `nom_liq_descuento`.`estado` = 1
+                GROUP BY `nom_otros_descuentos`.`id_dcto`, `nom_tipo_descuentos`.`descripcion`, `nom_otros_descuentos`.`concepto`
+                ORDER BY `nom_tipo_descuentos`.`descripcion` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->bindValue(':id_empleado', $id_empleado, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($datos) ? $datos : [];
     }
 }

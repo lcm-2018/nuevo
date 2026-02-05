@@ -18,6 +18,7 @@ $array['id_nomina'] =   isset($_POST['id_nomina']) ? intval($_POST['id_nomina'])
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 
+use Config\Clases\Conexion;
 use Src\Nomina\Liquidado\Php\Clases\Detalles;
 use Src\Common\Php\Clases\Permisos;
 use Src\Common\Php\Clases\Valores;
@@ -29,6 +30,25 @@ $opciones           =   $permisos->PermisoOpciones($id_user);
 $obj                =   $sql->getRegistrosDT($start, $length, $array, $col, $dir);
 $totalRecordsFilter =   $sql->getRegistrosFilter($array);
 $totalRecords       =   $sql->getRegistrosTotal($array);
+
+$cmd = Conexion::getConexion();
+$fecha = isset($obj[0]['mes']) ? $_SESSION['vigencia'] . '-' . $obj[0]['mes'] . '-01' : date('Y-m-01');
+$sql = "SELECT
+            `nom_terceros_novedad`.`id_empleado`,
+            `tb_terceros`.`nom_tercero`
+        FROM
+            `nom_terceros_novedad`
+            INNER JOIN `nom_terceros` 
+                ON (`nom_terceros_novedad`.`id_tercero` = `nom_terceros`.`id_tn`)
+            LEFT JOIN `tb_terceros`
+            ON (`tb_terceros`.`id_tercero_api` = `nom_terceros`.`id_tercero_api`)
+        WHERE 
+            `nom_terceros`.`id_tipo` = 4 AND '$fecha' >= `nom_terceros_novedad`.`fec_inicia`
+            AND ('$fecha' <= `nom_terceros_novedad`.`fec_fin` OR `nom_terceros_novedad`.`fec_fin` IS NULL)";
+$res = $cmd->query($sql);
+$fondo = $res->fetchAll();
+$fondo = array_column($fondo, 'nom_tercero', 'id_empleado');
+
 
 $datos = [];
 if (!empty($obj)) {
@@ -58,6 +78,8 @@ if (!empty($obj)) {
         if (($permisos->PermisosUsuario($opciones, 5101, 5) || $id_rol == 1) && $o['estado_nomina'] == 1) {
             $anular .= '<button class="btn btn-outline-secondary btn-xs rounded-circle shadow me-1 anular" title="Anular Registro"><span class="fas fa-ban fa-sm"></span></button>';
         }
+        $tipo_cargo = $o['tipo_cargo'] == 1 ? 'ADMINISTRATIVO' : 'OPERATIVO';
+
         $datos[] = [
             'id_empleado'       => $o['id_empleado'],
             'sede'              => $o['sede'],
@@ -103,9 +125,11 @@ if (!empty($obj)) {
             'neto'              => Valores::formatNumber($neto),
             'patronal'          => $patronal,
             'accion'            => '<div class="text-center">' . ($detalles ?? '') . ($anular ?? '') . '</div>',
-            'nit_eps'           => $o['nit_eps'],
-            'nit_afp'           => $o['nit_afp'],
-            'nit_arl'           => $o['nit_arl'],
+            'nom_eps'           => $o['nom_eps'],
+            'nom_afp'           => $o['nom_afp'],
+            'nom_arl'           => $o['nom_arl'],
+            'nom_fc'            => isset($fondo[$o['id_empleado']]) ? $fondo[$o['id_empleado']] : '',
+            'tipo_cargo'        => $tipo_cargo,
         ];
     }
 }

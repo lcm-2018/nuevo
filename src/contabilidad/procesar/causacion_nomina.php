@@ -548,10 +548,10 @@ try {
                         $credito = $dd['g_representa'];
                         break;
                     case 4:
-                        $credito = $dd['val_bsp'];
+                        $credito = $dd['val_bon_recrea'];
                         break;
                     case 5:
-                        $credito = $dd['val_bon_recrea'];
+                        $credito = $dd['val_bsp'];
                         break;
                     case 8:
                         $credito = $dd['valor_incap'] - $dd['pago_empresa'];

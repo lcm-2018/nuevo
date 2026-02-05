@@ -286,6 +286,20 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
+try {
+    $cmd = \Config\Clases\Conexion::getConexion();
+
+    $sql = "SELECT
+                `fec_liq`, `val_cte`, `val_cta`, `id_adq`
+            FROM
+                `ctt_novedad_liquidacion`
+            WHERE (`id_tipo_nov` = 8 AND `id_adq` = $id_adqi)";
+    $rs = $cmd->query($sql);
+    $liquidacion = $rs->fetch();
+    $cmd = null;
+} catch (PDOException $e) {
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+}
 
 $servicio = $id_orden == '' ? $oferta[0]['bien_servicio'] : 'XXXXXXXXX';
 $unspsc = $codigo_servicio['codigo'] ?? 'XXXXXXXXX';
@@ -347,4 +361,7 @@ $cedula_tercero     = $compra['nit_tercero'] ?? 'XXX';
 $cargo_sup_ep       = $estudio_prev['cargo_supervisor'] ?? 'XXX';
 $cargo_supervisor   = $estudio_prev['cargo_supervisor'] ?? $contrato['cargo_supervisor'] ?? 'XXX';
 $tipo_bn_sv         = ucfirst(mb_strtolower($compra['tipo_bn_sv'])) ?? 'XXX';
+$fec_liq_ctt        = pesos($liquidacion['fec_liq']) ?? '$ XXX';
+$val_contratante    = pesos($liquidacion['val_cte']) ?? '$ XXX';
+$val_contratista    = pesos($liquidacion['val_cta']) ?? '$ XXX';
 $firma1 = '/nuevo/assets/images/vacio.png';

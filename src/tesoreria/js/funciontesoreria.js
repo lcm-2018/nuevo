@@ -1492,6 +1492,42 @@ function GuardaRespCaja() {
 		});
 	}
 }
+
+document.addEventListener("keyup", (e) => {
+	if (e.target.id == "rubroCod") {
+		$("#rubroCod").autocomplete({
+			source: function (request, response) {
+				mostrarOverlay();
+				$.ajax({
+					url: ValueInput('host') + '/src/presupuesto/datos/consultar/consultaRubrosMod.php',
+					type: "post",
+					dataType: "json",
+					data: {
+						search: request.term,
+					},
+					success: function (data) {
+						response(data);
+					},
+				}).always(function () {
+					ocultarOverlay();
+				});
+			},
+			select: function (event, ui) {
+				$("#rubroCod").val(ui.item.label);
+				$("#id_rubroCod").val(ui.item.value);
+				$("#tipoRubro").val(ui.item.tipo);
+				return false;
+			},
+			focus: function (event, ui) {
+				$("#rubroCod").val(ui.item.label);
+				$("#id_rubroCod").val(ui.item.value);
+				$("#tipoRubro").val(ui.item.tipo);
+				return false;
+			},
+		});
+	}
+});
+
 function GuardarRubrosCaja() {
 	var id = $('#id_caja').val();
 	$('.is-invalid').removeClass('is-invalid');

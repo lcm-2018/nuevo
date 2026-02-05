@@ -80,21 +80,6 @@ class Reportes
         if (empty($firmas)) {
             return $html;
         } else {
-            if (!empty($elabora)) {
-                $nombre_elabora = $elabora['nom_tercero'];
-                $cargo_elabora = $elabora['cargo'];
-            } else if (isset($firmas[1])) {
-                $nombre_elabora = $firmas[1]['nom_tercero'];
-                $cargo_elabora = $firmas[1]['cargo'];
-            } else {
-                $nombre_elabora = '';
-                $cargo_elabora = '';
-            }
-
-            $nombre_revisa = isset($firmas[2]) ? $firmas[2]['nom_tercero'] : '';
-            $cargo_revisa = isset($firmas[2]) ? $firmas[2]['cargo'] : '';
-            $nombre_aprueba = isset($firmas[3]) ? $firmas[3]['nom_tercero'] : '';
-            $cargo_aprueba = isset($firmas[3]) ? $firmas[3]['cargo'] : '';
             $nombre_responsable = isset($firmas[4]) ? $firmas[4]['nom_tercero'] : '';
             $cargo_responsable = isset($firmas[4]) ? $firmas[4]['cargo'] : '';
 
@@ -105,27 +90,6 @@ class Reportes
                         <div>{$nombre_responsable}</div>
                         <div>{$cargo_responsable}</div>
                     </div>
-                    <table border='1' cellpadding='4' cellspacing='1' style='width: 100%; border-collapse: collapse; border: none !important; font-size: 10px;'>
-                        <tr>
-                            <th style='text-align: left;'>Elaboró:</th>
-                            <th style='text-align: left;'>Revisó:</th>
-                            <th style='text-align: left;'>Aprobó:</th>
-                        </tr>
-                        <tr>
-                            <td style='text-align: center; height: 50px; vertical-align: bottom;'>
-                                <div>{$nombre_elabora}</div>
-                                <div>{$cargo_elabora}</div>
-                            </td>
-                            <td style='text-align: center; height: 50px; vertical-align: bottom;'>
-                                <div>{$nombre_revisa}</div>
-                                <div>{$cargo_revisa}</div>
-                            </td>
-                            <td style='text-align: center; height: 50px; vertical-align: bottom;'>
-                                <div>{$nombre_aprueba}</div>
-                                <div>{$cargo_aprueba}</div>
-                            </td>
-                        </tr>
-                    </table>
                 HTML;
             return $html;
         }

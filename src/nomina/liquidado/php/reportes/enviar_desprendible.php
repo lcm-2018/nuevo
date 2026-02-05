@@ -53,6 +53,7 @@ try {
         exit();
     }
 
+    //$empleadoData['correo'] = "eachitanc@gmail.com";
     // Obtener datos del desprendible
     $datosEmpleado = $detalles->getRegistrosDT(1, -1, ['id_empleado' => $id_empleado, 'id_nomina' => $id_nomina], 1, 'ASC');
 
@@ -61,12 +62,20 @@ try {
         exit();
     }
 
-    // Generar el PDF usando DOMPDF (más eficiente que Node.js/Puppeteer)
+    // Generar el PDF usando GeneradorPDF con detalles discriminados
     $documento = "Desprendible de Nómina";
     $subtitulo = "NÓMINA No. {$id_nomina} - MES: {$mes} - VIGENCIA: {$nomina['vigencia']}";
 
+    // Obtener firmas
+    $firmas = (new \Src\Common\Php\Clases\Reportes())->getFormFirmas(
+        ['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']],
+        51,
+        $nomina['vigencia'] . '-' . $nomina['mes'] . '-01',
+        ''
+    );
+
     $generadorPDF = new GeneradorPDF('letter', 'portrait');
-    $pdfContent = $generadorPDF->generarDesprendiblePDF($datosEmpleado, $documento, $subtitulo);
+    $pdfContent = $generadorPDF->generarDesprendiblePDF($datosEmpleado, $documento, $subtitulo, $firmas, $detalles, $id_nomina);
 
     // Enviar correo con el desprendible adjunto
     $correo = new Correo();
@@ -89,7 +98,7 @@ HTML;
         ->addDestinatario($empleadoData['correo'], $nombreEmpleado)
         ->setAsunto($asunto)
         ->setCuerpoHTML($correo->generarPlantillaHTML($asunto, $contenido))
-        ->addAdjuntoDesdeString($pdfContent, $nombreArchivo)  // Usar adjunto desde string (más eficiente)
+        ->addAdjuntoDesdeString($pdfContent, $nombreArchivo)
         ->enviar();
 
     if ($resultado['success']) {

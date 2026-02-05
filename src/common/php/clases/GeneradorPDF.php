@@ -247,10 +247,27 @@ HTML;
      * Genera el HTML de un desprendible de nómina
      * 
      * @param array $d Datos del empleado y su liquidación
+     * @param object $detalles Instancia de Detalles para obtener discriminados (opcional)
+     * @param int $id_nomina ID de la nómina (opcional)
      * @return string HTML del desprendible
      */
-    public function generarDesprendibleHTML($d)
+    public function generarDesprendibleHTML($d, $detalles = null, $id_nomina = null)
     {
+        // Obtener detalles discriminados si se proporcionan los parámetros
+        $detalle_horas = [];
+        $detalle_libranzas = [];
+        $detalle_embargos = [];
+        $detalle_sindicatos = [];
+        $detalle_otros_dctos = [];
+
+        if ($detalles !== null && $id_nomina !== null) {
+            $detalle_horas = $detalles->getDetalleHorasExtras($d['id_empleado'], $id_nomina);
+            $detalle_libranzas = $detalles->getDetalleLibranzas($d['id_empleado'], $id_nomina);
+            $detalle_embargos = $detalles->getDetalleEmbargos($d['id_empleado'], $id_nomina);
+            $detalle_sindicatos = $detalles->getDetalleSindicatos($d['id_empleado'], $id_nomina);
+            $detalle_otros_dctos = $detalles->getDetalleOtrosDescuentos($d['id_empleado'], $id_nomina);
+        }
+
         $valor_licencias = ($d['valor_luto'] ?? 0) + ($d['valor_mp'] ?? 0);
 
         $devengados = [
@@ -263,7 +280,6 @@ HTML;
             'Bonificación Recreación' => $d['val_bon_recrea'] ?? 0,
             'Auxilio de Transporte' => $d['aux_tran'] ?? 0,
             'Auxilio de Alimentación' => $d['aux_alim'] ?? 0,
-            'Horas Extras' => $d['horas_ext'] ?? 0,
             'Bonificación Servicios Prestados' => $d['val_bsp'] ?? 0,
             'Gastos de Representación' => $d['g_representa'] ?? 0,
             'Prima de Servicios' => $d['valor_ps'] ?? 0,
@@ -272,16 +288,49 @@ HTML;
             'Intereses Cesantías' => $d['val_icesantias'] ?? 0,
         ];
 
+        // Agregar horas extras con su detalle si existe
+        if (!empty($detalle_horas)) {
+            $total_horas = array_sum(array_column($detalle_horas, 'valor'));
+            $devengados['Horas Extras'] = $total_horas;
+        } else {
+            $devengados['Horas Extras'] = $d['horas_ext'] ?? 0;
+        }
+
         $deducciones = [
             'Aporte Salud (4%)' => $d['valor_salud'] ?? 0,
             'Aporte Pensión (4%)' => $d['valor_pension'] ?? 0,
             'Pensión Solidaria' => $d['val_psolidaria'] ?? 0,
-            'Libranzas' => $d['valor_libranza'] ?? 0,
-            'Embargos' => $d['valor_embargo'] ?? 0,
-            'Sindicato' => $d['valor_sind'] ?? 0,
             'Retención en la Fuente' => $d['val_retencion'] ?? 0,
-            'Otros Descuentos' => $d['valor_dcto'] ?? 0,
         ];
+
+        // Agregar conceptos discriminados solo si tienen valor
+        if (!empty($detalle_libranzas)) {
+            $total_libranzas = array_sum(array_column($detalle_libranzas, 'valor'));
+            $deducciones['Libranzas'] = $total_libranzas;
+        } else {
+            $deducciones['Libranzas'] = $d['valor_libranza'] ?? 0;
+        }
+
+        if (!empty($detalle_embargos)) {
+            $total_embargos = array_sum(array_column($detalle_embargos, 'valor'));
+            $deducciones['Embargos'] = $total_embargos;
+        } else {
+            $deducciones['Embargos'] = $d['valor_embargo'] ?? 0;
+        }
+
+        if (!empty($detalle_sindicatos)) {
+            $total_sindicatos = array_sum(array_column($detalle_sindicatos, 'valor'));
+            $deducciones['Sindicato'] = $total_sindicatos;
+        } else {
+            $deducciones['Sindicato'] = $d['valor_sind'] ?? 0;
+        }
+
+        if (!empty($detalle_otros_dctos)) {
+            $total_otros = array_sum(array_column($detalle_otros_dctos, 'valor'));
+            $deducciones['Otros Descuentos'] = $total_otros;
+        } else {
+            $deducciones['Otros Descuentos'] = $d['valor_dcto'] ?? 0;
+        }
 
         // Filtrar solo los que tienen valor > 0
         $devengados = array_filter($devengados, function ($v) {
@@ -304,12 +353,56 @@ HTML;
         foreach ($devengados as $concepto => $valor) {
             $valor_fmt = number_format($valor, 0, ',', '.');
             $filas_devengados .= "<tr><td style='padding: 4px 8px;'>{$concepto}</td><td style='text-align: right; padding: 4px 8px;'>{$valor_fmt}</td></tr>";
+
+            // Si es Horas Extras y tiene detalle, mostrar el desglose
+            if ($concepto === 'Horas Extras' && !empty($detalle_horas)) {
+                foreach ($detalle_horas as $hora) {
+                    $valor_hora_fmt = number_format($hora['valor'], 0, ',', '.');
+                    $filas_devengados .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 20px; color: #666;'>• {$hora['tipo']} ({$hora['cantidad']} hrs)</td><td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_hora_fmt}</td></tr>";
+                }
+            }
         }
 
         $filas_deducciones = '';
         foreach ($deducciones as $concepto => $valor) {
             $valor_fmt = number_format($valor, 0, ',', '.');
             $filas_deducciones .= "<tr><td style='padding: 4px 8px;'>{$concepto}</td><td style='text-align: right; padding: 4px 8px;'>{$valor_fmt}</td></tr>";
+
+            // Discriminar libranzas
+            if ($concepto === 'Libranzas' && !empty($detalle_libranzas)) {
+                foreach ($detalle_libranzas as $libranza) {
+                    $valor_lib_fmt = number_format($libranza['valor'], 0, ',', '.');
+                    $filas_deducciones .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 20px; color: #666;'>• {$libranza['entidad']}</td><td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_lib_fmt}</td></tr>";
+                }
+            }
+
+            // Discriminar embargos
+            if ($concepto === 'Embargos' && !empty($detalle_embargos)) {
+                foreach ($detalle_embargos as $embargo) {
+                    $valor_emb_fmt = number_format($embargo['valor'], 0, ',', '.');
+                    $filas_deducciones .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 20px; color: #666;'>• {$embargo['descripcion']}</td><td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_emb_fmt}</td></tr>";
+                }
+            }
+
+            // Discriminar sindicatos
+            if ($concepto === 'Sindicato' && !empty($detalle_sindicatos)) {
+                foreach ($detalle_sindicatos as $sindicato) {
+                    $valor_sind_fmt = number_format($sindicato['valor'], 0, ',', '.');
+                    $filas_deducciones .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 20px; color: #666;'>• {$sindicato['sindicato']}</td><td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_sind_fmt}</td></tr>";
+                }
+            }
+
+            // Discriminar otros descuentos
+            if ($concepto === 'Otros Descuentos' && !empty($detalle_otros_dctos)) {
+                foreach ($detalle_otros_dctos as $otro) {
+                    $valor_otro_fmt = number_format($otro['valor'], 0, ',', '.');
+                    $descripcion = $otro['tipo'];
+                    if (!empty($otro['concepto'])) {
+                        $descripcion .= ': ' . $otro['concepto'];
+                    }
+                    $filas_deducciones .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 20px; color: #666;'>• {$descripcion}</td><td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_otro_fmt}</td></tr>";
+                }
+            }
         }
 
         return <<<HTML
@@ -389,11 +482,13 @@ HTML;
      * @param string $titulo Título del documento
      * @param string $subtitulo Subtítulo
      * @param string $firmas HTML de firmas (opcional)
+     * @param object $detalles Instancia de Detalles para obtener discriminados (opcional)
+     * @param int $id_nomina ID de la nómina (opcional)
      * @return string Contenido binario del PDF
      */
-    public function generarDesprendiblePDF($datosEmpleado, $titulo, $subtitulo, $firmas = '')
+    public function generarDesprendiblePDF($datosEmpleado, $titulo, $subtitulo, $firmas = '', $detalles = null, $id_nomina = null)
     {
-        $contenido = $this->generarDesprendibleHTML($datosEmpleado);
+        $contenido = $this->generarDesprendibleHTML($datosEmpleado, $detalles, $id_nomina);
         $html = $this->generarDocumentoHTML($titulo, $subtitulo, $contenido, $firmas);
         return $this->generarDesdeHTML($html);
     }

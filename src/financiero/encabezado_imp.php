@@ -195,32 +195,64 @@ $reviso_cargo = $key_reviso !== false ? $responsables[$key_reviso]['cargo'] : ''
 $key_aprobo = array_search('3', array_column($responsables, 'tipo_control'));
 $aprobo_nombre = $key_aprobo !== false ? $responsables[$key_aprobo]['nom_tercero'] : '';
 $aprobo_cargo = $key_aprobo !== false ? $responsables[$key_aprobo]['cargo'] : '';
+
+// Determinar qué firmas tienen datos
+$firmas_activas = [];
+if (!empty($elaboro_nombre)) {
+    $firmas_activas[] = [
+        'titulo' => 'Elaboró:',
+        'nombre' => $elaboro_nombre,
+        'cargo' => $elaboro_cargo
+    ];
+}
+if (!empty($reviso_nombre)) {
+    $firmas_activas[] = [
+        'titulo' => 'Revisó:',
+        'nombre' => $reviso_nombre,
+        'cargo' => $reviso_cargo
+    ];
+}
+if (!empty($aprobo_nombre)) {
+    $firmas_activas[] = [
+        'titulo' => 'Aprobó:',
+        'nombre' => $aprobo_nombre,
+        'cargo' => $aprobo_cargo
+    ];
+}
+
 $table = '';
-if ($control) {
-    $table =
-        <<<HTML
+if ($control && count($firmas_activas) > 0) {
+    // Calcular el ancho de cada columna
+    $num_firmas = count($firmas_activas);
+    $ancho_columna = floor(100 / $num_firmas);
+
+    // Construir encabezados solo para firmas activas
+    $headtb_dinamico = '';
+    if ($nom_respon != '') {
+        $headtb_dinamico = '<tr style="text-align:left">';
+        foreach ($firmas_activas as $firma) {
+            $headtb_dinamico .= "<td style=\"width:{$ancho_columna}%\"><strong>{$firma['titulo']}</strong></td>";
+        }
+        $headtb_dinamico .= '</tr>';
+    }
+
+    // Construir celdas solo para firmas activas
+    $celdas_dinamicas = '<tr style="text-align:center">';
+    foreach ($firmas_activas as $firma) {
+        $celdas_dinamicas .= "
+                <td>
+                    <br><br>
+                    {$lineas}
+                    <div>{$firma['nombre']}</div>
+                    <div>{$firma['cargo']}</div>
+                </td>";
+    }
+    $celdas_dinamicas .= '</tr>';
+
+    $table = <<<HTML
         <table class="{$bordes} bg-light" style="width:100% !important;font-size: 10px;">
-            {$headtb}
-            <tr style="text-align:center">
-                <td>
-                    <br><br>
-                    {$lineas}
-                    <div>{$elaboro_nombre}</div>
-                    <div>{$elaboro_cargo}</div>
-                </td>
-                <td>
-                    <br><br>
-                    {$lineas}
-                    <div>{$reviso_nombre}</div>
-                    <div>{$reviso_cargo}</div>
-                </td>
-                <td>
-                    <br><br>
-                    {$lineas}
-                    <div>{$aprobo_nombre}</div>
-                    <div>{$aprobo_cargo}</div>
-                </td>
-            </tr>
+            {$headtb_dinamico}
+            {$celdas_dinamicas}
         </table>
 HTML;
 }
