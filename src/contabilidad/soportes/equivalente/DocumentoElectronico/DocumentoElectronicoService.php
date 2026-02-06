@@ -4,6 +4,7 @@ namespace App\DocumentoElectronico;
 
 use PDO;
 use Exception;
+use Src\Common\Php\Clases\Valores;
 
 /**
  * Servicio principal para envío de documentos electrónicos
@@ -111,6 +112,15 @@ class DocumentoElectronicoService
 
             return $result;
         } catch (Exception $e) {
+            // Guardar log del error
+            if (isset($this->taxxaService)) {
+                try {
+                    $this->taxxaService->saveLog('log_envio_' . $idDocumento . '_error.txt');
+                } catch (Exception $logError) {
+                    // Ignorar errores al guardar log
+                }
+            }
+
             // Revertir transacción
             if ($this->conexion->inTransaction()) {
                 $this->conexion->rollBack();
@@ -204,6 +214,15 @@ class DocumentoElectronicoService
 
             return $result;
         } catch (Exception $e) {
+            // Guardar log del error
+            if (isset($this->taxxaService)) {
+                try {
+                    $this->taxxaService->saveLog('log_venta_' . $idDocumento . '_error.txt');
+                } catch (Exception $logError) {
+                    // Ignorar errores al guardar log
+                }
+            }
+
             // Revertir transacción
             if ($this->conexion->inTransaction()) {
                 $this->conexion->rollBack();
@@ -248,7 +267,7 @@ class DocumentoElectronicoService
             'formato_soporte' => true, // Flag para usar formato de soporte
         ];
 
-        // Construir documento
+        $config = Valores::getOwnerConfig();
         $this->builder->reset()
             ->setDocumentType('ReverseInvoice')
             ->setBasicInfo([
@@ -262,7 +281,7 @@ class DocumentoElectronicoService
                 'spaymentid' => $documento['nota'],
                 'yisresident' => 'Y',
                 'sinvoiceperiod' => '1',
-                'rdocumenttemplate' => 30884303,
+                'rdocumenttemplate' => $config['rdocumenttemplate'],
             ])
             ->setReference($resolucion['prefijo'], $secuencia)
             ->setDates(
@@ -316,7 +335,7 @@ class DocumentoElectronicoService
         ];
 
         // Código UNSPSC para facturas de venta
-        $unspsc = !empty($documento['id_ref_ctb']) ? $documento['id_ref_ctb'] : '0001';
+        $unspsc = !empty($documento['id_ref_ctb']) ? $documento['id_ref_ctb'] : '0';
 
         // Construir documento
         $this->builder->reset()

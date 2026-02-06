@@ -1,4 +1,7 @@
 <?php
+
+use Src\Common\Php\Clases\Valores;
+
 session_start();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -113,6 +116,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
+    $config = Valores::getOwnerConfig();
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `ctt_clasificacion_bn_sv`.`cod_unspsc` AS `id_unspsc`
@@ -133,7 +137,7 @@ try {
             WHERE (`ctb_factura`.`id_ctb_doc` = $id_facno) LIMIT 1";
     $rs = $cmd->query($sql);
     $unspsc = $rs->fetch();
-    $unspsc = !empty($unspsc) ? $unspsc : ['id_unspsc' => '85101508'];
+    $unspsc = !empty($unspsc) ? $unspsc : ['id_unspsc' => floatval($config['codigo_unsp'])];
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -400,13 +404,14 @@ if (empty($jtaxes) && empty($dctog)) {
     ];
 }
 $hoy = date('Y-m-d');
+$config = Valores::getOwnerConfig();
 $jDocument = [
     'sdoctype' => $tipo_documento,
     'wdocumentsubtype' => '9',
     //'wdocdescriptionCode' => 1,
     'sauthorizationprefix' => $pref,
     'sdocumentsuffix' => $secuenciaf,
-    'rdocumenttemplate' => 30884303,
+    'rdocumenttemplate' => $config['rdocumenttemplate'],
     'tissuedate' => $hoy . 'T' . date('H:i:s', strtotime('-5 hour', strtotime(date('H:i:s')))),
     'tduedate' => $factura['fec_vence'],
     'wpaymentmeans' => '1',

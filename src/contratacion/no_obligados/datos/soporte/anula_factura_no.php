@@ -1,4 +1,7 @@
 <?php
+
+use Src\Common\Php\Clases\Valores;
+
 session_start();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -404,13 +407,14 @@ if (empty($jtaxes) && empty($dctog)) {
     ];
 }
 $hoy = date('Y-m-d');
+$config = Valores::getOwnerConfig();
 $jDocument = [
     'sdoctype' => $tipo_documento,
     'wdocumentsubtype' => '2',
     //'wdocdescriptionCode' => 1,
     'sauthorizationprefix' => $pref,
     'sdocumentsuffix' => $secuenciaf,
-    'rdocumenttemplate' => 30884303,
+    'rdocumenttemplate' => $config['rdocumenttemplate'],
     'tissuedate' => $hoy . 'T' . date('H:i:s', strtotime('-5 hour', strtotime(date('H:i:s')))),
     'tduedate' => $factura['fec_vence'],
     'wpaymentmeans' => $factura['met_pago'],

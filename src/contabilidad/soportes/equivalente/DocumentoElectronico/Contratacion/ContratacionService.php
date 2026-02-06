@@ -7,6 +7,7 @@ use App\DocumentoElectronico\TaxxaService;
 use App\DocumentoElectronico\DocumentBuilder;
 use PDO;
 use Exception;
+use Src\Common\Php\Clases\Valores;
 
 /**
  * Servicio extendido para envío de documentos de contratación (no obligados)
@@ -106,6 +107,15 @@ class ContratacionService extends DocumentoElectronicoService
 
             return $result;
         } catch (Exception $e) {
+            // Guardar log del error
+            if (isset($this->taxxaService)) {
+                try {
+                    $this->taxxaService->saveLog("log_contratacion_{$idDocumento}_error.txt");
+                } catch (Exception $logError) {
+                    // Ignorar errores al guardar log
+                }
+            }
+
             // Revertir transacción
             if ($this->conexion->inTransaction()) {
                 $this->conexion->rollBack();
@@ -155,6 +165,7 @@ class ContratacionService extends DocumentoElectronicoService
         ];
 
         // Construir documento
+        $config = Valores::getOwnerConfig();
         $this->builder->reset()
             ->setDocumentType('ReverseInvoice')
             ->setBasicInfo([
@@ -168,7 +179,7 @@ class ContratacionService extends DocumentoElectronicoService
                 'spaymentid' => $documento['nota'],
                 'yisresident' => 'Y',
                 'sinvoiceperiod' => '1',
-                'rdocumenttemplate' => 30884303,
+                'rdocumenttemplate' => $config['rdocumenttemplate'],
             ])
             ->setReference($resolucion['prefijo'], $secuencia)
             ->setDates(

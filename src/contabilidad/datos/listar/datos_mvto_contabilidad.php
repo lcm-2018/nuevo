@@ -290,7 +290,7 @@ if (!empty($listappto)) {
             $enviar = null;
         } else {
             if ($lp['tipo'] == 3) {
-                $disabled = $estado == 2 ? 'xd' : 'disabled';
+                $disabled = $estado == 2 ? '' : 'disabled';
                 $key = array_search($id_ctb, array_column($equivalente, 'id_factura_no'));
                 $hash = $key !== false ? $equivalente[$key]['shash'] : '';
                 if ($key !== false && $hash != '') {

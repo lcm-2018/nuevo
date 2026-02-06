@@ -23,6 +23,7 @@ try {
                 , `fin_tipo_control`.`descripcion` AS `nom_control`
                 , `fin_respon_doc`.`fecha_ini`
                 , `fin_respon_doc`.`fecha_fin`
+                ,`ctb_fuente`.`ver_tercero`
             FROM
                 `fin_respon_doc`
                 INNER JOIN `fin_maestro_doc` 
@@ -53,6 +54,8 @@ try {
         ? ($responsables[0]['costos'] != 1)
         : true;
     $ver_acumula = $responsables[0]['acumula'] == 1 ?  true : false;
+    // Extraer el campo ver_tercero desde la consulta
+    $ver_tercero = !empty($responsables) && isset($responsables[0]['ver_tercero']) ? $responsables[0]['ver_tercero'] : 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -256,20 +259,9 @@ if ($control && count($firmas_activas) > 0) {
         </table>
 HTML;
 }
-$terRecibe = '';
-if ($doc_fte == 'CEVA' || $doc_fte == 'CICP') {
-    if ($_SESSION['nit_emp'] != '844001355') {
-        $terRecibe = "
-        <div class='col'>
-            <div>___________________________________</div>
-            <div>$tercero</div>
-            <div>RECIBE CC/NIT:</div>
-        </div>";
-    }
-}
-
 $terRecibeCell = '';
-if ($terRecibe != '') {
+// Mostrar tercero solo cuando ver_tercero = 1
+if ($ver_tercero == 1) {
     $terRecibeCell = "
         <td style=\"width:50%; text-align:center; vertical-align:top;\">
             <div>___________________________________</div>

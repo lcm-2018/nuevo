@@ -2896,24 +2896,19 @@ const consecutivoDocumento = (id) => {
  * @param {number} tipo - El tipo de documento (0 por defecto). Para Doc. Soporte, 1 para Factura.
  */
 const EnviaDocumentoSoporte = (boton, tipo = 0) => {
-	boton.disabled = true;
 	let id = boton.value;
-	boton.value = "";
-	boton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 	if (tipo == 0) {
 		var url = "soportes/equivalente/enviar_factura.php";
 	} else {
 		var url = "soportes/equivalente/enviar_factura_venta.php";
 	}
+	mostrarOverlay();
 	$.ajax({
 		type: "POST",
 		url: url,
 		data: { id: id },
 		dataType: "json",
 		success: function (response) {
-			boton.disabled = false;
-			boton.value = id;
-			boton.innerHTML = '<span class="fas fa-paper-plane "></span>';
 			if (response.value == "ok") {
 				$('#tableMvtoContable').DataTable().ajax.reload(null, false);
 				mje("Documento enviado correctamente");
@@ -2927,10 +2922,11 @@ const EnviaDocumentoSoporte = (boton, tipo = 0) => {
 				}
 				mjeError('', response.msg);
 			}
-		},
-		error: function (xhr, status, error) {
+		}, error: function (xhr, status, error) {
 			console.error("Error en la solicitud AJAX:", error);
 		}
+	}).always(function () {
+		ocultarOverlay();
 	});
 };
 

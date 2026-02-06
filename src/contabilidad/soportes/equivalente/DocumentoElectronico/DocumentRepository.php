@@ -4,6 +4,7 @@ namespace App\DocumentoElectronico;
 
 use PDO;
 use Exception;
+use Src\Common\Php\Clases\Valores;
 
 /**
  * Repository para manejar datos relacionados con documentos electrónicos
@@ -179,6 +180,8 @@ class DocumentRepository
      */
     public function getUNSPSC(int $idDoc): string
     {
+        $config = Valores::getOwnerConfig();
+
         try {
             $sql = "SELECT
                         `ctt_clasificacion_bn_sv`.`cod_unspsc` AS `id_unspsc`
@@ -203,10 +206,10 @@ class DocumentRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
             // Por defecto retornar código genérico si no existe
-            return $result['id_unspsc'] ?? '85101604';
+            return $result['id_unspsc'] ?? $config['codigo_unsp'];
         } catch (\PDOException $e) {
             // En caso de error, retornar código genérico
-            return '85101604';
+            return $config['codigo_unsp'];
         }
     }
 

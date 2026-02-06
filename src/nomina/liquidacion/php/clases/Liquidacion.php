@@ -1132,7 +1132,8 @@ class Liquidacion
             'valor' => 0
         ];
 
-        $valHora = $param['salario'] / 230;
+        $config = Valores::getOwnerConfig();
+        $valHora = $param['salario'] / floatval($config['horas_mes'] ?? 230);
 
         foreach ($filtro as $f) {
             $idHe =     $f['id_he_trab'];

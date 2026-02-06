@@ -127,7 +127,7 @@ $botonesAdicionales = '';
 if ($tipo_doc == '3' && $_SESSION['caracter'] == '2') {
     $botonesAdicionales .= <<<HTML
     <button type="button" class="btn btn-primary btn-sm me-1" onclick="CargaObligaCrp(2)">
-        Ver Listado <span class="badge bg-light text-dark">{$tipo_doc}</span>
+        Ver Listado
     </button>
 HTML;
 }

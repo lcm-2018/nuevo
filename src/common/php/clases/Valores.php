@@ -2,6 +2,7 @@
 
 namespace Src\Common\Php\Clases;
 
+use Config\Clases\Conexion;
 use NumberFormatter;
 
 class Valores
@@ -241,5 +242,20 @@ class Valores
         }
 
         return $texto;
+    }
+
+    /**
+     * Consulta la tabla tb_owner_config y retorna un array asociativo.
+     * 
+     * @return array Array asociativo donde la clave es el nombre de la configuración
+     *               y el valor es el valor correspondiente. Ejemplo: ['horas_mes' => '230']
+     */
+    public static function getOwnerConfig()
+    {
+        $sql = "SELECT `nombre`, `valor` FROM `tb_owner_config`";
+        $stmt = Conexion::getConexion()->query($sql);
+        $rows = $stmt->fetchAll();
+
+        return array_column($rows, 'valor', 'nombre');
     }
 }
