@@ -114,8 +114,8 @@ $content = <<<HTML
                         <th rowspan="2" class="bg-sofia">Fecha Traslado</th>
                         <th rowspan="2" class="bg-sofia">Hora Traslado</th>
                         <th rowspan="2" class="bg-sofia">Detalle</th>                                        
-                        <th colspan="2" class="bg-sofia">Unidad Principal (Origen)</th>
-                        <th colspan="2" class="bg-sofia">Unidad Destino</th>                                        
+                        <th colspan="2" class="bg-sofia">Unidad Principal (Sistema Local)</th>
+                        <th colspan="2" class="bg-sofia">Unidad Destino (Sistema Remoto)</th>                                        
                         <th rowspan="2" class="bg-sofia">Vr. Total</th>
                         <th colspan="4" class="bg-sofia">Estado</th>
                         <th rowspan="2" class="bg-sofia">Acciones</th>
@@ -143,7 +143,7 @@ $content = <<<HTML
                     </tr>
                     <tr>
                         <td style="background-color:yellow">Pendiente</td>
-                        <td style="background-color:PaleTurquoise">Cerrado_Egresado</td>
+                        <td style="background-color:PaleTurquoise">Cerrado-Egresado</td>
                         <td>Enviado</td>
                         <td style="background-color:gray">Anulado</td>
                     </tr>
@@ -156,7 +156,7 @@ $content = <<<HTML
                     </tr>
                     <tr>
                         <td style="background-color:yellow">Pendiente</td>
-                        <td style="background-color:DodgerBlue">Cerrado_Ingresado</td>
+                        <td style="background-color:DodgerBlue">Cerrado-Ingresado</td>
                         <td style="background-color:gray">Rechazado</td>
                     </tr>
                 </table>

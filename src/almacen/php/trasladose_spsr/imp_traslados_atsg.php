@@ -123,7 +123,7 @@ try {
             switch ($id_reporte) {
                 case '1':
                     $tabla = '<tr style="background-color:#CED3D3; text-align:center">
-                        <th colspan="2">Sede-Bodega Origen</th><th colspan="2">Sede-Bodega Destino</th><th>Vr. Parcial</th><th>Vr. Total</th></tr>';
+                        <th colspan="2">Sede-Bodega Origen (Sistema Local)</th><th colspan="2">Sede-Bodega Destino (Sistema Remoto)</th><th>Vr. Parcial</th><th>Vr. Total</th></tr>';
                     break;
             }
 

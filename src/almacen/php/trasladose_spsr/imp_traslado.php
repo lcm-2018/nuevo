@@ -102,8 +102,8 @@ try {
             <td><?php echo $obj_e['fec_estado']; ?></td>
         </tr>
         <tr style="background-color:#CED3D3; border:#A9A9A9 1px solid">
-            <td colspan="3">Sede y Bodega Principal</td>
-            <td colspan="3">Sede y Bodega Destino (De donde se solicita)</td>
+            <td colspan="3">Sede y Bodega Principal (Sistema Local)</td>
+            <td colspan="3">Sede y Bodega Destino (Sistema Remoto)</td>
         </tr>
         <tr>
             <td colspan="2"><?php echo $obj_e['nom_sede_origen']; ?></td>
