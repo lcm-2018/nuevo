@@ -728,7 +728,7 @@ class Menu
         }
         // 5017: [Movimientos][Traslado SPSR]
         /*if ($this->permisos->PermisosUsuario($this->opciones, 5017, 0) || $this->id_rol == 1) {
-            $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados Egreso SPSR</a></li>';
+            $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/trasladose_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados Egreso SPSR</a></li>';
         }*/
         // 5009: [Movimientos][Recalcular]
         if ($this->permisos->PermisosUsuario($this->opciones, 5009, 0) || $this->id_rol == 1) {

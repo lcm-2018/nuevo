@@ -37,6 +37,20 @@ try {
     $tipos = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
+    // Consulta para obtener información bancaria
+    $sql = "SELECT
+                `ccb`.`id_tercero`,
+                `tb`.`nom_banco`,
+                `ccb`.`tipo_cuenta`,
+                `ccb`.`num_cuenta`
+            FROM
+                `ctt_cuenta_bancaria` AS `ccb`
+                INNER JOIN `tb_bancos` AS `tb` 
+                    ON (`ccb`.`id_banco` = `tb`.`id_banco`)";
+    $rs = $cmd->query($sql);
+    $cuentasBancarias = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $rs->closeCursor();
+    unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -48,6 +62,8 @@ foreach ($terEmpr as $l) {
     }
 }
 $tipos = array_column($tipos, 'tipo', 'id_tercero_api');
+$responsabilidades = array_column($responsabilidades, 'responsabilidades', 'id_tercero_api');
+$cuentasBancariasIndex = array_column($cuentasBancarias, null, 'id_tercero');
 $payload = json_encode($id_t);
 //API URL
 $api = \Config\Clases\Conexion::Api();
@@ -71,6 +87,9 @@ if (!empty($datos)) {
     }
     $head .= '<th>Responsabilidades</th>';
     $head .= '<th>Tipo Tercero</th>';
+    $head .= '<th>Banco</th>';
+    $head .= '<th>Tipo Cuenta</th>';
+    $head .= '<th>Número Cuenta</th>';
 } else {
     echo 'No hay datos para mostrar';
     exit();
@@ -78,8 +97,11 @@ if (!empty($datos)) {
 $tbody = '';
 foreach ($datos as $d) {
     $id_ter = $d['id_tercero'];
-    $key = array_search($id_ter, array_column($responsabilidades, 'id_tercero_api'));
-    $resp = $key !== false ? $responsabilidades[$key]['responsabilidades'] : '';
+    $resp = $responsabilidades[$id_ter] ?? '';
+    // Obtener datos bancarios del tercero
+    $banco = $cuentasBancariasIndex[$id_ter]['nom_banco'] ?? '';
+    $tipoCuenta = $cuentasBancariasIndex[$id_ter]['tipo_cuenta'] ?? '';
+    $numCuenta = $cuentasBancariasIndex[$id_ter]['num_cuenta'] ?? '';
     $tbody .= '<tr>';
     foreach ($d as $ds => $value) {
         if ($ds == 'resposabilidades') continue;
@@ -87,6 +109,9 @@ foreach ($datos as $d) {
     }
     $tbody .= '<td>' . $resp . '</td>';
     $tbody .= '<td>' . ($tipos[$id_ter] ?? '') . '</td>';
+    $tbody .= '<td>' . $banco . '</td>';
+    $tbody .= '<td>' . $tipoCuenta . '</td>';
+    $tbody .= '<td>' . $numCuenta . '</td>';
     $tbody .= '</tr>';
 }
 $tabla = <<<EOT
