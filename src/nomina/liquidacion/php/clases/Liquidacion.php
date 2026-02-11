@@ -28,6 +28,8 @@ use Src\Nomina\Empleados\Php\Clases\Sindicatos;
 use Src\Nomina\Empleados\Php\Clases\Vacaciones;
 use Src\Nomina\Empleados\Php\Clases\Valores_Liquidacion;
 use Src\Nomina\Horas_extra\Php\Clases\Horas_Extra;
+use Src\Nomina\Empleados\Php\Clases\Viaticos;
+use Src\Nomina\Empleados\Php\Clases\ViaticosLiq;
 use Src\Usuarios\Login\Php\Clases\Usuario;
 
 /**
@@ -397,7 +399,14 @@ class Liquidacion
         $licenciaNR =       (new Licencias_Norem())->getRegistroPorEmpleado($inicia, $fin);
         $licenciaLuto =     (new Licencias_Luto())->getRegistroPorEmpleado($inicia, $fin);
         $indemVacaciones =  (new Indemniza_Vacacion())->getRegistroPorEmpleado($inicia, $fin);
+        $indemVacaciones =  (new Indemniza_Vacacion())->getRegistroPorEmpleado($inicia, $fin);
         $bonificaciones =   (new Bsp())->getRegistroPorEmpleado();
+        $viaticosNomina =   (new Viaticos())->getViaticosNomina($inicia, $fin); // Obtener viáticos del mes
+        // Agrupar viáticos por empleado para fácil acceso
+        $viaticosPorEmpleado = [];
+        foreach ($viaticosNomina as $v) {
+            $viaticosPorEmpleado[$v['id_empleado']][] = $v;
+        }
 
         //Deducidos
         $libranzas =    (new Libranzas())->getLibranzasPorEmpleado($inicia);
@@ -612,6 +621,25 @@ class Liquidacion
                         }
                     }
 
+                    // Liquidar Viáticos
+                    // Verificar si tiene viáticos en el mes
+                    $valTotalViaticos = 0;
+                    if (isset($viaticosPorEmpleado[$id_empleado])) {
+                        foreach ($viaticosPorEmpleado[$id_empleado] as $viatico) {
+                            $valTotalViaticos += $viatico['val_total'];
+                            // Registrar en nom_liq_viaticos
+                            $dataLiqViatico = [
+                                'id_viatico' => $viatico['id_viatico'],
+                                'valor'      => $viatico['val_total'],
+                                'id_nomina'  => $id_nomina
+                            ];
+                            $resLiqV = (new ViaticosLiq($this->conexion))->addRegistro($dataLiqViatico);
+                            if ($resLiqV != 'si') {
+                                throw new Exception("Error al liquidar viático ID {$viatico['id_viatico']}: $resLiqV");
+                            }
+                        }
+                    }
+
                     //laborado 
                     $valTotalLab = $laborado[$id_empleado] * ($param['salario'] / 30);
                     $valAuxTrans = $laborado[$id_empleado] * ($param['aux_trans'] / 30);
@@ -717,7 +745,7 @@ class Liquidacion
                         throw new Exception("Prestaciones sociales: $response");
                     }
 
-                    $baseDctos = $valTotalLab + $valAuxTrans + $valAuxAlim + $valTotalHe + $valTotIncap + $valTotVac + $valTotLicMP + $valTotLicLuto + $valTotalBSP + $valTotPrimVac + $valBonRec + $grepre + $valTotIndemVac - ($valTotSegSoc ?? 0);
+                    $baseDctos = $valTotalLab + $valAuxTrans + $valAuxAlim + $valTotalHe + $valTotIncap + $valTotVac + $valTotLicMP + $valTotLicLuto + $valTotalBSP + $valTotPrimVac + $valBonRec + $grepre + $valTotIndemVac + $valTotalViaticos - ($valTotSegSoc ?? 0);
 
                     //Deducciones
 

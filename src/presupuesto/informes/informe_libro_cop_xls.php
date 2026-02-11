@@ -13,7 +13,6 @@ function pesos($valor)
     return '$' . number_format($valor, 2);
 }
 include '../../../config/autoloader.php';
-include '../../terceros.php';
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
@@ -30,6 +29,8 @@ try {
                 , `taux`.`nom_rubro`
                 , IFNULL(`t1`.`valor`,0) AS `valor_cop`
                 , IFNULL(`t1`.`valor`,0) AS `valor_pag`
+                , `tb_terceros`.`nom_tercero`
+                , `tb_terceros`.`nit_tercero`
             FROM
                 (SELECT
                     `pto_crp`.`id_manu` as `no_crp`
@@ -54,6 +55,8 @@ try {
                     INNER JOIN `pto_cargue` 
                         ON (`pto_cdp_detalle`.`id_rubro` = `pto_cargue`.`id_cargue`)
                 WHERE (`ctb_doc`.`fecha` BETWEEN '$fecha_ini' AND '$fecha_corte' AND `ctb_doc`.`estado` <> 0)) AS `taux`
+                LEFT JOIN `tb_terceros` 
+                    ON (`taux`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
                 LEFT JOIN 
                     (SELECT
                         `ctb_doc`.`id_ctb_doc`
@@ -98,17 +101,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$terceros = [];
-if (!empty($causaciones)) {
-    $id_t = [];
-    foreach ($causaciones as $ca) {
-        if ($ca['id_tercero_api'] != '') {
-            $id_t[] = $ca['id_tercero_api'];
-        }
-    }
-    $ids = implode(',', $id_t);
-    $terceros = getTerceros($ids, $cmd);
-}
+
 $nom_informe = "RELACION DE OBLIGACIONES PRESUPUESTALES";
 include_once '../../financiero/encabezado_empresa.php';
 ?>
@@ -130,9 +123,8 @@ include_once '../../financiero/encabezado_empresa.php';
     <tbody>
         <?php
         foreach ($causaciones as $rp) {
-            $key = array_search($rp['id_tercero_api'], array_column($terceros, 'id_tercero_api'));
-            $tercero = $key !== false ? ltrim($terceros[$key]['nom_tercero']) : '---';
-            $ccnit = $key !== false ? number_format($terceros[$key]['nit_tercero'], 0, "", ".") : '---';
+            $tercero = $rp['nom_tercero'];
+            $ccnit = $rp['nit_tercero'];
 
             $fecha = date('Y-m-d', strtotime($rp['fec_cop']));
             $saldo = $rp['valor_cop'] - $rp['valor_pag'];

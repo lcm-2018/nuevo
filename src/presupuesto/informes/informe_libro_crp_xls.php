@@ -69,13 +69,14 @@ try {
                 INNER JOIN 
                     (SELECT 
                         `det`.`id_pto_cdp`,
+                        `det`.`id_rubro`,
                         (SUM(COALESCE(`det`.`valor`, 0)) - SUM(COALESCE(`det`.`valor_liberado`, 0))) AS `total_neto`
                     FROM 
                         `pto_cdp_detalle` AS `det`
                         INNER JOIN `pto_cdp` AS `cdp` ON `det`.`id_pto_cdp` = `cdp`.`id_pto_cdp`
                     WHERE  `cdp`.`estado` > 0
-                    GROUP BY `det`.`id_pto_cdp`) AS `cdp`
-                    ON (`cdp`.`id_pto_cdp` = `taux`.`id_pto_cdp`)
+                    GROUP BY `det`.`id_pto_cdp`, `det`.`id_rubro`) AS `cdp`
+                    ON (`cdp`.`id_pto_cdp` = `taux`.`id_pto_cdp` AND `cdp`.`id_rubro` = `taux`.`id_rubro`)
                 LEFT JOIN
                         (SELECT
                             `pto_cdp_detalle`.`id_pto_cdp`

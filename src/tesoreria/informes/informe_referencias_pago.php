@@ -87,7 +87,7 @@ echo "\xEF\xBB\xBF";
         $producto = $c['num_cuenta'];
         $banco = $c['nom_banco'];
         $tipo_cuenta = $c['tipo_cuenta'];
-        $detalle_cuenta = $tipo_cuenta != '' ? ($tipo_cuenta == 'Ahorros' ? 'CA' : 'CC') : '';
+        $detalle_cuenta = $tipo_cuenta != '' ? ($tipo_cuenta == 'Ahorros' ? 'A' : 'C') : '';
         $cod_banco = $c['cod_banco'];
         $val = number_format($c['valor'], 2, ',', '');
         echo "<tr>
@@ -95,11 +95,11 @@ echo "\xEF\xBB\xBF";
                 <td class='text-start'>{$c['nit_tercero']}</td>
                 <td class='text-start'>{$c['nom_tercero']}</td>
                 <td class='text-start'>{$c['codigo_ne']}</td>
-                <td class='text-start'>{$producto}</td>
+                <td class='text-start' style=\"mso-number-format:'\@'\">{$producto}</td>
                 <td class='text-start'>{$banco}</td>
                 <td class='text-start'>{$tipo_cuenta}</td>
                 <td class='text-start'>{$detalle_cuenta}</td>
-                <td class='text-start'>{$cod_banco}</td>
+                <td class='text-start' style=\"mso-number-format:'\@'\">{$cod_banco}</td>
                 <td class='text-end'>{$val}</td>
                 <td class='text-start'>{$c['id_manu']}</td>
             </tr>";

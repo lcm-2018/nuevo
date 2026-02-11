@@ -225,22 +225,23 @@ document.querySelector('#tableCargosNom').addEventListener('click', function (ev
         EliminaRegistro('../php/controladores/cargos.php', id, tableCargosNom);
     }
 });
+if (document.querySelector('#tableIncSalario')) {
+    document.querySelector('#tableIncSalario').addEventListener('click', function (event) {
+        const btnActualizar = event.target.closest('.actualizar');
+        const btnEliminar = event.target.closest('.eliminar');
 
-document.querySelector('#tableIncSalario').addEventListener('click', function (event) {
-    const btnActualizar = event.target.closest('.actualizar');
-    const btnEliminar = event.target.closest('.eliminar');
+        if (btnActualizar) {
+            mostrarOverlay();
+            const id = btnActualizar.dataset.id;
+            VerFormulario('../php/controladores/incrementos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms');
+        }
 
-    if (btnActualizar) {
-        mostrarOverlay();
-        const id = btnActualizar.dataset.id;
-        VerFormulario('../php/controladores/incrementos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms');
-    }
-
-    if (btnEliminar) {
-        const id = btnEliminar.dataset.id;
-        EliminaRegistro('../php/controladores/incrementos.php', id, tableIncSalario);
-    }
-});
+        if (btnEliminar) {
+            const id = btnEliminar.dataset.id;
+            EliminaRegistro('../php/controladores/incrementos.php', id, tableIncSalario);
+        }
+    });
+}
 
 document.querySelector('#tableRubroPto').addEventListener('click', function (event) {
     const btnActualizar = event.target.closest('.actualizar');

@@ -213,6 +213,7 @@ class Detalles
                     `e`.`id_empleado`
                     , `ts`.`nom_sede` AS `sede`
                     , `e`.`no_documento`
+                    , `e`.`correo`
                     , CONCAT_WS (' ',`e`.`nombre1`,`nombre2`,`apellido1`,`apellido2`) AS `nombre`
                     , `cargo`.`descripcion_carg`
                     , `cargo`.`tipo_cargo`

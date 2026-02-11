@@ -114,10 +114,11 @@ if ($id_cta_factura == 0) {
                     // Generar la referencia con guion: prefijo-consecutivo (ej: rscc-001)
                     $referencia = $pref . '-' . $nuevoConsecutivo;
 
-                    $sqlSoporte = "INSERT INTO `seg_soporte_fno` (`id_factura_no`, `referencia`, `tipo`) VALUES (?, ?, 0)";
+                    $sqlSoporte = "INSERT INTO `seg_soporte_fno` (`id_factura_no`, `referencia`, `tipo`, `fecha`) VALUES (?, ?, 0, ?)";
                     $stmtSoporte = $cmd->prepare($sqlSoporte);
-                    $stmtSoporte->bindParam(1, $lastInsertId, PDO::PARAM_INT);
+                    $stmtSoporte->bindParam(1, $id_ctb_doc, PDO::PARAM_INT);
                     $stmtSoporte->bindParam(2, $referencia, PDO::PARAM_STR);
+                    $stmtSoporte->bindParam(3, $fecha_fact, PDO::PARAM_STR);
                     $stmtSoporte->execute();
 
                     // Incrementar el consecutivo en nom_resoluciones para que el siguiente proceso tome el siguiente número
