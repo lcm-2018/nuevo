@@ -588,6 +588,34 @@ $content = <<<HTML
                     </div>
                 </div>
             </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header sombra">
+                    <button class="accordion-button sombra collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#divViaticos" aria-expanded="false" aria-controls="divViaticos">
+                        <span class="text-danger"><i class="fas fa-plane-departure me-2 fa-lg"></i>VIÑETA. Registro y control de viáticos.</span>
+                    </button>
+                </h2>
+                <div id="divViaticos" class="accordion-collapse collapse">
+                    <div class="accordion-body bg-wiev">
+                        <table id="tableViaticos" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th class="text-center bg-sofia">ID</th>
+                                    <th class="text-center bg-sofia">FECHA</th>
+                                    <th class="text-center bg-sofia">No RESOLUCIÓN</th>
+                                    <th class="text-center bg-sofia">TIPO</th>
+                                    <th class="text-center bg-sofia">DESTINO</th>
+                                    <th class="text-center bg-sofia">MOTIVO</th>
+                                    <th class="text-center bg-sofia">MONTO SOLICITADO</th>
+                                    <th class="text-center bg-sofia">ESTADO</th>
+                                    <th class="text-center bg-sofia">ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modificaViaticos">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -617,5 +645,7 @@ $content = implode("\n", $result);
 $plantilla = new Plantilla($content, 2);
 $plantilla->addScriptFile("{$host}/src/nomina/empleados/js/detalles.js?v=" . date("YmdHis"));
 $modal = $plantilla->getModal('modalForms', 'tamModalForms', 'bodyModal');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('modalForms1', 'tamModalForms1', 'bodyModal1');
 $plantilla->addModal($modal);
 echo $plantilla->render();

@@ -497,6 +497,40 @@ const tableIvivienda = crearDataTable(
     },
 );
 
+const tableViaticos = crearDataTable(
+    '#tableViaticos',
+    'lista_viaticos.php',
+    [
+        { data: 'id' },
+        { data: 'fecha' },
+        { data: 'no_resolucion' },
+        { data: 'tipo' },
+        { data: 'destino' },
+        { data: 'objetivo' },
+        { data: 'monto' },
+        { data: 'estado' },
+        { data: 'acciones' }
+    ],
+    [
+        {
+            text: plus,
+            className: 'btn btn-success btn-sm shadow',
+            titleAttr: 'Agregar nuevo viático de empleado',
+            action: function (e, dt, node, config) {
+                mostrarOverlay();
+                VerFormulario('../php/controladores/viaticos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            }
+        }
+    ],
+    {
+        pageLength: 10,
+        order: [[0, 'desc']],
+    },
+    function (d) {
+        d.id_empleado = document.querySelector('#id_empleado').value;
+    },
+);
+
 tableIncapacidades.on('init', function () {
     BuscaDataTable(tableIncapacidades);
 });
@@ -546,6 +580,10 @@ tableCcosto.on('init', function () {
 
 tableIvivienda.on('init', function () {
     BuscaDataTable(tableIvivienda);
+});
+
+tableViaticos.on('init', function () {
+    BuscaDataTable(tableViaticos);
 });
 
 
@@ -818,6 +856,31 @@ if (document.querySelector('#tableIvivienda')) {
         if (btnEliminar) {
             const id = btnEliminar.dataset.id;
             EliminaRegistro('../php/controladores/ivivienda.php', id, tableIvivienda);
+        }
+    });
+}
+
+if (document.querySelector('#tableViaticos')) {
+    document.querySelector('#tableViaticos').addEventListener('click', function (event) {
+        const btnActualizar = event.target.closest('.actualizar');
+        const btnEliminar = event.target.closest('.eliminar');
+        const btnDetalles = event.target.closest('.detalles');
+
+        if (btnActualizar) {
+            mostrarOverlay();
+            const id = btnActualizar.dataset.id;
+            VerFormulario('../php/controladores/viaticos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+        }
+
+        if (btnEliminar) {
+            const id = btnEliminar.dataset.id;
+            EliminaRegistro('../php/controladores/viaticos.php', id, tableViaticos);
+        }
+
+        if (btnDetalles) {
+            mostrarOverlay();
+            const id = btnDetalles.dataset.id;
+            VerFormulario('../php/controladores/viaticos_novedades.php', 'form', id, 'modalForms1', 'bodyModal1', 'tamModalForms1', 'modal-lg');
         }
     });
 }
@@ -1246,6 +1309,37 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                         ocultarOverlay();
                     });
                 }
+                break;
+            case 'btnGuardarViatico':
+                if (ValueInput('datFecInicia') === '') {
+                    MuestraError('datFecInicia', 'Ingrese la fecha del viático');
+                } else if (ValueInput('txtNoResolucion') === '') {
+                    MuestraError('txtNoResolucion', 'Ingrese el número de resolución');
+                } else if (ValueInput('slcTipo') === '') {
+                    MuestraError('slcTipo', 'Seleccione un tipo de viático');
+                } else if (ValueInput('txtDestino') === '') {
+                    MuestraError('txtDestino', 'Ingrese el destino del viático');
+                } else if (ValueInput('txtObjetivo') === '') {
+                    MuestraError('txtObjetivo', 'Ingrese el motivo del viático');
+                } else if (Number(ValueInput('numValTotal')) <= 0) {
+                    MuestraError('numValTotal', 'Ingrese un monto válido para el viático');
+                } else {
+                    mostrarOverlay();
+                    var data = Serializa('formViaticos');
+                    data.append('action', data.get('id') == '0' ? 'add' : 'edit');
+                    data.append('id_empleado', ValueInput('id_empleado'));
+                    SendPost('../php/controladores/viaticos.php', data).then((response) => {
+                        if (response.status === 'ok') {
+                            mje('Guardado correctamente!');
+                            tableViaticos.ajax.reload(null, false);
+                            $('#modalForms').modal('hide');
+                        } else {
+                            mjeError('Error!', response.msg);
+                        }
+                    }).finally(() => {
+                        ocultarOverlay();
+                    });
+                }
         }
     }
 });
@@ -1341,4 +1435,149 @@ function InputRiesgoLaboral(div, tipo) {
     } else {
         div.classList.add('d-none');
     }
+}
+
+// === VIÁTICOS NOVEDADES ===
+let tableViaticoNovedades = null;
+
+// Inicializar DataTable de novedades cuando el modal se muestra
+$('#modalForms1').on('shown.bs.modal', function () {
+    if (document.getElementById('tableViaticoNovedades') && !tableViaticoNovedades) {
+        tableViaticoNovedades = crearDataTable(
+            '#tableViaticoNovedades',
+            'lista_viaticos_novedades.php',
+            [
+                { data: 'id' },
+                { data: 'fecha' },
+                { data: 'tipo_registro' },
+                { data: 'observacion' },
+                { data: 'acciones' }
+            ],
+            [],
+            {
+                pageLength: 10,
+                order: [[0, 'desc']],
+            },
+            function (d) {
+                d.id_viatico = document.getElementById('idViaticoNov').value;
+            },
+        );
+    }
+});
+
+// Destruir DataTable de novedades cuando el modal se cierra
+$('#modalForms1').on('hidden.bs.modal', function () {
+    if (tableViaticoNovedades) {
+        tableViaticoNovedades.destroy();
+        tableViaticoNovedades = null;
+    }
+    document.getElementById('bodyModal1').innerHTML = '';
+});
+
+// Click handler para el modal de novedades (guardar, editar, eliminar)
+document.getElementById('modalForms1').addEventListener('click', function (event) {
+    const boton = event.target;
+    LimpiaInvalid();
+
+    // Editar novedad: llenar formulario con datos del registro
+    const btnActualizarNov = event.target.closest('.actualizarNov');
+    if (btnActualizarNov) {
+        const id = btnActualizarNov.dataset.id;
+        var formData = new FormData();
+        formData.append('action', 'get');
+        formData.append('id', id);
+        SendPost('../php/controladores/viaticos_novedades.php', formData).then((response) => {
+            if (response.status === 'ok') {
+                document.getElementById('idNovedad').value = response.data.id_novedad;
+                document.getElementById('datFechaNov').value = response.data.fecha;
+                document.getElementById('slcTipoRegistro').value = response.data.tipo_registro;
+                document.getElementById('txtObservacion').value = response.data.observacion;
+                // Scroll al inicio del modal
+                document.querySelector('#modalForms1 .modal-body').scrollTop = 0;
+            } else {
+                mjeError('Error!', response.msg);
+            }
+        });
+        return;
+    }
+
+    // Eliminar novedad
+    const btnEliminarNov = event.target.closest('.eliminarNov');
+    if (btnEliminarNov) {
+        const id = btnEliminarNov.dataset.id;
+        const idViatico = document.getElementById('idViaticoNov').value;
+        Swal.fire(Confir).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                var formData = new FormData();
+                formData.append('action', 'del');
+                formData.append('id', id);
+                formData.append('id_viatico', idViatico);
+                SendPost('../php/controladores/viaticos_novedades.php', formData).then((response) => {
+                    if (response.status === 'ok') {
+                        mje('Eliminado correctamente!');
+                        if (tableViaticoNovedades) tableViaticoNovedades.ajax.reload(null, false);
+                        tableViaticos.ajax.reload(null, false);
+                        // Reset formulario
+                        document.getElementById('idNovedad').value = '0';
+                        document.getElementById('formViaticoNovedad').reset();
+                    } else {
+                        mjeError('Error!', response.msg);
+                    }
+                }).finally(() => {
+                    ocultarOverlay();
+                });
+            }
+        });
+        return;
+    }
+
+    // Guardar novedad
+    if (boton && boton.id === 'btnGuardarNovedad') {
+        if (ValueInput('datFechaNov') === '') {
+            MuestraError('datFechaNov', 'Ingrese la fecha de la novedad');
+        } else if (ValueInput('slcTipoRegistro') === '') {
+            MuestraError('slcTipoRegistro', 'Seleccione un tipo de registro');
+        } else if (ValueInput('txtObservacion') === '') {
+            MuestraError('txtObservacion', 'Ingrese la observación de la novedad');
+        } else {
+            mostrarOverlay();
+            var data = Serializa('formViaticoNovedad');
+            data.append('action', data.get('id') == '0' ? 'add' : 'edit');
+            SendPost('../php/controladores/viaticos_novedades.php', data).then((response) => {
+                if (response.status === 'ok') {
+                    mje('Guardado correctamente!');
+                    if (tableViaticoNovedades) tableViaticoNovedades.ajax.reload(null, false);
+                    tableViaticos.ajax.reload(null, false);
+                    // Reset formulario para nueva novedad
+                    document.getElementById('idNovedad').value = '0';
+                    document.getElementById('formViaticoNovedad').reset();
+                } else {
+                    mjeError('Error!', response.msg);
+                }
+            }).finally(() => {
+                ocultarOverlay();
+            });
+        }
+    }
+
+    // Soporte legalización
+    const btnSoporteNov = event.target.closest('.soporteNov');
+    if (btnSoporteNov) {
+        const id = btnSoporteNov.dataset.id;
+        console.log('Soporte legalización - ID novedad:', id);
+        return;
+    }
+
+    // Gestión caducado
+    const btnCaducadoNov = event.target.closest('.caducadoNov');
+    if (btnCaducadoNov) {
+        const id = btnCaducadoNov.dataset.id;
+        console.log('Gestión caducado - ID novedad:', id);
+        return;
+    }
+});
+
+function imprimirReporteViatico(id) {
+    ImprimirReporte('../../liquidado/php/reportes/viaticos.php', { id: id });
 }

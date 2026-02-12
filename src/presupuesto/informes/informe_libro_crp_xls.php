@@ -36,7 +36,7 @@ try {
                 , IFNULL(`t3`.`valor_liberado`,0) AS `val_crp_liberado`
                 , `taux`.`nom_tercero`
                 , `taux`.`nit_tercero`
-                
+                , `cdp`.`total_neto`
             FROM 
                 (SELECT
                     `pto_cdp`.`id_pto_cdp`
@@ -66,6 +66,17 @@ try {
                     LEFT JOIN `tb_terceros`
                         ON (`pto_crp_detalle`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
                 WHERE (`pto_crp`.`fecha` BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_crp`.`estado` = 2)) AS `taux`
+                INNER JOIN 
+                    (SELECT 
+                        `det`.`id_pto_cdp`,
+                        `det`.`id_rubro`,
+                        (SUM(COALESCE(`det`.`valor`, 0)) - SUM(COALESCE(`det`.`valor_liberado`, 0))) AS `total_neto`
+                    FROM 
+                        `pto_cdp_detalle` AS `det`
+                        INNER JOIN `pto_cdp` AS `cdp` ON `det`.`id_pto_cdp` = `cdp`.`id_pto_cdp`
+                    WHERE  `cdp`.`estado` > 0
+                    GROUP BY `det`.`id_pto_cdp`, `det`.`id_rubro`) AS `cdp`
+                    ON (`cdp`.`id_pto_cdp` = `taux`.`id_pto_cdp` AND `cdp`.`id_rubro` = `taux`.`id_rubro`)
                 LEFT JOIN
                         (SELECT
                             `pto_cdp_detalle`.`id_pto_cdp`
@@ -140,6 +151,7 @@ include_once '../../financiero/encabezado_empresa.php';
             <th>Objeto</th>
             <th>Rubro</th>
             <th>Nombre Rubro</th>
+            <th>Valor CDP</th>
             <th>Valor inicial CRP</th>
             <th>Valor liberado</th>
             <th>Valor definitivo CRP</th>
@@ -169,6 +181,7 @@ include_once '../../financiero/encabezado_empresa.php';
                 <td style='text-align:left'>" . $rp['objeto'] . "</td>
                 <td style='text-align:left'>" . $rp['rubro'] . "</td>
                 <td style='text-align:left'>" . $rp['nom_rubro'] . "</td>
+                <td style='text-align:right'>" . number_format($rp['total_neto'], 2, ".", ",")  . "</td>
                 <td style='text-align:right'>" . number_format($valor, 2, ".", ",")  . "</td>
                 <td style='text-align:right'>" . number_format($valor_liberado, 2, ".", ",")  . "</td>
                 <td style='text-align:right'>" . number_format($valor_neto, 2, ".", ",")  . "</td>

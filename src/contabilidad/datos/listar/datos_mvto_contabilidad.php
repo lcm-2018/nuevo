@@ -223,6 +223,10 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 
+// Crear lookup tables indexadas para búsquedas O(1) en lugar de O(n)
+$diferenciasLookup = array_column($diferencias, null, 'id_ctb_doc');
+$equivalenteLookup = array_column($equivalente, null, 'id_factura_no');
+
 $data = [];
 if (!empty($listappto)) {
     foreach ($listappto as $lp) {
@@ -232,11 +236,11 @@ if (!empty($listappto)) {
         $estado = $lp['estado'];
         $tercero = $lp['nom_tercero'] != '' ? $lp['nom_tercero'] : '---';
 
-        $key = array_search($id_ctb, array_column($diferencias, 'id_ctb_doc'));
         $editar = $detalles = $borrar = $imprimir = $enviar = $acciones = $dato = $imprimir = $anular = null;
-        if ($key !== false) {
-            $valor_debito = $diferencias[$key]['debito'];
-            $dif = $diferencias[$key]['diferencia'];
+        // Búsqueda O(1) usando lookup table indexada
+        if (isset($diferenciasLookup[$id_ctb])) {
+            $valor_debito = $diferenciasLookup[$id_ctb]['debito'];
+            $dif = $diferenciasLookup[$id_ctb]['diferencia'];
         } else {
             $valor_debito = 0;
             $dif = 0;
@@ -291,10 +295,11 @@ if (!empty($listappto)) {
         } else {
             if ($lp['tipo'] == 3) {
                 $disabled = $estado == 2 ? '' : 'disabled';
-                $key = array_search($id_ctb, array_column($equivalente, 'id_factura_no'));
-                $hash = $key !== false ? $equivalente[$key]['shash'] : '';
-                if ($key !== false && $hash != '') {
-                    $enviar = '<a onclick="VerSoporteElectronico(' . $equivalente[$key]['id_soporte'] . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow" title="VER DOCUMENTO"><span class="far fa-file-pdf "></span></a>';
+                // Búsqueda O(1) usando lookup table indexada
+                $equivalenteData = $equivalenteLookup[$id_ctb] ?? null;
+                $hash = $equivalenteData['shash'] ?? '';
+                if ($equivalenteData !== null && $hash != '') {
+                    $enviar = '<a onclick="VerSoporteElectronico(' . $equivalenteData['id_soporte'] . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow" title="VER DOCUMENTO"><span class="far fa-file-pdf "></span></a>';
                 } else {
                     $enviar = '<button value="' . $id_ctb . '" onclick="EnviaDocumentoSoporte(this)" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow" title="REPORTAR FACTURA" ' . $disabled . '><span class="fas fa-paper-plane "></span></button>';
                 }

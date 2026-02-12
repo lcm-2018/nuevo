@@ -55,6 +55,7 @@ try {
         'enviados' => 0,
         'sin_correo' => 0,
         'fallidos' => 0,
+        'fallidos_docs' => [],
         'errores' => []
     ];
 
@@ -85,6 +86,7 @@ try {
 
             if (empty($correoEmpleado)) {
                 $stats['sin_correo']++;
+                $stats['fallidos_docs'][] = $datosEmpleado['no_documento'];
                 $stats['errores'][] = [
                     'empleado' => $datosEmpleado['nombre'],
                     'error' => 'Sin correo registrado'
@@ -104,7 +106,7 @@ try {
 
             $contenido = <<<HTML
                 <p>Estimado(a) <strong>{$nombreEmpleado}</strong>,</p>
-                <p>Adjunto encontrará su desprendible de nómina correspondiente al mes de <strong>{$mes}</strong> del año <strong>{$nomina['vigencia']}</strong>.</p>
+                <p>Adjunto encontrará su desprendible de nómina correspondiente a: <strong>{$nomina['descripcion']}</strong>.</p>
                 <p>Este documento contiene el detalle de sus devengados y deducciones del período.</p>
                 <p>Si tiene alguna consulta sobre su desprendible, por favor comuníquese con el área de Recursos Humanos.</p>
                 <br>
@@ -124,6 +126,7 @@ HTML;
                 $stats['enviados']++;
             } else {
                 $stats['fallidos']++;
+                $stats['fallidos_docs'][] = $datosEmpleado['no_documento'];
                 $stats['errores'][] = [
                     'empleado' => $nombreEmpleado,
                     'correo' => $correoEmpleado,
@@ -139,12 +142,16 @@ HTML;
 
         } catch (Exception $e) {
             $stats['fallidos']++;
+            $stats['fallidos_docs'][] = $datosEmpleado['no_documento'] ?? 'N/A';
             $stats['errores'][] = [
                 'empleado' => $datosEmpleado['nombre'] ?? 'Desconocido',
                 'error' => $e->getMessage()
             ];
         }
     }
+
+    // Convertir array de documentos fallidos a cadena separada por comas
+    $stats['fallidos_docs'] = implode(', ', $stats['fallidos_docs']);
 
     // Preparar respuesta
     if ($stats['enviados'] > 0) {

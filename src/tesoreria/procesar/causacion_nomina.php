@@ -79,8 +79,8 @@ try {
                 INNER JOIN (
                     SELECT `nf1`.`id_empleado`, `nf1`.`id_fc`
                     FROM `nom_novedades_fc` `nf1`
-                    WHERE `nf1`.`id` = (
-                        SELECT MAX(`nf2`.`id`)
+                    WHERE `nf1`.`id_novfc` = (
+                        SELECT MAX(`nf2`.`id_novfc`)
                         FROM `nom_novedades_fc` `nf2`
                         WHERE `nf2`.`id_empleado` = `nf1`.`id_empleado`
                     )

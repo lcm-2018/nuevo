@@ -85,7 +85,7 @@ try {
 
     $contenido = <<<HTML
         <p>Estimado(a) <strong>{$nombreEmpleado}</strong>,</p>
-        <p>Adjunto encontrará su desprendible de nómina correspondiente al mes de <strong>{$mes}</strong> del año <strong>{$nomina['vigencia']}</strong>.</p>
+        <p>Adjunto encontrará su desprendible de nómina correspondiente a: <strong>{$nomina['descripcion']}</strong>.</p>
         <p>Este documento contiene el detalle de sus devengados y deducciones del período.</p>
         <p>Si tiene alguna consulta sobre su desprendible, por favor comuníquese con el área de Recursos Humanos.</p>
         <br>
