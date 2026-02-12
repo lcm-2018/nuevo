@@ -372,6 +372,9 @@ try {
                 case 22:
                     $valor = $dd['valor_ps'];
                     break;
+                case 23:
+                    $valor = $dd['valor_viatico'];
+                    break;
                 case 32:
                     $valor = $dd['pago_empresa'];
                     break;
@@ -455,6 +458,9 @@ try {
                     case 22:
                         $valor = $dd['valor_ps'] / $num_ccostos;
                         break;
+                    case 23:
+                        $valor = $dd['valor_viatico'] / $num_ccostos;
+                        break;
                     case 32:
                         $valor = $dd['pago_empresa'] / $num_ccostos;
                         break;
@@ -536,7 +542,7 @@ try {
                         $val_dcto = $dd['valor_dcto'];
 
                         $sgs = $dd['valor_salud'] + $dd['valor_pension'] + $dd['val_psolidaria'];
-                        $credito = $dd['valor_laborado'] + $dd['horas_ext'] + $dd['aux_tran'] + $dd['aux_alim'] - ($sgs + $valSind + $valLib + $valEmb + $valRteFte + $val_dcto);
+                        $credito = $dd['valor_laborado'] + $dd['horas_ext'] + $dd['aux_tran'] + $dd['aux_alim'] + $dd['valor_viatico'] - ($sgs + $valSind + $valLib + $valEmb + $valRteFte + $val_dcto);
                         if ($credito < 0) {
                             $restar = $credito * -1;
                             $credito = 0;
@@ -604,6 +610,9 @@ try {
                         break;
                     case 22:
                         $credito = $dd['valor_ps'];
+                        break;
+                    case 23:
+                        $credito = $dd['valor_viatico'];
                         break;
                     case 24:
                         $sgs = $dd['valor_pension'] + $dd['val_psolidaria'];

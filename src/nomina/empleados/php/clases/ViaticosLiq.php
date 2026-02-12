@@ -4,6 +4,7 @@ namespace Src\Nomina\Empleados\Php\Clases;
 
 use Config\Clases\Conexion;
 use Config\Clases\Logs;
+use Config\Clases\Sesion;
 use PDO;
 use PDOException;
 
@@ -29,36 +30,21 @@ class ViaticosLiq
     public function addRegistro($array)
     {
         try {
-            // Verificar si ya existe para evitar duplicados si se reliquida
-            $sqlCheck = "SELECT `id_liq_viatico` FROM `nom_liq_viaticos` WHERE `id_viatico` = ? AND `id_nomina` = ?";
-            $stmtCheck = $this->conexion->prepare($sqlCheck);
-            $stmtCheck->bindParam(1, $array['id_viatico'], PDO::PARAM_INT);
-            $stmtCheck->bindParam(2, $array['id_nomina'], PDO::PARAM_INT);
-            $stmtCheck->execute();
+            $sql = "INSERT INTO `nom_liq_viaticos`
+	                    (`id_viatico`,`valor`,`id_nomina`,`id_user_reg`,`fec_reg`)
+                    VALUES (?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_viatico'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['valor'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->bindValue(4, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->execute();
 
-            if ($stmtCheck->rowCount() > 0) {
-                // Si existe, actualizamos el valor
-                $sqlUpdate = "UPDATE `nom_liq_viaticos` SET `valor` = ? WHERE `id_viatico` = ? AND `id_nomina` = ?";
-                $stmtUpdate = $this->conexion->prepare($sqlUpdate);
-                $stmtUpdate->bindParam(1, $array['valor'], PDO::PARAM_STR);
-                $stmtUpdate->bindParam(2, $array['id_viatico'], PDO::PARAM_INT);
-                $stmtUpdate->bindParam(3, $array['id_nomina'], PDO::PARAM_INT);
-                $stmtUpdate->execute();
+            if ($this->conexion->lastInsertId() > 0) {
                 return 'si';
             } else {
-                // Si no existe, insertamos
-                $sql = "INSERT INTO `nom_liq_viaticos` (`id_viatico`, `valor`, `id_nomina`) VALUES (?, ?, ?)";
-                $stmt = $this->conexion->prepare($sql);
-                $stmt->bindParam(1, $array['id_viatico'], PDO::PARAM_INT);
-                $stmt->bindParam(2, $array['valor'], PDO::PARAM_STR);
-                $stmt->bindParam(3, $array['id_nomina'], PDO::PARAM_INT);
-                $stmt->execute();
-
-                if ($this->conexion->lastInsertId() > 0) {
-                    return 'si';
-                } else {
-                    return 'No se insertó el registro de viático liquidado';
-                }
+                return 'No se insertó el registro de viático liquidado';
             }
         } catch (PDOException $e) {
             return 'Error SQL en ViaticosLiq: ' . $e->getMessage();
@@ -74,7 +60,7 @@ class ViaticosLiq
         try {
             $sql = "DELETE FROM `nom_liq_viaticos` WHERE `id_nomina` = ?";
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bindParam(1, $id_nomina, PDO::PARAM_INT);
+            $stmt->bindValue(1, $id_nomina, PDO::PARAM_INT);
             $stmt->execute();
             return 'si';
         } catch (PDOException $e) {

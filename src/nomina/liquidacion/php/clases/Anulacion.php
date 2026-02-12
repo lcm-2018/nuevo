@@ -106,6 +106,11 @@ class Anulacion
              SET `nlll`.`estado` = 0
              WHERE `nll`.`id_empleado` = :id_empleado AND `nlll`.`id_nomina` = :id_nomina",
 
+            //viaticos
+            "UPDATE `nom_liq_viaticos` AS `nlv`
+                INNER JOIN `nom_viaticos` AS `nv` ON `nlv`.`id_viatico` = `nv`.`id_viatico`
+             SET `nlv`.`estado` = 0
+             WHERE `nv`.`id_empleado` = :id_empleado AND `nlv`.`id_nomina` = :id_nomina",
             // licencias mp
             "UPDATE `nom_liq_licmp` AS `nllm`
                 INNER JOIN `nom_licenciasmp` AS `nlm` ON `nllm`.`id_licmp` = `nlm`.`id_licmp`

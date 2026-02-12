@@ -214,6 +214,7 @@ try {
         20 => 'val_prima_vac',
         21 => 'valor_pv',
         22 => 'valor_ps',
+        23 => 'valor_viatico',
         32 => 'pago_empresa'
     ];
     foreach ($datos as $d) {

@@ -259,6 +259,7 @@ HTML;
         $detalle_embargos = [];
         $detalle_sindicatos = [];
         $detalle_otros_dctos = [];
+        $detalle_viaticos = [];
 
         if ($detalles !== null && $id_nomina !== null) {
             $detalle_horas = $detalles->getDetalleHorasExtras($d['id_empleado'], $id_nomina);
@@ -266,6 +267,7 @@ HTML;
             $detalle_embargos = $detalles->getDetalleEmbargos($d['id_empleado'], $id_nomina);
             $detalle_sindicatos = $detalles->getDetalleSindicatos($d['id_empleado'], $id_nomina);
             $detalle_otros_dctos = $detalles->getDetalleOtrosDescuentos($d['id_empleado'], $id_nomina);
+            $detalle_viaticos = $detalles->getDetalleViaticos($d['id_empleado'], $id_nomina);
         }
 
         $valor_licencias = ($d['valor_luto'] ?? 0) + ($d['valor_mp'] ?? 0);
@@ -294,6 +296,13 @@ HTML;
             $devengados['Horas Extras'] = $total_horas;
         } else {
             $devengados['Horas Extras'] = $d['horas_ext'] ?? 0;
+        }
+
+        if (!empty($detalle_viaticos)) {
+            $total_viaticos = array_sum(array_column($detalle_viaticos, 'valor'));
+            $devengados['Viáticos'] = $total_viaticos;
+        } else {
+            $devengados['Viáticos'] = $d['valor_viatico'] ?? 0;
         }
 
         $deducciones = [
@@ -359,6 +368,14 @@ HTML;
                 foreach ($detalle_horas as $hora) {
                     $valor_hora_fmt = number_format($hora['valor'], 0, ',', '.');
                     $filas_devengados .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 20px; color: #666;'>• {$hora['tipo']} ({$hora['cantidad']} hrs)</td><td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_hora_fmt}</td></tr>";
+                }
+            }
+
+            // Si es Viáticos y tiene detalle, mostrar el desglose
+            if ($concepto === 'Viáticos' && !empty($detalle_viaticos)) {
+                foreach ($detalle_viaticos as $viatico) {
+                    $valor_v_fmt = number_format($viatico['valor'], 0, ',', '.');
+                    $filas_devengados .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 20px; color: #666;'>• Res: {$viatico['resolucion']} - Dest: {$viatico['destino']}</td><td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_v_fmt}</td></tr>";
                 }
             }
         }

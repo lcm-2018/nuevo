@@ -402,11 +402,6 @@ class Liquidacion
         $indemVacaciones =  (new Indemniza_Vacacion())->getRegistroPorEmpleado($inicia, $fin);
         $bonificaciones =   (new Bsp())->getRegistroPorEmpleado();
         $viaticosNomina =   (new Viaticos())->getViaticosNomina($inicia, $fin); // Obtener viáticos del mes
-        // Agrupar viáticos por empleado para fácil acceso
-        $viaticosPorEmpleado = [];
-        foreach ($viaticosNomina as $v) {
-            $viaticosPorEmpleado[$v['id_empleado']][] = $v;
-        }
 
         //Deducidos
         $libranzas =    (new Libranzas())->getLibranzasPorEmpleado($inicia);
@@ -624,8 +619,9 @@ class Liquidacion
                     // Liquidar Viáticos
                     // Verificar si tiene viáticos en el mes
                     $valTotalViaticos = 0;
-                    if (isset($viaticosPorEmpleado[$id_empleado])) {
-                        foreach ($viaticosPorEmpleado[$id_empleado] as $viatico) {
+                    if (isset($viaticosNomina[$id_empleado])) {
+                        $filtro =  $viaticosNomina[$id_empleado];
+                        foreach ($filtro as $viatico) {
                             $valTotalViaticos += $viatico['val_total'];
                             // Registrar en nom_liq_viaticos
                             $dataLiqViatico = [
@@ -810,7 +806,7 @@ class Liquidacion
                         throw new Exception("Retención en la fuente: {$response['msg']}");
                     }
 
-                    $neto = $baseDctos - $totValRetFte;
+                    $neto = $baseDctos - $totValRetFte + $valTotalViaticos;
                     $data = [
                         'id_empleado'   =>  $id_empleado,
                         'id_nomina'     =>  $id_nomina,
