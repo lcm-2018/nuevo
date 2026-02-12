@@ -664,7 +664,7 @@ class Menu
         }
         // 5016: [General][Presentaciones Comerciales]
         if ($this->permisos->PermisosUsuario($this->opciones, 5016, 0) || $this->id_rol == 1) {
-            $gen_items .= '<li><a href="' . $this->host . '/src/almacen/php/pres_comercial/index.php?var=3" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-ticket-alt me-2 fa-fw"></i> Presentación Comercial</a></li>';
+            $gen_items .= '<li><a href="' . $this->host . '/src/almacen/php/pres_comercial/index.php?var=3" class="nav-link text-success px-1 py-2 sombra"><i class="fa fa-archive me-2 fa-fw"></i> Presentación Comercial</a></li>';
         }
         // 5010: [General][Marcas]
         if ($this->permisos->PermisosUsuario($this->opciones, 5010, 0) || $this->id_rol == 1) {
@@ -707,7 +707,7 @@ class Menu
 
         $alm_pedidos = '';
         if (!empty($ped_items)) {
-            $alm_pedidos = $this->wrapCollapse('almacen-pedidos-collapse', 'fa fa-pencil-square-o', 'Pedidos', $ped_items, 'text-success');
+            $alm_pedidos = $this->wrapCollapse('almacen-pedidos-collapse', 'fa fa-pencil-square', 'Pedidos', $ped_items, 'text-success');
         }
 
         // --- SECCIÓN: MOVIMIENTOS ---
@@ -767,7 +767,7 @@ class Menu
 
         $alm_reportes = '';
         if (!empty($rep_items)) {
-            $alm_reportes = $this->wrapCollapse('almacen-reportes-collapse', 'fa fa-map-o', 'Reportes', $rep_items, 'text-warning');
+            $alm_reportes = $this->wrapCollapse('almacen-reportes-collapse', 'fa fa-bar-chart', 'Reportes', $rep_items, 'text-warning');
         }
 
         // 3. Retorno de la estructura HTML final
@@ -845,7 +845,7 @@ class Menu
         }
         // 5707: [General][Marcas]
         if ($this->permisos->PermisosUsuario($this->opciones, 5707, 0) || $this->id_rol == 1) {
-            $gen_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/marcas/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra"><i class="fab fa-staylinked me-2 fa-fw"></i> Marcas</a></li>';
+            $gen_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/marcas/index.php?var=3" class="nav-link text-success px-1 py-2 sombra"><i class="fab fa-staylinked me-2 fa-fw"></i> Marcas</a></li>';
         }
 
         $af_general = '';
@@ -864,7 +864,7 @@ class Menu
 
         $af_pedidos = '';
         if (!empty($ped_items)) {
-            $af_pedidos = $this->wrapCollapse('af-pedidos-collapse', 'fa fa-pencil-square-o', 'Pedidos', $ped_items, 'text-success');
+            $af_pedidos = $this->wrapCollapse('af-pedidos-collapse', 'fa fa-pencil-square', 'Pedidos', $ped_items, 'text-success');
         }
 
         // --- SECCIÓN: MOVIMIENTOS ---
@@ -895,11 +895,11 @@ class Menu
 
         // 5704: [Mantenimiento][Hoja de Vida]
         if ($this->permisos->PermisosUsuario($this->opciones, 5704, 0) || $this->id_rol == 1) {
-            $mant_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/hojavida/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra"><i class="fa fa-newspaper-o me-2 fa-fw"></i> Hoja de Vida</a></li>';
+            $mant_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/hojavida/index.php?var=3" class="nav-link text-primary px-1 py-2 sombra"><i class="fa fa-newspaper me-2 fa-fw"></i> Hoja de Vida</a></li>';
         }
         // 5705: [Mantenimiento][Registro]
         if ($this->permisos->PermisosUsuario($this->opciones, 5705, 0) || $this->id_rol == 1) {
-            $mant_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/mantenimientos/index.php?var=3" class="nav-link text-success px-1 py-2 sombra"><i class="fa fa-calendar-check-o me-2 fa-fw"></i> Registros</a></li>';
+            $mant_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/mantenimientos/index.php?var=3" class="nav-link text-success px-1 py-2 sombra"><i class="fa fa-calendar me-2 fa-fw"></i> Registros</a></li>';
         }
         // 5706: [Mantenimiento][Progreso]
         if ($this->permisos->PermisosUsuario($this->opciones, 5706, 0) || $this->id_rol == 1) {
@@ -917,16 +917,16 @@ class Menu
 
         // 5710: [Reporte][Existencias]
         if ($this->permisos->PermisosUsuario($this->opciones, 5710, 0) || $this->id_rol == 1) {
-            $rep_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/existencias/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-chart-bar me-2 fa-fw"></i> Existencias</a></li>';
+            $rep_items .= '<li><a href="' . $this->host . '/src/activos_fijos/php/existencias/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-chart-bar me-2 fa-fw"></i> Existencias</a></li>';
         }
         // 5799: [Reporte][Personalizados]
         if ($this->permisos->PermisosUsuario($this->opciones, 5799, 0) || $this->id_rol == 1) {
-            $rep_items .= '<li><a href="javascript:void(0)" class="nav-link text-danger px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5799"><i class="fas fa-cogs me-2 fa-fw"></i> Inf. Personalizados</a></li>';
+            $rep_items .= '<li><a href="javascript:void(0)" class="nav-link text-success px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5799"><i class="fas fa-cogs me-2 fa-fw"></i> Inf. Personalizados</a></li>';
         }
 
         $af_reportes = '';
         if (!empty($rep_items)) {
-            $af_reportes = $this->wrapCollapse('af-reportes-collapse', 'fa fa-map-o', 'Reportes', $rep_items, 'text-danger');
+            $af_reportes = $this->wrapCollapse('af-reportes-collapse', 'fa fa-bar-chart', 'Reportes', $rep_items, 'text-danger');
         }
 
         // 3. Retorno del bloque completo de Activos Fijos
