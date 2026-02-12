@@ -687,7 +687,7 @@ function estados_traslado_sr($titulo = '', $estado = -1)
     $selected = ($estado == 1) ? 'selected="selected"' : '';
     echo '<option value="1"' . $selected . '>PENDIENTE</option>';
     $selected = ($estado == 4) ? 'selected="selected"' : '';
-    echo '<option value="2"' . $selected . '>CERRADO-INGRESADO</option>';
+    echo '<option value="4"' . $selected . '>CERRADO-INGRESADO</option>';
     $selected = ($estado == 5) ? 'selected="selected"' : '';
-    echo '<option value="3"' . $selected . '>RECHAZADO</option>';
+    echo '<option value="5"' . $selected . '>RECHAZADO</option>';
 }
