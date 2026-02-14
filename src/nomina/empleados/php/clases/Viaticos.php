@@ -4,7 +4,7 @@ namespace Src\Nomina\Empleados\Php\Clases;
 
 use Config\Clases\Conexion;
 use Config\Clases\Logs;
-
+use Config\Clases\Sesion;
 use PDO;
 use PDOException;
 
@@ -53,6 +53,9 @@ class Viaticos
             }
         }
 
+        $inicia = Sesion::Vigencia() . '-01-01';
+        $fin = Sesion::Vigencia() . '-12-31';
+
         $sql = "SELECT
                     `nom_viaticos`.`id_viatico`
                     , `nom_viaticos`.`no_resolucion`
@@ -74,7 +77,7 @@ class Viaticos
                         WHERE `n2`.`id_viatico` = `n1`.`id_viatico`
                     )
                 ) `ult_nov` ON `ult_nov`.`id_viatico` = `nom_viaticos`.`id_viatico`
-                WHERE (1 = 1 $where)
+                WHERE (DATE_FORMAT(`nom_viaticos`.`fec_inicia`, '%Y-%m-%d') BETWEEN '$inicia' AND '$fin' $where)
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
@@ -376,6 +379,10 @@ class Viaticos
         $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return $datos ?: [];
+        $grupo = [];
+        foreach ($datos as $fila) {
+            $grupo[$fila['id_empleado']][] = $fila;
+        }
+        return $grupo;
     }
 }

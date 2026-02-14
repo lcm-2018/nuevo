@@ -94,6 +94,15 @@ class Detalles
                             ON (`nom_liq_libranza`.`id_libranza` = `nom_libranzas`.`id_libranza`)
                         WHERE (`nom_liq_libranza`.`id_nomina` = :id_nomina AND `nom_liq_libranza`.`estado` = 1)
                         GROUP BY `nom_libranzas`.`id_empleado`),
+                    `viat` AS 
+                        (SELECT
+                            `nom_viaticos`.`id_empleado`, SUM(`nom_liq_viaticos`.`valor`) AS `valor`
+                        FROM
+                            `nom_liq_viaticos`
+                            INNER JOIN `nom_viaticos` 
+                            ON (`nom_liq_viaticos`.`id_viatico` = `nom_viaticos`.`id_viatico`)
+                        WHERE (`nom_liq_viaticos`.`id_nomina` = :id_nomina AND `nom_liq_viaticos`.`estado` = 1)
+                        GROUP BY `nom_viaticos`.`id_empleado`),
                     `rfte` AS
                         (SELECT `id_empleado`,`val_ret`, `base` AS `base_ret` FROM `nom_retencion_fte` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `luto` AS 
@@ -242,6 +251,7 @@ class Detalles
                     , IFNULL(`inc`.`valor`,0) AS `valor_incap`
                     , IFNULL(`inc`.`pago_empresa`,0) AS `pago_empresa`
                     , IFNULL(`lib`.`valor`,0) AS `valor_libranza`
+                    , IFNULL(`viat`.`valor`,0) AS `valor_viatico`
                     , IFNULL(`luto`.`valor`,0) AS `valor_luto`
                     , IFNULL(`lmp`.`val_liq`,0) AS  `valor_mp`
                     , IFNULL(`pris`.`val_liq_ps`,0) AS `valor_ps`
@@ -288,6 +298,7 @@ class Detalles
                     LEFT JOIN `rfte` ON (`rfte`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `inc` ON (`inc`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `lib` ON (`lib`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `viat` ON (`viat`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `luto` ON (`luto`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `lmp` ON (`lmp`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `lcnr` ON (`lcnr`.`id_empleado` = `e`.`id_empleado`)
@@ -539,6 +550,10 @@ class Detalles
                                                         <tr>
                                                             <td class="ps-4 text-start">Licencia materna / paterna</td>
                                                             <td class="text-end"><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_mp" value="{$datos['valor_mp']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Viáticos</td>
+                                                            <td class="text-end">{$datos['valor_viatico']}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -2067,6 +2082,32 @@ class Detalles
                     AND `nom_liq_descuento`.`estado` = 1
                 GROUP BY `nom_otros_descuentos`.`id_dcto`, `nom_tipo_descuentos`.`descripcion`, `nom_otros_descuentos`.`concepto`
                 ORDER BY `nom_tipo_descuentos`.`descripcion` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->bindValue(':id_empleado', $id_empleado, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($datos) ? $datos : [];
+    }
+    /**
+     * Obtiene el detalle discriminado de viáticos para un empleado en una nómina
+     * @param int $id_empleado ID del empleado
+     * @param int $id_nomina ID de la nómina
+     * @return array Detalle de viáticos con resolución, destino y valor
+     */
+    public function getDetalleViaticos($id_empleado, $id_nomina)
+    {
+        $sql = "SELECT
+                    `nv`.`no_resolucion` AS `resolucion`,
+                    `nv`.`destino`,
+                    `nlv`.`valor`
+                FROM `nom_liq_viaticos` AS `nlv`
+                INNER JOIN `nom_viaticos` AS `nv` ON (`nlv`.`id_viatico` = `nv`.`id_viatico`)
+                WHERE `nlv`.`id_nomina` = :id_nomina
+                    AND `nlv`.`estado` = 1
+                    AND `nv`.`id_empleado` = :id_empleado";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
         $stmt->bindValue(':id_empleado', $id_empleado, PDO::PARAM_INT);

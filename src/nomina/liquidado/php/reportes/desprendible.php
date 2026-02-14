@@ -50,6 +50,7 @@ function generarDesprendible($d)
     $detalle_embargos = $detalles->getDetalleEmbargos($d['id_empleado'], $id_nomina);
     $detalle_sindicatos = $detalles->getDetalleSindicatos($d['id_empleado'], $id_nomina);
     $detalle_otros_dctos = $detalles->getDetalleOtrosDescuentos($d['id_empleado'], $id_nomina);
+    $detalle_viaticos = $detalles->getDetalleViaticos($d['id_empleado'], $id_nomina);
 
     // Calcular valores adicionales
     $valor_licencias = ($d['valor_luto'] ?? 0) + ($d['valor_mp'] ?? 0);
@@ -77,6 +78,11 @@ function generarDesprendible($d)
     if (!empty($detalle_horas)) {
         $total_horas = array_sum(array_column($detalle_horas, 'valor'));
         $devengados['Horas Extras'] = $total_horas;
+    }
+
+    if (!empty($detalle_viaticos)) {
+        $total_viaticos = array_sum(array_column($detalle_viaticos, 'valor'));
+        $devengados['Viáticos'] = $total_viaticos;
     }
 
     // Definir conceptos de deducciones
@@ -143,6 +149,17 @@ function generarDesprendible($d)
                 $filas_devengados .= "<tr style='font-size: 9px;'>
                     <td style='padding: 2px 8px 2px 20px; color: #666;'>• {$hora['tipo']} ({$hora['cantidad']} hrs)</td>
                     <td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_hora_fmt}</td>
+                </tr>";
+            }
+        }
+
+        // Si es Viáticos y tiene detalle, mostrar el desglose
+        if ($concepto === 'Viáticos' && !empty($detalle_viaticos)) {
+            foreach ($detalle_viaticos as $viatico) {
+                $valor_v_fmt = number_format($viatico['valor'], 0, ',', '.');
+                $filas_devengados .= "<tr style='font-size: 9px;'>
+                    <td style='padding: 2px 8px 2px 20px; color: #666;'>• Res: {$viatico['resolucion']} - Dest: {$viatico['destino']}</td>
+                    <td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_v_fmt}</td>
                 </tr>";
             }
         }

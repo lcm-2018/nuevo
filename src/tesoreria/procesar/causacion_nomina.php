@@ -237,6 +237,9 @@ try {
                     case 22: // Prima de servicios
                         $valor_pto = $d['valor_ps'];
                         break;
+                    case 23: // Viáticos
+                        $valor_pto = $d['valor_viatico'];
+                        break;
                     case 32: // Pago empresa (incapacidades)
                         $valor_pto = $d['pago_empresa'];
                         break;
@@ -294,7 +297,7 @@ try {
                     case 1: // Neto a pagar
                         $sgs = $d['valor_salud'] + $d['valor_pension'] + $d['val_psolidaria'];
                         $deducciones = $sgs + $d['valor_sind'] + $d['valor_libranza'] + $d['valor_embargo'] + $d['val_retencion'] + $d['valor_dcto'];
-                        $devengos = $d['valor_laborado'] + $d['horas_ext'] + $d['g_representa'] + $d['aux_tran'] + $d['aux_alim'] + $d['val_compensa'];
+                        $devengos = $d['valor_laborado'] + $d['horas_ext'] + $d['g_representa'] + $d['aux_tran'] + $d['aux_alim'] + $d['val_compensa'] + $d['valor_viatico'];
                         $valor = $devengos - $deducciones;
                         if ($valor < 0) {
                             $restar = abs($valor);
@@ -351,6 +354,9 @@ try {
                         break;
                     case 22:
                         $valor = $d['valor_ps'];
+                        break;
+                    case 23:
+                        $valor = $d['valor_viatico'];
                         break;
                     case 32:
                         $valor = $d['pago_empresa'] - $restar;
