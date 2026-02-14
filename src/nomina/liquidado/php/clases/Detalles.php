@@ -1976,15 +1976,17 @@ class Detalles
     public function getDetalleLibranzas($id_empleado, $id_nomina)
     {
         $sql = "SELECT
-                    `nom_libranzas`.`descripcion_lib` AS `entidad`,
+                   `tb_bancos`.`nom_banco` AS `entidad`,
                     SUM(`nom_liq_libranza`.`val_mes_lib`) AS `valor`
                 FROM `nom_liq_libranza`
                     INNER JOIN `nom_libranzas`
                         ON (`nom_liq_libranza`.`id_libranza` = `nom_libranzas`.`id_libranza`)
+                    INNER JOIN `tb_bancos`
+                        ON (`tb_bancos`.`id_banco` = `nom_libranzas`.`id_banco`)
                 WHERE `nom_liq_libranza`.`id_nomina` = :id_nomina
                     AND `nom_libranzas`.`id_empleado` = :id_empleado
                     AND `nom_liq_libranza`.`estado` = 1
-                GROUP BY `nom_libranzas`.`id_libranza`, `nom_libranzas`.`descripcion_lib`
+                GROUP BY `nom_libranzas`.`id_libranza`, `tb_bancos`.`nom_banco`
                 ORDER BY `nom_libranzas`.`descripcion_lib` ASC";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
@@ -2005,18 +2007,22 @@ class Detalles
     public function getDetalleEmbargos($id_empleado, $id_nomina)
     {
         $sql = "SELECT
-                    `nom_tipo_embargo`.`tipo` AS `descripcion`,
+                    `tb_terceros`.`nom_tercero` AS `descripcion`,
                     SUM(`nom_liq_embargo`.`val_mes_embargo`) AS `valor`
                 FROM `nom_liq_embargo`
                     INNER JOIN `nom_embargos`
                         ON (`nom_liq_embargo`.`id_embargo` = `nom_embargos`.`id_embargo`)
                     INNER JOIN `nom_tipo_embargo`
                         ON (`nom_embargos`.`tipo_embargo` = `nom_tipo_embargo`.`id_tipo_emb`)
+                    INNER JOIN `nom_terceros`
+                        ON (`nom_embargos`.`id_juzgado` = `nom_terceros`.`id_tn`)
+                    LEFT JOIN `tb_terceros`
+                        ON (`nom_terceros`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
                 WHERE `nom_liq_embargo`.`id_nomina` = :id_nomina
                     AND `nom_embargos`.`id_empleado` = :id_empleado
                     AND `nom_liq_embargo`.`estado` = 1
                 GROUP BY `nom_tipo_embargo`.`id_tipo_emb`, `nom_tipo_embargo`.`tipo`
-                ORDER BY `nom_tipo_embargo`.`tipo` ASC";
+                ORDER BY `tb_terceros`.`nom_tercero` ASC";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
         $stmt->bindValue(':id_empleado', $id_empleado, PDO::PARAM_INT);

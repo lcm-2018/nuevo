@@ -317,7 +317,15 @@ class Terceros
         $stmt->bindValue(10, $array['txtDireccion'], PDO::PARAM_STR);
         $stmt->bindValue(11, $array['txtTelEmp'], PDO::PARAM_STR);
         $stmt->bindValue(12, $array['mailEmp'], PDO::PARAM_STR);
-        $stmt->execute();
+        try {
+            $stmt->execute();
+        } catch (PDOException $e) {
+            if ($e->getCode() == 23000) {
+                // Si ya existe, no pasa nada
+            } else {
+                throw $e;
+            }
+        }
     }
 
     public function addTipoRelacion($array)

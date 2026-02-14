@@ -65,7 +65,7 @@ try {
                         ON (`pto_cdp_detalle`.`id_rubro` = `pto_cargue`.`id_cargue`)
                     LEFT JOIN `tb_terceros`
                         ON (`pto_crp_detalle`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
-                WHERE (`pto_crp`.`fecha` BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_crp`.`estado` = 2)) AS `taux`
+                WHERE (DATE_FORMAT(`pto_crp`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_crp`.`estado` = 2)) AS `taux`
                 INNER JOIN 
                     (SELECT 
                         `det`.`id_pto_cdp`,
@@ -79,7 +79,7 @@ try {
                     ON (`cdp`.`id_pto_cdp` = `taux`.`id_pto_cdp` AND `cdp`.`id_rubro` = `taux`.`id_rubro`)
                 LEFT JOIN
                         (SELECT
-                            `pto_cdp_detalle`.`id_pto_cdp`
+                            `pto_crp`.`id_pto_crp`
                             , `pto_cdp_detalle`.`id_rubro`
                             , SUM(IFNULL(`pto_crp_detalle`.`valor`,0))  AS `valor`
                             FROM
@@ -88,12 +88,12 @@ try {
                                 ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
                             INNER JOIN `pto_crp` 
                                 ON (`pto_crp_detalle`.`id_pto_crp` = `pto_crp`.`id_pto_crp`)
-                        WHERE (`pto_crp`.`fecha` BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_crp`.`estado` =2)
-                        GROUP BY `pto_cdp_detalle`.`id_pto_cdp`, `pto_cdp_detalle`.`id_rubro`) AS `t1`
-                    ON (`t1`.`id_pto_cdp` = `taux`.`id_pto_cdp` AND `t1`.`id_rubro` = `taux`.`id_rubro`)
+                        WHERE (DATE_FORMAT(`pto_crp`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_crp`.`estado` =2)
+                        GROUP BY `pto_crp`.`id_pto_crp`, `pto_cdp_detalle`.`id_rubro`) AS `t1`
+                    ON (`t1`.`id_pto_crp` = `taux`.`id_pto_crp` AND `t1`.`id_rubro` = `taux`.`id_rubro`)
                      LEFT JOIN
                         (SELECT
-                            `pto_cdp_detalle`.`id_pto_cdp`
+                            `pto_crp`.`id_pto_crp`
                             , `pto_cdp_detalle`.`id_rubro`
                             , SUM(IFNULL(`pto_crp_detalle`.`valor_liberado`,0)) AS `valor_liberado`
                             FROM
@@ -102,12 +102,12 @@ try {
                                 ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
                             INNER JOIN `pto_crp` 
                                 ON (`pto_crp_detalle`.`id_pto_crp` = `pto_crp`.`id_pto_crp`)
-                        WHERE (`pto_crp_detalle`.`fecha_libera` BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_crp`.`estado` =2)
-                        GROUP BY `pto_cdp_detalle`.`id_pto_cdp`, `pto_cdp_detalle`.`id_rubro`) AS `t3`
-                    ON (`t3`.`id_pto_cdp` = `taux`.`id_pto_cdp` AND `t3`.`id_rubro` = `taux`.`id_rubro`)
+                        WHERE (DATE_FORMAT(`pto_crp_detalle`.`fecha_libera`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_crp`.`estado` =2)
+                        GROUP BY `pto_crp`.`id_pto_crp`, `pto_cdp_detalle`.`id_rubro`) AS `t3`
+                    ON (`t3`.`id_pto_crp` = `taux`.`id_pto_crp` AND `t3`.`id_rubro` = `taux`.`id_rubro`)
                 LEFT JOIN
                         (SELECT
-                            `pto_cdp_detalle`.`id_pto_cdp`
+                            `pto_crp`.`id_pto_crp`
                             , `pto_cdp_detalle`.`id_rubro`
                             , SUM(IFNULL(`pto_cop_detalle`.`valor`,0)) - SUM(IFNULL(`pto_cop_detalle`.`valor_liberado`,0)) AS `valor`
                         FROM
@@ -118,9 +118,9 @@ try {
                                 ON (`pto_crp_detalle`.`id_pto_crp` = `pto_crp`.`id_pto_crp`)
                             INNER JOIN `pto_cop_detalle` 
                                 ON (`pto_cop_detalle`.`id_pto_crp_det` = `pto_crp_detalle`.`id_pto_crp_det`)
-                        WHERE (`pto_crp`.`fecha` BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_crp`.`estado` =2 )
-                        GROUP BY `pto_cdp_detalle`.`id_pto_cdp`, `pto_cdp_detalle`.`id_rubro`) AS `t2`
-                            ON (`t2`.`id_pto_cdp` = `taux`.`id_pto_cdp` AND `t2`.`id_rubro` = `taux`.`id_rubro`)
+                        WHERE (DATE_FORMAT(`pto_crp`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_crp`.`estado` =2 )
+                        GROUP BY `pto_crp`.`id_pto_crp`, `pto_cdp_detalle`.`id_rubro`) AS `t2`
+                            ON (`t2`.`id_pto_crp` = `taux`.`id_pto_crp` AND `t2`.`id_rubro` = `taux`.`id_rubro`)
                 LEFT JOIN `ctt_adquisiciones` 
                     ON (`ctt_adquisiciones`.`id_cdp` = `taux`.`id_pto_cdp`)
                 LEFT JOIN `ctt_contratos` 

@@ -1,6 +1,8 @@
 <?php
 
-include_once '../../conexion.php';
+use Config\Clases\Plantilla;
+use Config\Clases\Sesion;
+
 try {
     $sql = "SELECT
                  `razon_social_ips`AS `nombre`, `nit_ips` AS `nit`, `dv` AS `dig_ver`
@@ -28,7 +30,7 @@ try {
 <table style="border-collapse: collapse;" width="100%">
     <thead>
         <tr>
-            <td rowspan="4" colspan="2" style="text-align:center; max-width:20px;"><label class="small"><img src="<?php echo $_SESSION['urlin'] ?>/images/logos/logo.png" width="100"></label></td>
+            <td rowspan="4" colspan="2" style="text-align:center; max-width:20px;"><label class="small"><img src="<?= Plantilla::getHost(); ?>/assets/images/logo.png" width="100"></label></td>
             <td colspan="99" style="text-align:center"><?php echo $empresa['nombre']; ?></td>
         </tr>
         <tr>
