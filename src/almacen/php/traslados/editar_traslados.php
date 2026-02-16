@@ -262,14 +262,19 @@ try {
                     $error = 0;
                     $cmd->beginTransaction();
 
-                    $sql = 'SELECT id_sede_origen,id_bodega_origen,id_sede_destino,id_bodega_destino,detalle FROM far_traslado WHERE id_traslado=' . $id;
+                    $sql = 'SELECT far_traslado.id_sede_origen,far_traslado.id_bodega_origen,far_traslado.id_sede_destino,far_traslado.id_bodega_destino,
+	                            b_origen.nombre AS nom_b_origen,b_destino.nombre AS nom_b_destino
+                            FROM far_traslado     
+                            INNER JOIN far_bodegas AS b_origen ON(far_traslado.id_bodega_origen=b_origen.id_bodega)
+                            INNER JOIN far_bodegas AS b_destino ON(far_traslado.id_bodega_destino=b_destino.id_bodega)
+                            WHERE far_traslado.id_traslado=' . $id;
                     $rs = $cmd->query($sql);
                     $obj_tra = $rs->fetch();
                     $id_sede_origen = $obj_tra['id_sede_origen'];
                     $id_bodega_origen = $obj_tra['id_bodega_origen'];
                     $id_sede_destino = $obj_tra['id_sede_destino'];
                     $id_bodega_destino = $obj_tra['id_bodega_destino'];
-                    $detalle = 'TRASLADO BODEGAS: ' . $obj_tra['detalle'];
+                    $detalle = 'TRASLADO DE BODEGA: ' . $obj_tra['nom_b_origen'] . ' A ' . $obj_tra['nom_b_destino'];
                     $fec_movimiento = date('Y-m-d');
 
                     /*Crear los lotes en la bodega destino si no existen*/
