@@ -4,6 +4,7 @@
             mjeError("Debe seleccionar la cuenta inicial y la cuenta final");
         }
         else {
+            mostrarOverlay();
             $.post(ValueInput('host') + '/src/contabilidad/php/informes_bancos/imp_libros_bancos.php', {
                 id_cuenta_ini: $('#id_txt_cuentainicial').val(),
                 id_cuenta_fin: $('#id_txt_cuentafinal').val(),
@@ -17,6 +18,7 @@
                 $('#divTamModalImp').addClass('modal-xl');
                 $('#divModalImp').modal('show');
                 $("#divImp").html(he);
+                ocultarOverlay();
             });
         }
     });
@@ -24,10 +26,23 @@
         if ($('#id_txt_cuentainicial').val() == "" || $('#id_txt_cuentafinal').val() == "") {
             mjeError("Debe seleccionar la cuenta inicial y la cuenta final");
         } else {
-            // Crear un form temporal para enviar el POST
+            // Mostrar overlay de carga
+            mostrarOverlay();
+
+            // Crear un iframe oculto para la descarga
+            let iframeName = 'iframe_download_' + new Date().getTime();
+            let iframe = $('<iframe>', {
+                name: iframeName,
+                id: iframeName,
+                style: 'display:none'
+            });
+            $('body').append(iframe);
+
+            // Crear un form temporal para enviar el POST al iframe
             let form = $('<form>', {
                 method: 'POST',
-                action: ValueInput('host') + '/src/contabilidad/php/informes_bancos/imp_libros_bancos_excel.php'
+                action: ValueInput('host') + '/src/contabilidad/php/informes_bancos/imp_libros_bancos_excel.php',
+                target: iframeName
             });
 
             form.append($('<input>', { type: 'hidden', name: 'id_cuenta_ini', value: $('#id_txt_cuentainicial').val() }));
@@ -39,7 +54,13 @@
 
             $('body').append(form);
             form.submit();
-            form.remove();
+
+            // Ocultar overlay después de un breve delay (tiempo para que inicie la descarga)
+            setTimeout(function () {
+                ocultarOverlay();
+                form.remove();
+                iframe.remove();
+            }, 2000); // 2 segundos es suficiente para que inicie la descarga
         }
     });
 })(jQuery);

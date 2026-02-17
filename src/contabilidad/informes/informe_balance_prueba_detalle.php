@@ -5,7 +5,9 @@ session_start();
 ini_set('max_execution_time', 5600);
 
 include '../../../config/autoloader.php';
-// Consexion a cronhis asistencial
+include '../../financiero/consultas.php';
+
+// Conexion a cronhis asistencial
 $vigencia = $_SESSION['vigencia'];
 // estraigo las variables que llegan por post en json
 $fecha_inicial = $_POST['fecha_inicial'];
@@ -17,67 +19,120 @@ if ($_POST['xtercero'] == 1) {
 }
 // contar los caracteres de $cuenta_ini
 $cmd = \Config\Clases\Conexion::getConexion();
-try {
-    $sql = "SELECT 
-                `ctb_pgcp`.`cuenta`
-                , `ctb_pgcp`.`nombre`
-                , `ctb_pgcp`.`tipo_dato` AS `tipo`
-                , `ctb_pgcp`.`desagrega` 
-                , `t1`.`id_tercero_api`
-                , SUM(`t1`.`debitoi`) AS `debitoi`
-                , SUM(`t1`.`creditoi`) AS `creditoi`
-                , SUM(`t1`.`debito`) AS `debito`
-                , SUM(`t1`.`credito`) AS `credito`
-                , `tb_terceros`.`nom_tercero`
-                , `tb_terceros`.`nit_tercero`
-            FROM
-                (SELECT
-                    `ctb_libaux`.`id_cuenta`
-                    , `ctb_libaux`.`id_tercero_api`
-                    , SUM(`ctb_libaux`.`debito`) AS `debitoi`
-                    , SUM(`ctb_libaux`.`credito`) AS `creditoi`
-                    , 0 AS `debito`
-                    , 0 AS `credito`
+
+// Obtener sedes activas
+$datos_sedes = obtenerSedesActivas($cmd);
+$sedes = $datos_sedes['sedes'];
+$sede_principal = $datos_sedes['sede_principal'];
+
+// Array para consolidar datos contables de todas las sedes
+$datos = [];
+
+// Iterar sobre todas las sedes activas
+foreach ($sedes as $sede) {
+    // Usar conexión actual para la sede principal, conectar para las demás
+    if ($sede['es_principal'] == 1) {
+        $cmd_sede = $cmd;
+    } else {
+        $cmd_sede = conectarSede($sede['bd_sede']);
+        if ($cmd_sede === null) {
+            error_log("No se pudo conectar a la sede {$sede['nom_sede']} para el balance de prueba");
+            continue; // Saltar esta sede si falla la conexión
+        }
+    }
+
+    // Consultar movimientos contables en esta sede
+    try {
+        $sql = "SELECT 
+                    `ctb_pgcp`.`cuenta`
+                    , `ctb_pgcp`.`nombre`
+                    , `ctb_pgcp`.`tipo_dato` AS `tipo`
+                    , `ctb_pgcp`.`desagrega` 
+                    , `t1`.`id_tercero_api`
+                    , SUM(`t1`.`debitoi`) AS `debitoi`
+                    , SUM(`t1`.`creditoi`) AS `creditoi`
+                    , SUM(`t1`.`debito`) AS `debito`
+                    , SUM(`t1`.`credito`) AS `credito`
+                    , `tb_terceros`.`nom_tercero`
+                    , `tb_terceros`.`nit_tercero`
                 FROM
-                    `ctb_libaux`
-                    INNER JOIN `ctb_doc`
-                        ON `ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`
+                    (SELECT
+                        `ctb_libaux`.`id_cuenta`
+                        , `ctb_libaux`.`id_tercero_api`
+                        , SUM(`ctb_libaux`.`debito`) AS `debitoi`
+                        , SUM(`ctb_libaux`.`credito`) AS `creditoi`
+                        , 0 AS `debito`
+                        , 0 AS `credito`
+                    FROM
+                        `ctb_libaux`
+                        INNER JOIN `ctb_doc`
+                            ON `ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`
+                        INNER JOIN `ctb_pgcp`
+                            ON `ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`
+                    WHERE `ctb_doc`.`estado` = 2
+                        AND ((SUBSTRING(`ctb_pgcp`.`cuenta`, 1, 1) IN ('1', '2', '3', '8', '9') AND DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') < '$fecha_inicial')
+                            OR
+                        (SUBSTRING(`ctb_pgcp`.`cuenta`, 1, 1) IN ('4', '5', '6', '7') AND DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') < '$fecha_inicial' AND DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') >= '$inicio'))
+                    GROUP BY `ctb_libaux`.`id_cuenta`, `ctb_libaux`.`id_tercero_api`
+                    UNION ALL 
+                    SELECT
+                        `ctb_libaux`.`id_cuenta`
+                        , `ctb_libaux`.`id_tercero_api`
+                        , 0 AS `debitoi`
+                        , 0 AS `creditoi`
+                        , SUM(`ctb_libaux`.`debito`) AS `debito`
+                        , SUM(`ctb_libaux`.`credito`) AS `credito`
+                    FROM
+                        `ctb_libaux`
+                        INNER JOIN `ctb_doc` 
+                            ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
+                        INNER JOIN `ctb_pgcp` 
+                            ON (`ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
+                    WHERE (DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte' AND `ctb_doc`.`estado` = 2)
+                    GROUP BY `ctb_libaux`.`id_cuenta`, `ctb_libaux`.`id_tercero_api`) AS `t1`
                     INNER JOIN `ctb_pgcp`
-                        ON `ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`
-                WHERE `ctb_doc`.`estado` = 2
-                    AND ((SUBSTRING(`ctb_pgcp`.`cuenta`, 1, 1) IN ('1', '2', '3', '8', '9') AND DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') < '$fecha_inicial')
-                        OR
-                    (SUBSTRING(`ctb_pgcp`.`cuenta`, 1, 1) IN ('4', '5', '6', '7') AND DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') < '$fecha_inicial' AND DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') >= '$inicio'))
-                GROUP BY `ctb_libaux`.`id_cuenta`, `ctb_libaux`.`id_tercero_api`
-                UNION ALL 
-                SELECT
-                    `ctb_libaux`.`id_cuenta`
-                    , `ctb_libaux`.`id_tercero_api`
-                    , 0 AS `debitoi`
-                    , 0 AS `creditoi`
-                    , SUM(`ctb_libaux`.`debito`) AS `debito`
-                    , SUM(`ctb_libaux`.`credito`) AS `credito`
-                FROM
-                    `ctb_libaux`
-                    INNER JOIN `ctb_doc` 
-                        ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                    INNER JOIN `ctb_pgcp` 
-                        ON (`ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
-                WHERE (DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte' AND `ctb_doc`.`estado` = 2)
-                GROUP BY `ctb_libaux`.`id_cuenta`, `ctb_libaux`.`id_tercero_api`) AS `t1`
-                INNER JOIN `ctb_pgcp`
-                    ON `t1`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`
-                LEFT JOIN `tb_terceros`
-                    ON (`t1`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
-            GROUP BY `t1`.`id_cuenta` $where
-        ORDER BY `ctb_pgcp`.`cuenta` ASC";
-    $res = $cmd->query($sql);
-    $datos = $res->fetchAll();
-    $res->closeCursor();
-    unset($res);
-} catch (Exception $e) {
-    echo $e->getMessage();
+                        ON `t1`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`
+                    LEFT JOIN `tb_terceros`
+                        ON (`t1`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
+                GROUP BY `t1`.`id_cuenta` $where
+            ORDER BY `ctb_pgcp`.`cuenta` ASC";
+
+        $res = $cmd_sede->query($sql);
+        $datos_sede = $res->fetchAll();
+        $res->closeCursor();
+
+        // Consolidar datos de esta sede con las anteriores
+        // IMPORTANTE: No agregamos campo 'sede' porque vamos a acumular por cuenta
+        foreach ($datos_sede as $registro) {
+            // Crear clave única por cuenta y tercero (si aplica)
+            $clave = $registro['cuenta'];
+            if ($_POST['xtercero'] == 1 && !empty($registro['id_tercero_api'])) {
+                $clave .= '-' . $registro['id_tercero_api'];
+            }
+
+            // Si la cuenta ya existe, acumular los valores
+            if (isset($datos[$clave])) {
+                $datos[$clave]['debitoi'] += $registro['debitoi'];
+                $datos[$clave]['creditoi'] += $registro['creditoi'];
+                $datos[$clave]['debito'] += $registro['debito'];
+                $datos[$clave]['credito'] += $registro['credito'];
+            } else {
+                // Si es nueva, agregar al array
+                $datos[$clave] = $registro;
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Error consultando balance en sede {$sede['nom_sede']}: " . $e->getMessage());
+    }
+
+    // Cerrar la conexión si no es la principal
+    if ($sede['es_principal'] != 1) {
+        $cmd_sede = null;
+    }
 }
+
+// Convertir el array asociativo a indexado para mantener compatibilidad con el código existente
+$datos = array_values($datos);
 try {
     $sql = "SELECT `cuenta`,`nombre`, `id_pgcp`,`tipo_dato` FROM `ctb_pgcp` WHERE (`estado` = 1)";
     $res = $cmd->query($sql);

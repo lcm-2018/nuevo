@@ -1,4 +1,80 @@
 <?php
+
+// ========================================
+// FUNCIONES PARA MANEJO MULTI-SEDE
+// ========================================
+
+/**
+ * Conecta a una sede específica
+ * NOTA: Como todas las bases de datos están en el mismo servidor con las mismas credenciales,
+ * simplemente cambiamos a la base de datos solicitada usando USE
+ * 
+ * @param string $ip_sede IP o host del servidor (se ignora)
+ * @param string $bd_sede Nombre de la base de datos
+ * @param string $us_sede Usuario de conexión (se ignora)
+ * @param string $pw_sede Contraseña de conexión (se ignora)
+ * @param string $pt_http Puerto HTTP (se ignora)
+ * @return PDO|null Objeto PDO de conexión o null si falla
+ */
+function conectarSede($bd_sede)
+{
+    try {
+        // Todas las bases están en el mismo servidor, usar la conexión principal
+        $cmd = \Config\Clases\Conexion::getConexion();
+
+        // Cambiar a la base de datos de la sede
+        $cmd->exec("USE `{$bd_sede}`");
+
+        return $cmd;
+    } catch (PDOException $e) {
+        error_log("Error cambiando a base de datos {$bd_sede}: " . $e->getMessage());
+        return null;
+    }
+}
+
+/**
+ * Obtiene todas las sedes activas del sistema
+ * 
+ * @param PDO $cmd Conexión a la base de datos principal
+ * @return array Array con los datos de las sedes activas
+ */
+function obtenerSedesActivas($cmd)
+{
+    $sedes = [];
+    $sede_principal = null;
+
+    try {
+        $sql_sedes = "SELECT `id_sede`, `nom_sede`, `es_principal`, `estado`, 
+                             `ip_sede`, `bd_sede`, `pw_sede`, `us_sede`, `pt_http` 
+                      FROM `tb_sedes` 
+                      WHERE `estado` = 1 
+                      ORDER BY `es_principal` DESC";
+        $res_sedes = $cmd->query($sql_sedes);
+        $sedes = $res_sedes->fetchAll(PDO::FETCH_ASSOC);
+        $res_sedes->closeCursor();
+
+        // Identificar la sede principal
+        foreach ($sedes as $sede) {
+            if ($sede['es_principal'] == 1) {
+                $sede_principal = $sede;
+                break;
+            }
+        }
+    } catch (PDOException $e) {
+        error_log("Error al obtener sedes activas: " . $e->getMessage());
+    }
+
+    return [
+        'sedes' => $sedes,
+        'sede_principal' => $sede_principal
+    ];
+}
+
+// ========================================
+// FUNCIONES EXISTENTES
+// ========================================
+
+
 // Función para consuiltar fecha de cierre por modulo
 function ultimoDiaMes($mes, $anio)
 {
