@@ -1,4 +1,7 @@
 ﻿<?php
+
+use Config\Clases\Plantilla;
+
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -10,7 +13,10 @@ $detalle_mes = $_POST['mes'];
 $fecha_ini = $_POST['fecha_ini'];
 $mes = date("m", strtotime($fecha_corte));
 $fecha_ini_mes = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-' . $mes . '-01'));
+// Último día del mes anterior a la fecha de corte
+$fecha_fin_mes_ant = date("Y-m-d", strtotime($fecha_ini_mes . ' -1 day'));
 $id_vigencia = $_SESSION['id_vigencia'];
+$total_cols = $detalle_mes == '1' ? 20 : 14;
 function pesos($valor)
 {
     return number_format($valor, 2, ".", ",");
@@ -19,187 +25,203 @@ include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
 $cmd = \Config\Clases\Conexion::getConexion();
 
+// CONSULTA OPTIMIZADA CON CTEs Y SELF-JOIN PARA ACUMULADOS
+$sql = "WITH 
+    -- CTE para modificaciones (adiciones y reducciones)
+    modificaciones AS (
+        SELECT
+            pmd.id_cargue,
+            SUM(CASE 
+                WHEN pm.id_tipo_mod = 2 AND pm.fecha BETWEEN :fecha_ini AND :fecha_corte 
+                THEN pmd.valor_deb 
+                ELSE 0 
+            END) AS val_adicion,
+            SUM(CASE 
+                WHEN pm.id_tipo_mod = 3 AND pm.fecha BETWEEN :fecha_ini AND :fecha_corte 
+                THEN pmd.valor_cred 
+                ELSE 0 
+            END) AS val_reduccion,
+            SUM(CASE 
+                WHEN pm.id_tipo_mod = 2 AND pm.fecha BETWEEN :fecha_ini_mes AND :fecha_corte 
+                THEN pmd.valor_deb 
+                ELSE 0 
+            END) AS val_adicion_mes,
+            SUM(CASE 
+                WHEN pm.id_tipo_mod = 3 AND pm.fecha BETWEEN :fecha_ini_mes AND :fecha_corte 
+                THEN pmd.valor_cred 
+                ELSE 0 
+            END) AS val_reduccion_mes
+        FROM pto_mod_detalle pmd
+        INNER JOIN pto_mod pm ON pmd.id_pto_mod = pm.id_pto_mod
+        WHERE pm.estado = 2 
+            AND pm.id_tipo_mod IN (2, 3)
+            AND pm.fecha BETWEEN :fecha_ini AND :fecha_corte
+        GROUP BY pmd.id_cargue
+    ),
+    -- CTE para reconocimientos
+    reconocimientos AS (
+        SELECT
+            prd.id_rubro,
+            SUM(CASE 
+                WHEN pr.fecha BETWEEN :fecha_ini AND :fecha_fin_mes_ant 
+                THEN IFNULL(prd.valor, 0) - IFNULL(prd.valor_liberado, 0)
+                ELSE 0 
+            END) AS val_reconocimiento_ant,
+            SUM(CASE 
+                WHEN pr.fecha BETWEEN :fecha_ini_mes AND :fecha_corte 
+                THEN IFNULL(prd.valor, 0)
+                ELSE 0 
+            END) AS val_reconocimiento_mes,
+            SUM(CASE 
+                WHEN pr.fecha BETWEEN :fecha_ini_mes AND :fecha_corte 
+                THEN IFNULL(prd.valor_liberado, 0)
+                ELSE 0 
+            END) AS val_liberado_mes
+        FROM pto_rad_detalle prd
+        INNER JOIN pto_rad pr ON prd.id_pto_rad = pr.id_pto_rad
+        WHERE pr.estado = 2
+            AND pr.fecha BETWEEN :fecha_ini AND :fecha_corte
+        GROUP BY prd.id_rubro
+    ),
+    -- CTE para recaudos
+    recaudos AS (
+        SELECT
+            COALESCE(prd.id_rubro, prdd.id_rubro) AS id_rubro,
+            SUM(CASE 
+                WHEN pr.fecha BETWEEN :fecha_ini AND :fecha_fin_mes_ant 
+                THEN IFNULL(prd.valor, 0) - IFNULL(prd.valor_liberado, 0)
+                ELSE 0 
+            END) AS val_recaudo_ant,
+            SUM(CASE 
+                WHEN pr.fecha BETWEEN :fecha_ini_mes AND :fecha_corte 
+                THEN IFNULL(prd.valor, 0)
+                ELSE 0 
+            END) AS val_recaudo_mes,
+            SUM(CASE 
+                WHEN pr.fecha BETWEEN :fecha_ini_mes AND :fecha_corte 
+                THEN IFNULL(prd.valor_liberado, 0)
+                ELSE 0 
+            END) AS val_recaudo_liberado_mes
+        FROM pto_rec_detalle prd
+        INNER JOIN pto_rec pr ON prd.id_pto_rac = pr.id_pto_rec
+        LEFT JOIN pto_rad_detalle prdd ON prd.id_pto_rad_detalle = prdd.id_pto_rad_det
+        WHERE pr.estado = 2
+            AND pr.fecha BETWEEN :fecha_ini AND :fecha_corte
+        GROUP BY COALESCE(prd.id_rubro, prdd.id_rubro)
+    ),
+    -- CTE base con valores individuales
+    base_calculos AS (
+        SELECT 
+            pc.id_cargue,
+            pc.cod_pptal,
+            pc.nom_rubro,
+            pc.tipo_dato,
+            pc.valor_aprobado AS inicial,
+            IFNULL(m.val_adicion, 0) AS val_adicion,
+            IFNULL(m.val_reduccion, 0) AS val_reduccion,
+            IFNULL(rc.val_recaudo_ant, 0) AS val_recaudo_ant,
+            IFNULL(rk.val_reconocimiento_ant, 0) AS val_reconocimiento_ant,
+            IFNULL(m.val_adicion_mes, 0) AS val_adicion_mes,
+            IFNULL(m.val_reduccion_mes, 0) AS val_reduccion_mes,
+            IFNULL(rc.val_recaudo_mes, 0) AS val_recaudo_mes,
+            IFNULL(rc.val_recaudo_liberado_mes, 0) AS val_recaudo_liberado_mes,
+            IFNULL(rk.val_reconocimiento_mes, 0) AS val_reconocimiento_mes,
+            IFNULL(rk.val_liberado_mes, 0) AS val_liberado_mes
+        FROM pto_cargue pc
+        INNER JOIN pto_presupuestos pp ON pc.id_pto = pp.id_pto
+        LEFT JOIN modificaciones m ON m.id_cargue = pc.id_cargue
+        LEFT JOIN recaudos rc ON rc.id_rubro = pc.id_cargue
+        LEFT JOIN reconocimientos rk ON rk.id_rubro = pc.id_cargue
+        WHERE pp.id_tipo = 1 
+            AND pp.id_vigencia = :id_vigencia
+    )
+    -- Consulta principal acumulando jerárquicamente
+    SELECT 
+        parent.cod_pptal,
+        parent.nom_rubro,
+        parent.tipo_dato,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.inicial ELSE 0 END), 0) AS inicial,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_adicion ELSE 0 END), 0) AS adicion,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_reduccion ELSE 0 END), 0) AS reduccion,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_recaudo_ant ELSE 0 END), 0) AS recaudo_ant,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_reconocimiento_ant ELSE 0 END), 0) AS reconocimiento_ant,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_adicion_mes ELSE 0 END), 0) AS adicion_mes,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_reduccion_mes ELSE 0 END), 0) AS reduccion_mes,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_recaudo_mes ELSE 0 END), 0) AS recaudo_mes,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_recaudo_liberado_mes ELSE 0 END), 0) AS recaudo_liberado_mes,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_reconocimiento_mes ELSE 0 END), 0) AS reconocimiento_mes,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_liberado_mes ELSE 0 END), 0) AS liberado_mes
+    FROM base_calculos parent
+    LEFT JOIN base_calculos child ON child.cod_pptal LIKE CONCAT(parent.cod_pptal, '%')
+    GROUP BY parent.cod_pptal, parent.nom_rubro, parent.tipo_dato
+    ORDER BY parent.cod_pptal ASC";
 
 try {
-    $sql = "SELECT 
-                `pto_cargue`.`id_cargue`
-                , `pto_cargue`.`id_pto`
-                , `pto_cargue`.`cod_pptal`
-                , `pto_cargue`.`nom_rubro`
-                , `pto_cargue`.`tipo_dato`
-                , `pto_cargue`.`valor_aprobado` AS `inicial`
-                , IFNULL(`adicion`.`valor`,0) AS `val_adicion` 
-                , IFNULL(`reduccion`.`valor`,0) AS `val_reduccion` 
-                , IFNULL(`recaudo`.`valor`,0) AS `val_recaudo`
-                , IFNULL(`reconocimiento`.`valor`,0) AS `val_reconocimiento`
-                , IFNULL(`adicion_mes`.`valor`,0) AS `val_adicion_mes` 
-                , IFNULL(`reduccion_mes`.`valor`,0) AS `val_reduccion_mes`
-                , IFNULL(`recaudo_mes`.`valor`,0) AS `val_recaudo_mes`
-                , IFNULL(`reconocimiento_mes`.`valor`,0) AS `val_reconocimiento_mes`
-                , `pto_presupuestos`.`id_tipo`
-            FROM `pto_cargue`
-                INNER JOIN `pto_presupuestos`
-                    ON (`pto_cargue`.`id_pto` = `pto_presupuestos`.`id_pto`)
-                LEFT JOIN
-                    (SELECT
-                        `pto_mod_detalle`.`id_cargue`
-                        , SUM(`pto_mod_detalle`.`valor_deb`) AS `valor`
-                    FROM
-                        `pto_mod_detalle`
-                        INNER JOIN `pto_mod` 
-                            ON (`pto_mod_detalle`.`id_pto_mod` = `pto_mod`.`id_pto_mod`)
-                        INNER JOIN `pto_presupuestos` 
-                            ON (`pto_mod`.`id_pto` = `pto_presupuestos`.`id_pto`)
-                    WHERE (DATE_FORMAT(`pto_mod`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_mod`.`estado` = 2 AND `pto_mod`.`id_tipo_mod` = 2)
-                    GROUP BY `pto_mod_detalle`.`id_cargue`) AS `adicion`
-                    ON(`adicion`.`id_cargue` = `pto_cargue`.`id_cargue`)
-                LEFT JOIN
-                    (SELECT
-                        `pto_mod_detalle`.`id_cargue`
-                        , SUM(`pto_mod_detalle`.`valor_cred`) AS `valor`
-                    FROM
-                        `pto_mod_detalle`
-                        INNER JOIN `pto_mod` 
-                            ON (`pto_mod_detalle`.`id_pto_mod` = `pto_mod`.`id_pto_mod`)
-                    WHERE (DATE_FORMAT(`pto_mod`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_mod`.`estado` = 2 AND `pto_mod`.`id_tipo_mod` = 3)
-                    GROUP BY `pto_mod_detalle`.`id_cargue`) AS `reduccion`
-                    ON(`reduccion`.`id_cargue` = `pto_cargue`.`id_cargue`)
-                LEFT JOIN
-                    (SELECT
-                        SUM(IFNULL(`ctt2`.`valor`,0) - IFNULL(`ctt2`.`valor_liberado`,0)) AS `valor`
-                        ,`ctt2`.`id_rubro`
-                    FROM
-                        (SELECT
-                            `pto_rec_detalle`.`valor`
-                            , `pto_rec_detalle`.`valor_liberado`
-                            , CASE
-                                WHEN `pto_rec_detalle`.`id_rubro`IS NULL THEN `pto_rad_detalle`.`id_rubro`
-                                ELSE `pto_rec_detalle`.`id_rubro` 
-                            END AS `id_rubro`
-                        FROM
-                            `pto_rec_detalle`
-                            INNER JOIN `pto_rec` 
-                                ON (`pto_rec_detalle`.`id_pto_rac` = `pto_rec`.`id_pto_rec`)
-                            LEFT JOIN `pto_rad_detalle` 
-                                ON (`pto_rec_detalle`.`id_pto_rad_detalle` = `pto_rad_detalle`.`id_pto_rad_det`)
-                        WHERE (`pto_rec`.`estado` = 2 AND DATE_FORMAT(`pto_rec`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte')) AS `ctt2`
-                    GROUP BY `ctt2`.`id_rubro`) AS `recaudo`
-                    ON(`recaudo`.`id_rubro` = `pto_cargue`.`id_cargue`)
-                LEFT JOIN
-                    (SELECT
-                        `pto_rad_detalle`.`id_rubro`
-                        , SUM(IFNULL(`pto_rad_detalle`.`valor`,0) - IFNULL(`pto_rad_detalle`.`valor_liberado`,0)) AS `valor`
-                    FROM
-                        `pto_rad_detalle`
-                        INNER JOIN `pto_rad` 
-                            ON (`pto_rad_detalle`.`id_pto_rad` = `pto_rad`.`id_pto_rad`)
-                    WHERE (DATE_FORMAT(`pto_rad`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_rad`.`estado` = 2)
-                    GROUP BY `pto_rad_detalle`.`id_rubro`) AS `reconocimiento`
-                    ON(`reconocimiento`.`id_rubro` = `pto_cargue`.`id_cargue`)
-                LEFT JOIN
-                    (SELECT
-                        `pto_mod_detalle`.`id_cargue`
-                        , SUM(`pto_mod_detalle`.`valor_deb`) AS `valor`
-                    FROM
-                        `pto_mod_detalle`
-                        INNER JOIN `pto_mod` 
-                            ON (`pto_mod_detalle`.`id_pto_mod` = `pto_mod`.`id_pto_mod`)
-                        INNER JOIN `pto_presupuestos` 
-                            ON (`pto_mod`.`id_pto` = `pto_presupuestos`.`id_pto`)
-                    WHERE (DATE_FORMAT(`pto_mod`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini_mes' AND '$fecha_corte' AND `pto_mod`.`estado` = 2 AND `pto_mod`.`id_tipo_mod` = 2)
-                    GROUP BY `pto_mod_detalle`.`id_cargue`) AS `adicion_mes`
-                    ON(`adicion_mes`.`id_cargue` = `pto_cargue`.`id_cargue`)
-                LEFT JOIN
-                    (SELECT
-                        `pto_mod_detalle`.`id_cargue`
-                        , SUM(`pto_mod_detalle`.`valor_cred`) AS `valor`
-                    FROM
-                        `pto_mod_detalle`
-                        INNER JOIN `pto_mod` 
-                            ON (`pto_mod_detalle`.`id_pto_mod` = `pto_mod`.`id_pto_mod`)
-                    WHERE (DATE_FORMAT(`pto_mod`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini_mes' AND '$fecha_corte' AND `pto_mod`.`estado` = 2 AND `pto_mod`.`id_tipo_mod` = 3)
-                    GROUP BY `pto_mod_detalle`.`id_cargue`) AS `reduccion_mes`
-                    ON(`reduccion_mes`.`id_cargue` = `pto_cargue`.`id_cargue`)
-                LEFT JOIN
-                    (SELECT
-                        SUM(IFNULL(`ctt2`.`valor`,0) - IFNULL(`ctt2`.`valor_liberado`,0)) AS `valor`
-                        ,`ctt2`.`id_rubro`
-                    FROM
-                        (SELECT
-                            `pto_rec_detalle`.`valor`
-                            , `pto_rec_detalle`.`valor_liberado`
-                            , CASE
-                                WHEN `pto_rec_detalle`.`id_rubro`IS NULL THEN `pto_rad_detalle`.`id_rubro`
-                                ELSE `pto_rec_detalle`.`id_rubro` 
-                            END AS `id_rubro`
-                        FROM
-                            `pto_rec_detalle`
-                            INNER JOIN `pto_rec` 
-                                ON (`pto_rec_detalle`.`id_pto_rac` = `pto_rec`.`id_pto_rec`)
-                            lEFT JOIN `pto_rad_detalle` 
-                                ON (`pto_rec_detalle`.`id_pto_rad_detalle` = `pto_rad_detalle`.`id_pto_rad_det`)
-                        WHERE (`pto_rec`.`estado` = 2 AND DATE_FORMAT(`pto_rec`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini_mes' AND '$fecha_corte')) AS `ctt2`
-                    GROUP BY `ctt2`.`id_rubro`) AS `recaudo_mes`
-                    ON(`recaudo_mes`.`id_rubro` = `pto_cargue`.`id_cargue`)
-                LEFT JOIN
-                    (SELECT
-                        `pto_rad_detalle`.`id_rubro`
-                        , SUM(IFNULL(`pto_rad_detalle`.`valor`,0) - IFNULL(`pto_rad_detalle`.`valor_liberado`,0)) AS `valor`
-                    FROM
-                        `pto_rad_detalle`
-                        INNER JOIN `pto_rad` 
-                            ON (`pto_rad_detalle`.`id_pto_rad` = `pto_rad`.`id_pto_rad`)
-                    WHERE (DATE_FORMAT(`pto_rad`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini_mes' AND '$fecha_corte' AND `pto_rad`.`estado` = 2)
-                    GROUP BY `pto_rad_detalle`.`id_rubro`) AS `reconocimiento_mes`
-                    ON(`reconocimiento_mes`.`id_rubro` = `pto_cargue`.`id_cargue`)
-                WHERE (`pto_presupuestos`.`id_tipo` = 1 AND `pto_presupuestos`.`id_vigencia` = $id_vigencia)
-                ORDER BY `pto_cargue`.`cod_pptal` ASC";
-    $res = $cmd->query($sql);
-    $rubros = $res->fetchAll(PDO::FETCH_ASSOC);
-    $res->closeCursor();
-    unset($res);
+    $datos_sedes = obtenerSedesActivas($cmd);
+    $sedes = $datos_sedes['sedes'];
+    if (empty($sedes)) {
+        $sedes = [['es_principal' => 1, 'nom_sede' => 'PRINCIPAL']];
+    }
+
+    $rubros_consolidados = [];
+    foreach ($sedes as $sede) {
+        if ($sede['es_principal'] == 1) {
+            $cmd_sede = $cmd;
+        } else {
+            $cmd_sede = conectarSede($sede['bd_sede']);
+            if ($cmd_sede === null) {
+                error_log("No se pudo conectar a la sede {$sede['nom_sede']} para ejecución de ingresos");
+                continue;
+            }
+        }
+
+        try {
+            $stmt = $cmd_sede->prepare($sql);
+            $stmt->bindParam(':fecha_ini', $fecha_ini, PDO::PARAM_STR);
+            $stmt->bindParam(':fecha_corte', $fecha_corte, PDO::PARAM_STR);
+            $stmt->bindParam(':fecha_ini_mes', $fecha_ini_mes, PDO::PARAM_STR);
+            $stmt->bindParam(':fecha_fin_mes_ant', $fecha_fin_mes_ant, PDO::PARAM_STR);
+            $stmt->bindParam(':id_vigencia', $id_vigencia, PDO::PARAM_INT);
+            $stmt->execute();
+            $rubros_sede = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+
+            foreach ($rubros_sede as $registro) {
+                $clave = $registro['cod_pptal'];
+                if (!isset($rubros_consolidados[$clave])) {
+                    $rubros_consolidados[$clave] = $registro;
+                } else {
+                    $rubros_consolidados[$clave]['inicial'] += $registro['inicial'];
+                    $rubros_consolidados[$clave]['adicion'] += $registro['adicion'];
+                    $rubros_consolidados[$clave]['reduccion'] += $registro['reduccion'];
+                    $rubros_consolidados[$clave]['recaudo_ant'] += $registro['recaudo_ant'];
+                    $rubros_consolidados[$clave]['reconocimiento_ant'] += $registro['reconocimiento_ant'];
+                    $rubros_consolidados[$clave]['adicion_mes'] += $registro['adicion_mes'];
+                    $rubros_consolidados[$clave]['reduccion_mes'] += $registro['reduccion_mes'];
+                    $rubros_consolidados[$clave]['recaudo_mes'] += $registro['recaudo_mes'];
+                    $rubros_consolidados[$clave]['recaudo_liberado_mes'] += $registro['recaudo_liberado_mes'];
+                    $rubros_consolidados[$clave]['reconocimiento_mes'] += $registro['reconocimiento_mes'];
+                    $rubros_consolidados[$clave]['liberado_mes'] += $registro['liberado_mes'];
+                }
+            }
+            unset($stmt);
+        } catch (PDOException $e) {
+            error_log("Error consultando ejecución de ingresos en sede {$sede['nom_sede']}: " . $e->getMessage());
+        }
+
+        if ($sede['es_principal'] != 1) {
+            $cmd_sede = null;
+        }
+    }
+
+    $rubros = array_values($rubros_consolidados);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
+// Reindexar el array para usarlo en la vista (cod_pptal como clave)
 $acum = [];
 foreach ($rubros as $rb) {
-    $rubro = $rb['cod_pptal'];
-
-    $filtro = array_filter($rubros, function ($item) use ($rubro) {
-        return strpos($item['cod_pptal'], $rubro) === 0;
-    });
-
-    if (!empty($filtro)) {
-        $acum[$rubro] = [
-            'inicial' => 0,
-            'adicion' => 0,
-            'reduccion' => 0,
-            'reconocimiento' => 0,
-            'recaudo' => 0,
-            'adicion_mes' => 0,
-            'reduccion_mes' => 0,
-            'reconocimiento_mes' => 0,
-            'recaudo_mes' => 0,
-        ];
-
-        // Procesar cada rubro filtrado
-        foreach ($filtro as $f) {
-            if ($f['tipo_dato'] == 1) {
-                $acum[$rubro]['inicial'] += $f['inicial'];
-                $acum[$rubro]['adicion'] += $f['val_adicion'];
-                $acum[$rubro]['reduccion'] += $f['val_reduccion'];
-                $acum[$rubro]['reconocimiento'] += $f['val_reconocimiento'];
-                $acum[$rubro]['recaudo'] += $f['val_recaudo'];
-
-                if ($detalle_mes == '1') {
-                    $acum[$rubro]['adicion_mes'] += $f['val_adicion_mes'];
-                    $acum[$rubro]['reduccion_mes'] += $f['val_reduccion_mes'];
-                    $acum[$rubro]['reconocimiento_mes'] += $f['val_reconocimiento_mes'];
-                    $acum[$rubro]['recaudo_mes'] += $f['val_recaudo_mes'];
-                }
-            }
-        }
-    }
+    $acum[$rb['cod_pptal']] = $rb;
 }
 
 try {
@@ -222,37 +244,67 @@ try {
         background-color: #ffffff;
     }
 </style>
-<table style="width:100% !important; border-collapse: collapse;" class="table-hover">
+<table style="width:100% !important; border-collapse: collapse;" class="table-hover" border="1">
     <thead>
         <tr>
-            <td rowspan="4" style="text-align:center"><label class="small"><img src="<?php echo $_SESSION['urlin'] ?>/images/logos/logo.png" width="100"></label></td>
-            <td colspan="13" style="text-align:center"><?php echo $empresa['nombre']; ?></td>
+            <td rowspan="4" style="text-align:center"><label class="small"><img src="<?= Plantilla::getHost() ?>/assets/images/logo.png" width="100"></label></td>
+            <td colspan="<?= $total_cols ?>" style="text-align:center"><?php echo $empresa['nombre']; ?></td>
         </tr>
         <tr>
-            <td colspan="13" style="text-align:center"><?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></td>
+            <td colspan="<?= $total_cols ?>" style="text-align:center"><?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></td>
         </tr>
         <tr>
-            <td colspan="13" style="text-align:center"><?php echo 'EJECUCION PRESUPUESTAL DE INGRESOS'; ?></td>
+            <td colspan="<?= $total_cols ?>" style="text-align:center"><?php echo 'EJECUCION PRESUPUESTAL DE INGRESOS'; ?></td>
         </tr>
         <tr>
-            <td colspan="13" style="text-align:center"><?php echo 'Fecha de corte: ' . $fecha_corte; ?></td>
+            <td colspan="<?= $total_cols ?>" style="text-align:center"><?php echo 'Fecha de corte: ' . $fecha_corte; ?></td>
         </tr>
-        <tr style="background-color: #CED3D3; text-align:center;font-size:9px;">
-            <td>Código</td>
-            <td>Nombre</td>
-            <td>Tipo</td>
-            <td>Inicial</td>
-            <?= $detalle_mes == '1' ? '<td>Adiciones mes</td>' : ''; ?>
-            <td>adicion acumulada</td>
-            <?= $detalle_mes == '1' ? '<td>Reducciones mes</td>' : ''; ?>
-            <td>Reducción acumulada</td>
-            <td>Definitivo</td>
-            <?= $detalle_mes == '1' ? '<td>Reconocimiento mes</td>' : ''; ?>
-            <td>Reconocimiento acumulado</td>
-            <?= $detalle_mes == '1' ? '<td>Recaudo mes</td>' : ''; ?>
-            <td>Recaudo acumulado</td>
-            <td>% Ejec</td>
-            <td>Saldo por recaudar</td>
+        <!-- Fila 1: Encabezados de grupo -->
+        <tr style="background-color: #CED3D3; text-align:center;font-size:9px;" border="1">
+            <td rowspan="2">Código</td>
+            <td rowspan="2">Nombre</td>
+            <td rowspan="2">Tipo</td>
+            <td rowspan="2">Inicial</td>
+            <?php if ($detalle_mes == '1'): ?>
+                <td colspan="2">Adiciones</td>
+                <td colspan="2">Reducciones</td>
+            <?php else: ?>
+                <td rowspan="2">Adiciones</td>
+                <td rowspan="2">Reducciones</td>
+            <?php endif; ?>
+            <td rowspan="2">Definitivo</td>
+            <?php if ($detalle_mes == '1'): ?>
+                <td colspan="4">Reconocimiento</td>
+                <td colspan="4">Recaudo</td>
+            <?php else: ?>
+                <td colspan="2">Reconocimiento</td>
+                <td colspan="2">Recaudo</td>
+            <?php endif; ?>
+            <td rowspan="2">% Ejec</td>
+            <td rowspan="2">Por Ejecutar</td>
+            <td rowspan="2">Ctas por Cobrar</td>
+        </tr>
+        <!-- Fila 2: Sub-encabezados -->
+        <tr style="background-color: #CED3D3; text-align:center;font-size:9px;" border="1">
+            <?php if ($detalle_mes == '1'): ?>
+                <td>Mes</td>
+                <td>Acumulada</td>
+                <td>Mes</td>
+                <td>Acumulada</td>
+            <?php endif; ?>
+            <td>Saldo ant.</td>
+            <?= $detalle_mes == '1' ? '<td>Mes</td>' : ''; ?>
+            <?= $detalle_mes == '1' ? '<td>Liberado</td>' : ''; ?>
+            <td>Acumulado</td>
+            <?php if ($detalle_mes == '1'): ?>
+                <td>Saldo Ant.</td>
+                <td>Mes</td>
+                <td>Liberado</td>
+                <td>Acumulado</td>
+            <?php else: ?>
+                <td>Saldo Ant.</td>
+                <td>Acumulado</td>
+            <?php endif; ?>
         </tr>
     </thead>
     <tbody style="font-size:9px;">
@@ -267,10 +319,12 @@ try {
 
             $tipo_dat = $tipo == '0' ? 'M' : 'D';
             $definitivo = $value['inicial'] + $value['adicion'] - $value['reduccion'];
-            $saldo_recaudar = $definitivo - $value['recaudo'];
-            $div = $value['inicial'] + $value['adicion'] - $value['reduccion'];
-            $div = $div == 0 ? 1 : $div;
-            echo '<tr>
+            $reconocimiento_acumulado = $value['reconocimiento_ant'] + $value['reconocimiento_mes'] - $value['liberado_mes'];
+            $recaudo_acumulado = $value['recaudo_ant'] + $value['recaudo_mes'] - $value['recaudo_liberado_mes'];
+            $presupuesto_por_ejecutar = $definitivo - $reconocimiento_acumulado;
+            $cuentas_por_cobrar = $reconocimiento_acumulado - $recaudo_acumulado;
+            $porc_ejec = $reconocimiento_acumulado != 0 ? round(($definitivo / $reconocimiento_acumulado) * 100, 2) : 0;
+            echo '<tr class="resaltar">
                     <td class="text">' . $key . '</td>
                     <td class="text">' . $nomrb . '</td>
                     <td class="text">' . $tipo_dat . '</td>
@@ -280,12 +334,17 @@ try {
             echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['reduccion_mes']) . '</td>' : '';
             echo '<td style="text-align:right">' . pesos($value['reduccion']) . '</td>';
             echo '<td style="text-align:right">' . pesos(($value['inicial'] + $value['adicion'] - $value['reduccion'])) . '</td>';
+            echo '<td style="text-align:right">' . pesos($value['reconocimiento_ant']) . '</td>';
             echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['reconocimiento_mes']) . '</td>' : '';
-            echo '<td style="text-align:right">' . pesos($value['reconocimiento']) . '</td>';
+            echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['liberado_mes']) . '</td>' : '';
+            echo '<td style="text-align:right">' . pesos($reconocimiento_acumulado) . '</td>';
+            echo '<td style="text-align:right">' . pesos($value['recaudo_ant']) . '</td>';
             echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['recaudo_mes']) . '</td>' : '';
-            echo '<td style="text-align:right">' . pesos($value['recaudo']) . '</td>
-             <td style="text-align:right">' .  round(($value['recaudo'] / $div) * 100, 2) . '</td>
-                    <td style="text-align:right">' .  pesos($saldo_recaudar) . '</td>
+            echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['recaudo_liberado_mes']) . '</td>' : '';
+            echo '<td style="text-align:right">' . pesos($recaudo_acumulado) . '</td>
+             <td style="text-align:right">' .  $porc_ejec . '</td>
+                    <td style="text-align:right">' .  pesos($presupuesto_por_ejecutar) . '</td>
+                    <td style="text-align:right">' .  pesos($cuentas_por_cobrar) . '</td>
                 </tr>';
         }
         ?>

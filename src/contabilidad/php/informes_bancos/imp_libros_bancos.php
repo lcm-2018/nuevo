@@ -12,19 +12,25 @@ include 'funciones_generales.php';
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
-$id_cuenta_ini = isset($_POST['id_cuenta_ini']) ? $_POST['id_cuenta_ini'] : 0;
-$id_cuenta_fin = isset($_POST['id_cuenta_fin']) ? $_POST['id_cuenta_fin'] : 0;
-$fec_ini = isset($_POST['fec_ini']) && strlen($_POST['fec_ini'] > 0) ? "'" . $_POST['fec_ini'] . "'" : '2020-01-01';
-$fec_fin = isset($_POST['fec_fin']) && strlen($_POST['fec_fin']) > 0 ? "'" . $_POST['fec_fin'] . "'" : '2050-12-31';
-$id_tipo_doc = isset($_POST['id_tipo_doc']) ? $_POST['id_tipo_doc'] : 0;
-$id_tercero = isset($_POST['id_tercero']) ? $_POST['id_tercero'] : 0;
+$id_cuenta_ini = isset($_POST['id_cuenta_ini']) ? (int)$_POST['id_cuenta_ini'] : 0;
+$id_cuenta_fin = isset($_POST['id_cuenta_fin']) ? (int)$_POST['id_cuenta_fin'] : 0;
+$fec_ini = isset($_POST['fec_ini']) && strlen($_POST['fec_ini']) > 0 ? $_POST['fec_ini'] : '2020-01-01';
+$fec_fin = isset($_POST['fec_fin']) && strlen($_POST['fec_fin']) > 0 ? $_POST['fec_fin'] : '2050-12-31';
+$id_tipo_doc = isset($_POST['id_tipo_doc']) ? (int)$_POST['id_tipo_doc'] : 0;
+$id_tercero = isset($_POST['id_tercero']) ? (int)$_POST['id_tercero'] : 0;
 
-$and_where = '';
+$where_mov = '';
+$params_mov = [
+    ':fec_ini' => $fec_ini,
+    ':fec_fin' => $fec_fin,
+];
 if ($id_tercero > 0) {
-    $and_where .= " AND ctb_libaux.id_tercero_api = $id_tercero";
+    $where_mov .= " AND ctb_libaux.id_tercero_api = :id_tercero";
+    $params_mov[':id_tercero'] = $id_tercero;
 }
 if ($id_tipo_doc > 0) {
-    $and_where .= " AND ctb_doc.id_tipo_doc = $id_tipo_doc";
+    $where_mov .= " AND ctb_doc.id_tipo_doc = :id_tipo_doc";
+    $params_mov[':id_tipo_doc'] = $id_tipo_doc;
 }
 
 // Obtener sedes activas
@@ -41,8 +47,11 @@ try {
                 ,ctb_pgcp.tipo_dato 
             FROM ctb_pgcp 
             WHERE ctb_pgcp.estado = 1
-            AND ctb_pgcp.id_pgcp BETWEEN '$id_cuenta_ini' AND '$id_cuenta_fin'";
-    $rs = $cmd->query($sql);
+            AND ctb_pgcp.id_pgcp BETWEEN :id_cuenta_ini AND :id_cuenta_fin";
+    $rs = $cmd->prepare($sql);
+    $rs->bindValue(':id_cuenta_ini', $id_cuenta_ini, \PDO::PARAM_INT);
+    $rs->bindValue(':id_cuenta_fin', $id_cuenta_fin, \PDO::PARAM_INT);
+    $rs->execute();
     $obj_cuentas = $rs->fetchAll();
     $rs->closeCursor();
     unset($rs);
@@ -114,7 +123,12 @@ try {
                             ctb_fuente.cod AS cod_tipo_doc,
                             ctb_fuente.nombre AS nom_tipo_doc,
                             ctb_doc.id_manu,
-                            CONCAT(IFNULL(facturas.num_factura,''),' - ',ctb_doc.detalle) AS detalle,
+                            CONCAT(IFNULL(CASE ctb_doc.tipo_movimiento
+                                WHEN 1 THEN CONCAT(ff.prefijo, IFNULL(ff.num_efactura, ff.num_factura))
+                                WHEN 2 THEN CONCAT(fo.prefijo, IFNULL(fo.num_efactura, fo.num_factura))
+                                WHEN 3 THEN CONCAT(fv.prefijo, IFNULL(fv.num_efactura, fv.num_factura))
+                                WHEN 4 THEN CONCAT(fc.prefijo, fc.num_factura)
+                            END, ''),' - ',ctb_doc.detalle) AS detalle,
                             tes_forma_pago.forma_pago,
                             tb_terceros.nom_tercero,
                             tb_terceros.nit_tercero
@@ -126,34 +140,23 @@ try {
                         LEFT JOIN tes_detalle_pago ON (tes_detalle_pago.id_ctb_doc = ctb_doc.id_ctb_doc)
                         LEFT JOIN tes_forma_pago ON (tes_detalle_pago.id_forma_pago = tes_forma_pago.id_forma_pago)
                         LEFT JOIN tb_terceros ON (tb_terceros.id_tercero_api = ctb_libaux.id_tercero_api)
-                        LEFT JOIN
-                            (SELECT 
-                                doc.id_ctb_doc,
-                                doc.id_manu,
-                                doc.tipo_movimiento AS tipo,
-                                CASE doc.tipo_movimiento
-                                    WHEN 1 THEN CONCAT(ff.prefijo, IFNULL(ff.num_efactura, ff.num_factura))
-                                    WHEN 2 THEN CONCAT(fo.prefijo, IFNULL(fo.num_efactura, fo.num_factura))
-                                    WHEN 3 THEN CONCAT(fv.prefijo, IFNULL(fv.num_efactura, fv.num_factura))
-                                    WHEN 4 THEN CONCAT(fc.prefijo, fc.num_factura)
-                                END AS num_factura
-                            FROM ctb_doc doc
-                            LEFT JOIN fac_facturacion ff ON doc.tipo_movimiento = 1 AND doc.id_manu = ff.id_factura
-                            LEFT JOIN fac_otros fo       ON doc.tipo_movimiento = 2 AND doc.id_manu = fo.id_factura
-                            LEFT JOIN far_ventas fv      ON doc.tipo_movimiento = 3 AND doc.id_manu = fv.id_venta
-                            LEFT JOIN fac_cartera fc     ON doc.tipo_movimiento = 4 AND doc.id_manu = fc.id_facturac
-                            WHERE (doc.tipo_movimiento = 1 AND ff.id_factura IS NOT NULL)
-                                OR (doc.tipo_movimiento = 2 AND fo.id_factura IS NOT NULL)
-                                OR (doc.tipo_movimiento = 3 AND fv.id_venta IS NOT NULL)
-                                OR (doc.tipo_movimiento = 4 AND fc.id_facturac IS NOT NULL)) AS facturas
-                                ON (facturas.id_manu = ctb_doc.id_manu AND facturas.tipo = ctb_doc.tipo_movimiento
-                                AND facturas.id_ctb_doc = ctb_doc.id_ctb_doc)
-                        WHERE DATE_FORMAT(ctb_doc.fecha, '%Y-%m-%d') BETWEEN $fec_ini AND $fec_fin AND ctb_doc.estado = 2 
-                            AND ctb_pgcp.id_pgcp IN ('" . $obj_c['id_pgcp'] . "','" . $obj_c['id_pgcp'] . "')
-                            $and_where
-                        ORDER BY DATE_FORMAT(ctb_doc.fecha, '%Y-%m-%d') ASC, ctb_libaux.debito DESC, ctb_libaux.credito DESC
+                        LEFT JOIN fac_facturacion ff ON ctb_doc.tipo_movimiento = 1 AND ctb_doc.id_manu = ff.id_factura
+                        LEFT JOIN fac_otros fo ON ctb_doc.tipo_movimiento = 2 AND ctb_doc.id_manu = fo.id_factura
+                        LEFT JOIN far_ventas fv ON ctb_doc.tipo_movimiento = 3 AND ctb_doc.id_manu = fv.id_venta
+                        LEFT JOIN fac_cartera fc ON ctb_doc.tipo_movimiento = 4 AND ctb_doc.id_manu = fc.id_facturac
+                        WHERE ctb_doc.fecha BETWEEN :fec_ini AND :fec_fin
+                            AND ctb_doc.estado = 2 
+                            AND ctb_pgcp.id_pgcp = :id_cuenta
+                            $where_mov
+                        ORDER BY ctb_doc.fecha ASC, ctb_libaux.debito DESC, ctb_libaux.credito DESC
                         LIMIT 500";
-                $rs = $cmd_sede->query($sql);
+                $rs = $cmd_sede->prepare($sql);
+                $params_mov_q = $params_mov;
+                $params_mov_q[':id_cuenta'] = (int)$obj_c['id_pgcp'];
+                foreach ($params_mov_q as $param => $value) {
+                    $rs->bindValue($param, $value, is_int($value) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
+                }
+                $rs->execute();
                 $movimientos_sede = $rs->fetchAll();
                 $rs->closeCursor();
 
@@ -168,32 +171,30 @@ try {
 
                 //-----consulta para debito y credito para saldo inicial-----------------------
                 $sql = "SELECT
-                            COUNT(*) AS filas
-                            ,ctb_libaux.id_cuenta
-                            ,ctb_pgcp.cuenta
-                            ,ctb_pgcp.nombre
-                            , SUM(IFNULL(ctb_libaux.debito,0)) AS debito 
-                            , SUM(IFNULL(ctb_libaux.credito,0)) AS credito 
-                        FROM
-                            ctb_libaux
-                            INNER JOIN ctb_doc ON (ctb_libaux.id_ctb_doc = ctb_doc.id_ctb_doc)
-                            INNER JOIN ctb_pgcp ON (ctb_libaux.id_cuenta = ctb_pgcp.id_pgcp)
-                        WHERE ctb_doc.fecha < $fec_ini  
-                        AND ctb_libaux.id_cuenta IN ('" . $obj_c['id_pgcp'] . "','" . $obj_c['id_pgcp'] . "') 
-                        AND ctb_doc.estado=2 limit 1";
+                            COUNT(*) AS filas,
+                            SUM(IFNULL(ctb_libaux.debito,0)) AS debito, 
+                            SUM(IFNULL(ctb_libaux.credito,0)) AS credito
+                        FROM ctb_libaux
+                        INNER JOIN ctb_doc ON (ctb_libaux.id_ctb_doc = ctb_doc.id_ctb_doc)
+                        WHERE ctb_doc.fecha < :fec_ini
+                            AND ctb_libaux.id_cuenta = :id_cuenta 
+                            AND ctb_doc.estado = 2";
 
-                $rs = $cmd_sede->query($sql);
-                $saldos_sede = $rs->fetchAll();
+                $rs = $cmd_sede->prepare($sql);
+                $rs->bindValue(':fec_ini', $fec_ini, \PDO::PARAM_STR);
+                $rs->bindValue(':id_cuenta', (int)$obj_c['id_pgcp'], \PDO::PARAM_INT);
+                $rs->execute();
+                $saldos_sede = $rs->fetch();
                 $rs->closeCursor();
 
                 // Acumular saldos iniciales de todas las sedes
-                if (!empty($saldos_sede) && $saldos_sede[0]['filas'] > 0) {
-                    $saldos_iniciales['debito'] += $saldos_sede[0]['debito'];
-                    $saldos_iniciales['credito'] += $saldos_sede[0]['credito'];
-                    $saldos_iniciales['filas'] += $saldos_sede[0]['filas'];
+                if (!empty($saldos_sede) && (int)$saldos_sede['filas'] > 0) {
+                    $saldos_iniciales['debito'] += (float)$saldos_sede['debito'];
+                    $saldos_iniciales['credito'] += (float)$saldos_sede['credito'];
+                    $saldos_iniciales['filas'] += (int)$saldos_sede['filas'];
                     // Guardar cuenta para referencia
                     if (!isset($saldos_iniciales['cuenta'])) {
-                        $saldos_iniciales['cuenta'] = $saldos_sede[0]['cuenta'];
+                        $saldos_iniciales['cuenta'] = $obj_c['cuenta'];
                     }
                 }
             } catch (PDOException $e) {
