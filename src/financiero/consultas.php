@@ -18,6 +18,11 @@
  */
 function conectarSede($bd_sede)
 {
+    // Si la sede no tiene base de datos configurada, no se puede conectar
+    if (empty($bd_sede)) {
+        return null;
+    }
+
     try {
         // Todas las bases están en el mismo servidor, usar la conexión principal
         $cmd = \Config\Clases\Conexion::getConexion();

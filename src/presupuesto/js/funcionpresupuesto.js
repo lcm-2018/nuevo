@@ -63,26 +63,49 @@
         });
     };
     $('#areaReporte').on('click', '#btnExcelEntrada', function () {
-        let datos = [];
-        $('#areaImprimir table tr').each(function () {
-            let fila = [];
-            $(this).find('th, td').each(function () {
-                fila.push($(this).text().trim());
-            });
-            datos.push(fila);
+        // Clonar la tabla en un nodo temporal para no modificar la vista
+        let $tablaOriginal = $('#areaImprimir table');
+        if (!$tablaOriginal.length) {
+            mjeError('No hay datos para exportar. Consulte primero el informe.');
+            return;
+        }
+
+        let $tabla = $tablaOriginal.clone();
+
+        // Limpiar estilos visuales del thead para que los encabezados
+        // queden con el mismo aspecto que el cuerpo del informe en Excel
+        $tabla.find('thead tr').each(function () {
+            // Quitar background-color y font-size del <tr>
+            $(this).css({ 'background-color': '', 'font-size': '', 'color': '' });
+            $(this).removeAttr('style');
         });
+        $tabla.find('thead td, thead th').each(function () {
+            // Conservar solo el borde; quitar fondo y tamaño de letra
+            let borderVal = $(this).css('border') || '1px solid #999';
+            $(this).removeAttr('style');
+            $(this).css('border', borderVal);
+        });
+
+        // Asegurar que la tabla tenga border visible
+        $tabla.attr('border', '1');
+
+        let tablaHtml = $tabla.prop('outerHTML');
+
+        // Envolver en estructura HTML básica para que Excel interprete correctamente
+        let htmlCompleto = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' + tablaHtml + '</body></html>';
 
         let form = $('<form>', {
             action: ValueInput('host') + '/src/financiero/reporte_excel.php',
             method: 'post'
         }).append($('<input>', {
             type: 'hidden',
-            name: 'datos',
-            value: JSON.stringify(datos)
+            name: 'html_tabla',
+            value: htmlCompleto
         }));
 
         $('body').append(form);
         form.submit();
+        form.remove();
     });
     $('#areaReporte').on('click', '#btnPlanoEntrada', function () {
         let tableHtml = $('#areaImprimir').html();

@@ -63,7 +63,7 @@ try {
             echo $query->errorInfo()[2] . $query->queryString;
         } else {
             if ($query->rowCount() > 0) {
-                $query = "UPDATE `tes_caja_const` SET `id_user_act` = ?, `fecha_act` = ? WHERE (`id_caja_const` = ?)";
+                $query = "UPDATE `tes_caja_const` SET `id_user_act` = ?, `fec_act` = ? WHERE (`id_caja_const` = ?)";
                 $query = $cmd->prepare($query);
                 $query->bindParam(1, $iduser, PDO::PARAM_INT);
                 $query->bindParam(2, $fecha2, PDO::PARAM_STR);

@@ -34,7 +34,7 @@ try {
                 , IFNULL(`t1`.`valor`,0) AS `valor` 
             FROM
                 `tes_caja_const`
-                INNER JOIN
+                LEFT JOIN
                 (SELECT
                     `id_caja_const`
                     , SUM(`valor`) AS `valor`
@@ -44,7 +44,11 @@ try {
             WHERE `tes_caja_const`.`id_caja_const` = $id_caja";
     $rs = $cmd->query($sql);
     $valores = $rs->fetch(PDO::FETCH_ASSOC);
-    $max = $valores['valor_total'] - $valores['valor'];
+    if ($valores) {
+        $max = $valores['valor_total'] - $valores['valor'];
+    } else {
+        $max = 0;
+    }
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -109,6 +113,21 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
+
+try {
+    $sql = "SELECT
+                `id_pto` as `id`
+            FROM
+                `pto_presupuestos`
+            WHERE (`id_vigencia` = $id_vigencia
+                AND `id_tipo` = 2)
+            LIMIT 1";
+    $rs = $cmd->query($sql);
+    $pto = $rs->fetch(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+}
+
 if (empty($detalle)) {
     $detalle = [
         'id_caja_rubros' => 0,
@@ -142,7 +161,7 @@ if (empty($detalle)) {
     </div>
     <div class="p-3">
         <form id="formAddRubrosCaja">
-            <input type="hidden" id="id_pto_movto" value="2">
+            <input type="hidden" id="id_pto_movto" value="<?= $pto['id']; ?>">
             <input type="hidden" id="id_caja_rubros" name="id_caja_rubros" value="<?php echo $detalle['id_caja_rubros']; ?>">
             <input type="hidden" id="id_caja" name="id_caja" value="<?php echo $id_caja ?>">
             <div class="row mb-2">

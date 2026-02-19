@@ -191,7 +191,8 @@ try {
                 if (!isset($rubros_consolidados[$clave])) {
                     $rubros_consolidados[$clave] = $registro;
                 } else {
-                    $rubros_consolidados[$clave]['inicial'] += $registro['inicial'];
+                    // 'inicial' solo se toma de la sede principal (es_principal = 1),
+                    // no se acumula de las sedes secundarias.
                     $rubros_consolidados[$clave]['adicion'] += $registro['adicion'];
                     $rubros_consolidados[$clave]['reduccion'] += $registro['reduccion'];
                     $rubros_consolidados[$clave]['recaudo_ant'] += $registro['recaudo_ant'];

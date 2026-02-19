@@ -1504,6 +1504,7 @@ document.addEventListener("keyup", (e) => {
 					dataType: "json",
 					data: {
 						search: request.term,
+						id_pto: $('#id_pto_movto').val(),
 					},
 					success: function (data) {
 						response(data);
