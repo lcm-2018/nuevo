@@ -2872,6 +2872,9 @@ const cargarReporteTesoreria = (id) => {
 	if (id == 4) {
 		url = "informes/form_consolida_por_terceros.php";
 	}
+	if (id == 5) {
+		url = "informes/form_relacion_pagos.php";
+	}
 	fetch(url, {
 		method: "POST",
 		body: JSON.stringify({ id: id }),
@@ -2946,6 +2949,17 @@ const generarInfPorTercero = (boton) => {
 	let fec_ini = fecha_ini.value;
 	let fec_fin = fecha_fin.value;
 	let url = ValueInput('host') + "/src/tesoreria/php/informes/consolidado_por_terceros.php";
+	mostrarOverlay();
+	$.post(url, { fec_ini: fec_ini, fec_fin: fec_fin }, function (he) {
+		$("#areaImprimir").html(he);
+		ocultarOverlay();
+	});
+};
+
+const generarRelacionPagos = (boton) => {
+	let fec_ini = fecha_ini.value;
+	let fec_fin = fecha_fin.value;
+	let url = ValueInput('host') + "/src/tesoreria/php/informes/relacion_pagos.php";
 	mostrarOverlay();
 	$.post(url, { fec_ini: fec_ini, fec_fin: fec_fin }, function (he) {
 		$("#areaImprimir").html(he);

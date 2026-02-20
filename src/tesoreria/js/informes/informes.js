@@ -42,7 +42,7 @@
         }
     });
     $('#areaReporte').on('click', '#btnExcelEntrada', function () {
-        let encoded = btoa($('#areaImprimir').html());
+        let encoded = btoa(unescape(encodeURIComponent($('#areaImprimir').html())));
         $('<form action="php/informes/reporte_excel.php" method="post"><input type="hidden" name="xls" value="' + encoded + '" /></form>').appendTo('body').submit();
     });
     document.addEventListener("keyup", (e) => {
