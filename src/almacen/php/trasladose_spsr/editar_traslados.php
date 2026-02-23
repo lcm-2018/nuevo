@@ -444,7 +444,7 @@ try {
                         $sql = "SELECT far_medicamento_lote.id_lote
                                 FROM far_medicamento_lote 
                                 INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)
-                                WHERE far_medicamentos.id_origen=" . $med['id_med'] . " AND far_medicamento_lote.id_origen=" . $med['id_lote'];
+                                WHERE far_medicamentos.id_origen=" . $med['id_med'] . " AND far_medicamento_lote.id_origen=" . $med['id_lote'] . " AND far_medicamento_lote.id_lote_pri IS NULL";
                         $rs = $cmd1->query($sql);
                         $obj = $rs->fetch();
 
