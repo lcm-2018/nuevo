@@ -41,10 +41,10 @@ try {
         , `ttd`.`codigo_ne` AS `tipo_doc`
         , `rubro`.`cod_pptal`
         , `rubro`.`nom_rubro`
-        , SUM(IFNULL(`pag`.`valor`,0) - IFNULL(`pag`.`valor_liberado`,0)) AS `val_bruto`
+        , (IFNULL(`pag`.`valor`,0) - IFNULL(`pag`.`valor_liberado`,0)) AS `val_bruto`
         , IFNULL(`ret`.`valor_retencion`, 0) AS `retencion_causacion`
-        , `cta`.`numero` AS `cta_bancaria`
-        , `pgcp`.`cuenta` AS `cod_contable`
+        , `det_pago`.`cta_bancaria`
+        , `libaux`.`cod_contable`
     FROM
         `pto_pag_detalle` AS `pag`
         INNER JOIN `ctb_doc` AS `doc_egreso` 
@@ -63,26 +63,32 @@ try {
             ON (`pag`.`id_tercero_api` = `tt`.`id_tercero_api`)
         LEFT JOIN `tb_tipos_documento` AS `ttd` 
             ON (`tt`.`tipo_doc` = `ttd`.`id_tipodoc`)
-        LEFT JOIN `tes_detalle_pago` AS `det_pago` 
+        LEFT JOIN (
+            SELECT `id_ctb_doc`, GROUP_CONCAT(`cta`.`numero` SEPARATOR ', ') AS `cta_bancaria`
+            FROM `tes_detalle_pago` AS `dp`
+            INNER JOIN `tes_cuentas` AS `cta` ON (`dp`.`id_tes_cuenta` = `cta`.`id_tes_cuenta`)
+            GROUP BY `dp`.`id_ctb_doc`
+        ) AS `det_pago` 
             ON (`det_pago`.`id_ctb_doc` = `doc_egreso`.`id_ctb_doc`)
-        LEFT JOIN `tes_cuentas` AS `cta` 
-            ON (`det_pago`.`id_tes_cuenta` = `cta`.`id_tes_cuenta`)
         LEFT JOIN (
             SELECT `id_ctb_doc`, SUM(`valor_retencion`) AS `valor_retencion` 
             FROM `ctb_causa_retencion` 
             GROUP BY `id_ctb_doc`
         ) AS `ret` 
             ON (`ret`.`id_ctb_doc` = `cop`.`id_ctb_doc`)
-        LEFT JOIN `ctb_libaux` AS `libaux` 
-            ON (`libaux`.`id_ctb_doc` = `doc_egreso`.`id_ctb_doc` AND `libaux`.`credito` > 0)
-        LEFT JOIN `ctb_pgcp` AS `pgcp` 
-            ON (`libaux`.`id_cuenta` = `pgcp`.`id_pgcp`)
+        LEFT JOIN (
+            SELECT `la`.`id_ctb_doc`, GROUP_CONCAT(DISTINCT `pg`.`cuenta` SEPARATOR ', ') AS `cod_contable`
+            FROM `ctb_libaux` AS `la`
+            INNER JOIN `ctb_pgcp` AS `pg` ON (`la`.`id_cuenta` = `pg`.`id_pgcp`)
+            WHERE `la`.`credito` > 0
+            GROUP BY `la`.`id_ctb_doc`
+        ) AS `libaux` 
+            ON (`libaux`.`id_ctb_doc` = `doc_egreso`.`id_ctb_doc`)
     WHERE (
         `doc_egreso`.`estado` = 2 
         AND `doc_causacion`.`estado` = 2
         AND DATE_FORMAT(`doc_egreso`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
     )
-    GROUP BY `pag`.`id_ctb_doc`, `pag`.`id_tercero_api`, `pag`.`id_pto_cop_det`
     ORDER BY `doc_egreso`.`fecha`, `doc_egreso`.`id_manu`";
 
     $res = $cmd->query($sql);
@@ -171,14 +177,14 @@ include_once '../../../financiero/encabezado_empresa.php';
                     <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['fecha'] . '</td>
                     <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['no_causacion'] . '</td>
                     <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['tipo_doc'] . '</td>
-                    <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['nit_tercero'] . '</td>
+                    <td style="text-align:center; border:#A9A9A9 1px solid; mso-number-format:\@;">' . $row['nit_tercero'] . '</td>
                     <td style="text-align:center; border:#A9A9A9 1px solid;">' . calcularDV($row['nit_tercero']) . '</td>
                     <td style="text-align:left; border:#A9A9A9 1px solid;">' . mb_strtoupper($row['nom_tercero']) . '</td>
-                    <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['cod_pptal'] . '</td>
+                    <td style="text-align:right; border:#A9A9A9 1px solid; mso-number-format:\@;">' . $row['cod_pptal'] . '</td>
                     <td style="text-align:left; border:#A9A9A9 1px solid;">' . mb_strtoupper($row['nom_rubro']) . '</td>
-                    <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['cod_contable'] . '</td>
+                    <td style="text-align:center; border:#A9A9A9 1px solid; mso-number-format:\@;">' . $row['cod_contable'] . '</td>
                     <td style="text-align:left; border:#A9A9A9 1px solid;">' . mb_strtoupper($row['detalle']) . '</td>
-                    <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['cta_bancaria'] . '</td>
+                    <td style="text-align:center; border:#A9A9A9 1px solid; mso-number-format:\@;">' . $row['cta_bancaria'] . '</td>
                     <td style="text-align:right; border:#A9A9A9 1px solid;">' . number_format($row['val_bruto'], 2) . '</td>
                     <td style="text-align:right; border:#A9A9A9 1px solid;">' . number_format($deduccion, 2) . '</td>
                     <td style="text-align:right; border:#A9A9A9 1px solid;">' . number_format($val_neto, 2) . '</td>

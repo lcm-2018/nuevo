@@ -63,49 +63,25 @@
         });
     };
     $('#areaReporte').on('click', '#btnExcelEntrada', function () {
-        // Clonar la tabla en un nodo temporal para no modificar la vista
-        let $tablaOriginal = $('#areaImprimir table');
-        if (!$tablaOriginal.length) {
+        // Obtener todo el contenido del área de impresión (encabezado + tabla de datos)
+        let contenido = $('#areaImprimir').html();
+        if (!contenido || !contenido.trim().length) {
             mjeError('No hay datos para exportar. Consulte primero el informe.');
             return;
         }
 
-        let $tabla = $tablaOriginal.clone();
-
-        // Limpiar estilos visuales del thead para que los encabezados
-        // queden con el mismo aspecto que el cuerpo del informe en Excel
-        $tabla.find('thead tr').each(function () {
-            // Quitar background-color y font-size del <tr>
-            $(this).css({ 'background-color': '', 'font-size': '', 'color': '' });
-            $(this).removeAttr('style');
-        });
-        $tabla.find('thead td, thead th').each(function () {
-            // Conservar solo el borde; quitar fondo y tamaño de letra
-            let borderVal = $(this).css('border') || '1px solid #999';
-            $(this).removeAttr('style');
-            $(this).css('border', borderVal);
-        });
-
-        // Asegurar que la tabla tenga border visible
-        $tabla.attr('border', '1');
-
-        let tablaHtml = $tabla.prop('outerHTML');
-
-        // Envolver en estructura HTML básica para que Excel interprete correctamente
-        let htmlCompleto = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' + tablaHtml + '</body></html>';
-
-        let form = $('<form>', {
-            action: ValueInput('host') + '/src/financiero/reporte_excel.php',
-            method: 'post'
-        }).append($('<input>', {
-            type: 'hidden',
-            name: 'html_tabla',
-            value: htmlCompleto
-        }));
-
-        $('body').append(form);
-        form.submit();
-        form.remove();
+        // Generar el archivo Excel directamente en el navegador usando Blob
+        // Esto evita el límite de post_max_size de PHP con tablas grandes
+        let htmlCompleto = '\uFEFF<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' + contenido + '</body></html>';
+        let blob = new Blob([htmlCompleto], { type: 'application/vnd.ms-excel;charset=utf-8' });
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url;
+        a.download = 'reporte_excel.xls';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     });
     $('#areaReporte').on('click', '#btnPlanoEntrada', function () {
         let tableHtml = $('#areaImprimir').html();

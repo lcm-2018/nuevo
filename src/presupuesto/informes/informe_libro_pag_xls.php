@@ -67,12 +67,12 @@ include_once '../../financiero/encabezado_empresa.php';
 
             $fecha = date('Y-m-d', strtotime($rp['fecha']));
             echo "<tr>
-                <td style='text-align:left'>" . $rp['id_manu'] . "</td>
+                <td style='text-align:left;mso-number-format:\@;'>" . $rp['id_manu'] . "</td>
                 <td style='text-align:left;white-space: nowrap;'>" .   $fecha   . "</td>
                 <td style='text-align:left'>" .  $rp['nom_tercero'] . "</td>
-                <td style='text-align:left;white-space: nowrap;'>" . $rp['nit_tercero'] . "</td>
+                <td style='text-align:left;white-space: nowrap;mso-number-format:\@;'>" . $rp['nit_tercero'] . "</td>
                 <td style='text-align:left'>" . $rp['detalle'] . "</td>
-                <td style='text-align:left'>" . $rp['cod_pptal'] . "</td>
+                <td style='text-align:left;mso-number-format:\@;'>" . $rp['cod_pptal'] . "</td>
                 <td style='text-align:left'>" .  $rp['nom_rubro'] . "</td>
                 <td style='text-align:right'>" . number_format($rp['valor'], 2, ".", ",")  . "</td>
                 </tr>";

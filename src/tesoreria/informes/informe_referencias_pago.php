@@ -52,7 +52,15 @@ try {
                         `ctb_libaux`
                     GROUP BY `id_ctb_doc`) AS `tt`
                         ON (`tt`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                LEFT JOIN `ctt_cuenta_bancaria` AS `cb`
+                LEFT JOIN (
+                    SELECT `cb1`.*
+                    FROM `ctt_cuenta_bancaria` AS `cb1`
+                    INNER JOIN (
+                        SELECT `id_tercero`, MAX(`id_cta`) AS `max_id_cta`
+                        FROM `ctt_cuenta_bancaria`
+                        GROUP BY `id_tercero`
+                    ) AS `cb2` ON `cb1`.`id_tercero` = `cb2`.`id_tercero` AND `cb1`.`id_cta` = `cb2`.`max_id_cta`
+                ) AS `cb`
                     ON (`cb`.`id_tercero` = `ctb_doc`.`id_tercero`)
                 LEFT JOIN `tb_bancos` AS `b`
                     ON (`b`.`id_banco` = `cb`.`id_banco`)

@@ -54,6 +54,7 @@ class ViaticoNovedades
                     , `nom_viaticos_novedades`.`id_viatico`
                     , DATE_FORMAT(`nom_viaticos_novedades`.`fecha`, '%Y-%m-%d') AS `fecha`
                     , `nom_viaticos_novedades`.`tipo_registro`
+                    , `nom_viaticos_novedades`.`valor`
                     , `nom_viaticos_novedades`.`observacion`
                 FROM
                     `nom_viaticos_novedades`
@@ -118,7 +119,7 @@ class ViaticoNovedades
      */
     public function getRegistro($id)
     {
-        $sql = "SELECT `id_novedad`, `id_viatico`, DATE_FORMAT(`fecha`, '%Y-%m-%d') AS `fecha`, `tipo_registro`, `observacion`
+        $sql = "SELECT `id_novedad`, `id_viatico`, DATE_FORMAT(`fecha`, '%Y-%m-%d') AS `fecha`, `tipo_registro`, `valor`, `observacion`
                 FROM `nom_viaticos_novedades`
                 WHERE `id_novedad` = ?";
         $stmt = $this->conexion->prepare($sql);
@@ -133,6 +134,7 @@ class ViaticoNovedades
                 'id_viatico'    => 0,
                 'fecha'         => '',
                 'tipo_registro' => '',
+                'valor'         => 0,
                 'observacion'   => ''
             ];
         }
@@ -187,16 +189,20 @@ class ViaticoNovedades
                             <input type="hidden" id="idNovedad" name="id" value="0">
                             <input type="hidden" id="idViaticoNov" name="id_viatico" value="{$id_viatico}">
                             <div class="row mb-2">
-                                <div class="col-md-6 text-start">
+                                <div class="col-md-4 text-start">
                                     <label for="datFechaNov" class="small text-muted">FECHA</label>
                                     <input type="date" class="form-control form-control-sm bg-input" id="datFechaNov" name="datFechaNov" value="">
                                     <small class="text-muted">FORMATO: YYYY-MM-DD</small>
                                 </div>
-                                <div class="col-md-6 text-start">
+                                <div class="col-md-4 text-start">
                                     <label for="slcTipoRegistro" class="small text-muted">TIPO DE REGISTRO</label>
                                     <select class="form-select form-select-sm bg-input" id="slcTipoRegistro" name="slcTipoRegistro">
                                         {$comboTipoRegistro}
                                     </select>
+                                </div>
+                                <div class="col-md-4 text-start">
+                                    <label for="datValorNov" class="small text-muted">VALOR</label>
+                                    <input type="text" class="form-control form-control-sm bg-input text-end" id="datValorNov" name="datValorNov" value="" onkeyup="NumberMiles(this)">
                                 </div>
                             </div>
                             <div class="row mb-2">
@@ -223,6 +229,7 @@ class ViaticoNovedades
                                     <th class="text-center bg-sofia">ID</th>
                                     <th class="text-center bg-sofia">FECHA</th>
                                     <th class="text-center bg-sofia">TIPO DE REGISTRO</th>
+                                    <th class="text-center bg-sofia">VALOR</th>
                                     <th class="text-center bg-sofia">OBSERVACIÓN</th>
                                     <th class="text-center bg-sofia">ACCIONES</th>
                                 </tr>
@@ -259,6 +266,47 @@ class ViaticoNovedades
     }
 
     /**
+     * Obtiene el val_total del viático desde nom_viaticos.
+     *
+     * @param int $id_viatico ID del viático
+     * @return float Valor total del viático
+     */
+    private function getValTotalViatico($id_viatico)
+    {
+        $sql = "SELECT `val_total` FROM `nom_viaticos` WHERE `id_viatico` = ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(1, $id_viatico, PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return $data ? floatval($data['val_total']) : 0;
+    }
+
+    /**
+     * Obtiene la suma de valores de novedades por tipo de registro para un viático.
+     *
+     * @param int $id_viatico ID del viático
+     * @param int $tipo_registro Tipo de registro (1=Anticipo, 2=Legalizado, etc.)
+     * @param int $excluir_id ID de novedad a excluir (para edición)
+     * @return float Suma de valores
+     */
+    private function getSumaValorPorTipo($id_viatico, $tipo_registro, $excluir_id = 0)
+    {
+        $sql = "SELECT COALESCE(SUM(`valor`), 0) AS `total` FROM `nom_viaticos_novedades`
+                WHERE `id_viatico` = ? AND `tipo_registro` = ? AND `id_novedad` != ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(1, $id_viatico, PDO::PARAM_INT);
+        $stmt->bindValue(2, $tipo_registro, PDO::PARAM_INT);
+        $stmt->bindValue(3, $excluir_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return floatval($data['total']);
+    }
+
+    /**
      * Elimina un registro.
      */
     public function delRegistro($id, $id_viatico)
@@ -290,15 +338,51 @@ class ViaticoNovedades
             return 'Ya existe una novedad con este tipo de registro para este viático.';
         }
 
+        $valor = floatval(str_replace(',', '', $array['datValorNov'] ?? '0'));
+        $val_total = $this->getValTotalViatico($array['id_viatico']);
+        $tipo = intval($array['slcTipoRegistro']);
+
+        // Validar Anticipo (1): no puede superar val_total
+        if ($tipo == 1 && $valor > $val_total) {
+            return 'El valor del anticipo (' . number_format($valor, 2, '.', ',') . ') no puede ser mayor al valor total del viático (' . number_format($val_total, 2, '.', ',') . ').';
+        }
+
+        // Validar Legalizado (3): el valor debe estar entre 0 y (val_total - anticipo)
+        if ($tipo == 3) {
+            $sumaAnticipo = $this->getSumaValorPorTipo($array['id_viatico'], 1);
+            $maxLegalizado = $val_total - $sumaAnticipo;
+            if ($valor > $maxLegalizado) {
+                return 'El valor del legalizado (' . number_format($valor, 2, '.', ',') . ') no puede ser mayor a la diferencia entre el valor total (' . number_format($val_total, 2, '.', ',') . ') menos el anticipo (' . number_format($sumaAnticipo, 2, '.', ',') . '), es decir: ' . number_format($maxLegalizado, 2, '.', ',') . '.';
+            }
+        }
+
+        // Validar Rechazado (4): el valor no puede superar el anticipo
+        if ($tipo == 4) {
+            $sumaAnticipo = $this->getSumaValorPorTipo($array['id_viatico'], 1);
+            if ($valor > $sumaAnticipo) {
+                return 'El valor del rechazado (' . number_format($valor, 2, '.', ',') . ') no puede ser mayor al valor del anticipo (' . number_format($sumaAnticipo, 2, '.', ',') . ').';
+            }
+        }
+
+        // Validar Caducado (5): el valor debe ser igual a val_total - anticipo
+        if ($tipo == 5) {
+            $sumaAnticipo = $this->getSumaValorPorTipo($array['id_viatico'], 1);
+            $valorEsperado = $val_total - $sumaAnticipo;
+            if ($valor != $valorEsperado) {
+                return 'El valor del caducado debe ser igual a la diferencia entre el valor total del viático (' . number_format($val_total, 2, '.', ',') . ') menos el anticipo (' . number_format($sumaAnticipo, 2, '.', ',') . '), es decir: ' . number_format($valorEsperado, 2, '.', ',') . '.';
+            }
+        }
+
         try {
             $sql = "INSERT INTO `nom_viaticos_novedades`
-                        (`id_viatico`, `fecha`, `tipo_registro`, `observacion`)
-                    VALUES (?, ?, ?, ?)";
+                        (`id_viatico`, `fecha`, `tipo_registro`, `valor`, `observacion`)
+                    VALUES (?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['id_viatico'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['datFechaNov'], PDO::PARAM_STR);
             $stmt->bindValue(3, $array['slcTipoRegistro'], PDO::PARAM_INT);
-            $stmt->bindValue(4, $array['txtObservacion'], PDO::PARAM_STR);
+            $stmt->bindValue(4, $valor, PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['txtObservacion'], PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
@@ -322,17 +406,54 @@ class ViaticoNovedades
             return 'Ya existe una novedad con este tipo de registro para este viático.';
         }
 
+        $valor = floatval(str_replace(',', '', $array['datValorNov'] ?? '0'));
+        $val_total = $this->getValTotalViatico($reg['id_viatico']);
+        $tipo = intval($array['slcTipoRegistro']);
+
+        // Validar Anticipo (1): no puede superar val_total
+        if ($tipo == 1 && $valor > $val_total) {
+            return 'El valor del anticipo (' . number_format($valor, 2, '.', ',') . ') no puede ser mayor al valor total del viático (' . number_format($val_total, 2, '.', ',') . ').';
+        }
+
+        // Validar Legalizado (3): el valor debe estar entre 0 y (val_total - anticipo)
+        if ($tipo == 3) {
+            $sumaAnticipo = $this->getSumaValorPorTipo($reg['id_viatico'], 1, $array['id']);
+            $maxLegalizado = $val_total - $sumaAnticipo;
+            if ($valor > $maxLegalizado) {
+                return 'El valor del legalizado (' . number_format($valor, 2, '.', ',') . ') no puede ser mayor a la diferencia entre el valor total (' . number_format($val_total, 2, '.', ',') . ') menos el anticipo (' . number_format($sumaAnticipo, 2, '.', ',') . '), es decir: ' . number_format($maxLegalizado, 2, '.', ',') . '.';
+            }
+        }
+
+        // Validar Rechazado (4): el valor no puede superar el anticipo
+        if ($tipo == 4) {
+            $sumaAnticipo = $this->getSumaValorPorTipo($reg['id_viatico'], 1, $array['id']);
+            if ($valor > $sumaAnticipo) {
+                return 'El valor del rechazado (' . number_format($valor, 2, '.', ',') . ') no puede ser mayor al valor del anticipo (' . number_format($sumaAnticipo, 2, '.', ',') . ').';
+            }
+        }
+
+        // Validar Caducado (5): el valor debe ser igual a val_total - anticipo
+        if ($tipo == 5) {
+            $sumaAnticipo = $this->getSumaValorPorTipo($reg['id_viatico'], 1, $array['id']);
+            $valorEsperado = $val_total - $sumaAnticipo;
+            if ($valor != $valorEsperado) {
+                return 'El valor del caducado debe ser igual a la diferencia entre el valor total del viático (' . number_format($val_total, 2, '.', ',') . ') menos el anticipo (' . number_format($sumaAnticipo, 2, '.', ',') . '), es decir: ' . number_format($valorEsperado, 2, '.', ',') . '.';
+            }
+        }
+
         try {
             $sql = "UPDATE `nom_viaticos_novedades`
                         SET `fecha` = ?,
                             `tipo_registro` = ?,
+                            `valor` = ?,
                             `observacion` = ?
                     WHERE `id_novedad` = ?";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['datFechaNov'], PDO::PARAM_STR);
             $stmt->bindValue(2, $array['slcTipoRegistro'], PDO::PARAM_INT);
-            $stmt->bindValue(3, $array['txtObservacion'], PDO::PARAM_STR);
-            $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
+            $stmt->bindValue(3, $valor, PDO::PARAM_STR);
+            $stmt->bindValue(4, $array['txtObservacion'], PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
                 return 'si';

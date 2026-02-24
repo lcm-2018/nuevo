@@ -4,6 +4,7 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
+
 $vigencia = $_SESSION['vigencia'];
 // concateno la fecha con el año vigencia
 $fecha_max = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-12-31'));
@@ -34,7 +35,7 @@ $fecha_actual = $fecha->format('Y-m-d');
                     <div class="row">
                         <div class="col-12">
                             <div class="text-center pt-3">
-                                <a type="button" class="btn btn-primary btn-sm" onclick="generarRelacionPagos(this);">Informe</a>
+                                <a type="button" class="btn btn-primary btn-sm" onclick="generarRelacionCausacion(this);">Informe</a>
                                 <a type="" id="btnExcelEntrada" class="btn btn-sm btn-outline-success" value="01" title="Exprotar a Excel">
                                     <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
                                 </a>

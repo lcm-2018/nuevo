@@ -180,9 +180,30 @@ $(function () {
 
     //Boton de Excel de formulario Impresión
     $('#divModalImp').on('click', '#btnExcelEntrada', function () {
-        let xls = ($('#areaImprimir').html());
-        var encoded = window.btoa(xls);
-        $('<form action="' + InputValue('host') + '/src/financiero/reporte_excel.php" method="post"><input type="hidden" name="xls" value="' + encoded + '" /></form>').appendTo('body').submit();
+        let contenido = $('#areaImprimir').html();
+        if (!contenido || !contenido.trim().length) {
+            mjeError('No hay datos para exportar. Consulte primero el informe.');
+            return;
+        }
+
+        // Clonar en un contenedor temporal para limpiar elementos no deseados
+        let $temp = $('<div>').html(contenido);
+        $temp.find('.no-exportar').remove();
+        $temp.find('button, a, input, select').remove();
+
+        let contenidoLimpio = $temp.html();
+
+        // Generar el archivo Excel directamente en el navegador usando Blob
+        let htmlCompleto = '\uFEFF<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' + contenidoLimpio + '</body></html>';
+        let blob = new Blob([htmlCompleto], { type: 'application/vnd.ms-excel;charset=utf-8' });
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url;
+        a.download = 'reporte_excel.xls';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     });
 });
 

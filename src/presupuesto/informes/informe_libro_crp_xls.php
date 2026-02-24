@@ -177,9 +177,9 @@ include_once '../../financiero/encabezado_empresa.php';
                 <td style='text-align:left;white-space: nowrap;'>" . $fec_rp   . "</td>
                 <td style='text-align:left'>" . $tercero . "</td>
                 <td style='text-align:right'>" . $ccnit . "</td>
-                <td style='text-align:left'>" . $rp['num_contrato'] . "</td>
+                <td style='text-align:left;mso-number-format:\@;'>" . $rp['num_contrato'] . "</td>
                 <td style='text-align:left'>" . $rp['objeto'] . "</td>
-                <td style='text-align:left'>" . $rp['rubro'] . "</td>
+                <td style='mso-number-format:\@;text-align:left'>" . $rp['rubro'] . "</td>
                 <td style='text-align:left'>" . $rp['nom_rubro'] . "</td>
                 <td style='text-align:right'>" . number_format($rp['total_neto'], 2, ".", ",")  . "</td>
                 <td style='text-align:right'>" . number_format($valor, 2, ".", ",")  . "</td>

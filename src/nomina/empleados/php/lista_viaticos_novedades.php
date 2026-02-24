@@ -82,6 +82,7 @@ if (!empty($obj)) {
             'id'             => $id,
             'fecha'          => $o['fecha'],
             'tipo_registro'  => $tipoBadge,
+            'valor'          => '<div class="text-end">' . number_format($o['valor'], 0, ',', '.') . '</div>',
             'observacion'    => $o['observacion'],
             'acciones'       => '<div class="text-center">' . $actualizar . $eliminar . $soporte . '</div>',
         ];
