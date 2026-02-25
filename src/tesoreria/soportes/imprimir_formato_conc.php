@@ -188,7 +188,7 @@ $id_modulo = 56;
 $doc_fte = 'CONC';
 // fechas para factua
 // Consulto responsable del documento
-include_once '../../financiero/encabezado_imp.php';
+include '../../financiero/encabezado_imp.php';
 $anulado = '';
 
 ?>

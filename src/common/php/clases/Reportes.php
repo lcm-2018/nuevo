@@ -32,7 +32,9 @@ class Reportes
                         `fin_maestro_doc`.`control_doc`
                         , `fin_maestro_doc`.`id_doc_fte`
                         , `fin_maestro_doc`.`costos`
+                        , `fin_maestro_doc`.`acumula`
                         , `ctb_fuente`.`nombre`
+                        , `ctb_fuente`.`ver_tercero`
                         , `tb_terceros`.`nom_tercero`
                         , `tb_terceros`.`nit_tercero`
                         , `tb_terceros`.`genero`
@@ -65,7 +67,21 @@ class Reportes
             $stmt->closeCursor();
             unset($stmt);
             if (!empty($resultados)) {
-                $resultados = array_column($resultados, null, 'tipo_control');
+                $firmas = [];
+                foreach ($resultados as $row) {
+                    $tipoControl = $row['tipo_control'];
+                    if (
+                        !isset($firmas[$tipoControl])
+                        || $row['fecha_ini'] > $firmas[$tipoControl]['fecha_ini']
+                        || (
+                            $row['fecha_ini'] === $firmas[$tipoControl]['fecha_ini']
+                            && $row['fecha_fin'] > $firmas[$tipoControl]['fecha_fin']
+                        )
+                    ) {
+                        $firmas[$tipoControl] = $row;
+                    }
+                }
+                $resultados = $firmas;
             }
             return $resultados;
         } catch (PDOException $e) {

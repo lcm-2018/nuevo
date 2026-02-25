@@ -1,61 +1,28 @@
 <?php
 
+$user = new \Src\Usuarios\Login\Php\Clases\Usuario();
+$reportes = new \Src\Common\Php\Clases\Reportes($cmd);
+
 try {
-    $sql = "SELECT
-                 `razon_social_ips`AS `nombre`, `nit_ips` AS `nit`, `dv` AS `dig_ver`
-            FROM
-                `tb_datos_ips`";
-    $res = $cmd->query($sql);
-    $empresa = $res->fetch();
+    $empresa = $user->getEmpresa();
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
-    $sql = "SELECT
-                `fin_maestro_doc`.`control_doc`
-                , `fin_maestro_doc`.`acumula`
-                , `fin_maestro_doc`.`costos`
-                , `tb_terceros`.`nom_tercero`
-                , `tb_terceros`.`nit_tercero`
-                , `tb_terceros`.`genero`
-                , `fin_respon_doc`.`cargo`
-                , `fin_respon_doc`.`tipo_control`
-                , `fin_tipo_control`.`descripcion` AS `nom_control`
-                , `fin_respon_doc`.`fecha_ini`
-                , `fin_respon_doc`.`fecha_fin`
-                ,`ctb_fuente`.`ver_tercero`
-            FROM
-                `fin_respon_doc`
-                INNER JOIN `fin_maestro_doc` 
-                    ON (`fin_respon_doc`.`id_maestro_doc` = `fin_maestro_doc`.`id_maestro`)
-                INNER JOIN `fin_tipo_control` 
-                    ON (`fin_respon_doc`.`tipo_control` = `fin_tipo_control`.`id_tipo`)
-                INNER JOIN `ctb_fuente`
-                    ON (`fin_maestro_doc`.`id_doc_fte` = `ctb_fuente`.`id_doc_fuente`)
-                LEFT JOIN `tb_terceros` 
-                    ON (`fin_respon_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
-            WHERE (`fin_maestro_doc`.`id_modulo` = $id_modulo AND `ctb_fuente`.`cod` = '$doc_fte' 
-                AND `fin_respon_doc`.`fecha_fin` >= '$fecha' 
-                AND `fin_respon_doc`.`fecha_ini` <= '$fecha'
-                AND `fin_respon_doc`.`estado` = 1
-                AND `fin_maestro_doc`.`estado` = 1)";
-    $res = $cmd->query($sql);
-    $responsables = $res->fetchAll();
-    $key = array_search('4', array_column($responsables, 'tipo_control'));
-    $nom_respon = $key !== false ? $responsables[$key]['nom_tercero'] : '';
-    $cargo_respon = $key !== false ? $responsables[$key]['cargo'] : '';
-    $gen_respon = $key !== false ? $responsables[$key]['genero'] : '';
-    $control = $key !== false ? $responsables[$key]['control_doc'] : '';
+    $responsables = $reportes->getFirmas($id_modulo, $fecha, $doc_fte);
+
+    // Obtener primer elemento para campos generales del maestro/fuente
+    $primer_resp = !empty($responsables) ? reset($responsables) : [];
+
+    $nom_respon = isset($responsables[4]) ? $responsables[4]['nom_tercero'] : '';
+    $cargo_respon = isset($responsables[4]) ? $responsables[4]['cargo'] : '';
+    $gen_respon = isset($responsables[4]) ? $responsables[4]['genero'] : '';
+    $control = isset($primer_resp['control_doc']) ? $primer_resp['control_doc'] : '';
     $control = !empty($control) && intval($control) !== 0;
-    if (!isset($responsables[0]['acumula'])) {
-        $responsables[0]['acumula'] = 0;
-    }
-    $ver_costos = !empty($responsables) && isset($responsables[0]['costos'])
-        ? ($responsables[0]['costos'] != 1)
-        : true;
-    $ver_acumula = $responsables[0]['acumula'] == 1 ?  true : false;
-    // Extraer el campo ver_tercero desde la consulta
-    $ver_tercero = !empty($responsables) && isset($responsables[0]['ver_tercero']) ? $responsables[0]['ver_tercero'] : 0;
+
+    $ver_costos = isset($primer_resp['costos']) ? ($primer_resp['costos'] != 1) : true;
+    $ver_acumula = isset($primer_resp['acumula']) ? ($primer_resp['acumula'] == 1) : false;
+    $ver_tercero = isset($primer_resp['ver_tercero']) ? $primer_resp['ver_tercero'] : 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -178,26 +145,23 @@ $headtb = $nom_respon != '' ?
     </td>
 </tr>' : '';
 $bordes = $nom_respon != '' ? 'table-bordered' : '';
-$lineas =  $nom_respon == '' ? '<div>_______________________</div>' : '';
+$lineas = '<div>_______________________</div>';
 
 // Variables para la primera columna (Elaboró)
 $elaboro_nombre = isset($cdp['usuario_act']) && trim($cdp['usuario_act']) != '' ? $cdp['usuario_act'] : (isset($cdp['usuario']) ? $cdp['usuario'] : '');
 $elaboro_cargo = isset($cdp['cargo']) ? $cdp['cargo'] : '';
-$key_prepara = array_search('1', array_column($responsables, 'tipo_control'));
-$prepara_nombre = $key_prepara !== false ? $responsables[$key_prepara]['nom_tercero'] : '';
-$prepara_cargo = $key_prepara !== false ? $responsables[$key_prepara]['cargo'] : '';
-$elaboro_cargo =  $key_prepara !== false ? $prepara_cargo : $elaboro_cargo;
-$elaboro_nombre =  $key_prepara !== false ? $prepara_nombre : $elaboro_nombre;
+$prepara_nombre = isset($responsables[1]) ? $responsables[1]['nom_tercero'] : '';
+$prepara_cargo = isset($responsables[1]) ? $responsables[1]['cargo'] : '';
+$elaboro_cargo = !empty($prepara_cargo) ? $prepara_cargo : $elaboro_cargo;
+$elaboro_nombre = !empty($prepara_nombre) ? $prepara_nombre : $elaboro_nombre;
 
 // Variables para la segunda columna (Revisó - tipo_control 2)
-$key_reviso = array_search('2', array_column($responsables, 'tipo_control'));
-$reviso_nombre = $key_reviso !== false ? $responsables[$key_reviso]['nom_tercero'] : '';
-$reviso_cargo = $key_reviso !== false ? $responsables[$key_reviso]['cargo'] : '';
+$reviso_nombre = isset($responsables[2]) ? $responsables[2]['nom_tercero'] : '';
+$reviso_cargo = isset($responsables[2]) ? $responsables[2]['cargo'] : '';
 
 // Variables para la tercera columna (Aprobó - tipo_control 3)
-$key_aprobo = array_search('3', array_column($responsables, 'tipo_control'));
-$aprobo_nombre = $key_aprobo !== false ? $responsables[$key_aprobo]['nom_tercero'] : '';
-$aprobo_cargo = $key_aprobo !== false ? $responsables[$key_aprobo]['cargo'] : '';
+$aprobo_nombre = isset($responsables[3]) ? $responsables[3]['nom_tercero'] : '';
+$aprobo_cargo = isset($responsables[3]) ? $responsables[3]['cargo'] : '';
 
 // Determinar qué firmas tienen datos
 $firmas_activas = [];
@@ -229,7 +193,7 @@ if ($control && count($firmas_activas) > 0) {
     $num_firmas = count($firmas_activas);
     $ancho_columna = floor(100 / $num_firmas);
 
-    // Construir encabezados solo para firmas activas
+    // Construir encabezados solo si hay un responsable principal (nom_respon no vacío)
     $headtb_dinamico = '';
     if ($nom_respon != '') {
         $headtb_dinamico = '<tr style="text-align:left">';

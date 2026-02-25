@@ -1631,6 +1631,31 @@ function EditRubroCaja(detalle) {
 	cargarRubrosCaja(id, detalle);
 	$('#slcConcepto').focus();
 }
+function EliminarRubroCaja(id) {
+	let id_caja = $('#id_caja').val();
+	Swal.fire({
+		title: '¿Está seguro de eliminar este rubro?',
+		text: "¡No podrá revertir esta acción!",
+		icon: 'warning',
+		showCancelButton: true,
+		confirmButtonColor: '#3085d6',
+		cancelButtonColor: '#d33',
+		confirmButtonText: 'Sí, eliminar',
+		cancelButtonText: 'Cancelar'
+	}).then((result) => {
+		if (result.isConfirmed) {
+			mostrarOverlay();
+			$.post("datos/eliminar/eliminar_rubro_caja.php", { id: id }, function (res) {
+				if (res.status == 'ok') {
+					cargarRubrosCaja(id_caja, 0);
+					mje('Rubro eliminado correctamente');
+				} else {
+					mjeError(res.msg);
+				}
+			}, 'json').always(() => { ocultarOverlay(); });
+		}
+	});
+}
 function ModEstadoResposableCaja(id, estado) {
 	let id_caja = $('#id_caja').val();
 	mostrarOverlay();

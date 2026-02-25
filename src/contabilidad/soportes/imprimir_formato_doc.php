@@ -305,7 +305,7 @@ try {
         }
         // consulto el tipo de control del documento
         $fecha = date('Y-m-d', strtotime($doc['fecha']));
-        include_once '../../financiero/encabezado_imp.php';
+        include '../../financiero/encabezado_imp.php';
 
         $hora = date('H:i:s', strtotime($doc['fecha_reg']));
 
