@@ -108,6 +108,15 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
                                 existencia_lote=" . $existencia_lote . ",val_promedio_lote=" . $promedio_lote . " WHERE id_kardex=" . $kar['id_kardex'];
                     $rs = $cmd->query($sql);
                 }
+
+                // Actualiza Valores en la Orden de Ingreso                
+                $sql = "SELECT SUM(cantidad*valor) AS total FROM far_orden_ingreso_detalle WHERE id_ingreso=" . $kar['id_ingreso'];
+                $rs = $cmd->query($sql);
+                $obj_ingtot = $rs->fetch();
+
+                $sql = "UPDATE far_orden_ingreso SET val_total=" . $obj_ingtot['total'] . " WHERE id_ingreso=" . $kar['id_ingreso'];
+                $rs = $cmd->query($sql);
+
             } elseif ($kar['id_egreso']) {      //Si el movimiento es un Egreso
                 $sql = "SELECT cantidad FROM far_orden_egreso_detalle WHERE id_egr_detalle=" . $kar['id_egr_detalle'];
                 $rs = $cmd->query($sql);
