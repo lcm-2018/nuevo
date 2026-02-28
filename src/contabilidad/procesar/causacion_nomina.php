@@ -542,7 +542,7 @@ try {
                         $val_dcto = $dd['valor_dcto'];
 
                         $sgs = $dd['valor_salud'] + $dd['valor_pension'] + $dd['val_psolidaria'];
-                        $credito = $dd['valor_laborado'] + $dd['horas_ext'] + $dd['aux_tran'] + $dd['aux_alim'] + $dd['valor_viatico'] - ($sgs + $valSind + $valLib + $valEmb + $valRteFte + $val_dcto);
+                        $credito = $dd['valor_laborado'] + $dd['horas_ext'] + $dd['aux_tran'] + $dd['aux_alim'] - ($sgs + $valSind + $valLib + $valEmb + $valRteFte + $val_dcto);
                         if ($credito < 0) {
                             $restar = $credito * -1;
                             $credito = 0;

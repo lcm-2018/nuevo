@@ -186,7 +186,7 @@ HTML;
 $firmas = (new CReportes())->getFormFirmas([
     'nom_tercero' => $nombreEmpleado,
     'cargo' => 'Funcionario Comisionado'
-], 51, $dataViatico['fec_inicia'], '');
+], 51, $dataViatico['fec_inicia'], 'CNOM');
 
 // Generar PDF
 $Imprimir = new Imprimir($documento, "letter");

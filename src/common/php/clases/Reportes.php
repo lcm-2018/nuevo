@@ -89,25 +89,128 @@ class Reportes
         }
     }
 
+    /**
+     * Genera el HTML de firmas para documentos.
+     *
+     * @param array  $elabora  Datos del elaborador ['nom_tercero' => '', 'cargo' => '']
+     * @param int    $modulo   ID del módulo
+     * @param string $fecha    Fecha del documento
+     * @param string $doc      Código del documento fuente (opcional)
+     * @return string HTML de las firmas
+     */
     public function getFormFirmas($elabora = [], $modulo, $fecha, $doc = '')
     {
         $html = '';
         $firmas = $this->getFirmas($modulo, $fecha, $doc);
         if (empty($firmas)) {
             return $html;
-        } else {
-            $nombre_responsable = isset($firmas[4]) ? $firmas[4]['nom_tercero'] : '';
-            $cargo_responsable = isset($firmas[4]) ? $firmas[4]['cargo'] : '';
-
-            $html =
-                <<<HTML
-                    <div style="text-align: center; margin-top: 50px; margin-bottom: 20px;">
-                        <div>___________________________________</div>
-                        <div>{$nombre_responsable}</div>
-                        <div>{$cargo_responsable}</div>
-                    </div>
-                HTML;
-            return $html;
         }
+
+        // Obtener datos del responsable (tipo_control = 4)
+        $nombre_responsable = isset($firmas[4]) ? $firmas[4]['nom_tercero'] : '';
+        $cargo_responsable = isset($firmas[4]) ? $firmas[4]['cargo'] : '';
+
+        // Sección del responsable (siempre se muestra)
+        $html_responsable = <<<HTML
+            <div style="text-align: center; margin-top: 50px; margin-bottom: 20px;">
+                <div>___________________________________</div>
+                <div>{$nombre_responsable}</div>
+                <div>{$cargo_responsable}</div>
+            </div>
+        HTML;
+
+        // Verificar si el documento tiene control de documentos activo
+        $primer_resp = reset($firmas);
+        $control = isset($primer_resp['control_doc']) ? $primer_resp['control_doc'] : '';
+        $control = !empty($control) && intval($control) !== 0;
+
+        // Si NO tiene control, solo retornar el responsable
+        if (!$control) {
+            return $html_responsable;
+        }
+
+        // --- Tiene control: agregar firmas de Elaboró/Revisó/Aprobó ---
+        $lineas = '<div>_______________________</div>';
+
+        // Elaboró (tipo_control = 1, o datos del $elabora como fallback)
+        $elaboro_nombre = isset($firmas[1]) ? $firmas[1]['nom_tercero'] : '';
+        $elaboro_cargo = isset($firmas[1]) ? $firmas[1]['cargo'] : '';
+        // Si no hay firma tipo 1, usar los datos de $elabora
+        if (empty($elaboro_nombre) && !empty($elabora)) {
+            $elaboro_nombre = isset($elabora['nom_tercero']) ? $elabora['nom_tercero'] : '';
+            $elaboro_cargo = isset($elabora['cargo']) ? $elabora['cargo'] : '';
+        }
+
+        // Revisó (tipo_control = 2)
+        $reviso_nombre = isset($firmas[2]) ? $firmas[2]['nom_tercero'] : '';
+        $reviso_cargo = isset($firmas[2]) ? $firmas[2]['cargo'] : '';
+
+        // Aprobó (tipo_control = 3)
+        $aprobo_nombre = isset($firmas[3]) ? $firmas[3]['nom_tercero'] : '';
+        $aprobo_cargo = isset($firmas[3]) ? $firmas[3]['cargo'] : '';
+
+        // Determinar qué firmas tienen datos
+        $firmas_activas = [];
+        if (!empty($elaboro_nombre)) {
+            $firmas_activas[] = [
+                'titulo' => 'Elaboró:',
+                'nombre' => $elaboro_nombre,
+                'cargo' => $elaboro_cargo
+            ];
+        }
+        if (!empty($reviso_nombre)) {
+            $firmas_activas[] = [
+                'titulo' => 'Revisó:',
+                'nombre' => $reviso_nombre,
+                'cargo' => $reviso_cargo
+            ];
+        }
+        if (!empty($aprobo_nombre)) {
+            $firmas_activas[] = [
+                'titulo' => 'Aprobó:',
+                'nombre' => $aprobo_nombre,
+                'cargo' => $aprobo_cargo
+            ];
+        }
+
+        $html_tabla = '';
+        if (count($firmas_activas) > 0) {
+            $num_firmas = count($firmas_activas);
+            $ancho_columna = floor(100 / $num_firmas);
+
+            // Encabezados (Elaboró, Revisó, Aprobó)
+            $headtb = '';
+            if ($nombre_responsable != '') {
+                $headtb = '<tr style="text-align:left">';
+                foreach ($firmas_activas as $firma) {
+                    $headtb .= "<td style=\"width:{$ancho_columna}%\"><strong>{$firma['titulo']}</strong></td>";
+                }
+                $headtb .= '</tr>';
+            }
+
+            // Celdas con líneas de firma y nombres
+            $celdas = '<tr style="text-align:center">';
+            foreach ($firmas_activas as $firma) {
+                $celdas .= "
+                    <td>
+                        <br><br>
+                        {$lineas}
+                        <div>{$firma['nombre']}</div>
+                        <div>{$firma['cargo']}</div>
+                    </td>";
+            }
+            $celdas .= '</tr>';
+
+            $html_tabla = <<<HTML
+                <div style="text-align: center; padding-top: 25px;">
+                    <table style="width:100% !important;font-size: 10px;">
+                        {$headtb}
+                        {$celdas}
+                    </table>
+                </div>
+            HTML;
+        }
+
+        return $html_responsable . $html_tabla;
     }
 }

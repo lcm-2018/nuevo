@@ -889,7 +889,8 @@ class Detalles
                         IFNULL(`inc`.`pago_eps`, 0) +
                         IFNULL(`inc`.`pago_arl`, 0) +
                         IFNULL(`luto`.`valor`, 0) +
-                        IFNULL(`lmp`.`val_liq`, 0)
+                        IFNULL(`lmp`.`val_liq`, 0) +
+                        IFNULL(`viat`.`valor`, 0)
                         -- Deducciones
                         - IFNULL(`segs`.`aporte_salud_emp`, 0) 
                         - IFNULL(`segs`.`aporte_pension_emp`, 0) 
@@ -1000,6 +1001,13 @@ class Detalles
                         WHERE `nom_liq_descuento`.`estado` = 1 AND `nom_liq_descuento`.`id_nomina` = :id_nomina
                         GROUP BY `nom_otros_descuentos`.`id_empleado`
                     ) AS `dcto` ON (`sal`.`id_empleado` = `dcto`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `nom_viaticos`.`id_empleado`, SUM(`nom_liq_viaticos`.`valor`) AS `valor`
+                        FROM `nom_liq_viaticos`
+                        INNER JOIN `nom_viaticos` ON (`nom_liq_viaticos`.`id_viatico` = `nom_viaticos`.`id_viatico`)
+                        WHERE `nom_liq_viaticos`.`id_nomina` = :id_nomina AND `nom_liq_viaticos`.`estado` = 1
+                        GROUP BY `nom_viaticos`.`id_empleado`
+                    ) AS `viat` ON (`sal`.`id_empleado` = `viat`.`id_empleado`)
                 WHERE 
                     `sal`.`id_nomina` = :id_nomina AND `sal`.`estado` = 1
                 ORDER BY 

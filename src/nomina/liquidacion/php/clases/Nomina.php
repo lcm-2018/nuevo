@@ -526,6 +526,16 @@ class Nomina
                 $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
                 $stmt2->bindValue(3, $id_nomina, PDO::PARAM_INT);
                 $stmt2->execute();
+
+                // Si se anula la nómina (estado=0), anular también todos los registros internos de liquidación
+                if (intval($estado) === 0) {
+                    $Anulacion = new Anulacion($this->conexion);
+                    $resAnula = $Anulacion->anulaRegistros(0, $id_nomina, 2);
+                    if ($resAnula != 'si') {
+                        return 'Se anuló la nómina pero hubo un error al anular los registros: ' . $resAnula;
+                    }
+                }
+
                 return 'si';
             } else {
                 return 'No se actualizó el estado de la nómina.';

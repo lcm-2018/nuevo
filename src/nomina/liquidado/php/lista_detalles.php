@@ -67,7 +67,8 @@ if (!empty($obj)) {
             + $o['val_retencion'] + $o['valor_dcto'];
 
         $patronal = $o['valor_salud'] + $o['valor_pension'] + $o['val_psolidaria']
-            + $o['val_rieslab'] + $o['val_salud_empresa'] + $o['val_pension_empresa'];
+            + $o['val_rieslab'] + $o['val_salud_empresa'] + $o['val_pension_empresa']
+            + $o['val_sena'] + $o['val_icbf'] + $o['val_comfam'];
 
 
         $neto = $devengado - $deducciones;
@@ -124,7 +125,10 @@ if (!empty($obj)) {
             'valor_dcto'        => Valores::formatNumber($o['valor_dcto']),
             'deducciones'       => Valores::formatNumber($deducciones),
             'neto'              => Valores::formatNumber($neto),
-            'patronal'          => $patronal,
+            'val_sena'          => Valores::formatNumber($o['val_sena']),
+            'val_icbf'          => Valores::formatNumber($o['val_icbf']),
+            'val_comfam'        => Valores::formatNumber($o['val_comfam']),
+            'patronal'          => Valores::formatNumber($patronal),
             'accion'            => '<div class="text-center">' . ($detalles ?? '') . ($anular ?? '') . '</div>',
             'nom_eps'           => $o['nom_eps'],
             'nom_afp'           => $o['nom_afp'],

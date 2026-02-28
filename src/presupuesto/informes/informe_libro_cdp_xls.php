@@ -68,7 +68,7 @@ try {
                         `pto_cdp_detalle`
                         INNER JOIN `pto_cdp` 
                             ON (`pto_cdp_detalle`.`id_pto_cdp` = `pto_cdp`.`id_pto_cdp`)
-                    WHERE (`pto_cdp_detalle`.`fecha_libera` BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_cdp`.`estado` =2)
+                    WHERE (DATE_FORMAT(`pto_cdp_detalle`.`fecha_libera`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_cdp`.`estado` =2)
                     GROUP BY `id_pto_cdp`, `id_rubro`) AS `t3`
                     ON (`t3`.`id_pto_cdp` = `taux`.`id_pto_cdp` AND `t3`.`id_rubro` = `taux`.`id_rubro`)
                 LEFT JOIN
