@@ -109,7 +109,7 @@ if (isset($_POST['id_seddes'])) {
                             }
                         }
                     } else {
-                        $res['mensaje'] = 'Debe seleccionar un registro para actualizar estado de Sede Remota';
+                        $res['mensaje'] = 'No hay registros para actualizar estado de Sede Remota';
                     }
                 }
             }
