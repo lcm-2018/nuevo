@@ -242,8 +242,7 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
 
                 //Calcula y Actualiza existencia del MEDICAMENTO y LOTE en el Kardex
                 $existencia = $existencia + $obj_ingrem['cantidad'];
-                $promedio = $obj_ingrem['valor'];
-
+                
                 $sql = "UPDATE far_kardex SET existencia=" . $existencia . ",val_promedio=" . $promedio . " WHERE id_kardex=" . $kar['id_kardex'];
                 $rs = $cmd->query($sql);
 
