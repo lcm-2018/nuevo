@@ -297,7 +297,7 @@ try {
                     case 1: // Neto a pagar
                         $sgs = $d['valor_salud'] + $d['valor_pension'] + $d['val_psolidaria'];
                         $deducciones = $sgs + $d['valor_sind'] + $d['valor_libranza'] + $d['valor_embargo'] + $d['val_retencion'] + $d['valor_dcto'];
-                        $devengos = $d['valor_laborado'] + $d['horas_ext'] + $d['g_representa'] + $d['aux_tran'] + $d['aux_alim'] + $d['val_compensa'] + $d['valor_viatico'];
+                        $devengos = $d['valor_laborado'] + $d['horas_ext'] + $d['g_representa'] + $d['aux_tran'] + $d['aux_alim'] + $d['val_compensa'];
                         $valor = $devengos - $deducciones;
                         if ($valor < 0) {
                             $restar = abs($valor);
