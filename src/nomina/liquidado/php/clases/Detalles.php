@@ -49,6 +49,11 @@ class Detalles
             $where .= " AND (`e`.`no_documento` LIKE '%{$array['search']}%' OR CONCAT_WS (' ',`e`.`nombre1`,`nombre2`,`apellido1`,`apellido2`) LIKE '%{$array['search']}%' OR `cargo`.`descripcion_carg` LIKE '%{$array['search']}%')";
         }
 
+        // Soporta id_nomina como int único (callers existentes) o array (multi-nómina)
+        $rawIds = isset($array['id_nomina']) ? $array['id_nomina'] : 0;
+        if (!is_array($rawIds)) $rawIds = [$rawIds];
+        $ids_in = implode(',', array_map('intval', array_filter($rawIds, fn($v) => intval($v) > 0))) ?: '0';
+
         $sql = "WITH 
                     `bsp` AS 
                         (SELECT `id_empleado`,`val_bsp`, `fec_corte` AS `corte_bsp` FROM `nom_liq_bsp` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
@@ -205,7 +210,7 @@ class Detalles
                     `paraf` AS 
                         (SELECT `id_empleado`,`val_sena`,`val_icbf`,`val_comfam` FROM `nom_liq_parafiscales` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `nom` AS
-                        (SELECT `id_nomina`, `mes`, `tipo`, `estado` FROM `nom_nominas` WHERE `id_nomina` = :id_nomina),
+                        (SELECT `id_nomina`, `mes`, `tipo`, `estado` FROM `nom_nominas` WHERE `id_nomina` IN ($ids_in) LIMIT 1),
                     `indem` AS
                         (SELECT
                             `nom_indemniza_vac`.`id_empleado`
@@ -313,8 +318,9 @@ class Detalles
                     JOIN `nom`
                 WHERE (1 = 1 $where)
                 ORDER BY $col $dir $limit";
+        // Reemplaza todos los = :id_nomina por IN($ids_in) (excepto nom que ya se ajustó)
+        $sql = str_replace('= :id_nomina', "IN ($ids_in)", $sql);
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bindValue(':id_nomina', $array['id_nomina'], PDO::PARAM_INT);
         $stmt->execute();
         $datos = isset($array['id_empleado']) ? $stmt->fetch(PDO::FETCH_ASSOC) : $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
