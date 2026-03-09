@@ -3501,6 +3501,7 @@ const generarInformeCtb = (boton) => {
 	var tp_doc = 0;
 	var xtercero = 0;
 	var band = false;
+	areaImprimir.innerHTML = "";
 	if ($("#codigoctaini").length) {
 		if ($("#id_codigoctaini").val() == '0' || $("#id_codigoctafin").val() == '0') {
 			mjeError("Debe seleccionar una cuenta inicial y final");
@@ -3569,7 +3570,9 @@ const generarInformeCtb = (boton) => {
 		type: "POST",
 		data: data,
 		success: function (response) {
-			areaImprimir.innerHTML = response;
+			var $parent = $('#areaImprimir').parent();
+			$('#areaImprimir').remove();
+			$parent.append(response);
 		}, error: function (error) {
 			console.log("Error:" + error);
 		}

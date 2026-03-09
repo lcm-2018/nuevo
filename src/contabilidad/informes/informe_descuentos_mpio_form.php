@@ -80,6 +80,10 @@ unset($rs);
                                 <button value="1" type="button" class="btn btn-primary btn-sm" onclick="generarInformeCtb(this);"> Resumen</button>
                                 <button value="2" type="button" class="btn btn-warning btn-sm" onclick="generarInformeCtb(this);"> Detallado</button>
                                 <button value="3" type="button" class="btn btn-secondary btn-sm" onclick="generarInformeCtb(this);"> Exogena</button>
+                                <a type="" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" value="01" title="Exprotar a Excel">
+                                    <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
+                                </a>
+                                <a type="button" class="btn btn-danger btn-sm" title="Imprimir" onclick="imprSelecTes('areaImprimir','<?php echo 0; ?>');"><span class="fas fa-print fa-lg" aria-hidden="true"></span></a>
                             </div>
                         </div>
                     </div>

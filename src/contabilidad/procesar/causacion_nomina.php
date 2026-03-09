@@ -328,7 +328,7 @@ try {
             // Calcular el valor según el tipo de rubro
             switch ($tipo) {
                 case 1:
-                    $valor = $dd['valor_laborado'];
+                    $valor = $dd['valor_laborado'] + $dd['val_compensa'];
                     break;
                 case 2:
                     $valor = $dd['horas_ext'];
@@ -411,7 +411,7 @@ try {
                 $cuenta = $ca['cuenta'];
                 switch ($tipo) {
                     case 1:
-                        $valor = $dd['valor_laborado'] / $num_ccostos;
+                        $valor = ($dd['valor_laborado'] + $dd['val_compensa']) / $num_ccostos;
                         break;
                     case 2:
                         $valor = $dd['horas_ext'] / $num_ccostos;
@@ -542,7 +542,7 @@ try {
                         $val_dcto = $dd['valor_dcto'];
 
                         $sgs = $dd['valor_salud'] + $dd['valor_pension'] + $dd['val_psolidaria'];
-                        $credito = $dd['valor_laborado'] + $dd['horas_ext'] + $dd['aux_tran'] + $dd['aux_alim'] - ($sgs + $valSind + $valLib + $valEmb + $valRteFte + $val_dcto);
+                        $credito = $dd['valor_laborado'] + $dd['val_compensa'] + $dd['horas_ext'] + $dd['aux_tran'] + $dd['aux_alim'] - ($sgs + $valSind + $valLib + $valEmb + $valRteFte + $val_dcto);
                         if ($credito < 0) {
                             $restar = $credito * -1;
                             $credito = 0;
