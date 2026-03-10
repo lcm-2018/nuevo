@@ -116,6 +116,7 @@ class Reportes
         $buscar = '<option value="17" >EMBARGO</option>';
         $reemplazar = '<option value="90" >CONSOLIDADO</option>' . $buscar;
         $conceptos = str_replace($buscar, $reemplazar, $conceptos);
+        $sedes = Combos::getSedes(0);
         $html =
             <<<HTML
                 <div>
@@ -178,8 +179,13 @@ class Reportes
                                     <tr>
                                         <td>5</td>
                                         <td class="text-start">ENVIAR DESPRENDIBLES DE NÓMINA</td>
-                                        <td></td>
+                                        <td>
+                                            <select id="sede" class="form-select form-select-sm border-0 rounded-0">
+                                                {$sedes}
+                                            </select>
+                                        </td>
                                         <td class="text-center">
+                                            <button data-id="5" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 reportes" title="PDF" text="P"><span class="fas fa-file-pdf fa-sm"></span></button>
                                             <button data-id="5" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 reportes" title="Enviar" text="E"><span class="fas fa-envelope fa-sm"></span></button>
                                         </td>
                                     </tr>

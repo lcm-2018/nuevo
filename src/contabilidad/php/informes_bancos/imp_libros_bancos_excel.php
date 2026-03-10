@@ -12,8 +12,8 @@ include 'funciones_generales.php';
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
-$id_cuenta_ini = isset($_POST['id_cuenta_ini']) ? $_POST['id_cuenta_ini'] : 0;
-$id_cuenta_fin = isset($_POST['id_cuenta_fin']) ? $_POST['id_cuenta_fin'] : 0;
+$id_cuenta_ini = isset($_POST['id_cuenta_ini']) ? (int)$_POST['id_cuenta_ini'] : 0;
+$id_cuenta_fin = isset($_POST['id_cuenta_fin']) ? (int)$_POST['id_cuenta_fin'] : 0;
 $fec_ini = isset($_POST['fec_ini']) && strlen($_POST['fec_ini'] > 0) ? "'" . $_POST['fec_ini'] . "'" : '2020-01-01';
 $fec_fin = isset($_POST['fec_fin']) && strlen($_POST['fec_fin']) > 0 ? "'" . $_POST['fec_fin'] . "'" : '2050-12-31';
 $id_tipo_doc = isset($_POST['id_tipo_doc']) ? $_POST['id_tipo_doc'] : 0;
@@ -34,6 +34,21 @@ $sede_principal = $datos_sedes['sede_principal'];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
+    // Obtener el código (campo cuenta) de las cuentas límite inicial y final
+    $sql_limites = "SELECT id_pgcp, cuenta FROM ctb_pgcp WHERE id_pgcp IN ($id_cuenta_ini, $id_cuenta_fin) AND estado = 1";
+    $rs_lim = $cmd->query($sql_limites);
+    $cuentas_limite = $rs_lim->fetchAll(PDO::FETCH_KEY_PAIR); // [id_pgcp => cuenta]
+    $rs_lim->closeCursor();
+
+    $cod_cuenta_ini = isset($cuentas_limite[$id_cuenta_ini]) ? $cuentas_limite[$id_cuenta_ini] : '';
+    $cod_cuenta_fin = isset($cuentas_limite[$id_cuenta_fin]) ? $cuentas_limite[$id_cuenta_fin] : '';
+
+    // Si no se encontraron los límites, usar rango abierto
+    $where_rango = '';
+    if ($cod_cuenta_ini !== '' && $cod_cuenta_fin !== '') {
+        $where_rango = "AND ctb_pgcp.cuenta >= '$cod_cuenta_ini' AND ctb_pgcp.cuenta <= '$cod_cuenta_fin'";
+    }
+
     $sql = "SELECT 
                  ctb_pgcp.id_pgcp
                 ,ctb_pgcp.cuenta
@@ -41,7 +56,8 @@ try {
                 ,ctb_pgcp.tipo_dato 
             FROM ctb_pgcp 
             WHERE ctb_pgcp.estado = 1
-            AND ctb_pgcp.id_pgcp BETWEEN '$id_cuenta_ini' AND '$id_cuenta_fin'";
+            $where_rango
+            ORDER BY ctb_pgcp.cuenta ASC";
     $rs = $cmd->query($sql);
     $obj_cuentas = $rs->fetchAll();
     $rs->closeCursor();
@@ -132,7 +148,7 @@ try {
                                 OR (doc.tipo_movimiento = 4 AND fc.id_facturac IS NOT NULL)) AS facturas
                                 ON (facturas.id_manu = ctb_doc.id_manu AND facturas.tipo = ctb_doc.tipo_movimiento AND facturas.id_ctb_doc = ctb_doc.id_ctb_doc)
                         WHERE ctb_doc.fecha BETWEEN $fec_ini AND $fec_fin AND ctb_doc.estado = 2 
-                            AND ctb_pgcp.id_pgcp IN ('" . $obj_c['id_pgcp'] . "','" . $obj_c['id_pgcp'] . "')
+                            AND ctb_pgcp.id_pgcp = '" . $obj_c['id_pgcp'] . "'
                             $and_where
                         ORDER BY DATE_FORMAT(ctb_doc.fecha, '%Y-%m-%d') ASC, ctb_libaux.debito DESC, ctb_libaux.credito DESC";
                 $rs = $cmd_sede->query($sql);
@@ -161,7 +177,7 @@ try {
                             INNER JOIN ctb_doc ON (ctb_libaux.id_ctb_doc = ctb_doc.id_ctb_doc)
                             INNER JOIN ctb_pgcp ON (ctb_libaux.id_cuenta = ctb_pgcp.id_pgcp)
                         WHERE ctb_doc.fecha < $fec_ini  
-                        AND ctb_libaux.id_cuenta IN ('" . $obj_c['id_pgcp'] . "','" . $obj_c['id_pgcp'] . "') 
+                        AND ctb_libaux.id_cuenta = '" . $obj_c['id_pgcp'] . "' 
                         AND ctb_doc.estado=2 limit 1";
 
                 $rs = $cmd_sede->query($sql);

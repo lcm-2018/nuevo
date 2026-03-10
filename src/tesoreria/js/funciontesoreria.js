@@ -1,4 +1,4 @@
-﻿var tabla;
+var tabla;
 (function ($) {
 	//Superponer modales
 	$(document).on("show.bs.modal", ".modal", function () {
@@ -2987,9 +2987,10 @@ const generarInfPorTercero = (boton) => {
 const generarRelacionPagos = (boton) => {
 	let fec_ini = fecha_ini.value;
 	let fec_fin = fecha_fin.value;
+	let pto = document.getElementById("pto").checked ? 1 : 0;
 	let url = ValueInput('host') + "/src/tesoreria/php/informes/relacion_pagos.php";
 	mostrarOverlay();
-	$.post(url, { fec_ini: fec_ini, fec_fin: fec_fin }, function (he) {
+	$.post(url, { fec_ini: fec_ini, fec_fin: fec_fin, pto: pto }, function (he) {
 		$("#areaImprimir").html(he);
 		ocultarOverlay();
 	});
@@ -3441,3 +3442,55 @@ document.addEventListener("keyup", (e) => {
 	}
 });
 
+const EnviaDocumentoSoporteTes = (boton) => {
+	let id = boton.value;
+	var url = "soportes/equivalente/enviar_factura.php";
+	mostrarOverlay();
+	$.ajax({
+		type: "POST",
+		url: url,
+		data: { id: id },
+		dataType: "json",
+		success: function (response) {
+			if (response.value == "ok") {
+				if ($('#tableMvtoTesoreriaPagos').length) {
+					$('#tableMvtoTesoreriaPagos').DataTable().ajax.reload(null, false);
+				}
+				mje("Documento enviado correctamente");
+			} else {
+				Swal.fire({
+					title: '',
+					html: response.msg,
+					icon: "error"
+				});
+			}
+		}, error: function (xhr, status, error) {
+			console.error("Error en la solicitud AJAX:", error);
+		}
+	}).always(function () {
+		ocultarOverlay();
+	});
+};
+
+
+const VerSoporteElectronicoTes = (id) => {
+	fetch("soportes/equivalente/ver_html.php", {
+		method: "POST",
+		body: JSON.stringify({ id: id }),
+	})
+		.then((response) => response.json())
+		.then((response) => {
+			console.log(response);
+			if (response[0].value == "ok") {
+				var url = "https://api.taxxa.co/documentGet.dhtml?hash=" + response[0].msg;
+				url = url.replace(/["']/g, "");
+				var win = window.open(url, "_blank");
+				win.focus();
+			} else {
+				mjeError(response[0].msg);
+			}
+		})
+		.catch((error) => {
+			console.log("Error:");
+		});
+};

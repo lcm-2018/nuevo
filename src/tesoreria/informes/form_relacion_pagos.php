@@ -24,10 +24,16 @@ $fecha_actual = $fecha->format('Y-m-d');
                         <div class="col-3"><input type="date" name="fecha_ini" id="fecha_ini" class="form-control form-control-sm bg-input" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_min; ?>"></div>
                     </div>
 
-                    <div class="row">
+                    <div class="row mb-1">
                         <div class="col-2"></div>
                         <div class="col-3 small">Fecha de corte:</div>
                         <div class="col-3"><input type="date" name="fecha_fin" id="fecha_fin" class="form-control form-control-sm bg-input" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_actual; ?>"></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-2"></div>
+                        <div class="col-3 small">Tienen presupuesto:</div>
+                        <div class="col-3"><input type="checkbox" name="pto" id="pto" class="form-check-input" checked></div>
                     </div>
 
                     <div class="px-50">&nbsp; </div>

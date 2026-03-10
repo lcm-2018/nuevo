@@ -15,8 +15,11 @@ if (!isset($_SESSION['user'])) {
 
 include_once '../../../../../config/autoloader.php';
 $datos = isset($_POST['id']) ? explode('|', base64_decode($_POST['id'])) : exit('Acceso denegado');
-$id_empleado = $datos[0];
-$id_nomina   = $datos[1];
+$id_empleado = isset($datos[0]) ? (int)$datos[0] : 0;
+$id_nomina   = isset($datos[1]) ? (int)$datos[1] : 0;
+
+// id_sede: 0 = todos, >0 = sede específica (solo aplica cuando id_empleado == 0)
+$id_sede = isset($_POST['id_sede']) ? (int)$_POST['id_sede'] : null;
 
 $documento  = "Desprendible de Nómina";
 $usuario    = new Usuario();
@@ -27,14 +30,28 @@ $otro       = "NÓMINA No. {$id_nomina} - MES: {$mes} - VIGENCIA: {$nomina['vige
 
 $detalles = new Detalles();
 
-// Si id_empleado es 0, obtener todos los empleados de la nómina
-if ($id_empleado == 0) {
+if ($id_empleado > 0) {
+    // ── Modo individual: un solo empleado ──
+    $empleado  = $detalles->getRegistrosDT(1, -1, ['id_empleado' => $id_empleado, 'id_nomina' => $id_nomina], 1, 'ASC');
+    $empleados = [$empleado];
+} elseif ($id_sede !== null) {
+    // ── Modo masivo por sede (viene desde el botón PDF del formulario de reportes) ──
+    $filtros = ['id_nomina' => $id_nomina];
+    if ($id_sede > 0) {
+        $filtros['id_sede'] = $id_sede;
+        $documento = "Desprendibles de Nómina - Sede";
+    } else {
+        $documento = "Desprendibles de Nómina - Todos";
+    }
+    $empleados = $detalles->getRegistrosDT(1, -1, $filtros, 1, 'ASC');
+} else {
+    // ── Modo masivo: todos los empleados de la nómina (compatibilidad anterior) ──
     $empleados = $detalles->getRegistrosDT(1, -1, ['id_nomina' => $id_nomina], 1, 'ASC');
     $documento = "Desprendibles de Nómina - Masivo";
-} else {
-    // Un solo empleado
-    $empleado = $detalles->getRegistrosDT(1, -1, ['id_empleado' => $id_empleado, 'id_nomina' => $id_nomina], 1, 'ASC');
-    $empleados = [$empleado];
+}
+
+if (empty($empleados)) {
+    exit('No se encontraron empleados para generar el desprendible.');
 }
 
 /**

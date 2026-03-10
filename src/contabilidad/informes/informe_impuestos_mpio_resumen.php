@@ -92,7 +92,7 @@ try {
                     ON (`ctb_causa_retencion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
                 INNER JOIN `ctb_pgcp`
                     ON (`ctb_retenciones`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
-            WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` =4
+            WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` = 4 AND `ctb_doc`.`estado` = 2
                 AND DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
                 AND `ctb_causa_retencion`.`id_terceroapi` ={$tercero['id_tercero_api']})
             GROUP BY `ctb_retenciones`.`nombre_retencion`";

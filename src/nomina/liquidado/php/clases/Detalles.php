@@ -45,6 +45,10 @@ class Detalles
             $where .= " AND `e`.`id_empleado` = {$array['id_empleado']}";
         }
 
+        if (isset($array['id_sede']) && (int)$array['id_sede'] > 0) {
+            $where .= " AND `e`.`sede_emp` = " . (int)$array['id_sede'];
+        }
+
         if (isset($array['search']) && $array['search'] != '') {
             $where .= " AND (`e`.`no_documento` LIKE '%{$array['search']}%' OR CONCAT_WS (' ',`e`.`nombre1`,`nombre2`,`apellido1`,`apellido2`) LIKE '%{$array['search']}%' OR `cargo`.`descripcion_carg` LIKE '%{$array['search']}%')";
         }

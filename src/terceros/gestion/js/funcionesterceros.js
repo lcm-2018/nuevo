@@ -411,16 +411,16 @@ function FormResponsabilidad(id) {
             success: function (r) {
                 switch (r) {
                     case '0':
-                        $('#' + btn + idt).attr('title', 'Inactivo');
-                        $('#' + btn + idt + ' span').removeClass('fa-toggle-on');
-                        $('#' + btn + idt + ' span').addClass('fa-toggle-off');
+                        $('#' + btn + idt).attr('title', 'Inactivo - Click para activar');
+                        $('#' + btn + idt + ' span').removeClass('fa-toggle-on text-success');
+                        $('#' + btn + idt + ' span').addClass('fa-toggle-off text-secondary');
                         $('#' + btn + idt + ' span').removeClass('activo');
                         $('#' + btn + idt + ' span').addClass('inactivo');
                         break;
                     case '1':
-                        $('#' + btn + idt).attr('title', 'Activo');
-                        $('#' + btn + idt + ' span').removeClass('fa-toggle-off');
-                        $('#' + btn + idt + ' span').addClass('fa-toggle-on');
+                        $('#' + btn + idt).attr('title', 'Activo - Click para desactivar');
+                        $('#' + btn + idt + ' span').removeClass('fa-toggle-off text-secondary');
+                        $('#' + btn + idt + ' span').addClass('fa-toggle-on text-success');
                         $('#' + btn + idt + ' span').removeClass('inactivo');
                         $('#' + btn + idt + ' span').addClass('activo');
                         break;
@@ -901,6 +901,29 @@ function FormResponsabilidad(id) {
     $('#modificarDocs').on('click', '.descargar', function () {
         let id_doc = $(this).attr('text');
         window.location.href = 'datos/descargas/descarga_docs.php?id=' + id_doc;
+        return false;
+    });
+    //cambiar estado documento tercero
+    $('#modificarDocs').on('click', '.estadodoc', function () {
+        let e   = $(this).find('span').hasClass('activo') ? '0' : '1';
+        let idt = $(this).attr('value');
+        mostrarOverlay();
+        $.ajax({
+            type: 'POST',
+            url: 'actualizar/upestadodocumento.php',
+            data: { e: e, idt: idt },
+            success: function (r) {
+                if (r === '0' || r === '1') {
+                    $('#tableDocumento').DataTable().ajax.reload(null, false);
+                } else {
+                    $('#divModalError').modal('show');
+                    $('#divMsgError').html(r);
+                }
+            },
+            complete: function () {
+                ocultarOverlay();
+            }
+        });
         return false;
     });
     $('#txtBuscarTercero').on('input', function () {

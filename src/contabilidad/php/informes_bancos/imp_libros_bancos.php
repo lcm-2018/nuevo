@@ -40,17 +40,37 @@ $sede_principal = $datos_sedes['sede_principal'];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
+    // Obtener el código (campo cuenta) de las cuentas límite inicial y final
+    $sql_limites = "SELECT id_pgcp, cuenta FROM ctb_pgcp WHERE id_pgcp IN (:id_ini, :id_fin) AND estado = 1";
+    $rs_lim = $cmd->prepare($sql_limites);
+    $rs_lim->bindValue(':id_ini', $id_cuenta_ini, \PDO::PARAM_INT);
+    $rs_lim->bindValue(':id_fin', $id_cuenta_fin, \PDO::PARAM_INT);
+    $rs_lim->execute();
+    $cuentas_limite = $rs_lim->fetchAll(PDO::FETCH_KEY_PAIR); // [id_pgcp => cuenta]
+    $rs_lim->closeCursor();
+
+    $cod_cuenta_ini = isset($cuentas_limite[$id_cuenta_ini]) ? $cuentas_limite[$id_cuenta_ini] : '';
+    $cod_cuenta_fin = isset($cuentas_limite[$id_cuenta_fin]) ? $cuentas_limite[$id_cuenta_fin] : '';
+
+    // Construir consulta de cuentas en el rango por código
     $sql = "SELECT 
                  ctb_pgcp.id_pgcp
                 ,ctb_pgcp.cuenta
                 ,ctb_pgcp.nombre
                 ,ctb_pgcp.tipo_dato 
             FROM ctb_pgcp 
-            WHERE ctb_pgcp.estado = 1
-            AND ctb_pgcp.id_pgcp BETWEEN :id_cuenta_ini AND :id_cuenta_fin";
+            WHERE ctb_pgcp.estado = 1";
+
+    if ($cod_cuenta_ini !== '' && $cod_cuenta_fin !== '') {
+        $sql .= " AND ctb_pgcp.cuenta >= :cod_ini AND ctb_pgcp.cuenta <= :cod_fin";
+    }
+    $sql .= " ORDER BY ctb_pgcp.cuenta ASC";
+
     $rs = $cmd->prepare($sql);
-    $rs->bindValue(':id_cuenta_ini', $id_cuenta_ini, \PDO::PARAM_INT);
-    $rs->bindValue(':id_cuenta_fin', $id_cuenta_fin, \PDO::PARAM_INT);
+    if ($cod_cuenta_ini !== '' && $cod_cuenta_fin !== '') {
+        $rs->bindValue(':cod_ini', $cod_cuenta_ini, \PDO::PARAM_STR);
+        $rs->bindValue(':cod_fin', $cod_cuenta_fin, \PDO::PARAM_STR);
+    }
     $rs->execute();
     $obj_cuentas = $rs->fetchAll();
     $rs->closeCursor();

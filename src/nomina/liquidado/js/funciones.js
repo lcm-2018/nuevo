@@ -144,7 +144,24 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
                 params.id_concepto = id_concepto;
                 break;
             case '5':
-                // Envío masivo de desprendibles
+                if (text === 'P') {
+                    // ── Botón PDF: genera desprendibles por sede ──
+                    const sedeSelect = document.getElementById('sede');
+                    if (!sedeSelect) {
+                        mjeAlert('Atención', 'No se encontró el selector de sede.', 'warning');
+                        return;
+                    }
+                    const id_sede = sedeSelect.value;
+                    // Construir id codificado: "0|id_nomina" (id_empleado=0 → masivo)
+                    const id_codificado = btoa('0|' + id_nomina);
+                    ImprimirReporte('../php/reportes/desprendible.php', {
+                        id: id_codificado,
+                        id_sede: id_sede,
+                        pdf: true
+                    });
+                    return;
+                }
+                // ── Botón Enviar (text="E"): envío masivo por correo ──
                 Swal.fire({
                     title: '¿Enviar desprendibles masivamente?',
                     html: `<p>Se enviarán los desprendibles de nómina a <strong>todos los empleados</strong> de esta liquidación que tengan correo electrónico registrado.</p>

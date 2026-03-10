@@ -26,9 +26,26 @@ function calcularDV($nit)
 // extraigo las variables que llegan por post
 $fecha_inicial = $_POST['fec_ini'];
 $fecha_corte = $_POST['fec_fin'];
+// pto=1 => con presupuesto (pag->cop->crp->cdp->rubro), pto=0 => solo causacion sin presupuesto
+$pto = isset($_POST['pto']) ? intval($_POST['pto']) : 1;
 
 $cmd = \Config\Clases\Conexion::getConexion();
 try {
+    // JOIN presupuestal condicional según el parámetro pto
+    // pto=1: INNER JOIN (solo registros con cadena presupuestal completa: pag->cop->crp->cdp->rubro)
+    // pto=0: LEFT JOIN + filtro IS NULL (solo causaciones sin presupuesto)
+    if ($pto == 1) {
+        $join_crp  = "INNER JOIN `pto_crp_detalle` AS `crp` ON (`cop`.`id_pto_crp_det` = `crp`.`id_pto_crp_det`)";
+        $join_cdp  = "INNER JOIN `pto_cdp_detalle` AS `cdp` ON (`crp`.`id_pto_cdp_det` = `cdp`.`id_pto_cdp_det`)";
+        $join_rubro = "INNER JOIN `pto_cargue` AS `rubro` ON (`cdp`.`id_rubro` = `rubro`.`id_cargue`)";
+        $filtro_pto = "";
+    } else {
+        $join_crp  = "LEFT JOIN `pto_crp_detalle` AS `crp` ON (`cop`.`id_pto_crp_det` = `crp`.`id_pto_crp_det`)";
+        $join_cdp  = "LEFT JOIN `pto_cdp_detalle` AS `cdp` ON (`crp`.`id_pto_cdp_det` = `cdp`.`id_pto_cdp_det`)";
+        $join_rubro = "LEFT JOIN `pto_cargue` AS `rubro` ON (`cdp`.`id_rubro` = `rubro`.`id_cargue`)";
+        $filtro_pto = "AND `crp`.`id_pto_crp_det` IS NULL";
+    }
+
     $sql = "SELECT
         `pag`.`id_ctb_doc` AS `id_egreso`
         , `cop`.`id_ctb_doc` AS `id_causacion`
@@ -53,12 +70,9 @@ try {
             ON (`pag`.`id_pto_cop_det` = `cop`.`id_pto_cop_det`)
         INNER JOIN `ctb_doc` AS `doc_causacion` 
             ON (`cop`.`id_ctb_doc` = `doc_causacion`.`id_ctb_doc`)
-        LEFT JOIN `pto_crp_detalle` AS `crp` 
-            ON (`cop`.`id_pto_crp_det` = `crp`.`id_pto_crp_det`)
-        LEFT JOIN `pto_cdp_detalle` AS `cdp` 
-            ON (`crp`.`id_pto_cdp_det` = `cdp`.`id_pto_cdp_det`)
-        LEFT JOIN `pto_cargue` AS `rubro` 
-            ON (`cdp`.`id_rubro` = `rubro`.`id_cargue`)
+        $join_crp
+        $join_cdp
+        $join_rubro
         LEFT JOIN `tb_terceros` AS `tt` 
             ON (`pag`.`id_tercero_api` = `tt`.`id_tercero_api`)
         LEFT JOIN `tb_tipos_documento` AS `ttd` 
@@ -88,6 +102,7 @@ try {
         `doc_egreso`.`estado` = 2 
         AND `doc_causacion`.`estado` = 2
         AND DATE_FORMAT(`doc_egreso`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
+        $filtro_pto
     )
     ORDER BY `doc_egreso`.`fecha`, `doc_egreso`.`id_manu`";
 
