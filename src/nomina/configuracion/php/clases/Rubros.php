@@ -8,6 +8,7 @@ use Config\Clases\Logs;
 
 use PDO;
 use PDOException;
+use Src\Common\Php\Clases\Combos;
 
 class Rubros
 {
@@ -53,14 +54,19 @@ class Rubros
                     , `pto_operativo`.`cod_pptal` AS `cod_opera`
                     , `pto_operativo`.`nom_rubro` AS `nom_opera`
                     , `nom_rel_rubro`.`id_vigencia`
+                    , `tb_centrocostos`.`nom_centro` AS `nom_ccosto`
                 FROM
                     `nom_rel_rubro`
-                    INNER JOIN `pto_cargue` AS `pto_operativo` 
+                    LEFT JOIN `pto_cargue` AS `pto_operativo`
                         ON (`nom_rel_rubro`.`r_operativo` = `pto_operativo`.`id_cargue`)
-                    INNER JOIN `nom_tipo_rubro` 
+                    INNER JOIN `nom_tipo_rubro`
                         ON (`nom_rel_rubro`.`id_tipo` = `nom_tipo_rubro`.`id_rubro`)
                     INNER JOIN `pto_cargue` AS `pto_admin`
                         ON (`nom_rel_rubro`.`r_admin` = `pto_admin`.`id_cargue`)
+                    LEFT JOIN `far_centrocosto_area`
+                        ON (`nom_rel_rubro`.`id_ccosto` = `far_centrocosto_area`.`id_area`)
+                    LEFT JOIN `tb_centrocostos`
+                        ON (`far_centrocosto_area`.`id_centrocosto` = `tb_centrocostos`.`id_centro`)
                 WHERE (`nom_rel_rubro`.`id_vigencia` = $id_vigencia $where)
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
@@ -163,6 +169,22 @@ class Rubros
             $slc = ($fila['id_tipo'] == $o['id_rubro']) ? 'selected' : '';
             $lst .= "<option value='{$o['id_rubro']}' {$slc}>{$o['nombre']}</option>";
         }
+        $ccosto = Combos::getCentrosCostoxSede($fila['id_ccosto'], 1);
+
+        // Bloque de centro de costo: solo visible cuando caracter=1 y pto=1
+        $htmlCcosto = '';
+        if (Sesion::Caracter() == 1 && Sesion::Pto() == 1) {
+            $htmlCcosto = "
+                                <div class=\"row mb-2\">
+                                    <div class=\"col-md-12\">
+                                        <label for=\"slcCcosto\" class=\"small\">CENTRO DE COSTO</label>
+                                        <select name=\"slcCcosto\" id=\"slcCcosto\" class=\"form-control form-control-sm bg-input\">
+                                            {$ccosto}
+                                        </select>
+                                    </div>
+                                </div>";
+        }
+
         $html =
             <<<HTML
                 <div>
@@ -182,6 +204,7 @@ class Rubros
                                         </select>
                                     </div>
                                 </div>
+                                {$htmlCcosto}
                                 <div class="row">
                                     <div class="col-md-6">
                                         <label for="txtRubroAdmin" class="small">RUBRO ADMINISTRATIVO</label>
@@ -202,7 +225,7 @@ class Rubros
                                 </div>
                             </form>
                         </div>
-                        <div class="text-end pb-3">
+                        <div class="text-end p-3">
                             <button type="button" class="btn btn-primary btn-sm" id="btnGuardaRubroPtoNom">Guardar</button>
                             <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
                         </div>
@@ -225,9 +248,10 @@ class Rubros
                 , CONCAT_WS(' - ',`pto_operativo`.`cod_pptal`
                 , `pto_operativo`.`nom_rubro`) AS `nom_operativo`
                 , `pto_operativo`.`tipo_dato` AS `tp_o`
+                , `nom_rel_rubro`.`id_ccosto`
             FROM
                 `nom_rel_rubro`
-                INNER JOIN `pto_cargue` AS `pto_operativo` 
+                LEFT JOIN `pto_cargue` AS `pto_operativo`
                     ON (`nom_rel_rubro`.`r_operativo` = `pto_operativo`.`id_cargue`)
                 INNER JOIN `pto_cargue` AS `pto_admin`
                     ON (`nom_rel_rubro`.`r_admin` = `pto_admin`.`id_cargue`)
@@ -249,6 +273,7 @@ class Rubros
                     'r_operativo' => 0,
                     'nom_operativo' => '',
                     'tp_o' => 0,
+                    'id_ccosto' => 0,
                 ];
         }
         return $data;
@@ -309,21 +334,41 @@ class Rubros
     }
     public function addRubroPto($array)
     {
-        $valida = $this->getValidaInsert($array['slcTipo']);
-        if (!empty($valida)) {
-            return 'El tipo de rubro ya existe en la vigencia actual.';
+        $esPtoCaracter = (Sesion::Caracter() == 1 && Sesion::Pto() == 1);
+
+        // La validación de duplicado NO aplica cuando caracter=1 y pto=1
+        if (!$esPtoCaracter) {
+            $valida = $this->getValidaInsert($array['slcTipo']);
+            if (!empty($valida)) {
+                return 'El tipo de rubro ya existe en la vigencia actual.';
+            }
         }
+
         try {
-            $sql = "INSERT `nom_rel_rubro`
-                        (`id_tipo`,`r_admin`,`r_operativo`,`id_vigencia`,`fec_reg`,`id_user_reg`)
-                    VALUES (?, ?, ?, ?, ?, ?)";
-            $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['slcTipo'], PDO::PARAM_INT);
-            $stmt->bindValue(2, $array['idRubroAdmin'], PDO::PARAM_INT);
-            $stmt->bindValue(3, $array['idRubroOpera'], PDO::PARAM_INT);
-            $stmt->bindValue(4, Sesion::IdVigencia(), PDO::PARAM_INT);
-            $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
-            $stmt->bindValue(6, Sesion::IdUser(), PDO::PARAM_INT);
+            if ($esPtoCaracter) {
+                $sql = "INSERT `nom_rel_rubro`
+                            (`id_tipo`,`r_admin`,`r_operativo`,`id_ccosto`,`id_vigencia`,`fec_reg`,`id_user_reg`)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)";
+                $stmt = $this->conexion->prepare($sql);
+                $stmt->bindValue(1, $array['slcTipo'], PDO::PARAM_INT);
+                $stmt->bindValue(2, $array['idRubroAdmin'], PDO::PARAM_INT);
+                $stmt->bindValue(3, $array['idRubroOpera'] ?: null, PDO::PARAM_INT);
+                $stmt->bindValue(4, $array['slcCcosto'], PDO::PARAM_INT);
+                $stmt->bindValue(5, Sesion::IdVigencia(), PDO::PARAM_INT);
+                $stmt->bindValue(6, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt->bindValue(7, Sesion::IdUser(), PDO::PARAM_INT);
+            } else {
+                $sql = "INSERT `nom_rel_rubro`
+                            (`id_tipo`,`r_admin`,`r_operativo`,`id_vigencia`,`fec_reg`,`id_user_reg`)
+                        VALUES (?, ?, ?, ?, ?, ?)";
+                $stmt = $this->conexion->prepare($sql);
+                $stmt->bindValue(1, $array['slcTipo'], PDO::PARAM_INT);
+                $stmt->bindValue(2, $array['idRubroAdmin'], PDO::PARAM_INT);
+                $stmt->bindValue(3, $array['idRubroOpera'], PDO::PARAM_INT);
+                $stmt->bindValue(4, Sesion::IdVigencia(), PDO::PARAM_INT);
+                $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
+                $stmt->bindValue(6, Sesion::IdUser(), PDO::PARAM_INT);
+            }
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
@@ -338,21 +383,35 @@ class Rubros
 
     public function editRubroPto($array)
     {
+        $esPtoCaracter = (Sesion::Caracter() == 1 && Sesion::Pto() == 1);
+
         try {
-            $sql = "UPDATE `nom_rel_rubro` 
-                        SET `id_tipo` = ?, `r_admin` = ?, `r_operativo` = ?
-                    WHERE `id_relacion` = ?";
-            $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['slcTipo'], PDO::PARAM_INT);
-            $stmt->bindValue(2, $array['idRubroAdmin'], PDO::PARAM_INT);
-            $stmt->bindValue(3, $array['idRubroOpera'], PDO::PARAM_INT);
-            $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
+            if ($esPtoCaracter) {
+                $sql = "UPDATE `nom_rel_rubro`
+                            SET `id_tipo` = ?, `r_admin` = ?, `r_operativo` = ?, `id_ccosto` = ?
+                        WHERE `id_relacion` = ?";
+                $stmt = $this->conexion->prepare($sql);
+                $stmt->bindValue(1, $array['slcTipo'], PDO::PARAM_INT);
+                $stmt->bindValue(2, $array['idRubroAdmin'], PDO::PARAM_INT);
+                $stmt->bindValue(3, $array['idRubroOpera'] ?: null, PDO::PARAM_INT);
+                $stmt->bindValue(4, $array['slcCcosto'], PDO::PARAM_INT);
+                $stmt->bindValue(5, $array['id'], PDO::PARAM_INT);
+            } else {
+                $sql = "UPDATE `nom_rel_rubro`
+                            SET `id_tipo` = ?, `r_admin` = ?, `r_operativo` = ?
+                        WHERE `id_relacion` = ?";
+                $stmt = $this->conexion->prepare($sql);
+                $stmt->bindValue(1, $array['slcTipo'], PDO::PARAM_INT);
+                $stmt->bindValue(2, $array['idRubroAdmin'], PDO::PARAM_INT);
+                $stmt->bindValue(3, $array['idRubroOpera'], PDO::PARAM_INT);
+                $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
+            }
 
             if (!($stmt->execute())) {
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {
                 if ($stmt->rowCount() > 0) {
-                    $consulta = "UPDATE `nom_rel_rubro` SET `id_user_act` =  ? , `fec_act` = ? WHERE `id_relacion` = ?";
+                    $consulta = "UPDATE `nom_rel_rubro` SET `id_user_act` = ?, `fec_act` = ? WHERE `id_relacion` = ?";
                     $stmt2 = $this->conexion->prepare($consulta);
                     $stmt2->bindValue(1, Sesion::IdUser(), PDO::PARAM_INT);
                     $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);

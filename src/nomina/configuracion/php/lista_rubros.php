@@ -14,8 +14,9 @@ $val_busca =    $_POST['search']['value'] ?? '';
 $col =          $_POST['order'][0]['column'] + 1;
 $dir =          $_POST['order'][0]['dir'];
 
-$id_rol = $_SESSION['rol'];
-$id_user = $_SESSION['id_user'];
+$id_rol =         $_SESSION['rol'];
+$id_user =        $_SESSION['id_user'];
+$esPtoCaracter =  (($_SESSION['caracter'] ?? 0) == 1 && ($_SESSION['pto'] ?? 0) == 1);
 
 
 use Src\Nomina\Configuracion\Php\Clases\Rubros;
@@ -43,15 +44,19 @@ if (!empty($obj)) {
         if ($permisos->PermisosUsuario($opciones, 5114, 4) || $id_rol == 1) {
             $eliminar = '<button data-id="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 eliminar" title="Eliminar concepto"><span class="fas fa-trash-alt"></span></button>';
         }
-        $datos[] = [
-            'id' =>         $id,
-            'tipo' =>       $o['nombre'],
-            'cod_ra' =>     '<div class="text-start">' . $o['cod_admin'] . '</div>',
-            'nom_ra' =>     $o['nom_admin'],
-            'cod_ro' =>     '<div class="text-start">' . $o['cod_opera'] . '</div>',
-            'nom_ro' =>     $o['nom_opera'],
-            'acciones' =>   '<div class="text-center">' . $actualizar . $eliminar . '</div>',
+        $fila = [
+            'id'       => $id,
+            'tipo'     => $o['nombre'],
+            'cod_ra'   => '<div class="text-start">' . $o['cod_admin'] . '</div>',
+            'nom_ra'   => $o['nom_admin'],
+            'cod_ro'   => '<div class="text-start">' . $o['cod_opera'] . '</div>',
+            'nom_ro'   => $o['nom_opera'],
+            'acciones' => '<div class="text-center">' . $actualizar . $eliminar . '</div>',
         ];
+        if ($esPtoCaracter) {
+            $fila['ccosto'] = $o['nom_ccosto'] ?? '';
+        }
+        $datos[] = $fila;
     }
 }
 $data = [

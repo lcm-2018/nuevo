@@ -43,6 +43,8 @@ if (Sesion::Caracter() == 2) {
 }
 $presupuesto = '';
 if (Sesion::Pto() == 1) {
+    $esPtoCaracter = (Sesion::Caracter() == 1 && Sesion::Pto() == 1);
+    $thCcosto     = $esPtoCaracter ? '<th rowspan="2" class="bg-sofia">CENTRO DE COSTO</th>' : '';
     $presupuesto =
         <<<HTML
         <div class="accordion-item">
@@ -58,8 +60,9 @@ if (Sesion::Pto() == 1) {
                             <tr>
                                 <th rowspan="2" class="bg-sofia">ID</th>
                                 <th rowspan="2" class="bg-sofia">TIPO</th>
+                                {$thCcosto}
                                 <th colspan="2" class="bg-sofia">RUBRO ADMINISTRATIVO</th>
-                                <th colspan="2" class="bg-sofia">RUBRO OPERATIBO</th>
+                                <th colspan="2" class="bg-sofia">RUBRO OPERATIVO</th>
                                 <th rowspan="2" class="bg-sofia">ACCIONES</th>
                             </tr>
                             <tr>

@@ -36,7 +36,7 @@ class Combos
                     `far_centrocosto_area`
                     INNER JOIN `tb_centrocostos` 
                         ON (`far_centrocosto_area`.`id_centrocosto` = `tb_centrocostos`.`id_centro`)
-                WHERE `tb_centrocostos`.`es_pasivo` = 0 $where
+                WHERE `tb_centrocostos`.`es_pasivo` = 0 AND `tb_centrocostos`.`id_centro` > 0 $where
                 ORDER BY `tb_centrocostos`.`nom_centro` ASC";
         return (new self())->setConsulta($sql, $id);
     }

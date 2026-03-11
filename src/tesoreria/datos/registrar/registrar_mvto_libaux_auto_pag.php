@@ -38,6 +38,7 @@ try {
             WHERE (`tes_detalle_pago`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sq2);
     $formapago = $rs->fetchAll();
+    $val1 = isset($formapago[0]['valor']) ? $formapago[0]['valor'] : 0;
     $rs->closeCursor();
     unset($rs);
     if ($tipo != 4) {
@@ -49,10 +50,9 @@ try {
                     INNER JOIN `ctb_referencia` 
                         ON (`ctb_doc`.`id_ref_ctb` = `ctb_referencia`.`id_ctb_referencia`)
                 WHERE (`ctb_doc`.`id_ctb_doc` = $id_doc)";
-        $rs = $cmd->query($sql);
-        $cuenta_ctb = $rs->fetch();
     } else {
-        $sql = "SELECT
+        if ($id_cop > 0) {
+            $sql = "SELECT
                     `id_ctb_doc`
                     , `id_cuenta`
                     , `credito` AS `valor`
@@ -60,11 +60,26 @@ try {
                 FROM
                     `ctb_libaux`
                 WHERE (`id_ctb_doc` = $id_cop AND `credito` > 0)";
-        $rs = $cmd->query($sql);
-        $cuenta_ctb = $rs->fetchAll();
-        $rs->closeCursor();
-        unset($rs);
+        } else {
+            $sql = "SELECT
+                    `ctb_referencia`.`id_cta_credito` AS `id_cuenta`
+                    , `ctb_referencia`.`accion`
+                    , 1 AS `ref`
+                    , $val1 AS `valor`
+                FROM
+                    `ctb_doc`
+                    INNER JOIN `ctb_referencia` 
+                        ON (`ctb_doc`.`id_ref_ctb` = `ctb_referencia`.`id_ctb_referencia`)
+                WHERE (`ctb_doc`.`id_ctb_doc` = $id_doc)
+                LIMIT 1";
+        }
     }
+
+    $rs = $cmd->query($sql);
+    $cuenta_ctb = ($tipo != 4) ? $rs->fetch() : $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
+
     $sql = "INSERT INTO `ctb_libaux`
                 (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`)
             VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -120,7 +135,7 @@ try {
                 if ($cmd->lastInsertId() > 0) {
                     $registros++;
                 } else {
-                    $response['msg'] += $sql->errorInfo()[2];
+                    $response['msg'] .= $sql->errorInfo()[2];
                 }
             }
         }
