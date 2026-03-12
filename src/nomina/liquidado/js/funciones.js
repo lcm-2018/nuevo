@@ -145,7 +145,7 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
                 break;
             case '5':
                 if (text === 'P') {
-                    // ── Botón PDF: genera desprendibles por sede ──
+                    // Muestra los desprendibles en el navegador y abre la impresión
                     const sedeSelect = document.getElementById('sede');
                     if (!sedeSelect) {
                         mjeAlert('Atención', 'No se encontró el selector de sede.', 'warning');
@@ -157,7 +157,7 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
                     ImprimirReporte('../php/reportes/desprendible.php', {
                         id: id_codificado,
                         id_sede: id_sede,
-                        pdf: true
+                        pdf: false
                     });
                     return;
                 }

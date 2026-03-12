@@ -37,6 +37,7 @@ if ($id_tipo_doc > 0) {
 $datos_sedes = obtenerSedesActivas($cmd);
 $sedes = $datos_sedes['sedes'];
 $sede_principal = $datos_sedes['sede_principal'];
+$bd_principal = !empty($sede_principal['bd_sede']) ? $sede_principal['bd_sede'] : null;
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -68,8 +69,13 @@ try {
 
     $rs = $cmd->prepare($sql);
     if ($cod_cuenta_ini !== '' && $cod_cuenta_fin !== '') {
+        if (strcmp($cod_cuenta_ini, $cod_cuenta_fin) > 0) {
+            $tmp = $cod_cuenta_ini;
+            $cod_cuenta_ini = $cod_cuenta_fin;
+            $cod_cuenta_fin = $tmp;
+        }
         $rs->bindValue(':cod_ini', $cod_cuenta_ini, \PDO::PARAM_STR);
-        $rs->bindValue(':cod_fin', $cod_cuenta_fin, \PDO::PARAM_STR);
+        $rs->bindValue(':cod_fin', $cod_cuenta_fin . '999999999999', \PDO::PARAM_STR);
     }
     $rs->execute();
     $obj_cuentas = $rs->fetchAll();
@@ -123,6 +129,9 @@ try {
             // Usar conexión actual para la sede principal, conectar para las demás
             if ($sede['es_principal'] == 1) {
                 $cmd_sede = $cmd;
+                if (!empty($bd_principal)) {
+                    $cmd_sede->exec("USE `{$bd_principal}`");
+                }
             } else {
                 $cmd_sede = conectarSede($sede['bd_sede']);
                 if ($cmd_sede === null) {
@@ -196,13 +205,14 @@ try {
                             SUM(IFNULL(ctb_libaux.credito,0)) AS credito
                         FROM ctb_libaux
                         INNER JOIN ctb_doc ON (ctb_libaux.id_ctb_doc = ctb_doc.id_ctb_doc)
+                        INNER JOIN ctb_pgcp ON (ctb_libaux.id_cuenta = ctb_pgcp.id_pgcp)
                         WHERE ctb_doc.fecha < :fec_ini
-                            AND ctb_libaux.id_cuenta = :id_cuenta 
+                            AND ctb_pgcp.cuenta LIKE :cuenta 
                             AND ctb_doc.estado = 2";
 
                 $rs = $cmd_sede->prepare($sql);
                 $rs->bindValue(':fec_ini', $fec_ini, \PDO::PARAM_STR);
-                $rs->bindValue(':id_cuenta', (int)$obj_c['id_pgcp'], \PDO::PARAM_INT);
+                $rs->bindValue(':cuenta', $obj_c['cuenta'] . ($cod_cuenta_ini === $cod_cuenta_fin ? "%" : ""), \PDO::PARAM_STR);
                 $rs->execute();
                 $saldos_sede = $rs->fetch();
                 $rs->closeCursor();
@@ -227,8 +237,13 @@ try {
             }
         }
 
-        // Ordenar movimientos consolidados por fecha
+        // Ordenar movimientos consolidados por cuenta y fecha
         usort($obj_informe, function ($a, $b) {
+            $compCuenta = strcmp($a['cuenta'], $b['cuenta']);
+            if ($compCuenta !== 0) {
+                return $compCuenta;
+            }
+
             $comp = strcmp($a['fecha'], $b['fecha']);
             if ($comp === 0) {
                 // Si las fechas son iguales, ordenar por débito desc, luego crédito desc
@@ -262,8 +277,8 @@ try {
             $total_cre = 0;
         }
     ?>
-        <div class="content bg-light" id="areaImprimir">
-            <table style="width:100% !important; font-size:70%;">
+        <div class="content bg-light pb-3">
+            <table style="width:100% !important; font-size:70%; border-collapse: collapse;">
                 <?php
                 if ($reg == 0) {
                     $reg++;
@@ -290,39 +305,61 @@ try {
                     </tr>
                 <?php
                 }
-                $reg++;
                 ?>
-                <tr style="text-align: left;">
-                    <th colspan="2" style="font-weight: bold;">CUENTA</th>
-                    <td colspan="10" style="font-weight: bold;"><?= strval($obj_c['cuenta'] . ' - ' . $obj_c['nombre']); ?></td>
-                </tr>
-                <tr style="background-color:#CED3D3; color:#000000; text-align:center;">
-                    <th style="border: 1px solid #A9A9A9;">Sede</th>
-                    <th style="border: 1px solid #A9A9A9;">Fecha</th>
-                    <th style="border: 1px solid #A9A9A9;">Tipo<br>Documento</th>
-                    <th style="border: 1px solid #A9A9A9;">Documento</th>
-                    <th style="border: 1px solid #A9A9A9;">Referencia</th>
-                    <th colspan="2" style="border: 1px solid #A9A9A9;">Tercero</th>
-                    <th style="border: 1px solid #A9A9A9;">CC/nit</th>
-                    <th colspan="2" style="border: 1px solid #A9A9A9;">Detalle</th>
-                    <th style="border: 1px solid #A9A9A9;">Debito</th>
-                    <th style="border: 1px solid #A9A9A9;">Credito</th>
-                    <th style="border: 1px solid #A9A9A9;">Saldo</th>
-                </tr>
                 <tbody>
                     <?php
                     $tabla = '';
-                    echo "<tr>
-                            <td style='text-align: center; border: 1px solid #A9A9A9;' colspan='12'>Saldo inicial: </td>
-                            <td style='text-align: right; border: 1px solid #A9A9A9;'>" . number_format($saldo_inicial, 2, ".", ",") . "</td>
-                        </tr>";
+                    $cuenta_actual = null;
+                    $saldo_cuenta = 0;
+                    $total_deb = 0;
+                    $total_cre = 0;
+
                     foreach ($obj_informe as $obj) {
+                        if ($cuenta_actual !== $obj['cuenta']) {
+                            if ($cuenta_actual !== null) {
+                                $tabla .= "<tr>
+                                    <td style='text-align: center; border: 1px solid #A9A9A9;' colspan='10'> Total</td>
+                                    <td style='text-align: center; border: 1px solid #A9A9A9;'>Debito: " . number_format($total_deb, 2, ".", ",") . "</td>
+                                    <td style='text-align: center; border: 1px solid #A9A9A9;'>Credito: " . number_format($total_cre, 2, ".", ",") . "</td>
+                                    <td style='text-align: center; border: 1px solid #A9A9A9;'>Saldo: " . number_format($saldo_cuenta, 2, ".", ",") . "</td>
+                                </tr>
+                                <tr><td colspan='13'>&nbsp;</td></tr>";
+                            }
+
+                            $cuenta_actual = $obj['cuenta'];
+                            $saldo_cuenta = ($cuenta_actual === $obj_c['cuenta']) ? $saldo_inicial : 0;
+                            $total_deb = 0;
+                            $total_cre = 0;
+                            $reg++;
+
+                            $tabla .= "<tr style='text-align: left;'>
+                                    <th colspan='2' style='font-weight: bold;'>CUENTA</th>
+                                    <td colspan='10' style='font-weight: bold;'>" . $cuenta_actual . "</td>
+                                </tr>
+                                <tr style='background-color:#CED3D3; color:#000000; text-align:center;'>
+                                    <th style='border: 1px solid #A9A9A9;'>Sede</th>
+                                    <th style='border: 1px solid #A9A9A9;'>Fecha</th>
+                                    <th style='border: 1px solid #A9A9A9;'>Tipo<br>Documento</th>
+                                    <th style='border: 1px solid #A9A9A9;'>Documento</th>
+                                    <th style='border: 1px solid #A9A9A9;'>Referencia</th>
+                                    <th colspan='2' style='border: 1px solid #A9A9A9;'>Tercero</th>
+                                    <th style='border: 1px solid #A9A9A9;'>CC/nit</th>
+                                    <th colspan='2' style='border: 1px solid #A9A9A9;'>Detalle</th>
+                                    <th style='border: 1px solid #A9A9A9;'>Debito</th>
+                                    <th style='border: 1px solid #A9A9A9;'>Credito</th>
+                                    <th style='border: 1px solid #A9A9A9;'>Saldo</th>
+                                </tr>
+                                <tr>
+                                    <td style='text-align: center; border: 1px solid #A9A9A9;' colspan='12'>Saldo inicial: </td>
+                                    <td style='text-align: right; border: 1px solid #A9A9A9;'>" . number_format($saldo_cuenta, 2, ".", ",") . "</td>
+                                </tr>";
+                        }
 
                         $primer_caracter = substr($obj['cuenta'], 0, 1);
                         if ($primer_caracter == 1 || $primer_caracter == 5 || $primer_caracter == 6 || $primer_caracter == 7) {
-                            $saldo_inicial = $saldo_inicial + $obj['debito'] - $obj['credito'];
+                            $saldo_cuenta = $saldo_cuenta + $obj['debito'] - $obj['credito'];
                         } else {
-                            $saldo_inicial = $saldo_inicial + $obj['credito'] - $obj['debito'];
+                            $saldo_cuenta = $saldo_cuenta + $obj['credito'] - $obj['debito'];
                         }
 
                         //-------------------------------
@@ -337,20 +374,23 @@ try {
                                 <td colspan="2" style="border: 1px solid #A9A9A9;">' . mb_strtoupper($obj['detalle']) . '</td>
                                 <td style="border: 1px solid #A9A9A9;">' . $obj['debito'] . '</td>
                                 <td style="border: 1px solid #A9A9A9;">' . $obj['credito'] . '</td>
-                                <td style="border: 1px solid #A9A9A9;">' . $saldo_inicial . '</td></tr>';
+                                <td style="border: 1px solid #A9A9A9;">' . $saldo_cuenta . '</td></tr>';
 
                         $total_deb += $obj['debito'];
                         $total_cre += $obj['credito'];
                     }
-                    echo $tabla;
 
-                    echo "<tr>
-                        <td style='text-align: center; border: 1px solid #A9A9A9;' colspan='10'> Total</td>
-                        <td style='text-align: center; border: 1px solid #A9A9A9;'>Debito: " . number_format($total_deb, 2, ".", ",") . "</td>
-                        <td style='text-align: center; border: 1px solid #A9A9A9;'>Credito: " . number_format($total_cre, 2, ".", ",") . "</td>
-                        <td style='text-align: center; border: 1px solid #A9A9A9;'>Saldo: " . number_format($saldo_inicial, 2, ".", ",") . "</td>
+                    if ($cuenta_actual !== null) {
+                        $tabla .= "<tr>
+                            <td style='text-align: center; border: 1px solid #A9A9A9;' colspan='10'> Total</td>
+                            <td style='text-align: center; border: 1px solid #A9A9A9;'>Debito: " . number_format($total_deb, 2, ".", ",") . "</td>
+                            <td style='text-align: center; border: 1px solid #A9A9A9;'>Credito: " . number_format($total_cre, 2, ".", ",") . "</td>
+                            <td style='text-align: center; border: 1px solid #A9A9A9;'>Saldo: " . number_format($saldo_cuenta, 2, ".", ",") . "</td>
                         </tr>
                         <tr><td colspan='13'>&nbsp;</td></tr>";
+                    }
+
+                    echo $tabla;
                     ?>
                 </tbody>
             </table>

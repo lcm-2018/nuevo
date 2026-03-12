@@ -56,7 +56,9 @@ class Detalles
         // Soporta id_nomina como int único (callers existentes) o array (multi-nómina)
         $rawIds = isset($array['id_nomina']) ? $array['id_nomina'] : 0;
         if (!is_array($rawIds)) $rawIds = [$rawIds];
-        $ids_in = implode(',', array_map('intval', array_filter($rawIds, fn($v) => intval($v) > 0))) ?: '0';
+        $ids_in = implode(',', array_map('intval', array_filter($rawIds, function ($v) {
+            return intval($v) > 0;
+        }))) ?: '0';
 
         $sql = "WITH 
                     `bsp` AS 

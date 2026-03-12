@@ -139,7 +139,7 @@ if ($tipo_dato == '3') {
         HTML;
 
     $btnImputacion = '';
-    if ($_SESSION['caracter'] == '2') {
+    if ($_SESSION['caracter'] == '2' || $_SESSION['pto'] == '1') {
         $btnImputacion =
             <<<HTML
             <div class="row mb-1">

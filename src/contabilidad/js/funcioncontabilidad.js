@@ -2435,7 +2435,7 @@ const generaMovimientoCxp = (boton) => {
 	var val_inp = $('#valImputacion').text().replace(/[\s$]+/g, "").replace(/\,/g, "");
 	var val_cos = $('#valCentroCosto').text().replace(/[\s$]+/g, "").replace(/\,/g, "");
 	// verificar si los tres valores son iguales
-	if (opCaracterJS == '1' && op_ppto == '0') {
+	if (opCaracterJS == '1' && opPtoJS == '0') {
 		val_inp = val_fac;
 	}
 	if (val_fac == val_inp && val_fac == val_cos) {

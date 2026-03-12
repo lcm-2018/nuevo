@@ -1696,7 +1696,7 @@ let cargaFormaPago = (cop, detalle, boton) => {
 	}
 
 	if (id_docu > 0) {
-		if (valor_pago != "" || op_ppto == '0') {
+		if (valor_pago != "" || opPtoJS == '0') {
 			mostrarOverlay();
 			$.post("lista_causacion_formapago.php", { id_doc: id_docu, id_cop: id_cop, valor: valor_pago, id_fp: detalle }, function (he) {
 				$("#divTamModalForms").removeClass("modal-sm");

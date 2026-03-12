@@ -132,7 +132,7 @@ class Reportes
                                         <th class= "bg-sofia">ID</th>
                                         <th class= "bg-sofia">REPORTE</th>
                                         <th class= "bg-sofia">OPCIONES</th>
-                                        <th class= "bg-sofia">ACCIÓN</th>
+                                        <th style="width: 10%;" class= "bg-sofia">ACCIÓN</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tableReportesNomina">
@@ -185,7 +185,7 @@ class Reportes
                                             </select>
                                         </td>
                                         <td class="text-center">
-                                            <button data-id="5" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 reportes" title="PDF" text="P"><span class="fas fa-file-pdf fa-sm"></span></button>
+                                            <button data-id="5" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 reportes" title="Imprimir" text="P"><span class="fas fa-print fa-sm"></span></button>
                                             <button data-id="5" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 reportes" title="Enviar" text="E"><span class="fas fa-envelope fa-sm"></span></button>
                                         </td>
                                     </tr>
