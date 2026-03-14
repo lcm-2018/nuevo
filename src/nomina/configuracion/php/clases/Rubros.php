@@ -59,9 +59,9 @@ class Rubros
                     `nom_rel_rubro`
                     LEFT JOIN `pto_cargue` AS `pto_operativo`
                         ON (`nom_rel_rubro`.`r_operativo` = `pto_operativo`.`id_cargue`)
-                    INNER JOIN `nom_tipo_rubro`
+                    LEFT JOIN `nom_tipo_rubro`
                         ON (`nom_rel_rubro`.`id_tipo` = `nom_tipo_rubro`.`id_rubro`)
-                    INNER JOIN `pto_cargue` AS `pto_admin`
+                    LEFT JOIN `pto_cargue` AS `pto_admin`
                         ON (`nom_rel_rubro`.`r_admin` = `pto_admin`.`id_cargue`)
                     LEFT JOIN `far_centrocosto_area`
                         ON (`nom_rel_rubro`.`id_ccosto` = `far_centrocosto_area`.`id_area`)
@@ -120,11 +120,11 @@ class Rubros
                     COUNT(*) AS `total`
                 FROM
                     `nom_rel_rubro`
-                    INNER JOIN `pto_cargue` AS `pto_operativo` 
+                    LEFT JOIN `pto_cargue` AS `pto_operativo` 
                         ON (`nom_rel_rubro`.`r_operativo` = `pto_operativo`.`id_cargue`)
-                    INNER JOIN `nom_tipo_rubro` 
+                    LEFT JOIN `nom_tipo_rubro` 
                         ON (`nom_rel_rubro`.`id_tipo` = `nom_tipo_rubro`.`id_rubro`)
-                    INNER JOIN `pto_cargue` AS `pto_admin`
+                    LEFT JOIN `pto_cargue` AS `pto_admin`
                         ON (`nom_rel_rubro`.`r_admin` = `pto_admin`.`id_cargue`)
                 WHERE (`nom_rel_rubro`.`id_vigencia` = $id_vigencia $where)";
         $stmt = $this->conexion->prepare($sql);
@@ -146,11 +146,11 @@ class Rubros
                     COUNT(*) AS `total`
                 FROM
                     `nom_rel_rubro`
-                    INNER JOIN `pto_cargue` AS `pto_operativo` 
+                    LEFT JOIN `pto_cargue` AS `pto_operativo` 
                         ON (`nom_rel_rubro`.`r_operativo` = `pto_operativo`.`id_cargue`)
-                    INNER JOIN `nom_tipo_rubro` 
+                    LEFT JOIN `nom_tipo_rubro` 
                         ON (`nom_rel_rubro`.`id_tipo` = `nom_tipo_rubro`.`id_rubro`)
-                    INNER JOIN `pto_cargue` AS `pto_admin`
+                    LEFT JOIN `pto_cargue` AS `pto_admin`
                         ON (`nom_rel_rubro`.`r_admin` = `pto_admin`.`id_cargue`)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
@@ -169,7 +169,7 @@ class Rubros
             $slc = ($fila['id_tipo'] == $o['id_rubro']) ? 'selected' : '';
             $lst .= "<option value='{$o['id_rubro']}' {$slc}>{$o['nombre']}</option>";
         }
-        $ccosto = Combos::getCentrosCostoxSede($fila['id_ccosto'], 1);
+        $ccosto = Combos::getCentrosCosto($fila['id_ccosto']);
 
         // Bloque de centro de costo: solo visible cuando caracter=1 y pto=1
         $htmlCcosto = '';
@@ -253,7 +253,7 @@ class Rubros
                 `nom_rel_rubro`
                 LEFT JOIN `pto_cargue` AS `pto_operativo`
                     ON (`nom_rel_rubro`.`r_operativo` = `pto_operativo`.`id_cargue`)
-                INNER JOIN `pto_cargue` AS `pto_admin`
+                LEFT JOIN `pto_cargue` AS `pto_admin`
                     ON (`nom_rel_rubro`.`r_admin` = `pto_admin`.`id_cargue`)
             WHERE (`nom_rel_rubro`.`id_relacion` = ?)";
         $stmt = $this->conexion->prepare($sql);

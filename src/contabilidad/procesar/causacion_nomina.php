@@ -1,5 +1,6 @@
 <?php
 
+use Config\Clases\Sesion;
 use Src\Common\Php\Clases\Terceros;
 use Src\Nomina\Liquidacion\Php\Clases\Nomina;
 use Src\Nomina\Liquidado\Php\Clases\Detalles;
@@ -11,6 +12,93 @@ if (!isset($_SESSION['user'])) {
 }
 include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
+
+function indexarRubrosNomina($rubros)
+{
+    $rubrosPorTipo = [];
+    $rubrosPorTipoCcosto = [];
+
+    foreach ($rubros as $rb) {
+        $tipo = (int) $rb['id_tipo'];
+        $rubrosPorTipo[$tipo] = [
+            'r_admin' => (int) $rb['r_admin'],
+            'r_operativo' => (int) $rb['r_operativo'],
+        ];
+
+        if (!empty($rb['id_ccosto'])) {
+            $rubrosPorTipoCcosto[$tipo][(int) $rb['id_ccosto']] = (int) $rb['r_admin'];
+        }
+    }
+
+    return [$rubrosPorTipo, $rubrosPorTipoCcosto];
+}
+
+function indexarDetallesCrpNomina($detalles)
+{
+    $indexados = [];
+
+    foreach ($detalles as $detalle) {
+        $indexados[(int) $detalle['id_rubro']][(int) $detalle['id_tercero_api']] = (int) $detalle['id_pto_crp_det'];
+    }
+
+    return $indexados;
+}
+
+function calcularValorRubroNomina($detalleEmpleado, $fields)
+{
+    if (is_array($fields)) {
+        $valor = 0;
+        foreach ($fields as $field) {
+            if (!empty($detalleEmpleado[$field])) {
+                $valor += $detalleEmpleado[$field];
+            }
+        }
+        return $valor;
+    }
+
+    return !empty($detalleEmpleado[$fields]) ? $detalleEmpleado[$fields] : 0;
+}
+
+function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPorTipoCcosto, $esPtoCaracter)
+{
+    if ($esPtoCaracter) {
+        $ccostos = array_filter(array_map('trim', explode(',', (string) ($detalleEmpleado['id_ccosto'] ?? ''))));
+        if (count($ccostos) !== 1) {
+            throw new Exception(
+                'El empleado con documento ' . $detalleEmpleado['no_documento'] .
+                    ' tiene un centro de costo no válido para la causación: ' . ($detalleEmpleado['id_ccosto'] ?? 'sin definir')
+            );
+        }
+
+        $idCcosto = (int) $ccostos[0];
+        if (empty($rubrosPorTipoCcosto[$tipo][$idCcosto])) {
+            throw new Exception(
+                'No existe relación de rubro para el tipo ' . $tipo .
+                    ' y centro de costo ' . $idCcosto .
+                    ' del empleado ' . $detalleEmpleado['no_documento']
+            );
+        }
+
+        return (int) $rubrosPorTipoCcosto[$tipo][$idCcosto];
+    }
+
+    if (empty($rubrosPorTipo[$tipo])) {
+        throw new Exception('No existe relación de rubro para el tipo ' . $tipo . '.');
+    }
+
+    $rubro = $detalleEmpleado['tipo_cargo'] == '1'
+        ? (int) $rubrosPorTipo[$tipo]['r_admin']
+        : (int) $rubrosPorTipo[$tipo]['r_operativo'];
+
+    if (!($rubro > 0)) {
+        throw new Exception(
+            'No existe rubro presupuestal configurado para el tipo ' . $tipo .
+                ' y tipo de cargo del empleado ' . $detalleEmpleado['no_documento']
+        );
+    }
+
+    return $rubro;
+}
 $vigencia = $_SESSION['vigencia'];
 $id_vigencia = $_SESSION['id_vigencia'];
 $data = explode(',', file_get_contents("php://input"));
@@ -38,6 +126,7 @@ try {
                 , `nom_tipo_rubro`.`nombre`
                 , `nom_rel_rubro`.`r_admin`
                 , `nom_rel_rubro`.`r_operativo`
+                , `nom_rel_rubro`.`id_ccosto`
             FROM
                 `nom_rel_rubro`
                 INNER JOIN `nom_tipo_rubro` 
@@ -51,6 +140,8 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
+[$rubrosPorTipo, $rubrosPorTipoCcosto] = indexarRubrosNomina($rubros);
+$esPtoCaracter = (Sesion::Caracter() == 1 && Sesion::Pto() == 1);
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
@@ -210,6 +301,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
+$idsDetalleIndexados = indexarDetallesCrpNomina($ids_detalle);
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
@@ -290,102 +382,66 @@ try {
     $sql2->bindParam(2, $rango, PDO::PARAM_INT);
     $sql2->bindParam(3, $base, PDO::PARAM_STR);
     $sql2->bindValue(4, 0, PDO::PARAM_STR);
-    $sql2->bindParam(5, $valor_retencion, PDO::PARAM_STR);
-    $sql2->bindParam(6, $id_ter_api, PDO::PARAM_INT);
-    $sql2->bindParam(7, $iduser, PDO::PARAM_INT);
-    $sql2->bindParam(8, $fecha2);
+	    $sql2->bindParam(5, $valor_retencion, PDO::PARAM_STR);
+	    $sql2->bindParam(6, $id_ter_api, PDO::PARAM_INT);
+	    $sql2->bindParam(7, $iduser, PDO::PARAM_INT);
+	    $sql2->bindParam(8, $fecha2);
 
-    foreach ($datos as $dd) {
-        // Extraer datos del empleado desde $dd
-        $id_empleado = $dd['id_empleado'];
-        $tipo_cargo = $dd['tipo_cargo'];
-        $id_ter_api = $terceros[$dd['no_documento']] ?? NULL;
-        $ccosto = $dd['id_ccosto'] ?? 21;
+    $tipo_field_map = [
+        1  => ['valor_laborado', 'val_compensa'],
+        2  => 'horas_ext',
+        3  => 'g_representa',
+        4  => 'val_bon_recrea',
+        5  => 'val_bsp',
+        6  => 'aux_tran',
+        7  => 'aux_alim',
+        9  => 'val_indemniza',
+        10 => 'valor_luto',
+        17 => 'valor_vacacion',
+        18 => 'val_cesantias',
+        19 => 'val_icesantias',
+        20 => 'val_prima_vac',
+        21 => 'valor_pv',
+        22 => 'valor_ps',
+        23 => 'valor_viatico',
+        32 => 'pago_empresa'
+    ];
+
+	    foreach ($datos as $dd) {
+	        // Extraer datos del empleado desde $dd
+	        $id_empleado = $dd['id_empleado'];
+	        $id_ter_api = $terceros[$dd['no_documento']] ?? NULL;
+	        $ccosto = $dd['id_ccosto'] ?? 21;
 
         $restar = 0;
         $rest = 0;
         $liberado = 0;
 
 
-        foreach ($rubros as $rb) {
-            $tipo = $rb['id_tipo'];
-            if ($tipo_cargo == '1') {
-                $rubro = $rb['r_admin'];
-            } else {
-                $rubro = $rb['r_operativo'];
-            }
-            $valor = 0;
+        foreach ($tipo_field_map as $tipo => $fields) {
+            $valor = calcularValorRubroNomina($dd, $fields);
+            $rubro = 0;
             $id_det = NULL;
 
-            // Buscar el id_det correspondiente
-            foreach ($ids_detalle as $detalle) {
-                if ($detalle['id_rubro'] == $rubro && $detalle['id_tercero_api'] == $id_ter_api) {
-                    $id_det = $detalle['id_pto_crp_det'];
-                    break;
-                }
+            if ($valor > 0) {
+                $rubro = resolverRubroNomina($dd, $tipo, $rubrosPorTipo, $rubrosPorTipoCcosto, $esPtoCaracter);
+                $id_det = $idsDetalleIndexados[$rubro][(int) $id_ter_api] ?? NULL;
             }
 
             // Calcular el valor según el tipo de rubro
-            switch ($tipo) {
-                case 1:
-                    $valor = $dd['valor_laborado'] + $dd['val_compensa'];
-                    break;
-                case 2:
-                    $valor = $dd['horas_ext'];
-                    break;
-                case 3:
-                    $valor = $dd['g_representa'];
-                    break;
-                case 4:
-                    $valor = $dd['val_bon_recrea'];
-                    break;
-                case 5:
-                    $valor = $dd['val_bsp'];
-                    break;
-                case 6:
-                    $valor = $dd['aux_tran'];
-                    break;
-                case 7:
-                    $valor = $dd['aux_alim'];
-                    break;
-                case 9:
-                    $valor = $dd['val_indemniza'];
-                    break;
-                case 10:
-                    $valor = $dd['valor_luto'];
-                    break;
-                case 17:
-                    $valor = $dd['valor_vacacion'];
-                    break;
-                case 18:
-                    $valor = $dd['val_cesantias'];
-                    break;
-                case 19:
-                    $valor = $dd['val_icesantias'];
-                    break;
-                case 20:
-                    $valor = $dd['val_prima_vac'];
-                    break;
-                case 21:
-                    $valor = $dd['valor_pv'];
-                    break;
-                case 22:
-                    $valor = $dd['valor_ps'];
-                    break;
-                case 23:
-                    $valor = $dd['valor_viatico'];
-                    break;
-                case 32:
-                    $valor = $dd['pago_empresa'];
-                    break;
-                default:
-                    $valor = 0;
-                    break;
-            }
+            
 
 
             // Insertar solo si hay valor y rubro válido
-            if ($valor > 0 && $rubro != '' && $id_det !== NULL) {
+            if ($valor > 0 && $id_det === NULL) {
+                throw new Exception(
+                    'No existe detalle CRP para el rubro ' . $rubro .
+                        ' y tercero ' . $id_ter_api .
+                        ' del empleado ' . $dd['no_documento']
+                );
+            }
+
+            if ($valor > 0 && $rubro > 0 && $id_det !== NULL) {
                 $sql0->execute();
                 if (!($cmd->lastInsertId() > 0)) {
                     throw new Exception($sql0->errorInfo()[2]);
@@ -694,8 +750,10 @@ try {
     }
     $cmd->commit();
     echo 'ok';
-} catch (PDOException $e) {
-    $cmd->rollBack();
+} catch (Exception $e) {
+    if ($cmd instanceof PDO && $cmd->inTransaction()) {
+        $cmd->rollBack();
+    }
     throw new Exception('Error: ' . $e->getMessage());
 }
 exit;

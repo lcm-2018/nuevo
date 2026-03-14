@@ -1,5 +1,6 @@
 ﻿<?php
 
+use Config\Clases\Sesion;
 use Src\Common\Php\Clases\Terceros;
 use Src\Nomina\Liquidacion\Php\Clases\Nomina;
 use Src\Nomina\Liquidado\Php\Clases\Detalles;
@@ -11,6 +12,83 @@ if (!isset($_SESSION['user'])) {
 }
 include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
+
+function indexarRubrosNomina($rubros)
+{
+    $rubrosPorTipo = [];
+    $rubrosPorTipoCcosto = [];
+
+    foreach ($rubros as $rb) {
+        $tipo = (int) $rb['id_tipo'];
+        $rubrosPorTipo[$tipo] = [
+            'r_admin' => (int) $rb['r_admin'],
+            'r_operativo' => (int) $rb['r_operativo'],
+        ];
+
+        if (!empty($rb['id_ccosto'])) {
+            $rubrosPorTipoCcosto[$tipo][(int) $rb['id_ccosto']] = (int) $rb['r_admin'];
+        }
+    }
+
+    return [$rubrosPorTipo, $rubrosPorTipoCcosto];
+}
+
+function calcularValorRubroNomina($detalleEmpleado, $fields)
+{
+    if (is_array($fields)) {
+        $valor = 0;
+        foreach ($fields as $field) {
+            if (!empty($detalleEmpleado[$field])) {
+                $valor += $detalleEmpleado[$field];
+            }
+        }
+        return $valor;
+    }
+
+    return !empty($detalleEmpleado[$fields]) ? $detalleEmpleado[$fields] : 0;
+}
+
+function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPorTipoCcosto, $esPtoCaracter)
+{
+    if ($esPtoCaracter) {
+        $ccostos = array_filter(array_map('trim', explode(',', (string) ($detalleEmpleado['id_ccosto'] ?? ''))));
+        if (count($ccostos) !== 1) {
+            throw new Exception(
+                'El empleado con documento ' . $detalleEmpleado['no_documento'] .
+                    ' tiene un centro de costo no válido para la causación: ' . ($detalleEmpleado['id_ccosto'] ?? 'sin definir')
+            );
+        }
+
+        $idCcosto = (int) $ccostos[0];
+        if (empty($rubrosPorTipoCcosto[$tipo][$idCcosto])) {
+            throw new Exception(
+                'No existe relación de rubro para el tipo ' . $tipo .
+                    ' y centro de costo ' . $idCcosto .
+                    ' del empleado ' . $detalleEmpleado['no_documento']
+            );
+        }
+
+        return (int) $rubrosPorTipoCcosto[$tipo][$idCcosto];
+    }
+
+    if (empty($rubrosPorTipo[$tipo])) {
+        throw new Exception('No existe relación de rubro para el tipo ' . $tipo . '.');
+    }
+
+    $rubro = $detalleEmpleado['tipo_cargo'] == '1'
+        ? (int) $rubrosPorTipo[$tipo]['r_admin']
+        : (int) $rubrosPorTipo[$tipo]['r_operativo'];
+
+    if (!($rubro > 0)) {
+        throw new Exception(
+            'No existe rubro presupuestal configurado para el tipo ' . $tipo .
+                ' y tipo de cargo del empleado ' . $detalleEmpleado['no_documento']
+        );
+    }
+
+    return $rubro;
+}
+
 $vigencia = $_SESSION['vigencia'];
 $id_vigencia = $_SESSION['id_vigencia'];
 $data = explode('|', file_get_contents("php://input"));
@@ -116,13 +194,16 @@ try {
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT `r_admin`, `r_operativo`, `id_tipo` FROM `nom_rel_rubro` WHERE (`id_vigencia` = $id_vigencia)";
+    $sql = "SELECT `r_admin`, `r_operativo`, `id_tipo`, `id_ccosto` FROM `nom_rel_rubro` WHERE (`id_vigencia` = $id_vigencia)";
     $rs = $cmd->query($sql);
     $rubros = $rs->fetchAll(PDO::FETCH_ASSOC);
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
+
+[$rubrosPorTipo, $rubrosPorTipoCcosto] = indexarRubrosNomina($rubros);
+$esPtoCaracter = (Sesion::Caracter() == 1 && Sesion::Pto() == 1);
 
 $cerrado = 2;
 $cmd = \Config\Clases\Conexion::getConexion();
@@ -197,7 +278,6 @@ try {
     $sqly->bindParam(4, $valor, PDO::PARAM_STR);
     $sqly->bindParam(5, $liberado, PDO::PARAM_STR);
 
-    $contador = 0;
     $tipo_field_map = [
         1  => ['valor_laborado', 'val_compensa'],
         2  => 'horas_ext',
@@ -219,25 +299,11 @@ try {
     ];
     foreach ($datos as $d) {
         $id_tercero = $terceros[$d['no_documento']];
-        foreach ($rubros as $rb) {
-            $tipo = $rb['id_tipo'];
-            $rubro = $d['tipo_cargo'] == '1' ? $rb['r_admin'] : $rb['r_operativo'];
-
-            $valor = 0;
-            if (isset($tipo_field_map[$tipo])) {
-                $fields = $tipo_field_map[$tipo];
-                if (is_array($fields)) {
-                    foreach ($fields as $f) {
-                        if (!empty($d[$f])) {
-                            $valor += $d[$f];
-                        }
-                    }
-                } else {
-                    $valor = !empty($d[$fields]) ? $d[$fields] : 0;
-                }
-            }
+        foreach ($tipo_field_map as $tipo => $fields) {
+            $valor = calcularValorRubroNomina($d, $fields);
 
             if ($valor > 0) {
+                $rubro = resolverRubroNomina($d, $tipo, $rubrosPorTipo, $rubrosPorTipoCcosto, $esPtoCaracter);
                 $query->execute();
                 $id_detalle_cdp = $cmd->lastInsertId();
                 if ($id_detalle_cdp > 0) {
@@ -251,7 +317,6 @@ try {
                 }
             }
         }
-        $contador++;
     }
     $cmd = null;
 
@@ -279,7 +344,9 @@ try {
     $cmd->commit();
     $cmd = null;
     echo 'ok';
-} catch (PDOException $e) {
-    $cmd->rollBack();
+} catch (Exception $e) {
+    if ($cmd instanceof PDO && $cmd->inTransaction()) {
+        $cmd->rollBack();
+    }
     throw new Exception($e->getMessage());
 }
