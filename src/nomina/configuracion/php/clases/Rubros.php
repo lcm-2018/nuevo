@@ -63,10 +63,8 @@ class Rubros
                         ON (`nom_rel_rubro`.`id_tipo` = `nom_tipo_rubro`.`id_rubro`)
                     LEFT JOIN `pto_cargue` AS `pto_admin`
                         ON (`nom_rel_rubro`.`r_admin` = `pto_admin`.`id_cargue`)
-                    LEFT JOIN `far_centrocosto_area`
-                        ON (`nom_rel_rubro`.`id_ccosto` = `far_centrocosto_area`.`id_area`)
                     LEFT JOIN `tb_centrocostos`
-                        ON (`far_centrocosto_area`.`id_centrocosto` = `tb_centrocostos`.`id_centro`)
+                        ON (`nom_rel_rubro`.`id_ccosto` = `tb_centrocostos`.`id_centro`)
                 WHERE (`nom_rel_rubro`.`id_vigencia` = $id_vigencia $where)
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
@@ -238,24 +236,24 @@ class Rubros
     public function getRegistro($id)
     {
         $sql = "SELECT
-                `nom_rel_rubro`.`id_relacion`
-                , `nom_rel_rubro`.`id_tipo`
-                , `nom_rel_rubro`.`r_admin`
-                , CONCAT_WS(' - ', `pto_admin`.`cod_pptal`
-                , `pto_admin`.`nom_rubro`) AS `nom_admin`
-                , `pto_admin`.`tipo_dato` AS `tp_a`
-                , `nom_rel_rubro`.`r_operativo`
-                , CONCAT_WS(' - ',`pto_operativo`.`cod_pptal`
-                , `pto_operativo`.`nom_rubro`) AS `nom_operativo`
-                , `pto_operativo`.`tipo_dato` AS `tp_o`
-                , `nom_rel_rubro`.`id_ccosto`
-            FROM
-                `nom_rel_rubro`
-                LEFT JOIN `pto_cargue` AS `pto_operativo`
-                    ON (`nom_rel_rubro`.`r_operativo` = `pto_operativo`.`id_cargue`)
-                LEFT JOIN `pto_cargue` AS `pto_admin`
-                    ON (`nom_rel_rubro`.`r_admin` = `pto_admin`.`id_cargue`)
-            WHERE (`nom_rel_rubro`.`id_relacion` = ?)";
+                    `nom_rel_rubro`.`id_relacion`
+                    , `nom_rel_rubro`.`id_tipo`
+                    , `nom_rel_rubro`.`r_admin`
+                    , CONCAT_WS(' - ', `pto_admin`.`cod_pptal`
+                    , `pto_admin`.`nom_rubro`) AS `nom_admin`
+                    , `pto_admin`.`tipo_dato` AS `tp_a`
+                    , `nom_rel_rubro`.`r_operativo`
+                    , CONCAT_WS(' - ',`pto_operativo`.`cod_pptal`
+                    , `pto_operativo`.`nom_rubro`) AS `nom_operativo`
+                    , `pto_operativo`.`tipo_dato` AS `tp_o`
+                    , `nom_rel_rubro`.`id_ccosto`
+                FROM
+                    `nom_rel_rubro`
+                    LEFT JOIN `pto_cargue` AS `pto_operativo`
+                        ON (`nom_rel_rubro`.`r_operativo` = `pto_operativo`.`id_cargue`)
+                    LEFT JOIN `pto_cargue` AS `pto_admin`
+                        ON (`nom_rel_rubro`.`r_admin` = `pto_admin`.`id_cargue`)
+                WHERE (`nom_rel_rubro`.`id_relacion` = ?)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
