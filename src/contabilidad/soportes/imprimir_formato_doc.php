@@ -305,7 +305,24 @@ try {
         }
         // consulto el tipo de control del documento
         $fecha = date('Y-m-d', strtotime($doc['fecha']));
-        include_once '../../financiero/encabezado_imp.php';
+        $reportes = new \Src\Common\Php\Clases\Reportes($cmd);
+        $user = new \Src\Usuarios\Login\Php\Clases\Usuario();
+        try {
+            $empresa = $user->getEmpresa();
+        } catch (PDOException $e) {
+            echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+        }
+        $html = $reportes->getEncabezado($empresa);
+        $config = $reportes->getConfigDoc($id_modulo, $fecha, $doc_fte);
+        extract($config);
+        $elabora = [
+            'nom_tercero' => isset($cdp['usuario_act']) && trim($cdp['usuario_act']) != ''
+                ? $cdp['usuario_act']
+                : (isset($cdp['usuario']) ? $cdp['usuario'] : ''),
+            'cargo' => isset($cdp['cargo']) ? $cdp['cargo'] : ''
+        ];
+        $tercero_nombre = isset($doc['nom_tercero']) ? $doc['nom_tercero'] : '';
+        $firmas = $reportes->getFormFirmas($elabora, $id_modulo, $fecha, $doc_fte, $tercero_nombre);
 
         $hora = date('H:i:s', strtotime($doc['fecha_reg']));
 

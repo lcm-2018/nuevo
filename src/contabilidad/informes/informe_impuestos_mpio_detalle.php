@@ -1,101 +1,119 @@
 ﻿<?php
+
+use Src\Usuarios\Login\Php\Clases\Usuario;
+
 session_start();
 set_time_limit(5600);
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-?>
-<!DOCTYPE html>
-<html lang="es">
 
-<head>
-    <meta http-equiv="Content-Type" content="text/HTML; charset=utf-8" />
-    <title>CONTAFACIL</title>
-    <style>
-        .text {
-            mso-number-format: "\@"
-        }
-    </style>
+$vigencia      = $_SESSION['vigencia'];
+$fecha_inicial = $_POST['fecha_inicial'];
+$fecha_corte   = $_POST['fecha_final'];
+$sede          = $_POST['id_tercero'];
 
-    <?php
-
-    header("Content-type: application/vnd.ms-excel charset=utf-8");
-    header("Content-Disposition: attachment; filename=Descuentos_municipio.xls");
-    header("Pragma: no-cache");
-    header("Expires: 0");
-
-    ?>
-</head>
-<?php
-$vigencia = $_SESSION['vigencia'];
-// estraigo las variables que llegan por post en json
-$fecha_inicial = $_POST['fec_inicial'];
-$fecha_corte = $_POST['fec_final'];
-$sede = $_POST['mpio'];
 function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
+
 include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
 $cmd = \Config\Clases\Conexion::getConexion();
-// consulto la tabla seg_terceros para obtener el id_tercero_api
+
+// Consulto el municipio (tercero) desde tb_terceros
 try {
     $sql = "SELECT
-                `seg_terceros`.`id_tercero_api`
+                `tb_terceros`.`nom_tercero`
+                , `tb_terceros`.`nit_tercero`
+                , `tb_terceros`.`id_tercero_api`
             FROM
-                `seg_terceros`
-            WHERE (`seg_terceros`.`id_tercero` = $sede);";
-    $res = $cmd->query($sql);
-
-    $tercero_api = $res->fetch();
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
-try {
-    $sql = "SELECT DISTINCT
-    `ctb_retencion_tipo`.`id_retencion_tipo`
-    , `ctb_causa_retencion`.`id_retencion` 
-    , `ctb_retenciones`.`nombre_retencion`
-FROM
-    `ctb_causa_retencion`
-    INNER JOIN `ctb_doc` 
-        ON (`ctb_causa_retencion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-    INNER JOIN `ctb_retenciones` 
-        ON (`ctb_retenciones`.`id_retencion` = `ctb_causa_retencion`.`id_retencion`)
-    INNER JOIN `ctb_retencion_tipo` 
-        ON (`ctb_retenciones`.`id_retencion_tipo` = `ctb_retencion_tipo`.`id_retencion_tipo`)
-WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` =3 AND `ctb_causa_retencion`.`id_terceroapi` = {$tercero_api['id_tercero_api']}
-    AND `ctb_doc`.`fecha` BETWEEN '$fecha_inicial' AND '$fecha_corte' )
-    GROUP BY `ctb_causa_retencion`.`id_retencion`, `ctb_causa_retencion`.`id_ctb_doc`;
-";
-    $res = $cmd->query($sql);
-    $retenciones = $res->fetchAll();
+                `tb_terceros`
+            WHERE (`tb_terceros`.`id_tercero_api` = $sede)";
+    $res     = $cmd->query($sql);
+    $tercero = $res->fetch();
     $res->closeCursor();
     unset($res);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-// Consutla para sobretasa
+
+// Consulto detalle de Rete ICA (id_retencion_tipo = 3)
+// Igual que el resumen pero agrupando también por el tercero del documento
 try {
-    $sql = "SELECT DISTINCT
-    `ctb_retencion_tipo`.`id_retencion_tipo`
-    , `ctb_causa_retencion`.`id_retencion` 
-    , `ctb_retenciones`.`nombre_retencion`
-FROM
-    `ctb_causa_retencion`
-    INNER JOIN `ctb_doc` 
-        ON (`ctb_causa_retencion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-    INNER JOIN `ctb_retenciones` 
-        ON (`ctb_retenciones`.`id_retencion` = `ctb_causa_retencion`.`id_retencion`)
-    INNER JOIN `ctb_retencion_tipo` 
-        ON (`ctb_retenciones`.`id_retencion_tipo` = `ctb_retencion_tipo`.`id_retencion_tipo`)
-WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` =4 AND `ctb_causa_retencion`.`id_terceroapi` = {$tercero_api['id_tercero_api']}
-    AND `ctb_doc`.`fecha` BETWEEN '$fecha_inicial' AND '$fecha_corte')
-    GROUP BY `ctb_causa_retencion`.`id_retencion`, `ctb_causa_retencion`.`id_ctb_doc`;
-";
-    $res = $cmd->query($sql);
+    $sql = "SELECT
+                `ctb_retencion_tipo`.`id_retencion_tipo`
+                , `ctb_retenciones`.`nombre_retencion`
+                , `ctb_retencion_tipo`.`tipo`
+                , `ctb_retenciones`.`id_retencion`
+                , `ctb_pgcp`.`cuenta`
+                , `tb_terceros`.`nom_tercero`
+                , `tb_terceros`.`nit_tercero`
+                , SUM(`ctb_causa_retencion`.`valor_base`)      AS `base`
+                , SUM(`ctb_causa_retencion`.`valor_retencion`) AS `retencion`
+            FROM
+                `ctb_retenciones`
+                INNER JOIN `ctb_retencion_tipo`
+                    ON (`ctb_retenciones`.`id_retencion_tipo` = `ctb_retencion_tipo`.`id_retencion_tipo`)
+                INNER JOIN `ctb_retencion_rango`
+                    ON (`ctb_retencion_rango`.`id_retencion` = `ctb_retenciones`.`id_retencion`)
+                INNER JOIN `ctb_causa_retencion`
+                    ON (`ctb_causa_retencion`.`id_rango` = `ctb_retencion_rango`.`id_rango`)
+                INNER JOIN `ctb_doc`
+                    ON (`ctb_causa_retencion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
+                INNER JOIN `ctb_pgcp`
+                    ON (`ctb_retenciones`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
+                LEFT JOIN `tb_terceros`
+                    ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
+            WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` = 3
+                AND DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
+                AND `ctb_causa_retencion`.`id_terceroapi` = {$tercero['id_tercero_api']})
+            GROUP BY
+                `ctb_retenciones`.`nombre_retencion`
+                , `ctb_doc`.`id_tercero`";
+    $res        = $cmd->query($sql);
+    $causaciones = $res->fetchAll();
+    $res->closeCursor();
+    unset($res);
+} catch (PDOException $e) {
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+}
+
+// Consulto detalle de Sobretasa (id_retencion_tipo = 4)
+try {
+    $sql = "SELECT
+                `ctb_retencion_tipo`.`id_retencion_tipo`
+                , `ctb_retencion_tipo`.`tipo`
+                , `ctb_retenciones`.`nombre_retencion`
+                , `ctb_retenciones`.`id_retencion`
+                , `ctb_pgcp`.`cuenta`
+                , `tb_terceros`.`nom_tercero`
+                , `tb_terceros`.`nit_tercero`
+                , SUM(`ctb_causa_retencion`.`valor_base`)      AS base
+                , SUM(`ctb_causa_retencion`.`valor_retencion`) AS retencion
+            FROM
+                `ctb_retenciones`
+                INNER JOIN `ctb_retencion_tipo`
+                    ON (`ctb_retenciones`.`id_retencion_tipo` = `ctb_retencion_tipo`.`id_retencion_tipo`)
+                INNER JOIN `ctb_retencion_rango`
+                    ON (`ctb_retencion_rango`.`id_retencion` = `ctb_retenciones`.`id_retencion`)
+                INNER JOIN `ctb_causa_retencion`
+                    ON (`ctb_causa_retencion`.`id_rango` = `ctb_retencion_rango`.`id_rango`)
+                INNER JOIN `ctb_doc`
+                    ON (`ctb_causa_retencion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
+                INNER JOIN `ctb_pgcp`
+                    ON (`ctb_retenciones`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
+                LEFT JOIN `tb_terceros`
+                    ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
+            WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` = 4 AND `ctb_doc`.`estado` = 2
+                AND DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
+                AND `ctb_causa_retencion`.`id_terceroapi` = {$tercero['id_tercero_api']})
+            GROUP BY
+                `ctb_retenciones`.`nombre_retencion`
+                , `ctb_doc`.`id_tercero`";
+    $res       = $cmd->query($sql);
     $sobretasa = $res->fetchAll();
     $res->closeCursor();
     unset($res);
@@ -103,83 +121,33 @@ WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` =4 AND `ctb_causa_retencion`.`id
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 
-// consulto el nombre de la empresa de la tabla tb_datos_ips
-try {
-    $sql = "SELECT
-    `nombre`
-    , `nit`
-    , `dig_ver`
-FROM
-    `tb_datos_ips`;";
-    $res = $cmd->query($sql);
-    $empresa = $res->fetch();
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
-// Consulto los id de terceros creado en la tabla ctb_doc
-try {
-    $sql = "SELECT DISTINCT
-                `ctb_doc`.`id_tercero`
-            FROM
-                `ctb_doc`
-            WHERE ( `ctb_doc`.`id_tercero` > 0)";
-    $res = $cmd->query($sql);
-    $id_terceros = $res->fetchAll();
-    $res->closeCursor();
-    unset($res);
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
-$id_t[] = $tercero_api['id_tercero_api'];
-foreach ($id_terceros as $id) {
-    $id_t[] = $id['id_tercero'];
-}
-$terceros = getTerceros($ids, $cmd);
-$key = array_search($tercero_api['id_tercero_api'], array_column($terceros, 'id_tercero_api'));
-if ($key !== false) {
-    $tercero = $terceros[$key]['nom_tercero'];
-    $ccnit = $terceros[$key]['nit_tercero'];
-} else {
-    $tercero = '---';
-    $ccnit = '---';
-}
-
+$ips = (new Usuario())->getEmpresa();
 ?>
 <div class="contenedor bg-light" id="areaImprimir">
     <div class="px-2 " style="width:90% !important;margin: 0 auto;">
-        </br>
-        </br>
-        <table class="table-bordered bg-light" style="width:100% !important;">
-            <tr>
-                <td colspan="6" style="text-align:center"><?php echo ''; ?></td>
-            </tr>
 
+        <table class="table-bordered bg-light mt-3" style="width:100% !important; font-size: 80%;">
             <tr>
-                <td colspan="6" style="text-align:center"><?php echo '<h3>' . $empresa['nombre'] . '</h3>'; ?></td>
+                <td colspan="7" style="text-align:center"><?php echo $ips['nombre']; ?></td>
             </tr>
             <tr>
-                <td colspan="6" style="text-align:center"><?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></td>
+                <td colspan="7" style="text-align:center"><?php echo $ips['nit'] . '-' . $ips['dv']; ?></td>
             </tr>
             <tr>
-                <td colspan="6" style="text-align:center"><?php echo 'RELACION DE DESCUENTOS Y RETENCIONES DETALLADO'; ?></td>
-            </tr>
-            <tr>
-                <td colspan="6" style="text-align:center"></td>
-            </tr>
-            <tr>
-                <td colspan="6" style="text-align:center"><?php echo ''; ?></td>
+                <td colspan="7" style="text-align:center">RELACION DE DESCUENTOS Y RETENCIONES DETALLADO</td>
             </tr>
         </table>
         </br>
         </br>
-        <table class="table-bordered bg-light" style="width:100% !important;">
+
+        <table class="table-bordered bg-light" style="width:100% !important; font-size: 80%;">
             <tr>
                 <td>MUNICIPIO</td>
-                <td style='text-align: left;'><?php echo $tercero; ?></td>
+                <td style='text-align: left;'><?php echo $tercero['nom_tercero']; ?></td>
             </tr>
             <tr>
                 <td>NIT</td>
-                <td style='text-align: left;'><?php echo $ccnit; ?></td>
+                <td style='text-align: left;'><?php echo $tercero['nit_tercero']; ?></td>
             </tr>
             <tr>
                 <td>FECHA INICIO</td>
@@ -190,151 +158,94 @@ if ($key !== false) {
                 <td style='text-align: left;'><?php echo $fecha_corte; ?></td>
             </tr>
         </table>
-        </br> &nbsp;
+        </br>&nbsp;
         </br>
-        <?php
 
-        foreach ($retenciones as $tp) {
-            $total_base =   0;
-            $total_ret = 0;
-            $pago = 0;
-            // Conulto los pagos que se realizaron retenciones
-            $sql = "SELECT
-                `ctb_doc`.`id_manu`
-                , `ctb_doc`.`id_tercero`
-                , `ctb_causa_retencion`.`valor_base`
-                , `ctb_causa_retencion`.`valor_retencion`
-                , `ctb_doc`.`fecha`
-                , `ctb_retencion_tipo`.`id_retencion_tipo`
-                , `ctb_doc`.`id_ctb_doc`
-            FROM
-                `ctb_causa_retencion`
-                INNER JOIN `ctb_doc` 
-                    ON (`ctb_causa_retencion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                INNER JOIN `ctb_retenciones` 
-                    ON (`ctb_retenciones`.`id_retencion` = `ctb_causa_retencion`.`id_retencion`)
-                INNER JOIN `ctb_retencion_tipo` 
-                    ON (`ctb_retenciones`.`id_retencion_tipo` = `ctb_retencion_tipo`.`id_retencion_tipo`)
-            WHERE (`ctb_causa_retencion`.`id_retencion` ={$tp['id_retencion']}
-                AND `ctb_causa_retencion`.`id_terceroapi` ={$tercero_api['id_tercero_api']}
-                AND `ctb_doc`.`fecha` BETWEEN '$fecha_inicial' AND '$fecha_corte');";
-            $res = $cmd->query($sql);
-            $pagos_realizados = $res->fetchAll();
-            $res->closeCursor();
-            unset($res);
-
-            // Iniciar la tabla
-            echo "<h4>" . strtoupper($tp['nombre_retencion']) . "</h4>";
-            echo '<table class="table-bordered bg-light" style="width:100% !important;" border=1>
-                    <tr>
-                        <td>Comprobante</td>
-                        <td>Fecha</td>
-                        <td>Nombre</td>
-                        <td>CC / Nit</td>
-                        <td>Valor base</td>
-                        <td>Valor pago</td>
-                    </tr>';
-            // recorrer pagos realizados con for
-
-            foreach ($pagos_realizados as $pr) {
-
-                // Nombres terceros
-                $key = array_search($pr['id_tercero'], array_column($terceros, 'id_tercero_api'));
-                $nom_ter =  $key !== false ? $terceros[$key]['nom_tercero'] : '---';
-                $ced_ter =  $key !== false ? $terceros[$key]['nit_tercero'] : '---';
-                $fecha = date('Y-m-d', strtotime($pr['fecha']));
+        <!-- Tabla detalle Rete ICA -->
+        <table class="table-bordered bg-light" style="width:100% !important; font-size: 80%;" border=1>
+            <tr>
+                <td>Tipo de retenci&oacute;n</td>
+                <td>Cuenta</td>
+                <td>Retenci&oacute;n aplicada</td>
+                <td>Nombre</td>
+                <td>CC / Nit</td>
+                <td>Base</td>
+                <td>Valor retenido</td>
+                <td>Valor pago</td>
+            </tr>
+            <?php
+            $total_base = 0;
+            $total_ret  = 0;
+            $total_pago = 0;
+            foreach ($causaciones as $rp) {
+                $pago = round($rp['retencion'], -3);
                 echo "<tr>
-                    <td class='text-end'>" . $pr['id_manu'] . "</td>
-                    <td class='text-end'>" . $fecha . "</td>
-                    <td class='text-end'>" . $nom_ter  . "</td>
-                    <td class='text'>" . $ced_ter . "</td>
-                    <td class='text-end'>" . number_format($pr['valor_base'], 2, ".", ",")  . "</td>
-                    <td class='text-end'>" . number_format($pr['valor_retencion'], 2, ".", ",")  . "</td>
-                    </tr>";
-                $total_base =   $total_base + $pr['valor_base'];
-                $total_ret = $total_ret + $pr['valor_retencion'];
+                    <td class='text-end'>"  . $rp['tipo']             . "</td>
+                    <td class='text'>"      . $rp['cuenta']           . "</td>
+                    <td class='text'>"      . $rp['nombre_retencion'] . "</td>
+                    <td class='text'>"      . ($rp['nom_tercero'] ?? '---') . "</td>
+                    <td class='text'>"      . ($rp['nit_tercero'] ?? '---') . "</td>
+                    <td class='text-end'>"  . number_format($rp['base'],      2, '.', ',') . "</td>
+                    <td class='text-end'>"  . number_format($rp['retencion'], 2, '.', ',') . "</td>
+                    <td class='text-end'>"  . number_format($pago,            2, '.', ',') . "</td>
+                  </tr>";
+                $total_base += $rp['base'];
+                $total_ret  += $rp['retencion'];
+                $total_pago += $pago;
             }
             echo "<tr>
-                <td class='text-end' colspan='4'> Total</td>
-                <td class='text-end'>" . number_format($total_base, 2, ".", ",")  . "</td>
-                <td class='text-end'>" . number_format($total_ret, 2, ".", ",")  . "</td>
-                </tr>
-                </table>
-                </br> &nbsp;
-                ";
-        }
+                    <td class='text-end' colspan='5'><strong>Total</strong></td>
+                    <td class='text-end'>" . number_format($total_base, 2, '.', ',') . "</td>
+                    <td class='text-end'>" . number_format($total_ret,  2, '.', ',') . "</td>
+                    <td class='text-end'>" . number_format($total_pago, 2, '.', ',') . "</td>
+                  </tr>";
+            ?>
+        </table>
+        &nbsp;&nbsp;&nbsp;
 
-        // ================================ ESPACIO PARA RETENCIONES DE SOBRETASA BOMBERIL =================================
-
-        foreach ($sobretasa as $tp) {
-            $total_base =   0;
-            $total_ret = 0;
-            $pago = 0;
-            // Conulto los pagos que se realizaron retenciones
-            $sql = "SELECT
-                `ctb_doc`.`id_manu`
-                , `ctb_doc`.`id_tercero`
-                , `ctb_causa_retencion`.`valor_base`
-                , `ctb_causa_retencion`.`valor_retencion`
-                , `ctb_doc`.`fecha`
-                , `ctb_retencion_tipo`.`id_retencion_tipo`
-                , `ctb_doc`.`id_ctb_doc`
-            FROM
-                `ctb_causa_retencion`
-                INNER JOIN `ctb_doc` 
-                    ON (`ctb_causa_retencion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                INNER JOIN `ctb_retenciones` 
-                    ON (`ctb_retenciones`.`id_retencion` = `ctb_causa_retencion`.`id_retencion`)
-                INNER JOIN `ctb_retencion_tipo` 
-                    ON (`ctb_retenciones`.`id_retencion_tipo` = `ctb_retencion_tipo`.`id_retencion_tipo`)
-            WHERE (`ctb_causa_retencion`.`id_retencion` ={$tp['id_retencion']}
-                AND `ctb_causa_retencion`.`id_terceroapi` ={$tercero_api['id_tercero_api']}
-                AND `ctb_doc`.`fecha` BETWEEN '$fecha_inicial' AND '$fecha_corte');";
-            $res = $cmd->query($sql);
-            $pagos_realizados = $res->fetchAll();
-            $res->closeCursor();
-            unset($res);
-
-            // Iniciar la tabla
-            echo "<h4>" . strtoupper($tp['nombre_retencion']) . "</h4>";
-            echo '<table class="table-bordered bg-light" style="width:100% !important;" border=1>
-                    <tr>
-                        <td>Comprobante</td>
-                        <td>Fecha</td>
-                        <td>Nombre</td>
-                        <td>CC / Nit</td>
-                        <td>Valor base</td>
-                        <td>Valor pago</td>
-                    </tr>';
-            // recorrer pagos realizados con for
-            foreach ($pagos_realizados as $pr) {
-                // Nombres terceros
-                $key = array_search($pr['id_tercero'], array_column($terceros, 'id_tercero_api'));
-                $nom_ter =  $key !== false ? $terceros[$key]['nom_tercero'] : '---';
-                $ced_ter =  $key !== false ? $terceros[$key]['nit_tercero'] : '---';
-                $fecha = date('Y-m-d', strtotime($pr['fecha']));
+        <!-- Tabla detalle Sobretasa -->
+        <table class="table-bordered bg-light" style="width:100% !important; font-size: 80%;" border=1>
+            <tr>
+                <td>Tipo de retenci&oacute;n</td>
+                <td>Cuenta</td>
+                <td>Retenci&oacute;n aplicada</td>
+                <td>Nombre</td>
+                <td>CC / Nit</td>
+                <td>Base</td>
+                <td>Valor retenido</td>
+                <td>Valor pago</td>
+            </tr>
+            <?php
+            $total_base = 0;
+            $total_ret  = 0;
+            $total_pago = 0;
+            foreach ($sobretasa as $rp) {
+                $pago = round($rp['retencion'], -3);
                 echo "<tr>
-                    <td class='text-end'>" . $pr['id_manu'] . "</td>
-                    <td class='text-end'>" . $fecha . "</td>
-                    <td class='text-end'>" . $nom_ter  . "</td>
-                    <td class='text'>" . $ced_ter . "</td>
-                    <td class='text-end'>" . number_format($pr['valor_base'], 2, ".", ",")  . "</td>
-                    <td class='text-end'>" . number_format($pr['valor_retencion'], 2, ".", ",")  . "</td>
-                    </tr>";
-                $total_base =   $total_base + $pr['valor_base'];
-                $total_ret = $total_ret + $pr['valor_retencion'];
+                    <td class='text-end'>"  . $rp['tipo']             . "</td>
+                    <td class='text'>"      . $rp['cuenta']           . "</td>
+                    <td class='text'>"      . $rp['nombre_retencion'] . "</td>
+                    <td class='text'>"      . ($rp['nom_tercero'] ?? '---') . "</td>
+                    <td class='text'>"      . ($rp['nit_tercero'] ?? '---') . "</td>
+                    <td class='text-end'>"  . number_format($rp['base'],      2, '.', ',') . "</td>
+                    <td class='text-end'>"  . number_format($rp['retencion'], 2, '.', ',') . "</td>
+                    <td class='text-end'>"  . number_format($pago,            2, '.', ',') . "</td>
+                  </tr>";
+                $total_base += $rp['base'];
+                $total_ret  += $rp['retencion'];
+                $total_pago += $pago;
             }
             echo "<tr>
-                <td class='text-end' colspan='3'> Total</td>
-                <td class='text-end'>" . number_format($total_base, 2, ".", ",")  . "</td>
-                <td class='text-end'>" . number_format($total_ret, 2, ".", ",")  . "</td>
-                </tr>
-                </table>
-                </br> &nbsp;
-                ";
-        }
-        ?>
+                    <td class='text-end' colspan='5'><strong>Total</strong></td>
+                    <td class='text-end'>" . number_format($total_base, 2, '.', ',') . "</td>
+                    <td class='text-end'>" . number_format($total_ret,  2, '.', ',') . "</td>
+                    <td class='text-end'>" . number_format($total_pago, 2, '.', ',') . "</td>
+                  </tr>";
+            ?>
+        </table>
+        </br>
+        </br>
+        </br>
+
     </div>
 </div>
-
-</html>

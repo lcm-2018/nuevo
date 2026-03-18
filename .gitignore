@@ -6,3 +6,4 @@ config/smtp_config.php
 
 # Ignorar carpeta de logs
 logs/
+scripts/

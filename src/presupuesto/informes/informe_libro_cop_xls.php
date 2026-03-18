@@ -129,13 +129,13 @@ include_once '../../financiero/encabezado_empresa.php';
             $fecha = date('Y-m-d', strtotime($rp['fec_cop']));
             $saldo = $rp['valor_cop'] - $rp['valor_pag'];
             echo "<tr>
-                    <td style='text-align:left'>" . $rp['no_cop'] . "</td>
-                    <td style='text-align:left'>" . $rp['no_crp'] . "</td>
+                    <td style='text-align:left;mso-number-format:\@;'>" . $rp['no_cop'] . "</td>
+                    <td style='text-align:left;mso-number-format:\@;'>" . $rp['no_crp'] . "</td>
                     <td style='text-align:left;white-space: nowrap;'>" . $fecha . "</td>
                     <td style='text-align:left'>" . $tercero . "</td>
-                    <td style='text-align:right'>" . $ccnit . "</td>
+                    <td style='text-align:right;mso-number-format:\@;'>" . $ccnit . "</td>
                     <td style='text-align:left'>" . $rp['detalle'] . "</td>
-                    <td style='text-align:left'>" . $rp['rubro'] . "</td>
+                    <td style='text-align:left;mso-number-format:\@;'>" . $rp['rubro'] . "</td>
                     <td style='text-align:left'>" . $rp['nom_rubro'] . "</td>
                     <td style='text-align:right'>" . number_format($rp['valor_cop'], 2, ".", ",") . "</td>
                     <td style='text-align:right'>" . number_format($saldo, 2, ".", ",") . "</td>

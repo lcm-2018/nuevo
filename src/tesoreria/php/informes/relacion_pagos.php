@@ -26,65 +26,126 @@ function calcularDV($nit)
 // extraigo las variables que llegan por post
 $fecha_inicial = $_POST['fec_ini'];
 $fecha_corte = $_POST['fec_fin'];
+// pto=1 => con presupuesto (pag->cop->crp->cdp->rubro), pto=0 => solo causacion sin presupuesto
+$pto = isset($_POST['pto']) ? intval($_POST['pto']) : 1;
 
 $cmd = \Config\Clases\Conexion::getConexion();
 try {
-    $sql = "SELECT
-        `pag`.`id_ctb_doc` AS `id_egreso`
-        , `cop`.`id_ctb_doc` AS `id_causacion`
-        , `doc_egreso`.`id_manu` AS `no_egreso`
-        , `doc_egreso`.`detalle`
-        , DATE_FORMAT(`doc_egreso`.`fecha`,'%Y-%m-%d') AS `fecha`
-        , `doc_causacion`.`id_manu` AS `no_causacion`
-        , `tt`.`nit_tercero`
-        , `tt`.`nom_tercero`
-        , `ttd`.`codigo_ne` AS `tipo_doc`
-        , `rubro`.`cod_pptal`
-        , `rubro`.`nom_rubro`
-        , SUM(IFNULL(`pag`.`valor`,0) - IFNULL(`pag`.`valor_liberado`,0)) AS `val_bruto`
-        , IFNULL(`ret`.`valor_retencion`, 0) AS `retencion_causacion`
-        , `cta`.`numero` AS `cta_bancaria`
-        , `pgcp`.`cuenta` AS `cod_contable`
-    FROM
-        `pto_pag_detalle` AS `pag`
-        INNER JOIN `ctb_doc` AS `doc_egreso` 
-            ON (`pag`.`id_ctb_doc` = `doc_egreso`.`id_ctb_doc`)
-        INNER JOIN `pto_cop_detalle` AS `cop` 
-            ON (`pag`.`id_pto_cop_det` = `cop`.`id_pto_cop_det`)
-        INNER JOIN `ctb_doc` AS `doc_causacion` 
-            ON (`cop`.`id_ctb_doc` = `doc_causacion`.`id_ctb_doc`)
-        LEFT JOIN `pto_crp_detalle` AS `crp` 
-            ON (`cop`.`id_pto_crp_det` = `crp`.`id_pto_crp_det`)
-        LEFT JOIN `pto_cdp_detalle` AS `cdp` 
-            ON (`crp`.`id_pto_cdp_det` = `cdp`.`id_pto_cdp_det`)
-        LEFT JOIN `pto_cargue` AS `rubro` 
-            ON (`cdp`.`id_rubro` = `rubro`.`id_cargue`)
-        LEFT JOIN `tb_terceros` AS `tt` 
-            ON (`pag`.`id_tercero_api` = `tt`.`id_tercero_api`)
-        LEFT JOIN `tb_tipos_documento` AS `ttd` 
-            ON (`tt`.`tipo_doc` = `ttd`.`id_tipodoc`)
-        LEFT JOIN `tes_detalle_pago` AS `det_pago` 
-            ON (`det_pago`.`id_ctb_doc` = `doc_egreso`.`id_ctb_doc`)
-        LEFT JOIN `tes_cuentas` AS `cta` 
-            ON (`det_pago`.`id_tes_cuenta` = `cta`.`id_tes_cuenta`)
-        LEFT JOIN (
-            SELECT `id_ctb_doc`, SUM(`valor_retencion`) AS `valor_retencion` 
-            FROM `ctb_causa_retencion` 
-            GROUP BY `id_ctb_doc`
-        ) AS `ret` 
-            ON (`ret`.`id_ctb_doc` = `cop`.`id_ctb_doc`)
-        LEFT JOIN `ctb_libaux` AS `libaux` 
-            ON (`libaux`.`id_ctb_doc` = `doc_egreso`.`id_ctb_doc` AND `libaux`.`credito` > 0)
-        LEFT JOIN `ctb_pgcp` AS `pgcp` 
-            ON (`libaux`.`id_cuenta` = `pgcp`.`id_pgcp`)
-    WHERE (
-        `doc_egreso`.`estado` = 2 
-        AND `doc_causacion`.`estado` = 2
-        AND DATE_FORMAT(`doc_egreso`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
-    )
-    GROUP BY `pag`.`id_ctb_doc`, `pag`.`id_tercero_api`, `pag`.`id_pto_cop_det`
-    ORDER BY `doc_egreso`.`fecha`, `doc_egreso`.`id_manu`";
-
+    if ($pto == 1) {
+        $join_crp  = "INNER JOIN `pto_crp_detalle` AS `crp` ON (`cop`.`id_pto_crp_det` = `crp`.`id_pto_crp_det`)";
+        $join_cdp  = "INNER JOIN `pto_cdp_detalle` AS `cdp` ON (`crp`.`id_pto_cdp_det` = `cdp`.`id_pto_cdp_det`)";
+        $join_rubro = "INNER JOIN `pto_cargue` AS `rubro` ON (`cdp`.`id_rubro` = `rubro`.`id_cargue`)";
+        $filtro_pto = "";
+        $sql = "SELECT
+            `pag`.`id_ctb_doc` AS `id_egreso`
+            , `cop`.`id_ctb_doc` AS `id_causacion`
+            , `doc_egreso`.`id_manu` AS `no_egreso`
+            , `doc_egreso`.`detalle`
+            , DATE_FORMAT(`doc_egreso`.`fecha`,'%Y-%m-%d') AS `fecha`
+            , `doc_causacion`.`id_manu` AS `no_causacion`
+            , `tt`.`nit_tercero`
+            , `tt`.`nom_tercero`
+            , `ttd`.`codigo_ne` AS `tipo_doc`
+            , `rubro`.`cod_pptal`
+            , `rubro`.`nom_rubro`
+            , (IFNULL(`pag`.`valor`,0) - IFNULL(`pag`.`valor_liberado`,0)) AS `val_bruto`
+            , IFNULL(`ret`.`valor_retencion`, 0) AS `retencion_causacion`
+            , `det_pago`.`cta_bancaria`
+            , `libaux`.`cod_contable`
+        FROM
+            `pto_pag_detalle` AS `pag`
+            INNER JOIN `ctb_doc` AS `doc_egreso` 
+                ON (`pag`.`id_ctb_doc` = `doc_egreso`.`id_ctb_doc`)
+            INNER JOIN `pto_cop_detalle` AS `cop` 
+                ON (`pag`.`id_pto_cop_det` = `cop`.`id_pto_cop_det`)
+            INNER JOIN `ctb_doc` AS `doc_causacion` 
+                ON (`cop`.`id_ctb_doc` = `doc_causacion`.`id_ctb_doc`)
+            $join_crp
+            $join_cdp
+            $join_rubro
+            LEFT JOIN `tb_terceros` AS `tt` 
+                ON (`pag`.`id_tercero_api` = `tt`.`id_tercero_api`)
+            LEFT JOIN `tb_tipos_documento` AS `ttd` 
+                ON (`tt`.`tipo_doc` = `ttd`.`id_tipodoc`)
+            LEFT JOIN (
+                SELECT `id_ctb_doc`, GROUP_CONCAT(`cta`.`numero` SEPARATOR ', ') AS `cta_bancaria`
+                FROM `tes_detalle_pago` AS `dp`
+                INNER JOIN `tes_cuentas` AS `cta` ON (`dp`.`id_tes_cuenta` = `cta`.`id_tes_cuenta`)
+                GROUP BY `dp`.`id_ctb_doc`
+            ) AS `det_pago` 
+                ON (`det_pago`.`id_ctb_doc` = `doc_egreso`.`id_ctb_doc`)
+            LEFT JOIN (
+                SELECT `id_ctb_doc`, SUM(`valor_retencion`) AS `valor_retencion` 
+                FROM `ctb_causa_retencion` 
+                GROUP BY `id_ctb_doc`
+            ) AS `ret` 
+                ON (`ret`.`id_ctb_doc` = `cop`.`id_ctb_doc`)
+            LEFT JOIN (
+                SELECT `la`.`id_ctb_doc`, GROUP_CONCAT(DISTINCT `pg`.`cuenta` SEPARATOR ', ') AS `cod_contable`
+                FROM `ctb_libaux` AS `la`
+                INNER JOIN `ctb_pgcp` AS `pg` ON (`la`.`id_cuenta` = `pg`.`id_pgcp`)
+                WHERE `la`.`credito` > 0
+                GROUP BY `la`.`id_ctb_doc`
+            ) AS `libaux` 
+                ON (`libaux`.`id_ctb_doc` = `doc_egreso`.`id_ctb_doc`)
+        WHERE (
+            `doc_egreso`.`estado` = 2 
+            AND `doc_causacion`.`estado` = 2
+            AND DATE_FORMAT(`doc_egreso`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
+            $filtro_pto
+        )
+        ORDER BY `doc_egreso`.`fecha`, `doc_egreso`.`id_manu`";
+    } else { // pto == 0
+        $sql = "SELECT
+                    `doc_egreso`.`id_ctb_doc` AS `id_egreso`,
+                    NULL AS `id_causacion`,
+                    `doc_egreso`.`id_manu` AS `no_egreso`,
+                    `doc_egreso`.`detalle`,
+                    DATE_FORMAT(`doc_egreso`.`fecha`, '%Y-%m-%d') AS `fecha`,
+                    NULL AS `no_causacion`,
+                    `tt`.`nit_tercero`,
+                    `tt`.`nom_tercero`,
+                    `ttd`.`codigo_ne` AS `tipo_doc`,
+                    NULL AS `cod_pptal`,
+                    NULL AS `nom_rubro`,
+                    `libaux`.`valor` AS `val_bruto`,
+                    0 AS `retencion_causacion`,
+                    `det_pago`.`cta_bancaria`,
+                    `libaux`.`cod_contable`
+                FROM
+                    `ctb_doc` AS `doc_egreso`
+                LEFT JOIN `pto_pag_detalle` AS `pag`
+                    ON (`pag`.`id_ctb_doc` = `doc_egreso`.`id_ctb_doc`)
+                INNER JOIN (
+                    SELECT
+                        `la`.`id_ctb_doc`,
+                        GROUP_CONCAT(DISTINCT `pg`.`cuenta` SEPARATOR ', ') AS `cod_contable`,
+                        SUM(`la`.`credito`) AS `valor`
+                    FROM `ctb_libaux` `la`
+                    INNER JOIN `ctb_pgcp` `pg`
+                        ON (`pg`.`id_pgcp` = `la`.`id_cuenta`)
+                    WHERE `la`.`credito` > 0
+                    GROUP BY `la`.`id_ctb_doc`
+                ) AS `libaux`
+                    ON (`libaux`.`id_ctb_doc` = `doc_egreso`.`id_ctb_doc`)
+                LEFT JOIN `tb_terceros` AS `tt`
+                    ON (`doc_egreso`.`id_tercero` = `tt`.`id_tercero_api`)
+                LEFT JOIN `tb_tipos_documento` AS `ttd`
+                    ON (`tt`.`tipo_doc` = `ttd`.`id_tipodoc`)
+                LEFT JOIN (
+                    SELECT `id_ctb_doc`, GROUP_CONCAT(`cta`.`numero` SEPARATOR ', ') AS `cta_bancaria`
+                    FROM `tes_detalle_pago` AS `dp`
+                    INNER JOIN `tes_cuentas` AS `cta` ON (`dp`.`id_tes_cuenta` = `cta`.`id_tes_cuenta`)
+                    GROUP BY `dp`.`id_ctb_doc`
+                ) AS `det_pago`
+                    ON (`det_pago`.`id_ctb_doc` = `doc_egreso`.`id_ctb_doc`)
+                WHERE
+                    `doc_egreso`.`id_tipo_doc` = 4 AND
+                    `doc_egreso`.`estado` = 2 AND
+                    DATE_FORMAT(`doc_egreso`.`fecha`, '%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte' AND
+                    `pag`.`id_pto_pag_det` IS NULL
+                ORDER BY `doc_egreso`.`fecha`, `doc_egreso`.`id_manu`";
+    }
     $res = $cmd->query($sql);
     $datos = $res->fetchAll();
     $res->closeCursor();
@@ -171,14 +232,14 @@ include_once '../../../financiero/encabezado_empresa.php';
                     <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['fecha'] . '</td>
                     <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['no_causacion'] . '</td>
                     <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['tipo_doc'] . '</td>
-                    <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['nit_tercero'] . '</td>
+                    <td style="text-align:center; border:#A9A9A9 1px solid; mso-number-format:\@;">' . $row['nit_tercero'] . '</td>
                     <td style="text-align:center; border:#A9A9A9 1px solid;">' . calcularDV($row['nit_tercero']) . '</td>
                     <td style="text-align:left; border:#A9A9A9 1px solid;">' . mb_strtoupper($row['nom_tercero']) . '</td>
-                    <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['cod_pptal'] . '</td>
+                    <td style="text-align:right; border:#A9A9A9 1px solid; mso-number-format:\@;">' . $row['cod_pptal'] . '</td>
                     <td style="text-align:left; border:#A9A9A9 1px solid;">' . mb_strtoupper($row['nom_rubro']) . '</td>
-                    <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['cod_contable'] . '</td>
+                    <td style="text-align:center; border:#A9A9A9 1px solid; mso-number-format:\@;">' . $row['cod_contable'] . '</td>
                     <td style="text-align:left; border:#A9A9A9 1px solid;">' . mb_strtoupper($row['detalle']) . '</td>
-                    <td style="text-align:center; border:#A9A9A9 1px solid;">' . $row['cta_bancaria'] . '</td>
+                    <td style="text-align:center; border:#A9A9A9 1px solid; mso-number-format:\@;">' . $row['cta_bancaria'] . '</td>
                     <td style="text-align:right; border:#A9A9A9 1px solid;">' . number_format($row['val_bruto'], 2) . '</td>
                     <td style="text-align:right; border:#A9A9A9 1px solid;">' . number_format($deduccion, 2) . '</td>
                     <td style="text-align:right; border:#A9A9A9 1px solid;">' . number_format($val_neto, 2) . '</td>

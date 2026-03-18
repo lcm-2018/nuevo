@@ -101,7 +101,24 @@ $enletras = numeroLetras($total);
 $fecha = date('Y-m-d', strtotime($cdp['fecha']));
 $id_modulo = 54;
 $doc_fte = 'MOD';
-include '../../financiero/encabezado_imp.php';
+$user = new \Src\Usuarios\Login\Php\Clases\Usuario();
+$reportes = new \Src\Common\Php\Clases\Reportes($cmd);
+try {
+    $empresa = $user->getEmpresa();
+} catch (PDOException $e) {
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+}
+$html = $reportes->getEncabezado($empresa);
+$config = $reportes->getConfigDoc($id_modulo, $fecha, $doc_fte);
+extract($config);
+$elabora = [
+    'nom_tercero' => isset($cdp['usuario_act']) && trim($cdp['usuario_act']) != ''
+        ? $cdp['usuario_act']
+        : (isset($cdp['usuario']) ? $cdp['usuario'] : ''),
+    'cargo' => isset($cdp['cargo']) ? $cdp['cargo'] : ''
+];
+$tercero_nombre = isset($tercero) ? $tercero : '';
+$firmas = $reportes->getFormFirmas($elabora, $id_modulo, $fecha, $doc_fte, $tercero_nombre);
 ?>
 <div class="text-end py-3">
     <a type="button" class="btn btn-primary btn-sm" onclick="imprSelecMod('areaImprimir',<?= $dto ?>);"> Imprimir</a>

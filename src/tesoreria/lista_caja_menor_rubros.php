@@ -1,4 +1,7 @@
 <?php
+
+use Src\Common\Php\Clases\Permisos;
+
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
@@ -9,7 +12,13 @@ include '../financiero/consultas.php';
 
 $id_caja = isset($_POST['id_caja'])  ? $_POST['id_caja'] : exit('Acceso no permitido');
 $id_detalle = isset($_POST['id_detalle']) ? $_POST['id_detalle'] : 0;
+$id_vigencia = $_SESSION['id_vigencia'];
 
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
@@ -25,7 +34,7 @@ try {
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
     $sql = "SELECT
@@ -50,7 +59,7 @@ try {
         $max = 0;
     }
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
     $sql = "SELECT
@@ -80,7 +89,7 @@ try {
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
 //detalle 
@@ -111,7 +120,7 @@ try {
     $rs = $cmd->query($sql);
     $detalle = $rs->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
 try {
@@ -125,7 +134,7 @@ try {
     $rs = $cmd->query($sql);
     $pto = $rs->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
 if (empty($detalle)) {
@@ -210,13 +219,20 @@ if (empty($detalle)) {
             <tbody>
                 <?php
                 foreach ($rubros as $r) {
-                    $editar = '<a class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow"  onclick="EditRubroCaja(' . $r['id_caja_rubros'] . ')"><span class="fas fa-pencil-alt"></span></a>';
+                    $editar = '';
+                    $eliminar = '';
+                    if ($permisos->PermisosUsuario($opciones, 5604, 3) || $id_rol == 1) {
+                        $editar = '<a class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow"  onclick="EditRubroCaja(' . $r['id_caja_rubros'] . ')"><span class="fas fa-pencil-alt"></span></a>';
+                    }
+                    if ($permisos->PermisosUsuario($opciones, 5604, 4) || $id_rol == 1) {
+                        $eliminar = '<a class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow"  onclick="EliminarRubroCaja(' . $r['id_caja_rubros'] . ')"><span class="fas fa-trash-alt"></span></a>';
+                    }
                     echo '<tr>';
                     echo '<td>' . $r['concepto'] . '</td>';
                     echo '<td>' . $r['cod_pptal'] . ' - ' . $r['nom_rubro'] . '</td>';
                     echo '<td>' . $r['cuenta'] . ' - ' . $r['nombre'] . '</td>';
                     echo '<td class="text-end">' . number_format($r['valor'], 2, ',', '.') . '</td>';
-                    echo '<td class="text-center">' . $editar . '</td>';
+                    echo '<td class="text-center">' . $editar . $eliminar . '</td>';
                     echo '</tr>';
                 }
                 ?>

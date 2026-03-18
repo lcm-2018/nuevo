@@ -510,6 +510,45 @@ class Nomina
         return $result;
     }
 
+    /**
+     * Igual que getParamLiq pero recibe el id_vigencia directamente.
+     * Útil para certificaciones de períodos distintos al de la sesión activa.
+     * @param int $id_vigencia
+     * @return array  [ ['id_concepto'=>X, 'valor'=>Y], ... ]
+     */
+    public static function getParamLiqPorVigencia(int $id_vigencia): array
+    {
+        $sql = "SELECT `id_concepto`, `valor`
+                FROM `nom_valxvigencia`
+                WHERE `id_vigencia` = ?
+                ORDER BY `id_concepto` ASC";
+        $stmt = Conexion::getConexion()->prepare($sql);
+        $stmt->bindValue(1, $id_vigencia, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $result;
+    }
+
+    /**
+     * Obtiene el id_vigencia a partir del año (vigencia).
+     * @param string|int $anio  Ej: 2024
+     * @return int id_vigencia o 0 si no existe
+     */
+    public static function getIdVigenciaPorAnio($anio): int
+    {
+        $sql = "SELECT `id_vigencia` FROM `nom_vigencia`
+                WHERE `vigencia` = ? LIMIT 1";
+        $stmt = Conexion::getConexion()->prepare($sql);
+        $stmt->bindValue(1, intval($anio), PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return $row ? intval($row['id_vigencia']) : 0;
+    }
+
     public function cambiaEstado($id_nomina, $estado)
     {
         try {
@@ -526,6 +565,16 @@ class Nomina
                 $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
                 $stmt2->bindValue(3, $id_nomina, PDO::PARAM_INT);
                 $stmt2->execute();
+
+                // Si se anula la nómina (estado=0), anular también todos los registros internos de liquidación
+                if (intval($estado) === 0) {
+                    $Anulacion = new Anulacion($this->conexion);
+                    $resAnula = $Anulacion->anulaRegistros(0, $id_nomina, 2);
+                    if ($resAnula != 'si') {
+                        return 'Se anuló la nómina pero hubo un error al anular los registros: ' . $resAnula;
+                    }
+                }
+
                 return 'si';
             } else {
                 return 'No se actualizó el estado de la nómina.';

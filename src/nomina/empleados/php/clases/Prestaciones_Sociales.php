@@ -9,6 +9,7 @@ use Config\Clases\Sesion;
 use PDO;
 use PDOException;
 use Exception;
+use Src\Common\Php\Clases\Valores;
 use Src\Nomina\Horas_extra\Php\Clases\Horas_Extra;
 use Src\Nomina\Liquidacion\Php\Clases\Liquidacion;
 use Src\Nomina\Liquidacion\Php\Clases\Nomina;
@@ -371,7 +372,7 @@ class Prestaciones_Sociales
                     }
 
                     //laborado 
-                    $valTotalLab = $laborado[$id_empleado] * ($param['salario'] / 30);
+                    $valTotalLab = Valores::Redondear($laborado[$id_empleado] * ($param['salario'] / 30));
                     $valAuxTrans = 0;
                     $valAuxAlim = 0;
                     $grepre = 0;

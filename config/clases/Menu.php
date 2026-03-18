@@ -95,11 +95,14 @@ class Menu
 
         // --- SECCIÓN: REPORTES ---
         $nom_reportes = '';
+        //$informes = "<li><a href='javascript:void(0)' class='nav-link text-info px-1 py-2 sombra'><i class='fas fa-chart-bar me-2 fa-fw'></i> Informes</a></li>";
+        $informes = '';
+
         if ($this->permisos->PermisosUsuario($this->opciones, 5106, 0) || $this->id_rol == 1) {
             $nom_reportes = $this->wrapCollapse('reporte-collapse', 'fas fa-file-invoice-dollar', 'Reportes', "
                 <li><a href='{$this->host}/src/nomina/electronica/php/index.php' class='nav-link text-primary px-1 py-2 sombra'><i class='fas fa-file-invoice-dollar me-2 fa-fw'></i> Soporte NE</a></li>
-                <li><a href='javascript:void(0)' class='nav-link text-success px-1 py-2 sombra'><i class='fas fa-certificate me-2 fa-fw'></i> Certificados</a></li>
-                <li><a href='javascript:void(0)' class='nav-link text-info px-1 py-2 sombra'><i class='fas fa-chart-bar me-2 fa-fw'></i> Informes</a></li>
+                <li><a href='{$this->host}/src/nomina/certificaciones/php/index.php' class='nav-link text-success px-1 py-2 sombra'><i class='fas fa-certificate me-2 fa-fw'></i> Certificados</a></li>
+                {$informes}
                 <li><a href='javascript:void(0)' class='nav-link text-muted px-1 py-2 sombra opcion_personalizado' txt_id_opcion='5199'><i class='fas fa-cogs me-2 fa-fw'></i> Inf. Personalizados</a></li>
             ", 'text-info');
         }

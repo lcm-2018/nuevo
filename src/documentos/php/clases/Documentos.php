@@ -172,7 +172,7 @@ class Documentos
     public function getRegistro($id)
     {
         $sql = "SELECT
-                    `id_modulo`,`id_doc_fte`,`version_doc`,DATE_FORMAT(`fecha_doc`, '%Y-%m-%d') AS `fecha_doc`,`estado`,`control_doc`,`acumula`,`costos`
+                    `id_modulo`,`id_doc_fte`,`version_doc`,DATE_FORMAT(`fecha_doc`, '%Y-%m-%d') AS `fecha_doc`,`estado`,`control_doc`,`acumula`,`costos`,`line_table`,`line_firma`,`ver_head`
                 FROM `fin_maestro_doc`
                 WHERE  `id_maestro`  = ?";
         $stmt = $this->conexion->prepare($sql);
@@ -191,7 +191,10 @@ class Documentos
                 'estado'       => 1,
                 'control_doc'  => '',
                 'acumula'      => 0,
-                'costos'       => 0
+                'costos'       => 0,
+                'line_table'   => 1,
+                'line_firma'   => 1,
+                'ver_head'     => 1
             ];
         }
         return $registro;
@@ -252,13 +255,25 @@ class Documentos
                                 </div>
                             </div>
                             <div class="row hide d-none mb-2">
-                                <div class="col-md-6">
+                                <div class="col-md-6 mb-2">
                                     <label for="acum" class="small text-muted">Acumula por Rubros</label>
                                     <input type="number" title="Acumula por Rubros" name="acum" id="acum" class="form-control form-control-sm bg-input" value="{$datos['acumula']}">
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6 mb-2">
                                     <label for="costos" class="small text-muted">Visualiza costos</label>
-                                    <input type="number" title="Visualiza costos" id="costos" name="costos" class=" form-control form-control-sm bg-input" value="{$datos['costos']}">
+                                    <input type="number" title="Visualiza costos" id="costos" name="costos" class="form-control form-control-sm bg-input" value="{$datos['costos']}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="lineTable" class="small text-muted">Línea tabla firmas</label>
+                                    <input type="number" title="Línea tabla firmas" id="lineTable" name="lineTable" class="form-control form-control-sm bg-input" value="{$datos['line_table']}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="lineFirma" class="small text-muted">Línea firma</label>
+                                    <input type="number" title="Línea firma" id="lineFirma" name="lineFirma" class="form-control form-control-sm bg-input" value="{$datos['line_firma']}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="verHead" class="small text-muted">Ver encabezado</label>
+                                    <input type="number" title="Ver encabezado" id="verHead" name="verHead" class="form-control form-control-sm bg-input" value="{$datos['ver_head']}">
                                 </div>
                             </div>
                         </form>
@@ -308,18 +323,21 @@ class Documentos
     {
         try {
             $sql = "INSERT INTO `fin_maestro_doc`
-                        (`id_modulo`,`id_doc_fte`,`version_doc`,`fecha_doc`,`control_doc`,`acumula`,`costos`,`id_user_reg`,`fecha_reg`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        (`id_modulo`,`id_doc_fte`,`version_doc`,`fecha_doc`,`control_doc`,`acumula`,`costos`,`line_table`,`line_firma`,`ver_head`,`id_user_reg`,`fecha_reg`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['slcModulo'], PDO::PARAM_INT);
-            $stmt->bindValue(2, $array['slcDocFte'], PDO::PARAM_INT);
-            $stmt->bindValue(3, $array['txtVersion'], PDO::PARAM_STR);
-            $stmt->bindValue(4, $array['datFecha'], PDO::PARAM_STR);
-            $stmt->bindValue(5, $array['slcControl'], PDO::PARAM_INT);
-            $stmt->bindValue(6, $array['acum'], PDO::PARAM_INT);
-            $stmt->bindValue(7, $array['costos'], PDO::PARAM_INT);
-            $stmt->bindValue(8, Sesion::IdUser(), PDO::PARAM_INT);
-            $stmt->bindValue(9, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->bindValue(1,  $array['slcModulo'],  PDO::PARAM_INT);
+            $stmt->bindValue(2,  $array['slcDocFte'],  PDO::PARAM_INT);
+            $stmt->bindValue(3,  $array['txtVersion'], PDO::PARAM_STR);
+            $stmt->bindValue(4,  $array['datFecha'],   PDO::PARAM_STR);
+            $stmt->bindValue(5,  $array['slcControl'], PDO::PARAM_INT);
+            $stmt->bindValue(6,  $array['acum'],       PDO::PARAM_INT);
+            $stmt->bindValue(7,  $array['costos'],     PDO::PARAM_INT);
+            $stmt->bindValue(8,  $array['lineTable'],  PDO::PARAM_INT);
+            $stmt->bindValue(9,  $array['lineFirma'],  PDO::PARAM_INT);
+            $stmt->bindValue(10, $array['verHead'],    PDO::PARAM_INT);
+            $stmt->bindValue(11, Sesion::IdUser(),     PDO::PARAM_INT);
+            $stmt->bindValue(12, Sesion::Hoy(),        PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
@@ -367,17 +385,20 @@ class Documentos
     {
         try {
             $sql = "UPDATE `fin_maestro_doc` 
-                        SET `id_modulo` = ?, `id_doc_fte` = ?, `version_doc` = ?, `fecha_doc` = ?, `control_doc` = ?, `acumula` = ?, `costos` = ?
+                        SET `id_modulo` = ?, `id_doc_fte` = ?, `version_doc` = ?, `fecha_doc` = ?, `control_doc` = ?, `acumula` = ?, `costos` = ?, `line_table` = ?, `line_firma` = ?, `ver_head` = ?
                     WHERE `id_maestro` = ?";
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['slcModulo'], PDO::PARAM_INT);
-            $stmt->bindValue(2, $array['slcDocFte'], PDO::PARAM_INT);
-            $stmt->bindValue(3, $array['txtVersion'], PDO::PARAM_STR);
-            $stmt->bindValue(4, $array['datFecha'], PDO::PARAM_STR);
-            $stmt->bindValue(5, $array['slcControl'], PDO::PARAM_INT);
-            $stmt->bindValue(6, $array['acum'], PDO::PARAM_INT);
-            $stmt->bindValue(7, $array['costos'], PDO::PARAM_INT);
-            $stmt->bindValue(8, $array['id'], PDO::PARAM_INT);
+            $stmt->bindValue(1,  $array['slcModulo'],  PDO::PARAM_INT);
+            $stmt->bindValue(2,  $array['slcDocFte'],  PDO::PARAM_INT);
+            $stmt->bindValue(3,  $array['txtVersion'], PDO::PARAM_STR);
+            $stmt->bindValue(4,  $array['datFecha'],   PDO::PARAM_STR);
+            $stmt->bindValue(5,  $array['slcControl'], PDO::PARAM_INT);
+            $stmt->bindValue(6,  $array['acum'],       PDO::PARAM_INT);
+            $stmt->bindValue(7,  $array['costos'],     PDO::PARAM_INT);
+            $stmt->bindValue(8,  $array['lineTable'],  PDO::PARAM_INT);
+            $stmt->bindValue(9,  $array['lineFirma'],  PDO::PARAM_INT);
+            $stmt->bindValue(10, $array['verHead'],    PDO::PARAM_INT);
+            $stmt->bindValue(11, $array['id'],         PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
                 $consulta = "UPDATE `fin_maestro_doc` 

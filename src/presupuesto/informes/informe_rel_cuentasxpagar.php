@@ -97,13 +97,13 @@ include_once 'encabezado_empresa.php';
         foreach ($obj_informe as $obj) { ?>
             <tr class="resaltar">
                 <td style="border:#A9A9A9 1px solid;"><?php echo $obj['fecha'] ?></td>
-                <td style="border:#A9A9A9 1px solid;"><?php echo $obj['id_manu_cdp'] ?></td>
-                <td style="border:#A9A9A9 1px solid;"><?php echo $obj['id_manu_crp'] ?></td>
-                <td style="border:#A9A9A9 1px solid; text-align:left;"> <?php echo mb_strtoupper($obj['num_contrato']) ?> </td>
+                <td style="border:#A9A9A9 1px solid;mso-number-format:\@;"><?php echo $obj['id_manu_cdp'] ?></td>
+                <td style="border:#A9A9A9 1px solid;mso-number-format:\@;"><?php echo $obj['id_manu_crp'] ?></td>
+                <td style="border:#A9A9A9 1px solid; text-align:left;mso-number-format:\@;"> <?php echo mb_strtoupper($obj['num_contrato']) ?> </td>
                 <td style="border:#A9A9A9 1px solid; text-align:left;" colspan="2"><?php echo mb_strtoupper($obj['nom_tercero']) ?></td>
-                <td style="border:#A9A9A9 1px solid;"><?php echo $obj['nit_tercero'] ?></td>
+                <td style="border:#A9A9A9 1px solid;mso-number-format:\@;"><?php echo $obj['nit_tercero'] ?></td>
                 <td style="border:#A9A9A9 1px solid;" colspan="2"><?php echo $obj['objeto'] ?></td>
-                <td style="border:#A9A9A9 1px solid; text-align:left"><?php echo $obj['cod_pptal'] ?></td>
+                <td style="border:#A9A9A9 1px solid; text-align:left;mso-number-format:\@;"><?php echo $obj['cod_pptal'] ?></td>
                 <td style="border:#A9A9A9 1px solid; text-align:right"><?php echo $obj['a_crp_menos_crpliberado'] ?></td>
                 <!--<td style="border:#A9A9A9 1px solid; text-align:right"><?php echo $obj['valor_liberado_crp'] ?></td>-->
                 <td style="border:#A9A9A9 1px solid; text-align:right"><?php echo $obj['b_valor_cop_detalle'] ?></td>

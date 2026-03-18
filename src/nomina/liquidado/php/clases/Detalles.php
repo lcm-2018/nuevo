@@ -45,9 +45,20 @@ class Detalles
             $where .= " AND `e`.`id_empleado` = {$array['id_empleado']}";
         }
 
+        if (isset($array['id_sede']) && (int)$array['id_sede'] > 0) {
+            $where .= " AND `e`.`sede_emp` = " . (int)$array['id_sede'];
+        }
+
         if (isset($array['search']) && $array['search'] != '') {
             $where .= " AND (`e`.`no_documento` LIKE '%{$array['search']}%' OR CONCAT_WS (' ',`e`.`nombre1`,`nombre2`,`apellido1`,`apellido2`) LIKE '%{$array['search']}%' OR `cargo`.`descripcion_carg` LIKE '%{$array['search']}%')";
         }
+
+        // Soporta id_nomina como int único (callers existentes) o array (multi-nómina)
+        $rawIds = isset($array['id_nomina']) ? $array['id_nomina'] : 0;
+        if (!is_array($rawIds)) $rawIds = [$rawIds];
+        $ids_in = implode(',', array_map('intval', array_filter($rawIds, function ($v) {
+            return intval($v) > 0;
+        }))) ?: '0';
 
         $sql = "WITH 
                     `bsp` AS 
@@ -205,7 +216,7 @@ class Detalles
                     `paraf` AS 
                         (SELECT `id_empleado`,`val_sena`,`val_icbf`,`val_comfam` FROM `nom_liq_parafiscales` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `nom` AS
-                        (SELECT `id_nomina`, `mes`, `tipo`, `estado` FROM `nom_nominas` WHERE `id_nomina` = :id_nomina),
+                        (SELECT `id_nomina`, `mes`, `tipo`, `estado` FROM `nom_nominas` WHERE `id_nomina` IN ($ids_in) LIMIT 1),
                     `indem` AS
                         (SELECT
                             `nom_indemniza_vac`.`id_empleado`
@@ -313,8 +324,9 @@ class Detalles
                     JOIN `nom`
                 WHERE (1 = 1 $where)
                 ORDER BY $col $dir $limit";
+        // Reemplaza todos los = :id_nomina por IN($ids_in) (excepto nom que ya se ajustó)
+        $sql = str_replace('= :id_nomina', "IN ($ids_in)", $sql);
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bindValue(':id_nomina', $array['id_nomina'], PDO::PARAM_INT);
         $stmt->execute();
         $datos = isset($array['id_empleado']) ? $stmt->fetch(PDO::FETCH_ASSOC) : $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
@@ -850,6 +862,47 @@ class Detalles
         return $html;
     }
 
+    public function getFormulario2($id_nomina)
+    {
+        $html =
+            <<<HTML
+                <div>
+                    <div class="shadow text-center rounded overflow-hidden">
+                        <div class="py-3" style="background-color: #16a085;">
+                            <h5 style="color: white; letter-spacing:1px;" class="mb-0 fw-bold">CARGAR FORMATO / AJUSTE A PLANILLA</h5>
+                        </div>
+                        <div class="p-4" style="background-color: #f4f6f8;">
+                            <form id="formPlanilla" enctype="multipart/form-data">
+                                <input type="hidden" name="id_nomina" id="id_nomina" value="{$id_nomina}">
+                                <p class="text-muted text-uppercase fw-semibold mb-2" style="font-size:0.8rem; letter-spacing:1px;">Documento</p>
+                                <div class="input-group mb-4 shadow-sm">
+                                    <label class="input-group-text btn btn-outline-secondary px-3" for="archivo_planilla" style="cursor:pointer; border-radius: 4px 0 0 4px;">
+                                        <span class="fas fa-folder-open me-1"></span> Seleccionar archivo
+                                    </label>
+                                    <input type="file" class="d-none" id="archivo_planilla" name="archivo_planilla" accept=".xlsx,.xls,.csv">
+                                    <input type="text" class="form-control" id="nombre_archivo_planilla" placeholder="Seleccione archivo .csv o .xlsx" readonly style="background:#fff; cursor:default;">
+                                </div>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button type="button" class="btn btn-primary btn-sm px-4" id="btnSubirPlanilla">
+                                        <span class="fas fa-upload me-1"></span> Subir
+                                    </button>
+                                    <button type="button" class="btn btn-warning btn-sm px-4" id="btnDescargarFormato">
+                                        <span class="fas fa-download me-1"></span> Formato
+                                    </button>
+                                    <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            HTML;
+        return $html;
+    }
+
+
+
     /**
      * Obtiene los datos para el reporte por concepto (Netos u otros conceptos)
      * 
@@ -889,7 +942,8 @@ class Detalles
                         IFNULL(`inc`.`pago_eps`, 0) +
                         IFNULL(`inc`.`pago_arl`, 0) +
                         IFNULL(`luto`.`valor`, 0) +
-                        IFNULL(`lmp`.`val_liq`, 0)
+                        IFNULL(`lmp`.`val_liq`, 0) +
+                        IFNULL(`viat`.`valor`, 0)
                         -- Deducciones
                         - IFNULL(`segs`.`aporte_salud_emp`, 0) 
                         - IFNULL(`segs`.`aporte_pension_emp`, 0) 
@@ -1000,6 +1054,13 @@ class Detalles
                         WHERE `nom_liq_descuento`.`estado` = 1 AND `nom_liq_descuento`.`id_nomina` = :id_nomina
                         GROUP BY `nom_otros_descuentos`.`id_empleado`
                     ) AS `dcto` ON (`sal`.`id_empleado` = `dcto`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `nom_viaticos`.`id_empleado`, SUM(`nom_liq_viaticos`.`valor`) AS `valor`
+                        FROM `nom_liq_viaticos`
+                        INNER JOIN `nom_viaticos` ON (`nom_liq_viaticos`.`id_viatico` = `nom_viaticos`.`id_viatico`)
+                        WHERE `nom_liq_viaticos`.`id_nomina` = :id_nomina AND `nom_liq_viaticos`.`estado` = 1
+                        GROUP BY `nom_viaticos`.`id_empleado`
+                    ) AS `viat` ON (`sal`.`id_empleado` = `viat`.`id_empleado`)
                 WHERE 
                     `sal`.`id_nomina` = :id_nomina AND `sal`.`estado` = 1
                 ORDER BY 

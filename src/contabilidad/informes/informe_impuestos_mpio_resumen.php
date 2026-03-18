@@ -1,4 +1,9 @@
 ﻿<?php
+
+use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Valores;
+use Src\Usuarios\Login\Php\Clases\Usuario;
+
 session_start();
 set_time_limit(5600);
 if (!isset($_SESSION['user'])) {
@@ -26,7 +31,7 @@ try {
                 , `tb_terceros`.`id_tercero_api`
             FROM
                 `tb_terceros`
-            WHERE (`tb_terceros`.`id_tercero_api` = $sede);";
+            WHERE (`tb_terceros`.`id_tercero_api` = $sede)";
     $res = $cmd->query($sql);
     $tercero = $res->fetch();
 } catch (PDOException $e) {
@@ -35,25 +40,29 @@ try {
 //Consulto descuentos de rete ICA
 try {
     $sql = "SELECT
-    `ctb_retencion_tipo`.`id_retencion_tipo`
-    , `ctb_retencion_tipo`.`tipo`
-    , `ctb_retenciones`.`nombre_retencion`
-    , `ctb_retenciones`.`id_retencion`
-    , SUM(`ctb_causa_retencion`.`valor_base`) AS base
-    , SUM(`ctb_causa_retencion`.`valor_retencion`) AS retencion
-FROM
-    `ctb_retenciones`
-    INNER JOIN `ctb_retencion_tipo` 
-        ON (`ctb_retenciones`.`id_retencion_tipo` = `ctb_retencion_tipo`.`id_retencion_tipo`)
-    INNER JOIN `ctb_causa_retencion` 
-        ON (`ctb_retenciones`.`id_retencion` = `ctb_causa_retencion`.`id_retencion`)
-    INNER JOIN `ctb_doc` 
-        ON (`ctb_causa_retencion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` =3
-    AND `ctb_doc`.`fecha` BETWEEN '$fecha_inicial' AND '$fecha_corte'
-    AND `ctb_causa_retencion`.`id_terceroapi` ={$tercero['id_tercero_api']})
-GROUP BY `ctb_retenciones`.`nombre_retencion`;
-            ";
+                `ctb_retencion_tipo`.`id_retencion_tipo`
+                , `ctb_retenciones`.`nombre_retencion`
+                , `ctb_retencion_tipo`.`tipo`
+                , `ctb_retenciones`.`id_retencion`
+                , `ctb_pgcp`.`cuenta`
+                , SUM(`ctb_causa_retencion`.`valor_base`) AS `base`
+                , SUM(`ctb_causa_retencion`.`valor_retencion`) AS `retencion`
+            FROM
+                `ctb_retenciones`
+                INNER JOIN `ctb_retencion_tipo` 
+                    ON (`ctb_retenciones`.`id_retencion_tipo` = `ctb_retencion_tipo`.`id_retencion_tipo`)
+                INNER JOIN `ctb_retencion_rango` 
+                    ON (`ctb_retencion_rango`.`id_retencion` = `ctb_retenciones`.`id_retencion`)
+                INNER JOIN `ctb_causa_retencion` 
+                    ON (`ctb_causa_retencion`.`id_rango` = `ctb_retencion_rango`.`id_rango`)
+                INNER JOIN `ctb_doc` 
+                    ON (`ctb_causa_retencion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
+                INNER JOIN `ctb_pgcp`
+                    ON (`ctb_retenciones`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
+            WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` = 3
+                AND DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
+                AND `ctb_causa_retencion`.`id_terceroapi` ={$tercero['id_tercero_api']})
+                GROUP BY `ctb_retenciones`.`nombre_retencion`";
     $res = $cmd->query($sql);
     $causaciones = $res->fetchAll();
     $res->closeCursor();
@@ -64,25 +73,29 @@ GROUP BY `ctb_retenciones`.`nombre_retencion`;
 //Consulto descuentos de sobretasa
 try {
     $sql = "SELECT
-    `ctb_retencion_tipo`.`id_retencion_tipo`
-    , `ctb_retencion_tipo`.`tipo`
-    , `ctb_retenciones`.`nombre_retencion`
-    , `ctb_retenciones`.`id_retencion`
-    , SUM(`ctb_causa_retencion`.`valor_base`) AS base
-    , SUM(`ctb_causa_retencion`.`valor_retencion`) AS retencion
-FROM
-    `ctb_retenciones`
-    INNER JOIN `ctb_retencion_tipo` 
-        ON (`ctb_retenciones`.`id_retencion_tipo` = `ctb_retencion_tipo`.`id_retencion_tipo`)
-    INNER JOIN `ctb_causa_retencion` 
-        ON (`ctb_retenciones`.`id_retencion` = `ctb_causa_retencion`.`id_retencion`)
-    INNER JOIN `ctb_doc` 
-        ON (`ctb_causa_retencion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` =4
-    AND DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
-    AND `ctb_causa_retencion`.`id_terceroapi` ={$tercero['id_tercero_api']})
-GROUP BY `ctb_retenciones`.`nombre_retencion`;
-            ";
+                `ctb_retencion_tipo`.`id_retencion_tipo`
+                , `ctb_retencion_tipo`.`tipo`
+                , `ctb_retenciones`.`nombre_retencion`
+                , `ctb_retenciones`.`id_retencion`
+                , `ctb_pgcp`.`cuenta`
+                , SUM(`ctb_causa_retencion`.`valor_base`) AS base
+                , SUM(`ctb_causa_retencion`.`valor_retencion`) AS retencion
+            FROM
+                `ctb_retenciones`
+                INNER JOIN `ctb_retencion_tipo` 
+                    ON (`ctb_retenciones`.`id_retencion_tipo` = `ctb_retencion_tipo`.`id_retencion_tipo`)
+                INNER JOIN `ctb_retencion_rango` 
+                    ON (`ctb_retencion_rango`.`id_retencion` = `ctb_retenciones`.`id_retencion`)
+                INNER JOIN `ctb_causa_retencion` 
+                    ON (`ctb_causa_retencion`.`id_rango` = `ctb_retencion_rango`.`id_rango`)
+                INNER JOIN `ctb_doc` 
+                    ON (`ctb_causa_retencion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
+                INNER JOIN `ctb_pgcp`
+                    ON (`ctb_retenciones`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
+            WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` = 4 AND `ctb_doc`.`estado` = 2
+                AND DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
+                AND `ctb_causa_retencion`.`id_terceroapi` ={$tercero['id_tercero_api']})
+            GROUP BY `ctb_retenciones`.`nombre_retencion`";
     $res = $cmd->query($sql);
     $sobretasa = $res->fetchAll();
     $res->closeCursor();
@@ -90,56 +103,32 @@ GROUP BY `ctb_retenciones`.`nombre_retencion`;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-try {
-    $sql = "SELECT
-    `nombre`
-    , `nit`
-    , `dig_ver`
-FROM
-    `tb_datos_ips`;";
-    $res = $cmd->query($sql);
-    $empresa = $res->fetch();
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
+$ips = (new Usuario())->getEmpresa();
 
 ?>
 <div class="contenedor bg-light" id="areaImprimir">
-    <div class="px-2 " style="width:90% !important;margin: 0 auto;">
-
-        </br>
-        </br>
-        <table class="table-bordered bg-light" style="width:100% !important;">
+    <div class="px-2 " style="width:100% !important;margin: 0 auto;">
+        <table class="table-bordered bg-light mt-3" style="width:100% !important; font-size: 80%;">
             <tr>
-                <td colspan="6" style="text-align:center"><?php echo ''; ?></td>
-            </tr>
-
-            <tr>
-                <td colspan="6" style="text-align:center"><?php echo $empresa['nombre']; ?></td>
+                <td colspan="6" style="text-align:center"><?php echo $ips['nombre']; ?></td>
             </tr>
             <tr>
-                <td colspan="6" style="text-align:center"><?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></td>
+                <td colspan="6" style="text-align:center"><?php echo $ips['nit'] . '-' . $ips['dv']; ?></td>
             </tr>
             <tr>
                 <td colspan="6" style="text-align:center"><?php echo 'RELACION DE DESCUENTOS Y RETENCIONES RESUMEN '; ?></td>
             </tr>
-            <tr>
-                <td colspan="6" style="text-align:center"></td>
-            </tr>
-            <tr>
-                <td colspan="6" style="text-align:center"><?php echo ''; ?></td>
-            </tr>
         </table>
         </br>
         </br>
-        <table class="table-bordered bg-light" style="width:100% !important;">
+        <table class="table-bordered bg-light" style="width:100% !important; font-size: 80%;">
             <tr>
                 <td>MUNICIPIO</td>
-                <td style='text-align: left;'><?php echo $tercero; ?></td>
+                <td style='text-align: left;'><?php echo $tercero['nom_tercero']; ?></td>
             </tr>
             <tr>
                 <td>NIT</td>
-                <td style='text-align: left;'><?php echo $ccnit; ?></td>
+                <td style='text-align: left;'><?php echo $tercero['nit_tercero'] ?></td>
             </tr>
             <tr>
                 <td>FECHA INICIO</td>
@@ -152,7 +141,7 @@ FROM
         </table>
         </br> &nbsp;
         </br>
-        <table class="table-bordered bg-light" style="width:100% !important;" border=1>
+        <table class="table-bordered bg-light" style="width:100% !important; font-size: 80%;" border=1>
             <tr>
                 <td>Tipo de retenci&oacute;n</td>
                 <td>Cuenta</td>
@@ -166,16 +155,11 @@ FROM
             $total_ret = 0;
             $total_pago =  0;
             foreach ($causaciones as $rp) {
-                // consulta la cuenta contable en ctb_libaux cuando id_rte sea igual a id_retencion
-                $sql = "SELECT `ctb_libaux`.`cuenta`  AS cuenta FROM `ctb_libaux` WHERE `ctb_libaux`.`id_rte` = {$rp['id_retencion']} LIMIT 1;";
-                $res = $cmd->query($sql);
-                $cta = $res->fetch();
-                $cuenta = $cta['cuenta'];
                 // redodear valor al mil mas cercano
                 $pago = round($rp['retencion'], -3);
                 echo "<tr>
                     <td class='text-end'>" . $rp['tipo'] . "</td>
-                    <td class='text'>" . $cuenta . "</td>
+                    <td class='text'>" . $rp['cuenta'] . "</td>
                     <td class='text'>" . $rp['nombre_retencion'] . "</td>
                     <td class='text-end'>" . number_format($rp['base'], 2, ".", ",")  . "</td>
                     <td class='text-end'>" . number_format($rp['retencion'], 2, ".", ",")  . "</td>
@@ -198,7 +182,7 @@ FROM
         &nbsp;
         &nbsp;
 
-        <table class="table-bordered bg-light" style="width:100% !important;" border=1>
+        <table class="table-bordered bg-light" style="width:100% !important; font-size: 80%;" border=1>
             <tr>
                 <td>Tipo de retenci&oacute;n</td>
                 <td>Cuenta</td>
@@ -212,17 +196,11 @@ FROM
             $total_ret = 0;
             $total_pago =  0;
             foreach ($sobretasa as $rp) {
-                // consulta la cuenta contable en ctb_libaux cuando id_rte sea igual a id_retencion
-                $sql = "SELECT `ctb_libaux`.`cuenta`  AS cuenta FROM `ctb_libaux` WHERE `ctb_libaux`.`id_rte` = {$rp['id_retencion']} LIMIT 1;";
-                $res = $cmd->query($sql);
-                $cta = $res->fetch();
-                $cuenta = $cta['cuenta'];
-
                 // redodear valor al mil mas cercano
                 $pago = round($rp['retencion'], -3);
                 echo "<tr>
                 <td class='text-end'>" . $rp['tipo'] . "</td>
-                <td class='text'>" . $cuenta . "</td>
+                <td class='text'>" . $rp['cuenta'] . "</td>
                 <td class='text'>" . $rp['nombre_retencion'] . "</td>
                 <td class='text-end'>" . number_format($rp['base'], 2, ".", ",") . "</td>
                 <td class='text-end'>" . number_format($rp['retencion'], 2, ".", ",") . "</td>
@@ -247,5 +225,3 @@ FROM
     </div>
 
 </div>
-
-</html>

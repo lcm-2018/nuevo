@@ -39,7 +39,7 @@ $datos = [];
 if (!empty($obj)) {
     foreach ($obj as $o) {
         $id = $o['id_nomina'];
-        $detalles = $borrar = $anular = $imprimir1 = $imprimir2 = $imprimir3 = $estado = $reportes = $editar = '';
+        $detalles = $dropdown_acciones = $imprimir1 = $imprimir2 = $imprimir3 = $estado = $reportes = $editar = '';
         if ($o['estado'] >= 2) {
             $estado = '<span class="badge bg-success">DEFINITIVA</span>';
         } elseif ($o['estado'] == 1) {
@@ -53,11 +53,28 @@ if (!empty($obj)) {
         if (($permisos->PermisosUsuario($opciones, 5101, 3) || $id_rol == 1) && $o['estado'] == 1) {
             $editar = '<button data-id="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle shadow me-1 editar" title="Editar Registro"><span class="fas fa-pencil-alt fa-sm"></span></button>';
         }
-        if (($permisos->PermisosUsuario($opciones, 5101, 4) || $id_rol == 1) && $o['estado'] == 1) {
-            $borrar = '<button data-id="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 borrar" title="Borrar Registro"><span class="fas fa-trash-alt fa-sm"></span></button>';
+        $opciones_dropdown = '';
+
+        if (($permisos->PermisosUsuario($opciones, 5101, 3) || $id_rol == 1) && $o['estado'] == 1) {
+            $opciones_dropdown .= '<li><a data-id="' . $id . '" class="dropdown-item cargar_planilla sombra" href="javascript:void(0);"><span class="fas fa-file-upload fa-sm text-primary"></span> Cargar Planilla</a></li>';
         }
         if (($permisos->PermisosUsuario($opciones, 5101, 5) || $id_rol == 1) && $o['estado'] == 1) {
-            $anular = '<button data-id="' . $id . '" class="btn btn-outline-secondary btn-xs rounded-circle shadow me-1 anular" title="Anular Registro"><span class="fas fa-ban fa-sm"></span></button>';
+            $opciones_dropdown .= '<li><a data-id="' . $id . '" class="dropdown-item anular sombra" href="javascript:void(0);"><span class="fas fa-ban fa-sm text-secondary"></span> Anular Registro</a></li>';
+        }
+        if (($permisos->PermisosUsuario($opciones, 5101, 4) || $id_rol == 1) && $o['estado'] == 1) {
+            $opciones_dropdown .= '<li><a data-id="' . $id . '" class="dropdown-item borrar sombra" href="javascript:void(0);"><span class="fas fa-trash-alt fa-sm text-danger"></span> Borrar Registro</a></li>';
+        }
+
+        if ($opciones_dropdown != '') {
+            $dropdown_acciones = '
+            <div class="dropdown d-inline-block">
+                <button class="btn btn-outline-secondary btn-xs rounded-circle shadow me-1" type="button" data-bs-toggle="dropdown" data-bs-boundary="window" data-bs-popper-config=\'{"strategy":"fixed"}\' aria-expanded="false" title="Más opciones">
+                    <span class="fas fa-ellipsis-v fa-sm"></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    ' . $opciones_dropdown . '
+                </ul>
+            </div>';
         }
         if (($permisos->PermisosUsuario($opciones, 5101, 6) || $id_rol == 1) && $o['estado'] >= 2) {
             $imprimir1 = '<button data-id="' . $id . '" text="M" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 imprimir" title="Solicitud de CDP"><span class="fas fa-print fa-sm"></span></button>';
@@ -79,7 +96,7 @@ if (!empty($obj)) {
             'mes'           =>  mb_strtoupper($o['nom_mes']),
             'tipo'          =>  mb_strtoupper($o['tipo']),
             'estado'        =>  '<div class="text-center">' . $estado . '</div>',
-            'accion'        =>  '<div class="text-center">' . $editar . $detalles . $borrar . $anular . $imprimir1 . $imprimir2 . $imprimir3 . $reportes . '</div>',
+            'accion'        =>  '<div class="text-center">' . $editar . $detalles . $imprimir1 . $imprimir2 . $imprimir3 .  $dropdown_acciones . $reportes . '</div>',
         ];
     }
 }

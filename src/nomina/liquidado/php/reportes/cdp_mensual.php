@@ -124,7 +124,8 @@ $html =
     </table>
     HTML;
 
-$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['vigencia'] . '-' . $nomina['mes'] . '-01', '');
+$mesPad = str_pad($nomina['mes'], 2, '0', STR_PAD_LEFT);
+$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['vigencia'] . '-' . $mesPad . '-01', 'CDP');
 
 $Imprimir = new Imprimir($documento, "letter");
 $Imprimir->addEncabezado($documento);

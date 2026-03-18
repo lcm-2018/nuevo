@@ -121,6 +121,7 @@ const tableRubroPto = crearDataTable(
     [
         { data: 'id' },
         { data: 'tipo' },
+        { data: 'ccosto' },
         { data: 'cod_ra' },
         { data: 'nom_ra' },
         { data: 'cod_ro' },
@@ -141,6 +142,13 @@ const tableRubroPto = crearDataTable(
     {
         pageLength: 10,
         order: [[0, 'desc']],
+        columnDefs: [
+            {
+                // Columna ccosto (índice 2): visible solo cuando caracter=1 y pto=1
+                targets: [2],
+                visible: (Number(opCaracterJS) === 1 && Number(opPtoJS) === 1)
+            }
+        ]
     }
 );
 
@@ -383,10 +391,29 @@ document.getElementById('modalForms').addEventListener('click', function (event)
         case 'btnGuardaRubroPtoNom':
             if (ValueInput('slcTipo') === '0') {
                 MuestraError('slcTipo', 'Seleccione tipo de rubro');
+            } else if (Number(opCaracterJS) === 1 && Number(opPtoJS) === 1 && ValueInput('slcCcosto') === '0') {
+                MuestraError('slcCcosto', 'Seleccione un centro de costo');
             } else if (ValueInput('txtRubroAdmin') === '' || ValueInput('idRubroAdmin') === '0' || ValueInput('tp_dato_radm') === '0') {
                 MuestraError('txtRubroAdmin', 'Debe seleccionar un rubro administrativo que sea tipo detalle');
-            } else if (ValueInput('txtRubroOpera') === '' || ValueInput('idRubroOpera') === '0' || ValueInput('tp_dato_rope') === '0') {
-                MuestraError('txtRubroOpera', 'Debe seleccionar un rubro operativo que sea tipo detalle');
+            } else if (Number(opCaracterJS) !== 1 || Number(opPtoJS) !== 1) {
+                if (ValueInput('txtRubroOpera') === '' || ValueInput('idRubroOpera') === '0' || ValueInput('tp_dato_rope') === '0') {
+                    MuestraError('txtRubroOpera', 'Debe seleccionar un rubro operativo que sea tipo detalle');
+                    break;
+                }
+                mostrarOverlay();
+                var data = Serializa('formGestRubroNom');
+                data.append('action', data.get('id') == '0' ? 'add' : 'edit');
+                SendPost('../php/controladores/rubros.php', data).then((response) => {
+                    if (response.status === 'ok') {
+                        mje('Guardado correctamente!');
+                        tableRubroPto.ajax.reload(null, false);
+                        $('#modalForms').modal('hide');
+                    } else {
+                        mjeError('Error!', response.msg);
+                    }
+                }).finally(() => {
+                    ocultarOverlay();
+                });
             } else {
                 mostrarOverlay();
                 var data = Serializa('formGestRubroNom');

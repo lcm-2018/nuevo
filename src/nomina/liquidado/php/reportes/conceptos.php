@@ -363,6 +363,10 @@ if ($tipo == 'E') {
     echo "</tr>";
 
     // Datos
+    // Columnas que deben forzarse como texto en Excel (evitar conversión numérica)
+    // Se usa x:str para indicarle a Excel que el valor es texto plano.
+    // Esto preserva ceros a la izquierda y evita la notación científica en números largos.
+    $columnasTextoForzado = ['COD_BANCO', 'CUENTA'];
     foreach ($datos as $d) {
         $esGrupo = $d['es_grupo'] ?? false;
         $bgColor = ($columnaExtra === 'consolidado' && $esGrupo) ? "background-color: #f0f0f0; font-weight: bold;" : "";
@@ -374,7 +378,13 @@ if ($tipo == 'E') {
             if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO'])) {
                 $align = 'center';
             }
-            echo "<td style='text-align: {$align};'>{$valorFormateado}</td>";
+            if (in_array($col, $columnasTextoForzado)) {
+                // x:str fuerza a Excel a tratar la celda como texto (preserva ceros iniciales y números largos)
+                $valorEscapado = htmlspecialchars((string)$valorFormateado, ENT_QUOTES, 'UTF-8');
+                echo "<td x:str=\"{$valorEscapado}\" style='text-align: {$align}; mso-number-format:\"@\";'>{$valorEscapado}</td>";
+            } else {
+                echo "<td style='text-align: {$align};'>{$valorFormateado}</td>";
+            }
         }
         echo "</tr>";
     }
@@ -447,7 +457,7 @@ $firmas = (new CReportes())->getFormFirmas(
     ['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']],
     51,
     $nomina['vigencia'] . '-' . $nomina['mes'] . '-01',
-    ''
+    'CNOM'
 );
 
 // Usar Landscape si hay muchas columnas

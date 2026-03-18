@@ -12,10 +12,10 @@ include 'funciones_generales.php';
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
-$id_cuenta_ini = isset($_POST['id_cuenta_ini']) ? $_POST['id_cuenta_ini'] : 0;
-$id_cuenta_fin = isset($_POST['id_cuenta_fin']) ? $_POST['id_cuenta_fin'] : 0;
-$fec_ini = isset($_POST['fec_ini']) && strlen($_POST['fec_ini'] > 0) ? "'" . $_POST['fec_ini'] . "'" : '2020-01-01';
-$fec_fin = isset($_POST['fec_fin']) && strlen($_POST['fec_fin']) > 0 ? "'" . $_POST['fec_fin'] . "'" : '2050-12-31';
+$id_cuenta_ini = isset($_POST['id_cuenta_ini']) ? (int)$_POST['id_cuenta_ini'] : 0;
+$id_cuenta_fin = isset($_POST['id_cuenta_fin']) ? (int)$_POST['id_cuenta_fin'] : 0;
+$fec_ini = isset($_POST['fec_ini']) && strlen($_POST['fec_ini']) > 0 ? $_POST['fec_ini'] : '2020-01-01';
+$fec_fin = isset($_POST['fec_fin']) && strlen($_POST['fec_fin']) > 0 ? $_POST['fec_fin'] : '2050-12-31';
 $id_tipo_doc = isset($_POST['id_tipo_doc']) ? $_POST['id_tipo_doc'] : 0;
 $id_tercero = isset($_POST['id_tercero']) ? $_POST['id_tercero'] : 0;
 
@@ -31,18 +31,52 @@ if ($id_tipo_doc > 0) {
 $datos_sedes = obtenerSedesActivas($cmd);
 $sedes = $datos_sedes['sedes'];
 $sede_principal = $datos_sedes['sede_principal'];
+$bd_principal = !empty($sede_principal['bd_sede']) ? $sede_principal['bd_sede'] : null;
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
+    // Obtener el código (campo cuenta) de las cuentas límite inicial y final
+    $sql_limites = "SELECT id_pgcp, cuenta FROM ctb_pgcp WHERE id_pgcp IN (:id_ini, :id_fin) AND estado = 1";
+    $rs_lim = $cmd->prepare($sql_limites);
+    $rs_lim->bindValue(':id_ini', $id_cuenta_ini, PDO::PARAM_INT);
+    $rs_lim->bindValue(':id_fin', $id_cuenta_fin, PDO::PARAM_INT);
+    $rs_lim->execute();
+    $cuentas_limite = $rs_lim->fetchAll(PDO::FETCH_KEY_PAIR); // [id_pgcp => cuenta]
+    $rs_lim->closeCursor();
+
+    $cod_cuenta_ini = isset($cuentas_limite[$id_cuenta_ini]) ? $cuentas_limite[$id_cuenta_ini] : '';
+    $cod_cuenta_fin = isset($cuentas_limite[$id_cuenta_fin]) ? $cuentas_limite[$id_cuenta_fin] : '';
+
+    // Si no se encontraron los límites, usar rango abierto
+    $where_rango = '';
+    $params_rango = [];
+    if ($cod_cuenta_ini !== '' && $cod_cuenta_fin !== '') {
+        if (strcmp($cod_cuenta_ini, $cod_cuenta_fin) <= 0) {
+            $cuenta_desde = $cod_cuenta_ini;
+            $cuenta_hasta = $cod_cuenta_fin;
+        } else {
+            $cuenta_desde = $cod_cuenta_fin;
+            $cuenta_hasta = $cod_cuenta_ini;
+        }
+        $where_rango = "AND ctb_pgcp.cuenta >= :cuenta_desde 
+            AND ctb_pgcp.cuenta <= :cuenta_hasta";
+        $params_rango[':cuenta_desde'] = $cuenta_desde;
+        $params_rango[':cuenta_hasta'] = $cuenta_hasta;
+    }
     $sql = "SELECT 
                  ctb_pgcp.id_pgcp
                 ,ctb_pgcp.cuenta
                 ,ctb_pgcp.nombre
                 ,ctb_pgcp.tipo_dato 
             FROM ctb_pgcp 
-            WHERE ctb_pgcp.estado = 1
-            AND ctb_pgcp.id_pgcp BETWEEN '$id_cuenta_ini' AND '$id_cuenta_fin'";
-    $rs = $cmd->query($sql);
+            WHERE ctb_pgcp.estado = 1 AND ctb_pgcp.tipo_dato = 'D'
+            $where_rango
+            ORDER BY ctb_pgcp.cuenta ASC";
+    $rs = $cmd->prepare($sql);
+    foreach ($params_rango as $param => $value) {
+        $rs->bindValue($param, $value, PDO::PARAM_STR);
+    }
+    $rs->execute();
     $obj_cuentas = $rs->fetchAll();
     $rs->closeCursor();
     unset($rs);
@@ -78,6 +112,9 @@ try {
             // Usar conexión actual para la sede principal, conectar para las demás
             if ($sede['es_principal'] == 1) {
                 $cmd_sede = $cmd;
+                if (!empty($bd_principal)) {
+                    $cmd_sede->exec("USE `{$bd_principal}`");
+                }
             } else {
                 $cmd_sede = conectarSede($sede['bd_sede']);
                 if ($cmd_sede === null) {
@@ -131,11 +168,21 @@ try {
                                 OR (doc.tipo_movimiento = 3 AND fv.id_venta IS NOT NULL)
                                 OR (doc.tipo_movimiento = 4 AND fc.id_facturac IS NOT NULL)) AS facturas
                                 ON (facturas.id_manu = ctb_doc.id_manu AND facturas.tipo = ctb_doc.tipo_movimiento AND facturas.id_ctb_doc = ctb_doc.id_ctb_doc)
-                        WHERE ctb_doc.fecha BETWEEN $fec_ini AND $fec_fin AND ctb_doc.estado = 2 
-                            AND ctb_pgcp.id_pgcp IN ('" . $obj_c['id_pgcp'] . "','" . $obj_c['id_pgcp'] . "')
+                        WHERE ctb_doc.fecha BETWEEN :fec_ini AND :fec_fin AND ctb_doc.estado = 2 
+                            AND ctb_pgcp.cuenta LIKE :cuenta
                             $and_where
                         ORDER BY DATE_FORMAT(ctb_doc.fecha, '%Y-%m-%d') ASC, ctb_libaux.debito DESC, ctb_libaux.credito DESC";
-                $rs = $cmd_sede->query($sql);
+                $rs = $cmd_sede->prepare($sql);
+                $rs->bindValue(':fec_ini', $fec_ini, PDO::PARAM_STR);
+                $rs->bindValue(':fec_fin', $fec_fin, PDO::PARAM_STR);
+                $rs->bindValue(':cuenta', $obj_c['cuenta'] . '%', PDO::PARAM_STR);
+                if ($id_tercero > 0) {
+                    $rs->bindValue(':id_tercero', $id_tercero, PDO::PARAM_INT);
+                }
+                if ($id_tipo_doc > 0) {
+                    $rs->bindValue(':id_tipo_doc', $id_tipo_doc, PDO::PARAM_INT);
+                }
+                $rs->execute();
                 $movimientos_sede = $rs->fetchAll();
                 $rs->closeCursor();
 
@@ -160,11 +207,13 @@ try {
                             ctb_libaux
                             INNER JOIN ctb_doc ON (ctb_libaux.id_ctb_doc = ctb_doc.id_ctb_doc)
                             INNER JOIN ctb_pgcp ON (ctb_libaux.id_cuenta = ctb_pgcp.id_pgcp)
-                        WHERE ctb_doc.fecha < $fec_ini  
-                        AND ctb_libaux.id_cuenta IN ('" . $obj_c['id_pgcp'] . "','" . $obj_c['id_pgcp'] . "') 
-                        AND ctb_doc.estado=2 limit 1";
-
-                $rs = $cmd_sede->query($sql);
+                        WHERE ctb_doc.fecha < :fec_ini  
+                        AND ctb_pgcp.cuenta LIKE :cuenta 
+                        AND ctb_doc.estado = 2 limit 1";
+                $rs = $cmd_sede->prepare($sql);
+                $rs->bindValue(':fec_ini', $fec_ini, PDO::PARAM_STR);
+                $rs->bindValue(':cuenta', $obj_c['cuenta'] . '%', PDO::PARAM_STR);
+                $rs->execute();
                 $saldos_sede = $rs->fetchAll();
                 $rs->closeCursor();
 
@@ -237,19 +286,20 @@ try {
         }
         $reg++;
         fputcsv($output, ["CUENTA", strval($obj_c['cuenta'] . ' - ' . $obj_c['nombre'])]);
-        fputcsv($output, []); // línea en blanco
+        fputcsv($output, []);
         $headers = ["Sede", "Fecha", "Tipo Documento", "Documento", "Referencia", "Tercero", "CC/nit", "Detalle", "Debito", "Credito", "Saldo"];
         fputcsv($output, $headers);
-        $saldoInicial = ["", "", "", "", "", "", "", "Saldo inicial:", "", "", number_format($saldo_inicial, 2, ".", ",")];
-        fputcsv($output, $saldoInicial);
+
+        $saldo_cuenta = $saldo_inicial;
+        fputcsv($output, ["", "", "", "", "", "", "", "Saldo inicial:", "", "", number_format($saldo_cuenta, 2, ".", ",")]);
 
         foreach ($obj_informe as $obj) {
             $primer_caracter = substr($obj['cuenta'], 0, 1);
             $segundo_caracter = substr($obj['cuenta'], 0, 2);
             if ($primer_caracter == 1 || $primer_caracter == 5 || $primer_caracter == 6 || $primer_caracter == 7 || $segundo_caracter == 81 || $segundo_caracter == 83 || $segundo_caracter == 99) {
-                $saldo_inicial = $saldo_inicial + $obj['debito'] - $obj['credito'];
+                $saldo_cuenta = $saldo_cuenta + $obj['debito'] - $obj['credito'];
             } else {
-                $saldo_inicial = $saldo_inicial + $obj['credito'] - $obj['debito'];
+                $saldo_cuenta = $saldo_cuenta + $obj['credito'] - $obj['debito'];
             }
 
             $row = [
@@ -263,7 +313,7 @@ try {
                 mb_strtoupper($obj['detalle']),
                 number_format($obj['debito'], 2, ".", ","),
                 number_format($obj['credito'], 2, ".", ","),
-                number_format($saldo_inicial, 2, ".", ",")
+                number_format($saldo_cuenta, 2, ".", ",")
             ];
             fputcsv($output, $row);
 
@@ -271,9 +321,6 @@ try {
             $total_cre += $obj['credito'];
         }
 
-        // =======================
-        // Totales
-        // =======================
         fputcsv($output, [
             "",
             "",
@@ -283,10 +330,11 @@ try {
             "",
             "",
             "Totales",
-            "" . number_format($total_deb, 2, ".", ","),
-            "" . number_format($total_cre, 2, ".", ","),
-            "" . number_format($saldo_inicial, 2, ".", ",")
+            number_format($total_deb, 2, ".", ","),
+            number_format($total_cre, 2, ".", ","),
+            number_format($saldo_cuenta, 2, ".", ",")
         ]);
+        fputcsv($output, []);
     }
 
     fclose($output);

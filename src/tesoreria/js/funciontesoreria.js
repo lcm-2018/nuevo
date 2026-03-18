@@ -1,4 +1,4 @@
-﻿var tabla;
+var tabla;
 (function ($) {
 	//Superponer modales
 	$(document).on("show.bs.modal", ".modal", function () {
@@ -1631,6 +1631,31 @@ function EditRubroCaja(detalle) {
 	cargarRubrosCaja(id, detalle);
 	$('#slcConcepto').focus();
 }
+function EliminarRubroCaja(id) {
+	let id_caja = $('#id_caja').val();
+	Swal.fire({
+		title: '¿Está seguro de eliminar este rubro?',
+		text: "¡No podrá revertir esta acción!",
+		icon: 'warning',
+		showCancelButton: true,
+		confirmButtonColor: '#3085d6',
+		cancelButtonColor: '#d33',
+		confirmButtonText: 'Sí, eliminar',
+		cancelButtonText: 'Cancelar'
+	}).then((result) => {
+		if (result.isConfirmed) {
+			mostrarOverlay();
+			$.post("datos/eliminar/eliminar_rubro_caja.php", { id: id }, function (res) {
+				if (res.status == 'ok') {
+					cargarRubrosCaja(id_caja, 0);
+					mje('Rubro eliminado correctamente');
+				} else {
+					mjeError(res.msg);
+				}
+			}, 'json').always(() => { ocultarOverlay(); });
+		}
+	});
+}
 function ModEstadoResposableCaja(id, estado) {
 	let id_caja = $('#id_caja').val();
 	mostrarOverlay();
@@ -1671,7 +1696,7 @@ let cargaFormaPago = (cop, detalle, boton) => {
 	}
 
 	if (id_docu > 0) {
-		if (valor_pago != "" || op_ppto == '0') {
+		if (valor_pago != "" || opPtoJS == '0') {
 			mostrarOverlay();
 			$.post("lista_causacion_formapago.php", { id_doc: id_docu, id_cop: id_cop, valor: valor_pago, id_fp: detalle }, function (he) {
 				$("#divTamModalForms").removeClass("modal-sm");
@@ -2875,6 +2900,9 @@ const cargarReporteTesoreria = (id) => {
 	if (id == 5) {
 		url = "informes/form_relacion_pagos.php";
 	}
+	if (id == 6) {
+		url = "informes/form_relacion_causacion.php";
+	}
 	fetch(url, {
 		method: "POST",
 		body: JSON.stringify({ id: id }),
@@ -2959,7 +2987,18 @@ const generarInfPorTercero = (boton) => {
 const generarRelacionPagos = (boton) => {
 	let fec_ini = fecha_ini.value;
 	let fec_fin = fecha_fin.value;
+	let pto = document.getElementById("pto").checked ? 1 : 0;
 	let url = ValueInput('host') + "/src/tesoreria/php/informes/relacion_pagos.php";
+	mostrarOverlay();
+	$.post(url, { fec_ini: fec_ini, fec_fin: fec_fin, pto: pto }, function (he) {
+		$("#areaImprimir").html(he);
+		ocultarOverlay();
+	});
+};
+const generarRelacionCausacion = (boton) => {
+	let fec_ini = fecha_ini.value;
+	let fec_fin = fecha_fin.value;
+	let url = ValueInput('host') + "/src/tesoreria/php/informes/relacion_causacion.php";
 	mostrarOverlay();
 	$.post(url, { fec_ini: fec_ini, fec_fin: fec_fin }, function (he) {
 		$("#areaImprimir").html(he);
@@ -3403,3 +3442,55 @@ document.addEventListener("keyup", (e) => {
 	}
 });
 
+const EnviaDocumentoSoporteTes = (boton) => {
+	let id = boton.value;
+	var url = "soportes/equivalente/enviar_factura.php";
+	mostrarOverlay();
+	$.ajax({
+		type: "POST",
+		url: url,
+		data: { id: id },
+		dataType: "json",
+		success: function (response) {
+			if (response.value == "ok") {
+				if ($('#tableMvtoTesoreriaPagos').length) {
+					$('#tableMvtoTesoreriaPagos').DataTable().ajax.reload(null, false);
+				}
+				mje("Documento enviado correctamente");
+			} else {
+				Swal.fire({
+					title: '',
+					html: response.msg,
+					icon: "error"
+				});
+			}
+		}, error: function (xhr, status, error) {
+			console.error("Error en la solicitud AJAX:", error);
+		}
+	}).always(function () {
+		ocultarOverlay();
+	});
+};
+
+
+const VerSoporteElectronicoTes = (id) => {
+	fetch("soportes/equivalente/ver_html.php", {
+		method: "POST",
+		body: JSON.stringify({ id: id }),
+	})
+		.then((response) => response.json())
+		.then((response) => {
+			console.log(response);
+			if (response[0].value == "ok") {
+				var url = "https://api.taxxa.co/documentGet.dhtml?hash=" + response[0].msg;
+				url = url.replace(/["']/g, "");
+				var win = window.open(url, "_blank");
+				win.focus();
+			} else {
+				mjeError(response[0].msg);
+			}
+		})
+		.catch((error) => {
+			console.log("Error:");
+		});
+};

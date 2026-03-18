@@ -24,6 +24,7 @@ try {
                 `ctt_documentos`.`fec_inicio`
                 , `ctt_documentos`.`fec_vig`
                 , `ctt_documentos`.`id_soportester`
+                , `ctt_documentos`.`estado`
                 , `ctt_soportes_contrato`.`descripcion`
             FROM
                 `ctt_documentos`
@@ -40,22 +41,40 @@ try {
 if (!empty($docs)) {
     foreach ($docs as $d) {
         $id_doc = $d['id_soportester'];
-        $borrar = '';
-        if ($d['fec_vig'] > date('Y-m-d')) {
-            $estado = '<span class="fas fa-toggle-on fa-lg text-success estado activo" ></span>';
+        $borrar  = '';
+        $btnEstado = '';
+
+        // Estado basado en el campo 'estado' (1=activo, 0=inactivo) y adicionalmente en la fecha de vigencia
+        $esActivo = ($d['estado'] == 1 && $d['fec_vig'] >= date('Y-m-d'));
+
+        if ($esActivo) {
+            $claseEstado = 'fas fa-toggle-on fa-lg text-success estado activo';
+            $tituloEstado = 'Activo - Click para desactivar';
         } else {
-            $estado = '<span class="fas fa-toggle-off fa-lg text-secondary estado inactivo"></span>';
+            $claseEstado = 'fas fa-toggle-off fa-lg text-secondary estado inactivo';
+            $tituloEstado = 'Inactivo - Click para activar';
         }
+
+        if ($permisos->PermisosUsuario($opciones, 5201, 2) || $id_rol == 1) {
+            $btnEstado = '<a id="btnestadodoc_' . $id_doc . '" value="' . $id_doc . '" class="btn btn-link p-0 me-1 estadodoc" title="' . $tituloEstado . '">'
+                . '<span class="' . $claseEstado . '"></span></a>';
+        }
+
         if ($permisos->PermisosUsuario($opciones, 5201, 4) || $id_rol == 1) {
-            $borrar = '<a onclick="BorrarDocumentoTercero(' . $id_doc . ')" class="btn btn-outline-warning btn-xs rounded-circle shadow me-1 "  title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
+            $borrar = '<a onclick="BorrarDocumentoTercero(' . $id_doc . ')" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1" title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
         }
+
+        if ($d['estado'] == 0) {
+            $borrar = '';
+        }
+
         $data[] = [
-            'id_doc' => $id_doc,
-            'tipo' => mb_strtoupper($d['descripcion']),
-            'fec_inicio' => $d['fec_inicio'],
+            'id_doc'       => $id_doc,
+            'tipo'         => mb_strtoupper($d['descripcion']),
+            'fec_inicio'   => $d['fec_inicio'],
             'fec_vigencia' => $d['fec_vig'],
-            'vigente' => '<div class="text-center">' . $estado . '</div>',
-            'doc' => '<div class="text-center"><button text="' . $id_doc . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 descargar" title="Descargar"><span class="far fa-file-pdf"></span></button>' . $borrar . '</div>',
+            'vigente'      => '<div class="text-center">' . $btnEstado . '</div>',
+            'doc'          => '<div class="text-center"><button text="' . $id_doc . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 descargar" title="Descargar"><span class="far fa-file-pdf"></span></button>' . $borrar . '</div>',
         ];
     }
 } else {

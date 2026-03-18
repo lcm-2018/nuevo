@@ -77,11 +77,10 @@ try {
             $sql->bindParam(2, $id_pag, PDO::PARAM_INT);
             $sql->execute();
             if (isset($_POST['id_caja'])) {
-                $id = $cmd->lastInsertId();
                 $id_caja = $_POST['id_caja'];
                 $query = "INSERT INTO `tes_caja_doc` (`id_ctb_doc`, `id_caja`) VALUES (?, ?)";
                 $query = $cmd->prepare($query);
-                $query->bindParam(1, $id, PDO::PARAM_INT);
+                $query->bindParam(1, $id_pag, PDO::PARAM_INT);
                 $query->bindParam(2, $id_caja, PDO::PARAM_INT);
                 $query->execute();
             }
@@ -108,15 +107,19 @@ try {
         } else {
             $up = false;
             if (isset($_POST['id_caja'])) {
-                $sql = "UPDATE `tes_caja_doc` SET `id_caja` = ? WHERE (`id_ctb_doc` = ?)";
+                $id_caja_post = $_POST['id_caja'];
+                $sql = "INSERT INTO `tes_caja_doc` (`id_ctb_doc`, `id_caja`)
+                            VALUES (?, ?)
+                        ON DUPLICATE KEY UPDATE `id_caja` = VALUES(`id_caja`)";
                 $sql = $cmd->prepare($sql);
-                $sql->bindParam(1, $_POST['id_caja'], PDO::PARAM_INT);
-                $sql->bindParam(2, $id_reg, PDO::PARAM_INT);
+                $sql->bindParam(1, $id_reg, PDO::PARAM_INT);
+                $sql->bindParam(2, $id_caja_post, PDO::PARAM_INT);
                 $sql->execute();
                 if ($sql->rowCount() > 0) {
                     $up = true;
                 }
             }
+
             if ($query->rowCount() > 0 || $up) {
                 $query = "UPDATE `ctb_doc` SET `id_user_act` = ?, `fecha_act` = ? WHERE (`id_ctb_doc` = ?)";
                 $query = $cmd->prepare($query);

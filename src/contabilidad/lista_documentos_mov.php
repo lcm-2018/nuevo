@@ -124,7 +124,7 @@ foreach ($docsFuente as $mov) {
 
 // Botones adicionales según tipo de documento
 $botonesAdicionales = '';
-if ($tipo_doc == '3' && $_SESSION['caracter'] == '2') {
+if ($tipo_doc == '3' && $_SESSION['pto'] == '1') {
     $botonesAdicionales .= <<<HTML
     <button type="button" class="btn btn-primary btn-sm me-1" onclick="CargaObligaCrp(2)">
         Ver Listado

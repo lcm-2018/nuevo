@@ -177,7 +177,7 @@ try {
                 INNER JOIN `tb_municipios`
                     ON (`tb_datos_ips`.`idmcpio` = `tb_municipios`.`id_municipio`)";
     $res = $cmd->query($sql);
-    $empresa = $res->fetch();
+    $ips = $res->fetch();
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -188,7 +188,19 @@ $id_modulo = 56;
 $doc_fte = 'CONC';
 // fechas para factua
 // Consulto responsable del documento
-include_once '../../financiero/encabezado_imp.php';
+$user = new \Src\Usuarios\Login\Php\Clases\Usuario();
+$reportes = new \Src\Common\Php\Clases\Reportes($cmd);
+try {
+    $empresa = $user->getEmpresa();
+} catch (PDOException $e) {
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+}
+$html = $reportes->getEncabezado($empresa);
+$config = $reportes->getConfigDoc($id_modulo, $fecha, $doc_fte);
+extract($config);
+$elabora = [];
+$tercero_nombre = '';
+$firmas = $reportes->getFormFirmas($elabora, $id_modulo, $fecha, $doc_fte, $tercero_nombre);
 $anulado = '';
 
 ?>
@@ -265,8 +277,8 @@ $anulado = '';
             <tr>
                 <td class='text-center' style="width:18%"><label class="small"><img src="../../assets/images/logo.png" width="100"></label></td>
                 <td style="text-align:center">
-                    <strong><?php echo $empresa['nombre']; ?> </strong>
-                    <div>NIT <?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></div>
+                    <strong><?php echo $ips['nombre']; ?> </strong>
+                    <div>NIT <?php echo $ips['nit'] . '-' . $ips['dig_ver']; ?></div>
                 </td>
             </tr>
         </table>

@@ -143,13 +143,13 @@ include_once '../../financiero/encabezado_empresa.php';
                     $total += $rp['valor'];
                     echo "<tr>
                         <td style='text-align:left'>" . $rp['nom_sede'] . "</td>
-                        <td style='text-align:left'>" . $rp['id_manu'] . "</td>
-                        <td style='text-align:left'>" . $rp['num_factura'] . "</td>
+                        <td style='text-align:left;mso-number-format:\@;'>" . $rp['id_manu'] . "</td>
+                        <td style='text-align:left;mso-number-format:\@;'>" . $rp['num_factura'] . "</td>
                         <td style='text-align:left;white-space: nowrap;'>" .   $rp['fecha']   . "</td>
                         <td style='text-align:left'>" .  $rp['nom_tercero'] . "</td>
-                        <td style='text-align:right;white-space: nowrap;'>" .  $rp['nit_tercero'] . "</td>
+                        <td style='text-align:right;white-space: nowrap;mso-number-format:\@;'>" .  $rp['nit_tercero'] . "</td>
                         <td style='text-align:left'>" . $rp['objeto'] . "</td>
-                        <td style='text-align:left'>" .  $rp['rubro'] . "</td>
+                        <td style='text-align:left;mso-number-format:\@;'>" .  $rp['rubro'] . "</td>
                         <td style='text-align:right'>" . number_format($rp['valor'], 2, ".", ",")  . "</td>
                     </tr>";
                 }

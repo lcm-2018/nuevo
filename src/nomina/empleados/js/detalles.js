@@ -1450,6 +1450,7 @@ $('#modalForms1').on('shown.bs.modal', function () {
                 { data: 'id' },
                 { data: 'fecha' },
                 { data: 'tipo_registro' },
+                { data: 'valor' },
                 { data: 'observacion' },
                 { data: 'acciones' }
             ],
@@ -1491,6 +1492,7 @@ document.getElementById('modalForms1').addEventListener('click', function (event
                 document.getElementById('idNovedad').value = response.data.id_novedad;
                 document.getElementById('datFechaNov').value = response.data.fecha;
                 document.getElementById('slcTipoRegistro').value = response.data.tipo_registro;
+                document.getElementById('datValorNov').value = Number(response.data.valor).toLocaleString('es-CO');
                 document.getElementById('txtObservacion').value = response.data.observacion;
                 // Scroll al inicio del modal
                 document.querySelector('#modalForms1 .modal-body').scrollTop = 0;

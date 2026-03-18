@@ -73,19 +73,22 @@ foreach ($listaNovedades as $nov) {
 
     $estiloBadge = "border: 1px solid #333; padding: 2px 5px; font-weight: bold; font-size: 10px; display: inline-block;";
 
+    $valorNov = (new Valores())->Pesos($nov['valor']);
+
     $bodyNovedades .= "
         <tr>
             <td style='padding: 10px; border-bottom: 1px solid #ddd;'>{$fechaFormat}</td>
             <td style='padding: 10px; border-bottom: 1px solid #ddd;'>
                 <span style='{$estiloBadge}'>{$tipoTexto}</span>
             </td>
+            <td style='padding: 10px; border-bottom: 1px solid #ddd; text-align: right;'>{$valorNov}</td>
             <td style='padding: 10px; border-bottom: 1px solid #ddd; text-align: justify;'>{$observacion}</td>
         </tr>
     ";
 }
 
 if (empty($bodyNovedades)) {
-    $bodyNovedades = "<tr><td colspan='3' style='text-align:center; padding: 10px;'>No hay novedades registradas.</td></tr>";
+    $bodyNovedades = "<tr><td colspan='4' style='text-align:center; padding: 10px;'>No hay novedades registradas.</td></tr>";
 }
 
 // Formatear fechas del encabezado
@@ -167,8 +170,9 @@ $html = <<<HTML
     <table class="table-novedades">
         <thead>
             <tr>
-                <th style="width: 20%;">FECHA</th>
-                <th style="width: 25%;">TIPO DE REGISTRO</th>
+                <th style="width: 12%;">FECHA</th>
+                <th style="width: 18%;">TIPO DE REGISTRO</th>
+                <th style="width: 15%;">VALOR</th>
                 <th style="width: 55%;">OBSERVACIÓN</th>
             </tr>
         </thead>
@@ -182,7 +186,7 @@ HTML;
 $firmas = (new CReportes())->getFormFirmas([
     'nom_tercero' => $nombreEmpleado,
     'cargo' => 'Funcionario Comisionado'
-], 51, $dataViatico['fec_inicia'], '');
+], 51, $dataViatico['fec_inicia'], 'CNOM');
 
 // Generar PDF
 $Imprimir = new Imprimir($documento, "letter");

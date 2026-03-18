@@ -637,9 +637,9 @@ class Liquidacion
                     }
 
                     //laborado 
-                    $valTotalLab = $laborado[$id_empleado] * ($param['salario'] / 30);
-                    $valAuxTrans = $laborado[$id_empleado] * ($param['aux_trans'] / 30);
-                    $valAuxAlim = $laborado[$id_empleado] * ($param['aux_alim'] / 30);
+                    $valTotalLab = Valores::Redondear($laborado[$id_empleado] * ($param['salario'] / 30));
+                    $valAuxTrans = Valores::Redondear($laborado[$id_empleado] * ($param['aux_trans'] / 30));
+                    $valAuxAlim = Valores::Redondear($laborado[$id_empleado] * ($param['aux_alim'] / 30));
                     $grepre = $empleados[$id_empleado]['representacion'] == 1 ? $parametro[8] : 0;
 
                     $Otros = new Otros();
@@ -1161,7 +1161,7 @@ class Liquidacion
 
         foreach ($filtro as $f) {
             $idHe =     $f['id_he_trab'];
-            $valhe =    $valHora * $f['factor'] * $f['cantidad_he'];
+            $valhe =    Valores::Redondear($valHora * $f['factor'] * $f['cantidad_he']);
             $data = [
                 'id' => $idHe,
                 'valor' => $valhe,
@@ -1197,16 +1197,16 @@ class Liquidacion
             $dias =        $f['dias'];
             $pEmpresa = $pEps = $pArl = 0;
             if ($idTipo == 2 || $idTipo == 3) {
-                $pArl = $valDia * $dias;
+                $pArl = Valores::Redondear($valDia * $dias);
             } else if ($idTipo == 1) {
                 if ($categoria == 2) {
-                    $pEps = ($valDia * (2 / 3)) * $dias;
+                    $pEps = Valores::Redondear(($valDia * (2 / 3)) * $dias);
                 } else if ($categoria == 1) {
                     $diasEmpresaRestantes =     max(0, 2 - $liquidado); // Cuántos días le faltan a la empresa pagar
                     $diasEmpresaMes =           min($dias, $diasEmpresaRestantes); // Solo los que caben en este mes
                     $diasEpsMes =               $dias - $diasEmpresaMes; // El resto es EPS
-                    $pEmpresa =                 $valDia * $diasEmpresaMes;
-                    $pEps =                     ($valDia * (2 / 3)) * $diasEpsMes;
+                    $pEmpresa =                 Valores::Redondear($valDia * $diasEmpresaMes);
+                    $pEps =                     Valores::Redondear(($valDia * (2 / 3)) * $diasEpsMes);
                 }
             }
             // se debe sacar los id_arl e id_eps
@@ -1258,12 +1258,12 @@ class Liquidacion
         $id_nomina = $param['id_nomina'];
 
         $prima_vac_dia = ($base * $dhabiles) / (30 * 360);
-        $prima_vac = $prima_vac_dia * $dliq;
+        $prima_vac = Valores::Redondear($prima_vac_dia * $dliq);
 
         $vac_dia = ($base * $dinactiv) / (30 * 360);
-        $vacacion = $vac_dia * $dliq;
+        $vacacion = Valores::Redondear($vac_dia * $dliq);
 
-        $bonrecrea = (($salbas / 30) * (2 * $dliq / 360));
+        $bonrecrea = Valores::Redondear(($salbas / 30) * (2 * $dliq / 360));
         if ($opcion == 1) {
             $data = compact('idvac', 'corte', 'vacacion', 'prima_vac', 'bonrecrea', 'id_nomina', 'salbas', 'grepre', 'auxtra', 'auxali', 'bspant', 'psvant', 'dhabiles');
             $res = (new Vacaciones($this->conexion))->addRegistroLiq($data);
@@ -1304,7 +1304,7 @@ class Liquidacion
         $id_nomina      =   $param['id_nomina'];
 
         $prima_dia      =   $base  / 720;
-        $val_liq_ps          =   $prima_dia * $dliq;
+        $val_liq_ps     =   Valores::Redondear($prima_dia * $dliq);
 
         if ($opcion == 1) {
             $data = compact('id_empleado', 'cant_dias', 'val_liq_ps', 'val_liq_pns', 'periodo', 'corte', 'id_nomina');
@@ -1346,7 +1346,7 @@ class Liquidacion
         $id_nomina      =   $param['id_nomina'];
 
         $prima_dia      =   $base  / 360;
-        $val_liq_pv     =   $prima_dia * $dliq;
+        $val_liq_pv     =   Valores::Redondear($prima_dia * $dliq);
 
         if ($opcion == 1) {
             $data = compact('id_empleado', 'cant_dias', 'val_liq_pv', 'val_liq_pnv', 'periodo', 'corte', 'id_nomina');
@@ -1394,8 +1394,8 @@ class Liquidacion
         $id_nomina      =   $param['id_nomina'];
 
         $cesantia_dia   =   $base  / 320;
-        $val_cesantias  =   $cesantia_dia * $dliq;
-        $val_icesantias =   $val_cesantias * 0.12;
+        $val_cesantias  =   Valores::Redondear($cesantia_dia * $dliq);
+        $val_icesantias =   Valores::Redondear($val_cesantias * 0.12);
 
         if ($opcion == 1) {
             if (isset($param['tipo']) && $param['tipo'] == 8) {
@@ -1429,7 +1429,7 @@ class Liquidacion
         $tipo = $filtro['tipo'];
         $dias = $filtro['mes'] == '02' && $filtro['dias'] >= 28 ? 30 : $filtro['dias'];
         $valdialc = ($tipo == '1' && $filtro['dias_cot'] < 270) ? ($filtro['dias_cot'] * $param['salario']) / (30 * 270) : $param['salario'] / 30;
-        $valor = $valdialc * $dias;
+        $valor = Valores::Redondear($valdialc * $dias);
         $data = [
             'id_licmp' =>   $filtro['id_licmp'],
             'id_eps' =>     $filtro['id_eps'],
@@ -1481,7 +1481,7 @@ class Liquidacion
         ];
         $valor_dia = $param['salario'] / 30;
         foreach ($filtro as $f) {
-            $valor = $valor_dia * $f['dias'];
+            $valor = Valores::Redondear($valor_dia * $f['dias']);
             $data = [
                 'id_licluto' =>   $f['id_licluto'],
                 'dias' => $f['dias'],
@@ -1509,7 +1509,7 @@ class Liquidacion
             'valor' => 0
         ];
         $valor_dia = $param['salario'] / 30;
-        $valor = $valor_dia * $filtro['dias'];
+        $valor = Valores::Redondear($valor_dia * $filtro['dias']);
         $data = [
             'id_indemniza'  => $filtro['id_indemniza'],
             'dias'          => $filtro['dias'],
@@ -1539,7 +1539,7 @@ class Liquidacion
         $base_bsp = floatval($param['base_bsp'] ?? 0);
         $val_grep = $param['tiene_grep'] == 1 ? floatval($param['greps'] ?? 0) : 0;
         $bsp = (($salario + $val_grep) <= $base_bsp ? ($salario + $val_grep) * 0.5 : ($salario + $val_grep) * 0.35);
-        $bsp = $bsp * $dias / 360;
+        $bsp = Valores::Redondear($bsp * $dias / 360);
         $data = [
             'id_empleado' =>   $param['id_empleado'],
             'corte' =>         $param['corte'],
@@ -1697,9 +1697,10 @@ class Liquidacion
         foreach ($filtro as $f) {
             $base -= $f['val_mes'];
             if ($base  > $f['val_mes'] && $base > $minVital) {
+                $valLib = Valores::Redondear($f['val_mes']);
                 $data = [
                     'id_libranza'   =>   $f['id_libranza'],
-                    'val_mes'       =>   $f['val_mes'],
+                    'val_mes'       =>   $valLib,
                     'id_nomina'     =>   $param['id_nomina']
                 ];
 
@@ -1709,7 +1710,7 @@ class Liquidacion
                     $response['msg'] = "<p>$res</p>";
                     break;
                 } else {
-                    $response['valor'] += $f['val_mes'];
+                    $response['valor'] += $valLib;
                 }
             } else {
                 continue;
@@ -1732,9 +1733,10 @@ class Liquidacion
         foreach ($filtro as $f) {
             // Validar primero si hay suficiente base para descontar
             if ($base > $f['valor_mes'] && $base > $minVital) {
+                $valEmb = Valores::Redondear($f['valor_mes']);
                 $data = [
                     'id_embargo'   =>   $f['id_embargo'],
-                    'val_mes'      =>   $f['valor_mes'],
+                    'val_mes'      =>   $valEmb,
                     'id_nomina'    =>   $param['id_nomina']
                 ];
 
@@ -1745,8 +1747,8 @@ class Liquidacion
                     break;
                 } else {
                     // Restar de la base solo después de validar y registrar exitosamente
-                    $base -= $f['valor_mes'];
-                    $response['valor'] += $f['valor_mes'];
+                    $base -= $valEmb;
+                    $response['valor'] += $valEmb;
                 }
             } else {
                 // No hay suficiente base para este embargo, continuar con el siguiente
@@ -1772,8 +1774,8 @@ class Liquidacion
         $minVital = $param['min_vital'] > 0 ? $param['min_vital'] : $smmlv;
 
         $sindicalizacion = !empty((new Sindicatos($this->conexion))->getRegistroLiq($filtro['id_sindicato'])) ? 0 : $filtro['val_sidicalizacion'];
-        $val = Valores::Redondear((($filtro['porcentaje_cuota'] / 100) * $param['salario']), 1);
-        $dcto = $val + $sindicalizacion;
+        $val = (($filtro['porcentaje_cuota'] / 100) * $param['salario']);
+        $dcto = Valores::Redondear($val + $sindicalizacion);
         $data['valor_fijo']    =  $dcto;
 
         if ($base  > $dcto && $base > $minVital) {
@@ -1802,9 +1804,10 @@ class Liquidacion
         foreach ($filtro as $f) {
             $base -= $f['valor'];
             if ($base  > $f['valor'] && $base > $minVital) {
+                $valDcto = Valores::Redondear($f['valor']);
                 $data = [
                     'id_dcto'   =>   $f['id_dcto'],
-                    'valor'     =>   $f['valor'],
+                    'valor'     =>   $valDcto,
                     'id_nomina' =>   $param['id_nomina']
                 ];
 
@@ -1814,7 +1817,7 @@ class Liquidacion
                     $response['msg'] = "<p>$res</p>";
                     break;
                 } else {
-                    $response['valor'] += $f['valor'];
+                    $response['valor'] += $valDcto;
                 }
             } else {
                 continue;
@@ -1853,6 +1856,7 @@ class Liquidacion
             $uvtx = $ingLabUvt - 2300;
             $retencion = ($uvt * $uvtx * 0.39) + (770 * $uvt);
         }
+        $retencion = Valores::Redondear($retencion);
         try {
             $sql = "INSERT INTO `nom_retencion_fte`
                         (`id_empleado`,`base`,`val_ret`,`id_user_reg`,`fec_reg`,`id_nomina`)

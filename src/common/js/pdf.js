@@ -1,6 +1,27 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 
+function resolverRutaNavegador() {
+    const rutasCandidatas = [
+        process.env.PUPPETEER_EXECUTABLE_PATH,
+        process.env.CHROME_PATH,
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        '/usr/bin/google-chrome',
+        '/usr/bin/google-chrome-stable',
+        '/usr/bin/chromium',
+        '/usr/bin/chromium-browser'
+    ].filter(Boolean);
+
+    for (const ruta of rutasCandidatas) {
+        if (fs.existsSync(ruta)) {
+            return ruta;
+        }
+    }
+
+    return null;
+}
+
 (async () => {
     // 1. Obtener argumentos desde PHP (ruta del HTML temporal y ruta de salida)
     const args = process.argv.slice(2);
@@ -17,11 +38,17 @@ const fs = require('fs');
         const htmlContent = fs.readFileSync(inputHtmlPath, 'utf8');
 
         // 3. Iniciar el navegador
-        const browser = await puppeteer.launch({
-            executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        const launchOptions = {
             headless: 'new',
             args: ['--no-sandbox', '--disable-setuid-sandbox'] // Necesario para linux/servidores
-        });
+        };
+
+        const executablePath = resolverRutaNavegador();
+        if (executablePath) {
+            launchOptions.executablePath = executablePath;
+        }
+
+        const browser = await puppeteer.launch(launchOptions);
 
         const page = await browser.newPage();
 

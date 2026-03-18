@@ -45,6 +45,9 @@ const tableDetallesNomina = crearDataTable(
         { data: 'valor_dcto' },
         { data: 'deducciones' },
         { data: 'neto' },
+        { data: 'val_sena' },
+        { data: 'val_icbf' },
+        { data: 'val_comfam' },
         { data: 'patronal' },
         { data: 'accion' },
         { data: 'nom_eps' },
@@ -60,7 +63,7 @@ const tableDetallesNomina = crearDataTable(
             className: 'btn btn-outline-success',
             titleAttr: 'Exportar a Excel Empleados',
             exportOptions: {
-                columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 36, 37, 38, 39, 40, 41, 42, 44, 45, 46, 47, 48, 49]
+                columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 36, 37, 38, 39, 40, 41, 42, 47, 48, 49, 50, 51, 52]
             }
         },
         {
@@ -69,7 +72,7 @@ const tableDetallesNomina = crearDataTable(
             className: 'btn btn-outline-info',
             titleAttr: 'Exportar a Excel Patronal',
             exportOptions: {
-                columns: [0, 1, 2, 3, 4, 30, 31, 32, 33, 34, 35, 43, 44, 45, 46, 47, 48, 49]
+                columns: [0, 1, 2, 3, 4, 30, 31, 32, 33, 34, 35, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52]
             }
         }
     ],
@@ -85,7 +88,7 @@ const tableDetallesNomina = crearDataTable(
         scrollY: '80vh',
         columnDefs: [
             {
-                targets: [33, 34, 35, 43, 45, 46, 47, 48, 49],
+                targets: [33, 34, 35, 43, 44, 45, 46, 48, 49, 50, 51, 52],
                 visible: false
             }
         ]

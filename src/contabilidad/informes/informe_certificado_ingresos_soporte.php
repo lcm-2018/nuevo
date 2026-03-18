@@ -107,24 +107,6 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-try {
-    $sql = "SELECT
-    `fin_respon_doc`.`cargo`
-    , `fin_respon_doc`.`tipo_control`
-    FROM
-    `fin_respon_doc`
-    INNER JOIN `fin_maestro_doc` 
-        ON (`fin_respon_doc`.`id_maestro_doc` = `fin_maestro_doc`.`id_maestro`)
-    WHERE (`fin_maestro_doc`.`id_doc_fte` ='1'
-    AND `fin_respon_doc`.`estado` =1)
-    ORDER BY `fin_respon_doc`.`tipo_control` ASC;";
-    $res = $cmd->query($sql);
-    $firmas = $res->fetchAll();
-    $res->closeCursor();
-    unset($res);
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
 
 ?>
 
@@ -152,7 +134,7 @@ try {
 
         <div class="row mb-2 px-2" style="text-align: center">
             <div class="col-12">
-                <div class="col lead "><label><strong><?php echo 'Certificado de ingresos y retenciones'; ?></strong></label></div>'
+                <div class="col lead "><label><strong><?php echo 'Certificado de ingresos y retenciones'; ?></strong></label></div>
             </div>
 
             <div class="row mb-2">
@@ -256,19 +238,6 @@ try {
                     </div>
                 </div>
             </div>
-            <table class="table-bordered bg-light firmas" style="width:100% !important;" rowspan="8">
-                <tr>
-                    <?php foreach ($firmas as $mv) {
-                        echo '
-                    <td style="text-align: center;height: 70px;">
-                        <div>__________________________</div>
-                        <div>' . $mv['cargo'] . '</div>
-                    </td>';
-                    }
-                    ?>
-                </tr>
-            </table>
-            </br> </br> </br></br> </br> </br>
         </div>
 
     </div>

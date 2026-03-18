@@ -274,7 +274,7 @@ $html = <<<HTML
     </table>
     HTML;
 
-$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['vigencia'] . '-' . $nomina['mes'] . '-01', '');
+$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['vigencia'] . '-' . $nomina['mes'] . '-01', 'CNOM');
 
 $Imprimir = new Imprimir($documento, "legal", "L");
 $Imprimir->addEncabezado($documento);

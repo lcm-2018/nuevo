@@ -2435,7 +2435,7 @@ const generaMovimientoCxp = (boton) => {
 	var val_inp = $('#valImputacion').text().replace(/[\s$]+/g, "").replace(/\,/g, "");
 	var val_cos = $('#valCentroCosto').text().replace(/[\s$]+/g, "").replace(/\,/g, "");
 	// verificar si los tres valores son iguales
-	if (opCaracterJS == '1' && op_ppto == '0') {
+	if (opCaracterJS == '1' && opPtoJS == '0') {
 		val_inp = val_fac;
 	}
 	if (val_fac == val_inp && val_fac == val_cos) {
@@ -3501,6 +3501,7 @@ const generarInformeCtb = (boton) => {
 	var tp_doc = 0;
 	var xtercero = 0;
 	var band = false;
+	areaImprimir.innerHTML = "";
 	if ($("#codigoctaini").length) {
 		if ($("#id_codigoctaini").val() == '0' || $("#id_codigoctafin").val() == '0') {
 			mjeError("Debe seleccionar una cuenta inicial y final");
@@ -3569,7 +3570,9 @@ const generarInformeCtb = (boton) => {
 		type: "POST",
 		data: data,
 		success: function (response) {
-			areaImprimir.innerHTML = response;
+			var $parent = $('#areaImprimir').parent();
+			$('#areaImprimir').remove();
+			$parent.append(response);
 		}, error: function (error) {
 			console.log("Error:" + error);
 		}

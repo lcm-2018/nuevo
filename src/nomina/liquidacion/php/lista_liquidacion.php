@@ -44,16 +44,16 @@ if (!empty($obj)) {
     foreach ($obj as $o) {
         $id = $o['id_empleado'];
         $id_contrato = $o['id_contrato'];
-        if ($_POST['filter_mes'] == '02' && $o['inc'] >= 28 || $o['inc'] > 30) {
+        if ($o['inc'] > 30) {
             $o['inc'] = 30;
         }
-        if ($_POST['filter_mes'] == '02' && $o['lic'] >= 28 || $o['lic'] > 30) {
+        if ($o['lic'] > 30) {
             $o['lic'] = 30;
         }
-        if ($_POST['filter_mes'] == '02' && $o['vac'] >= 28 || $o['vac'] > 30) {
+        if ($o['vac'] > 30) {
             $o['vac'] = 30;
         }
-        if ($_POST['filter_mes'] == '02' && $o['dias_mes'] >= 28 || $o['dias_mes'] > 30) {
+        if ($o['dias_mes'] > 30) {
             $o['dias_mes'] = 30;
         }
 

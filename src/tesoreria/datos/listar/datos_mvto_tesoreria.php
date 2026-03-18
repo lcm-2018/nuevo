@@ -227,9 +227,9 @@ if (!empty($listappto)) {
         if ($lp['doc_soporte'] == 1) {
             $key = array_search($id_ctb, array_column($equivalente, 'id_factura_no'));
             if ($key !== false && $equivalente[$key]['shash'] != '') {
-                $doc_soporte = '<a onclick="VerSoporteElectronico(' . $equivalente[$key]['id_soporte'] . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow" title="VER DOCUMENTO"><span class="far fa-file-pdf"></span></a>';
+                $doc_soporte = '<a onclick="VerSoporteElectronicoTes(' . $equivalente[$key]['id_soporte'] . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow" title="VER DOCUMENTO"><span class="far fa-file-pdf"></span></a>';
             } else {
-                $doc_soporte = '<button value="' . $id_ctb . '" onclick="EnviaDocumentoSoporte(this)" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow" title="REPORTAR FACTURA" ' . $disabled . '><span class="fas fa-paper-plane"></span></button>';
+                $doc_soporte = '<button value="' . $id_ctb . '" onclick="EnviaDocumentoSoporteTes(this)" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow" title="REPORTAR FACTURA" ' . $disabled . '><span class="fas fa-paper-plane"></span></button>';
             }
         }
         // fin api terceros

@@ -46,6 +46,9 @@ $content = <<<HTML
                     <li><a class="dropdown-item" href="javascript:void(0)" onclick="cargarReporteTesoreria(5);">
                         <i class="fas fa-file-invoice-dollar me-2"></i> Relación de pagos
                     </a></li>
+                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="cargarReporteTesoreria(6);">
+                        <i class="fas fa-file-invoice me-2"></i> Relación de causaciones por pagar
+                    </a></li>
                     <li><a class="dropdown-item" href="javascript:void(0)" onclick="cargarReporteTesoreria(3);">
                         <i class="fas fa-file-invoice me-2"></i> Reporte por tercero pagos y causaciones pendientes
                     </a></li>

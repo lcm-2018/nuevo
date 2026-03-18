@@ -16,7 +16,7 @@ if (isset($_GET['id'])) {
         $sql = "SELECT
                     `ruta_doc`,`nombre_doc`
                 FROM `ctt_documentos`
-                WHERE `id_soportester` = $id";
+                WHERE `id_soportester` = $id AND `estado` = 1";
         $rs = $cmd->query($sql);
         $pdf = $rs->fetch(PDO::FETCH_ASSOC);
 

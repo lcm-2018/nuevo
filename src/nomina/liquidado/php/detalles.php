@@ -65,6 +65,9 @@ $content = <<<HTML
                         <th colspan="11" class="text-center bg-sofia">DEDUCCIONES</th>
                         <th rowspan="2" class="text-center bg-sofia" title="Total Deducciones">T. DED.</th> 
                         <th rowspan="2" class="text-center bg-sofia" title="Neto a Pagar">NETO</th>
+                        <th rowspan="2" class="text-center bg-sofia" title="SENA 2%">SENA</th>
+                        <th rowspan="2" class="text-center bg-sofia" title="ICBF 3%">ICBF</th>
+                        <th rowspan="2" class="text-center bg-sofia" title="Caja de Compensación 4%">CAJA</th>
                         <th rowspan="2" class="text-center bg-sofia">Patronal</th>
                         <th rowspan="2" class="text-center bg-sofia">ACCIONES</th>
                         <th rowspan="2" class="text-center bg-sofia" title="NIT EPS">EPS</th>
