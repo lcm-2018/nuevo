@@ -52,6 +52,7 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
     const btnDescargarPdf = event.target.closest('.descargar-pdf');
     const btnReportes = event.target.closest('.reportes');
     const btnEditar = event.target.closest('.editar');
+    const btnCargarPlanilla = event.target.closest('.cargar_planilla');
 
     if (btnDetalles) {
         event.preventDefault();
@@ -107,12 +108,82 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
         mostrarOverlay();
         VerFormulario('../../liquidacion/php/controladores/liquidacion.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
     }
+    if (btnCargarPlanilla) {
+        event.preventDefault();
+        const id = btnCargarPlanilla.dataset.id;
+        mostrarOverlay();
+        VerFormulario('../php/controladores/liquidado.php', 'form2', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+    }
+});
+
+// Delegación de evento 'change' para el input de planilla dentro del modal
+document.querySelector('#modalForms').addEventListener('change', function (event) {
+    const inputArchivo = event.target.closest('#archivo_planilla');
+    if (inputArchivo) {
+        const nombre = inputArchivo.files.length > 0 ? inputArchivo.files[0].name : 'Ningún archivo seleccionado';
+        const txtNombre = document.getElementById('nombre_archivo_planilla');
+        if (txtNombre) txtNombre.value = nombre;
+    }
 });
 
 //evento click en el modal
 document.querySelector('#modalForms').addEventListener('click', function (event) {
+
     const btnReportes = event.target.closest('.reportes');
     const btnGuardarNomina = event.target.closest('#btnGuardaNomina');
+    const btnDescargarFormato = event.target.closest('#btnDescargarFormato');
+
+    if (btnDescargarFormato) {
+        event.preventDefault();
+        // Descarga directa sin _blank para evitar bloqueo de popup
+        const form = document.createElement('form');
+        form.action = '../php/reportes/formato_planilla.php';
+        form.method = 'POST';
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+
+    const btnSubirPlanilla = event.target.closest('#btnSubirPlanilla');
+    if (btnSubirPlanilla) {
+        event.preventDefault();
+
+        // Validar archivo seleccionado
+        const inputFile = document.getElementById('archivo_planilla');
+        if (!inputFile || !inputFile.files || inputFile.files.length === 0) {
+            mjeError('Error', 'Debe seleccionar un archivo antes de subir.');
+            return;
+        }
+
+        const archivo = inputFile.files[0];
+        const extension = archivo.name.split('.').pop().toLowerCase();
+        if (!['xlsx', 'xls', 'csv'].includes(extension)) {
+            mjeError('Error', 'El archivo debe ser de tipo Excel (.xlsx) o CSV (.csv).');
+            return;
+        }
+
+        // Obtener id_nomina del campo oculto del formulario
+        const id_nomina = ValueInput('id_nomina')
+
+        const data = new FormData();
+        data.append('archivo_planilla', archivo);
+        data.append('id_nomina', id_nomina);
+
+        mostrarOverlay();
+        SendPost('../php/controladores/cargar_planilla.php', data).then((response) => {
+            if (response.status === 'ok') {
+                mje('¡Planilla cargada!', response.msg);
+                $('#modalForms').modal('hide');
+            } else {
+                mjeError('Error', response.msg);
+            }
+        }).catch(() => {
+            mjeError('Error', 'Ocurrió un error inesperado al procesar la planilla.');
+        }).finally(() => {
+            ocultarOverlay();
+        });
+    }
+
     if (btnReportes) {
         event.preventDefault();
         const id_nomina = document.getElementById('id_nomina').value; // Obtener id_nomina del input hidden

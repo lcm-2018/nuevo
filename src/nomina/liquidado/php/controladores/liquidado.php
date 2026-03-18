@@ -37,6 +37,10 @@ switch ($action) {
         $res['status'] = 'ok';
         $res['msg'] = $Detalles->getFormulario($id, $id_nomina, $item);
         break;
+    case 'form2':
+        $res['status'] = 'ok';
+        $res['msg'] = $Detalles->getFormulario2($id);
+        break;
     case 'add':
 
         break;

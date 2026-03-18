@@ -862,6 +862,47 @@ class Detalles
         return $html;
     }
 
+    public function getFormulario2($id_nomina)
+    {
+        $html =
+            <<<HTML
+                <div>
+                    <div class="shadow text-center rounded overflow-hidden">
+                        <div class="py-3" style="background-color: #16a085;">
+                            <h5 style="color: white; letter-spacing:1px;" class="mb-0 fw-bold">CARGAR FORMATO / AJUSTE A PLANILLA</h5>
+                        </div>
+                        <div class="p-4" style="background-color: #f4f6f8;">
+                            <form id="formPlanilla" enctype="multipart/form-data">
+                                <input type="hidden" name="id_nomina" id="id_nomina" value="{$id_nomina}">
+                                <p class="text-muted text-uppercase fw-semibold mb-2" style="font-size:0.8rem; letter-spacing:1px;">Documento</p>
+                                <div class="input-group mb-4 shadow-sm">
+                                    <label class="input-group-text btn btn-outline-secondary px-3" for="archivo_planilla" style="cursor:pointer; border-radius: 4px 0 0 4px;">
+                                        <span class="fas fa-folder-open me-1"></span> Seleccionar archivo
+                                    </label>
+                                    <input type="file" class="d-none" id="archivo_planilla" name="archivo_planilla" accept=".xlsx,.xls,.csv">
+                                    <input type="text" class="form-control" id="nombre_archivo_planilla" placeholder="Seleccione archivo .csv o .xlsx" readonly style="background:#fff; cursor:default;">
+                                </div>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button type="button" class="btn btn-primary btn-sm px-4" id="btnSubirPlanilla">
+                                        <span class="fas fa-upload me-1"></span> Subir
+                                    </button>
+                                    <button type="button" class="btn btn-warning btn-sm px-4" id="btnDescargarFormato">
+                                        <span class="fas fa-download me-1"></span> Formato
+                                    </button>
+                                    <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            HTML;
+        return $html;
+    }
+
+
+
     /**
      * Obtiene los datos para el reporte por concepto (Netos u otros conceptos)
      * 
