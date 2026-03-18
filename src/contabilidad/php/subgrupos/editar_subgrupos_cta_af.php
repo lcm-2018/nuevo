@@ -9,7 +9,6 @@ $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 
 use Config\Clases\Logs;
-use Config\Clases\Plantilla;
 use Src\Common\Php\Clases\Permisos;
 
 $permisos = new Permisos();

@@ -293,11 +293,11 @@
                 })
                     .then((response) => response.json())
                     .then((response) => {
-                        if (response.mensaje == "ok") {
-                            mje("Registro eliminado exitosamente");
+                        if (response.mensaje == "ok") {                            
                             $('#tb_cuentas').DataTable().ajax.reload(null, false);
-                        } else {
-                            mjeError("Error al eliminar");
+                            mje("Registro eliminado exitosamente");
+                        } else {                            
+                            mjeError(response.mensaje);
                         }
                     })
                     .catch((error) => {

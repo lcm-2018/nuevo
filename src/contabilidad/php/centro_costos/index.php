@@ -57,12 +57,12 @@ $content = <<<HTML
             <table id="tb_centro_costos" class="table table-striped table-bordered table-sm table-hover align-middle w-100" style="font-size:80%">
                 <thead class="text-center">
                     <tr>
-                        <th class="bg-sofia">ID</th>
-                        <th class="bg-sofia">NOMBRE</th>
-                        <th class="bg-sofia">CUENTA CONTABLE FACTURACIÓN VIGENTE</th>
-                        <th class="bg-sofia">PARA USO ASISTENCIAL</th>
-                        <th class="bg-sofia">RESPONSABLE</th>
-                        <th class="bg-sofia">ACCIONES</th>
+                        <th class="bg-sofia">Id</th>
+                        <th class="bg-sofia">Nombre</th>
+                        <th class="bg-sofia">Cuenta Contable Facturación Vigente</th>
+                        <th class="bg-sofia">Para Uso Asistencial</th>
+                        <th class="bg-sofia">Responsable</th>
+                        <th class="bg-sofia">Acciones</th>
                     </tr>
                 </thead>
                 <tbody></tbody>

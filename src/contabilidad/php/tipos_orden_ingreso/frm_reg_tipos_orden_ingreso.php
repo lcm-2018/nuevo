@@ -33,13 +33,13 @@ if (empty($obj)) {
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
-            <h5 class="mb-0" style="color: white;">REGISRTAR TIPO DE ORDEN DE INGRESO</h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h5 class="text-white mb-0">REGISRTAR TIPO DE ORDEN DE INGRESO</h5>
         </div>
-        <div class="px-2">
+        <div class="p-3">
             <form id="frm_reg_tipos_orden_ingreso">
                 <input type="hidden" id="id_tipo_ingreso" name="id_tipo_ingreso" value="<?php echo $id ?>">
-                <div class=" row">
+                <div class=" row mb-2">
                     <div class="col-md-4">
                         <label for="txt_nom_tipoingreso" class="small">Nombre</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_tipoingreso" name="txt_nom_tipoingreso" required value="<?php echo $obj['nom_tipo_ingreso'] ?>">
@@ -82,7 +82,6 @@ if (empty($obj)) {
                     </div>
                 </div>
             </form>
-
         </div>
     </div>
     <div class="text-center pt-3">
@@ -90,5 +89,3 @@ if (empty($obj)) {
         <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>
-
-<script type="text/javascript" src="../../js/tipos_orden_ingreso/tipos_orden_ingreso_reg.js?v=<?php echo date('YmdHis') ?>"></script>

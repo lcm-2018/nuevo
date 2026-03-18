@@ -57,22 +57,22 @@ $content = <<<HTML
             <table id="tb_subgrupos" class="table table-striped table-bordered table-sm table-hover align-middle w-100" style="font-size:80%">
                 <thead class="text-center">
                     <tr>
-                        <th rowspan="2" class="bg-sofia align-middle">ID</th>
-                        <th rowspan="2" class="bg-sofia align-middle">CÓDIGO</th>
-                        <th rowspan="2" class="bg-sofia align-middle">NOMBRE</th>
-                        <th colspan="4" class="bg-sofia">CUENTAS CONTABLES VIGENTES</th>
-                        <th rowspan="2" class="bg-sofia align-middle">GRUPO</th>
-                        <th rowspan="2" class="bg-sofia align-middle">ACTIVO FIJO<br>MENOR CUANTÍA</th>
-                        <th rowspan="2" class="bg-sofia align-middle">USO<br>ASISTENCIAL</th>
-                        <th rowspan="2" class="bg-sofia align-middle">LOTE X DEFECTO</th>
-                        <th rowspan="2" class="bg-sofia align-middle">ESTADO</th>
-                        <th rowspan="2" class="bg-sofia align-middle">ACCIONES</th>
+                        <th rowspan="2" class="bg-sofia align-middle">Id</th>
+                        <th rowspan="2" class="bg-sofia align-middle">Código</th>
+                        <th rowspan="2" class="bg-sofia align-middle">Nombre</th>
+                        <th colspan="4" class="bg-sofia">Cuentas Contables Vigentes</th>
+                        <th rowspan="2" class="bg-sofia align-middle">Grupo</th>
+                        <th rowspan="2" class="bg-sofia align-middle">Activo Fijo<br>Menor Cuantía</th>
+                        <th rowspan="2" class="bg-sofia align-middle">Uso<br>Asistencial</th>
+                        <th rowspan="2" class="bg-sofia align-middle">Lote X Defecto</th>
+                        <th rowspan="2" class="bg-sofia align-middle">Estado</th>
+                        <th rowspan="2" class="bg-sofia align-middle">Acciones</th>
                     </tr>
                     <tr>
-                        <th class="bg-sofia">INVENTARIO</th>
-                        <th class="bg-sofia">ACTIVO FIJO</th>
-                        <th class="bg-sofia">DEPRECIACIÓN ACF</th>
-                        <th class="bg-sofia">GASTO DEPREC. ACF</th>
+                        <th class="bg-sofia">Inventario</th>
+                        <th class="bg-sofia">Activo Fijo</th>
+                        <th class="bg-sofia">Depreciación Acf</th>
+                        <th class="bg-sofia">Gasto Deprec. Acf</th>
                     </tr>
                 </thead>
                 <tbody></tbody>

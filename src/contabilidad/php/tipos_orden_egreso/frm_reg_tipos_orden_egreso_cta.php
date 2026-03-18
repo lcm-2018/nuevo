@@ -35,8 +35,7 @@ if (empty($obj)) {
         <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
             <h7 style="color: white;">REGISRTAR CUENTA CONTABLE DE TIPO DE ORDENE DE EGRESO - CONSUMO</h7>
         </div>
-        <div class="px-2">
-
+        <div class="p-3">
             <!--Formulario de registro de Cuenta-->
             <form id="frm_reg_tipos_orden_egreso_cta">
                 <input type="hidden" id="id_tipo_egreso_cta" name="id_tipo_egreso_cta" value="<?php echo $id ?>">

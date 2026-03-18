@@ -222,8 +222,7 @@
                     $('#' + that.attr('data-campoid')).val(ui.item.id);
                 } else {
                     $('#' + that.attr('data-campoid')).val('-1');
-                    $('#divModalError').modal('show');
-                    $('#divMsgError').html('Debe seleccionar una cuenta tipo detalle');
+                    mjeError('Debe seleccionar una cuenta tipo detalle');
                 }
             },
         });
@@ -274,32 +273,39 @@
     //Borrar un registro Cuenta
     $('#divForms').on('click', '#tb_cuentas .btn_eliminar', function () {
         let id = $(this).attr('value');
-        confirmar_del('cuenta', id);
-    });
-    $('#divModalConfDel').on("click", "#cuenta", function () {
-        var id = $(this).attr('value');
-        mostrarOverlay();
-        $.ajax({
-            type: 'POST',
-            url: 'editar_centrocostos_cta.php',
-            dataType: 'json',
-            data: { id: id, id_cencos: $('#id_centrocosto').val(), oper: 'del' }
-        }).done(function (r) {
-            $('#divModalConfDel').modal('hide');
-            if (r.mensaje == 'ok') {
-                let pag = $('#tb_cuentas').DataTable().page.info().page;
-                reloadtable('tb_cuentas', pag);
-                mje("Proceso realizado con éxito");
-            } else {
-                mjeError(r.mensaje);
+        Swal.fire({
+            title: "¿Está seguro de eliminar el registro?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, eliminar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_centrocostos_cta.php',
+                    dataType: 'json',
+                    data: { id: id, id_cencos: $('#id_centrocosto').val(), oper: 'del' }
+                }).done(function (r) {
+                    if (r.mensaje == 'ok') {
+                        $('#tb_cuentas').DataTable().ajax.reload(null, false);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).fail(function () {
+                    mjeError('Ocurrió un error');
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).fail(function () {
-            mjeError('Ocurrió un error');
-        }).always(function () {
-            ocultarOverlay();
         });
     });
-
+    
     /* ---------------------------------------------------
     CUENTAS CONTABLES POR SUBGRUPO ENCABEZADO
     -----------------------------------------------------*/
@@ -350,32 +356,39 @@
         }
     });
 
-    //Borrar un registro Subgrupo
+    //Borrar un registro Subgrupo    
     $('#divForms').on('click', '#tb_cuentas_sg .btn_eliminar', function () {
         let id = $(this).attr('value');
-        confirmar_del('cuenta_sg', id);
-    });
-    $('#divModalConfDel').on("click", "#cuenta_sg", function () {
-        var id = $(this).attr('value');
-        mostrarOverlay();
-        $.ajax({
-            type: 'POST',
-            url: 'editar_centrocostos_sg.php',
-            dataType: 'json',
-            data: { id: id, id_cencos: $('#id_centrocosto').val(), oper: 'del' }
-        }).done(function (r) {
-            $('#divModalConfDel').modal('hide');
-            if (r.mensaje == 'ok') {
-                let pag = $('#tb_cuentas_sg').DataTable().page.info().page;
-                reloadtable('tb_cuentas_sg', pag);
-                mje("Proceso realizado con éxito");
-            } else {
-                mjeError(r.mensaje);
+        Swal.fire({
+            title: "¿Está seguro de eliminar el registro?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, eliminar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_centrocostos_sg.php',
+                    dataType: 'json',
+                    data: { id: id, id_cencos: $('#id_centrocosto').val(), oper: 'del' }
+                }).done(function (r) {
+                    if (r.mensaje == 'ok') {
+                        $('#tb_cuentas_sg').DataTable().ajax.reload(null, false);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).fail(function () {
+                    mjeError('Ocurrió un error');
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).fail(function () {
-            mjeError('Ocurrió un error');
-        }).always(function () {
-            ocultarOverlay();
         });
     });
 
@@ -431,33 +444,40 @@
         }
     });
 
-    //Borrarr un registro Cuenta
-    $('#divFormsReg').on('click', '#tb_cuentas_sg_det .btn_eliminar', function () {
+    //Borrarr un registro Cuenta    
+    $('#divFormsReg').on('click', '#tb_cuentas_sg_det .btn_eliminar', function () {    
         let id = $(this).attr('value');
-        confirmar_del('cuenta_sg_det', id);
-    });
-    $('#divModalConfDel').on("click", "#cuenta_sg_det", function () {
-        var id = $(this).attr('value');
-        mostrarOverlay();
-        $.ajax({
-            type: 'POST',
-            url: 'editar_centrocostos_sg_cta.php',
-            dataType: 'json',
-            data: { id: id, id_cec_sg: $('#id_cec_sg').val(), oper: 'del' }
-        }).done(function (r) {
-            $('#divModalConfDel').modal('hide');
-            if (r.mensaje == 'ok') {
-                let pag = $('#tb_cuentas_sg_det').DataTable().page.info().page;
-                reloadtable('tb_cuentas_sg_det', pag);
-                mje("Proceso realizado con éxito");
-            } else {
-                mjeError(r.mensaje);
+        Swal.fire({
+            title: "¿Está seguro de eliminar el registro?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, eliminar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_centrocostos_sg_cta.php',
+                    dataType: 'json',
+                    data: { id: id, id_cec_sg: $('#id_cec_sg').val(), oper: 'del' }
+                }).done(function (r) {
+                    if (r.mensaje == 'ok') {
+                        $('#tb_cuentas_sg_det').DataTable().ajax.reload(null, false);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).fail(function () {
+                    mjeError('Ocurrió un error');
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).fail(function () {
-            mjeError('Ocurrió un error');
-        }).always(function () {
-            ocultarOverlay();
         });
     });
-
+    
 })(jQuery);

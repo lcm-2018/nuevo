@@ -37,7 +37,7 @@ if (empty($obj)) {
         <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
             <h5 class="mb-0" style="color: white;">REGISRTAR TIPO DE ORDEN DE EGRESO</h5>
         </div>
-        <div class="px-2">
+        <div class="p-3">
             <form id="frm_reg_tipos_orden_egreso">
                 <input type="hidden" id="id_tipo_egreso" name="id_tipo_egreso" value="<?php echo $id ?>">
                 <div class=" row">
@@ -89,21 +89,21 @@ if (empty($obj)) {
                     </div>
                 </div>
             </form>
-
-            <table id="tb_cuentas_c" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%; font-size:80%">
-                <thead>
-                    <tr class="text-center centro-vertical">
-                        <th>Id</th>
-                        <th>Cuenta Contable Gasto</th>
-                        <th>Fecha Inicio de Vigencia</th>
-                        <th>Cuenta Vigente</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="text-start centro-vertical"></tbody>
-            </table>
-
+            <div class="py-2">
+                <table id="tb_cuentas_c" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle" style="width:100%; font-size:80%">
+                    <thead class="text-center">
+                        <tr>
+                            <th class="bg-sofia">Id</th>
+                            <th class="bg-sofia">Cuenta Contable Gasto</th>
+                            <th class="bg-sofia">Fecha Inicio de Vigencia</th>
+                            <th class="bg-sofia">Cuenta Vigente</th>
+                            <th class="bg-sofia">Estado</th>
+                            <th class="bg-sofia">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-start centro-vertical"></tbody>
+                </table>
+            </div>
         </div>
     </div>
     <div class="text-center pt-3">

@@ -57,20 +57,20 @@ $content = <<<HTML
             <table id="tb_tipos_orden_egreso" class="table table-striped table-bordered table-sm table-hover align-middle w-100" style="font-size:80%">
                 <thead class="text-center">
                     <tr>
-                        <th rowspan="2" class="bg-sofia align-middle">ID</th>
-                        <th rowspan="2" class="bg-sofia align-middle">NOMBRE</th>
-                        <th rowspan="2" class="bg-sofia align-middle">CUENTA CONTABLE GASTO VIGENTE</th>
-                        <th rowspan="2" class="bg-sofia align-middle">INT/EXT</th>
-                        <th rowspan="2" class="bg-sofia align-middle">CON PEDIDO</th>
-                        <th rowspan="2" class="bg-sofia align-middle">ES DEV. FIANZA</th>
-                        <th rowspan="2" class="bg-sofia align-middle">ES CONSUMO</th>
-                        <th colspan="3" class="bg-sofia">MÓDULOS</th>
-                        <th rowspan="2" class="bg-sofia align-middle">ACCIONES</th>
+                        <th rowspan="2" class="bg-sofia">Id</th>
+                        <th rowspan="2" class="bg-sofia">Nombre</th>
+                        <th rowspan="2" class="bg-sofia">Cuenta Contable Gasto Vigente</th>
+                        <th rowspan="2" class="bg-sofia">Int/Ext</th>
+                        <th rowspan="2" class="bg-sofia">Con Pedido</th>
+                        <th rowspan="2" class="bg-sofia">Es Dev. Fianza</th>
+                        <th rowspan="2" class="bg-sofia">Es Consumo</th>
+                        <th colspan="3" class="bg-sofia">Módulos</th>
+                        <th rowspan="2" class="bg-sofia">Acciones</th>
                     </tr>
                     <tr>
-                        <th class="bg-sofia">ALMACÉN</th>
-                        <th class="bg-sofia">FARMACIA</th>
-                        <th class="bg-sofia">ACTIVOS FIJOS</th>
+                        <th class="bg-sofia">Almacén</th>
+                        <th class="bg-sofia">Farmacia</th>
+                        <th class="bg-sofia">Activos Fijos</th>
                     </tr>
                 </thead>
                 <tbody></tbody>

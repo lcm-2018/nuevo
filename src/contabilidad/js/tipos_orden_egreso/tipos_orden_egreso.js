@@ -216,8 +216,7 @@
                     $('#' + that.attr('data-campoid')).val(ui.item.id);
                 } else {
                     $('#' + that.attr('data-campoid')).val('-1');
-                    $('#divModalError').modal('show');
-                    $('#divMsgError').html('Debe seleccionar una cuenta tipo detalle');
+                    mjeError('Debe seleccionar una cuenta tipo detalle');
                 }
             },
         });
@@ -234,11 +233,9 @@
         var error1 = verifica_valmin_2($('#id_txt_cta_con'), $('#txt_cta_con'), 0);
 
         if (error >= 1) {
-            $('#divModalError').modal('show');
-            $('#divMsgError').html('Los datos resaltados son obligatorios');
+            mjeError('Los datos resaltados son obligatorios');
         } else if (error1 >= 1) {
-            $('#divModalError').modal('show');
-            $('#divMsgError').html('Todas las cuentas deben ser tipo detalle')
+            mjeError('Todas las cuentas deben ser tipo detalle');
         } else {
             var data = $('#frm_reg_tipos_orden_egreso_cta').serialize();
             $.ajax({
@@ -250,47 +247,51 @@
                 if (r.mensaje == 'ok') {
                     let pag = ($('#id_tipo_egreso_cta').val() == -1) ? 0 : $('#tb_cuentas_c').DataTable().page.info().page;
                     reloadtable('tb_cuentas_c', pag);
-                    pag = $('#tb_tipos_orden_egreso').DataTable().page.info().page;
-                    reloadtable('tb_tipos_orden_egreso', pag);
                     $('#id_tipo_egreso_cta').val(r.id);
                     $('#divModalReg').modal('hide');
-                    $('#divModalDone').modal('show');
-                    $('#divMsgDone').html("Proceso realizado con éxito");
+                    mje("Proceso realizado con éxito");
                 } else {
-                    $('#divModalError').modal('show');
-                    $('#divMsgError').html(r.mensaje);
+                    mjeError('Inconsistencia', '', r.mensaje, 0);
                 }
             }).always(function () { }).fail(function () {
-                alert('Ocurrió un error');
+                mjeError('Ocurrió un error');
             });
         }
     });
 
     //Borrar un registro Cuenta
-    $('#divForms').on('click', '#tb_cuentas_c .btn_eliminar', function () {
+     $('#divForms').on('click', '#tb_cuentas_c .btn_eliminar', function () {    
         let id = $(this).attr('value');
-        confirmar_del('cuenta_c', id);
-    });
-    $('#divModalConfDel').on("click", "#cuenta_c", function () {
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: 'editar_tipos_orden_egreso_cta.php',
-            dataType: 'json',
-            data: { id: id, id_tipo_egreso: $('#id_tipo_egreso').val(), oper: 'del' }
-        }).done(function (r) {
-            $('#divModalConfDel').modal('hide');
-            if (r.mensaje == 'ok') {
-                let pag = $('#tb_cuentas_c').DataTable().page.info().page;
-                reloadtable('tb_cuentas_c', pag);
-                $('#divModalDone').modal('show');
-                $('#divMsgDone').html("Proceso realizado con éxito");
-            } else {
-                $('#divModalError').modal('show');
-                $('#divMsgError').html(r.mensaje);
+        Swal.fire({
+            title: "¿Está seguro de eliminar el registro?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, eliminar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_tipos_orden_egreso_cta.php',
+                    dataType: 'json',
+                    data: { id: id, id_tipo_egreso: $('#id_tipo_egreso').val(), oper: 'del' }
+                }).done(function (r) {
+                    if (r.mensaje == 'ok') {
+                        $('#tb_cuentas_c').DataTable().ajax.reload(null, false);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).fail(function () {
+                    mjeError('Ocurrió un error');
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () { }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 

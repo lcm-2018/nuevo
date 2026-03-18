@@ -57,32 +57,32 @@ $content = <<<HTML
             <table id="tb_cuentas" class="table table-striped table-bordered table-sm table-hover align-middle w-100" style="font-size:80%">
                 <thead class="text-center">
                     <tr>
-                        <th rowspan="2" class="bg-sofia align-middle">ID</th>
-                        <th rowspan="2" class="bg-sofia align-middle">RÉGIMEN</th>
-                        <th rowspan="2" class="bg-sofia align-middle">COBERTURA</th>
-                        <th rowspan="2" class="bg-sofia align-middle">MODALIDAD</th>
-                        <th rowspan="2" class="bg-sofia align-middle">FECHA INICIO VIGENCIA</th>
-                        <th colspan="16" class="bg-sofia">CUENTAS CONTABLES</th>
-                        <th rowspan="2" class="bg-sofia align-middle">ESTADO</th>
-                        <th rowspan="2" class="bg-sofia align-middle">ACCIONES</th>
+                        <th rowspan="2" class="bg-sofia">Id</th>
+                        <th rowspan="2" class="bg-sofia">Régimen</th>
+                        <th rowspan="2" class="bg-sofia">Cobertura</th>
+                        <th rowspan="2" class="bg-sofia">Modalidad</th>
+                        <th rowspan="2" class="bg-sofia">Fecha Inicio Vigencia</th>
+                        <th colspan="16" class="bg-sofia">Cuentas Contables</th>
+                        <th rowspan="2" class="bg-sofia">Estado</th>
+                        <th rowspan="2" class="bg-sofia">Acciones</th>
                     </tr>
                     <tr>
-                        <th class="bg-sofia">PRESTO.</th>
-                        <th class="bg-sofia">PRESTO.ANT.</th>
-                        <th class="bg-sofia">DÉBITO</th>
-                        <th class="bg-sofia">CRÉDITO</th>
-                        <th class="bg-sofia">COPAGO</th>
-                        <th class="bg-sofia">COP.CAP.</th>
-                        <th class="bg-sofia">GLO.INI.DEB.</th>
-                        <th class="bg-sofia">GLO.INI.CRE.</th>
-                        <th class="bg-sofia">GLO_DEF.</th>
-                        <th class="bg-sofia">DEVOL.</th>
-                        <th class="bg-sofia">DEVOL.ANT.</th>
-                        <th class="bg-sofia">CAJA</th>
-                        <th class="bg-sofia">FAC.GLOB.</th>
-                        <th class="bg-sofia">POR IDEN.</th>
-                        <th class="bg-sofia">BAJA</th>
-                        <th class="bg-sofia">VIGENTE</th>
+                        <th class="bg-sofia">Presto.</th>
+                        <th class="bg-sofia">Presto.Ant.</th>
+                        <th class="bg-sofia">Débito</th>
+                        <th class="bg-sofia">Crédito</th>
+                        <th class="bg-sofia">Copago</th>
+                        <th class="bg-sofia">Cop.Cap.</th>
+                        <th class="bg-sofia">Glo.Ini.Deb.</th>
+                        <th class="bg-sofia">Glo.Ini.Cre.</th>
+                        <th class="bg-sofia">Glo.Def.</th>
+                        <th class="bg-sofia">Devol.</th>
+                        <th class="bg-sofia">Devol.Ant.</th>
+                        <th class="bg-sofia">Caja</th>
+                        <th class="bg-sofia">Fac.Glob.</th>
+                        <th class="bg-sofia">Por Iden.</th>
+                        <th class="bg-sofia">Baja</th>
+                        <th class="bg-sofia">Vigente</th>
                     </tr>
                 </thead>
                 <tbody></tbody>

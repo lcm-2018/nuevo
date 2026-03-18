@@ -36,13 +36,13 @@ if (empty($obj)) {
         <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
             <h7 style="color: white;">REGISRTAR CUENTA CONTABLE DE SUBGRUPO</h7>
         </div>
-        <div class="px-2">
 
+        <div class="p-3">
             <!--Formulario de registro de Cuenta-->
             <form id="frm_reg_centrocostos_sg_cta">
                 <input type="hidden" id="id_cec_sgcta" name="id_cec_sgcta" value="<?php echo $id ?>">
                 <input type="hidden" id="id_subgrupo" name="id_subgrupo" value="<?php echo $id_subgrupo ?>">
-                <div class=" row">
+                <div class=" row mb-2">
                     <div class="col-md-12">
                         <label for="txt_cta_con" class="small">Cuenta Contable</label>
                         <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_con" data-campoid="id_txt_cta_con" value="<?php echo $obj['cuenta'] ?>">
