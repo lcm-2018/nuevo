@@ -34,9 +34,7 @@ class Menu
      */
     public function render()
     {
-        //$dash = $this->getMenuDashboard();
-        $dash = '';
-
+        
         return <<<HTML
         <div style="background-color: #eafaf1;" class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" data-bs-scroll="true">
             <div class="offcanvas-header text-white d-flex justify-content-between w-100" style="border-bottom: 5px solid #16a085 !important;">
@@ -59,7 +57,7 @@ class Menu
                     {$this->getMenuAlmacen()}
                     {$this->getMenuActivosFijos()}
                     {$this->getMenuFinanciero()}
-                    {$dash}
+                    <!-- {$this->getMenuAnalytics()} -->
                 </ul>
             </div>
         </div>
@@ -701,9 +699,9 @@ class Menu
             $ped_items .= '<li><a href="' . $this->host . '/src/almacen/php/pedidos_cec/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fa fa-th-large me-2 fa-fw"></i> Dependencia</a></li>';
         }
         // 5018: [Pedidos][De Bodega SPSR]
-        if ($this->permisos->PermisosUsuario($this->opciones, 5018, 0) || $this->id_rol == 1) {
+        /*if ($this->permisos->PermisosUsuario($this->opciones, 5018, 0) || $this->id_rol == 1) {
             $ped_items .= '<li><a href="' . $this->host . '/src/almacen/php/pedidos_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-coins me-2 fa-fw"></i> Bodega SPSR</a></li>';
-        }
+        }*/
 
         $alm_pedidos = '';
         if (!empty($ped_items)) {
@@ -727,9 +725,9 @@ class Menu
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-exchange-alt me-2 fa-fw"></i> Traslados</a></li>';
         }
         // 5017: [Movimientos][Traslado SPSR]
-        if ($this->permisos->PermisosUsuario($this->opciones, 5017, 0) || $this->id_rol == 1) {
+        /*if ($this->permisos->PermisosUsuario($this->opciones, 5017, 0) || $this->id_rol == 1) {
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/trasladose_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados Egreso SPSR</a></li>';
-        }
+        }*/
         // 5009: [Movimientos][Recalcular]
         if ($this->permisos->PermisosUsuario($this->opciones, 5009, 0) || $this->id_rol == 1) {
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/recalcular_kardex/index.php" class="nav-link text-danger px-1 py-2 sombra"><i class="fa fa-cogs me-2 fa-fw"></i> Recalcula Mtos.</a></li>';
@@ -956,63 +954,93 @@ class Menu
     }
 
     /**
-     * MODULO DASHBOARD
-     * Este módulo se muestra siempre (sin validación de permisos por ahora)
+     * MODULO ANALITYCS (30)
+     * IDs según tabla:
+     * 3001: [Configuracion][Consultas Analíticas]
+     * 3002: [Configuracion][Sedes-Base de Datos]
+     * 3003: [Configuracion][Tablero Analítico]
+     * 3004: [Visualizacion][Consultas Analíticas]
+     * 3005: [Visualizacion][Tablero Analítico]     
      */
-    private function getMenuDashboard(): string
+    private function getMenuAnalytics(): string
     {
-        return
-            <<<HTML
-                <li>
-                    <a href="#dash-collapse" class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                        <span class="d-flex align-items-center">
-                            <div class="menu-icon-wrapper gradient-dashboard">
-                                <i class="fas fa-chart-bar"></i>
-                            </div>
-                            <span class="menu-text">Dashboard</span>
-                        </span>
-                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
-                    </a>
-                    <div class="collapse" id="dash-collapse">
-                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
-                            <li>
-                                <a href="#dash_general-collapse" class="nav-link text-secondary d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                    <span class="d-flex align-items-center text-primary-emphasis">
-                                        <i class="fas fa-tags fa-sm me-2"></i> General
-                                    </span>
-                                    <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
-                                </a>
-                            </li>
-                            <div class="collapse" id="dash_general-collapse">
-                                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
-                                    <li>
-                                        <a href="{$this->host}/src/configuracion/php/index.php" class="nav-link text-primary px-1 py-2 sombra">
-                                            <i class="fas fa-cogs me-2 fa-fw"></i> Configuración
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
+        // 1️ Verificación global del módulo 30
+        if (!($this->modulos[30] > 0 || $this->id_rol == 1)) {
+            return '';
+        }
 
-                            <li>
-                                <a href="#dash_ejecucion-collapse" class="nav-link d-flex justify-content-between align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
-                                    <span class="d-flex align-items-center text-success">
-                                        <i class="fas fa-file-invoice-dollar fa-sm me-2"></i> Ejecución
-                                    </span>
-                                    <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
-                                </a>
-                            </li>
-                            <div class="collapse shadow" id="dash_ejecucion-collapse">
-                                <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4">
-                                    <li>
-                                        <a href="{$this->host}/src/personalizados/php/index.php" class="nav-link text-success px-1 py-2 sombra">
-                                            <i class="fas fa-cogs me-2 fa-fw"></i> Personalizados
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </ul>
-                    </div>
-                </li>
-            HTML;
+        // 2 Verificación de permisos del contenedor
+        if (!(
+            $this->permisos->PermisosUsuario($this->opciones, 3001, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 3002, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 3003, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 3004, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 3005, 0) ||
+            $this->id_rol == 1
+        )) {
+            return '';
+        }
+
+        // --- SECCIÓN: CONFIGURACIÓN ---   
+        $conf_items = '';
+
+        // 3001: [Configuracion][Consultas Analíticas]
+        if ($this->permisos->PermisosUsuario($this->opciones, 3001, 0) || $this->id_rol == 1) {
+            $conf_items .= '<li><a href="' . $this->host . '/src/analytics/conf_consultas/php/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-edit me-2 fa-fw"></i> Consultas Analíticas</a></li>';
+        }
+
+        // 3002: [Configuracion][Sedes-DB]
+        if ($this->permisos->PermisosUsuario($this->opciones, 3002, 0) || $this->id_rol == 1) {
+            $conf_items .= '<li><a href="' . $this->host . '/src/analytics/conf_bdatos/php/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-project-diagram me-2 fa-fw"></i> Sedes-Base de Datos</a></li>';
+        }
+
+        // 3003: [Configuracion][Tablero Analítico]
+        if ($this->permisos->PermisosUsuario($this->opciones, 3003, 0) || $this->id_rol == 1) {
+            $conf_items .= '<li><a href="' . $this->host . '/src/analytics/conf_tablero/php/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-columns me-2 fa-fw"></i> Tablero Analítico</a></li>';
+        }
+
+        $analytics_config = '';
+        if (!empty($conf_items)) {
+            $analytics_config = $this->wrapCollapse('analytics-config-collapse','fas fa-cogs','Configuración',$conf_items,'text-primary');
+        }
+
+        // --- SECCIÓN: VISUALIZACIÓN ---
+        $vis_items = '';
+        if ($this->permisos->PermisosUsuario($this->opciones, 3004, 0) || $this->id_rol == 1) {
+            $vis_items .= '<li><a href="' . $this->host . '/src/analytics/php/consultas/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-poll me-2 fa-fw"></i> Consultas Analíticas</a></li>';
+        }
+
+        if ($this->permisos->PermisosUsuario($this->opciones, 3005, 0) || $this->id_rol == 1) {
+            $vis_items .= '<li><a href="' . $this->host . '/src/analytics/php/tablero/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-tv me-2 fa-fw"></i> Tablero Analítico</a></li>';
+        }
+
+        $analytics_visualizacion = '';
+        if (!empty($vis_items)) {
+            $analytics_visualizacion = $this->wrapCollapse('analytics-visual-collapse','fas fa-eye','Visualización',$vis_items,'text-success');
+        }
+        
+        //3 Retorno del bloque completo
+        return <<<HTML
+            <li>
+                <a href="#analytics-collapse"
+                class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra"
+                data-bs-toggle="collapse"
+                aria-expanded="false">
+                    <span class="d-flex align-items-center">
+                        <div class="menu-icon-wrapper gradient-activos">
+                            <i class="fa fa fa-dashboard"></i>
+                        </div>
+                        <span class="menu-text">Analytics</span>
+                    </span>
+                    <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i>
+                </a>
+                <div class="collapse shadow rounded-3" id="analytics-collapse">
+                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 pt-2 small ps-4 pe-3">
+                        {$analytics_config}
+                        {$analytics_visualizacion}
+                    </ul>
+                </div>
+            </li>
+        HTML;
     }
 }

@@ -35,7 +35,7 @@ try {
             (far_pedido_detalle.cantidad*far_pedido_detalle.valor) AS val_total
         FROM far_pedido_detalle
         INNER JOIN far_medicamentos ON (far_medicamentos.id_med = far_pedido_detalle.id_medicamento)
-        WHERE far_pedido_detalle.id_pedido=" . $id . " ORDER BY far_pedido_detalle.id_ped_detalle";
+        WHERE far_pedido_detalle.id_pedido=" . $id . " ORDER BY far_medicamentos.nom_medicamento";
     $rs = $cmd->query($sql);
     $obj_ds = $rs->fetchAll();
     $rs->closeCursor();
