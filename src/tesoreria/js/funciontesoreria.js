@@ -32,6 +32,25 @@ var tabla;
 		});
 	};
 
+	var reloadtableKeepPosition = function (nom) {
+		$(document).ready(function () {
+			var $table = $("#" + nom);
+			if (!$table.length || !$.fn.DataTable.isDataTable($table)) {
+				return;
+			}
+			var table = $table.DataTable();
+			var $overflow = $table.closest(".overflow");
+			var overflowScrollTop = $overflow.length ? $overflow.scrollTop() : 0;
+			var windowScrollTop = $(window).scrollTop();
+			table.ajax.reload(function () {
+				if ($overflow.length) {
+					$overflow.scrollTop(overflowScrollTop);
+				}
+				$(window).scrollTop(windowScrollTop);
+			}, false);
+		});
+	};
+
 	var confdel = function (i, t) {
 		$.ajax({
 			type: "POST",
@@ -298,10 +317,10 @@ var tabla;
 		});
 		$("#tableCuentasBanco").wrap('<div class="overflow" />');
 
-		$("#tableConcBancaria").DataTable({
-			language: dataTable_es,
-			ajax: {
-				url: "datos/listar/cuentas_conciliar.php",
+			$("#tableConcBancaria").DataTable({
+				language: dataTable_es,
+				ajax: {
+					url: "datos/listar/cuentas_conciliar.php",
 				data: function (d) {
 					d.mes = $("#slcMesConcBanc").length ? $("#slcMesConcBanc").val() : '00';
 				},
@@ -319,21 +338,34 @@ var tabla;
 			],
 			order: [[0, "desc"]],
 			"pageLength": 10,
-			columnDefs: [{
-				class: 'text-wrap',
-				targets: [2]
-			}],
-			processing: true,
-		});
+				columnDefs: [{
+					class: 'text-wrap',
+					targets: [2]
+				}],
+				processing: true,
+				footerCallback: function () {
+					var api = this.api();
+					var rows = api.rows({ search: 'applied' }).data().toArray();
+					var totalDebito = rows.reduce(function (total, row) {
+						return total + (parseFloat(row.debito_valor) || 0);
+					}, 0);
+					var totalCredito = rows.reduce(function (total, row) {
+						return total + (parseFloat(row.credito_valor) || 0);
+					}, 0);
+					$(api.column(3).footer()).html('Totales');
+					$(api.column(4).footer()).html('Débito: ' + pesos(totalDebito, 2));
+					$(api.column(5).footer()).html('Crédito: ' + pesos(totalCredito, 2));
+				},
+			});
 		$("#tableConcBancaria").wrap('<div class="overflow" />');
 		if ($("#slcMesConcBanc").length) {
 			$(".dt-button").addClass("p-0 border-0");
 			$(".dt-button").attr('disabled', true)
 		}
-		$("#tableDetConciliacion").DataTable({
-			dom: setdom,
-			language: dataTable_es,
-			ajax: {
+			var tbDetConciliacion = $("#tableDetConciliacion").DataTable({
+				dom: setdom,
+				language: dataTable_es,
+				ajax: {
 				url: "datos/listar/datos_detalles_conciliacion.php",
 				data: function (d) {
 					d.id_cuenta = $("#id_cuenta").val();
@@ -353,17 +385,51 @@ var tabla;
 				{ data: "accion" }
 			],
 			order: [[0, "desc"]],
-			lengthMenu: [
-				[10, 25, 50, 100, -1],
-				[10, 25, 50, 100, 'TODO'],
-			],
-			pageLength: -1,
-			columnDefs: [{
-				class: 'text-wrap',
-				targets: [2]
-			}],
-		});
-		$("#tableDetConciliacion").wrap('<div class="overflow" />');
+				lengthMenu: [
+					[10, 25, 50, 100, -1],
+					[10, 25, 50, 100, 'TODO'],
+				],
+				pageLength: -1,
+				orderCellsTop: false,
+				columnDefs: [{
+					class: 'text-wrap',
+					targets: [2]
+				}],
+				footerCallback: function () {
+					var api = this.api();
+					var rows = api.rows({ search: 'applied' }).data().toArray();
+					var totalDebito = rows.reduce(function (total, row) {
+						return total + (parseFloat(row.debito_valor) || 0);
+					}, 0);
+					var totalCredito = rows.reduce(function (total, row) {
+						return total + (parseFloat(row.credito_valor) || 0);
+					}, 0);
+					$(api.column(3).footer()).html('Totales');
+					$(api.column(4).footer()).html('Débito: ' + pesos(totalDebito, 2));
+					$(api.column(5).footer()).html('Crédito: ' + pesos(totalCredito, 2));
+				},
+			});
+			$('#tableDetConciliacion thead .fila-filtros-det-conc th').on('click mousedown', function (e) {
+				e.stopPropagation();
+			});
+			$('#tableDetConciliacion thead').on('click', 'input, select', function (e) {
+				e.stopPropagation();
+			});
+			$('#tableDetConciliacion thead').on('keyup change', '.filtro-det-conc', function () {
+				var columna = parseInt($(this).data('columna'), 10);
+				var valor = $(this).val();
+				if (columna === 6) {
+					var filtroEstado = '^(Pendiente|Conciliado)$';
+					if (valor === 'Pendiente' || valor === 'Conciliado') {
+						filtroEstado = '^' + $.fn.dataTable.util.escapeRegex(valor) + '$';
+					}
+					tbDetConciliacion.column(columna).search(filtroEstado, true, false).draw();
+				} else {
+					tbDetConciliacion.column(columna).search(valor).draw();
+				}
+			});
+			$('#tableDetConciliacion thead .filtro-det-conc[data-columna="6"]').trigger('change');
+			$("#tableDetConciliacion").wrap('<div class="overflow" />');
 		//Fin dataTable
 	});
 
@@ -2988,9 +3054,11 @@ const generarRelacionPagos = (boton) => {
 	let fec_ini = fecha_ini.value;
 	let fec_fin = fecha_fin.value;
 	let pto = document.getElementById("pto").checked ? 1 : 0;
+	let egr_man = document.getElementById("egr_man").checked ? 1 : 0;
+	let desc_det = document.getElementById("desc_det").checked ? 1 : 0;
 	let url = ValueInput('host') + "/src/tesoreria/php/informes/relacion_pagos.php";
 	mostrarOverlay();
-	$.post(url, { fec_ini: fec_ini, fec_fin: fec_fin, pto: pto }, function (he) {
+	$.post(url, { fec_ini: fec_ini, fec_fin: fec_fin, pto: pto, egr_man: egr_man, desc_det: desc_det }, function (he) {
 		$("#areaImprimir").html(he);
 		ocultarOverlay();
 	});
@@ -3076,7 +3144,7 @@ const CambiarConciliacion = (id, estado) => {
 				.then((response) => response.text())
 				.then((response) => {
 					if (response == "ok") {
-						$('#tableConcBancaria').DataTable().ajax.reload(null, false);
+						reloadtableKeepPosition('tableConcBancaria');
 						mje("Registro Actualizado Correctamente");
 					} else {
 						mjeError("Error:", response);

@@ -34,21 +34,32 @@ $content = <<<HTML
                 </select>
             </div>
         </div>
-        <table id="tableConcBancaria" class="table table-striped table-bordered table-sm nowrap table-hover shadow w-100">
-            <thead>
-                <tr class="text-center">
-                    <th class="bg-sofia">Banco</th>
-                    <th class="bg-sofia">Tipo<br>Cuenta</th>
-                    <th class="bg-sofia">Descripción</th>
-                    <th class="bg-sofia">No. Cta.</th>
-                    <th class="bg-sofia">Saldo</th>
-                    <th class="bg-sofia">Conciliar</th>
-                    <th class="bg-sofia">Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="modificarTableConcBancaria">
-            </tbody>
-        </table>
+	        <table id="tableConcBancaria" class="table table-striped table-bordered table-sm nowrap table-hover shadow w-100">
+	            <thead>
+	                <tr class="text-center">
+	                    <th class="bg-sofia">Banco</th>
+	                    <th class="bg-sofia">Tipo<br>Cuenta</th>
+                        <th class="bg-sofia">Descripción</th>
+                        <th class="bg-sofia">No. Cta.</th>
+                        <th class="bg-sofia">Saldo</th>
+                        <th class="bg-sofia">Conciliar</th>
+                        <th class="bg-sofia">Acciones</th>
+	                </tr>
+	            </thead>
+	            <tbody id="modificarTableConcBancaria">
+	            </tbody>
+	            <tfoot>
+	                <tr class="text-center">
+	                    <th></th>
+	                    <th></th>
+	                    <th></th>
+	                    <th class="text-end">Totales</th>
+	                    <th class="text-end">Débito: $0,00</th>
+	                    <th class="text-end">Crédito: $0,00</th>
+	                    <th></th>
+	                </tr>
+	            </tfoot>
+	        </table>
     </div>
 </div>
 HTML;

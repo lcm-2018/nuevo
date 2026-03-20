@@ -48,10 +48,73 @@ function calcularValorRubroNomina($detalleEmpleado, $fields)
     return !empty($detalleEmpleado[$fields]) ? $detalleEmpleado[$fields] : 0;
 }
 
+function obtenerClavesDocumentoTercero($documento)
+{
+    $documento = trim((string) $documento);
+    if ($documento === '') {
+        return [];
+    }
+
+    $claves = [$documento, strtoupper($documento)];
+    $documentoLimpio = preg_replace('/[^0-9A-Za-z]/', '', $documento);
+    if ($documentoLimpio !== '') {
+        $claves[] = $documentoLimpio;
+        $claves[] = strtoupper($documentoLimpio);
+    }
+
+    $soloDigitos = preg_replace('/\D+/', '', $documento);
+    if ($soloDigitos !== '') {
+        $claves[] = $soloDigitos;
+        $claves[] = ltrim($soloDigitos, '0');
+    }
+
+    return array_values(array_unique(array_filter($claves, function ($clave) {
+        return $clave !== '';
+    })));
+}
+
+function indexarTercerosPorDocumento($terceros)
+{
+    $indexados = [];
+    $repetidos = [];
+
+    foreach ($terceros as $tercero) {
+        $idTercero = isset($tercero['id']) ? (int) $tercero['id'] : 0;
+        if (!($idTercero > 0)) {
+            continue;
+        }
+
+        foreach (obtenerClavesDocumentoTercero($tercero['cedula'] ?? '') as $clave) {
+            if (isset($indexados[$clave]) && $indexados[$clave] !== $idTercero) {
+                $repetidos[$clave] = true;
+            } else {
+                $indexados[$clave] = $idTercero;
+            }
+        }
+    }
+
+    foreach (array_keys($repetidos) as $clave) {
+        unset($indexados[$clave]);
+    }
+
+    return $indexados;
+}
+
+function resolverIdTerceroEmpleado($documento, $tercerosIndexados)
+{
+    foreach (obtenerClavesDocumentoTercero($documento) as $clave) {
+        if (isset($tercerosIndexados[$clave])) {
+            return (int) $tercerosIndexados[$clave];
+        }
+    }
+
+    return 0;
+}
+
 function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPorTipoCcosto, $esPtoCaracter)
 {
     if ($esPtoCaracter) {
-        $ccostos = array_filter(array_map('trim', explode(',', (string) ($detalleEmpleado['id_ccosto'] ?? ''))));
+        $ccostos = array_filter(array_map('trim', explode(',', (string)($detalleEmpleado['id_ccosto'] ?? ''))));
         if (count($ccostos) !== 1) {
             throw new Exception(
                 'El empleado con documento ' . $detalleEmpleado['no_documento'] .
@@ -172,7 +235,7 @@ $Nomina = new Nomina();
 $datos = $Detalles->getRegistrosDT(1, -1, ['id_nomina' => $idNomina], 1, 'ASC');
 $nomina = $Nomina->getRegistro($idNomina);
 $terceros = $Terceros->getTerceros();
-$terceros = array_column($terceros, 'id', 'cedula');
+$terceros = indexarTercerosPorDocumento($terceros);
 
 $id_pto = $pto['id_pto'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
@@ -227,8 +290,10 @@ try {
         throw new Exception($sql->errorInfo()[2]);
     }
 
-    $sql = "SELECT `id_tercero_api` FROM `tb_terceros` WHERE `nit_tercero` = " . $_SESSION['nit_emp'];
-    $rs = $cmd->query($sql);
+    $sql = "SELECT `id_tercero_api` FROM `tb_terceros` WHERE `nit_tercero` = ?";
+    $rs = $cmd->prepare($sql);
+    $rs->bindValue(1, $_SESSION['nit_emp'], PDO::PARAM_STR);
+    $rs->execute();
     $tercero = $rs->fetch();
     $id_ter_api = !empty($tercero) ? $tercero['id_tercero_api'] : null;
 
@@ -298,7 +363,15 @@ try {
         32 => 'pago_empresa'
     ];
     foreach ($datos as $d) {
-        $id_tercero = $terceros[$d['no_documento']];
+        $id_tercero = resolverIdTerceroEmpleado($d['no_documento'] ?? '', $terceros);
+        if (!($id_tercero > 0)) {
+            throw new Exception(
+                'No se encontró un tercero activo con id_tercero_api válido para el empleado con documento ' .
+                    ($d['no_documento'] ?? 'sin documento') .
+                    '. Verifique la coincidencia entre nom_empleado.no_documento y tb_terceros.nit_tercero.'
+            );
+        }
+
         foreach ($tipo_field_map as $tipo => $fields) {
             $valor = calcularValorRubroNomina($d, $fields);
 
@@ -318,10 +391,7 @@ try {
             }
         }
     }
-    $cmd = null;
-
     $estado = 3;
-    $cmd = \Config\Clases\Conexion::getConexion();
 
     $sql = "UPDATE `nom_nominas` SET `estado` = ? WHERE `id_nomina` = ?";
     $sql = $cmd->prepare($sql);
