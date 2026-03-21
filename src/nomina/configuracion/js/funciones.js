@@ -115,19 +115,22 @@ const tableIncSalario = crearDataTable(
         order: [[0, 'desc']],
     }
 );
+const mostrarCcostoRubro = Number(opCaracterJS) === 1 && Number(opPtoJS) === 1;
+const columnasRubroPto = [
+    { data: 'id' },
+    { data: 'tipo' },
+    ...(mostrarCcostoRubro ? [{ data: 'ccosto' }] : []),
+    { data: 'cod_ra' },
+    { data: 'nom_ra' },
+    { data: 'cod_ro' },
+    { data: 'nom_ro' },
+    { data: 'acciones' }
+];
+
 const tableRubroPto = crearDataTable(
     '#tableRubroPto',
     'lista_rubros.php',
-    [
-        { data: 'id' },
-        { data: 'tipo' },
-        { data: 'ccosto' },
-        { data: 'cod_ra' },
-        { data: 'nom_ra' },
-        { data: 'cod_ro' },
-        { data: 'nom_ro' },
-        { data: 'acciones' }
-    ],
+    columnasRubroPto,
     [
         {
             text: plus,
@@ -142,13 +145,6 @@ const tableRubroPto = crearDataTable(
     {
         pageLength: 10,
         order: [[0, 'desc']],
-        columnDefs: [
-            {
-                // Columna ccosto (índice 2): visible solo cuando caracter=1 y pto=1
-                targets: [2],
-                visible: (Number(opCaracterJS) === 1 && Number(opPtoJS) === 1)
-            }
-        ]
     }
 );
 
