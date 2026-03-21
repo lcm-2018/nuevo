@@ -39,8 +39,7 @@ if (empty($obj)) {
         <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
             <h7 style="color: white;">REGISRTAR CUENTAS CONTABLES DE SUBGRUPO - ACTIVO FIJO</h7>
         </div>
-        <div class="px-2">
-
+        <div class="p-3">
             <!--Formulario de registro de Cuenta-->
             <form id="frm_reg_subgrupos_cta_af">
                 <input type="hidden" id="id_subgrupocta_af" name="id_subgrupocta_af" value="<?php echo $id ?>">
@@ -74,7 +73,7 @@ if (empty($obj)) {
             </form>
         </div>
     </div>
-    <div class="text-center pt-3">
+    <div class="text-center pt-3">        
         <button type="button" class="btn btn-primary btn-sm" id="btn_guardar_cta_af">Guardar</button>
         <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>

@@ -35,8 +35,7 @@ if (empty($obj)) {
         <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
             <h7 style="color: white;">REGISRTAR CUENTA CONTABLE DE SUBGRUPO - INVENTARIO</h7>
         </div>
-        <div class="px-2">
-
+        <div class="p-3">
             <!--Formulario de registro de Cuenta-->
             <form id="frm_reg_subgrupos_cta">
                 <input type="hidden" id="id_subgrupocta" name="id_subgrupocta" value="<?php echo $id ?>">

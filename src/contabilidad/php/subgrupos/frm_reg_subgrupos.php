@@ -87,7 +87,7 @@ if (empty($obj)) {
             </form>
 
             <!--Tabs para CUENTAS-->
-            <div class="p-3">
+            <div class="py-3">
                 <nav>
                     <div class="nav nav-tabs small" id="nav-tab" role="tablist">
                         <button class="nav-link active small" id="nav_lista_cta_cs-tab" data-bs-toggle="tab" data-bs-target="#nav_lista_cta_cs" type="button" role="tab" aria-controls="nav_lista_cta_cs" aria-selected="true">CUENTA CONTABLE - INVENTARIO</button>
@@ -101,12 +101,12 @@ if (empty($obj)) {
                         <table id="tb_cuentas_cs" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle" style="width:100%; font-size:80%">
                             <thead class="text-center">
                                 <tr>
-                                    <th class="bg-sofia">ID</th>
-                                    <th class="bg-sofia">CUENTA CONTABLE</th>
-                                    <th class="bg-sofia">FECHA INICIO DE VIGENCIA</th>
-                                    <th class="bg-sofia">CUENTA VIGENTE</th>
-                                    <th class="bg-sofia">ESTADO</th>
-                                    <th class="bg-sofia">ACCIONES</th>
+                                    <th class="bg-sofia">Id</th>
+                                    <th class="bg-sofia">Cuenta Contable</th>
+                                    <th class="bg-sofia">Fecha Inicio de Vigencia</th>
+                                    <th class="bg-sofia">Cuenta Vigente</th>
+                                    <th class="bg-sofia">Estado</th>
+                                    <th class="bg-sofia">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody class="text-start"></tbody>
@@ -118,17 +118,17 @@ if (empty($obj)) {
                         <table id="tb_cuentas_af" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle" style="width:100%; font-size:80%">
                             <thead class="text-center">
                                 <tr>
-                                    <th rowspan="2" class="bg-sofia align-middle">ID</th>
-                                    <th colspan="3" class="bg-sofia">CUENTAS CONTABLES</th>
-                                    <th rowspan="2" class="bg-sofia align-middle">FECHA INICIO DE VIGENCIA</th>
-                                    <th rowspan="2" class="bg-sofia align-middle">CUENTA VIGENTE</th>
-                                    <th rowspan="2" class="bg-sofia align-middle">ESTADO</th>
-                                    <th rowspan="2" class="bg-sofia align-middle">ACCIONES</th>
+                                    <th rowspan="2" class="bg-sofia">Id</th>
+                                    <th colspan="3" class="bg-sofia">Cuentas Contables</th>
+                                    <th rowspan="2" class="bg-sofia">Fecha Inicio de Vigencia</th>
+                                    <th rowspan="2" class="bg-sofia">Cuenta Vigente</th>
+                                    <th rowspan="2" class="bg-sofia">Estado</th>
+                                    <th rowspan="2" class="bg-sofia">Acciones</th>
                                 </tr>
                                 <tr>
-                                    <th class="bg-sofia">ACTIVO</th>
-                                    <th class="bg-sofia">DEPRECIACIÓN</th>
-                                    <th class="bg-sofia">GASTO DEPRECIACIÓN</th>
+                                    <th class="bg-sofia">Activo</th>
+                                    <th class="bg-sofia">Depreciación</th>
+                                    <th class="bg-sofia">Gasto Depreciación</th>
                                 </tr>
                             </thead>
                             <tbody class="text-start"></tbody>

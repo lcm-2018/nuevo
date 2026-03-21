@@ -109,28 +109,29 @@ try {
                         <td>' . $obj['nom_subgrupo'] . '</td>
                         <td>' . $obj['nom_grupo'] . '</td>
                         <td>' . $obj['af_menor_cuantia'] . '</td>
-                        <td>' . $obj['estado'] . '</td></tr>
+                        <td>' . $obj['estado'] . '</td>
+                    </tr>
                     <tr class="resaltar" style="text-align:left"> 
                         <td colspan="5">
                             <table>';
-                if ($obj['id_grupo'] == 1 || $obj['id_grupo'] == 2) {
-                    $tabla .=
-                        '<tr>    
-                                       <td>Cta. Inventario:</td><td>' . $cuenta_cs . '</td>
+                            if ($obj['id_grupo'] == 1 || $obj['id_grupo'] == 2) {
+                                $tabla .=
+                                    '<tr>    
+                                        <td>Cta. Inventario:</td><td>' . $cuenta_cs . '</td>
                                     </tr></table></td></tr>';
-                } else {
-                    $tabla .=
-                        '<tr>    
+                            } else {
+                                $tabla .=
+                                    '<tr>    
                                         <td>Cta. Activo Fijo:</td><td> ' . $cuenta_af . '</td>
                                     </tr>
                                     <tr>        
                                         <td>Cta. Depreciación Activo Fijo:</td><td> ' . $cuenta_dep . '</td>
                                     </tr>
-                                    <tr>        
+                                        <tr>        
                                         <td>Cta. Gasto Depreciación Activo Fijo:</td><td> ' . $cuenta_gas . '</td>
                                     </tr></table></td></tr>';
-                }
-            }
+                            }
+                        }
             echo $tabla;
             ?>
         </tbody>

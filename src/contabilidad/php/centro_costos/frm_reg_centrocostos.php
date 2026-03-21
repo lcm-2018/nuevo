@@ -66,7 +66,7 @@ if (empty($obj)) {
             </form>
 
             <!--Tabs para CUENTAS-->
-            <div class="p-3">
+            <div class="py-3">
                 <nav>
                     <div class="nav nav-tabs small small" id="nav-tab" role="tablist">
                         <button class="nav-link active small" id="nav_lista_cta_cc-tab" data-bs-toggle="tab" data-bs-target="#nav_lista_cta_cc" type="button" role="tab" aria-controls="nav_lista_cta_cc" aria-selected="true">CUENTA CONTABLE - FACTURACION</button>

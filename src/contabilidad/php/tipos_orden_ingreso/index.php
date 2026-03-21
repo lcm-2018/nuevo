@@ -1,12 +1,5 @@
 <?php
 session_start();
-
-/* Activar si desea verificar Errores desde el Servidor
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-*/
-
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
@@ -22,11 +15,8 @@ $id_user = $_SESSION['id_user'];
 
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_user);
-
-$host = Plantilla::getHost();
-
-// Validar permisos de registro
 $peReg = $permisos->PermisosUsuario($opciones, 5512, 2) || $id_rol == 1 ? 1 : 0;
+$host = Plantilla::getHost();
 
 $content = <<<HTML
 <div class="card w-100">
@@ -53,25 +43,24 @@ $content = <<<HTML
         </div>
 
         <!-- Tabla de tipos de orden de ingreso -->
-        <div class="table-responsive shadow">
+        <div class="table-responsive shadow p-2">
             <table id="tb_tipos_orden_ingreso" class="table table-striped table-bordered table-sm table-hover align-middle w-100" style="font-size:80%">
                 <thead class="text-center">
                     <tr>
-                        <th rowspan="2" class="bg-sofia align-middle">ID</th>
-                        <th rowspan="2" class="bg-sofia align-middle">NOMBRE</th>
-                        <th rowspan="2" class="bg-sofia align-middle">INT/EXT</th>
-                        <th rowspan="2" class="bg-sofia align-middle">CON ORDEN COMPRA</th>
-                        <th rowspan="2" class="bg-sofia align-middle">ES FIANZA</th>
-                        <th colspan="3" class="bg-sofia">MÓDULOS</th>
-                        <th rowspan="2" class="bg-sofia align-middle">ACCIONES</th>
+                        <th rowspan="2" class="bg-sofia">Id</th>
+                        <th rowspan="2" class="bg-sofia">Nombre</th>
+                        <th rowspan="2" class="bg-sofia">Int/Ext</th>
+                        <th rowspan="2" class="bg-sofia">Con Orden Compra</th>
+                        <th rowspan="2" class="bg-sofia">Es Fianza</th>
+                        <th colspan="3" class="bg-sofia">Módulos</th>
+                        <th rowspan="2" class="bg-sofia">Acciones</th>
                     </tr>
                     <tr>
                         <th class="bg-sofia">ALMACÉN</th>
                         <th class="bg-sofia">FARMACIA</th>
                         <th class="bg-sofia">ACTIVOS FIJOS</th>
                     </tr>
-                </thead>
-                <tbody></tbody>
+                </thead>                
             </table>
         </div>
     </div>
@@ -81,7 +70,6 @@ HTML;
 $plantilla = new Plantilla($content, 2);
 $plantilla->addCssFile("{$host}/assets/css/jquery-ui.css?v=" . date("YmdHis"));
 $plantilla->addScriptFile("{$host}/assets/js/jquery-ui.js?v=" . date("YmdHis"));
-$plantilla->addScriptFile("{$host}/src/contabilidad/js/informes_bancos/common.js?v=" . date("YmdHis"));
 $plantilla->addScriptFile("{$host}/src/contabilidad/js/tipos_orden_ingreso/tipos_orden_ingreso.js?v=" . date("YmdHis"));
 $modal = $plantilla->getModal('divModalForms', 'divTamModalForms', 'divForms');
 $plantilla->addModal($modal);

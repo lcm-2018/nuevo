@@ -216,8 +216,7 @@
                     $('#' + that.attr('data-campoid')).val(ui.item.id);
                 } else {
                     $('#' + that.attr('data-campoid')).val('-1');
-                    $('#divModalError').modal('show');
-                    $('#divMsgError').html('Debe seleccionar una cuenta tipo detalle');
+                    mjeError('Debe seleccionar una cuenta tipo detalle');
                 }
             },
         });
@@ -234,11 +233,9 @@
         var error1 = verifica_valmin_2($('#id_txt_cta_con'), $('#txt_cta_con'), 0);
 
         if (error >= 1) {
-            $('#divModalError').modal('show');
-            $('#divMsgError').html('Los datos resaltados son obligatorios');
+            mjeError('Los datos resaltados son obligatorios');
         } else if (error1 >= 1) {
-            $('#divModalError').modal('show');
-            $('#divMsgError').html('Todas las cuentas deben ser tipo detalle')
+            mjeError('Todas las cuentas deben ser tipo detalle')
         } else {
             var data = $('#frm_reg_subgrupos_cta').serialize();
             $.ajax({
@@ -250,47 +247,51 @@
                 if (r.mensaje == 'ok') {
                     let pag = ($('#id_subgrupocta').val() == -1) ? 0 : $('#tb_cuentas_cs').DataTable().page.info().page;
                     reloadtable('tb_cuentas_cs', pag);
-                    pag = $('#tb_subgrupos').DataTable().page.info().page;
-                    reloadtable('tb_subgrupos', pag);
                     $('#id_subgrupocta').val(r.id);
                     $('#divModalReg').modal('hide');
-                    $('#divModalDone').modal('show');
-                    $('#divMsgDone').html("Proceso realizado con éxito");
+                    mje("Proceso realizado con éxito");
                 } else {
-                    $('#divModalError').modal('show');
-                    $('#divMsgError').html(r.mensaje);
+                    mjeError('Inconsistencia', '', r.mensaje, 0);
                 }
             }).always(function () { }).fail(function () {
                 alert('Ocurrió un error');
             });
         }
     });
-
-    //Borrar un registro Cuenta
+    
+    //Borrar un registro Cuenta    
     $('#divForms').on('click', '#tb_cuentas_cs .btn_eliminar', function () {
         let id = $(this).attr('value');
-        confirmar_del('cuenta_cs', id);
-    });
-    $('#divModalConfDel').on("click", "#cuenta_cs", function () {
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: 'editar_subgrupos_cta.php',
-            dataType: 'json',
-            data: { id: id, id_subgrupo: $('#id_subgrupo').val(), oper: 'del' }
-        }).done(function (r) {
-            $('#divModalConfDel').modal('hide');
-            if (r.mensaje == 'ok') {
-                let pag = $('#tb_cuentas_cs').DataTable().page.info().page;
-                reloadtable('tb_cuentas_cs', pag);
-                $('#divModalDone').modal('show');
-                $('#divMsgDone').html("Proceso realizado con éxito");
-            } else {
-                $('#divModalError').modal('show');
-                $('#divMsgError').html(r.mensaje);
+        Swal.fire({
+            title: "¿Está seguro de eliminar el registro?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, eliminar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_subgrupos_cta.php',
+                    dataType: 'json',
+                    data: { id: id, id_subgrupo: $('#id_subgrupo').val(), oper: 'del' }
+                }).done(function (r) {
+                    if (r.mensaje == 'ok') {
+                        $('#tb_cuentas_cs').DataTable().ajax.reload(null, false);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).fail(function () {
+                    mjeError('Ocurrió un error');
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () { }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 
@@ -325,11 +326,9 @@
         error1 += verifica_valmin_2($('#id_txt_cta_con_gas'), $('#txt_cta_con_gas'), 0);
 
         if (error >= 1) {
-            $('#divModalError').modal('show');
-            $('#divMsgError').html('Los datos resaltados son obligatorios');
+            mjeError('Los datos resaltados son obligatorios');
         } else if (error1 >= 1) {
-            $('#divModalError').modal('show');
-            $('#divMsgError').html('Todas las cuentas deben ser tipo detalle')
+            mjeError('Todas las cuentas deben ser tipo detalle');
         } else {
             var data = $('#frm_reg_subgrupos_cta_af').serialize();
             $.ajax({
@@ -341,15 +340,11 @@
                 if (r.mensaje == 'ok') {
                     let pag = ($('#id_subgrupocta_af').val() == -1) ? 0 : $('#tb_cuentas_af').DataTable().page.info().page;
                     reloadtable('tb_cuentas_af', pag);
-                    pag = $('#tb_subgrupos').DataTable().page.info().page;
-                    reloadtable('tb_subgrupos', pag);
                     $('#id_subgrupocta_af').val(r.id);
                     $('#divModalReg').modal('hide');
-                    $('#divModalDone').modal('show');
-                    $('#divMsgDone').html("Proceso realizado con éxito");
-                } else {
-                    $('#divModalError').modal('show');
-                    $('#divMsgError').html(r.mensaje);
+                    mje("Proceso realizado con éxito");
+                } else {                    
+                    mjeError('Inconsistencia', '', r.mensaje, 0);
                 }
             }).always(function () { }).fail(function () {
                 alert('Ocurrió un error');
@@ -360,28 +355,36 @@
     //Borrar un registro Cuenta
     $('#divForms').on('click', '#tb_cuentas_af .btn_eliminar', function () {
         let id = $(this).attr('value');
-        confirmar_del('cuenta_af', id);
-    });
-    $('#divModalConfDel').on("click", "#cuenta_af", function () {
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: 'editar_subgrupos_cta_af.php',
-            dataType: 'json',
-            data: { id: id, id_subgrupo: $('#id_subgrupo').val(), oper: 'del' }
-        }).done(function (r) {
-            $('#divModalConfDel').modal('hide');
-            if (r.mensaje == 'ok') {
-                let pag = $('#tb_cuentas_af').DataTable().page.info().page;
-                reloadtable('tb_cuentas_af', pag);
-                $('#divModalDone').modal('show');
-                $('#divMsgDone').html("Proceso realizado con éxito");
-            } else {
-                $('#divModalError').modal('show');
-                $('#divMsgError').html(r.mensaje);
+        Swal.fire({
+            title: "¿Está seguro de eliminar el registro?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, eliminar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_subgrupos_cta_af.php',
+                    dataType: 'json',
+                    data: { id: id, id_subgrupo: $('#id_subgrupo').val(), oper: 'del' }
+                }).done(function (r) {
+                    if (r.mensaje == 'ok') {
+                        $('#tb_cuentas_af').DataTable().ajax.reload(null, false);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).fail(function () {
+                    mjeError('Ocurrió un error');
+                }).always(function () {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () { }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 

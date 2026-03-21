@@ -3,6 +3,8 @@
         $('#tb_cuentas_c').DataTable({
             dom: setdom,
             buttons: [{
+                text: '<span class="fa-solid fa-plus "></span>',
+                className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     $.post("frm_reg_tipos_orden_egreso_cta.php", { id_tipo_egreso: $('#id_tipo_egreso').val() }, function (he) {
                         $('#divTamModalReg').removeClass('modal-xl');
