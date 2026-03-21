@@ -188,7 +188,7 @@ if ($tipo_dato == '3') {
 }
 
 $seccionTraslado = '';
-if ($fuente['contab'] == 3) {
+if ($fuente['contab'] == 3 || $fuente['cod'] == 'NCTA') {
     $fechaHoy = date('Y-m-d');
     $seccionTraslado = <<<HTML
     <div class="row mb-2 mb-1 text-start">
@@ -218,7 +218,7 @@ HTML;
 // Botón generar movimiento
 $btnGenerarMovimiento = '';
 $funcion = $fuente['contab'] == 3 ? 'generaMovimientoTrasCosto' : 'generaMovimientoCxp';
-if ($tipo_dato == '3' || $fuente['contab'] == 3) {
+if ($tipo_dato == '3' || $fuente['contab'] == 3 || $fuente['cod'] == 'NCTA') {
     $estadoDisabled = $datosDoc['estado'] == '1' ? '' : 'disabled';
     $btnGenerarMovimiento = <<<HTML
     <button type="button" class="btn btn-primary btn-sm" onclick="{$funcion}(this);" {$estadoDisabled}>Generar movimiento</button>
@@ -272,7 +272,7 @@ $content = <<<HTML
         <input type="hidden" id="peReg" value="{$peReg}">
         <input type="hidden" id="fec_cierre" name="fec_cierre" value="{$fecha_cierre}">
         <input type="hidden" id="id_ctb_doc" name="id_ctb_doc" value="{$id_doc}">
-        
+        <input type="hidden" id="cod_doc" name="cod_doc" value="{$fuente['cod']}">
         <form id="formGetMvtoCtb">
             <div class="row mb-2">
                 <div class="col-md-2">

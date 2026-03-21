@@ -32,23 +32,51 @@ var tabla;
 		});
 	};
 
-	var reloadtableKeepPosition = function (nom) {
-		$(document).ready(function () {
-			var $table = $("#" + nom);
-			if (!$table.length || !$.fn.DataTable.isDataTable($table)) {
-				return;
+	window.reloadtableKeepPosition = function (nom, callback) {
+		var $table = $("#" + nom);
+		if (!$table.length || !$.fn.DataTable.isDataTable($table)) {
+			return;
+		}
+		var table = $table.DataTable();
+		var $wrapper = $table.closest(".dataTables_wrapper");
+		var $overflow = $table.closest(".overflow");
+		var $scrollBody = $wrapper.find(".dataTables_scrollBody");
+		var currentPage = table.page();
+		var overflowScrollTop = $overflow.length ? $overflow.scrollTop() : 0;
+		var scrollBodyScrollTop = $scrollBody.length ? $scrollBody.scrollTop() : 0;
+		var windowScrollTop = $(window).scrollTop();
+
+		var restorePosition = function () {
+			if ($overflow.length) {
+				$overflow.scrollTop(overflowScrollTop);
 			}
-			var table = $table.DataTable();
-			var $overflow = $table.closest(".overflow");
-			var overflowScrollTop = $overflow.length ? $overflow.scrollTop() : 0;
-			var windowScrollTop = $(window).scrollTop();
-			table.ajax.reload(function () {
-				if ($overflow.length) {
-					$overflow.scrollTop(overflowScrollTop);
-				}
-				$(window).scrollTop(windowScrollTop);
-			}, false);
+			if ($scrollBody.length) {
+				$scrollBody.scrollTop(scrollBodyScrollTop);
+			}
+			if (table.page.info().page !== currentPage) {
+				table.page(currentPage).draw(false);
+			}
+			$(window).scrollTop(windowScrollTop);
+		};
+
+		var restorePositionSafely = function () {
+			restorePosition();
+			if (window.requestAnimationFrame) {
+				window.requestAnimationFrame(restorePosition);
+			}
+			setTimeout(restorePosition, 50);
+		};
+
+		$table.one("draw.dt.keepPosition", function () {
+			restorePositionSafely();
 		});
+
+		table.ajax.reload(function (json) {
+			restorePositionSafely();
+			if (typeof callback === "function") {
+				callback(json, table);
+			}
+		}, false);
 	};
 
 	var confdel = function (i, t) {
@@ -317,10 +345,10 @@ var tabla;
 		});
 		$("#tableCuentasBanco").wrap('<div class="overflow" />');
 
-			$("#tableConcBancaria").DataTable({
-				language: dataTable_es,
-				ajax: {
-					url: "datos/listar/cuentas_conciliar.php",
+		$("#tableConcBancaria").DataTable({
+			language: dataTable_es,
+			ajax: {
+				url: "datos/listar/cuentas_conciliar.php",
 				data: function (d) {
 					d.mes = $("#slcMesConcBanc").length ? $("#slcMesConcBanc").val() : '00';
 				},
@@ -338,34 +366,34 @@ var tabla;
 			],
 			order: [[0, "desc"]],
 			"pageLength": 10,
-				columnDefs: [{
-					class: 'text-wrap',
-					targets: [2]
-				}],
-				processing: true,
-				footerCallback: function () {
-					var api = this.api();
-					var rows = api.rows({ search: 'applied' }).data().toArray();
-					var totalDebito = rows.reduce(function (total, row) {
-						return total + (parseFloat(row.debito_valor) || 0);
-					}, 0);
-					var totalCredito = rows.reduce(function (total, row) {
-						return total + (parseFloat(row.credito_valor) || 0);
-					}, 0);
-					$(api.column(3).footer()).html('Totales');
-					$(api.column(4).footer()).html('Débito: ' + pesos(totalDebito, 2));
-					$(api.column(5).footer()).html('Crédito: ' + pesos(totalCredito, 2));
-				},
-			});
+			columnDefs: [{
+				class: 'text-wrap',
+				targets: [2]
+			}],
+			processing: true,
+			footerCallback: function () {
+				var api = this.api();
+				var rows = api.rows({ search: 'applied' }).data().toArray();
+				var totalDebito = rows.reduce(function (total, row) {
+					return total + (parseFloat(row.debito_valor) || 0);
+				}, 0);
+				var totalCredito = rows.reduce(function (total, row) {
+					return total + (parseFloat(row.credito_valor) || 0);
+				}, 0);
+				$(api.column(3).footer()).html('Totales');
+				$(api.column(4).footer()).html('Débito: ' + pesos(totalDebito, 2));
+				$(api.column(5).footer()).html('Crédito: ' + pesos(totalCredito, 2));
+			},
+		});
 		$("#tableConcBancaria").wrap('<div class="overflow" />');
 		if ($("#slcMesConcBanc").length) {
 			$(".dt-button").addClass("p-0 border-0");
 			$(".dt-button").attr('disabled', true)
 		}
-			var tbDetConciliacion = $("#tableDetConciliacion").DataTable({
-				dom: setdom,
-				language: dataTable_es,
-				ajax: {
+		var tbDetConciliacion = $("#tableDetConciliacion").DataTable({
+			dom: setdom,
+			language: dataTable_es,
+			ajax: {
 				url: "datos/listar/datos_detalles_conciliacion.php",
 				data: function (d) {
 					d.id_cuenta = $("#id_cuenta").val();
@@ -385,51 +413,51 @@ var tabla;
 				{ data: "accion" }
 			],
 			order: [[0, "desc"]],
-				lengthMenu: [
-					[10, 25, 50, 100, -1],
-					[10, 25, 50, 100, 'TODO'],
-				],
-				pageLength: -1,
-				orderCellsTop: false,
-				columnDefs: [{
-					class: 'text-wrap',
-					targets: [2]
-				}],
-				footerCallback: function () {
-					var api = this.api();
-					var rows = api.rows({ search: 'applied' }).data().toArray();
-					var totalDebito = rows.reduce(function (total, row) {
-						return total + (parseFloat(row.debito_valor) || 0);
-					}, 0);
-					var totalCredito = rows.reduce(function (total, row) {
-						return total + (parseFloat(row.credito_valor) || 0);
-					}, 0);
-					$(api.column(3).footer()).html('Totales');
-					$(api.column(4).footer()).html('Débito: ' + pesos(totalDebito, 2));
-					$(api.column(5).footer()).html('Crédito: ' + pesos(totalCredito, 2));
-				},
-			});
-			$('#tableDetConciliacion thead .fila-filtros-det-conc th').on('click mousedown', function (e) {
-				e.stopPropagation();
-			});
-			$('#tableDetConciliacion thead').on('click', 'input, select', function (e) {
-				e.stopPropagation();
-			});
-			$('#tableDetConciliacion thead').on('keyup change', '.filtro-det-conc', function () {
-				var columna = parseInt($(this).data('columna'), 10);
-				var valor = $(this).val();
-				if (columna === 6) {
-					var filtroEstado = '^(Pendiente|Conciliado)$';
-					if (valor === 'Pendiente' || valor === 'Conciliado') {
-						filtroEstado = '^' + $.fn.dataTable.util.escapeRegex(valor) + '$';
-					}
-					tbDetConciliacion.column(columna).search(filtroEstado, true, false).draw();
-				} else {
-					tbDetConciliacion.column(columna).search(valor).draw();
+			lengthMenu: [
+				[10, 25, 50, 100, -1],
+				[10, 25, 50, 100, 'TODO'],
+			],
+			pageLength: -1,
+			orderCellsTop: false,
+			columnDefs: [{
+				class: 'text-wrap',
+				targets: [2]
+			}],
+			footerCallback: function () {
+				var api = this.api();
+				var rows = api.rows({ search: 'applied' }).data().toArray();
+				var totalDebito = rows.reduce(function (total, row) {
+					return total + (parseFloat(row.debito_valor) || 0);
+				}, 0);
+				var totalCredito = rows.reduce(function (total, row) {
+					return total + (parseFloat(row.credito_valor) || 0);
+				}, 0);
+				$(api.column(3).footer()).html('Totales');
+				$(api.column(4).footer()).html('Débito: ' + pesos(totalDebito, 2));
+				$(api.column(5).footer()).html('Crédito: ' + pesos(totalCredito, 2));
+			},
+		});
+		$('#tableDetConciliacion thead .fila-filtros-det-conc th').on('click mousedown', function (e) {
+			e.stopPropagation();
+		});
+		$('#tableDetConciliacion thead').on('click', 'input, select', function (e) {
+			e.stopPropagation();
+		});
+		$('#tableDetConciliacion thead').on('keyup change', '.filtro-det-conc', function () {
+			var columna = parseInt($(this).data('columna'), 10);
+			var valor = $(this).val();
+			if (columna === 6) {
+				var filtroEstado = '^(Pendiente|Conciliado)$';
+				if (valor === 'Pendiente' || valor === 'Conciliado') {
+					filtroEstado = '^' + $.fn.dataTable.util.escapeRegex(valor) + '$';
 				}
-			});
-			$('#tableDetConciliacion thead .filtro-det-conc[data-columna="6"]').trigger('change');
-			$("#tableDetConciliacion").wrap('<div class="overflow" />');
+				tbDetConciliacion.column(columna).search(filtroEstado, true, false).draw();
+			} else {
+				tbDetConciliacion.column(columna).search(valor).draw();
+			}
+		});
+		$('#tableDetConciliacion thead .filtro-det-conc[data-columna="6"]').trigger('change');
+		$("#tableDetConciliacion").wrap('<div class="overflow" />');
 		//Fin dataTable
 	});
 
@@ -3369,7 +3397,7 @@ function GuardaDetalleConciliacion(check) {
 				if (r.status == 'ok') {
 					let salLib = $('#salLib').val();
 					let salExt = $('#saldoExtracto').val();
-					$('#tableDetConciliacion').DataTable().ajax.reload(function (json) {
+					reloadtableKeepPosition('tableDetConciliacion', function (json) {
 						$('#tot_deb').val(json.tot_deb);
 						$('#tot_cre').val(json.tot_cre);
 						var valor = Number(salLib) + Number(json.tot_deb) - Number(json.tot_cre) - Number(salExt);

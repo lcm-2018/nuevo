@@ -2441,10 +2441,17 @@ const generaMovimientoCxp = (boton) => {
 	if (val_fac == val_inp && val_fac == val_cos) {
 		let id_crp = $('#id_crpp').val();
 		let id_doc = $('#id_ctb_doc').val();
+		let fec_ini = $('#fecIniTraslado').length ? $('#fecIniTraslado').val() : '';
+		let fec_fin = $('#fecFinTraslado').length ? $('#fecFinTraslado').val() : '';
+		let cod_doc = $('#cod_doc').val();
+		let url = "datos/registrar/registrar_mvto_libaux_auto_cxp.php";
+		if (cod_doc == 'NCTA') {
+			url = "datos/registrar/registrar_mvto_libaux_auto_ncta.php";
+		}
 		mostrarOverlay();
-		fetch("datos/registrar/registrar_mvto_libaux_auto_cxp.php", {
+		fetch(url, {
 			method: "POST",
-			body: JSON.stringify({ id_doc: id_doc, id_crp: id_crp }),
+			body: JSON.stringify({ id_doc: id_doc, id_crp: id_crp, fec_ini: fec_ini, fec_fin: fec_fin, cod_doc: cod_doc }),
 		})
 			.then((response) => response.json())
 			.then((response) => {

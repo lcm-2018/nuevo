@@ -85,6 +85,13 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
+    $sqlNominaTes = "SELECT
+                        `ceva`,
+                        MAX(`id_nomina`) AS `id_nomina`,
+                        MAX(`tipo`) AS `tipo`
+                    FROM `nom_nomina_pto_ctb_tes`
+                    WHERE `ceva` IS NOT NULL
+                    GROUP BY `ceva`";
 
     $sql = "SELECT
                 `ctb_doc`.`id_ctb_doc`
@@ -106,7 +113,7 @@ try {
                 `ctb_doc`
                 LEFT JOIN `ctb_referencia`
                     ON (`ctb_doc`.`id_ref_ctb` = `ctb_referencia`.`id_ctb_referencia`)
-                LEFT JOIN `nom_nomina_pto_ctb_tes` 
+                LEFT JOIN ($sqlNominaTes) AS `nom_nomina_pto_ctb_tes`
                     ON (`ctb_doc`.`id_ctb_doc` = `nom_nomina_pto_ctb_tes`.`ceva`)
                 LEFT JOIN `nom_nominas` 
                     ON (`nom_nomina_pto_ctb_tes`.`id_nomina` = `nom_nominas`.`id_nomina`)
@@ -136,11 +143,17 @@ try {
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
+    $sqlNominaTes = "SELECT
+                        `ceva`,
+                        MAX(`id_nomina`) AS `id_nomina`
+                    FROM `nom_nomina_pto_ctb_tes`
+                    WHERE `ceva` IS NOT NULL
+                    GROUP BY `ceva`";
     $sql = "SELECT
-                COUNT(*) AS `total`
+                COUNT(DISTINCT `ctb_doc`.`id_ctb_doc`) AS `total`
             FROM
                 `ctb_doc`
-                LEFT JOIN `nom_nomina_pto_ctb_tes` 
+                LEFT JOIN ($sqlNominaTes) AS `nom_nomina_pto_ctb_tes`
                     ON (`ctb_doc`.`id_ctb_doc` = `nom_nomina_pto_ctb_tes`.`ceva`)
                 LEFT JOIN `nom_nominas` 
                     ON (`nom_nomina_pto_ctb_tes`.`id_nomina` = `nom_nominas`.`id_nomina`)
@@ -156,11 +169,17 @@ try {
 }
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
+    $sqlNominaTes = "SELECT
+                        `ceva`,
+                        MAX(`id_nomina`) AS `id_nomina`
+                    FROM `nom_nomina_pto_ctb_tes`
+                    WHERE `ceva` IS NOT NULL
+                    GROUP BY `ceva`";
     $sql = "SELECT
-                COUNT(*) AS `total`
+                COUNT(DISTINCT `ctb_doc`.`id_ctb_doc`) AS `total`
             FROM
                 `ctb_doc`
-                LEFT JOIN `nom_nomina_pto_ctb_tes` 
+                LEFT JOIN ($sqlNominaTes) AS `nom_nomina_pto_ctb_tes`
                     ON (`ctb_doc`.`id_ctb_doc` = `nom_nomina_pto_ctb_tes`.`ceva`)
                 LEFT JOIN `nom_nominas` 
                     ON (`nom_nomina_pto_ctb_tes`.`id_nomina` = `nom_nominas`.`id_nomina`)
