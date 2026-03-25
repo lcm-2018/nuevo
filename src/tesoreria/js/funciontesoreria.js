@@ -637,6 +637,25 @@ let CargaArqueoCaja = function (dato) {
 	}).always(() => { ocultarOverlay(); });
 };
 
+// Carga el listado de arqueos YA ASIGNADOS al documento de consignación
+let VerListadoArqueoCaja = function (dato) {
+	const idCtbDoc = document.getElementById('id_ctb_doc')
+		? document.getElementById('id_ctb_doc').value
+		: 0;
+	if (!idCtbDoc || idCtbDoc <= 0) {
+		mjeError('Error', 'No se encontró el documento de consignación.');
+		return;
+	}
+	mostrarOverlay();
+	$.post("lista_asignados_arqueo_caja.php", { id_ctb_doc: idCtbDoc }, function (he) {
+		$("#divTamModalForms").removeClass("modal-sm");
+		$("#divTamModalForms").removeClass("modal-lg");
+		$("#divTamModalForms").addClass("modal-xl");
+		$("#divModalForms").modal("show");
+		$("#divForms").html(he);
+	}).always(() => { ocultarOverlay(); });
+};
+
 let CargaListaRads = function () {
 	mostrarOverlay();
 	$.post("lista_obligacion_rads.php", {}, function (he) {

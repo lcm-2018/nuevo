@@ -111,13 +111,9 @@ if ($tipo_doc == '4') {
     </button>
 HTML;
 }
-
+/* se pasa este boton al detalle de consignacion bancaria */
 if ($tipo_doc == '11') {
-    $botonesAdicionales .= <<<HTML
-    <button type="button" class="btn btn-secondary btn-sm me-1" onclick="CargaArqueoCaja(2)">
-        Ver Listado
-    </button>
-HTML;
+    $botonesAdicionales .= '';
 }
 
 if ($tipo_doc == '6') {

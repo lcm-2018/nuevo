@@ -413,6 +413,7 @@ function GetValoresCeva($id_pag, $cmd)
                     , `ctb_doc`.`id_ctb_doc_tipo3`
                     , `tes_rel_pag_cop`.`id_doc_cop`
                     , IFNULL(`pagado`.`valor`,0) AS `val_pagado`
+                    , `ctb_fuente`.`cod`
                 FROM
                     `ctb_doc`
                     INNER JOIN `ctb_fuente` 

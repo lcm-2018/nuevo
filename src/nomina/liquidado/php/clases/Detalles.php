@@ -1965,20 +1965,82 @@ class Detalles
             }
         }
 
-        // Convertir a array final ordenado
+        // 7. Devengados por concepto individual (ordenados A-Z)
+        $id = (int)$id_nomina;
+        $sqlDevengados = "SELECT `concepto`, `devengado` FROM (
+                SELECT 'Auxilio de alimentación'      AS `concepto`, IFNULL(SUM(`aux_alim`), 0)                                                              AS `devengado` FROM `nom_liq_dlab_auxt`   WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Auxilio de transporte',        IFNULL(SUM(`val_liq_auxt`), 0)                                                                        FROM `nom_liq_dlab_auxt`   WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Bonificación de recreación',   IFNULL(SUM(`val_bon_recrea`), 0)                                                                      FROM `nom_liq_vac`         WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Bonificación Servicios Prestados', IFNULL(SUM(`val_bsp`), 0)                                                                             FROM `nom_liq_bsp`         WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Cesantías',                    IFNULL(SUM(`val_cesantias`), 0)                                                                       FROM `nom_liq_cesantias`   WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Compensatorios',               IFNULL(SUM(`val_compensa`), 0)                                                                        FROM `nom_liq_compesatorio` WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Gastos de representación',     IFNULL(SUM(`g_representa`), 0)                                                                        FROM `nom_liq_dlab_auxt`   WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Horas extra',                  IFNULL(SUM(`horas_ext`), 0)                                                                           FROM `nom_liq_dlab_auxt`   WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Incapacidades',                IFNULL(SUM(`pago_empresa` + `pago_eps` + `pago_arl`), 0)                                              FROM `nom_liq_incap`       WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Indemnización de vacaciones',  IFNULL(SUM(`val_liq`), 0)                                                                             FROM `nom_liq_indemniza_vac` WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Intereses a las cesantías',    IFNULL(SUM(`val_icesantias`), 0)                                                                      FROM `nom_liq_cesantias`   WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Laborado',                     IFNULL(SUM(`val_liq_dias`), 0)                                                                        FROM `nom_liq_dlab_auxt`   WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Licencias', IFNULL((SELECT SUM(`val_liq`) FROM `nom_liq_licluto` WHERE `id_nomina` = $id AND `estado` = 1), 0)
+                                  + IFNULL((SELECT SUM(`val_liq`) FROM `nom_liq_licmp`   WHERE `id_nomina` = $id AND `estado` = 1), 0)
+                UNION ALL
+                SELECT 'Prima de navidad',             IFNULL(SUM(`val_liq_pv`), 0)                                                                          FROM `nom_liq_prima_nav`   WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Prima de servicios',           IFNULL(SUM(`val_liq_ps`), 0)                                                                          FROM `nom_liq_prima`       WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Prima de vacaciones',          IFNULL(SUM(`val_prima_vac`), 0)                                                                       FROM `nom_liq_vac`         WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Vacaciones',                   IFNULL(SUM(`val_liq`), 0)                                                                             FROM `nom_liq_vac`         WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
+                SELECT 'Viáticos',                     IFNULL(SUM(`valor`), 0)                                                                               FROM `nom_liq_viaticos`    WHERE `id_nomina` = $id AND `estado` = 1
+            ) AS `devengados_all`
+            ORDER BY `concepto` ASC";
+
+        $stmt = $this->conexion->prepare($sqlDevengados);
+        $stmt->execute();
+        $devengados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        // Construir filas de devengado (van primero en el resultado final)
+        $filasDevengados = [];
+        foreach ($devengados as $dev) {
+            $filasDevengados[] = [
+                'concepto' => $dev['concepto'],
+                'devengado' => floatval($dev['devengado']),
+                'deducido'  => 0,
+                'patronal'  => 0,
+                'es_grupo'  => false
+            ];
+        }
+
+        // Convertir grupos a array final ordenado
         uasort($grupos, function ($a, $b) {
             return $a['orden'] <=> $b['orden'];
         });
 
-        // Construir el array de resultado final
+        // Construir el array de resultado final: primero devengados, luego grupos
+        $consolidado = array_merge($filasDevengados, $consolidado);
+
         foreach ($grupos as $nombreGrupo => $grupo) {
             // Agregar fila del grupo (totales)
             $consolidado[] = [
                 'concepto' => $nombreGrupo,
                 'devengado' => $grupo['total_devengado'],
-                'deducido' => $grupo['total_deducido'],
-                'patronal' => $grupo['total_patronal'],
-                'es_grupo' => true
+                'deducido'  => $grupo['total_deducido'],
+                'patronal'  => $grupo['total_patronal'],
+                'es_grupo'  => true
             ];
 
             // Agregar detalles del grupo
@@ -1986,9 +2048,9 @@ class Detalles
                 $consolidado[] = [
                     'concepto' => '- ' . $detalle['concepto'],
                     'devengado' => $detalle['devengado'],
-                    'deducido' => $detalle['deducido'],
-                    'patronal' => $detalle['patronal'],
-                    'es_grupo' => false
+                    'deducido'  => $detalle['deducido'],
+                    'patronal'  => $detalle['patronal'],
+                    'es_grupo'  => false
                 ];
             }
         }

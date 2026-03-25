@@ -221,9 +221,10 @@ $totalDeducido = 0;
 $totalPatronal = 0;
 foreach ($datos as $d) {
     if ($columnaExtra === 'consolidado') {
-        // Solo sumar grupos principales para los totales
+        // Devengado: sumar de todas las filas (las filas de concepto son es_grupo=false)
+        $totalDevengado += floatval($d['devengado'] ?? 0);
+        // Deducido y patronal: sumar sólo de cabeceras de grupo (es_grupo=true)
         if ($d['es_grupo'] ?? false) {
-            $totalDevengado += floatval($d['devengado'] ?? 0);
             $totalDeducido += floatval($d['deducido'] ?? 0);
             $totalPatronal += floatval($d['patronal'] ?? 0);
         }
