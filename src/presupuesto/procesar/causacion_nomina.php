@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Config\Clases\Sesion;
 use Src\Common\Php\Clases\Terceros;
@@ -418,5 +418,5 @@ try {
     if ($cmd instanceof PDO && $cmd->inTransaction()) {
         $cmd->rollBack();
     }
-    throw new Exception($e->getMessage());
+    echo 'Error: ' . $e->getMessage();
 }

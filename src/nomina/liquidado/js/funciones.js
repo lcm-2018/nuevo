@@ -67,8 +67,8 @@ document.querySelector('#tablenNominasEmpleados').addEventListener('click', func
     if (btnAnular) {
         event.preventDefault();
         const id = btnAnular.dataset.id;
-        EliminaRegistro('../php/controladores/liquidado.php', { id: id, estado: 0 }, tablenNominasEmpleados, 'estado');
-
+        mostrarOverlay();
+        VerFormulario('../php/form_anula_nomina.php', 'form', { id: id }, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
     }
     if (btnImprimir) {
         event.preventDefault();
@@ -132,6 +132,39 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
     const btnReportes = event.target.closest('.reportes');
     const btnGuardarNomina = event.target.closest('#btnGuardaNomina');
     const btnDescargarFormato = event.target.closest('#btnDescargarFormato');
+    const btnConfirmarAnul = event.target.closest('#btnConfirmarAnulNomina');
+
+    if (btnConfirmarAnul) {
+        event.preventDefault();
+        const concepto = ValueInput('concepto_anul');
+        const fecha = ValueInput('fec_anull');
+        const id = ValueInput('id_nomina_anul');
+        if (fecha === '') {
+            mjeError('Error!', 'Debe ingresar una fecha de anulación.');
+        } else if (concepto === '') {
+            mjeError('Error!', 'Debe ingresar un concepto de anulación.');
+        } else {
+            mostrarOverlay();
+            var dataAnul = new FormData();
+            dataAnul.append('action', 'estado');
+            dataAnul.append('id', id);
+            dataAnul.append('estado', '0');
+            dataAnul.append('fec_anull', ValueInput('fec_anull'));
+            dataAnul.append('concepto_anul', concepto);
+            SendPost('../php/controladores/liquidado.php', dataAnul).then((response) => {
+                if (response.status === 'ok') {
+                    mje('Nómina anulada correctamente!');
+                    $('#modalForms').modal('hide');
+                    tablenNominasEmpleados.ajax.reload(null, false);
+                } else {
+                    mjeError('Error!', response.msg);
+                }
+            }).finally(() => {
+                ocultarOverlay();
+            });
+            return;
+        }
+    }
 
     if (btnDescargarFormato) {
         event.preventDefault();

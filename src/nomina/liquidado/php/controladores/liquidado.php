@@ -399,6 +399,28 @@ switch ($action) {
         $Nomina = new Nomina();
         $resul = $Nomina->cambiaEstado($id, $estado);
         if ($resul == 'si') {
+            // Si es anulación (estado=0), guardar datos de anulación en nom_nominas
+            if ($estado == '0') {
+                try {
+                    $fec_anull     = $_POST['fec_anull']     ?? date('Y-m-d');
+                    $concepto_anul = $_POST['concepto_anul'] ?? '';
+                    $id_user_anul  = $_SESSION['id_user']    ?? 0;
+                    $cnx = Conexion::getConexion();
+                    $sqlAnul = "UPDATE `nom_nominas`
+                                SET `id_user_anul`  = :id_user_anul,
+                                    `fec_anull`     = :fec_anull,
+                                    `concepto_anul` = :concepto_anul
+                                WHERE `id_nomina` = :id_nomina";
+                    $stmtAnul = $cnx->prepare($sqlAnul);
+                    $stmtAnul->bindValue(':id_user_anul',  $id_user_anul,  \PDO::PARAM_INT);
+                    $stmtAnul->bindValue(':fec_anull',     $fec_anull,     \PDO::PARAM_STR);
+                    $stmtAnul->bindValue(':concepto_anul', $concepto_anul, \PDO::PARAM_STR);
+                    $stmtAnul->bindValue(':id_nomina',     $id,            \PDO::PARAM_INT);
+                    $stmtAnul->execute();
+                } catch (\PDOException $e) {
+                    // No bloquear si falla el guardado de datos adicionales
+                }
+            }
             $res['status'] = 'ok';
         } else {
             $res['msg'] = $resul;

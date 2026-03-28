@@ -317,7 +317,7 @@ class Empleados
                         `nom_terceros_novedad`
                         INNER JOIN `nom_terceros` 
                         ON (`nom_terceros_novedad`.`id_tercero` = `nom_terceros`.`id_tn`)
-                    GROUP BY `nom_terceros_novedad`.`id_tercero`, `nom_terceros_novedad`.`id_empleado`, `nom_terceros`.`id_tipo`)";
+                    GROUP BY `nom_terceros_novedad`.`id_empleado`, `nom_terceros`.`id_tipo`)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $novedades = $stmt->fetchAll(PDO::FETCH_ASSOC);
