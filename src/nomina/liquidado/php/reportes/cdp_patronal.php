@@ -74,18 +74,18 @@ try {
         if ($valAdmin > 0) {
             $data['rubro'] = $rb['r_admin'];
             $data['valor'] = $valAdmin;
-
-            if ($Reportes->addRegistro($data) !== 'si') {
-                throw new Exception("Error guardando ADMIN para {$key}");
+            $rp = $Reportes->addRegistro($data);
+            if ($rp !== 'si') {
+                throw new Exception("Error guardando ADMIN para {$key}." . $rp);
             }
         }
 
         if ($valOper > 0) {
             $data['rubro'] = $rb['r_operativo'];
             $data['valor'] = $valOper;
-
-            if ($Reportes->addRegistro($data) !== 'si') {
-                throw new Exception("Error guardando OPER para {$key}");
+            $rp = $Reportes->addRegistro($data);
+            if ($rp !== 'si') {
+                throw new Exception("Error guardando OPER para {$key}." . $rp);
             }
         }
     }
