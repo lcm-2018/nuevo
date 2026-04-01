@@ -141,6 +141,16 @@ if ($tipo_doc == '5') {
 HTML;
 }
 
+// BotÃ³n de consecutivos
+$botonConsecutivos = '';
+if ($tipo_doc > 0) {
+    $botonConsecutivos = <<<HTML
+    <a onclick="cargarConsecutivos({$tipo_doc})" href="javascript:void(0);" title="Consultar Consecutivos">
+        <span class="fas fa-info-circle text-info"></span>
+    </a>
+HTML;
+}
+
 // Determinar si mostrar tabla
 $tablaHTML = '';
 if ($tipo_doc > 0) {
@@ -188,6 +198,7 @@ $content = <<<HTML
                 <button type="button" class="btn btn-success btn-sm" title="Imprimir por Lotes" id="btnImpLotes">
                     <i class="fas fa-print fa-lg"></i>
                 </button>
+                {$botonConsecutivos}
             </div>
         </div>
 
@@ -251,5 +262,7 @@ $plantilla->addModal($modal);
 $modal = $plantilla->getModal('divModalReg', 'divTamModalReg', 'divFormsReg');
 $plantilla->addModal($modal);
 $modal = $plantilla->getModal('divModalImp', 'divTamModalImp', 'divImp');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalAux', 'divTamModalAux', 'divFormsAux');
 $plantilla->addModal($modal);
 echo $plantilla->render();

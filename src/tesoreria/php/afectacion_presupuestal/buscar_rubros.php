@@ -25,11 +25,16 @@ try {
     unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    echo json_encode(['error' => $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage()]);
+    exit();
 }
 
 $data = [];
-$buscar = mb_strtoupper($_POST['term']);
+if (!isset($_POST['term']) || trim($_POST['term']) === '') {
+    echo json_encode($data);
+    exit();
+}
+$buscar = mb_strtoupper(trim($_POST['term']));
 if ($buscar == '%%') {
     foreach ($obj_rubros as $obj) {
         $nom_rubro = mb_strtoupper($obj['cod_pptal']) . ' -> ' . $obj['nom_rubro'];

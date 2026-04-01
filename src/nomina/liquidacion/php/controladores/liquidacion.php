@@ -37,6 +37,9 @@ switch ($action) {
             case 2:
                 $data = $Liquidacion->addRegistro($_POST);
                 break;
+            case 5:
+                $data = $Liquidacion->addRegistroRetroactivo($_POST);
+                break;
             case 3:
                 $data = $Prestaciones_Sociales->addRegistro($_POST);
                 break;
@@ -95,6 +98,15 @@ switch ($action) {
             }
         }
         $res = $resultado;
+        break;
+    case 'retroactivos':
+        $data = $Liquidacion->getRetroactivosActivos();
+        if (!empty($data)) {
+            $res['status'] = 'ok';
+            $res['data'] = $data;
+        } else {
+            $res['msg'] = 'No hay retroactivos activos disponibles.';
+        }
         break;
     default:
         break;

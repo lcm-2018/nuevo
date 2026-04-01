@@ -1322,6 +1322,17 @@ function cargarListaDetalleCtbInvoice(id_rad, id_doc) {
 		'</form>').appendTo("body").submit();
 }
 
+const cargarConsecutivos = (id) => {
+	mostrarOverlay();
+	$.post("datos/consultar/cargar_consecutivos.php", { id: id }, function (he) {
+		$("#divTamModalAux").removeClass("modal-lg");
+		$("#divTamModalAux").removeClass("modal-xl");
+		$("#divTamModalAux").removeClass("modal-sm");
+		$("#divModalAux").modal("show");
+		$("#divFormsAux").html(he);
+	}).always(() => { ocultarOverlay(); });
+};
+
 
 // Establecer consecutivo para documento de contabilidad
 let buscarConsecutivoCont = function (doc) {
@@ -2539,7 +2550,7 @@ const generaMovimientoTrasCosto = (boton) => {
 const generaMovimientoInvoice = (boton) => {
 	let id_rad = $('#id_rad').val();
 	let id_doc = $('#id_ctb_doc').val();
-	let valorFac = $('#valFactura').text().replace(/[\s$]+/g, "").replace(/\,/g, "");
+	let valorFac = $('#valFactura').val().replace(/[\s$]+/g, "").replace(/\,/g, "");
 	if (valorFac == 0) {
 		mjeError("El valor de la factura debe ser mayor a cero");
 		return false;

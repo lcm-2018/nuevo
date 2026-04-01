@@ -1,7 +1,89 @@
 (function ($) {
-    $(document).ready(function () {
-        $('#tb_rubros').DataTable({
-            dom: setdom = "<'row'<'col-md-6'l><'col-md-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    'use strict';
+
+    var EVENT_NS = '.afectacionPresupuestal';
+    var tablaRubrosInstance = null;
+
+    // -------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------
+    function getIdPtoRad() {
+        return parseInt($.trim($('#hd_id_pto_rad').val()), 10) || 0;
+    }
+
+    function getIdPtoRec() {
+        return parseInt($.trim($('#hd_id_pto_rec').val()), 10) || 0;
+    }
+
+    function limpiarRubroSeleccionado() {
+        $('#hd_id_txt_rubro').val('0');
+        $('#hd_tipo_dato').val('');
+        $('#txt_rubro').removeData('selectedLabel');
+    }
+
+    // -------------------------------------------------------
+    // Autocomplete de rubro
+    // -------------------------------------------------------
+    function inicializarAutocompleteRubro() {
+        var $inputRubro = $('#txt_rubro');
+        if (!$inputRubro.length) {
+            return;
+        }
+
+        // Destruir instancia previa si existe
+        if ($inputRubro.data('ui-autocomplete')) {
+            $inputRubro.autocomplete('destroy');
+        }
+
+        $inputRubro.data('selectedLabel', $inputRubro.val());
+
+        $inputRubro.autocomplete({
+            minLength: 2,
+            source: function (request, response) {
+                $.ajax({
+                    url: ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/buscar_rubros.php',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: { term: request.term },
+                    success: function (data) {
+                        response($.isArray(data) ? data : []);
+                    },
+                    error: function () {
+                        response([]);
+                    }
+                });
+            },
+            select: function (event, ui) {
+                $('#txt_rubro').val(ui.item.label);
+                $('#txt_rubro').data('selectedLabel', ui.item.label);
+                $('#hd_id_txt_rubro').val(ui.item.id);
+                $('#hd_tipo_dato').val(ui.item.tipo_dato);
+                $('#hd_anio').val(ui.item.anio);
+                return false;
+            },
+            focus: function (event, ui) {
+                $('#txt_rubro').val(ui.item.label);
+                return false;
+            }
+        });
+    }
+
+    // -------------------------------------------------------
+    // DataTable de rubros
+    // -------------------------------------------------------
+    function inicializarTablaRubros() {
+        var $tabla = $('#tb_rubros');
+        if (!$tabla.length) {
+            return;
+        }
+
+        if ($.fn.DataTable.isDataTable('#tb_rubros')) {
+            $tabla.DataTable().destroy();
+            tablaRubrosInstance = null;
+        }
+
+        tablaRubrosInstance = $tabla.DataTable({
+            dom: "<'row'<'col-md-6'l><'col-md-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
             language: dataTable_es,
             processing: true,
             serverSide: true,
@@ -10,647 +92,217 @@
                 url: ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/listar_rubros.php',
                 type: 'POST',
                 dataType: 'json',
-                data: function (data) {
-                    data.id_pto_rad = $('#hd_id_pto_rad').val();
+                data: function (d) {
+                    d.id_pto_rad = getIdPtoRad();
+                    return d;
                 }
             },
             columns: [
-                { 'data': 'id_pto_rad_det' },
-                { 'data': 'rubro' },
-                { 'data': 'valor' },
-                { 'data': 'botones' }
+                { data: 'id_pto_rad_det' },
+                { data: 'rubro' },
+                { data: 'valor' },
+                { data: 'botones', orderable: false, searchable: false }
             ],
             columnDefs: [
-                { class: 'text-wrap', targets: [2] }
+                { className: 'text-wrap', targets: [1] }
             ],
-            order: [
-                [0, "desc"]
-            ],
+            order: [[0, 'desc']],
             lengthMenu: [
                 [10, 25, 50, -1],
-                [10, 25, 50, 'TODO'],
-            ],
+                [10, 25, 50, 'TODO']
+            ]
         });
-        $('#tb_rubros').wrap('<div class="overflow"/>');
-        //$('#tb_cdps_wrapper').addClass("w-100");
-    });
-    /*
-    //-------------------------------
-    //---boton listar de la tabla cdps
-    $('#body_tb_cdps').on('click', '.btn_listar', function () {
-        let id_cdp = $(this).attr('value');
-        $('#id_cdp').val(id_cdp);
-        //----------esto pa cargar modal con clic en el boton
-        //$.post("../php/historialtercero/frm_historialtercero.php", { idt: idt }, function (he) {
-        //    $('#divTamModalForms').removeClass('modal-lg');
-        //   $('#divTamModalForms').removeClass('modal-sm');
-        //    $('#divTamModalForms').addClass('modal-xl');
-        //    $('#divModalForms').modal('show');
-        //    $("#divForms").html(he);
-        //    $('#slcActEcon').focus();
-        //});
 
-        //------------ cargar la tabla contratos
-        if ($.fn.DataTable.isDataTable('#tb_contratos')) {
-            $('#tb_contratos').DataTable().destroy();
+        if (!$tabla.parent().hasClass('overflow')) {
+            $tabla.wrap('<div class="overflow"></div>');
         }
-
-        $('#tb_contratos').DataTable({
-            dom: setdom = "<'row'<'col-md-6'l><'col-md-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            buttons: [{
-                action: function (e, dt, node, config) {
-                    $.post("", { id_cdp: id_cdp }, function (he) {
-                        $('#divTamModalReg').removeClass('modal-xl');
-                        $('#divTamModalReg').removeClass('modal-sm');
-                        $('#divTamModalReg').addClass('modal-lg');
-                        $('#divModalReg').modal('show');
-                        $("#divFormsReg").html(he);
-                    });
-                }
-            }],
-            language: dataTable_es,
-            processing: true,
-            serverSide: true,
-            searching: false,
-            ajax: {
-                url: ValueInput('host') + '/src/terceros/php/historialtercero/listar_contratos.php',
-                type: 'POST',
-                dataType: 'json',
-                data: function (data) {
-                    data.id_cdp = id_cdp;
-                }
-            },
-            columns: [
-                { 'data': 'num_contrato' },
-                { 'data': 'fec_ini' },
-                { 'data': 'fec_fin' },
-                { 'data': 'val_contrato' },
-                { 'data': 'val_adicion' },
-                { 'data': 'val_cte' },
-                { 'data': 'estado' }
-            ],
-            columnDefs: [
-                { class: 'text-wrap', targets: [3] }
-            ],
-            order: [
-                [0, "desc"]
-            ],
-            lengthMenu: [
-                [10, 25, 50, -1],
-                [10, 25, 50, 'TODO'],
-            ],
-        });
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle"></span>');
-        $('#tb_contratos').wrap('<div class="overflow"/>');
-
-        //------------ cargar la tabla registro presupuestal
-        if ($.fn.DataTable.isDataTable('#tb_reg_presupuestal')) {
-            $('#tb_reg_presupuestal').DataTable().destroy();
-        }
-        $('#tb_reg_presupuestal').DataTable({
-            dom: setdom = "<'row'<'col-md-6'l><'col-md-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            buttons: [{
-                action: function (e, dt, node, config) {
-                    $.post("", { id_cdp: id_cdp }, function (he) {
-                        $('#divTamModalReg').removeClass('modal-xl');
-                        $('#divTamModalReg').removeClass('modal-sm');
-                        $('#divTamModalReg').addClass('modal-lg');
-                        $('#divModalReg').modal('show');
-                        $("#divFormsReg").html(he);
-                    });
-                }
-            }],
-            language: dataTable_es,
-            processing: true,
-            serverSide: true,
-            searching: false,
-            ajax: {
-                url: ValueInput('host') + '/src/terceros/php/historialtercero/listar_reg_presupuestal.php',
-                type: 'POST',
-                dataType: 'json',
-                data: function (data) {
-                    data.id_cdp = id_cdp;
-                }
-            },
-            columns: [
-                { 'data': 'id_pto_crp' },
-                { 'data': 'id_manu' },
-                { 'data': 'fecha' },
-                { 'data': 'tipo' },
-                { 'data': 'num_contrato' },
-                { 'data': 'vr_registro' },
-                { 'data': 'vr_saldo' },
-                { 'data': 'estado' },
-                { 'data': 'botones' }
-            ],
-            columnDefs: [
-                { class: 'text-wrap', targets: [3] }
-            ],
-            order: [
-                [0, "desc"]
-            ],
-            lengthMenu: [
-                [10, 25, 50, -1],
-                [10, 25, 50, 'TODO'],
-            ],
-        });
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle"></span>');
-        $('#tb_reg_presupuestal').wrap('<div class="overflow"/>');
-
-        //------------ cargar la tabla obligaciones
-        if ($.fn.DataTable.isDataTable('#tb_obligaciones')) {
-            $('#tb_obligaciones').DataTable().destroy();
-        }
-        $('#tb_obligaciones').DataTable({
-            dom: setdom = "<'row'<'col-md-6'l><'col-md-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            buttons: [{
-                action: function (e, dt, node, config) {
-                    $.post("", { id_cdp: id_cdp }, function (he) {
-                        $('#divTamModalReg').removeClass('modal-xl');
-                        $('#divTamModalReg').removeClass('modal-sm');
-                        $('#divTamModalReg').addClass('modal-lg');
-                        $('#divModalReg').modal('show');
-                        $("#divFormsReg").html(he);
-                    });
-                }
-            }],
-            language: dataTable_es,
-            processing: true,
-            serverSide: true,
-            searching: false,
-            ajax: {
-                url: ValueInput('host') + '/src/terceros/php/historialtercero/listar_obligaciones.php',
-                type: 'POST',
-                dataType: 'json',
-                data: function (data) {
-                    data.id_cdp = id_cdp;
-                }
-            },
-            columns: [
-                { 'data': 'id_ctb_doc' },
-                { 'data': 'fecha' },
-                { 'data': 'num_doc' },
-                { 'data': 'valorcausado' },
-                { 'data': 'descuentos' },
-                { 'data': 'neto' },
-                { 'data': 'estado' }
-            ],
-            columnDefs: [
-                { class: 'text-wrap', targets: [3] }
-            ],
-            order: [
-                [0, "desc"]
-            ],
-            lengthMenu: [
-                [10, 25, 50, -1],
-                [10, 25, 50, 'TODO'],
-            ],
-        });
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle"></span>');
-        $('#tb_obligaciones').wrap('<div class="overflow"/>');
-
-        //------------ cargar la tabla pagos
-        if ($.fn.DataTable.isDataTable('#tb_pagos')) {
-            $('#tb_pagos').DataTable().destroy();
-        }
-        $('#tb_pagos').DataTable({
-            dom: setdom = "<'row'<'col-md-6'l><'col-md-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            buttons: [{
-                action: function (e, dt, node, config) {
-                    $.post("", { id_cdp: id_cdp }, function (he) {
-                        $('#divTamModalReg').removeClass('modal-xl');
-                        $('#divTamModalReg').removeClass('modal-sm');
-                        $('#divTamModalReg').addClass('modal-lg');
-                        $('#divModalReg').modal('show');
-                        $("#divFormsReg").html(he);
-                    });
-                }
-            }],
-            language: dataTable_es,
-            processing: true,
-            serverSide: true,
-            searching: false,
-            ajax: {
-                url: ValueInput('host') + '/src/terceros/php/historialtercero/listar_pagos.php',
-                type: 'POST',
-                dataType: 'json',
-                data: function (data) {
-                    data.id_cdp = id_cdp;
-                }
-            },
-            columns: [
-                { 'data': 'id_manu' },
-                { 'data': 'fecha' },
-                { 'data': 'detalle' },
-                { 'data': 'valorpagado' },
-            ],
-            columnDefs: [
-                { class: 'text-wrap', targets: [2] }
-            ],
-            order: [
-                [0, "desc"]
-            ],
-            lengthMenu: [
-                [10, 25, 50, -1],
-                [10, 25, 50, 'TODO'],
-            ],
-        });
-        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle"></span>');
-        $('#tb_pagos').wrap('<div class="overflow"/>');
-    });
-
-    //------------ filtros
-    $('#btn_buscar_filtro').on("click", function () {
-        reloadtable('tb_cdps');
-
-        /*$('#tb_contratos').empty();
-        $('#tb_contratos').DataTable();
-
-        $('#tb_reg_presupuestal').empty();
-        $('#tb_reg_presupuestal').DataTable();
-
-        
-
-        $('#tb_obligaciones').empty();
-        $('#tb_obligaciones').DataTable();
-
-        $('#tb_pagos').empty();
-        $('#tb_pagos').DataTable();
-
-        $('#id_cdp').val('');
-    });
-
-    $('.filtro').keypress(function (e) {
-        if (e.keyCode == 13) {
-            reloadtable('tb_cdps');
-
-            $('#tb_contratos').empty();
-            $('#tb_contratos').DataTable();
-
-            $('#tb_reg_presupuestal').empty();
-            $('#tb_reg_presupuestal').DataTable();
-
-            $('#tb_obligaciones').empty();
-            $('#tb_obligaciones').DataTable();
-
-            $('#tb_pagos').empty();
-            $('#tb_pagos').DataTable();
-        }
-    });
-    //---- ejemplos de ocasionar disparador - trigger en los select y los botones
-    //$('#sl_centroCosto').trigger('change');
-    //$('#btn_buscar_filtro').trigger('click');
-
-    //otra opcion de llamar botones
-    /*$('#btn_imprimir').on("click", function()
-    {
-        alert("imprimiendo!.....");
-    });
-
-    $('#divForms').on("click", "#btn_imprimir", function () {
-        $.post(ValueInput('host') + '/src/terceros/php/historialtercero/imp_historialtercero.php', {
-            id_tercero: $('#id_tercero').val(),
-            id_cdp: $('#id_cdp').val()
-        }, function (he) {
-            $('#divTamModalImp').removeClass('modal-sm');
-            $('#divTamModalImp').removeClass('modal-lg');
-            $('#divTamModalImp').addClass('modal-xl');
-            $('#divModalImp').modal('show');
-            $("#divImp").html(he);
-        });
-    });
-
-    //------------------- abrir form liberar saldos cdp
-    $('#body_tb_cdps').on('click', '.btn_liberar', function () {
-        let id_cdp = $(this).attr('value');
-        $('#id_cdp').val(id_cdp);
-
-        $.post(ValueInput('host') + "/src/terceros/php/historialtercero/frm_liberarsaldos.php", { id_cdp: id_cdp }, function (he) {
-            $('#divTamModalReg').removeClass('modal-xl');
-            $('#divTamModalReg').removeClass('modal-sm');
-            $('#divTamModalReg').addClass('modal-lg');
-            $('#divModalReg').modal('show');
-            $("#divFormsReg").html(he);
-        });
-    });
-
-    //-------------------- liberar saldos cdp
-    $('#divFormsReg').on("click", "#btn_liquidar", function () {
-        if ($('#txt_fec_lib').val() < $('#txt_fec_cdp').val()) {
-            $('#divModalError').modal('show');
-            $('#divMsgError').html('La fecha de liberación no puede ser menor a la fecha del CDP');
-        }
-        else {
-            let datos = $('#frm_liberarsaldos').serialize();
-            let url;
-            url = ValueInput('host') + '/src/terceros/php/historialtercero/registrar_liberacion.php';
-            $.ajax({
-                type: 'POST',
-                url: url,
-                data: datos + "&oper=add",
-                success: function (r) {
-                    if (r == '1') {
-                        let id = 'tb_cdps';
-                        reloadtable(id);
-                        mje('Liberacion ejecutada correctamente');
-                    } else {
-                        mjeError(r);
-                    }
-                }
-            });
-            $(this).closest('.modal').modal('hide');
-        }
-    });
-    //---------------------listar liberaciones realizadas cdp
-    $('#body_tb_cdps').on('click', '.btn_liberaciones', function () {
-        let id_cdp = $(this).attr('value');
-        $('#id_cdp').val(id_cdp);
-
-        $.post(ValueInput('host') + "/src/terceros/php/historialtercero/frm_listar_liberaciones_cdp.php", { id_cdp: id_cdp }, function (he) {
-            $('#divTamModalReg').removeClass('modal-xl');
-            $('#divTamModalReg').removeClass('modal-sm');
-            $('#divTamModalReg').addClass('modal-lg');
-            $('#divModalReg').modal('show');
-            $("#divFormsReg").html(he);
-        });
-    });
-
-    //----------------anular liberacion cdp
-    $('#divFormsReg').on('click', '.btn_anular_liberacion_cdp', function () {
-        let id = $(this).attr('value');
-        confirmar_del('liberacion_cdp', id);
-    });
-
-    $('#divModalConfDel').on("click", "#liberacion_cdp", function () {
-        /*var data = $('#frm_reg_articulos').serialize();
-            $.ajax({
-                type: 'POST',
-                url: 'editar_articulos.php',
-                dataType: 'json',
-                data: data + "&oper=add" // esto para llamar a un php editar que si es guardar envia serializado + opcion=add
-            }).done(function(r) {
-
-
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: ValueInput('host') + '/src/terceros/php/historialtercero/registrar_liberacion.php',
-            dataType: 'json',
-            data: { id: id, oper: 'del' }
-        }).done(function (r) {
-            $('#divModalConfDel').modal('hide');
-            if (r.mensaje == 'ok') {
-                reloadtable('tb_liberacionescdp');
-                reloadtable('tb_cdps');
-            } else {
-                $('#divModalError').modal('show');
-                $('#divMsgError').html(r.mensaje);
-            }
-        }).always(function () { }).fail(function () {
-            alert('Ocurrió un error');
-        });
-    });
-
-    // -------- imprimir liberacion cdp
-    $('#divFormsReg').on("click", ".btn_imprimir_liberacion_cdp", function () {
-        var id = $(this).attr('value');
-        $.post(ValueInput('host') + '/src/terceros/php/historialtercero/imp_liberacion_cdp.php', {
-            id_lib: id,
-            id_cdp: $('#id_cdp').val()
-        }, function (he) {
-            $('#divTamModalImp').removeClass('modal-sm');
-            $('#divTamModalImp').removeClass('modal-lg');
-            $('#divTamModalImp').addClass('modal-xl');
-            $('#divModalImp').modal('show');
-            $("#divImp").html(he);
-        });
-    });
-
-    //------------------- abrir form liberar saldos crp
-    $('#body_tb_reg_presupuestal').on('click', '.btn_liberar_crp', function () {
-        let id_crp = $(this).attr('value');
-
-        $.post(ValueInput('host') + "/src/terceros/php/historialtercero/frm_liberarsaldos_crp.php", { id_crp: id_crp }, function (he) {
-            $('#divTamModalReg').removeClass('modal-xl');
-            $('#divTamModalReg').removeClass('modal-sm');
-            $('#divTamModalReg').addClass('modal-lg');
-            $('#divModalReg').modal('show');
-            $("#divFormsReg").html(he);
-        });
-    });
-    //----------------------------- liberar saldos crp
-    $('#divFormsReg').on("click", "#btn_liquidar_saldos_crp", function () {
-        if ($('#txt_fec_lib_crp').val() < $('#txt_fec_crp').val()) {
-            $('#divModalError').modal('show');
-            $('#divMsgError').html('La fecha de liberación no puede ser menor a la fecha del CRP');
-        }
-        else {
-            let datos = $('#frm_liberarsaldos_crp').serialize();
-            let url;
-            url = ValueInput('host') + '/src/terceros/php/historialtercero/registrar_liberacion_crp.php';
-            $.ajax({
-                type: 'POST',
-                url: url,
-                data: datos + "&oper=add",
-                success: function (r) {
-                    if (r == '1') {
-                        let id2 = 'tb_cdps';
-                        reloadtable(id2);
-                        let id = 'tb_reg_presupuestal';
-                        reloadtable(id);
-                        mje('Liberacion ejecutada correctamente');
-                        //$(this).closest('.modal').modal('hide');
-                    } else {
-                        mjeError(r);
-                    }
-                }
-            });
-            $(this).closest('.modal').modal('hide');
-        }
-    });
-    /*$('#divFormsReg').on("click", "#btn_liquidar_saldos_crp", function () {
-        //$('.modal.show').modal('hide'); // este destruye todos los modales
-        $(this).closest('.modal').modal('hide');
-    });
-
-    //----------- listar liberaciones realizadas crp
-    $('#body_tb_reg_presupuestal').on('click', '.btn_liberaciones_crp', function () {
-        let id_crp = $(this).attr('value');
-        $.post(ValueInput('host') + "/src/terceros/php/historialtercero/frm_listar_liberaciones_crp.php", { id_crp: id_crp }, function (he) {
-            $('#divTamModalReg').removeClass('modal-xl');
-            $('#divTamModalReg').removeClass('modal-sm');
-            $('#divTamModalReg').addClass('modal-lg');
-            $('#divModalReg').modal('show');
-            $("#divFormsReg").html(he);
-        });
-    });
-
-    //----------------anular liberacion crp
-    $('#divFormsReg').on('click', '.btn_anular_liberacion_crp', function () {
-        let id = $(this).attr('value');
-        confirmar_del('liberacion_crp', id);
-    });
-
-    $('#divModalConfDel').on("click", "#liberacion_crp", function () {
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: ValueInput('host') + '/src/terceros/php/historialtercero/registrar_liberacion_crp.php',
-            dataType: 'json',
-            data: { id: id, oper: 'del' }
-        }).done(function (r) {
-            $('#divModalConfDel').modal('hide');
-            if (r.mensaje == 'ok') {
-                reloadtable('tb_liberacionescrp');
-                reloadtable('tb_reg_presupuestal');
-                reloadtable('tb_cdps');
-            } else {
-                $('#divModalError').modal('show');
-                $('#divMsgError').html(r.mensaje);
-            }
-        }).always(function () { }).fail(function () {
-            alert('Ocurrió un error');
-        });
-    });*/
-
-    //------------guardar encabezado
-    $('#divFormsReg').on('click', '#btn_guardar_encabezado', function () {
-        var id_pto_rad = $('#hd_id_pto_rad').val();
-
-        if (id_pto_rad == 0) {
-
-            var datos = $('#frm_afectacion_presupuestal').serialize();
-            var url;
-            url = ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/editar_afectacion_presupuestal.php';
-            $.ajax({
-                type: 'POST',
-                url: url,
-                dataType: 'json',
-                data: datos + "&oper=add"
-            }).done(function (r) {
-                if (r.mensaje == 'ok') {
-                    $('#hd_id_pto_rad').val(r.id);
-                    $('#hd_id_pto_rec').val(r.id2);
-                    mje('Correcto');
-                } else {
-                    mjeError(r.mensaje + " - " + r.mensaje2);
-                }
-            }).always(function () { }).fail(function () {
-                mjeError("ocurrio un error");
-            });
-        }
-        if (id_pto_rad > 0) {
-            var datos = $('#frm_afectacion_presupuestal').serialize();
-            var url;
-            url = ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/editar_afectacion_presupuestal.php';
-            $.ajax({
-                type: 'POST',
-                url: url,
-                dataType: 'json',
-                data: datos + "&oper=edit"
-            }).done(function (r) {
-                if (r.mensaje == 'ok') {
-                    mje('Correcto');
-                } else {
-                    mjeError(r.mensaje);
-                }
-            }).always(function () { }).fail(function () {
-                mjeError("ocurrio un error");
-            });
-        }
-    });
-
-    //---------------agregar detalles rubros
-    $('#divFormsReg').on("click", "#btn_agregar_rubro", function () {
-        if ($('#hd_id_pto_rad').val() == 0) {
-            mjeError("Primero debe guardar la afectación presupuestal");
-        }
-        else {
-            if ($('#hd_tipo_dato').val() == "") {
-                mjeError("No ha seleccionado ningun rubro");
-            }
-            else {
-                if ($('#hd_tipo_dato').val() == "0") {
-                    mjeError("El tipo de dato no permite realizar la afectación");
-                }
-                else {
-                    if ($('#txt_valor').val() == "") {
-                        mjeError("El valor no puede estar vacio");
-                    }
-                    else {
-                        var datos = $('#frm_afectacion_presupuestal').serialize();
-                        var url;
-                        url = ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/editar_detalles_rubros.php';
-                        $.ajax({
-                            type: 'POST',
-                            url: url,
-                            dataType: 'json',
-                            data: datos + "&oper=add"
-                        }).done(function (r) {
-                            if (r.mensaje == 'ok') {
-                                reloadtable("tb_rubros");
-                            } else {
-                                mjeError(r.mensaje);
-                            }
-                        }).always(function () { }).fail(function () {
-                            mjeError("ocurrio un error");
-                        });
-                    }
-                }
-            }
-        }
-    });
-
-    //------------------------ quitar detalle rubro
-    $('#divFormsReg').on("click", ".btn_eliminar_rubro", function () {
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/editar_detalles_rubros.php',
-            dataType: 'json',
-            data: { id: id, oper: 'del' }
-        }).done(function (r) {
-            if (r.mensaje == 'ok') {
-                reloadtable('tb_rubros');
-            } else {
-                $('#divModalError').modal('show');
-                $('#divMsgError').html(r.mensaje);
-            }
-        }).always(function () { }).fail(function () {
-            alert('Ocurrió un error');
-        });
-    });
-})(jQuery);
-
-//-------------------------------------
-//autocomplete para rubro con 2 letras 
-document.addEventListener("keyup", (e) => {
-    if (e.target.id == "txt_rubro") {
-        $("#txt_rubro").autocomplete({
-            source: function (request, response) {
-                $.ajax({
-                    url: ValueInput('host') + "/src/tesoreria/php/afectacion_presupuestal/buscar_rubros.php",
-                    type: "POST",
-                    dataType: "json",
-                    data: {
-                        term: request.term,
-                    },
-                    success: function (data) {
-                        response(data);
-                    },
-                });
-            },
-            select: function (event, ui) {
-                $("#txt_rubro").val(ui.item.label);
-                $("#hd_id_txt_rubro").val(ui.item.id);
-                $('#hd_tipo_dato').val(ui.item.tipo_dato);
-                $('#hd_anio').val(ui.item.anio);
-                return false;
-            },
-            focus: function (event, ui) {
-                $("#txt_rubro").val(ui.item.label);
-                return false;
-            },
-        });
     }
-});
+
+    function recargarTablaRubros() {
+        var $tabla = $('#tb_rubros');
+        if (!$tabla.length) { return; }
+
+        if ($.fn.DataTable.isDataTable('#tb_rubros')) {
+            var dt = $tabla.DataTable();
+            dt.columns.adjust();
+            dt.ajax.reload(null, false);
+        } else {
+            inicializarTablaRubros();
+        }
+    }
+
+    // -------------------------------------------------------
+    // Inicialización del módulo (espera a que el DOM esté listo)
+    // -------------------------------------------------------
+    function inicializarModulo(intentos) {
+        intentos = intentos || 0;
+        var tieneTabla  = $('#tb_rubros').length > 0;
+        var tieneRubro  = $('#txt_rubro').length > 0;
+
+        if (!tieneTabla || !tieneRubro) {
+            if (intentos < 20) {
+                setTimeout(function () {
+                    inicializarModulo(intentos + 1);
+                }, 150);
+            }
+            return;
+        }
+
+        inicializarTablaRubros();
+        inicializarAutocompleteRubro();
+
+        // Si el modal ya está visible cuando se carga el script (caso habitual con $.getScript)
+        // esperamos un tick para que Bootstrap termine de mostrar el modal
+        setTimeout(function () {
+            recargarTablaRubros();
+        }, 200);
+    }
+
+    inicializarModulo();
+
+    // -------------------------------------------------------
+    // Evento shown del modal — por si se reabre
+    // -------------------------------------------------------
+    $('#divModalReg')
+        .off('shown.bs.modal' + EVENT_NS)
+        .on('shown.bs.modal' + EVENT_NS, function () {
+            if ($('#tb_rubros').length) {
+                recargarTablaRubros();
+            }
+        });
+
+    // -------------------------------------------------------
+    // Botón Guardar encabezado
+    // -------------------------------------------------------
+    $('#divFormsReg')
+        .off('click' + EVENT_NS, '#btn_guardar_encabezado')
+        .on('click' + EVENT_NS, '#btn_guardar_encabezado', function () {
+            var id_pto_rad = getIdPtoRad();
+            var oper = (id_pto_rad === 0) ? 'add' : 'edit';
+            var datos = $('#frm_afectacion_presupuestal').serialize();
+            var url = ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/editar_afectacion_presupuestal.php';
+
+            $.ajax({
+                type: 'POST',
+                url: url,
+                dataType: 'json',
+                data: datos + '&oper=' + oper
+            }).done(function (r) {
+                if (r && r.mensaje === 'ok') {
+                    if (r.id) {
+                        $('#hd_id_pto_rad').val(r.id);
+                    }
+                    if (r.id2) {
+                        $('#hd_id_pto_rec').val(r.id2);
+                    }
+                    mje('Encabezado guardado correctamente');
+                    recargarTablaRubros();
+                } else {
+                    mjeError((r && r.mensaje) ? r.mensaje : 'Ocurrio un error al guardar');
+                }
+            }).fail(function (xhr) {
+                mjeError('Error de comunicacion: ' + xhr.status);
+            });
+        });
+
+    // -------------------------------------------------------
+    // Botón Agregar rubro (detalle)
+    // -------------------------------------------------------
+    $('#divFormsReg')
+        .off('click' + EVENT_NS, '#btn_agregar_rubro')
+        .on('click' + EVENT_NS, '#btn_agregar_rubro', function () {
+            var id_pto_rad = getIdPtoRad();
+            var id_pto_rec = getIdPtoRec();
+            var tipo_dato  = $.trim($('#hd_tipo_dato').val());
+            var id_rubro   = parseInt($.trim($('#hd_id_txt_rubro').val()), 10) || 0;
+            var valor      = $.trim($('#txt_valor').val());
+
+            if (id_pto_rad === 0) {
+                mjeError('Primero debe guardar el encabezado de la afectacion presupuestal');
+                return;
+            }
+            if (id_pto_rec === 0) {
+                mjeError('El encabezado no tiene registro REC asociado. Guarde nuevamente el encabezado.');
+                return;
+            }
+            if (id_rubro === 0 || tipo_dato === '' || tipo_dato === '0') {
+                mjeError('Debe seleccionar un rubro valido de la lista');
+                return;
+            }
+            if (valor === '') {
+                mjeError('El valor no puede estar vacio');
+                return;
+            }
+
+            var datos = $('#frm_afectacion_presupuestal').serialize();
+            var url   = ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/editar_detalles_rubros.php';
+
+            $.ajax({
+                type: 'POST',
+                url: url,
+                dataType: 'json',
+                data: datos + '&oper=add'
+            }).done(function (r) {
+                if (r && r.mensaje === 'ok') {
+                    if (r.id_pto_rad) { $('#hd_id_pto_rad').val(r.id_pto_rad); }
+                    if (r.id_pto_rec) { $('#hd_id_pto_rec').val(r.id_pto_rec); }
+                    $('#txt_rubro').val('');
+                    $('#txt_valor').val('');
+                    limpiarRubroSeleccionado();
+                    setTimeout(recargarTablaRubros, 100);
+                    mje('Rubro agregado');
+                } else {
+                    mjeError((r && r.mensaje) ? r.mensaje : 'No fue posible agregar el rubro');
+                }
+            }).fail(function (xhr) {
+                mjeError('Error de comunicacion: ' + xhr.status);
+            });
+        });
+
+    // -------------------------------------------------------
+    // Botón eliminar rubro (delegado en tabla)
+    // -------------------------------------------------------
+    $('#divFormsReg')
+        .off('click' + EVENT_NS, '.btn_eliminar_rubro')
+        .on('click' + EVENT_NS, '.btn_eliminar_rubro', function () {
+            var id = $(this).attr('value');
+            if (!id || parseInt(id, 10) <= 0) {
+                mjeError('Registro no valido');
+                return;
+            }
+            $.ajax({
+                type: 'POST',
+                url: ValueInput('host') + '/src/tesoreria/php/afectacion_presupuestal/editar_detalles_rubros.php',
+                dataType: 'json',
+                data: { id: id, oper: 'del' }
+            }).done(function (r) {
+                if (r && r.mensaje === 'ok') {
+                    recargarTablaRubros();
+                } else {
+                    mjeError((r && r.mensaje) ? r.mensaje : 'No fue posible eliminar el rubro');
+                }
+            }).fail(function () {
+                mjeError('Error de comunicacion al eliminar');
+            });
+        });
+
+    // -------------------------------------------------------
+    // Reinicializar autocomplete al hacer foco en el campo
+    // -------------------------------------------------------
+    $('#divFormsReg')
+        .off('focus' + EVENT_NS, '#txt_rubro')
+        .on('focus' + EVENT_NS, '#txt_rubro', function () {
+            inicializarAutocompleteRubro();
+        });
+
+    // Limpiar selección si el usuario borra el texto manualmente
+    $('#divFormsReg')
+        .off('input' + EVENT_NS, '#txt_rubro')
+        .on('input' + EVENT_NS, '#txt_rubro', function () {
+            var selectedLabel = $(this).data('selectedLabel') || '';
+            if ($(this).val() !== selectedLabel) {
+                limpiarRubroSeleccionado();
+            }
+        });
+
+})(jQuery);

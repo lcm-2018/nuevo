@@ -70,10 +70,10 @@ try {
                 `pto_rad`
                 INNER JOIN `ctb_doc` 
                     ON (`ctb_doc`.`id_rad` = `pto_rad`.`id_pto_rad`)
-                INNER JOIN `ctb_libaux` 
-                    ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
                 INNER JOIN `ctb_fuente` 
                     ON (`ctb_doc`.`id_tipo_doc` = `ctb_fuente`.`id_doc_fuente`)
+                LEFT JOIN `ctb_libaux` 
+                    ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
                 LEFT JOIN `tb_terceros` 
                     ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
             WHERE (`ctb_fuente`.`cod` = '$cod_ctb_doc' AND `ctb_doc`.`id_vigencia` = $id_vigencia) $andwhere

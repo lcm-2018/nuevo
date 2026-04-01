@@ -469,7 +469,7 @@ class Nomina
         return !empty($data) ? $data : ['codigo' => '', 'descripcion' => ''];
     }
 
-    public static function getIDNomina($mes, $tipo)
+    public static function getIDNomina($mes, $tipo, $incremento = null)
     {
         try {
             $sql = "SELECT `nn`.`id_nomina`, `nn`.`estado`
@@ -478,14 +478,20 @@ class Nomina
                         ON (`nn`.`tipo` = `ntl`.`codigo`)
                     WHERE `ntl`.`id_tipo` = ? 
                         AND `nn`.`mes` = ?
-                        AND `nn`.`vigencia` = ? 
-                        AND `nn`.`estado` > 0
+                        AND `nn`.`vigencia` = ? ";
+            if (!empty($incremento) && intval($tipo) === 5) {
+                $sql .= " AND `nn`.`id_incremento` = ? ";
+            }
+            $sql .= " AND `nn`.`estado` > 0
                     ORDER BY `nn`.`id_nomina` DESC
                     LIMIT 1";
             $stmt = Conexion::getConexion()->prepare($sql);
             $stmt->bindParam(1, $tipo, PDO::PARAM_INT);
             $stmt->bindParam(2, $mes, PDO::PARAM_STR);
             $stmt->bindValue(3, Sesion::Vigencia(), PDO::PARAM_STR);
+            if (!empty($incremento) && intval($tipo) === 5) {
+                $stmt->bindValue(4, $incremento, PDO::PARAM_INT);
+            }
             $stmt->execute();
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
@@ -494,6 +500,23 @@ class Nomina
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
+    }
+
+    public static function getRetroactivoNomina($incremento)
+    {
+        $sql = "SELECT `id_retroactivo`, `fec_inicio`, `fec_final`, `meses`, `id_incremento`
+                FROM `nom_retroactivos`
+                WHERE `id_incremento` = ?
+                    AND `estado` = 1
+                ORDER BY `id_retroactivo` DESC
+                LIMIT 1";
+        $stmt = Conexion::getConexion()->prepare($sql);
+        $stmt->bindValue(1, $incremento, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($row) ? $row : [];
     }
     public static function getParamLiq()
     {
