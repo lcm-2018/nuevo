@@ -498,22 +498,22 @@ var tabla;
 		var objeto = $('#objeto').val();
 		var id_ctb_doc = $('#id_ctb_doc').val();
 
-			if (accion_pto > 0) {
-				mostrarOverlay();
-				$.post(ValueInput('host') + "/src/tesoreria/php/afectacion_presupuestal/frm_afectacion_presupuestal.php", { id_ctb_fuente: id_ctb_fuente, id_ctb_referencia: id_ctb_referencia, accion_pto: accion_pto, fecha: fecha, id_tercero_api: id_tercero_api, tercero: tercero, objeto: objeto, id_ctb_doc: id_ctb_doc }, function (he) {
-					$('#divTamModalReg').removeClass('modal-xl');
-					$('#divTamModalReg').removeClass('modal-sm');
-					$('#divTamModalReg').addClass('modal-lg');
-					$("#divFormsReg").html(he);
-					$.getScript(ValueInput('host') + '/src/tesoreria/js/afectacion_presupuestal/afectacion_presupuestal.js?v=' + Date.now())
-						.done(function () {
-							$('#divModalReg').modal('show');
-						})
-						.fail(function () {
-							mjeError('No fue posible cargar el modulo de afectacion presupuestal');
-						});
-				}).always(() => { ocultarOverlay(); });
-			} else {
+		if (accion_pto > 0) {
+			mostrarOverlay();
+			$.post(ValueInput('host') + "/src/tesoreria/php/afectacion_presupuestal/frm_afectacion_presupuestal.php", { id_ctb_fuente: id_ctb_fuente, id_ctb_referencia: id_ctb_referencia, accion_pto: accion_pto, fecha: fecha, id_tercero_api: id_tercero_api, tercero: tercero, objeto: objeto, id_ctb_doc: id_ctb_doc }, function (he) {
+				$('#divTamModalReg').removeClass('modal-xl');
+				$('#divTamModalReg').removeClass('modal-sm');
+				$('#divTamModalReg').addClass('modal-lg');
+				$("#divFormsReg").html(he);
+				$.getScript(ValueInput('host') + '/src/tesoreria/js/afectacion_presupuestal/afectacion_presupuestal.js?v=' + Date.now())
+					.done(function () {
+						$('#divModalReg').modal('show');
+					})
+					.fail(function () {
+						mjeError('No fue posible cargar el modulo de afectacion presupuestal');
+					});
+			}).always(() => { ocultarOverlay(); });
+		} else {
 			mjeError("La acción no esta habilitada para presupuesto");
 		}
 	});
@@ -3297,7 +3297,7 @@ const CambiaEstadoReferencia = (id, estado) => {
 	});
 }
 
-const cargarConsecutivos = (id) => {
+const cargarConsecutivosTes = (id) => {
 	mostrarOverlay();
 	$.post('datos/consultar/cargar_consecutivos.php', { id: id }, function (he) {
 		$("#divTamModalAux").removeClass("modal-lg");

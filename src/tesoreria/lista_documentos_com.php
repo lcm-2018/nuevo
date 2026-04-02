@@ -128,7 +128,7 @@ HTML;
 $botonConsecutivos = '';
 if ($tipo_doc > '0') {
     $botonConsecutivos = <<<HTML
-    <a onclick="cargarConsecutivos({$tipo_doc})" href="javascript:void(0);" title="Consultar Consecutivos">
+    <a onclick="cargarConsecutivosTes({$tipo_doc})" href="javascript:void(0);" title="Consultar Consecutivos">
         <span class="fas fa-info-circle text-info"></span>
     </a>
 HTML;

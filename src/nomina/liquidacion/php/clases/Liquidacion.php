@@ -2409,11 +2409,12 @@ class Liquidacion
             'id_nomina'     =>  $param['id_nomina']
         ];
 
+        $config = Valores::getOwnerConfig();
         $smmlv = $param['smmlv'];
         $minVital = $param['min_vital'] > 0 ? $param['min_vital'] : $smmlv;
 
         $sindicalizacion = !empty((new Sindicatos($this->conexion))->getRegistroLiq($filtro['id_sindicato'])) ? 0 : $filtro['val_sidicalizacion'];
-        $val = (($filtro['porcentaje_cuota'] / 100) * $param['salario']);
+        $val = isset($config['sindicato']) && $config['sindicato'] == 1 ? $filtro['val_fijo'] : ($filtro['porcentaje_cuota'] / 100) * $param['salario'];
         $dcto = Valores::Redondear($val + $sindicalizacion);
         $data['valor_fijo']    =  $dcto;
 
