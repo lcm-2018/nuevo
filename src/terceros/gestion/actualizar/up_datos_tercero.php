@@ -53,8 +53,8 @@ $data = [
     "tipuser" => $tipouser,
     "nit_emp" => $nit_act
 ];
-    $api = \Config\Clases\Conexion::Api();
-    $url = $api . 'terceros/datos/res/modificar/tercero/' . $idter;
+$api = \Config\Clases\Conexion::Api();
+$url = $api . 'terceros/datos/res/modificar/tercero/' . $idter;
 $ch = curl_init($url);
 $payload = json_encode($data);
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
@@ -68,8 +68,8 @@ curl_close($ch);
 $res = json_decode($result, true);
 if ($res == '1' || $res == '0' || $fecInicio != '') {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
-    $respuesta = UpTercerosEmpresa($api, [$idter], $cmd, $fecInicio, $es_clinic, $planilla, $riesgo);
+
+    $respuesta = UpTercerosEmpresa($api, [$idter], $cmd, $fecInicio, $es_clinic, $planilla, $riesgo, $genero);
     if ($respuesta == 'ok') {
         echo 'ok';
     } else {

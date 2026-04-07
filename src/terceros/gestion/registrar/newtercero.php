@@ -136,8 +136,8 @@ if ($res > 1 || $regAtTerc == 'SI') {
         $cmd = \Config\Clases\Conexion::getConexion();
 
         $sql = "INSERT INTO `tb_terceros`
-                    (`tipo_doc`,`nom_tercero`,`nit_tercero`,`dir_tercero`,`tel_tercero`,`id_municipio`,`email`,`id_usr_crea`,`id_tercero_api`,`estado`,`fec_inicio`,`es_clinico`,`planilla`, `id_riesgo`)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    (`tipo_doc`,`nom_tercero`,`nit_tercero`,`dir_tercero`,`tel_tercero`,`id_municipio`,`email`,`id_usr_crea`,`id_tercero_api`,`estado`,`fec_inicio`,`es_clinico`,`planilla`, `id_riesgo`, `genero`)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $sql = $cmd->prepare($sql);
         $sql->bindParam(1, $tipodoc, PDO::PARAM_STR);
         $sql->bindParam(2, $nombre, PDO::PARAM_STR);
@@ -153,6 +153,7 @@ if ($res > 1 || $regAtTerc == 'SI') {
         $sql->bindParam(12, $es_clinic, PDO::PARAM_INT);
         $sql->bindParam(13, $planilla, PDO::PARAM_INT);
         $sql->bindParam(14, $riesgo, PDO::PARAM_INT);
+        $sql->bindParam(15, $genero, PDO::PARAM_STR);
         $sql->execute();
         if ($cmd->lastInsertId() > 0) {
             $cmd = NULL;

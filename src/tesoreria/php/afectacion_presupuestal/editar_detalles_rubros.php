@@ -6,184 +6,136 @@ if (!isset($_SESSION['user'])) {
 }
 include '../../../../config/autoloader.php';
 
-$oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
-$fecha_crea = date('Y-m-d H:i:s');
-$id_usr_crea = $_SESSION['id_user'];
-$res = array();
-
-try {
-    $cmd = \Config\Clases\Conexion::getConexion();
-
-    if ($oper == "add") {
-        $id_pto_rad = $_POST['hd_id_pto_rad'];
-        $id_pto_rec = $_POST['hd_id_pto_rec'];
-        $id_tercero_api = $_POST['hd_id_tercero_api'];
-        $id_rubro = $_POST['hd_id_txt_rubro'];
-        $valor = $_POST['txt_valor'];
-        $valor_liberado = 0;
-
-        $id_pto_rad_det = 0;
-
-        $sql = "INSERT INTO pto_rad_detalle (id_pto_rad, id_tercero_api, id_rubro, valor, valor_liberado, id_user_reg, fecha_reg) 
-                  VALUES ($id_pto_rad, $id_tercero_api, $id_rubro, $valor, $valor_liberado, $id_usr_crea, '$fecha_crea')";
-
-        $rs = $cmd->query($sql);
-
-        if ($rs) {
-            $res['mensaje'] = 'ok';
-
-            $sql_i = 'SELECT LAST_INSERT_ID() AS id';
-            $rs = $cmd->query($sql_i);
-            $obj = $rs->fetch();
-            $id_pto_rad_det = $obj['id'];
-        } else {
-            $res['mensaje'] = $cmd->errorInfo()[2];
-        }
-
-        $sql = "INSERT INTO pto_rec_detalle (id_pto_rac, id_pto_rad_detalle, id_tercero_api, valor, valor_liberado, id_user_reg, fecha_reg) 
-                  VALUES ($id_pto_rec, $id_pto_rad_det, $id_tercero_api, $valor, $valor_liberado, $id_usr_crea, '$fecha_crea')";
-
-        $rs = $cmd->query($sql);
-    }
-
-    if ($oper == "edit") {
-        /*$id_pto_rad = $_POST['hd_id_pto_rad'];
-        $fecha = $_POST['txt_fecha'];
-        $id_manu = $_POST['txt_id_manu'];
-        $id_tercero_api = $_POST['hd_id_tercero_api'];
-        $objeto = $_POST['txt_objeto'];
-        $num_factura = 0;
-        $estado = 2;
-        $tipo_movimiento = 1;
-        $id_ctb_doc = $_POST['hd_id_ctb_doc'];
-
-        $sql = "UPDATE pto_rad set fecha='$fecha', id_manu=$id_manu, id_tercero_api=$id_tercero_api, objeto='$objeto', num_factura='$num_factura', estado=$estado, 
-                                   id_user_act=$id_usr_crea, fecha_act='$fecha_crea', tipo_movimiento=$tipo_movimiento, id_ctb_doc=$id_ctb_doc 
-                WHERE id_pto_rad = $id_pto_rad";
-
-        $rs = $cmd->query($sql);
-
-        if ($rs) {
-            $res['mensaje'] = 'ok';
-        } else {
-            $res['mensaje'] = $cmd->errorInfo()[2];
-        }*/
-    }
-
-    if ($oper == "del") {
-        $id = $_POST['id'];
-
-        $sql = "DELETE FROM pto_rec_detalle WHERE id_pto_rad_detalle=" . $id;
-        $rs = $cmd->query($sql);
-
-        $sql = "DELETE FROM pto_rad_detalle WHERE id_pto_rad_det=" . $id;
-        $rs = $cmd->query($sql);
-        if ($rs) {
-            $res['mensaje'] = 'ok';
-        } else {
-            $res['mensaje'] = $cmd->errorInfo()[2];
-        }
-    }
-
-    $cmd = null;
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
-}
-echo json_encode($res);
-
-
-// asi realiza el profe add, edit, y del
-/*<?php
-session_start();
-if (!isset($_SESSION['user'])) {
-    header("Location: ../../../index.php");
-    exit();
-}
-include '../../../../config/autoloader.php';
-
 use Src\Common\Php\Clases\Permisos;
 
-$id_rol = $_SESSION['rol'];
-$id_user = $_SESSION['id_user'];
+$oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Accion no permitida');
+$fecha_crea = date('Y-m-d H:i:s');
+$id_usr_crea = (int) $_SESSION['id_user'];
+$id_rol = (int) $_SESSION['rol'];
+$res = array();
 
 $permisos = new Permisos();
-$opciones = $permisos->PermisoOpciones($id_user);
-//Permisos: 1-Consultar,2-Crear,3-Editar,4-Eliminar,5-Anular,6-Imprimir
-include '../common/funciones_generales.php';
+$opciones = $permisos->PermisoOpciones($id_usr_crea);
 
-$oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
-$fecha_crea = date('Y-m-d H:i:s');
-$id_usr_crea = $_SESSION['id_user'];
-$res = array();
+$puedeAdicionar = $id_rol === 1 || $permisos->PermisosUsuario($opciones, 5401, 2) || $permisos->PermisosUsuario($opciones, 5601, 2);
+$puedeEditar = $id_rol === 1 || $permisos->PermisosUsuario($opciones, 5401, 3) || $permisos->PermisosUsuario($opciones, 5601, 3);
+$puedeEliminar = $id_rol === 1 || $permisos->PermisosUsuario($opciones, 5401, 4) || $permisos->PermisosUsuario($opciones, 5601, 4);
+
+if (($oper === 'add' && !($puedeAdicionar || $puedeEditar)) || ($oper === 'edit' && !$puedeEditar) || ($oper === 'del' && !$puedeEliminar)) {
+    $res['mensaje'] = 'El Usuario del Sistema no tiene Permisos para esta Accion';
+    echo json_encode($res);
+    exit();
+}
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
+    $cmd->beginTransaction();
 
-    if (($permisos->PermisosUsuario($opciones, 5002, 2) && $oper == 'add' && $_POST['id_articulo'] == -1) ||
-        ($permisos->PermisosUsuario($opciones, 5002, 3) && $oper == 'add' && $_POST['id_articulo'] != -1) ||
-        ($permisos->PermisosUsuario($opciones, 5002, 4) && $oper == 'del') || $id_rol == 1) {
+    if ($oper === "add") {
+        $id_pto_rad = isset($_POST['hd_id_pto_rad']) ? (int) $_POST['hd_id_pto_rad'] : 0;
+        $id_pto_rec = isset($_POST['hd_id_pto_rec']) ? (int) $_POST['hd_id_pto_rec'] : 0;
+        $id_tercero_api = isset($_POST['hd_id_tercero_api']) ? (int) $_POST['hd_id_tercero_api'] : 0;
+        $id_rubro = isset($_POST['hd_id_txt_rubro']) ? (int) $_POST['hd_id_txt_rubro'] : 0;
+        $valorRaw = isset($_POST['txt_valor']) ? trim($_POST['txt_valor']) : '';
+        $valor = str_replace(array(',', ' '), '', $valorRaw);
+        $valor_liberado = 0;
 
-        if ($oper == 'add') {
-            $id = $_POST['id_articulo'];
-            $cod_art = $_POST['txt_cod_art'];
-            $nom_art = $_POST['txt_nom_art'];
-            $id_subgrp = $_POST['sl_subgrp_art'] ? $_POST['sl_subgrp_art'] : 0;
-            $top_min = $_POST['txt_topmin_art'];
-            $top_max = $_POST['txt_topmax_art'];
-            $id_unimed = $_POST['id_txt_unimed_art'] ? $_POST['id_txt_unimed_art'] : 0;
-            $es_clinic = $_POST['rdo_escli_art'];
-            $id_medins = $_POST['sl_medins_art'] ? $_POST['sl_medins_art'] : 'NULL';
-            $estado = $_POST['sl_estado'];
-
-            if ($id == -1) {
-                $sql = "INSERT INTO far_medicamentos(cod_medicamento,nom_medicamento,id_subgrupo,top_min,top_max,
-                            id_unidadmedida_2,id_unidadmedida,id_formafarmaceutica,id_atc,es_clinico,id_tip_medicamento,estado,id_usr_crea) 
-                        VALUES('$cod_art','$nom_art',$id_subgrp,$top_min,$top_max,$id_unimed,0,0,0,$es_clinic,$id_medins,$estado,$id_usr_crea)";
-                $rs = $cmd->query($sql);
-
-                if ($rs) {
-                    $res['mensaje'] = 'ok';
-                    $sql_i = 'SELECT LAST_INSERT_ID() AS id';
-                    $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
-                } else {
-                    $res['mensaje'] = $cmd->errorInfo()[2];
-                }
-            } else {
-                $sql = "UPDATE far_medicamentos SET cod_medicamento='$cod_art',nom_medicamento='$nom_art',
-                            id_subgrupo=$id_subgrp,top_min=$top_min,top_max=$top_max,id_unidadmedida_2=$id_unimed,
-                            es_clinico=$es_clinic,id_tip_medicamento=$id_medins,estado=$estado
-                        WHERE id_med=" . $id;
-                $rs = $cmd->query($sql);
-
-                if ($rs) {
-                    $res['mensaje'] = 'ok';
-                    $res['id'] = $id;
-                } else {
-                    $res['mensaje'] = $cmd->errorInfo()[2];
-                }
-            }
-
+        if ($id_pto_rad <= 0 || $id_pto_rec <= 0 || $id_rubro <= 0 || $valor === '' || !is_numeric($valor)) {
+            throw new RuntimeException('Datos invalidos para registrar el rubro');
         }
 
-        if ($oper == 'del') {
-            $id = $_POST['id'];
-            $sql = "DELETE FROM far_medicamentos WHERE id_med=" . $id;
-            $rs = $cmd->query($sql);
-            if ($rs) {
-                $res['mensaje'] = 'ok';
-            } else {
-                $res['mensaje'] = $cmd->errorInfo()[2];
-            }
+        $stmt = $cmd->prepare("SELECT id_cargue FROM pto_cargue WHERE id_cargue = :id_rubro LIMIT 1");
+        $stmt->execute([':id_rubro' => $id_rubro]);
+        if (!$stmt->fetchColumn()) {
+            throw new RuntimeException('El rubro seleccionado no existe o no es valido');
         }
-    } else {
-        $res['mensaje'] = 'El Usuario del Sistema no tiene Permisos para esta Acción';
+
+        $stmt = $cmd->prepare("SELECT id_pto_rad FROM pto_rad WHERE id_pto_rad = :id_pto_rad LIMIT 1");
+        $stmt->execute([':id_pto_rad' => $id_pto_rad]);
+        if (!$stmt->fetchColumn()) {
+            throw new RuntimeException('No existe el encabezado RAD asociado');
+        }
+
+        $stmt = $cmd->prepare("SELECT id_pto_rec FROM pto_rec WHERE id_pto_rec = :id_pto_rec LIMIT 1");
+        $stmt->execute([':id_pto_rec' => $id_pto_rec]);
+        if (!$stmt->fetchColumn()) {
+            throw new RuntimeException('No existe el encabezado REC asociado');
+        }
+
+        $sql = "INSERT INTO pto_rad_detalle (id_pto_rad, id_tercero_api, id_rubro, valor, valor_liberado, id_user_reg, fecha_reg)
+                VALUES (:id_pto_rad, :id_tercero_api, :id_rubro, :valor, :valor_liberado, :id_user_reg, :fecha_reg)";
+        $stmt = $cmd->prepare($sql);
+        $stmt->execute([
+            ':id_pto_rad' => $id_pto_rad,
+            ':id_tercero_api' => $id_tercero_api,
+            ':id_rubro' => $id_rubro,
+            ':valor' => $valor,
+            ':valor_liberado' => $valor_liberado,
+            ':id_user_reg' => $id_usr_crea,
+            ':fecha_reg' => $fecha_crea,
+        ]);
+        $id_pto_rad_det = (int) $cmd->lastInsertId();
+
+        $sql = "INSERT INTO pto_rec_detalle (id_pto_rac, id_pto_rad_detalle, id_tercero_api, valor, valor_liberado, id_user_reg, fecha_reg)
+                VALUES (:id_pto_rec, :id_pto_rad_detalle, :id_tercero_api, :valor, :valor_liberado, :id_user_reg, :fecha_reg)";
+        $stmt = $cmd->prepare($sql);
+        $stmt->execute([
+            ':id_pto_rec' => $id_pto_rec,
+            ':id_pto_rad_detalle' => $id_pto_rad_det,
+            ':id_tercero_api' => $id_tercero_api,
+            ':valor' => $valor,
+            ':valor_liberado' => $valor_liberado,
+            ':id_user_reg' => $id_usr_crea,
+            ':fecha_reg' => $fecha_crea,
+        ]);
+
+        $stmt = $cmd->prepare("SELECT prd.id_pto_rad_det
+                               FROM pto_rad_detalle prd
+                               WHERE prd.id_pto_rad_det = :id_pto_rad_det
+                               LIMIT 1");
+        $stmt->execute([':id_pto_rad_det' => $id_pto_rad_det]);
+        if (!$stmt->fetchColumn()) {
+            throw new RuntimeException('No fue posible confirmar el detalle registrado');
+        }
+
+        $cmd->commit();
+        $res['mensaje'] = 'ok';
+        $res['id_pto_rad'] = $id_pto_rad;
+        $res['id_pto_rec'] = $id_pto_rec;
+        $res['id_pto_rad_det'] = $id_pto_rad_det;
+    }
+
+    if ($oper === "edit") {
+        $cmd->rollBack();
+        $res['mensaje'] = 'Accion no implementada';
+    }
+
+    if ($oper === "del") {
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        if ($id <= 0) {
+            throw new RuntimeException('Detalle de rubro no valido');
+        }
+
+        $stmt = $cmd->prepare("DELETE FROM pto_rec_detalle WHERE id_pto_rad_detalle = :id");
+        $stmt->execute([':id' => $id]);
+
+        $stmt = $cmd->prepare("DELETE FROM pto_rad_detalle WHERE id_pto_rad_det = :id");
+        $stmt->execute([':id' => $id]);
+        if ($stmt->rowCount() <= 0) {
+            throw new RuntimeException('No se encontro el detalle de rubro para eliminar');
+        }
+
+        $cmd->commit();
+        $res['mensaje'] = 'ok';
     }
 
     $cmd = null;
-} catch (PDOException $e) {
-    $res['mensaje'] = $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+} catch (Throwable $e) {
+    if (isset($cmd) && $cmd instanceof PDO && $cmd->inTransaction()) {
+        $cmd->rollBack();
+    }
+    $res['mensaje'] = $e instanceof PDOException && $e->getCode() == 2002
+        ? 'Sin Conexion a Mysql (Error: 2002)'
+        : $e->getMessage();
 }
 echo json_encode($res);
-*/

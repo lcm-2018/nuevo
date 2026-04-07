@@ -24,7 +24,8 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_cargue`, `id_pto`, `cod_pptal`, `nom_rubro`, `tipo_dato` 
             FROM `pto_cargue` 
-            WHERE `id_pto` = $id_pto_presupuestos";
+            WHERE `id_pto` = $id_pto_presupuestos
+            ORDER BY `cod_pptal` ASC";
     $rs = $cmd->query($sql);
     $rubros = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();

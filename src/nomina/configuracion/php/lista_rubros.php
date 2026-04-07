@@ -11,12 +11,25 @@ $vigencia =     $_SESSION['vigencia'];
 $start =        isset($_POST['start']) ? intval($_POST['start']) : 0;
 $length =       isset($_POST['length']) ? intval($_POST['length']) : 10;
 $val_busca =    $_POST['search']['value'] ?? '';
-$col =          $_POST['order'][0]['column'] + 1;
-$dir =          $_POST['order'][0]['dir'];
+$orderIdx =     isset($_POST['order'][0]['column']) ? intval($_POST['order'][0]['column']) : 0;
+$colData =      $_POST['columns'][$orderIdx]['data'] ?? 'id';
+$dir =          strtolower($_POST['order'][0]['dir'] ?? 'desc');
 
 $id_rol =         $_SESSION['rol'];
 $id_user =        $_SESSION['id_user'];
 $esPtoCaracter =  (($_SESSION['caracter'] ?? 0) == 1 && ($_SESSION['pto'] ?? 0) == 1);
+
+$columnasOrden = [
+    'id'     => '`nom_rel_rubro`.`id_relacion`',
+    'tipo'   => '`nom_tipo_rubro`.`nombre`',
+    'ccosto' => '`tb_centrocostos`.`nom_centro`',
+    'cod_ra' => '`pto_admin`.`cod_pptal`',
+    'nom_ra' => '`pto_admin`.`nom_rubro`',
+    'cod_ro' => '`pto_operativo`.`cod_pptal`',
+    'nom_ro' => '`pto_operativo`.`nom_rubro`',
+];
+$col = $columnasOrden[$colData] ?? $columnasOrden['id'];
+$dir = $dir === 'asc' ? 'ASC' : 'DESC';
 
 
 use Src\Nomina\Configuracion\Php\Clases\Rubros;

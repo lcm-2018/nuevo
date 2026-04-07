@@ -127,6 +127,7 @@ document.querySelector('#tableDetallesNomina').addEventListener('click', functio
 document.getElementById('modalForms').addEventListener('click', function (event) {
     const boton = event.target.closest('button');
     if (!boton) return;
+
     event.preventDefault();
     LimpiaInvalid();
     switch (boton.id) {

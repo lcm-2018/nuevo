@@ -141,15 +141,17 @@ if ($fin_mes != 0) {
             }
             // la raiz de $lp['cta_contable'] debe ser diferrente a 1105
             if (substr($lp['cta_contable'], 0, 4) != '1105') {
-                $data[] = [
-                    'banco' => $lp['nom_banco'],
-                    'tipo' => $lp['tipo_cuenta'],
-                    'nombre' => $lp['descripcion'],
-                    'numero' => $lp['cta_contable'],
-                    'saldo' => '<div class="text-end ' . $color . '">' . $signo . number_format($valor, 2, ',', '.') . '</div>',
-                    'estado' => '<div class="text-center">' . $estado . '</div>',
-                    'botones' => '<div class="text-center" style="position:relative">' . $imprimir . $cerrar . '</div>',
-                ];
+	                $data[] = [
+	                    'banco' => $lp['nom_banco'],
+	                    'tipo' => $lp['tipo_cuenta'],
+	                    'nombre' => $lp['descripcion'],
+	                    'numero' => $lp['cta_contable'],
+	                    'debito_valor' => (float) $lp['debito'],
+	                    'credito_valor' => (float) $lp['credito'],
+	                    'saldo' => '<div class="text-end ' . $color . '">' . $signo . number_format($valor, 2, ',', '.') . '</div>',
+	                    'estado' => '<div class="text-center">' . $estado . '</div>',
+	                    'botones' => '<div class="text-center" style="position:relative">' . $imprimir . $cerrar . '</div>',
+	                ];
             }
         }
     }

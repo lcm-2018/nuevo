@@ -65,7 +65,10 @@ foreach ($datas as $doc) {
             $response['msg'] = $cadena;
         } else {
             $response['res'] = 'error';
+            $response['res'] = 'ok';
             $response['msg'] = $doc['id_manu'];
+            $response['msg'] = $cadena;
+
             break;
         }
     } else {

@@ -8,32 +8,33 @@ include '../../../../config/autoloader.php';
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
-$id_ctb_fuente = isset($_POST['id_ctb_fuente']) ? $_POST['id_ctb_fuente'] : 0;
-$id_ctb_referencia = isset($_POST['id_ctb_referencia']) ? $_POST['id_ctb_referencia'] : 0;
-$accion_pto = isset($_POST['accion_pto']) ? $_POST['accion_pto'] : 0;
-$fecha = isset($_POST['fecha']) && strlen($_POST['fecha']) > 0 ? $_POST['fecha'] : '2000-01-01';
-$id_tercero_api = isset($_POST['id_tercero_api']) ? $_POST['id_tercero_api'] : 0;
+$id_ctb_fuente = isset($_POST['id_ctb_fuente']) ? (int) $_POST['id_ctb_fuente'] : 0;
+$id_ctb_referencia = isset($_POST['id_ctb_referencia']) ? (int) $_POST['id_ctb_referencia'] : 0;
+$accion_pto = isset($_POST['accion_pto']) ? (int) $_POST['accion_pto'] : 0;
+$fecha = isset($_POST['fecha']) && strlen($_POST['fecha']) > 0 ? trim($_POST['fecha']) : '2000-01-01';
+$id_tercero_api = isset($_POST['id_tercero_api']) ? (int) $_POST['id_tercero_api'] : 0;
 $tercero = isset($_POST['tercero']) && strlen($_POST['tercero']) > 0 ? $_POST['tercero'] : '';
 $objeto = isset($_POST['objeto']) && strlen($_POST['objeto']) > 0 ? $_POST['objeto'] : '';
-$id_ctb_doc = isset($_POST['id_ctb_doc']) ? $_POST['id_ctb_doc'] : 0;
+$id_ctb_doc = isset($_POST['id_ctb_doc']) ? (int) $_POST['id_ctb_doc'] : 0;
 
 $sql = "SELECT
-            `ctb_referencia`.`id_rubro`
-            , CONCAT_WS(' -> ',`pto_cargue`.`cod_pptal`, `pto_cargue`.`nom_rubro`) AS `rubro`
-            , `pto_cargue`.`tipo_dato`
-        FROM
-            `ctb_doc`
-            INNER JOIN `ctb_referencia` 
-                ON (`ctb_doc`.`id_ref_ctb` = `ctb_referencia`.`id_ctb_referencia`)
-            INNER JOIN `pto_cargue` 
-                ON (`ctb_referencia`.`id_rubro` = `pto_cargue`.`id_cargue`)
-        WHERE (`ctb_doc`.`id_ctb_doc` = $id_ctb_doc) LIMIT 1";
-$rs = $cmd->query($sql);
+            `ctb_referencia`.`id_rubro`,
+            CONCAT_WS(' -> ', `pto_cargue`.`cod_pptal`, `pto_cargue`.`nom_rubro`) AS `rubro`,
+            `pto_cargue`.`tipo_dato`
+        FROM `ctb_doc`
+        INNER JOIN `ctb_referencia`
+            ON `ctb_doc`.`id_ref_ctb` = `ctb_referencia`.`id_ctb_referencia`
+        INNER JOIN `pto_cargue`
+            ON `ctb_referencia`.`id_rubro` = `pto_cargue`.`id_cargue`
+        WHERE `ctb_doc`.`id_ctb_doc` = :id_ctb_doc
+        LIMIT 1";
+$rs = $cmd->prepare($sql);
+$rs->execute([':id_ctb_doc' => $id_ctb_doc]);
 $rubro = $rs->fetch(PDO::FETCH_ASSOC);
 
 // esta consulta es para generar el proximo id_manu
 //------------------------------------
-$sql = "SELECT COUNT(*) + 1 AS id_manu
+$sql = "SELECT IFNULL(MAX(id_manu), 0) + 1 AS id_manu
         FROM pto_rad LIMIT 1";
 $rs = $cmd->query($sql);
 $obj_manu = $rs->fetch();
@@ -45,8 +46,9 @@ $sql = "SELECT
              id_pto_rad
             ,id_manu
         FROM pto_rad 
-        WHERE pto_rad.id_ctb_doc = $id_ctb_doc LIMIT 1";
-$rs = $cmd->query($sql);
+        WHERE pto_rad.id_ctb_doc = :id_ctb_doc LIMIT 1";
+$rs = $cmd->prepare($sql);
+$rs->execute([':id_ctb_doc' => $id_ctb_doc]);
 $obj_id_pto_rad = $rs->fetch();
 
 $id_pto_rad = 0;
@@ -61,8 +63,9 @@ $sql = "SELECT
              id_pto_rec
             ,id_manu
         FROM pto_rec 
-        WHERE pto_rec.id_ctb_doc = $id_ctb_doc LIMIT 1";
-$rs = $cmd->query($sql);
+        WHERE pto_rec.id_ctb_doc = :id_ctb_doc LIMIT 1";
+$rs = $cmd->prepare($sql);
+$rs->execute([':id_ctb_doc' => $id_ctb_doc]);
 $obj_id_pto_rec = $rs->fetch();
 
 $id_pto_rec = 0;
@@ -77,7 +80,7 @@ if (!empty($obj_id_pto_rec['id_pto_rec'])) {
         <div class="card-header text-center py-2" style="background-color: #16a085 !important;">
             <h5 style="color: white;">LISTA DE AFECTACION PRESUPUESTAL DE INGRESOS</h5>
         </div>
-        <div class="px-2">
+        <div class="p-3">
             <form id="frm_afectacion_presupuestal">
                 <input type="hidden" id="hd_id_ctb_fuente" name="hd_id_ctb_fuente" value="<?php echo $id_ctb_fuente ?>">
                 <input type="hidden" id="hd_id_ctb_referencia" name="hd_id_ctb_referencia" value="<?php echo $id_ctb_referencia ?>">
@@ -96,16 +99,10 @@ if (!empty($obj_id_pto_rec['id_pto_rec'])) {
                     <div class="col-md-2">
                         <span class="small">Id Manu</span>
                     </div>
-                    <div class="col-md-1">
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_id_manu" name="txt_id_manu" value="<?php
-                                                                                                                                    if ($id_pto_rad == 0) {
-                                                                                                                                        echo $obj_manu['id_manu'];
-                                                                                                                                    } else {
-                                                                                                                                        echo $obj_id_pto_rad['id_manu'];
-                                                                                                                                    }
-                                                                                                                                    ?>">
+                    <div class="col-md-2">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_id_manu" name="txt_id_manu" value="<?= $id_pto_rad == 0 ? $obj_manu['id_manu'] : $obj_id_pto_rad['id_manu'] ?>">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <span class="small"></span>
                     </div>
                     <div class="col-md-1">
@@ -113,9 +110,9 @@ if (!empty($obj_id_pto_rec['id_pto_rec'])) {
                             <span class="fas fa-save fa-lg" aria-hidden="true"></span>
                         </a>
                     </div>
-                    <input type="hidden" id="hd_id_pto_rad" name="hd_id_pto_rad" value=" <?php echo $id_pto_rad ?> ">
-                    <input type="hidden" id="hd_id_ctb_doc" name="hd_id_ctb_doc" value=" <?php echo $id_ctb_doc ?> ">
-                    <input type="hidden" id="hd_id_pto_rec" name="hd_id_pto_rec" value=" <?php echo $id_pto_rec ?> ">
+                    <input type="hidden" id="hd_id_pto_rad" name="hd_id_pto_rad" value="<?= $id_pto_rad ?>">
+                    <input type="hidden" id="hd_id_ctb_doc" name="hd_id_ctb_doc" value="<?= $id_ctb_doc ?>">
+                    <input type="hidden" id="hd_id_pto_rec" name="hd_id_pto_rec" value="<?= $id_pto_rec ?>">
                 </div>
 
                 <div class="row mb-2" style="text-align: left;">
@@ -210,11 +207,11 @@ if (!empty($obj_id_pto_rec['id_pto_rec'])) {
                 <div class=" w-100 text-start">
                     <table id="tb_rubros" class="table table-striped table-bordered table-sm nowrap table-hover shadow w-100" style="width:100%; font-size:80%">
                         <thead>
-                            <tr class="text-center centro-vertical">
-                                <th>Id rad det</th>
-                                <th style="min-width: 60%;">Rubro</th>
-                                <th class="text-end">Valor</th>
-                                <th>Acciones</th>
+                            <tr class="text-center">
+                                <th class="bg-sofia">Id rad det</th>
+                                <th class="bg-sofia" style="min-width: 60%;">Rubro</th>
+                                <th class="text-end bg-sofia">Valor</th>
+                                <th class="bg-sofia">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="text-start centro-vertical" id="body_tb_rubros"></tbody>
@@ -228,4 +225,3 @@ if (!empty($obj_id_pto_rec['id_pto_rec'])) {
     </div>
 </div>
 
-<script type="text/javascript" src="../tesoreria/js/afectacion_presupuestal/afectacion_presupuestal.js?v=<?php echo date('YmdHis') ?>"></script>

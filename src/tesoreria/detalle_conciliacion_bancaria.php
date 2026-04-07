@@ -271,22 +271,62 @@ $content .= <<<HTML
                 </div>
             </div>
             
-            <table id="tableDetConciliacion" class="table table-striped table-bordered table-sm nowrap table-hover shadow w-100">
-                <thead>
-                    <tr class="text-center">
-                        <th class="bg-sofia">Fecha</th>
-                        <th class="bg-sofia">Comprobante</th>
-                        <th class="bg-sofia">Tercero</th>
-                        <th class="bg-sofia">Documento</th>
-                        <th class="bg-sofia">Débito</th>
-                        <th class="bg-sofia">Crédito</th>
-                        <th class="bg-sofia">Estado</th>
-                        <th class="bg-sofia">Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="modificaDetConciliacion">
-                </tbody>
-            </table>
+	            <table id="tableDetConciliacion" class="table table-striped table-bordered table-sm nowrap table-hover shadow w-100">
+		                <thead>
+	                        <tr class="text-center fila-filtros-det-conc">
+	                            <th class="bg-sofia">
+	                                <input type="text" class="form-control form-control-sm filtro-det-conc" data-columna="0" placeholder="Fecha">
+	                            </th>
+	                            <th class="bg-sofia">
+	                                <input type="text" class="form-control form-control-sm filtro-det-conc" data-columna="1" placeholder="Comprobante">
+	                            </th>
+	                            <th class="bg-sofia">
+	                                <input type="text" class="form-control form-control-sm filtro-det-conc" data-columna="2" placeholder="Tercero">
+	                            </th>
+	                            <th class="bg-sofia">
+	                                <input type="text" class="form-control form-control-sm filtro-det-conc" data-columna="3" placeholder="Documento">
+	                            </th>
+	                            <th class="bg-sofia">
+	                                <input type="text" class="form-control form-control-sm filtro-det-conc" data-columna="4" placeholder="Débito">
+	                            </th>
+	                            <th class="bg-sofia">
+	                                <input type="text" class="form-control form-control-sm filtro-det-conc" data-columna="5" placeholder="Crédito">
+	                            </th>
+	                            <th class="bg-sofia">
+	                                <select class="form-select form-select-sm filtro-det-conc" data-columna="6">
+	                                    <option value="seleccionar">Seleccionar</option>
+	                                    <option value="Pendiente">Pendiente</option>
+	                                    <option value="Conciliado">Conciliado</option>
+	                                </select>
+	                            </th>
+	                            <th class="bg-sofia"></th>
+	                        </tr>
+	                    <tr class="text-center">
+                            <th class="bg-sofia">Fecha</th>
+                            <th class="bg-sofia">Comprobante</th>
+                            <th class="bg-sofia">Tercero</th>
+                            <th class="bg-sofia">Documento</th>
+                            <th class="bg-sofia">Débito</th>
+                            <th class="bg-sofia">Crédito</th>
+                            <th class="bg-sofia">Estado</th>
+                            <th class="bg-sofia">Acción</th>
+                        </tr>
+	                </thead>
+	                <tbody id="modificaDetConciliacion">
+	                </tbody>
+	                <tfoot>
+	                    <tr class="text-center">
+	                        <th></th>
+	                        <th></th>
+	                        <th></th>
+	                        <th class="text-end">Totales</th>
+	                        <th class="text-end">Débito: $0,00</th>
+	                        <th class="text-end">Crédito: $0,00</th>
+	                        <th></th>
+	                        <th></th>
+	                    </tr>
+	                </tfoot>
+	            </table>
         </form>
         
         <div class="text-center pt-3">

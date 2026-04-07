@@ -32,8 +32,18 @@ $fecha_actual = $fecha->format('Y-m-d');
 
                     <div class="row">
                         <div class="col-2"></div>
-                        <div class="col-3 small">Tienen presupuesto:</div>
+                        <div class="col-3 small">Tiene presupuesto:</div>
                         <div class="col-3"><input type="checkbox" name="pto" id="pto" class="form-check-input" checked></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-2"></div>
+                        <div class="col-3 small">Egreso manual:</div>
+                        <div class="col-3"><input type="checkbox" name="egr_man" id="egr_man" class="form-check-input"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-2"></div>
+                        <div class="col-3 small">Descuentos detallado:</div>
+                        <div class="col-3"><input type="checkbox" name="desc_det" id="desc_det" class="form-check-input"></div>
                     </div>
 
                     <div class="px-50">&nbsp; </div>

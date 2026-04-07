@@ -212,6 +212,38 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $cmd->beginTransaction();
 
+    // Bloquea reprocesos concurrentes o dobles ejecuciones de la misma nomina.
+    $sql = "SELECT `estado` FROM `nom_nominas` WHERE `id_nomina` = ? FOR UPDATE";
+    $stmt = $cmd->prepare($sql);
+    $stmt->bindParam(1, $id_nomina, PDO::PARAM_INT);
+    $stmt->execute();
+    $nominaEstado = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (empty($nominaEstado)) {
+        throw new Exception('No se encontro la nomina a procesar.');
+    }
+
+    if ((int) $nominaEstado['estado'] === 5) {
+        throw new Exception('La nomina ya fue pagada y tiene comprobante de egreso.');
+    }
+
+    $sql = "SELECT
+                `nom_nomina_pto_ctb_tes`.`ceva`,
+                `ctb_doc`.`id_manu`
+            FROM `nom_nomina_pto_ctb_tes`
+            INNER JOIN `ctb_doc`
+                ON (`nom_nomina_pto_ctb_tes`.`ceva` = `ctb_doc`.`id_ctb_doc`)
+            WHERE (`nom_nomina_pto_ctb_tes`.`id_nomina` = ? AND `nom_nomina_pto_ctb_tes`.`tipo` <> 'PL' AND `nom_nomina_pto_ctb_tes`.`ceva` IS NOT NULL)
+            LIMIT 1
+            FOR UPDATE";
+    $stmt = $cmd->prepare($sql);
+    $stmt->bindParam(1, $id_nomina, PDO::PARAM_INT);
+    $stmt->execute();
+    $cevaExistente = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!empty($cevaExistente['ceva'])) {
+        $numCeva = $cevaExistente['id_manu'] ?? $cevaExistente['ceva'];
+        throw new Exception('La nomina ya tiene un comprobante de egreso registrado (' . $numCeva . ').');
+    }
+
     $sql = "SELECT MAX(`id_manu`) AS `id_manu` FROM `ctb_doc` WHERE `id_vigencia` = ? AND `id_tipo_doc` = ?";
     $stmt = $cmd->prepare($sql);
     $stmt->bindParam(1, $id_vigencia, PDO::PARAM_INT);
@@ -226,7 +258,18 @@ try {
     $stmt->execute();
     $tercero_emp = $stmt->fetch();
     $id_ter_emp_api = !empty($tercero_emp) ? $tercero_emp['id_tercero_api'] : 0;
+    if (empty($tercero_emp) || (int) $id_ter_emp_api <= 0) {
+        throw new Exception(
+            'No se encontro un tercero valido para la empresa. Verifique el NIT ' .
+                ($_SESSION['nit_emp'] ?? 'sin definir') .
+                ' en la tabla de terceros.'
+        );
+    }
+
     $id_ter_doc = count($datos) == 1 ? $terceros[$datos[0]['no_documento']] : $id_ter_emp_api;
+    if ((int) $id_ter_doc <= 0) {
+        throw new Exception('No se pudo determinar un tercero valido para el documento de egreso.');
+    }
 
     // Insertar el documento de Egreso (CEVA)
     $estado_doc = 2;

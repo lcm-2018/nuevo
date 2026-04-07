@@ -23,6 +23,7 @@ $content = <<<HTML
     </div>
     <div class="card-body p-2 bg-wiev">
         <form id="formLiquidacion">
+            <input type="hidden" id="filter_retroactivo" name="retroactivo" value="0">
             <table id="tableLiqMesEmpleados" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
                 <thead>
                     <tr id="filterRow" class="bg-light">
@@ -69,6 +70,9 @@ $content = <<<HTML
                 <tbody id="bodyTableLiqMesEmpleados">
                 </tbody>
             </table>
+            <div id="retroactivoInfo" class="small text-muted d-none">
+                Retroactivo seleccionado: <span id="retroactivoInfoTexto"></span>
+            </div>
         </form>  
     </div>
 </div>

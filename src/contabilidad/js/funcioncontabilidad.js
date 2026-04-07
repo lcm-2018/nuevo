@@ -1322,6 +1322,17 @@ function cargarListaDetalleCtbInvoice(id_rad, id_doc) {
 		'</form>').appendTo("body").submit();
 }
 
+const cargarConsecutivos = (id) => {
+	mostrarOverlay();
+	$.post("datos/consultar/cargar_consecutivos.php", { id: id }, function (he) {
+		$("#divTamModalAux").removeClass("modal-lg");
+		$("#divTamModalAux").removeClass("modal-xl");
+		$("#divTamModalAux").removeClass("modal-sm");
+		$("#divModalAux").modal("show");
+		$("#divFormsAux").html(he);
+	}).always(() => { ocultarOverlay(); });
+};
+
 
 // Establecer consecutivo para documento de contabilidad
 let buscarConsecutivoCont = function (doc) {
@@ -2441,10 +2452,17 @@ const generaMovimientoCxp = (boton) => {
 	if (val_fac == val_inp && val_fac == val_cos) {
 		let id_crp = $('#id_crpp').val();
 		let id_doc = $('#id_ctb_doc').val();
+		let fec_ini = $('#fecIniTraslado').length ? $('#fecIniTraslado').val() : '';
+		let fec_fin = $('#fecFinTraslado').length ? $('#fecFinTraslado').val() : '';
+		let cod_doc = $('#cod_doc').val();
+		let url = "datos/registrar/registrar_mvto_libaux_auto_cxp.php";
+		if (cod_doc == 'NCTA') {
+			url = "datos/registrar/registrar_mvto_libaux_auto_ncta.php";
+		}
 		mostrarOverlay();
-		fetch("datos/registrar/registrar_mvto_libaux_auto_cxp.php", {
+		fetch(url, {
 			method: "POST",
-			body: JSON.stringify({ id_doc: id_doc, id_crp: id_crp }),
+			body: JSON.stringify({ id_doc: id_doc, id_crp: id_crp, fec_ini: fec_ini, fec_fin: fec_fin, cod_doc: cod_doc }),
 		})
 			.then((response) => response.json())
 			.then((response) => {
@@ -2532,7 +2550,7 @@ const generaMovimientoTrasCosto = (boton) => {
 const generaMovimientoInvoice = (boton) => {
 	let id_rad = $('#id_rad').val();
 	let id_doc = $('#id_ctb_doc').val();
-	let valorFac = $('#valFactura').text().replace(/[\s$]+/g, "").replace(/\,/g, "");
+	let valorFac = $('#valFactura').val().replace(/[\s$]+/g, "").replace(/\,/g, "");
 	if (valorFac == 0) {
 		mjeError("El valor de la factura debe ser mayor a cero");
 		return false;

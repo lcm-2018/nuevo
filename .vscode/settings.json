@@ -8,7 +8,11 @@
     },
     "workbench.colorCustomizations": {},
     "editor.tokenColorCustomizations": {},
+<<<<<<< HEAD
     "workbench.colorTheme": "Light+",
+=======
+    "workbench.colorTheme": "IDEA like light Theme",
+>>>>>>> 6683069118d0b2f888b8bfe5b41f9546030cfebc
     "workbench.localThemes": [
         {
             "label": "IDEA Like Light Theme (Exact Copy)",

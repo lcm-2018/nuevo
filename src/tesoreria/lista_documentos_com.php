@@ -111,13 +111,9 @@ if ($tipo_doc == '4') {
     </button>
 HTML;
 }
-
+/* se pasa este boton al detalle de consignacion bancaria */
 if ($tipo_doc == '11') {
-    $botonesAdicionales .= <<<HTML
-    <button type="button" class="btn btn-secondary btn-sm me-1" onclick="CargaArqueoCaja(2)">
-        Ver Listado
-    </button>
-HTML;
+    $botonesAdicionales .= '';
 }
 
 if ($tipo_doc == '6') {
@@ -132,7 +128,7 @@ HTML;
 $botonConsecutivos = '';
 if ($tipo_doc > '0') {
     $botonConsecutivos = <<<HTML
-    <a onclick="cargarConsecutivos({$tipo_doc})" href="javascript:void(0);" title="Consultar Consecutivos">
+    <a onclick="cargarConsecutivosTes({$tipo_doc})" href="javascript:void(0);" title="Consultar Consecutivos">
         <span class="fas fa-info-circle text-info"></span>
     </a>
 HTML;

@@ -132,6 +132,7 @@ if ($id_doc_pag == 0) {
         $tercero = '---';
     }
 }
+$ctcb = isset($datosDoc['cod']) ? $datosDoc['cod'] : '';
 $datosDoc['id_ref_ctb'] = $datosDoc['id_ref_ctb'] == '' ? 0 : $datosDoc['id_ref_ctb'];
 try {
     $sql = "SELECT
@@ -360,6 +361,11 @@ if (true) {
     </div>
 HTML;
 }
+
+if ($ctcb  == 'CTCB') {
+    $seccionFormaPago = '';
+}
+
 $btnGuardar = $estado == 1 ? '<button type="button" class="btn btn-warning btn-sm" id="GuardaDocMvtoPag" text="' . $id_doc_pag . '">Guardar</button>' : '';
 if ($estado == 1 && $id_doc_pag > 0) {
     $btnGenMov =
@@ -369,10 +375,16 @@ if ($estado == 1 && $id_doc_pag > 0) {
 } else {
     $btnGenMov = '';
 }
-
+$ver_arq = '';
+if ($ctcb  == 'CTCB' && $estado == 1) {
+    $seccionFormaPago = '';
+    $btnGenMov = '<button type="button" class="btn btn-success btn-sm me-1" onclick="CargaArqueoCaja(2)">Ver Listado</button>';
+    $ver_arq = '<button type="button" class="btn btn-info btn-sm me-1" onclick="VerListadoArqueoCaja(2)">Asignados</button>';
+}
 $seccionGenerarMov = <<<HTML
     <div class="text-center pt-2">
         {$btnGenMov}
+        {$ver_arq}
         {$btnGuardar}
     </div>
 HTML;

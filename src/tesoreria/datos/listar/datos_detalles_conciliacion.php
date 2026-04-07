@@ -95,17 +95,19 @@ if (!empty($lista)) {
         }
         $check = '<input ' . $chk . ' type="checkbox" name="check[]" onclick="GuardaDetalleConciliacion(this)" text="' . $lp['id_ctb_libaux'] . '">';
         $nombre = $lp['nom_tercero'] . ' -> ' . $lp['nit_tercero'];
-        $data[] = [
+	        $data[] = [
 
-            'fecha' => date('Y-m-d', strtotime($lp['fecha'])),
-            'no_comprobante' => $lp['cod'] . $lp['id_manu'],
-            'tercero' => $nombre,
-            'documento' => $lp['documento'],
-            'debito' => '<div class="text-end">' . pesos($lp['debito']) . '</div>',
-            'credito' => '<div class="text-end">' . pesos($lp['credito']) . '</div>',
-            'estado' => '<div class="text-center">' . $estado . '</div>',
-            'accion' => '<div class="text-center vertical-align-middle">' . $check . '</div>',
-        ];
+	            'fecha' => date('Y-m-d', strtotime($lp['fecha'])),
+	            'no_comprobante' => $lp['cod'] . $lp['id_manu'],
+	            'tercero' => $nombre,
+	            'documento' => $lp['documento'],
+	            'debito_valor' => (float) $lp['debito'],
+	            'credito_valor' => (float) $lp['credito'],
+	            'debito' => '<div class="text-end">' . pesos($lp['debito']) . '</div>',
+	            'credito' => '<div class="text-end">' . pesos($lp['credito']) . '</div>',
+	            'estado' => '<div class="text-center">' . $estado . '</div>',
+	            'accion' => '<div class="text-center vertical-align-middle">' . $check . '</div>',
+	        ];
     }
     $tot_deb = $tot_deb - $tdc;
     $tot_cre = $tot_cre - $tcc;
