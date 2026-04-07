@@ -16,7 +16,7 @@ $cmd = \Config\Clases\Conexion::getConexion();
 
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_user);
-$peReg = $permisos->PermisosUsuario($opciones, 5012, 2) || $id_rol == 1 ? 1 : 0;
+$peReg = $permisos->PermisosUsuario($opciones, 5009, 2) || $id_rol == 1 ? 1 : 0;
 $host = Plantilla::getHost();
 
 // Construir opciones de combos usando output buffering

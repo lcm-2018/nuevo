@@ -33,7 +33,7 @@ if (empty($obj)) {
         <div class="p-3">
             <form id="frm_reg_marcas">
                 <input type="hidden" id="id_marca" name="id_marca" value="<?php echo $id ?>">
-                <div class=" row">
+                <div class="row">
                     <div class="col-md-12">
                         <label for="txt_nom_marca" class="small">Nombre</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_marca" name="txt_nom_marca" required value="<?php echo $obj['descripcion'] ?>">

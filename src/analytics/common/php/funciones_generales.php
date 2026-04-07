@@ -54,11 +54,16 @@ function isMySQLPortOpen(string $host, int $port, int $timeout = 2): bool {
 }
 
 function canConnectToDatabase(string $host, int $port, string $user, string $password, string $database): array {
-    $mysqli = @new mysqli($host, $user, $password, $database, $port);
-   if ($mysqli->connect_errno) {
-        $error = $mysqli->connect_error;
-        return [false, $error];
+    $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
+    $options = [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_TIMEOUT => 2,
+    ];
+    try {
+        $pdo = new PDO($dsn, $user, $password, $options);
+        $pdo = null;
+        return [true, 'Conexión a la base de datos exitosa.'];
+    } catch (\PDOException $e) {
+        return [false, $e->getMessage()];
     }
-    $mysqli->close();
-    return [true, 'Conexión a la base de datos exitosa.'];
 }

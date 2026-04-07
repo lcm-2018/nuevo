@@ -25,34 +25,34 @@ $obj['estado'] = 1;
         <div class="p-3">
             <form id="frm_reg_bdatos">
                 <input type="hidden" id="id_entidad" name="id_entidad" value="<?php echo $id ?>">
-                <div class=" row">
-                    <div class="col-md-5">
+                <div class="row">
+                    <div class="col-md-12">
                         <label for="txt_nom_entidad" class="small">Entidad</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_entidad" name="txt_nom_entidad" value="<?php echo $obj['nombre_entidad'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_entidad" name="txt_nom_entidad" value="<?php echo $obj['nombre_entidad'] ?>" maxlength="100">
                     </div>
-                    <div class="col-md-7">
+                    <div class="col-md-12">
                         <label for="txt_des_entidad" class="small">Descripción</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_des_entidad" name="txt_des_entidad" value="<?php echo $obj['descri_entidad'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_des_entidad" name="txt_des_entidad" value="<?php echo $obj['descri_entidad'] ?>" maxlength="200">
                     </div>
                     <div class="col-md-3">
                         <label for="txt_ip_servidor" class="small">IP Servidor</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_ip_servidor" name="txt_ip_servidor" value="<?php echo $obj['ip_servidor'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_ip_servidor" name="txt_ip_servidor" value="<?php echo $obj['ip_servidor'] ?>" maxlength="20">
                     </div>
                     <div class="col-md-3">
                         <label for="txt_nom_bd" class="small">Nombre Base Datos</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_bd" name="txt_nom_bd" value="<?php echo $obj['nombre_bd'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_bd" name="txt_nom_bd" value="<?php echo $obj['nombre_bd'] ?>" maxlength="20">
                     </div>
                     <div class="col-md-3">
                         <label for="txt_usr_bd" class="small">Usuario Base Datos</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_usr_bd" name="txt_usr_bd" value="<?php echo $obj['usuario_bd'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_usr_bd" name="txt_usr_bd" value="<?php echo $obj['usuario_bd'] ?>" maxlength="20">
                     </div>
                     <div class="col-md-3">
                         <label for="txt_pws_bd" class="small">Password Base Datos</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_pws_bd" name="txt_pws_bd" value="<?php echo $obj['password_bd'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_pws_bd" name="txt_pws_bd" value="<?php echo $obj['password_bd'] ?>" maxlength="20">
                     </div>
                     <div class="col-md-3">
                         <label for="txt_pto_bd" class="small">Puerto Base Datos</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_pto_bd" name="txt_pto_bd" value="<?php echo $obj['puerto_bd'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input number" id="txt_pto_bd" name="txt_pto_bd" value="<?php echo $obj['puerto_bd'] ?>" maxlength="10">
                     </div>
                     <div class="col-md-3">
                         <label for="sl_estado" class="small">Estado</label>
@@ -65,6 +65,7 @@ $obj['estado'] = 1;
         </div>
     </div>
     <div class="text-center pt-3">
+        <button type="button" class="btn btn-primary btn-sm" id="btn_testear">Testear</button>
         <button type="button" class="btn btn-primary btn-sm" id="btn_guardar">Guardar</button>
         <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>

@@ -131,5 +131,5 @@ class BdatosModel
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(':id_entidad', $id, PDO::PARAM_INT);
         return $stmt->execute();
-    }
+    }    
 }

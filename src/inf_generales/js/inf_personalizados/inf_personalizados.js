@@ -208,17 +208,20 @@
     });
 
     /* Editar una consulta */
-    $(document).keydown(function (e) {
+    $(document).keydown(function (e) {       
         if (e.keyCode == 113) {
             e.preventDefault();
             if ($('#txt_id_consulta').val()) {
                 $.post("frm_reg_consulta.php", { id: $('#txt_id_consulta').val() }, function (he) {
+                
                     $('#divTamModalForms').removeClass('modal-sm');
                     $('#divTamModalForms').removeClass('modal-lg');
                     $('#divTamModalForms').addClass('modal-xl');
                     $('#divModalForms').modal('show');
                     $("#divForms").html(he);
                 });
+
+                
             }
         }
     });

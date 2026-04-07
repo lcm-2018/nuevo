@@ -1,111 +1,32 @@
-//CONFIRMAIÓN DE BORRAR REGISTROS
-var confirmar_del = function (tipo, id) {
-    var msg = "Esta seguro de esta Operación?";
-    let btns = '<button class="btn btn-primary btn-sm" id="' + tipo + '" value=' + id + '>Aceptar</button><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>';
-    $('#divModalConfDel').modal('show');
-    $('#divMsgConfdel').html(msg);
-    $('#divBtnsModalDel').html(btns);
-    return false;
-};
-
-//CONFIRMACIÓN DE CERRAR, ANULAR PARA ORDENES DE INGRESO, ORDENES DE EGRESO, TRASLADOS, ETC.
-var confirmar_proceso = function (tipo) {
-    var msg = "Esta seguro de esta Operación?, <p style='color:red'>ESTE PROCESO ES IRREVERSIBLE</p>";
-    let btns = '<button class="btn btn-primary btn-sm" id="' + tipo + '">Continuar</button><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>';
-    $('#divModalConfDel').modal('show');
-    $('#divMsgConfdel').html(msg);
-    $('#divBtnsModalDel').html(btns);
-    return false;
-};
-
-//CONFIRMACIÓN PROCESO SOLICITANDO UN MENSAJE
-var confirmar_proceso_msg = function (tipo, msg) {
-    let btns = '<button class="btn btn-primary btn-sm" id="' + tipo + '">Continuar</button><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>';
-    $('#divModalConfDel').modal('show');
-    $('#divMsgConfdel').html(msg);
-    $('#divBtnsModalDel').html(btns);
-    return false;
-};
-
-
-var reloadtable = function (nom, pag = 0) {
-    $(document).ready(function () {
-        var table = $('#' + nom).DataTable();
-        table.page(pag).draw(false);
-        //table.ajax.reload();
-    });
-};
 
 //VERIFICA SI UN OBJETO ES VACIÓ Y LO RESALTA. SE PUEDE ENVIAR MESAJE COMO PARAMETRO PARA VISUALIZARSE
 var verifica_vacio = function (objeto, msg = "") {
-    var error = 0;
-    if (objeto.val().trim() == "") {
-        objeto.addClass('is-invalid');
+    let error = 0;
+    if (!objeto || objeto.value.trim() === "") {
+        objeto.classList.add('is-invalid');
         objeto.focus();
         error = 1;
-        if (msg != "") {
+        if (msg !== "") {
             mjeError(msg);
         }
+    } else {
+        objeto.classList.remove('is-invalid');
     }
     return error;
 };
 
 //VERIFICA SI UN OBJETO ES VACIÓ Y RESALTA OTRO OBJETO RELACIONADO. SE PUEDE ENVIAR MESAJE COMO PARAMETRO PARA VISUALIZARSE
 var verifica_vacio_2 = function (objeto1, objeto2, msg = "") {
-    var error = 0;
-    if (objeto1.val().trim() == "") {
-        objeto2.addClass('is-invalid');
+    let error = 0;
+    if (!objeto1 || (objeto1.value || "").trim() === "") {
+        objeto2.classList.add('is-invalid');
         objeto2.focus();
         error = 1;
-        if (msg != "") {
+        if (msg !== "") {
             mjeError(msg);
         }
-    }
-    return error;
-};
-
-var showError = function (error) {
-    mjeError(error);
-}
-
-//VERIFICA SI UN OBJETO TIENE UN VALOR MÍNIMO ESPECÍFICO Y RESALTA OTRO OBJETO RELACIONADO
-var verifica_valmin_2 = function (objeto1, objeto2, val = 0, msg = "") {
-    var error = 0;
-    if (parseInt(objeto1.val()) < val) {
-        objeto2.addClass('is-invalid');
-        objeto2.focus();
-        error = 1;
-        if (msg != "") {
-            mjeError(msg);
-        }
-    }
-    return error;
-};
-
-//VERIFICA SI UN OBJETO TIENE UN VALOR MÍNIMO ESPECÍFICO
-var verifica_valmin = function (objeto, val = 0, msg = "") {
-    var error = 0;
-    if (parseInt(objeto.val()) < val) {
-        objeto.addClass('is-invalid');
-        objeto.focus();
-        error = 1;
-        if (msg != "") {
-            mjeError(msg);
-        }
-    }
-    return error;
-};
-
-//VERIFICA SI UN OBJETO TIENE UN VALOR MÁXIMO ESPECÍFICO
-var verifica_valmax = function (objeto, val = 500, msg = "") {
-    var error = 0;
-    if (parseInt(objeto.val()) > val) {
-        objeto.addClass('is-invalid');
-        objeto.focus();
-        error = 1;
-        if (msg != "") {
-            mjeError(msg);
-        }
+    } else {
+        objeto2.classList.remove('is-invalid');
     }
     return error;
 };

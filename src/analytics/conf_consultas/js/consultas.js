@@ -1,18 +1,19 @@
 ﻿/* =====================================================
-   DATATABLE BDATOS
+   DATATABLE CONSULTAS
 ===================================================== */
 const peReg = document.querySelector('#peReg')?.value;
 
-const tableBdatos = crearDataTable(
-    '#tb_bdatos',
-    'listar_bdatos.php',
+const tableConsultas = crearDataTable(
+    '#tb_consultas',
+    'listar_consultas.php',
     [
-        { data: 'id_entidad' },
-        { data: 'nombre_entidad' },
-        { data: 'descri_entidad' },
-        { data: 'ip_servidor' },
-        { data: 'nombre_bd' },
-        { data: 'puerto_bd' },
+        { data: 'id_consulta' },
+        { data: 'titulo_consulta' },
+        { data: 'tipo_analitica' },
+        { data: 'tipo_bdatosb' },
+        { data: 'tipo_informe' },
+        { data: 'tipo_consulta' },
+        { data: 'tipo_acceso' },
         { data: 'estado' },
         { data: 'botones' }
     ],
@@ -23,12 +24,12 @@ const tableBdatos = crearDataTable(
         action: function () {
             mostrarOverlay();
             
-            fetch('frm_reg_bdatos.php', { method: 'POST' })
+            fetch('frm_reg_consultas.php', { method: 'POST' })
             .then(r => r.text())
             .then(html => {
                 const tam = document.getElementById('divTamModalForms');
-                tam.classList.remove('modal-sm', 'modal-xl');
-                tam.classList.add('modal-lg');
+                tam.classList.remove('modal-sm', 'modal-lg');
+                tam.classList.add('modal-xl');
 
                 document.getElementById('divForms').innerHTML = html;
                 const modal = new bootstrap.Modal(document.getElementById('divModalForms'));
@@ -41,10 +42,10 @@ const tableBdatos = crearDataTable(
         order: [[0, 'desc']],
         searching: false,
         ajax: {
-            url: 'listar_bdatos.php',
+            url: 'listar_consultas.php',
             type: 'POST',
             data: function (d) {
-                d.nombre = document.getElementById('txt_nombre_filtro').value;
+                d.titulo = document.getElementById('txt_titulo_filtro').value;
                 d.estado = document.getElementById('sl_estado_filtro').value;
             }
         },
@@ -59,8 +60,8 @@ const tableBdatos = crearDataTable(
    CUANDO LA TABLA TERMINA DE CARGAR
 ===================================================== */
 
-tableBdatos.on('init', function () {
-    BuscaDataTable(tableBdatos);
+tableConsultas.on('init', function () {
+    BuscaDataTable(tableConsultas);
 });
 
 /* =====================================================
@@ -68,13 +69,13 @@ tableBdatos.on('init', function () {
 ===================================================== */
 
 document.getElementById('btn_buscar_filtro').addEventListener('click', () => {
-    tableBdatos.ajax.reload(null, false);
+    tableConsultas.ajax.reload(null, false);
 });
 
 document.querySelectorAll('.filtro').forEach(input => {
     input.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
-            tableBdatos.ajax.reload(null, false);
+            tableConsultas.ajax.reload(null, false);
         }
     });
 });
@@ -85,7 +86,7 @@ document.querySelectorAll('.filtro').forEach(input => {
 
 function editarRegistro(id) {
     mostrarOverlay();
-    fetch('frm_reg_bdatos.php', {
+    fetch('frm_reg_consultas.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: new URLSearchParams({ id })
@@ -93,8 +94,8 @@ function editarRegistro(id) {
     .then(r => r.text())
     .then(html => {
         const tam = document.getElementById('divTamModalForms');
-        tam.classList.remove('modal-sm', 'modal-xl');
-        tam.classList.add('modal-lg');
+        tam.classList.remove('modal-sm', 'modal-lg');
+        tam.classList.add('modal-xl');
 
         document.getElementById('divForms').innerHTML = html;
         const modal = new bootstrap.Modal(document.getElementById('divModalForms'));
@@ -116,7 +117,7 @@ function eliminarRegistro(id) {
         if (!result.isConfirmed) return;
         mostrarOverlay();
 
-        fetch('editar_bdatos.php', {
+        fetch('editar_consultas.php', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'}, 
             body: new URLSearchParams({id: id, oper: 'del' })
@@ -124,7 +125,7 @@ function eliminarRegistro(id) {
         .then(r => r.json())
         .then(r => {
             if (r.mensaje === 'ok') {
-                tableBdatos.ajax.reload(null, false);
+                tableConsultas.ajax.reload(null, false);
                 mje("Proceso realizado correctamente");                    
             } else {
                 mjeError(r.mensaje);
@@ -137,7 +138,7 @@ function eliminarRegistro(id) {
     });
 }        
 
-document.getElementById('tb_bdatos').addEventListener('click', function (event) {
+document.getElementById('tb_consultas').addEventListener('click', function (event) {
     const btnEditar = event.target.closest('.btn_editar');
     const btnEliminar = event.target.closest('.btn_eliminar');
 
@@ -146,51 +147,12 @@ document.getElementById('tb_bdatos').addEventListener('click', function (event) 
 });
 
 /* =====================================================
-   VERIFICAR CONEXION
-===================================================== */
-
-document.getElementById('divForms').addEventListener('click', function (event) {
-    const boton = event.target.closest('#btn_testear');
-    if (!boton) return;
-
-    event.preventDefault();
-
-    LimpiaInvalid();
-
-    let error = 0;
-    error += verifica_vacio(document.querySelector('#txt_ip_servidor'));
-    error += verifica_vacio(document.querySelector('#txt_nom_bd'));
-    error += verifica_vacio(document.querySelector('#txt_usr_bd'));
-    error += verifica_vacio(document.querySelector('#txt_pws_bd'));
-    error += verifica_vacio(document.querySelector('#txt_pto_bd'));    
-    
-    if (error > 0) {
-        mjeError('Los datos resaltados son obligatorios');
-        return;
-    }
-
-    mostrarOverlay();
-    let data = Serializa('frm_reg_bdatos');
-    data.append('oper', 'test');
-
-    SendPost('editar_bdatos.php', data).then(r => {
-        if (r.mensaje === 'ok') {                                    
-            mje('Conexión exitosa al Servidor de base de datos MySQL');
-        } else {
-            mjeError(r.mensaje);
-        }
-    })
-    .finally(() => {
-        ocultarOverlay();
-    });
-});
-
-/* =====================================================
    GUARDAR FORMULARIO
 ===================================================== */
 
 document.getElementById('divForms').addEventListener('click', function (event) {
     const boton = event.target.closest('#btn_guardar');
+    
     if (!boton) return;
 
     event.preventDefault();
@@ -198,12 +160,15 @@ document.getElementById('divForms').addEventListener('click', function (event) {
     LimpiaInvalid();
 
     let error = 0;
-    error += verifica_vacio(document.querySelector('#txt_nom_entidad'));
-    error += verifica_vacio(document.querySelector('#txt_ip_servidor'));
-    error += verifica_vacio(document.querySelector('#txt_nom_bd'));
-    error += verifica_vacio(document.querySelector('#txt_usr_bd'));
-    error += verifica_vacio(document.querySelector('#txt_pws_bd'));
-    error += verifica_vacio(document.querySelector('#txt_pto_bd'));
+    error += verifica_vacio(document.querySelector('#txt_titulo_consulta'));
+    error += verifica_vacio(document.querySelector('#txt_detalle_consulta'));
+    error += verifica_vacio(document.querySelector('#sl_tipo_analitica'));
+    error += verifica_vacio(document.querySelector('#sl_tipo_bdatos'));
+    error += verifica_vacio(document.querySelector('#txt_consulta_sql'));
+    error += verifica_vacio(document.querySelector('#txt_consulta_sql_group'));
+    error += verifica_vacio(document.querySelector('#sl_tipo_informe'));
+    error += verifica_vacio(document.querySelector('#sl_tipo_consulta'));
+    error += verifica_vacio(document.querySelector('#sl_tipo_acceso'));
     error += verifica_vacio(document.querySelector('#sl_estado'));
     
     if (error > 0) {
@@ -212,13 +177,13 @@ document.getElementById('divForms').addEventListener('click', function (event) {
     }
 
     mostrarOverlay();
-    let data = Serializa('frm_reg_bdatos');
+    let data = Serializa('frm_reg_consultas');
     data.append('oper', 'add');
 
-    SendPost('editar_bdatos.php', data).then(r => {        
-        if (r.mensaje === 'ok') {     
-            document.querySelector('#id_entidad').value = r.id;      
-            tableBdatos.ajax.reload(null, false);            
+    SendPost('editar_consultas.php', data).then(r => {
+        if (r.mensaje === 'ok') {            
+            tableConsultas.ajax.reload(null, false);               
+            document.querySelector('#id_consulta').value = r.id;
             //bootstrap.Modal.getInstance(document.getElementById('divModalForms')).hide();
             mje('Proceso realizado correctamente');
         } else {
@@ -235,9 +200,9 @@ document.getElementById('divForms').addEventListener('click', function (event) {
 ====================================================== */
 
 document.getElementById('btn_imprime_filtro').addEventListener('click', function () {
-    tableBdatos.ajax.reload(null, false);
+    tableConsultas.ajax.reload(null, false);
     mostrarOverlay();
-    fetch('imp_bdatos.php', {
+    fetch('imp_consultas.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({

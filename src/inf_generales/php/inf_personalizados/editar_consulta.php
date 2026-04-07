@@ -10,7 +10,10 @@ include '../../../../config/autoloader.php';
 $oper = isset($_POST['txt_id_con']) ? $_POST['txt_id_con'] : exit('Acción no permitida');
 $fecha_crea = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha_ope = date('Y-m-d H:i:s');
-$id_usr_ope = $_SESSION['id_user'];
+
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
 $res = array();
 
 try {
