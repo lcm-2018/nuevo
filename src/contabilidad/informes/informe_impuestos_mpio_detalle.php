@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Src\Usuarios\Login\Php\Clases\Usuario;
 
@@ -41,7 +41,7 @@ try {
 }
 
 // Consulto detalle de Rete ICA (id_retencion_tipo = 3)
-// Igual que el resumen pero agrupando también por el tercero del documento
+// Desagregado por causación individual (sin GROUP BY)
 try {
     $sql = "SELECT
                 `ctb_retencion_tipo`.`id_retencion_tipo`
@@ -51,8 +51,15 @@ try {
                 , `ctb_pgcp`.`cuenta`
                 , `tb_terceros`.`nom_tercero`
                 , `tb_terceros`.`nit_tercero`
-                , SUM(`ctb_causa_retencion`.`valor_base`)      AS `base`
-                , SUM(`ctb_causa_retencion`.`valor_retencion`) AS `retencion`
+                , `ctb_doc`.`fecha`                              AS `fecha_causacion`
+                , `ctb_doc`.`id_manu`
+                , `ctb_causa_retencion`.`valor_base`             AS `base`
+                , `ctb_causa_retencion`.`valor_retencion`        AS `retencion`
+                , (SELECT GROUP_CONCAT(DISTINCT `p2`.`cuenta` ORDER BY `p2`.`cuenta` SEPARATOR ' - ')
+                   FROM `ctb_libaux` `l2`
+                   INNER JOIN `ctb_pgcp` `p2` ON `l2`.`id_cuenta` = `p2`.`id_pgcp`
+                   WHERE `l2`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`
+                     AND `l2`.`debito` > 0)                      AS `cuentas_debito`
             FROM
                 `ctb_retenciones`
                 INNER JOIN `ctb_retencion_tipo`
@@ -67,12 +74,10 @@ try {
                     ON (`ctb_retenciones`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
                 LEFT JOIN `tb_terceros`
                     ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
-            WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` = 3
+            WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` = 3 AND `ctb_doc`.`estado` = 2
                 AND DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
                 AND `ctb_causa_retencion`.`id_terceroapi` = {$tercero['id_tercero_api']})
-            GROUP BY
-                `ctb_retenciones`.`nombre_retencion`
-                , `ctb_doc`.`id_tercero`";
+            ORDER BY `ctb_doc`.`fecha`, `tb_terceros`.`nit_tercero`, `ctb_doc`.`id_manu`";
     $res        = $cmd->query($sql);
     $causaciones = $res->fetchAll();
     $res->closeCursor();
@@ -82,6 +87,7 @@ try {
 }
 
 // Consulto detalle de Sobretasa (id_retencion_tipo = 4)
+// Desagregado por causación individual (sin GROUP BY)
 try {
     $sql = "SELECT
                 `ctb_retencion_tipo`.`id_retencion_tipo`
@@ -91,8 +97,15 @@ try {
                 , `ctb_pgcp`.`cuenta`
                 , `tb_terceros`.`nom_tercero`
                 , `tb_terceros`.`nit_tercero`
-                , SUM(`ctb_causa_retencion`.`valor_base`)      AS base
-                , SUM(`ctb_causa_retencion`.`valor_retencion`) AS retencion
+                , `ctb_doc`.`fecha`                              AS `fecha_causacion`
+                , `ctb_doc`.`id_manu`
+                , `ctb_causa_retencion`.`valor_base`             AS `base`
+                , `ctb_causa_retencion`.`valor_retencion`        AS `retencion`
+                , (SELECT GROUP_CONCAT(DISTINCT `p2`.`cuenta` ORDER BY `p2`.`cuenta` SEPARATOR ' - ')
+                   FROM `ctb_libaux` `l2`
+                   INNER JOIN `ctb_pgcp` `p2` ON `l2`.`id_cuenta` = `p2`.`id_pgcp`
+                   WHERE `l2`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`
+                     AND `l2`.`debito` > 0)                      AS `cuentas_debito`
             FROM
                 `ctb_retenciones`
                 INNER JOIN `ctb_retencion_tipo`
@@ -110,9 +123,7 @@ try {
             WHERE (`ctb_retencion_tipo`.`id_retencion_tipo` = 4 AND `ctb_doc`.`estado` = 2
                 AND DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
                 AND `ctb_causa_retencion`.`id_terceroapi` = {$tercero['id_tercero_api']})
-            GROUP BY
-                `ctb_retenciones`.`nombre_retencion`
-                , `ctb_doc`.`id_tercero`";
+            ORDER BY `ctb_doc`.`fecha`, `tb_terceros`.`nit_tercero`, `ctb_doc`.`id_manu`";
     $res       = $cmd->query($sql);
     $sobretasa = $res->fetchAll();
     $res->closeCursor();
@@ -128,13 +139,13 @@ $ips = (new Usuario())->getEmpresa();
 
         <table class="table-bordered bg-light mt-3" style="width:100% !important; font-size: 80%;">
             <tr>
-                <td colspan="7" style="text-align:center"><?php echo $ips['nombre']; ?></td>
+                <td colspan="11" style="text-align:center"><?php echo $ips['nombre']; ?></td>
             </tr>
             <tr>
-                <td colspan="7" style="text-align:center"><?php echo $ips['nit'] . '-' . $ips['dv']; ?></td>
+                <td colspan="11" style="text-align:center"><?php echo $ips['nit'] . '-' . $ips['dv']; ?></td>
             </tr>
             <tr>
-                <td colspan="7" style="text-align:center">RELACION DE DESCUENTOS Y RETENCIONES DETALLADO</td>
+                <td colspan="11" style="text-align:center">RELACION DE DESCUENTOS Y RETENCIONES DETALLADO</td>
             </tr>
         </table>
         </br>
@@ -169,6 +180,9 @@ $ips = (new Usuario())->getEmpresa();
                 <td>Retenci&oacute;n aplicada</td>
                 <td>Nombre</td>
                 <td>CC / Nit</td>
+                <td>Fecha causaci&oacute;n</td>
+                <td>ID Manu</td>
+                <td>Cuentas d&eacute;bito</td>
                 <td>Base</td>
                 <td>Valor retenido</td>
                 <td>Valor pago</td>
@@ -185,6 +199,9 @@ $ips = (new Usuario())->getEmpresa();
                     <td class='text'>"      . $rp['nombre_retencion'] . "</td>
                     <td class='text'>"      . ($rp['nom_tercero'] ?? '---') . "</td>
                     <td class='text'>"      . ($rp['nit_tercero'] ?? '---') . "</td>
+                    <td class='text'>"      . ($rp['fecha_causacion'] ? date('Y-m-d', strtotime($rp['fecha_causacion'])) : '---') . "</td>
+                    <td class='text'>"      . ($rp['id_manu'] ?? '---') . "</td>
+                    <td class='text'>"      . ($rp['cuentas_debito'] ?? '---') . "</td>
                     <td class='text-end'>"  . number_format($rp['base'],      2, '.', ',') . "</td>
                     <td class='text-end'>"  . number_format($rp['retencion'], 2, '.', ',') . "</td>
                     <td class='text-end'>"  . number_format($pago,            2, '.', ',') . "</td>
@@ -194,7 +211,7 @@ $ips = (new Usuario())->getEmpresa();
                 $total_pago += $pago;
             }
             echo "<tr>
-                    <td class='text-end' colspan='5'><strong>Total</strong></td>
+                    <td class='text-end' colspan='8'><strong>Total</strong></td>
                     <td class='text-end'>" . number_format($total_base, 2, '.', ',') . "</td>
                     <td class='text-end'>" . number_format($total_ret,  2, '.', ',') . "</td>
                     <td class='text-end'>" . number_format($total_pago, 2, '.', ',') . "</td>
@@ -211,6 +228,9 @@ $ips = (new Usuario())->getEmpresa();
                 <td>Retenci&oacute;n aplicada</td>
                 <td>Nombre</td>
                 <td>CC / Nit</td>
+                <td>Fecha causaci&oacute;n</td>
+                <td>ID Manu</td>
+                <td>Cuentas d&eacute;bito</td>
                 <td>Base</td>
                 <td>Valor retenido</td>
                 <td>Valor pago</td>
@@ -227,6 +247,9 @@ $ips = (new Usuario())->getEmpresa();
                     <td class='text'>"      . $rp['nombre_retencion'] . "</td>
                     <td class='text'>"      . ($rp['nom_tercero'] ?? '---') . "</td>
                     <td class='text'>"      . ($rp['nit_tercero'] ?? '---') . "</td>
+                    <td class='text'>"      . ($rp['fecha_causacion'] ? date('Y-m-d', strtotime($rp['fecha_causacion'])) : '---') . "</td>
+                    <td class='text'>"      . ($rp['id_manu'] ?? '---') . "</td>
+                    <td class='text'>"      . ($rp['cuentas_debito'] ?? '---') . "</td>
                     <td class='text-end'>"  . number_format($rp['base'],      2, '.', ',') . "</td>
                     <td class='text-end'>"  . number_format($rp['retencion'], 2, '.', ',') . "</td>
                     <td class='text-end'>"  . number_format($pago,            2, '.', ',') . "</td>
@@ -236,7 +259,7 @@ $ips = (new Usuario())->getEmpresa();
                 $total_pago += $pago;
             }
             echo "<tr>
-                    <td class='text-end' colspan='5'><strong>Total</strong></td>
+                    <td class='text-end' colspan='8'><strong>Total</strong></td>
                     <td class='text-end'>" . number_format($total_base, 2, '.', ',') . "</td>
                     <td class='text-end'>" . number_format($total_ret,  2, '.', ',') . "</td>
                     <td class='text-end'>" . number_format($total_pago, 2, '.', ',') . "</td>

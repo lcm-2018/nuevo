@@ -99,7 +99,7 @@ try {
                         $obligar = null;
                         $id_doc = $ce['id_ctb_doc'];
                         $obligar = '<a value="' . $id_doc . '" onclick="cargarListaObligacionRads(' . $id_doc . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow editar" title="Obligar"><span class="fas fa-plus-square"></span></a>';
-                        $saldo = $ce['valor_pagado'] - $ce['valor'];
+                        $saldo = $ce['valor'] - $ce['valor_pagado'];
                         if ($saldo > 0) {
                     ?>
                             <tr>

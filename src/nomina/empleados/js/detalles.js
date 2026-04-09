@@ -439,6 +439,40 @@ const tableOtroDescuento = crearDataTable(
     },
 );
 
+const tableOtroDevengado = crearDataTable(
+    '#tableOtroDevengado',
+    'lista_otros_devengados.php',
+    [
+        { data: 'id' },
+        { data: 'tipo' },
+        { data: 'concepto' },
+        { data: 'valor' },
+        { data: 'inicia' },
+        { data: 'fin' },
+        { data: 'aportado' },
+        { data: 'estado' },
+        { data: 'acciones' }
+    ],
+    [
+        {
+            text: plus,
+            className: 'btn btn-success btn-sm shadow',
+            titleAttr: 'Agregar nuevo devengado de empleado',
+            action: function (e, dt, node, config) {
+                mostrarOverlay();
+                VerFormulario('../php/controladores/otros_devengados.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+            }
+        }
+    ],
+    {
+        pageLength: 10,
+        order: [[0, 'desc']],
+    },
+    function (d) {
+        d.id_empleado = document.querySelector('#id_empleado').value;
+    },
+);
+
 const tableCcosto = crearDataTable(
     '#tableCcosto',
     'lista_ccostos.php',
@@ -572,6 +606,10 @@ tableSindicatos.on('init', function () {
 
 tableOtroDescuento.on('init', function () {
     BuscaDataTable(tableOtroDescuento);
+});
+
+tableOtroDevengado.on('init', function () {
+    BuscaDataTable(tableOtroDevengado);
 });
 
 tableCcosto.on('init', function () {
@@ -820,6 +858,24 @@ if (document.querySelector('#tableOtroDescuento')) {
         if (btnEliminar) {
             const id = btnEliminar.dataset.id;
             EliminaRegistro('../php/controladores/otros_descuentos.php', id, tableOtroDescuento);
+        }
+    });
+}
+
+if (document.querySelector('#tableOtroDevengado')) {
+    document.querySelector('#tableOtroDevengado').addEventListener('click', function (event) {
+        const btnActualizar = event.target.closest('.actualizar');
+        const btnEliminar = event.target.closest('.eliminar');
+
+        if (btnActualizar) {
+            mostrarOverlay();
+            const id = btnActualizar.dataset.id;
+            VerFormulario('../php/controladores/otros_devengados.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', '');
+        }
+
+        if (btnEliminar) {
+            const id = btnEliminar.dataset.id;
+            EliminaRegistro('../php/controladores/otros_devengados.php', id, tableOtroDevengado);
         }
     });
 }
@@ -1268,6 +1324,33 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                     });
                 }
                 break;
+            case 'btnGuardarOtroDevengado':
+                if (ValueInput('slcTipoDev') === '0') {
+                    MuestraError('slcTipoDev', 'Seleccione un tipo de devengado');
+                } else if (Number(ValueInput('numValor')) <= 0) {
+                    MuestraError('numValor', 'Ingrese un valor para el devengado');
+                } else if (ValueInput('datFecInicia') === '') {
+                    MuestraError('datFecInicia', 'Ingrese la fecha de inicio del devengado');
+                } else if (ValueInput('datFecFin') != '' && ValueInput('datFecInicia') > ValueInput('datFecFin')) {
+                    MuestraError('datFecFin', 'La fecha de inicio no puede ser mayor a la fecha de finalización');
+                } else {
+                    mostrarOverlay();
+                    var data = Serializa('formOtroDevengado');
+                    data.append('action', data.get('id') == '0' ? 'add' : 'edit');
+                    data.append('id_empleado', ValueInput('id_empleado'));
+                    SendPost('../php/controladores/otros_devengados.php', data).then((response) => {
+                        if (response.status === 'ok') {
+                            mje('Guardado correctamente!');
+                            tableOtroDevengado.ajax.reload(null, false);
+                            $('#modalForms').modal('hide');
+                        } else {
+                            mjeError('Error!', response.msg);
+                        }
+                    }).finally(() => {
+                        ocultarOverlay();
+                    });
+                }
+                break;
             case 'btnGuardarCcostos':
                 if (ValueInput('slcCcosto') === '0') {
                     MuestraError('slcCcosto', 'Seleccione un centro de costo');
@@ -1374,6 +1457,60 @@ function CambiaEstadoDeducido(id, estado, opcion) {
         ocultarOverlay();
     });
 }
+
+function CambiaEstadoDevengado(id, estado, opcion) {
+    mostrarOverlay();
+    var data = new FormData();
+    data.append('action', 'annul');
+    data.append('id', id);
+    data.append('estado', estado);
+    SendPost('../php/controladores/' + opcion + '.php', data).then((response) => {
+        if (response.status === 'ok') {
+            var tablas = {
+                otros_devengados: tableOtroDevengado
+            };
+            tablas[opcion].ajax.reload(null, false);
+        } else {
+            mjeError('Error!', response.msg);
+        }
+    }).finally(() => {
+        ocultarOverlay();
+    });
+}
+
+// Carga automática de rubros al cambiar el tipo de devengado
+document.addEventListener('change', function (e) {
+    if (!e.target || e.target.id !== 'slcTipoDev') return;
+    const id_tipo = e.target.value;
+    const txtAdmin = document.getElementById('txtRubroAdmin');
+    const txtOper  = document.getElementById('txtRubroOper');
+    const hidAdmin = document.getElementById('idRubroAdminDev');
+    const hidOper  = document.getElementById('idRubroOperDev');
+    if (!txtAdmin) return;
+
+    if (!id_tipo || id_tipo === '0') {
+        txtAdmin.value = '';
+        txtOper.value  = '';
+        if (hidAdmin) hidAdmin.value = '';
+        if (hidOper)  hidOper.value  = '';
+        return;
+    }
+
+    var fd = new FormData();
+    fd.append('action',  'get_tipo');
+    fd.append('id',      0);
+    fd.append('id_tipo', id_tipo);
+
+    SendPost('../php/controladores/otros_devengados.php', fd).then((response) => {
+        if (response.status === 'ok') {
+            const d = response.msg;
+            txtAdmin.value = d.nom_admin || '';
+            txtOper.value  = d.nom_oper  || '';
+            if (hidAdmin) hidAdmin.value = d.r_admin || '';
+            if (hidOper)  hidOper.value  = d.r_oper  || '';
+        }
+    });
+});
 
 function CalcValorPorcentaje() {
     var total = Number(ValueInput('numTotLib'));

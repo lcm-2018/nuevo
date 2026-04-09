@@ -3588,9 +3588,7 @@ const generarInformeCtb = (boton) => {
 		type: "POST",
 		data: data,
 		success: function (response) {
-			var $parent = $('#areaImprimir').parent();
-			$('#areaImprimir').remove();
-			$parent.append(response);
+			$('#areaImprimir').html(response);
 		}, error: function (error) {
 			console.log("Error:" + error);
 		}

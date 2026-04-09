@@ -145,6 +145,10 @@ class Reportes
         $ver_acumula = isset($primer_resp['acumula']) ? ($primer_resp['acumula'] == 1) : false;
         $ver_tercero = isset($primer_resp['ver_tercero']) ? $primer_resp['ver_tercero'] : 0;
 
+        // Aprobó (tipo_control = 3)
+        $aprobo_nombre = isset($responsables[3]) ? $responsables[3]['nom_tercero'] : '';
+        $aprobo_cargo  = isset($responsables[3]) ? $responsables[3]['cargo'] : '';
+
         $where = '';
         if ($ver_acumula) {
             $where = "AND `pto_cargue`.`tipo_dato` = 1";
@@ -159,6 +163,8 @@ class Reportes
             'ver_acumula'  => $ver_acumula,
             'ver_tercero'  => $ver_tercero,
             'where'        => $where,
+            'aprobo_nombre' => $aprobo_nombre,
+            'aprobo_cargo'  => $aprobo_cargo,
         ];
     }
 

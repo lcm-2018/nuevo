@@ -43,8 +43,8 @@ class Combos
 
     public  static function getTiposDocumento($id)
     {
-        $sql = "SELECT `id_tipo_doc`,`descripcion_tipo_doc` FROM `tb_tipo_documento`
-                ORDER BY `descripcion_tipo_doc` ASC";
+        $sql = "SELECT `id_tipodoc`,`descripcion` FROM `tb_tipos_documento`
+                ORDER BY `descripcion` ASC";
         return (new self())->setConsulta($sql, $id);
     }
 

@@ -12,13 +12,13 @@ use Src\Common\Php\Clases\Valores;
  */
 class DocumentoElectronicoService
 {
-    private $repository;
-    private $taxxaService;
-    private $builder;
-    private $conexion;
-    private $idUser;
-    private $errors = [];
-    private $warnings = [];
+    protected $repository;
+    protected $taxxaService;
+    protected $builder;
+    protected $conexion;
+    protected $idUser;
+    protected $errors = [];
+    protected $warnings = [];
 
     /**
      * Constructor
@@ -203,7 +203,8 @@ class DocumentoElectronicoService
                 $idDocumento,
                 $resolucion,
                 $secuencia,
-                $isNew
+                $isNew,
+                $idSoporte
             );
 
             // 9. Guardar log
@@ -321,6 +322,7 @@ class DocumentoElectronicoService
             'reg_fiscal' => 1,
             'codigo_ne' => 'CC',
             'no_doc' => $documento['nit_tercero'],
+            'nit' => $documento['nit_tercero'],  // Requerido por DocumentBuilder para sdocno en jbuyer
             'nombre' => str_replace('-', '', trim($documento['nom_tercero'])),
             'correo' => $documento['email'],
             'telefono' => $documento['tel_tercero'],
@@ -450,9 +452,10 @@ class DocumentoElectronicoService
      * @param array $resolucion Datos de resolución
      * @param int $secuencia Secuencia utilizada
      * @param bool $isNew Si es nuevo registro
+     * @param int|null $idSoporte ID del soporte existente (null si es nuevo)
      * @return array Resultado procesado
      */
-    private function procesarRespuestaVenta(array $response, int $idDocumento, array $resolucion, int $secuencia, bool $isNew): array
+    private function procesarRespuestaVenta(array $response, int $idDocumento, array $resolucion, int $secuencia, bool $isNew, ?int $idSoporte = null): array
     {
         $numero = $resolucion['prefijo'] . '-' . $secuencia;
         $hash = null;
@@ -463,9 +466,14 @@ class DocumentoElectronicoService
             $referencia = $response['data']['sdocumentreference'] ?? $numero;
         }
 
-        // Guardar o actualizar soporte
+        // Crear soporte si es nuevo y capturar su ID
         if ($isNew) {
-            $this->repository->crearSoporte($idDocumento, $referencia, date('Y-m-d'), $this->idUser);
+            $idSoporte = $this->repository->crearSoporte($idDocumento, $referencia, date('Y-m-d'), $this->idUser);
+        }
+
+        // Guardar el hash CUFE en el soporte (nuevo o existente)
+        if ($hash !== null && $idSoporte !== null) {
+            $this->repository->actualizarSoporte($idSoporte, $hash, $referencia, $idDocumento, $this->idUser);
         }
 
         if ($hash !== null && $response['error'] === 0) {

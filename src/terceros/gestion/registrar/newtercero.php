@@ -137,7 +137,7 @@ if ($res > 1 || $regAtTerc == 'SI') {
 
         $sql = "INSERT INTO `tb_terceros`
                     (`tipo_doc`,`nom_tercero`,`nit_tercero`,`dir_tercero`,`tel_tercero`,`id_municipio`,`email`,`id_usr_crea`,`id_tercero_api`,`estado`,`fec_inicio`,`es_clinico`,`planilla`, `id_riesgo`, `genero`)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $sql = $cmd->prepare($sql);
         $sql->bindParam(1, $tipodoc, PDO::PARAM_STR);
         $sql->bindParam(2, $nombre, PDO::PARAM_STR);

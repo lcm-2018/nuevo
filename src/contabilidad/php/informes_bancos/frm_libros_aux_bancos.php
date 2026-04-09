@@ -54,9 +54,6 @@ $cmd = \Config\Clases\Conexion::getConexion();
                 </div>
                 <div class="row py-3">
                     <div class="col-md-12 d-flex justify-content-end">
-                        <a type="button" id="btn_consultar" class="btn btn-outline-success btn-sm me-1" title="Consultar">
-                            <span class="fas fa-search fa-lg" aria-hidden="true"></span>
-                        </a>
                         <a type="button" id="btn_csv" class="btn btn-outline-success btn-sm me-1" title="Exportar a CSV">
                             <span class="fas fa-file-csv fa-lg" aria-hidden="true"></span>
                         </a>

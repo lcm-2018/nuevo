@@ -12,7 +12,7 @@ use Src\Common\Php\Clases\Valores;
  */
 class DocumentRepository
 {
-    private $conexion;
+    protected $conexion;
 
     /**
      * Constructor

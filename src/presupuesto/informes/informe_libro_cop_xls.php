@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 set_time_limit(5600);
 if (!isset($_SESSION['user'])) {
@@ -54,13 +54,14 @@ try {
                         ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
                     INNER JOIN `pto_cargue` 
                         ON (`pto_cdp_detalle`.`id_rubro` = `pto_cargue`.`id_cargue`)
-                WHERE (`ctb_doc`.`fecha` BETWEEN '$fecha_ini' AND '$fecha_corte' AND `ctb_doc`.`estado` <> 0)) AS `taux`
+                WHERE (DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `ctb_doc`.`estado` <> 0)) AS `taux`
                 LEFT JOIN `tb_terceros` 
                     ON (`taux`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
                 LEFT JOIN 
                     (SELECT
                         `ctb_doc`.`id_ctb_doc`
                         , `pto_cdp_detalle`.`id_rubro`
+                        , `pto_cop_detalle`.`id_tercero_api`
                         , SUM(IFNULL(`pto_cop_detalle`.`valor`,0)) - SUM(IFNULL(`pto_cop_detalle`.`valor_liberado`,0)) AS `valor`
                     FROM
                         `pto_cop_detalle`
@@ -70,12 +71,13 @@ try {
                             ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
                         INNER JOIN `ctb_doc` 
                             ON (`pto_cop_detalle`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                    WHERE (`ctb_doc`.`fecha` BETWEEN '$fecha_ini' AND '$fecha_corte' AND `ctb_doc`.`estado` <> 0)
-                    GROUP BY `ctb_doc`.`id_ctb_doc`, `pto_cdp_detalle`.`id_rubro`) AS `t1`
-                    ON (`taux`.`id_ctb_doc` = `t1`.`id_ctb_doc` AND `taux`.`id_rubro` = `t1`.`id_rubro`)
+                    WHERE (DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `ctb_doc`.`estado` <> 0)
+                    GROUP BY `ctb_doc`.`id_ctb_doc`, `pto_cdp_detalle`.`id_rubro`, `pto_cop_detalle`.`id_tercero_api`) AS `t1`
+                    ON (`taux`.`id_ctb_doc` = `t1`.`id_ctb_doc` AND `taux`.`id_rubro` = `t1`.`id_rubro` AND `taux`.`id_tercero_api` = `t1`.`id_tercero_api`)
                 LEFT JOIN
                     (SELECT
                         `pto_cdp_detalle`.`id_rubro`
+                        , `pto_cop_detalle`.`id_tercero_api`
                         , SUM(IFNULL(`pto_pag_detalle`.`valor`,0)) - SUM(IFNULL(`pto_pag_detalle`.`valor_liberado`,0)) AS `valor`
                         , `ctb_doc`.`id_ctb_doc`
                     FROM
@@ -90,9 +92,9 @@ try {
                             ON (`pto_cop_detalle`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
                         INNER JOIN `ctb_doc` AS `ctb_doc_pag`
                             ON (`pto_pag_detalle`.`id_ctb_doc` = `ctb_doc_pag`.`id_ctb_doc`)
-                    WHERE (`ctb_doc_pag`.`fecha` BETWEEN '$fecha_ini' AND '$fecha_corte' AND `ctb_doc_pag`.`estado` <> 0)
-                    GROUP BY `pto_cdp_detalle`.`id_rubro`, `ctb_doc`.`id_ctb_doc`) AS `t2`
-                    ON (`taux`.`id_ctb_doc` = `t2`.`id_ctb_doc` AND `taux`.`id_rubro` = `t2`.`id_rubro`)
+                    WHERE (DATE_FORMAT(`ctb_doc_pag`.`fecha`, '%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `ctb_doc_pag`.`estado` <> 0)
+                    GROUP BY `pto_cdp_detalle`.`id_rubro`, `ctb_doc`.`id_ctb_doc`, `pto_cop_detalle`.`id_tercero_api`) AS `t2`
+                    ON (`taux`.`id_ctb_doc` = `t2`.`id_ctb_doc` AND `taux`.`id_rubro` = `t2`.`id_rubro` AND `taux`.`id_tercero_api` = `t2`.`id_tercero_api`)
             ORDER BY `taux`.`fec_cop` ASC";
     $res = $cmd->query($sql);
     $causaciones = $res->fetchAll(PDO::FETCH_ASSOC);

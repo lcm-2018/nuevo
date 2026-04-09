@@ -336,14 +336,26 @@ try {
                 $id_det = null;
 
                 if ($valor_pto > 0) {
-                    $rubro = resolverRubroNomina($d, $tipo, $rubrosPorTipo, $rubrosPorTipoCcosto, $esPtoCaracter);
-                    $id_det = $idsDetalleIndexados[$rubro][(int) $id_ter_api] ?? null;
+                    // Solo resolver el rubro si este tipo está configurado en nom_rel_rubro.
+                    // Si no está (ej: tipo 8 - incapacidades pagadas por EPS), se omite
+                    // la ejecución presupuestal sin error.
+                    if (!empty($rubrosPorTipo[$tipo])) {
+                        $rubro = resolverRubroNomina($d, $tipo, $rubrosPorTipo, $rubrosPorTipoCcosto, $esPtoCaracter);
+                        $id_det = $idsDetalleIndexados[$rubro][(int) $id_ter_api] ?? null;
+                    }
                 }
 
                 // Determinar el valor según el tipo de rubro
                 switch ($tipo) {
                     case 1: // Salario básico
                         $valor_pto = $d['valor_laborado'] + $d['val_compensa'];
+                        // Si el empleado tiene días de incapacidad y el COP no tiene
+                        // rubro de sueldos para él, significa que el presupuesto se
+                        // ejecuta por incapacidades (tipo 8/32). Omitir tipo 1.
+                        if ((int)$d['dias_incapacidad'] > 0 && $id_det === null) {
+                            $valor_pto = 0;
+                            $rubro = 0;
+                        }
                         break;
                     case 2: // Horas extras
                         $valor_pto = $d['horas_ext'];
@@ -401,13 +413,18 @@ try {
                         break;
                 }
 
-                if ($valor_pto > 0 && $id_det === null) {
+                // Solo lanzar error si el tipo tiene rubro configurado en nom_rel_rubro
+                // pero ese rubro no existe en el COP para este tercero.
+                // Si $rubro === 0, significa que el tipo no tiene rubro presupuestal
+                // (ej: incapacidades pagadas por EPS) y se omite sin error.
+                if ($valor_pto > 0 && $rubro > 0 && $id_det === null) {
                     throw new Exception(
                         'No existe detalle COP para el rubro ' . $rubro .
                             ' y tercero ' . $id_ter_api .
                             ' del empleado ' . $d['no_documento']
                     );
                 }
+
 
                 if ($valor_pto > 0 && $rubro > 0 && $id_det !== null) {
                     $stmt_pto_pag->execute([$id_ctb_doc_ceva, $id_det, $valor_pto, $liberado, $id_ter_api]);

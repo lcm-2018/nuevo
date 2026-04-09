@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Config\Clases\Plantilla;
 
@@ -44,43 +44,43 @@ $sql = "WITH
         SELECT
             pmd.id_cargue,
             SUM(CASE
-                WHEN pm.id_tipo_mod = 2 AND pm.fecha BETWEEN :fecha_ini AND :fecha_corte
+                WHEN pm.id_tipo_mod = 2 AND DATE(pm.fecha) BETWEEN :fecha_ini AND :fecha_corte
                 THEN pmd.valor_deb ELSE 0
             END) AS val_adicion,
             SUM(CASE
-                WHEN pm.id_tipo_mod = 3 AND pm.fecha BETWEEN :fecha_ini AND :fecha_corte
+                WHEN pm.id_tipo_mod = 3 AND DATE(pm.fecha) BETWEEN :fecha_ini AND :fecha_corte
                 THEN pmd.valor_deb ELSE 0
             END) AS val_reduccion,
             SUM(CASE
-                WHEN pm.id_tipo_mod IN (1,6) AND pm.fecha BETWEEN :fecha_ini AND :fecha_corte
+                WHEN pm.id_tipo_mod IN (1,6) AND DATE(pm.fecha) BETWEEN :fecha_ini AND :fecha_corte
                 THEN pmd.valor_deb ELSE 0
             END) AS val_credito,
             SUM(CASE
-                WHEN pm.id_tipo_mod IN (1,6) AND pm.fecha BETWEEN :fecha_ini AND :fecha_corte
+                WHEN pm.id_tipo_mod IN (1,6) AND DATE(pm.fecha) BETWEEN :fecha_ini AND :fecha_corte
                 THEN pmd.valor_cred ELSE 0
             END) AS val_contracredito,
             -- Valores del mes actual
             SUM(CASE
-                WHEN pm.id_tipo_mod = 2 AND pm.fecha BETWEEN :fecha_ini_mes AND :fecha_corte
+                WHEN pm.id_tipo_mod = 2 AND DATE(pm.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte
                 THEN pmd.valor_deb ELSE 0
             END) AS val_adicion_mes,
             SUM(CASE
-                WHEN pm.id_tipo_mod = 3 AND pm.fecha BETWEEN :fecha_ini_mes AND :fecha_corte
+                WHEN pm.id_tipo_mod = 3 AND DATE(pm.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte
                 THEN pmd.valor_deb ELSE 0
             END) AS val_reduccion_mes,
             SUM(CASE
-                WHEN pm.id_tipo_mod IN (1,6) AND pm.fecha BETWEEN :fecha_ini_mes AND :fecha_corte
+                WHEN pm.id_tipo_mod IN (1,6) AND DATE(pm.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte
                 THEN pmd.valor_deb ELSE 0
             END) AS val_credito_mes,
             SUM(CASE
-                WHEN pm.id_tipo_mod IN (1,6) AND pm.fecha BETWEEN :fecha_ini_mes AND :fecha_corte
+                WHEN pm.id_tipo_mod IN (1,6) AND DATE(pm.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte
                 THEN pmd.valor_cred ELSE 0
             END) AS val_contracredito_mes
         FROM pto_mod_detalle pmd
         INNER JOIN pto_mod pm ON pmd.id_pto_mod = pm.id_pto_mod
         WHERE pm.estado = 2
             AND pm.id_tipo_mod IN (1, 2, 3, 6)
-            AND pm.fecha BETWEEN :fecha_ini AND :fecha_corte
+            AND DATE(pm.fecha) BETWEEN :fecha_ini AND :fecha_corte
         GROUP BY pmd.id_cargue
     ),
     -- CTE para comprometido (CDP)
@@ -88,35 +88,35 @@ $sql = "WITH
         SELECT
             cd.id_rubro,
             SUM(CASE
-                WHEN c.fecha BETWEEN :fecha_ini AND :fecha_corte
+                WHEN DATE(c.fecha) BETWEEN :fecha_ini AND :fecha_corte
                 THEN IFNULL(cd.valor, 0) ELSE 0
             END) AS val_comprometido,
             SUM(CASE
-                WHEN c.fecha BETWEEN :fecha_ini AND :fecha_corte
+                WHEN DATE(cd.fecha_libera) BETWEEN :fecha_ini AND :fecha_corte
                 THEN IFNULL(cd.valor_liberado, 0) ELSE 0
             END) AS val_comprometido_liberado,
             -- Saldo anterior (hasta fin del mes anterior)
             SUM(CASE
-                WHEN c.fecha BETWEEN :fecha_ini AND :fecha_fin_mes_ant
+                WHEN DATE(c.fecha) BETWEEN :fecha_ini AND :fecha_fin_mes_ant
                 THEN IFNULL(cd.valor, 0) ELSE 0
             END) AS val_comprometido_ant,
             SUM(CASE
-                WHEN cd.fecha_libera BETWEEN :fecha_ini AND :fecha_fin_mes_ant
+                WHEN DATE(cd.fecha_libera) BETWEEN :fecha_ini AND :fecha_fin_mes_ant
                 THEN IFNULL(cd.valor_liberado, 0) ELSE 0
             END) AS val_comprometido_liberado_ant,
             -- Mes actual
             SUM(CASE
-                WHEN c.fecha BETWEEN :fecha_ini_mes AND :fecha_corte
+                WHEN DATE(c.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte
                 THEN IFNULL(cd.valor, 0) ELSE 0
             END) AS val_comprometido_mes,
             SUM(CASE
-                WHEN cd.fecha_libera BETWEEN :fecha_ini_mes AND :fecha_corte
+                WHEN DATE(cd.fecha_libera) BETWEEN :fecha_ini_mes AND :fecha_corte
                 THEN IFNULL(cd.valor_liberado, 0) ELSE 0
             END) AS val_comprometido_liberado_mes
         FROM pto_cdp_detalle cd
         INNER JOIN pto_cdp c ON cd.id_pto_cdp = c.id_pto_cdp
         WHERE c.estado = 2
-            AND c.fecha BETWEEN :fecha_ini AND :fecha_corte
+            AND DATE(c.fecha) BETWEEN :fecha_ini AND :fecha_corte
         GROUP BY cd.id_rubro
     ),
     -- CTE para registrado (CRP)
@@ -124,36 +124,36 @@ $sql = "WITH
         SELECT
             cd.id_rubro,
             SUM(CASE
-                WHEN cr.fecha BETWEEN :fecha_ini AND :fecha_corte
+                WHEN DATE(cr.fecha) BETWEEN :fecha_ini AND :fecha_corte
                 THEN IFNULL(crd.valor, 0) ELSE 0
             END) AS val_registrado,
             SUM(CASE
-                WHEN crd.fecha_libera BETWEEN :fecha_ini AND :fecha_corte
+                WHEN DATE(crd.fecha_libera) BETWEEN :fecha_ini AND :fecha_corte
                 THEN IFNULL(crd.valor_liberado, 0) ELSE 0
             END) AS val_registrado_liberado,
             -- Saldo anterior (hasta fin del mes anterior)
             SUM(CASE
-                WHEN cr.fecha BETWEEN :fecha_ini AND :fecha_fin_mes_ant
+                WHEN DATE(cr.fecha) BETWEEN :fecha_ini AND :fecha_fin_mes_ant
                 THEN IFNULL(crd.valor, 0) ELSE 0
             END) AS val_registrado_ant,
             SUM(CASE
-                WHEN crd.fecha_libera BETWEEN :fecha_ini AND :fecha_fin_mes_ant
+                WHEN DATE(crd.fecha_libera) BETWEEN :fecha_ini AND :fecha_fin_mes_ant
                 THEN IFNULL(crd.valor_liberado, 0) ELSE 0
             END) AS val_registrado_liberado_ant,
             -- Mes actual
             SUM(CASE
-                WHEN cr.fecha BETWEEN :fecha_ini_mes AND :fecha_corte
+                WHEN DATE(cr.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte
                 THEN IFNULL(crd.valor, 0) ELSE 0
             END) AS val_registrado_mes,
             SUM(CASE
-                WHEN crd.fecha_libera BETWEEN :fecha_ini_mes AND :fecha_corte
+                WHEN DATE(crd.fecha_libera) BETWEEN :fecha_ini_mes AND :fecha_corte
                 THEN IFNULL(crd.valor_liberado, 0) ELSE 0
             END) AS val_registrado_liberado_mes
         FROM pto_crp_detalle crd
         INNER JOIN pto_crp cr ON crd.id_pto_crp = cr.id_pto_crp
         INNER JOIN pto_cdp_detalle cd ON crd.id_pto_cdp_det = cd.id_pto_cdp_det
         WHERE cr.estado = 2
-            AND cr.fecha BETWEEN :fecha_ini AND :fecha_corte
+            AND DATE(cr.fecha) BETWEEN :fecha_ini AND :fecha_corte
         GROUP BY cd.id_rubro
     ),
     -- CTE para causado (COP/Obligaciones)
@@ -161,17 +161,17 @@ $sql = "WITH
         SELECT
             cd.id_rubro,
             SUM(CASE
-                WHEN doc.fecha BETWEEN :fecha_ini AND :fecha_corte
+                WHEN DATE(doc.fecha) BETWEEN :fecha_ini AND :fecha_corte
                 THEN IFNULL(copd.valor, 0) - IFNULL(copd.valor_liberado, 0) ELSE 0
             END) AS val_causado,
             -- Saldo anterior (hasta fin del mes anterior)
             SUM(CASE
-                WHEN doc.fecha BETWEEN :fecha_ini AND :fecha_fin_mes_ant
+                WHEN DATE(doc.fecha) BETWEEN :fecha_ini AND :fecha_fin_mes_ant
                 THEN IFNULL(copd.valor, 0) - IFNULL(copd.valor_liberado, 0) ELSE 0
             END) AS val_causado_ant,
             -- Mes actual
             SUM(CASE
-                WHEN doc.fecha BETWEEN :fecha_ini_mes AND :fecha_corte
+                WHEN DATE(doc.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte
                 THEN IFNULL(copd.valor, 0) - IFNULL(copd.valor_liberado, 0) ELSE 0
             END) AS val_causado_mes
         FROM pto_cop_detalle copd
@@ -179,7 +179,7 @@ $sql = "WITH
         INNER JOIN pto_crp_detalle crd ON copd.id_pto_crp_det = crd.id_pto_crp_det
         INNER JOIN pto_cdp_detalle cd ON crd.id_pto_cdp_det = cd.id_pto_cdp_det
         WHERE doc.estado = 2
-            AND doc.fecha BETWEEN :fecha_ini AND :fecha_corte
+            AND DATE(doc.fecha) BETWEEN :fecha_ini AND :fecha_corte
         GROUP BY cd.id_rubro
     ),
     -- CTE para pagado
@@ -187,17 +187,17 @@ $sql = "WITH
         SELECT
             cd.id_rubro,
             SUM(CASE
-                WHEN doc.fecha BETWEEN :fecha_ini AND :fecha_corte
+                WHEN DATE(doc.fecha) BETWEEN :fecha_ini AND :fecha_corte
                 THEN IFNULL(pd.valor, 0) - IFNULL(pd.valor_liberado, 0) ELSE 0
             END) AS val_pagado,
             -- Saldo anterior (hasta fin del mes anterior)
             SUM(CASE
-                WHEN doc.fecha BETWEEN :fecha_ini AND :fecha_fin_mes_ant
+                WHEN DATE(doc.fecha) BETWEEN :fecha_ini AND :fecha_fin_mes_ant
                 THEN IFNULL(pd.valor, 0) - IFNULL(pd.valor_liberado, 0) ELSE 0
             END) AS val_pagado_ant,
             -- Mes actual
             SUM(CASE
-                WHEN doc.fecha BETWEEN :fecha_ini_mes AND :fecha_corte
+                WHEN DATE(doc.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte
                 THEN IFNULL(pd.valor, 0) - IFNULL(pd.valor_liberado, 0) ELSE 0
             END) AS val_pagado_mes
         FROM pto_pag_detalle pd
@@ -206,7 +206,7 @@ $sql = "WITH
         INNER JOIN pto_crp_detalle crd ON copd.id_pto_crp_det = crd.id_pto_crp_det
         INNER JOIN pto_cdp_detalle cd ON crd.id_pto_cdp_det = cd.id_pto_cdp_det
         WHERE doc.estado = 2
-            AND doc.fecha BETWEEN :fecha_ini AND :fecha_corte
+            AND DATE(doc.fecha) BETWEEN :fecha_ini AND :fecha_corte
         GROUP BY cd.id_rubro
     ),
     -- CTE base con valores individuales por rubro hoja

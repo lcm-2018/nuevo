@@ -399,6 +399,34 @@ $content = <<<HTML
                                     </div>
                                 </div>
                             </div>
+                            <div class="accordion-item mt-1">
+                                <h2 class="accordion-header sombra">
+                                    <button class="accordion-button sombra collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#otroDev" aria-expanded="false" aria-controls="otroDev">
+                                        <span class="text-danger-emphasis">EACII. Otros Devengados.</span>
+                                    </button>
+                                </h2>
+                                <div id="otroDev" class="accordion-collapse collapse">
+                                    <div class="accordion-body bg-wiev">
+                                        <table id="tableOtroDevengado" class="table table-striped table-bordered table-sm table-hover align-middle shadow" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center bg-sofia">#</th>
+                                                    <th class="text-center bg-sofia">TIPO</th>
+                                                    <th class="text-center bg-sofia">CONCEPTO</th>
+                                                    <th class="text-center bg-sofia">VALOR</th>
+                                                    <th class="text-center bg-sofia">INICIA</th>
+                                                    <th class="text-center bg-sofia">TERMINA</th>
+                                                    <th class="text-center bg-sofia">APORTADO</th>
+                                                    <th class="text-center bg-sofia">ESTADO</th>
+                                                    <th class="text-center bg-sofia">ACCIONES</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="modificaOtroDevengado">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -236,12 +236,22 @@ class ContratacionService extends DocumentoElectronicoService
         // Guardar o actualizar soporte
         try {
             if ($isNew) {
-                $this->contratacionRepo->crearSoporteContratacion(
+                $idSoporte = $this->contratacionRepo->crearSoporteContratacion(
                     $idDocumento,
                     $referencia,
                     date('Y-m-d'),
                     $this->idUser
                 );
+                // Si el envío fue exitoso y hay hash, actualizar el soporte recién creado
+                if ($hash !== null && $idSoporte) {
+                    $this->repository->actualizarSoporte(
+                        $idSoporte,
+                        $hash,
+                        $referencia,
+                        $idDocumento,
+                        $this->idUser
+                    );
+                }
             } else {
                 // Actualizar soporte existente
                 $this->repository->actualizarSoporte(
