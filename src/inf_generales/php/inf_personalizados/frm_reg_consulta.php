@@ -31,7 +31,7 @@ if (empty($obj)) {
         <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
             <h5 class="mb-0" style="color: white;">CONSULTA</h5>
         </div>
-        <div class="px-2">
+        <div class="p-3">
             <form id="frm_reg_consulta">
                 <input type="hidden" id="txt_id_con" name="txt_id_con" value="<?php echo $id ?>">
                 <div class="row">

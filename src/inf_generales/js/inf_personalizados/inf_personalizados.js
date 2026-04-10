@@ -235,8 +235,7 @@
         error += verifica_vacio($('#txt_con_sql'));
 
         if (error >= 1) {
-            $('#divModalError').modal('show');
-            $('#divMsgError').html('Los datos resaltados son obligatorios');
+            mjeError('Los datos resaltados son obligatorios');
         } else {
             var data = $('#frm_reg_consulta').serialize();
             $.ajax({
@@ -253,8 +252,7 @@
                     $('#txt_des_consulta').val(r.des_consulta);
                     $('#frm_parametros').html('');
 
-                    $('#divModalDone').modal('show');
-                    $('#divMsgDone').html("Proceso realizado con éxito");
+                    mje("Proceso realizado con éxito");
                 } else {
                     $('#divModalError').modal('show');
                     $('#divMsgError').html(r.mensaje);
