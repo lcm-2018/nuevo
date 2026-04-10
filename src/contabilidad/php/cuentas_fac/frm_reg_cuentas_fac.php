@@ -63,7 +63,7 @@ if (empty($obj)) {
         <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
             <h5 class="mb-0" style="color: white;">REGISRTAR CUENTAS CONTABLES DE FACTURACION</h5>
         </div>
-        <div class="p-4">
+        <div class="p-2">
             <form id="frm_reg_cuentas_fac">
                 <input type="hidden" id="id_cuentafac" name="id_cuentafac" value="<?php echo $id ?>">
                 <div class="row mb-1">

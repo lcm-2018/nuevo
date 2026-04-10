@@ -108,10 +108,18 @@ $content = <<<HTML
 HTML;
 
 $plantilla = new Plantilla($content, 2);
+$plantilla->addCssFile("{$host}/assets/css/jquery-ui.css?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/assets/js/jquery-ui.js?v=" . date("YmdHis"));
 $plantilla->addScriptFile("{$host}/src/inf_generales/js/inf_personalizados/inf_personalizados.js?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/src/almacen/js/common/common.js?v=" . date("YmdHis"));
+$modal = $plantilla->getModal('divModalForms', 'divTamModalForms', 'divForms');
+$plantilla->addModal($modal);
+$modal = $plantilla->getModal('divModalReg', 'divTamModalReg', 'divFormsReg');
+$plantilla->addModal($modal);
 $modal = $plantilla->getModal('divModalImp', 'divTamModalImp', 'divImp');
 $plantilla->addModal($modal);
 echo $plantilla->render();
+
 /*
 <!--Cuerpo Principal del formulario -->
 <div class="card-body" id="divCuerpoPag">

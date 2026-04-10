@@ -158,6 +158,7 @@ try {
         }
 
         if ($oper == 'close') {
+            /*
             $id = $_POST['id'];
 
             $sql = 'SELECT estado FROM far_cec_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
@@ -177,6 +178,8 @@ try {
             } else {
                 $res['mensaje'] = 'Solo se puede Finalizar Pedidos en estado Confirmado.<br/>';
             }
+            */
+            $res['mensaje'] = 'Funcionalidad no habilitada, el pedido ya está Confirmado';
         }
 
         if ($oper == 'annul') {

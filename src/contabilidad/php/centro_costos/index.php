@@ -53,7 +53,7 @@ $content = <<<HTML
         </div>
 
         <!-- Tabla de centros de costo -->
-        <div class="table-responsive shadow">
+        <div class="table-responsive shadow p-2">
             <table id="tb_centro_costos" class="table table-striped table-bordered table-sm table-hover align-middle w-100" style="font-size:80%">
                 <thead class="text-center">
                     <tr>

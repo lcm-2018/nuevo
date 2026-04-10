@@ -208,17 +208,20 @@
     });
 
     /* Editar una consulta */
-    $(document).keydown(function (e) {
+    $(document).keydown(function (e) {       
         if (e.keyCode == 113) {
             e.preventDefault();
             if ($('#txt_id_consulta').val()) {
                 $.post("frm_reg_consulta.php", { id: $('#txt_id_consulta').val() }, function (he) {
+                
                     $('#divTamModalForms').removeClass('modal-sm');
                     $('#divTamModalForms').removeClass('modal-lg');
                     $('#divTamModalForms').addClass('modal-xl');
                     $('#divModalForms').modal('show');
                     $("#divForms").html(he);
                 });
+
+                
             }
         }
     });
@@ -232,8 +235,7 @@
         error += verifica_vacio($('#txt_con_sql'));
 
         if (error >= 1) {
-            $('#divModalError').modal('show');
-            $('#divMsgError').html('Los datos resaltados son obligatorios');
+            mjeError('Los datos resaltados son obligatorios');
         } else {
             var data = $('#frm_reg_consulta').serialize();
             $.ajax({
@@ -250,8 +252,7 @@
                     $('#txt_des_consulta').val(r.des_consulta);
                     $('#frm_parametros').html('');
 
-                    $('#divModalDone').modal('show');
-                    $('#divMsgDone').html("Proceso realizado con éxito");
+                    mje("Proceso realizado con éxito");
                 } else {
                     $('#divModalError').modal('show');
                     $('#divMsgError').html(r.mensaje);

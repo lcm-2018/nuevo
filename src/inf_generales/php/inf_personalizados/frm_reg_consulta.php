@@ -31,29 +31,29 @@ if (empty($obj)) {
         <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
             <h5 class="mb-0" style="color: white;">CONSULTA</h5>
         </div>
-        <div class="px-2">
+        <div class="p-3">
             <form id="frm_reg_consulta">
                 <input type="hidden" id="txt_id_con" name="txt_id_con" value="<?php echo $id ?>">
-                <div class=" form-row">
-                    <div class="form-group col-md-6">
+                <div class="row">
+                    <div class="col-md-6">
                         <label for="txt_nom_con" class="small">Nombre</label>
                         <input type="text" class="form-control form-control-sm" id="txt_nom_con" name="txt_nom_con" required value="<?php echo $obj['nom_consulta'] ?>">
                     </div>
-                    <div class="form-group col-md-6">
+                    <div class="col-md-6">
                         <label for="sl_opcion" class="small">Módulo</label>
                         <select class="form-control form-control-sm" id="sl_opcion" name="sl_opcion" required>
                             <?php cargar_opcion_csql($cmd, '', $obj['id_opcion']) ?>
                         </select>
                     </div>
-                    <div class="form-group col-md-12">
+                    <div class="col-md-12">
                         <label for="txt_des_con" class="small">Descripción</label>
                         <textarea class="form-control" id="txt_des_con" name="txt_des_con" rows="3"><?php echo htmlspecialchars($obj['des_consulta']) ?></textarea>
                     </div>
-                    <div class="form-group col-md-12">
+                    <div class="col-md-12">
                         <label for="txt_con_sql" class="small">Consulta</label>
-                        <textarea class="form-control" id="txt_con_sql" name="txt_con_sql" rows="10"><?php echo htmlspecialchars($obj['consulta']) ?></textarea>
+                        <textarea class="form-control" id="txt_con_sql" name="txt_con_sql" rows="15"><?php echo htmlspecialchars($obj['consulta']) ?></textarea>
                     </div>
-                    <div class="form-group col-md-12">
+                    <div class="col-md-12">
                         <label for="txt_par_con" class="small">Parámetros</label>
                         <input type="text" class="form-control form-control-sm" id="txt_par_con" name="txt_par_con" value="<?php echo htmlspecialchars($obj['parametros']) ?>">
                     </div>

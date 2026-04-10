@@ -53,7 +53,7 @@ $content = <<<HTML
         </div>
 
         <!-- Tabla de tipos de orden de egreso -->
-        <div class="table-responsive shadow">
+        <div class="table-responsive shadow p-2">
             <table id="tb_tipos_orden_egreso" class="table table-striped table-bordered table-sm table-hover align-middle w-100" style="font-size:80%">
                 <thead class="text-center">
                     <tr>

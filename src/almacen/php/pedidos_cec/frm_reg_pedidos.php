@@ -37,7 +37,10 @@ if (empty($obj)) {
 }
 $guardar = in_array($obj['estado'], [1]) ? '' : 'disabled="disabled"';
 $confirmar = in_array($obj['estado'], [1]) && $id != -1 ? '' : 'disabled="disabled"';
-$finalizar = in_array($obj['estado'], [2]) ? '' : 'disabled="disabled"';
+
+//$finalizar = in_array($obj['estado'], [2]) ? '' : 'disabled="disabled"';
+$finalizar = 'style="display:none;"';
+
 $anular = in_array($obj['estado'], [2]) ? '' : 'disabled="disabled"';
 $imprimir = $id != -1 ? '' : 'disabled="disabled"';
 

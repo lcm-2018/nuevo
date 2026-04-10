@@ -53,7 +53,7 @@ $content = <<<HTML
         </div>
 
         <!-- Tabla de cuentas de facturación -->
-        <div class="table-responsive shadow">
+        <div class="table-responsive shadow p-2">
             <table id="tb_cuentas" class="table table-striped table-bordered table-sm table-hover align-middle w-100" style="font-size:80%">
                 <thead class="text-center">
                     <tr>
