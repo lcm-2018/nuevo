@@ -295,80 +295,16 @@ $sql = "WITH
     ORDER BY parent.cod_pptal ASC";
 
 try {
-    $datos_sedes = obtenerSedesActivas($cmd);
-    $sedes = $datos_sedes['sedes'];
-    if (empty($sedes)) {
-        $sedes = [['es_principal' => 1, 'nom_sede' => 'PRINCIPAL']];
-    }
-
-    $rubros_consolidados = [];
-    foreach ($sedes as $sede) {
-        if ($sede['es_principal'] == 1) {
-            $cmd_sede = $cmd;
-        } else {
-            $cmd_sede = conectarSede($sede['bd_sede']);
-            if ($cmd_sede === null) {
-                error_log("No se pudo conectar a la sede {$sede['nom_sede']} para ejecución de gastos");
-                continue;
-            }
-        }
-
-        try {
-            $stmt = $cmd_sede->prepare($sql);
-            $stmt->bindParam(':fecha_ini',         $fecha_ini,         PDO::PARAM_STR);
-            $stmt->bindParam(':fecha_corte',       $fecha_corte,       PDO::PARAM_STR);
-            $stmt->bindParam(':fecha_ini_mes',     $fecha_ini_mes,     PDO::PARAM_STR);
-            $stmt->bindParam(':fecha_fin_mes_ant', $fecha_fin_mes_ant, PDO::PARAM_STR);
-            $stmt->bindParam(':id_vigencia',       $id_vigencia,       PDO::PARAM_INT);
-            $stmt->execute();
-            $rubros_sede = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $stmt->closeCursor();
-
-            foreach ($rubros_sede as $registro) {
-                $clave = $registro['cod_pptal'];
-                if (!isset($rubros_consolidados[$clave])) {
-                    $rubros_consolidados[$clave] = $registro;
-                } else {
-                    // Las modificaciones presupuestales (adición, reducción, crédito,
-                    // contracrédito) son datos del presupuesto CONSOLIDADO y solo existen
-                    // en la sede principal. NO se acumulan de sedes secundarias para evitar
-                    // que el mismo traslado se multiplique por el número de sedes.
-                    if ($sede['es_principal'] == 1) {
-                        $rubros_consolidados[$clave]['adicion']           += $registro['adicion'];
-                        $rubros_consolidados[$clave]['reduccion']         += $registro['reduccion'];
-                        $rubros_consolidados[$clave]['credito']           += $registro['credito'];
-                        $rubros_consolidados[$clave]['contracredito']     += $registro['contracredito'];
-                        $rubros_consolidados[$clave]['adicion_mes']       += $registro['adicion_mes'];
-                        $rubros_consolidados[$clave]['reduccion_mes']     += $registro['reduccion_mes'];
-                        $rubros_consolidados[$clave]['credito_mes']       += $registro['credito_mes'];
-                        $rubros_consolidados[$clave]['contracredito_mes'] += $registro['contracredito_mes'];
-                    }
-                    // Los valores de ejecución (CDP/CRP/COP/PAG) sí se acumulan de todas las sedes.
-                    $rubros_consolidados[$clave]['comprometido']      += $registro['comprometido'];
-                    $rubros_consolidados[$clave]['registrado']        += $registro['registrado'];
-                    $rubros_consolidados[$clave]['causado']           += $registro['causado'];
-                    $rubros_consolidados[$clave]['pagado']            += $registro['pagado'];
-                    $rubros_consolidados[$clave]['comprometido_ant']  += $registro['comprometido_ant'];
-                    $rubros_consolidados[$clave]['registrado_ant']    += $registro['registrado_ant'];
-                    $rubros_consolidados[$clave]['causado_ant']       += $registro['causado_ant'];
-                    $rubros_consolidados[$clave]['pagado_ant']        += $registro['pagado_ant'];
-                    $rubros_consolidados[$clave]['comprometido_mes']  += $registro['comprometido_mes'];
-                    $rubros_consolidados[$clave]['registrado_mes']    += $registro['registrado_mes'];
-                    $rubros_consolidados[$clave]['causado_mes']       += $registro['causado_mes'];
-                    $rubros_consolidados[$clave]['pagado_mes']        += $registro['pagado_mes'];
-                }
-            }
-            unset($stmt);
-        } catch (PDOException $e) {
-            error_log("Error consultando ejecución de gastos en sede {$sede['nom_sede']}: " . $e->getMessage());
-        }
-
-        if ($sede['es_principal'] != 1) {
-            $cmd_sede = null;
-        }
-    }
-
-    $rubros = array_values($rubros_consolidados);
+    $stmt = $cmd->prepare($sql);
+    $stmt->bindParam(':fecha_ini',         $fecha_ini,         PDO::PARAM_STR);
+    $stmt->bindParam(':fecha_corte',       $fecha_corte,       PDO::PARAM_STR);
+    $stmt->bindParam(':fecha_ini_mes',     $fecha_ini_mes,     PDO::PARAM_STR);
+    $stmt->bindParam(':fecha_fin_mes_ant', $fecha_fin_mes_ant, PDO::PARAM_STR);
+    $stmt->bindParam(':id_vigencia',       $id_vigencia,       PDO::PARAM_INT);
+    $stmt->execute();
+    $rubros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
+    unset($stmt);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

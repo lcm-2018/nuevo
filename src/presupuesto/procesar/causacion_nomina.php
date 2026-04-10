@@ -139,14 +139,14 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
         if (count($ccostos) !== 1) {
             throw new Exception(
                 'El empleado con documento ' . $detalleEmpleado['no_documento'] .
-                    ' tiene un centro de costo no válido para la causación: ' . ($detalleEmpleado['id_ccosto'] ?? 'sin definir')
+                    ' tiene un centro de costo no vÃ¡lido para la causaciÃ³n: ' . ($detalleEmpleado['id_ccosto'] ?? 'sin definir')
             );
         }
 
         $idCcosto = (int) $ccostos[0];
         if (empty($rubrosPorTipoCcosto[$tipo][$idCcosto])) {
             throw new Exception(
-                'No existe relación de rubro para el tipo ' . $tipo .
+                'No existe relaciÃ³n de rubro para el tipo ' . $tipo .
                     ' y centro de costo ' . $idCcosto .
                     ' del empleado ' . $detalleEmpleado['no_documento']
             );
@@ -156,7 +156,7 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
     }
 
     if (empty($rubrosPorTipo[$tipo])) {
-        throw new Exception('No existe relación de rubro para el tipo ' . $tipo . '.');
+        throw new Exception('No existe relaciÃ³n de rubro para el tipo ' . $tipo . '.');
     }
 
     $rubro = $detalleEmpleado['tipo_cargo'] == '1'
@@ -197,10 +197,10 @@ try {
     unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    echo $e->getCode() == 2002 ? 'Sin ConexiÃ³n a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 if (empty($valxrubro)) {
-    echo 'No se ha generado una solicitud de CDP para esta nómina';
+    echo 'No se ha generado una solicitud de CDP para esta nÃ³mina';
     exit();
 } else {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -246,7 +246,7 @@ try {
     $pto = $rs->fetch(PDO::FETCH_ASSOC);
     $cmd = null;
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    echo $e->getCode() == 2002 ? 'Sin ConexiÃ³n a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
 $Detalles = new Detalles();
@@ -275,7 +275,7 @@ try {
     $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
     $cmd = null;
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    echo $e->getCode() == 2002 ? 'Sin ConexiÃ³n a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 
 try {
@@ -285,7 +285,7 @@ try {
     $rubros = $rs->fetchAll(PDO::FETCH_ASSOC);
     $cmd = null;
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    echo $e->getCode() == 2002 ? 'Sin ConexiÃ³n a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
 [$rubrosPorTipo, $rubrosPorTipoCcosto] = indexarRubrosNomina($rubros);
@@ -385,14 +385,34 @@ try {
         23 => 'valor_viatico',
         32 => 'pago_empresa'
     ];
+    $actualizarTerceroCrp = trim((string) $tipo_nomina) === 'VC';
+    $empleadosCrp = [];
+    $idTerceroEmpleadoCrp = 0;
     foreach ($datos as $d) {
         $id_tercero = resolverIdTerceroEmpleado($d['no_documento'] ?? '', $terceros);
         if (!($id_tercero > 0)) {
             throw new Exception(
-                'No se encontró un tercero activo con id_tercero_api válido para el empleado con documento ' .
+                'No se encontrÃ³ un tercero activo con id_tercero_api vÃ¡lido para el empleado con documento ' .
                     ($d['no_documento'] ?? 'sin documento') .
                     '. Verifique la coincidencia entre nom_empleado.no_documento y tb_terceros.nit_tercero.'
             );
+        }
+
+        if ($actualizarTerceroCrp) {
+            $claveEmpleadoCrp = '';
+            if (!empty($d['id_empleado'])) {
+                $claveEmpleadoCrp = 'id:' . (int) $d['id_empleado'];
+            } else {
+                $documentoEmpleado = trim((string) ($d['no_documento'] ?? ''));
+                $claveEmpleadoCrp = $documentoEmpleado !== '' ? 'doc:' . strtoupper($documentoEmpleado) : '';
+            }
+
+            if ($claveEmpleadoCrp !== '') {
+                $empleadosCrp[$claveEmpleadoCrp] = true;
+                if (count($empleadosCrp) === 1) {
+                    $idTerceroEmpleadoCrp = $id_tercero;
+                }
+            }
         }
 
         foreach ($tipo_field_map as $tipo => $fields) {
@@ -444,6 +464,14 @@ try {
             }
         }
     }
+    if ($actualizarTerceroCrp && count($empleadosCrp) === 1 && $idTerceroEmpleadoCrp > 0) {
+        $sql = "UPDATE `pto_crp` SET `id_tercero_api` = ? WHERE `id_pto_crp` = ?";
+        $sql = $cmd->prepare($sql);
+        $sql->bindParam(1, $idTerceroEmpleadoCrp, PDO::PARAM_INT);
+        $sql->bindParam(2, $id_crp, PDO::PARAM_INT);
+        $sql->execute();
+    }
+
     $estado = 3;
 
     $sql = "UPDATE `nom_nominas` SET `estado` = ? WHERE `id_nomina` = ?";

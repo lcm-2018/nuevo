@@ -289,7 +289,7 @@ try {
         );
     }
 
-    $id_ter_doc = count($datos) == 1 ? $terceros[$datos[0]['no_documento']] : $id_ter_emp_api;
+    $id_ter_doc = $id_ter_emp_api;
     if ((int) $id_ter_doc <= 0) {
         throw new Exception('No se pudo determinar un tercero valido para el documento de egreso.');
     }
@@ -309,28 +309,31 @@ try {
     $sql_libaux = "INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) 
                    VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt_libaux = $cmd->prepare($sql_libaux);
+    $actualizarTerceroDoc = trim((string) $tipo_nomina) === 'VC';
+    $empleadosDoc = [];
+    $idTerceroEmpleadoDoc = 0;
 
-	    $con_ces = 0;
-        $tipo_field_map = [
-            1  => ['valor_laborado', 'val_compensa'],
-            2  => 'horas_ext',
-            3  => 'g_representa',
-            4  => 'val_bon_recrea',
-            5  => 'val_bsp',
-            6  => 'aux_tran',
-            7  => 'aux_alim',
-            8  => 'valor_incap_presupuesto',
-            9  => 'val_indemniza',
-            10 => 'valor_luto',
-            17 => 'valor_vacacion',
-            18 => 'val_cesantias',
-            19 => 'val_icesantias',
-            20 => 'val_prima_vac',
-            21 => 'valor_pv',
-            22 => 'valor_ps',
-            23 => 'valor_viatico',
-            32 => 'pago_empresa'
-        ];
+    $con_ces = 0;
+    $tipo_field_map = [
+        1  => ['valor_laborado', 'val_compensa'],
+        2  => 'horas_ext',
+        3  => 'g_representa',
+        4  => 'val_bon_recrea',
+        5  => 'val_bsp',
+        6  => 'aux_tran',
+        7  => 'aux_alim',
+        8  => 'valor_incap_presupuesto',
+        9  => 'val_indemniza',
+        10 => 'valor_luto',
+        17 => 'valor_vacacion',
+        18 => 'val_cesantias',
+        19 => 'val_icesantias',
+        20 => 'val_prima_vac',
+        21 => 'valor_pv',
+        22 => 'valor_ps',
+        23 => 'valor_viatico',
+        32 => 'pago_empresa'
+    ];
     // Preparar INSERT para pto_pag_detalle si el módulo presupuestal está activo
     $stmt_pto_pag = null;
     if ($_SESSION['pto'] == '1') {
@@ -346,6 +349,19 @@ try {
         $otrosDevengadosEmpleado = $otrosDevengadosPorEmpleado[$id_empleado] ?? [];
         $total_pago_empleado = 0;
         $restar = 0;
+
+        if ($actualizarTerceroDoc) {
+            $claveEmpleadoDoc = !empty($id_empleado)
+                ? 'id:' . (int) $id_empleado
+                : 'doc:' . strtoupper(trim((string) ($d['no_documento'] ?? '')));
+
+            if ($claveEmpleadoDoc !== 'doc:') {
+                $empleadosDoc[$claveEmpleadoDoc] = true;
+                if (count($empleadosDoc) === 1 && !empty($id_ter_api)) {
+                    $idTerceroEmpleadoDoc = (int) $id_ter_api;
+                }
+            }
+        }
 
         // Insertar registros de pago presupuestal si el módulo está activo
         if ($_SESSION['pto'] == '1' && $stmt_pto_pag) {
@@ -616,6 +632,12 @@ try {
     }
 
     // Actualizar estado de la nómina
+    if ($actualizarTerceroDoc && count($empleadosDoc) === 1 && $idTerceroEmpleadoDoc > 0) {
+        $sql = "UPDATE `ctb_doc` SET `id_tercero` = ? WHERE `id_ctb_doc` = ?";
+        $stmt = $cmd->prepare($sql);
+        $stmt->execute([$idTerceroEmpleadoDoc, $id_ctb_doc_ceva]);
+    }
+
     $estado_nomina = 5; // Pagada
     $sql = "UPDATE `nom_nominas` SET `estado` = ? WHERE `id_nomina` = ?";
     $stmt = $cmd->prepare($sql);
