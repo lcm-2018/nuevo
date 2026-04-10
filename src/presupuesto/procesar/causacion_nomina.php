@@ -2,6 +2,7 @@
 
 use Config\Clases\Sesion;
 use Src\Common\Php\Clases\Terceros;
+use Src\Nomina\Configuracion\Php\Clases\Rubros;
 use Src\Nomina\Liquidacion\Php\Clases\Nomina;
 use Src\Nomina\Liquidado\Php\Clases\Detalles;
 
@@ -95,6 +96,26 @@ function indexarTercerosPorDocumento($terceros)
 
     foreach (array_keys($repetidos) as $clave) {
         unset($indexados[$clave]);
+    }
+
+    return $indexados;
+}
+
+function indexarOtrosDevengadosPorEmpleado($otrosDevengados)
+{
+    $indexados = [];
+
+    foreach ($otrosDevengados as $otroDevengado) {
+        $idEmpleado = isset($otroDevengado['id_empleado']) ? (int) $otroDevengado['id_empleado'] : 0;
+        if (!($idEmpleado > 0)) {
+            continue;
+        }
+
+        $indexados[$idEmpleado][] = [
+            'rubro' => isset($otroDevengado['rubro']) ? (int) $otroDevengado['rubro'] : 0,
+            'valor' => isset($otroDevengado['valor']) ? (float) $otroDevengado['valor'] : 0,
+            'documento' => $otroDevengado['documento'] ?? '',
+        ];
     }
 
     return $indexados;
@@ -231,11 +252,13 @@ try {
 $Detalles = new Detalles();
 $Terceros = new Terceros();
 $Nomina = new Nomina();
+$Rubros = new Rubros();
 
 $datos = $Detalles->getRegistrosDT(1, -1, ['id_nomina' => $idNomina], 1, 'ASC');
 $nomina = $Nomina->getRegistro($idNomina);
 $terceros = $Terceros->getTerceros();
 $terceros = indexarTercerosPorDocumento($terceros);
+$otrosDevengadosPorEmpleado = indexarOtrosDevengadosPorEmpleado($Rubros->getDetalleRubrosOtrosDevengados($idNomina));
 
 $id_pto = $pto['id_pto'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
@@ -377,6 +400,36 @@ try {
 
             if ($valor > 0) {
                 $rubro = resolverRubroNomina($d, $tipo, $rubrosPorTipo, $rubrosPorTipoCcosto, $esPtoCaracter);
+                $query->execute();
+                $id_detalle_cdp = $cmd->lastInsertId();
+                if ($id_detalle_cdp > 0) {
+                    $sqly->execute();
+                    $id_detalle_crp = $cmd->lastInsertId();
+                    if (!($id_detalle_crp > 0)) {
+                        throw new Exception($sqly->errorInfo()[2]);
+                    }
+                } else {
+                    throw new Exception($query->errorInfo()[2]);
+                }
+            }
+        }
+
+        $idEmpleado = isset($d['id_empleado']) ? (int) $d['id_empleado'] : 0;
+        if (!empty($otrosDevengadosPorEmpleado[$idEmpleado])) {
+            foreach ($otrosDevengadosPorEmpleado[$idEmpleado] as $otroDevengado) {
+                $valor = $otroDevengado['valor'];
+                if ($valor <= 0) {
+                    continue;
+                }
+
+                $rubro = $otroDevengado['rubro'];
+                if (!($rubro > 0)) {
+                    throw new Exception(
+                        'No existe rubro presupuestal configurado en el tipo de otros devengados para el empleado ' .
+                            ($d['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                    );
+                }
+
                 $query->execute();
                 $id_detalle_cdp = $cmd->lastInsertId();
                 if ($id_detalle_cdp > 0) {

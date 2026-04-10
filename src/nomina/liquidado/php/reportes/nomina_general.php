@@ -66,7 +66,7 @@ $columnas = [
     ['key' => 'valor_incap', 'label' => 'INC.', 'group' => 'VALOR', 'type' => 'number', 'align' => 'right'],
     ['key' => 'valor_licencias', 'label' => 'LIC.', 'group' => 'VALOR', 'type' => 'number', 'align' => 'right'],
     ['key' => 'valor_vacacion', 'label' => 'VAC.', 'group' => 'VALOR', 'type' => 'number', 'align' => 'right'],
-    ['key' => 'valor_otros', 'label' => 'OTRO.', 'group' => 'VALOR', 'type' => 'number', 'align' => 'right'],
+    ['key' => 'valor_otros', 'label' => 'OTR. DEV.', 'group' => 'VALOR', 'type' => 'number', 'align' => 'right'],
     ['key' => 'valor_laborado', 'label' => 'LAB.', 'group' => 'VALOR', 'type' => 'number', 'align' => 'right', 'fixed' => true],
     // Columnas individuales de devengado
     ['key' => 'aux_tran', 'label' => 'AUX. T.', 'group' => null, 'type' => 'number', 'align' => 'right'],
@@ -109,7 +109,7 @@ foreach ($columnas as $col) {
 foreach ($datos as &$d) {
     // Calcular valor licencias (luto + materna/paterna)
     $d['valor_licencias'] = ($d['valor_luto'] ?? 0) + ($d['valor_mp'] ?? 0);
-    $d['valor_otros'] = 0;
+    $d['valor_otros'] = $d['valor_otros'] ?? 0;
 
     // Calcular devengado
     $d['devengado'] = ($d['valor_laborado'] ?? 0) + ($d['val_compensa'] ?? 0) + ($d['valor_incap'] ?? 0) +
@@ -117,7 +117,7 @@ foreach ($datos as &$d) {
         ($d['aux_alim'] ?? 0) + ($d['horas_ext'] ?? 0) + ($d['val_bsp'] ?? 0) +
         ($d['val_prima_vac'] ?? 0) + ($d['g_representa'] ?? 0) + ($d['val_bon_recrea'] ?? 0) +
         ($d['valor_ps'] ?? 0) + ($d['valor_pv'] ?? 0) + ($d['val_cesantias'] ?? 0) +
-        ($d['val_icesantias'] ?? 0) + ($d['valor_viatico'] ?? 0);
+        ($d['val_icesantias'] ?? 0) + ($d['valor_viatico'] ?? 0) + ($d['valor_otros'] ?? 0);
 
     // Calcular deducciones
     $d['deducciones'] = ($d['valor_salud'] ?? 0) + ($d['valor_pension'] ?? 0) + ($d['val_psolidaria'] ?? 0) +

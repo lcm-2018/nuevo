@@ -567,7 +567,7 @@ class Prestaciones_Sociales
                             INNER JOIN `nom_nominas` AS `nn` 
                             ON (`nls`.`id_nomina` = `nn`.`id_nomina`)
                         WHERE (`nn`.`tipo` = 'N' AND `nn`.`estado` > 0 AND `nls`.`estado` = 1)
-                        GROUP BY `nls`.`id_contrato`)";
+                        GROUP BY `nls`.`id_contrato`, `nls`.`id_empleado`)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);

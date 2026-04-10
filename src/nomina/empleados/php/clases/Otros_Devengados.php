@@ -196,6 +196,46 @@ class Otros_Devengados
         return $registro;
     }
 
+    public function getRegistroPorEmpleado($inicia, $fin)
+    {
+        $sql = "SELECT
+                    `nod`.`id_devengado`
+                    , `nod`.`id_empleado`
+                    , `nod`.`id_tipo`
+                    , `nod`.`fec_inicia`
+                    , `nod`.`fec_fin`
+                    , `nod`.`concepto`
+                    , `nod`.`valor`
+                    , `ntd`.`descripcion`
+                    , `ntd`.`es_salarial`
+                    , `ntd`.`seg_social`
+                    , `ntd`.`parafiscales`
+                FROM `nom_otros_devengados` AS `nod`
+                INNER JOIN `nom_tipo_devengado` AS `ntd`
+                    ON (`nod`.`id_tipo` = `ntd`.`id_tipo`)
+                WHERE `nod`.`estado` = 1
+                    AND `nod`.`fec_inicia` <= ?
+                    AND (
+                        `nod`.`fec_fin` IS NULL
+                        OR CAST(`nod`.`fec_fin` AS CHAR(10)) = '0000-00-00'
+                        OR `nod`.`fec_fin` >= ?
+                    )";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(1, $fin, PDO::PARAM_STR);
+        $stmt->bindValue(2, $inicia, PDO::PARAM_STR);
+        $stmt->execute();
+        $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        $index = [];
+        foreach ($registro as $row) {
+            $index[$row['id_empleado']][] = $row;
+        }
+
+        return $index;
+    }
+
     /**
      * Retorna los rubros (admin y operativo) de un tipo de devengado.
      * Se usa vía AJAX cuando el usuario cambia el tipo en el formulario.
@@ -353,6 +393,30 @@ class Otros_Devengados
         }
     }
 
+    public function addRegistroLiq($array)
+    {
+        try {
+            $sql = "INSERT INTO `nom_liq_devengado`
+                        (`id_devengado`,`valor`,`id_nomina`,`id_user_reg`,`fec_reg`)
+                    VALUES (?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $array['id_devengado'], PDO::PARAM_INT);
+            $stmt->bindValue(2, $array['valor'], PDO::PARAM_STR);
+            $stmt->bindValue(3, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt->bindValue(4, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                return 'si';
+            } else {
+                return 'No se insertó el registro';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
     /**
      * Actualiza los datos de un registro.
      */
@@ -414,6 +478,4 @@ class Otros_Devengados
         $sql = "SELECT `id_tipo`, `descripcion` FROM `nom_tipo_devengado` ORDER BY `descripcion`";
         return (new Combos)->setConsulta($sql, $id);
     }
-
 }
-

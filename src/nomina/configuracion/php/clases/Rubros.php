@@ -424,4 +424,104 @@ class Rubros
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+
+    public function getRubrosOtrosDevengados($id_nomina)
+    {
+        $sql = "SELECT
+                    CASE WHEN `nca`.`tipo_cargo` = 1 THEN `ntd`.`r_admin` ELSE `ntd`.`r_oper` END AS `rubro`,
+                    SUM(`nld`.`valor`) AS `valor`
+                FROM `nom_liq_devengado` AS `nld`
+                    INNER JOIN `nom_otros_devengados` AS `nod`
+                        ON (`nld`.`id_devengado` = `nod`.`id_devengado`)
+                    INNER JOIN `nom_tipo_devengado` AS `ntd`
+                        ON (`nod`.`id_tipo` = `ntd`.`id_tipo`)
+                    INNER JOIN `nom_liq_salario` AS `nls`
+                        ON (`nls`.`id_empleado` = `nod`.`id_empleado` AND `nls`.`id_nomina` = `nld`.`id_nomina` AND `nls`.`estado` = 1)
+                    INNER JOIN `nom_contratos_empleados` AS `nce`
+                        ON (`nce`.`id_contrato_emp` = `nls`.`id_contrato`)
+                    INNER JOIN `nom_cargo_empleado` AS `nca`
+                        ON (`nca`.`id_cargo` = `nce`.`id_cargo`)
+                WHERE `nld`.`id_nomina` = ?
+                    AND `nld`.`estado` = 1
+                GROUP BY CASE WHEN `nca`.`tipo_cargo` = 1 THEN `ntd`.`r_admin` ELSE `ntd`.`r_oper` END";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(1, $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $datos;
+    }
+
+    public function getDetalleRubrosOtrosDevengados($id_nomina)
+    {
+        $sql = "SELECT
+                    `nod`.`id_empleado`,
+                    `e`.`no_documento` AS `documento`,
+                    CASE WHEN `nca`.`tipo_cargo` = 1 THEN `ntd`.`r_admin` ELSE `ntd`.`r_oper` END AS `rubro`,
+                    SUM(`nld`.`valor`) AS `valor`
+                FROM `nom_liq_devengado` AS `nld`
+                    INNER JOIN `nom_otros_devengados` AS `nod`
+                        ON (`nld`.`id_devengado` = `nod`.`id_devengado`)
+                    INNER JOIN `nom_tipo_devengado` AS `ntd`
+                        ON (`nod`.`id_tipo` = `ntd`.`id_tipo`)
+                    INNER JOIN `nom_empleado` AS `e`
+                        ON (`nod`.`id_empleado` = `e`.`id_empleado`)
+                    INNER JOIN `nom_liq_salario` AS `nls`
+                        ON (`nls`.`id_empleado` = `nod`.`id_empleado` AND `nls`.`id_nomina` = `nld`.`id_nomina` AND `nls`.`estado` = 1)
+                    INNER JOIN `nom_contratos_empleados` AS `nce`
+                        ON (`nce`.`id_contrato_emp` = `nls`.`id_contrato`)
+                    INNER JOIN `nom_cargo_empleado` AS `nca`
+                        ON (`nca`.`id_cargo` = `nce`.`id_cargo`)
+                WHERE `nld`.`id_nomina` = ?
+                    AND `nld`.`estado` = 1
+                GROUP BY
+                    `nod`.`id_empleado`,
+                    `e`.`no_documento`,
+                    CASE WHEN `nca`.`tipo_cargo` = 1 THEN `ntd`.`r_admin` ELSE `ntd`.`r_oper` END";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(1, $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $datos;
+    }
+
+    public function getDetalleCausacionOtrosDevengados($id_nomina)
+    {
+        $sql = "SELECT
+                    `nod`.`id_empleado`,
+                    `e`.`no_documento` AS `documento`,
+                    `ntd`.`id_cta` AS `cuenta`,
+                    CASE WHEN `nca`.`tipo_cargo` = 1 THEN `ntd`.`r_admin` ELSE `ntd`.`r_oper` END AS `rubro`,
+                    SUM(`nld`.`valor`) AS `valor`
+                FROM `nom_liq_devengado` AS `nld`
+                    INNER JOIN `nom_otros_devengados` AS `nod`
+                        ON (`nld`.`id_devengado` = `nod`.`id_devengado`)
+                    INNER JOIN `nom_tipo_devengado` AS `ntd`
+                        ON (`nod`.`id_tipo` = `ntd`.`id_tipo`)
+                    INNER JOIN `nom_empleado` AS `e`
+                        ON (`nod`.`id_empleado` = `e`.`id_empleado`)
+                    INNER JOIN `nom_liq_salario` AS `nls`
+                        ON (`nls`.`id_empleado` = `nod`.`id_empleado` AND `nls`.`id_nomina` = `nld`.`id_nomina` AND `nls`.`estado` = 1)
+                    INNER JOIN `nom_contratos_empleados` AS `nce`
+                        ON (`nce`.`id_contrato_emp` = `nls`.`id_contrato`)
+                    INNER JOIN `nom_cargo_empleado` AS `nca`
+                        ON (`nca`.`id_cargo` = `nce`.`id_cargo`)
+                WHERE `nld`.`id_nomina` = ?
+                    AND `nld`.`estado` = 1
+                GROUP BY
+                    `nod`.`id_empleado`,
+                    `e`.`no_documento`,
+                    `ntd`.`id_cta`,
+                    CASE WHEN `nca`.`tipo_cargo` = 1 THEN `ntd`.`r_admin` ELSE `ntd`.`r_oper` END";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(1, $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $datos;
+    }
 }

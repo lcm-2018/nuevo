@@ -20,6 +20,7 @@ use Src\Nomina\Empleados\Php\Clases\Libranzas;
 use Src\Nomina\Empleados\Php\Clases\Licencias_Luto;
 use Src\Nomina\Empleados\Php\Clases\Licencias_MoP;
 use Src\Nomina\Empleados\Php\Clases\Licencias_Norem;
+use Src\Nomina\Empleados\Php\Clases\Otros_Devengados;
 use Src\Nomina\Empleados\Php\Clases\Otros_Descuentos;
 use Src\Nomina\Empleados\Php\Clases\Prestaciones_Sociales;
 use Src\Nomina\Empleados\Php\Clases\Primas;
@@ -1041,6 +1042,7 @@ class Liquidacion
         $indemVacaciones =  (new Indemniza_Vacacion())->getRegistroPorEmpleado($inicia, $fin);
         $bonificaciones =   (new Bsp())->getRegistroPorEmpleado();
         $viaticosNomina =   (new Viaticos())->getViaticosNomina($inicia, $fin); // Obtener viáticos del mes
+        $otrosDevengados =  (new Otros_Devengados())->getRegistroPorEmpleado($inicia, $fin);
 
         //Deducidos
         $libranzas =    (new Libranzas())->getLibranzasPorEmpleado($inicia);
@@ -1275,6 +1277,23 @@ class Liquidacion
                         }
                     }
 
+                    // Liquidar otros devengados
+                    $valTotalOtrosDev = 0;
+                    $valTotalOtrosDevSal = 0;
+                    $valTotalOtrosDevSS = 0;
+                    $valTotalOtrosDevParaf = 0;
+                    $filtro = $otrosDevengados[$id_empleado] ?? [];
+                    if (!empty($filtro)) {
+                        $response = $this->LiquidaOtrosDevengados($filtro, $param);
+                        $valTotalOtrosDev = $response['valor'];
+                        $valTotalOtrosDevSal = $response['valor_salarial'];
+                        $valTotalOtrosDevSS = $response['valor_ibc_seg_social'];
+                        $valTotalOtrosDevParaf = $response['valor_ibc_parafiscales'];
+                        if (!$response['insert']) {
+                            throw new Exception("Otros devengados: {$response['msg']}");
+                        }
+                    }
+
                     //laborado 
                     $valTotalLab = Valores::Redondear($laborado[$id_empleado] * ($param['salario'] / 30));
                     $valAuxTrans = Valores::Redondear($laborado[$id_empleado] * ($param['aux_trans'] / 30));
@@ -1306,9 +1325,11 @@ class Liquidacion
                     }
                     //Seguridad social
                     if ($empleados[$id_empleado]['salario_integral'] == 1) {
-                        $ibc = $valTotalLab * 0.7;
+                        $ibc = ($valTotalLab * 0.7) + $valTotalOtrosDevSS;
+                        $ibcParafiscales = ($valTotalLab * 0.7) + $valTotalOtrosDevParaf;
                     } else {
-                        $ibc = $valTotalLab + $valTotalHe + $valTotIncap + $valTotalBSP + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVacIbc;
+                        $ibc = $valTotalLab + $valTotalHe + $valTotIncap + $valTotalBSP + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVacIbc + $valTotalOtrosDevSS;
+                        $ibcParafiscales = $valTotalLab + $valTotalHe + $valTotalBSP + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVacIbc + $valTotalOtrosDevParaf;
                     }
 
                     $response = $this->LiquidaSeguridadSocial($param, $novedad, $ibc, $tipo_emp, $subtipo_emp, $laborado[$id_empleado]);
@@ -1318,8 +1339,7 @@ class Liquidacion
                     }
 
                     //Parafiscales
-                    $ibc = $ibc - $valTotIncap;
-                    $response = $this->LiquidaParafiscales($param, $ibc, $empresa['exonera_aportes'], $tipo_emp);
+                    $response = $this->LiquidaParafiscales($param, $ibcParafiscales, $empresa['exonera_aportes'], $tipo_emp);
                     if (!$response['insert']) {
                         throw new Exception("Parafiscales: {$response['msg']}");
                     }
@@ -1380,7 +1400,7 @@ class Liquidacion
                         throw new Exception("Prestaciones sociales: $response");
                     }
 
-                    $baseDctos = $valTotalLab + $valAuxTrans + $valAuxAlim + $valTotalHe + $valTotIncap + $valTotVac + $valTotLicMP + $valTotLicLuto + $valTotalBSP + $valTotPrimVac + $valBonRec + $grepre + $valTotIndemVac + $valTotalViaticos - ($valTotSegSoc ?? 0);
+                    $baseDctos = $valTotalLab + $valAuxTrans + $valAuxAlim + $valTotalHe + $valTotIncap + $valTotVac + $valTotLicMP + $valTotLicLuto + $valTotalBSP + $valTotPrimVac + $valBonRec + $grepre + $valTotIndemVac + $valTotalViaticos + $valTotalOtrosDevSal - ($valTotSegSoc ?? 0);
 
                     //Deducciones
 
@@ -1423,7 +1443,7 @@ class Liquidacion
                         }
                     }
 
-                    $baseDep = $valTotalLab + $valTotalBSP + $valTotalHe + $valTotVac + $valTotPrimVac + $valBonRec + $grepre;
+                    $baseDep = $valTotalLab + $valTotalBSP + $valTotalHe + $valTotVac + $valTotPrimVac + $valBonRec + $grepre + $valTotalOtrosDevSal;
                     $pagoxdependiente = $empleados[$id_empleado]['dependientes'] == 0 ? 0 : $baseDep * 0.1;
                     $valIntViv = $iVivienda[$id_empleado] ?? 0;
                     $valrf = $baseDep + $valTotIndemVac + $valTotLicLuto - ($valTotSegSoc ?? 0) - $pagoxdependiente - $valIntViv;
@@ -1445,7 +1465,7 @@ class Liquidacion
                         throw new Exception("Retención en la fuente: {$response['msg']}");
                     }
 
-                    $neto = $baseDctos - $totValRetFte + $valTotalViaticos;
+                    $neto = $baseDctos - $totValRetFte + $valTotalViaticos + ($valTotalOtrosDev - $valTotalOtrosDevSal);
                     $data = [
                         'id_empleado'   =>  $id_empleado,
                         'id_nomina'     =>  $id_nomina,
@@ -2463,6 +2483,47 @@ class Liquidacion
                 continue;
             }
         }
+        return $response;
+    }
+
+    public function LiquidaOtrosDevengados($filtro, $param)
+    {
+        $response = [
+            'msg' => '',
+            'insert' => true,
+            'valor' => 0,
+            'valor_salarial' => 0,
+            'valor_ibc_seg_social' => 0,
+            'valor_ibc_parafiscales' => 0,
+        ];
+
+        foreach ($filtro as $f) {
+            $valorDevengado = Valores::Redondear($f['valor']);
+            $data = [
+                'id_devengado' => $f['id_devengado'],
+                'valor' => $valorDevengado,
+                'id_nomina' => $param['id_nomina']
+            ];
+
+            $res = (new Otros_Devengados($this->conexion))->addRegistroLiq($data);
+            if ($res != 'si') {
+                $response['insert'] = false;
+                $response['msg'] = "<p>$res</p>";
+                break;
+            }
+
+            $response['valor'] += $valorDevengado;
+            if ((int)$f['es_salarial'] === 1) {
+                $response['valor_salarial'] += $valorDevengado;
+            }
+            if ((int)$f['seg_social'] === 1) {
+                $response['valor_ibc_seg_social'] += $valorDevengado;
+            }
+            if ((int)$f['parafiscales'] === 1) {
+                $response['valor_ibc_parafiscales'] += $valorDevengado;
+            }
+        }
+
         return $response;
     }
 

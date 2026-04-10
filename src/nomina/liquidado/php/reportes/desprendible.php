@@ -68,6 +68,7 @@ function generarDesprendible($d)
     $detalle_sindicatos = $detalles->getDetalleSindicatos($d['id_empleado'], $id_nomina);
     $detalle_otros_dctos = $detalles->getDetalleOtrosDescuentos($d['id_empleado'], $id_nomina);
     $detalle_viaticos = $detalles->getDetalleViaticos($d['id_empleado'], $id_nomina);
+    $detalle_otros_dev = $detalles->getDetalleOtrosDevengados($d['id_empleado'], $id_nomina);
 
     // Calcular valores adicionales
     $valor_licencias = ($d['valor_luto'] ?? 0) + ($d['valor_mp'] ?? 0);
@@ -100,6 +101,11 @@ function generarDesprendible($d)
     if (!empty($detalle_viaticos)) {
         $total_viaticos = array_sum(array_column($detalle_viaticos, 'valor'));
         $devengados['Viáticos'] = $total_viaticos;
+    }
+
+    if (!empty($detalle_otros_dev)) {
+        $total_otros_dev = array_sum(array_column($detalle_otros_dev, 'valor'));
+        $devengados['Otros Devengados'] = $total_otros_dev;
     }
 
     // Definir conceptos de deducciones
@@ -175,8 +181,18 @@ function generarDesprendible($d)
             foreach ($detalle_viaticos as $viatico) {
                 $valor_v_fmt = number_format($viatico['valor'], 0, ',', '.');
                 $filas_devengados .= "<tr style='font-size: 9px;'>
-                    <td style='padding: 2px 8px 2px 20px; color: #666;'>• Res: {$viatico['resolucion']} - Dest: {$viatico['destino']}</td>
+                    <td style='padding: 2px 8px 2px 20px; color: #666;'>- Res: {$viatico['resolucion']} - Dest: {$viatico['destino']}</td>
                     <td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_v_fmt}</td>
+                </tr>";
+            }
+        }
+
+        if ($concepto === 'Otros Devengados' && !empty($detalle_otros_dev)) {
+            foreach ($detalle_otros_dev as $otroDev) {
+                $valor_od_fmt = number_format($otroDev['valor'], 0, ',', '.');
+                $filas_devengados .= "<tr style='font-size: 9px;'>
+                    <td style='padding: 2px 8px 2px 20px; color: #666;'>- {$otroDev['tipo']}: {$otroDev['concepto']}</td>
+                    <td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_od_fmt}</td>
                 </tr>";
             }
         }

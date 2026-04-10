@@ -78,9 +78,13 @@ $sql = "WITH
             END) AS val_contracredito_mes
         FROM pto_mod_detalle pmd
         INNER JOIN pto_mod pm ON pmd.id_pto_mod = pm.id_pto_mod
+        INNER JOIN pto_cargue pc ON pmd.id_cargue = pc.id_cargue
+        INNER JOIN pto_presupuestos pp ON pc.id_pto = pp.id_pto
         WHERE pm.estado = 2
             AND pm.id_tipo_mod IN (1, 2, 3, 6)
             AND DATE(pm.fecha) BETWEEN :fecha_ini AND :fecha_corte
+            AND pp.id_tipo = 2
+            AND pp.id_vigencia = :id_vigencia
         GROUP BY pmd.id_cargue
     ),
     -- CTE para comprometido (CDP)
@@ -325,20 +329,25 @@ try {
                 if (!isset($rubros_consolidados[$clave])) {
                     $rubros_consolidados[$clave] = $registro;
                 } else {
-                    // 'inicial' solo se toma de la sede principal (es_principal = 1),
-                    // no se acumula de las sedes secundarias.
-                    $rubros_consolidados[$clave]['adicion']           += $registro['adicion'];
-                    $rubros_consolidados[$clave]['reduccion']         += $registro['reduccion'];
-                    $rubros_consolidados[$clave]['credito']           += $registro['credito'];
-                    $rubros_consolidados[$clave]['contracredito']     += $registro['contracredito'];
+                    // Las modificaciones presupuestales (adición, reducción, crédito,
+                    // contracrédito) son datos del presupuesto CONSOLIDADO y solo existen
+                    // en la sede principal. NO se acumulan de sedes secundarias para evitar
+                    // que el mismo traslado se multiplique por el número de sedes.
+                    if ($sede['es_principal'] == 1) {
+                        $rubros_consolidados[$clave]['adicion']           += $registro['adicion'];
+                        $rubros_consolidados[$clave]['reduccion']         += $registro['reduccion'];
+                        $rubros_consolidados[$clave]['credito']           += $registro['credito'];
+                        $rubros_consolidados[$clave]['contracredito']     += $registro['contracredito'];
+                        $rubros_consolidados[$clave]['adicion_mes']       += $registro['adicion_mes'];
+                        $rubros_consolidados[$clave]['reduccion_mes']     += $registro['reduccion_mes'];
+                        $rubros_consolidados[$clave]['credito_mes']       += $registro['credito_mes'];
+                        $rubros_consolidados[$clave]['contracredito_mes'] += $registro['contracredito_mes'];
+                    }
+                    // Los valores de ejecución (CDP/CRP/COP/PAG) sí se acumulan de todas las sedes.
                     $rubros_consolidados[$clave]['comprometido']      += $registro['comprometido'];
                     $rubros_consolidados[$clave]['registrado']        += $registro['registrado'];
                     $rubros_consolidados[$clave]['causado']           += $registro['causado'];
                     $rubros_consolidados[$clave]['pagado']            += $registro['pagado'];
-                    $rubros_consolidados[$clave]['adicion_mes']       += $registro['adicion_mes'];
-                    $rubros_consolidados[$clave]['reduccion_mes']     += $registro['reduccion_mes'];
-                    $rubros_consolidados[$clave]['credito_mes']       += $registro['credito_mes'];
-                    $rubros_consolidados[$clave]['contracredito_mes'] += $registro['contracredito_mes'];
                     $rubros_consolidados[$clave]['comprometido_ant']  += $registro['comprometido_ant'];
                     $rubros_consolidados[$clave]['registrado_ant']    += $registro['registrado_ant'];
                     $rubros_consolidados[$clave]['causado_ant']       += $registro['causado_ant'];

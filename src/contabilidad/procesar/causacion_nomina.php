@@ -2,6 +2,7 @@
 
 use Config\Clases\Sesion;
 use Src\Common\Php\Clases\Terceros;
+use Src\Nomina\Configuracion\Php\Clases\Rubros;
 use Src\Nomina\Liquidacion\Php\Clases\Nomina;
 use Src\Nomina\Liquidado\Php\Clases\Detalles;
 
@@ -59,6 +60,27 @@ function calcularValorRubroNomina($detalleEmpleado, $fields)
     return !empty($detalleEmpleado[$fields]) ? $detalleEmpleado[$fields] : 0;
 }
 
+function indexarOtrosDevengadosNomina($otrosDevengados)
+{
+    $indexados = [];
+
+    foreach ($otrosDevengados as $otroDevengado) {
+        $idEmpleado = isset($otroDevengado['id_empleado']) ? (int) $otroDevengado['id_empleado'] : 0;
+        if (!($idEmpleado > 0)) {
+            continue;
+        }
+
+        $indexados[$idEmpleado][] = [
+            'documento' => $otroDevengado['documento'] ?? '',
+            'rubro' => isset($otroDevengado['rubro']) ? (int) $otroDevengado['rubro'] : 0,
+            'cuenta' => isset($otroDevengado['cuenta']) ? (int) $otroDevengado['cuenta'] : 0,
+            'valor' => isset($otroDevengado['valor']) ? (float) $otroDevengado['valor'] : 0,
+        ];
+    }
+
+    return $indexados;
+}
+
 function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPorTipoCcosto, $esPtoCaracter)
 {
     if ($esPtoCaracter) {
@@ -109,11 +131,13 @@ $tipo_nomina = $data[2];
 $Detalles = new Detalles();
 $Terceros = new Terceros();
 $Nomina = new Nomina();
+$Rubros = new Rubros();
 
 $datos = $Detalles->getRegistrosDT(1, -1, ['id_nomina' => $id_nomina], 1, 'ASC');
 $nomina = $Nomina->getRegistro($id_nomina);
 $terceros = $Terceros->getTerceros();
 $terceros = array_column($terceros, 'id', 'cedula');
+$otrosDevengadosPorEmpleado = indexarOtrosDevengadosNomina($Rubros->getDetalleCausacionOtrosDevengados($id_nomina));
 
 $tipo_nomina = $nomina['tipo'];
 $descripcion = $nomina['descripcion'];
@@ -382,10 +406,10 @@ try {
     $sql2->bindParam(2, $rango, PDO::PARAM_INT);
     $sql2->bindParam(3, $base, PDO::PARAM_STR);
     $sql2->bindValue(4, 0, PDO::PARAM_STR);
-	    $sql2->bindParam(5, $valor_retencion, PDO::PARAM_STR);
-	    $sql2->bindParam(6, $id_ter_api, PDO::PARAM_INT);
-	    $sql2->bindParam(7, $iduser, PDO::PARAM_INT);
-	    $sql2->bindParam(8, $fecha2);
+    $sql2->bindParam(5, $valor_retencion, PDO::PARAM_STR);
+    $sql2->bindParam(6, $id_ter_api, PDO::PARAM_INT);
+    $sql2->bindParam(7, $iduser, PDO::PARAM_INT);
+    $sql2->bindParam(8, $fecha2);
 
     $tipo_field_map = [
         1  => ['valor_laborado', 'val_compensa'],
@@ -407,11 +431,12 @@ try {
         32 => 'pago_empresa'
     ];
 
-	    foreach ($datos as $dd) {
-	        // Extraer datos del empleado desde $dd
-	        $id_empleado = $dd['id_empleado'];
-	        $id_ter_api = $terceros[$dd['no_documento']] ?? NULL;
-	        $ccosto = $dd['id_ccosto'] ?? 21;
+    foreach ($datos as $dd) {
+        // Extraer datos del empleado desde $dd
+        $id_empleado = $dd['id_empleado'];
+        $id_ter_api = $terceros[$dd['no_documento']] ?? NULL;
+        $ccosto = $dd['id_ccosto'] ?? 21;
+        $otrosDevengadosEmpleado = $otrosDevengadosPorEmpleado[$id_empleado] ?? [];
 
         $restar = 0;
         $rest = 0;
@@ -429,7 +454,7 @@ try {
             }
 
             // Calcular el valor según el tipo de rubro
-            
+
 
 
             // Insertar solo si hay valor y rubro válido
@@ -450,6 +475,36 @@ try {
         }
 
         // Manejar múltiples centros de costo separados por comas
+        if (!empty($otrosDevengadosEmpleado)) {
+            foreach ($otrosDevengadosEmpleado as $otroDevengado) {
+                $valor = $otroDevengado['valor'];
+                $rubro = $otroDevengado['rubro'];
+                $id_det = $idsDetalleIndexados[$rubro][(int) $id_ter_api] ?? NULL;
+
+                if ($valor > 0 && $rubro <= 0) {
+                    throw new Exception(
+                        'No existe rubro presupuestal configurado en el tipo de otros devengados para el empleado ' .
+                            ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                    );
+                }
+
+                if ($valor > 0 && $id_det === NULL) {
+                    throw new Exception(
+                        'No existe detalle CRP para el rubro ' . $rubro .
+                            ' y tercero ' . $id_ter_api .
+                            ' del empleado ' . ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                    );
+                }
+
+                if ($valor > 0) {
+                    $sql0->execute();
+                    if (!($cmd->lastInsertId() > 0)) {
+                        throw new Exception($sql0->errorInfo()[2]);
+                    }
+                }
+            }
+        }
+
         $ccosto = strval($ccosto); // Asegurar que sea string
         $ccostos_array = strpos($ccosto, ',') !== false ? explode(',', $ccosto) : [$ccosto];
         $num_ccostos = count($ccostos_array);
@@ -465,6 +520,27 @@ try {
                 $credito = 0;
                 $tipo = $ca['id_tipo'];
                 $cuenta = $ca['cuenta'];
+                if ((int) $tipo === 34) {
+                    if (!empty($otrosDevengadosEmpleado)) {
+                        foreach ($otrosDevengadosEmpleado as $otroDevengado) {
+                            $valor = $otroDevengado['valor'] / $num_ccostos;
+                            $cuenta = $otroDevengado['cuenta'];
+                            if ($valor > 0 && !($cuenta > 0)) {
+                                throw new Exception(
+                                    'No existe cuenta contable configurada en el tipo de otros devengados para el empleado ' .
+                                        ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                                );
+                            }
+                            if ($valor > 0 && $cuenta != '') {
+                                $sql1->execute();
+                                if (!($cmd->lastInsertId() > 0)) {
+                                    throw new Exception($sql1->errorInfo()[2]);
+                                }
+                            }
+                        }
+                    }
+                    continue;
+                }
                 switch ($tipo) {
                     case 1:
                         $valor = ($dd['valor_laborado'] + $dd['val_compensa']) / $num_ccostos;
@@ -698,6 +774,9 @@ try {
                         } else {
                             $restar = 0;
                         }
+                        break;
+                    case 34:
+                        $credito = $dd['valor_otros'];
                         break;
                     case 33:
                         if (!empty($dcto)) {

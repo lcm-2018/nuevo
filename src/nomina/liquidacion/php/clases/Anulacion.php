@@ -81,6 +81,12 @@ class Anulacion
              SET `nld`.`estado` = 0
              WHERE {$condEmpleadoAlias('nod')} `nld`.`id_nomina` = :id_nomina",
 
+            //devengados (join con otros devengados)
+            "UPDATE `nom_liq_devengado` AS `nld`
+                INNER JOIN `nom_otros_devengados` AS `nod` ON `nld`.`id_devengado` = `nod`.`id_devengado`
+             SET `nld`.`estado` = 0
+             WHERE {$condEmpleadoAlias('nod')} `nld`.`id_nomina` = :id_nomina",
+
             "UPDATE `nom_liq_dias_lab` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina",
             "UPDATE `nom_liq_dlab_auxt` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina $tipo",
 
@@ -156,7 +162,7 @@ class Anulacion
             // salario, seg social y retenciones
             "UPDATE `nom_liq_salario` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina",
             "UPDATE `nom_liq_segsocial_empdo` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina",
-            "UPDATE `nom_retencion_fte` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina"
+            "UPDATE `nom_retencion_fte` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina",
         ];
 
         try {

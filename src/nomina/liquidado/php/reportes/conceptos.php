@@ -45,6 +45,8 @@ $detallesObj = new Detalles();
 $columnas = [];
 $datos = [];
 $columnaExtra = '';
+$nombreConceptoNorm = mb_strtoupper(trim($nombreConcepto));
+$esOtrosDevengados = mb_stripos($nombreConceptoNorm, 'OTROS DEVENGADOS') !== false;
 
 // Mapeo de conceptos según tabla nom_conceptos_liquidacion:
 // 1=SUELDO BÁSICO, 2=AUXILIO DE TRANSPORTE, 3=AUXILIO DE ALIMENTACIÓN, 4=HORAS EXTRA,
@@ -54,7 +56,11 @@ $columnaExtra = '';
 // 14=APORTE A PENSIÓN, 15=APORTE A SOLIDARIDAD PENSIONAL, 16=LIBRANZA, 17=EMBARGO,
 // 18=SINDICATO, 19=RETENCIÓN EN LA FUENTE, 20=NETO, 21=APORTE ARL, 22=CESANTÍAS,
 // 23=INTERESES CESANTÍAS, 90=CONSOLIDADO
-switch ($id_concepto) {
+if ($esOtrosDevengados) {
+    $datos = $detallesObj->getDatosReporteOtrosDevengados($id_nomina);
+    $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'TIPO DEVENGADO', 'DESCRIPCIÓN', 'VALOR'];
+    $columnaExtra = 'otros_devengados';
+} else switch ($id_concepto) {
     case 1: // SUELDO BÁSICO
     case 2: // AUXILIO DE TRANSPORTE
     case 3: // AUXILIO DE ALIMENTACIÓN
@@ -280,6 +286,10 @@ function getCeldaValor($d, $campo, $columnaExtra)
             return $d['tipo_incapacidad'] ?? '';
         case 'TIPO LICENCIA':
             return $d['tipo_licencia'] ?? '';
+        case 'TIPO DEVENGADO':
+            return $d['tipo_devengado'] ?? '';
+        case 'DESCRIPCIÓN':
+            return $d['descripcion'] ?? '';
         case 'CONCEPTO':
             return $d['concepto'] ?? '';
         case 'DEVENGADO':

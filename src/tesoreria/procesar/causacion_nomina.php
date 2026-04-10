@@ -2,6 +2,7 @@
 
 use Config\Clases\Sesion;
 use Src\Common\Php\Clases\Terceros;
+use Src\Nomina\Configuracion\Php\Clases\Rubros;
 use Src\Nomina\Liquidacion\Php\Clases\Nomina;
 use Src\Nomina\Liquidado\Php\Clases\Detalles;
 
@@ -59,6 +60,26 @@ function calcularValorRubroNomina($detalleEmpleado, $fields)
     return !empty($detalleEmpleado[$fields]) ? $detalleEmpleado[$fields] : 0;
 }
 
+function indexarOtrosDevengadosPorEmpleado($otrosDevengados)
+{
+    $indexados = [];
+
+    foreach ($otrosDevengados as $otroDevengado) {
+        $idEmpleado = isset($otroDevengado['id_empleado']) ? (int) $otroDevengado['id_empleado'] : 0;
+        if (!($idEmpleado > 0)) {
+            continue;
+        }
+
+        $indexados[$idEmpleado][] = [
+            'rubro' => isset($otroDevengado['rubro']) ? (int) $otroDevengado['rubro'] : 0,
+            'valor' => isset($otroDevengado['valor']) ? (float) $otroDevengado['valor'] : 0,
+            'documento' => $otroDevengado['documento'] ?? '',
+        ];
+    }
+
+    return $indexados;
+}
+
 function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPorTipoCcosto, $esPtoCaracter)
 {
     if ($esPtoCaracter) {
@@ -112,12 +133,14 @@ $fecha = $data[5];
 $Detalles = new Detalles();
 $Terceros = new Terceros();
 $Nomina = new Nomina();
+$Rubros = new Rubros();
 
 // Obtener todos los datos de liquidación de la nómina de forma unificada
 $datos = $Detalles->getRegistrosDT(1, -1, ['id_nomina' => $id_nomina], 1, 'ASC');
 $nomina = $Nomina->getRegistro($id_nomina);
 $terceros = $Terceros->getTerceros();
 $terceros = array_column($terceros, 'id', 'cedula');
+$otrosDevengadosPorEmpleado = indexarOtrosDevengadosPorEmpleado($Rubros->getDetalleRubrosOtrosDevengados($id_nomina));
 
 $tipo_nomina = $nomina['tipo'];
 
@@ -320,6 +343,7 @@ try {
     foreach ($datos as $d) {
         $id_empleado = $d['id_empleado'];
         $id_ter_api = $terceros[$d['no_documento']];
+        $otrosDevengadosEmpleado = $otrosDevengadosPorEmpleado[$id_empleado] ?? [];
         $total_pago_empleado = 0;
         $restar = 0;
 
@@ -428,6 +452,33 @@ try {
 
                 if ($valor_pto > 0 && $rubro > 0 && $id_det !== null) {
                     $stmt_pto_pag->execute([$id_ctb_doc_ceva, $id_det, $valor_pto, $liberado, $id_ter_api]);
+                }
+            }
+
+            if (!empty($otrosDevengadosEmpleado)) {
+                foreach ($otrosDevengadosEmpleado as $otroDevengado) {
+                    $valor_pto = $otroDevengado['valor'];
+                    $rubro = $otroDevengado['rubro'];
+                    $id_det = $idsDetalleIndexados[$rubro][(int) $id_ter_api] ?? null;
+
+                    if ($valor_pto > 0 && $rubro <= 0) {
+                        throw new Exception(
+                            'No existe rubro presupuestal configurado en el tipo de otros devengados para el empleado ' .
+                                ($d['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                        );
+                    }
+
+                    if ($valor_pto > 0 && $id_det === null) {
+                        throw new Exception(
+                            'No existe detalle COP para el rubro ' . $rubro .
+                                ' y tercero ' . $id_ter_api .
+                                ' del empleado ' . ($d['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                        );
+                    }
+
+                    if ($valor_pto > 0) {
+                        $stmt_pto_pag->execute([$id_ctb_doc_ceva, $id_det, $valor_pto, $liberado, $id_ter_api]);
+                    }
                 }
             }
         }
@@ -544,6 +595,9 @@ try {
                         } else {
                             $restar = 0;
                         }
+                        break;
+                    case 34:
+                        $valor = $d['valor_otros'];
                         break;
                     case 33: // Otros descuentos
                         // Esta lógica se maneja por separado si es necesario

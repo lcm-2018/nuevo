@@ -60,7 +60,7 @@ if (!empty($obj)) {
             + $o['horas_ext'] + $o['val_bsp'] + $o['val_prima_vac']
             + $o['g_representa'] + $o['val_bon_recrea'] + $o['valor_ps']
             + $o['valor_pv'] + $o['val_cesantias'] + $o['val_icesantias']
-            + $o['val_compensa'] + $o['valor_viatico'];
+            + $o['val_compensa'] + $o['valor_viatico'] + $o['valor_otros'];
 
         $deducciones = $o['valor_salud'] + $o['valor_pension'] + $o['val_psolidaria']
             + $o['valor_libranza'] + $o['valor_embargo'] + $o['valor_sind']
@@ -96,7 +96,7 @@ if (!empty($obj)) {
             'valor_incap'       => Valores::formatNumber($o['valor_incap']),
             'valor_licencias'   => Valores::formatNumber($valorLicencias),
             'valor_vacacion'    => Valores::formatNumber($o['valor_vacacion']),
-            'valor_otros'       => Valores::formatNumber(0.00),
+            'valor_otros'       => Valores::formatNumber($o['valor_otros']),
             'valor_laborado'    => Valores::formatNumber($o['valor_laborado']),
             'aux_tran'          => Valores::formatNumber($o['aux_tran']),
             'aux_alim'          => Valores::formatNumber($o['aux_alim']),

@@ -80,7 +80,7 @@ $content = <<<HTML
                         <th class="text-center bg-sofia border" title="Incapacidades">INC.</th>
                         <th class="text-center bg-sofia border" title="Licencias">LIC.</th>
                         <th class="text-center bg-sofia border" title="Vacaciones">VAC.</th>
-                        <th class="text-center bg-sofia border" title="Otros">OTRO.</th>
+                        <th class="text-center bg-sofia border" title="Otros Devengados">OTR. DEV.</th>
                         <th class="text-center bg-sofia border" title="Días Laborados">LAB.</th>
                         <th class="text-center bg-sofia border" title="Incapacidades">INC.</th>
                         <th class="text-center bg-sofia border" title="Licencias">LIC.</th>

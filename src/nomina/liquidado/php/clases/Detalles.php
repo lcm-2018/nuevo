@@ -67,6 +67,15 @@ class Detalles
                         (SELECT `id_empleado`,`val_cesantias`,`val_icesantias`, `corte` AS `corte_ces`, `cant_dias` AS `dias_ces` FROM `nom_liq_cesantias` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
                     `com` AS
                         (SELECT `id_empleado`,`val_compensa` FROM `nom_liq_compesatorio` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                    `odev` AS
+                        (SELECT
+                            `nod`.`id_empleado`, SUM(`nld`.`valor`) AS `valor`
+                        FROM
+                            `nom_liq_devengado` AS `nld`
+                            INNER JOIN `nom_otros_devengados` AS `nod`
+                                ON (`nld`.`id_devengado` = `nod`.`id_devengado`)
+                        WHERE (`nld`.`estado` = 1 AND `nld`.`id_nomina` = :id_nomina)
+                        GROUP BY `nod`.`id_empleado`),
                     `dcto` AS 
                         (SELECT
                             `nom_otros_descuentos`.`id_empleado`, SUM(`nom_liq_descuento`.`valor`) AS `valor`
@@ -263,6 +272,7 @@ class Detalles
                     , IFNULL(`inc`.`pago_empresa`,0) AS `pago_empresa`
                     , IFNULL(`lib`.`valor`,0) AS `valor_libranza`
                     , IFNULL(`viat`.`valor`,0) AS `valor_viatico`
+                    , IFNULL(`odev`.`valor`,0) AS `valor_otros`
                     , IFNULL(`luto`.`valor`,0) AS `valor_luto`
                     , IFNULL(`lmp`.`val_liq`,0) AS  `valor_mp`
                     , IFNULL(`pris`.`val_liq_ps`,0) AS `valor_ps`
@@ -303,6 +313,7 @@ class Detalles
                     LEFT JOIN `bsp` ON (`bsp`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `ces` ON (`ces`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `com` ON (`com`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `odev` ON (`odev`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `dcto` ON (`dcto`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `liq` ON (`liq`.`id_empleado` = `e`.`id_empleado`)
                     LEFT JOIN `emb` ON (`emb`.`id_empleado` = `e`.`id_empleado`)
@@ -566,6 +577,10 @@ class Detalles
                                                         <tr>
                                                             <td class="ps-4 text-start">Viáticos</td>
                                                             <td class="text-end">{$datos['valor_viatico']}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Otros devengados</td>
+                                                            <td class="text-end">{$datos['valor_otros']}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -943,7 +958,8 @@ class Detalles
                         IFNULL(`inc`.`pago_arl`, 0) +
                         IFNULL(`luto`.`valor`, 0) +
                         IFNULL(`lmp`.`val_liq`, 0) +
-                        IFNULL(`viat`.`valor`, 0)
+                        IFNULL(`viat`.`valor`, 0) +
+                        IFNULL(`odev`.`valor`, 0)
                         -- Deducciones
                         - IFNULL(`segs`.`aporte_salud_emp`, 0) 
                         - IFNULL(`segs`.`aporte_pension_emp`, 0) 
@@ -1061,6 +1077,14 @@ class Detalles
                         WHERE `nom_liq_viaticos`.`id_nomina` = :id_nomina AND `nom_liq_viaticos`.`estado` = 1
                         GROUP BY `nom_viaticos`.`id_empleado`
                     ) AS `viat` ON (`sal`.`id_empleado` = `viat`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `nod`.`id_empleado`, SUM(`nld`.`valor`) AS `valor`
+                        FROM `nom_liq_devengado` AS `nld`
+                        INNER JOIN `nom_otros_devengados` AS `nod`
+                            ON (`nld`.`id_devengado` = `nod`.`id_devengado`)
+                        WHERE `nld`.`estado` = 1 AND `nld`.`id_nomina` = :id_nomina
+                        GROUP BY `nod`.`id_empleado`
+                    ) AS `odev` ON (`sal`.`id_empleado` = `odev`.`id_empleado`)
                 WHERE 
                     `sal`.`id_nomina` = :id_nomina AND `sal`.`estado` = 1
                 ORDER BY 
@@ -1995,6 +2019,8 @@ class Detalles
                 SELECT 'Licencias', IFNULL((SELECT SUM(`val_liq`) FROM `nom_liq_licluto` WHERE `id_nomina` = $id AND `estado` = 1), 0)
                                   + IFNULL((SELECT SUM(`val_liq`) FROM `nom_liq_licmp`   WHERE `id_nomina` = $id AND `estado` = 1), 0)
                 UNION ALL
+                SELECT 'Otros devengados',            IFNULL(SUM(`valor`), 0)                                                                               FROM `nom_liq_devengado`   WHERE `id_nomina` = $id AND `estado` = 1
+                UNION ALL
                 SELECT 'Prima de navidad',             IFNULL(SUM(`val_liq_pv`), 0)                                                                          FROM `nom_liq_prima_nav`   WHERE `id_nomina` = $id AND `estado` = 1
                 UNION ALL
                 SELECT 'Prima de servicios',           IFNULL(SUM(`val_liq_ps`), 0)                                                                          FROM `nom_liq_prima`       WHERE `id_nomina` = $id AND `estado` = 1
@@ -2237,6 +2263,63 @@ class Detalles
                 WHERE `nlv`.`id_nomina` = :id_nomina
                     AND `nlv`.`estado` = 1
                     AND `nv`.`id_empleado` = :id_empleado";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->bindValue(':id_empleado', $id_empleado, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($datos) ? $datos : [];
+    }
+
+    public function getDatosReporteOtrosDevengados($id_nomina)
+    {
+        $sql = "SELECT
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    IFNULL(`l`.`dias_liq`, 0) AS `dias`,
+                    `ntd`.`descripcion` AS `tipo_devengado`,
+                    `nod`.`concepto` AS `descripcion`,
+                    `nld`.`valor` AS `valor`
+                FROM `nom_liq_devengado` AS `nld`
+                    INNER JOIN `nom_otros_devengados` AS `nod`
+                        ON (`nld`.`id_devengado` = `nod`.`id_devengado`)
+                    INNER JOIN `nom_tipo_devengado` AS `ntd`
+                        ON (`nod`.`id_tipo` = `ntd`.`id_tipo`)
+                    INNER JOIN `nom_empleado` AS `e`
+                        ON (`nod`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `nom_liq_dlab_auxt` AS `l`
+                        ON (`e`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
+                WHERE `nld`.`id_nomina` = :id_nomina
+                    AND `nld`.`estado` = 1
+                ORDER BY `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC, `ntd`.`descripcion` ASC, `nod`.`concepto` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    public function getDetalleOtrosDevengados($id_empleado, $id_nomina)
+    {
+        $sql = "SELECT
+                    `ntd`.`descripcion` AS `tipo`,
+                    `nod`.`concepto`,
+                    `nld`.`valor`
+                FROM `nom_liq_devengado` AS `nld`
+                INNER JOIN `nom_otros_devengados` AS `nod`
+                    ON (`nld`.`id_devengado` = `nod`.`id_devengado`)
+                INNER JOIN `nom_tipo_devengado` AS `ntd`
+                    ON (`nod`.`id_tipo` = `ntd`.`id_tipo`)
+                WHERE `nld`.`id_nomina` = :id_nomina
+                    AND `nld`.`estado` = 1
+                    AND `nod`.`id_empleado` = :id_empleado
+                ORDER BY `ntd`.`descripcion` ASC, `nod`.`concepto` ASC";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
         $stmt->bindValue(':id_empleado', $id_empleado, PDO::PARAM_INT);

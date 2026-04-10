@@ -39,6 +39,7 @@ try {
 
     $count = 0;
     $data = ['id_nomina' => $id_nomina, 'tipo' => 'M'];
+    $tiposRubroDinamico = [34];
 
     $tipo_field_map = [
         1  => ['valor_laborado', 'val_compensa'],
@@ -63,6 +64,9 @@ try {
 
         foreach ($rubros as $rb) {
             $tipo = $rb['id_tipo'];
+            if (in_array((int)$tipo, $tiposRubroDinamico, true)) {
+                continue;
+            }
             $rubro = $d['tipo_cargo'] == '1' ? $rb['r_admin'] : $rb['r_operativo'];
 
             $valorCdp = 0;
@@ -91,6 +95,23 @@ try {
         }
         $count++;
     }
+
+    $tiposConfigurados = array_map('intval', array_column($rubros, 'id_tipo'));
+    if (in_array(34, $tiposConfigurados, true)) {
+        $otrosDevengados = (new Rubros())->getRubrosOtrosDevengados($id_nomina);
+        foreach ($otrosDevengados as $od) {
+            if (empty($od['rubro']) || floatval($od['valor']) <= 0) {
+                continue;
+            }
+            $data['rubro'] = $od['rubro'];
+            $data['valor'] = $od['valor'];
+            $res = $Reportes->addRegistro($data);
+            if ($res != 'si') {
+                throw new Exception($res);
+            }
+        }
+    }
+
     $conexion->commit();
 } catch (Exception $e) {
     $conexion->rollBack();
