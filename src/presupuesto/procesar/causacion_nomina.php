@@ -320,6 +320,30 @@ try {
     $tercero = $rs->fetch();
     $id_ter_api = !empty($tercero) ? $tercero['id_tercero_api'] : null;
 
+    $empleadosCrp = [];
+    $idTerceroEmpleadoCrp = 0;
+    foreach ($datos as $d) {
+        $claveEmpleadoCrp = '';
+        if (!empty($d['id_empleado'])) {
+            $claveEmpleadoCrp = 'id:' . (int) $d['id_empleado'];
+        } else {
+            $documentoEmpleado = trim((string) ($d['no_documento'] ?? ''));
+            $claveEmpleadoCrp = $documentoEmpleado !== '' ? 'doc:' . strtoupper($documentoEmpleado) : '';
+        }
+
+        if ($claveEmpleadoCrp !== '') {
+            $empleadosCrp[$claveEmpleadoCrp] = true;
+            if (count($empleadosCrp) === 1) {
+                $idTerceroEmpleadoCrp = resolverIdTerceroEmpleado($d['no_documento'] ?? '', $terceros);
+            }
+        }
+    }
+
+    if (count($empleadosCrp) === 1 && $idTerceroEmpleadoCrp > 0) {
+        $id_ter_api = $idTerceroEmpleadoCrp;
+    }
+
+
     $sql = "SELECT
                 MAX(`id_manu`) AS `id_manu` 
             FROM
@@ -385,9 +409,7 @@ try {
         23 => 'valor_viatico',
         32 => 'pago_empresa'
     ];
-    $actualizarTerceroCrp = trim((string) $tipo_nomina) === 'VC';
-    $empleadosCrp = [];
-    $idTerceroEmpleadoCrp = 0;
+
     foreach ($datos as $d) {
         $id_tercero = resolverIdTerceroEmpleado($d['no_documento'] ?? '', $terceros);
         if (!($id_tercero > 0)) {
@@ -396,23 +418,6 @@ try {
                     ($d['no_documento'] ?? 'sin documento') .
                     '. Verifique la coincidencia entre nom_empleado.no_documento y tb_terceros.nit_tercero.'
             );
-        }
-
-        if ($actualizarTerceroCrp) {
-            $claveEmpleadoCrp = '';
-            if (!empty($d['id_empleado'])) {
-                $claveEmpleadoCrp = 'id:' . (int) $d['id_empleado'];
-            } else {
-                $documentoEmpleado = trim((string) ($d['no_documento'] ?? ''));
-                $claveEmpleadoCrp = $documentoEmpleado !== '' ? 'doc:' . strtoupper($documentoEmpleado) : '';
-            }
-
-            if ($claveEmpleadoCrp !== '') {
-                $empleadosCrp[$claveEmpleadoCrp] = true;
-                if (count($empleadosCrp) === 1) {
-                    $idTerceroEmpleadoCrp = $id_tercero;
-                }
-            }
         }
 
         foreach ($tipo_field_map as $tipo => $fields) {
@@ -463,13 +468,6 @@ try {
                 }
             }
         }
-    }
-    if ($actualizarTerceroCrp && count($empleadosCrp) === 1 && $idTerceroEmpleadoCrp > 0) {
-        $sql = "UPDATE `pto_crp` SET `id_tercero_api` = ? WHERE `id_pto_crp` = ?";
-        $sql = $cmd->prepare($sql);
-        $sql->bindParam(1, $idTerceroEmpleadoCrp, PDO::PARAM_INT);
-        $sql->bindParam(2, $id_crp, PDO::PARAM_INT);
-        $sql->execute();
     }
 
     $estado = 3;

@@ -18,7 +18,7 @@ $opciones = $permisos->PermisoOpciones($id_user);
 $id_doc = isset($_POST['id_doc']) ? $_POST['id_doc'] : 0;
 $id_tercero = isset($_POST['id_tercero']) ? $_POST['id_tercero'] : 0;
 $id_cop = isset($_POST['id_cop']) ? $_POST['id_cop'] : 0;
-// Consulta tipo de presupuesto
+$vigencia = $_SESSION['vigencia'];
 $cmd = \Config\Clases\Conexion::getConexion();
 
 try {
@@ -53,7 +53,7 @@ try {
                     WHERE (`id_tercero_api` = $id_tercero AND `ctb_doc`.`estado` = 2)
                     GROUP BY `id_pto_cop_det`) AS `pagado`
                     ON (`pto_cop_detalle`.`id_pto_cop_det` = `pagado`.`id_pto_cop_det`)
-                WHERE `pto_cop_detalle`.`id_tercero_api` = $id_tercero AND `ctb_doc`.`estado` = 2) AS `t1`
+                WHERE `pto_cop_detalle`.`id_tercero_api` = $id_tercero AND `ctb_doc`.`estado` = 2 AND DATE_FORMAT(`ctb_doc`.`fecha`, '%Y') = '$vigencia') AS `t1`
             WHERE `val_cop` > `val_pag`
             GROUP BY `t1`.`id_ctb_doc`";
     } else {
@@ -89,7 +89,7 @@ try {
                         WHERE (`ctb_doc`.`id_ctb_doc_tipo3` > 0 AND `ctb_doc`.`estado` > 1)
                         GROUP BY `ctb_libaux`.`id_ctb_doc`) AS `pagado`
                         ON(`causado`.`id_ctb_doc` = `pagado`.`id_ctb_doc_tipo3`)
-                WHERE `ctb_doc`.`id_tercero` = $id_tercero";
+                WHERE `ctb_doc`.`id_tercero` = $id_tercero AND DATE_FORMAT(`ctb_doc`.`fecha`, '%Y') = '$vigencia'";
     }
     $rs = $cmd->query($sql);
     $causaciones = $rs->fetchAll();

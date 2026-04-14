@@ -74,10 +74,10 @@ try {
         return $d['tipo'] == 'afp';
     }), 'id'));
 
-    // Obtener terceros API de EPS desde nom_terceros
+    // Obtener terceros API de EPS desde nom_terceros (id_tipo = 1)
     if (!empty($ids_eps)) {
         $placeholders = implode(',', array_fill(0, count($ids_eps), '?'));
-        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders)";
+        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders) AND `id_tipo` = 1";
         $stmt = $cmd->prepare($sql);
         $stmt->execute(array_values($ids_eps));
         $eps_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -86,10 +86,10 @@ try {
         }
     }
 
-    // Obtener terceros API de ARL desde nom_terceros
+    // Obtener terceros API de ARL desde nom_terceros (id_tipo = 3)
     if (!empty($ids_arl)) {
         $placeholders = implode(',', array_fill(0, count($ids_arl), '?'));
-        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders)";
+        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders) AND `id_tipo` = 3";
         $stmt = $cmd->prepare($sql);
         $stmt->execute(array_values($ids_arl));
         $arl_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -98,10 +98,10 @@ try {
         }
     }
 
-    // Obtener terceros API de AFP desde nom_terceros
+    // Obtener terceros API de AFP desde nom_terceros (id_tipo = 2)
     if (!empty($ids_afp)) {
         $placeholders = implode(',', array_fill(0, count($ids_afp), '?'));
-        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders)";
+        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders) AND `id_tipo` = 2";
         $stmt = $cmd->prepare($sql);
         $stmt->execute(array_values($ids_afp));
         $afp_data = $stmt->fetchAll(PDO::FETCH_ASSOC);

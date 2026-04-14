@@ -96,10 +96,10 @@ try {
         return $d['tipo'] == 'afp';
     }), 'id'));
 
-    // Obtener terceros API de EPS
+    // Obtener terceros API de EPS (id_tipo = 1)
     if (!empty($ids_eps)) {
         $placeholders_eps = implode(',', array_fill(0, count($ids_eps), '?'));
-        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_eps)";
+        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_eps) AND `id_tipo` = 1";
         $stmt = $cmd->prepare($sql);
         $stmt->execute(array_values($ids_eps));
         $eps_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -108,10 +108,10 @@ try {
         }
     }
 
-    // Obtener terceros API de ARL
+    // Obtener terceros API de ARL (id_tipo = 3)
     if (!empty($ids_arl)) {
         $placeholders_arl = implode(',', array_fill(0, count($ids_arl), '?'));
-        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_arl)";
+        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_arl) AND `id_tipo` = 3";
         $stmt = $cmd->prepare($sql);
         $stmt->execute(array_values($ids_arl));
         $arl_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -120,10 +120,10 @@ try {
         }
     }
 
-    // Obtener terceros API de AFP
+    // Obtener terceros API de AFP (id_tipo = 2)
     if (!empty($ids_afp)) {
         $placeholders_afp = implode(',', array_fill(0, count($ids_afp), '?'));
-        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_afp)";
+        $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_afp) AND `id_tipo` = 2";
         $stmt = $cmd->prepare($sql);
         $stmt->execute(array_values($ids_afp));
         $afp_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -447,6 +447,7 @@ try {
                                 $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero_seg);
                                 if ($id_det) {
                                     $valor = $valor_seg;
+                                    $id_tercero = $id_tercero_seg; // ← asignar el tercero correcto
                                     $query->execute();
                                     if (!($cmd->lastInsertId() > 0)) {
                                         throw new Exception($query->errorInfo()[2]);
@@ -483,6 +484,7 @@ try {
                                 $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero_seg);
                                 if ($id_det) {
                                     $valor = $valor_seg;
+                                    $id_tercero = $id_tercero_seg; // ← asignar el tercero correcto
                                     $query->execute();
                                     if (!($cmd->lastInsertId() > 0)) {
                                         throw new Exception($query->errorInfo()[2]);

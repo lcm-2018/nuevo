@@ -303,6 +303,29 @@ try {
     $tercero = $rs->fetch();
     $id_ter_api = !empty($tercero) ? $tercero['id_tercero_api'] : NULL;
     $id_ter_doc = $id_ter_api;
+
+    $empleadosDoc = [];
+    $idTerceroEmpleadoDoc = 0;
+
+    foreach ($datos as $dd) {
+        $id_emp = $dd['id_empleado'] ?? null;
+        $claveEmpleadoDoc = !empty($id_emp)
+            ? 'id:' . (int) $id_emp
+            : 'doc:' . strtoupper(trim((string) ($dd['no_documento'] ?? '')));
+
+        if ($claveEmpleadoDoc !== 'doc:') {
+            $empleadosDoc[$claveEmpleadoDoc] = true;
+            $id_ter_api_e = $terceros[$dd['no_documento']] ?? NULL;
+            if (count($empleadosDoc) === 1 && !empty($id_ter_api_e)) {
+                $idTerceroEmpleadoDoc = (int) $id_ter_api_e;
+            }
+        }
+    }
+
+    if (count($empleadosDoc) === 1 && $idTerceroEmpleadoDoc > 0) {
+        $id_ter_doc = $idTerceroEmpleadoDoc;
+    }
+
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -431,9 +454,6 @@ try {
         23 => 'valor_viatico',
         32 => 'pago_empresa'
     ];
-    $actualizarTerceroDoc = trim((string) $tipo_nomina) === 'VC';
-    $empleadosDoc = [];
-    $idTerceroEmpleadoDoc = 0;
 
     foreach ($datos as $dd) {
         // Extraer datos del empleado desde $dd
@@ -445,20 +465,6 @@ try {
         $restar = 0;
         $rest = 0;
         $liberado = 0;
-
-        if ($actualizarTerceroDoc) {
-            $claveEmpleadoDoc = !empty($id_empleado)
-                ? 'id:' . (int) $id_empleado
-                : 'doc:' . strtoupper(trim((string) ($dd['no_documento'] ?? '')));
-
-            if ($claveEmpleadoDoc !== 'doc:') {
-                $empleadosDoc[$claveEmpleadoDoc] = true;
-                if (count($empleadosDoc) === 1 && !empty($id_ter_api)) {
-                    $idTerceroEmpleadoDoc = (int) $id_ter_api;
-                }
-            }
-        }
-
 
         foreach ($tipo_field_map as $tipo => $fields) {
             $valor = calcularValorRubroNomina($dd, $fields);
@@ -822,14 +828,6 @@ try {
                 }
             }
         }
-    }
-
-    if ($actualizarTerceroDoc && count($empleadosDoc) === 1 && $idTerceroEmpleadoDoc > 0) {
-        $sql = "UPDATE `ctb_doc` SET `id_tercero` = ? WHERE `id_ctb_doc` = ?";
-        $sql = $cmd->prepare($sql);
-        $sql->bindParam(1, $idTerceroEmpleadoDoc, PDO::PARAM_INT);
-        $sql->bindParam(2, $id_doc_nom, PDO::PARAM_INT);
-        $sql->execute();
     }
 
     $estado = 4;
