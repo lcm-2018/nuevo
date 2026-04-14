@@ -250,6 +250,28 @@ class Certificados
     }
 
     /**
+     * Obtiene los empleados que tienen liquidación en las nóminas dadas.
+     * @param array $ids_nomina
+     * @return array
+     */
+    public function getEmpleadosConNomina(array $ids_nomina): array
+    {
+        if (empty($ids_nomina)) return [];
+        $ids_in = implode(',', array_map('intval', $ids_nomina));
+        $sql = "SELECT DISTINCT e.`id_empleado`, e.`no_documento`, e.`nombre1`, e.`nombre2`, e.`apellido1`, e.`apellido2`,
+                       CONCAT_WS(' ', e.`apellido1`, e.`apellido2`, e.`nombre1`, e.`nombre2`) AS `nombre_completo`
+                FROM `nom_liq_dlab_auxt` d
+                INNER JOIN `nom_empleado` e ON e.`id_empleado` = d.`id_empleado`
+                WHERE d.`id_nomina` IN ($ids_in) AND d.`estado` = 1
+                ORDER BY `nombre_completo` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        return $datos;
+    }
+
+    /**
      * Obtiene el id_empleado (y datos básicos) a partir del id_tercero_api de tb_terceros.
      * Compara nit_tercero con no_documento del empleado.
      * @param int $id_tercero  id_tercero_api de tb_terceros
@@ -318,6 +340,7 @@ class Certificados
                     SUM(IFNULL(ces.`val_cesantias`, 0))                            AS `total_cesantias`,
                     SUM(IFNULL(ces.`val_icesantias`, 0))                           AS `total_int_cesantias`,
                     SUM(IFNULL(vac.`val_liq`, 0))                                  AS `total_vacaciones`,
+                    SUM(IFNULL(odev.`valor`, 0))                                   AS `otros_dev`,
                     SUM(IFNULL(seg.`aporte_salud_emp`, 0))                         AS `total_salud_emp`,
                     SUM(IFNULL(seg.`aporte_pension_emp`, 0))                       AS `total_pension_emp`,
                     SUM(IFNULL(seg.`aporte_solidaridad_pensional`, 0))             AS `total_solidaridad`,
@@ -331,6 +354,7 @@ class Certificados
                         + IFNULL(bsp.`val_bsp`, 0) + IFNULL(ces.`val_cesantias`, 0)
                         + IFNULL(ces.`val_icesantias`, 0)
                         + IFNULL(inc.`pago_empresa`, 0)
+                        + IFNULL(odev.`valor`, 0)
                     )                                                               AS `total_ingresos`,
                     SUM(
                         IFNULL(seg.`aporte_salud_emp`, 0)
@@ -339,27 +363,34 @@ class Certificados
                         + IFNULL(rte.`val_ret`, 0)
                     )                                                               AS `total_deducciones`
                 FROM `nom_liq_dlab_auxt` d
-                LEFT JOIN `nom_liq_salario`          s   ON (s.`id_empleado`   = d.`id_empleado` AND s.`id_nomina`   IN ($ids_in) AND s.`estado` = 1)
-                LEFT JOIN `nom_liq_bsp`              bsp ON (bsp.`id_empleado` = d.`id_empleado` AND bsp.`id_nomina` IN ($ids_in) AND bsp.`estado` = 1)
-                LEFT JOIN `nom_liq_cesantias`        ces ON (ces.`id_empleado` = d.`id_empleado` AND ces.`id_nomina` IN ($ids_in) AND ces.`estado` = 1)
-                LEFT JOIN `nom_liq_prima`            ps  ON (ps.`id_empleado`  = d.`id_empleado` AND ps.`id_nomina`  IN ($ids_in) AND ps.`estado` = 1)
-                LEFT JOIN `nom_liq_prima_nav`        pn  ON (pn.`id_empleado`  = d.`id_empleado` AND pn.`id_nomina`  IN ($ids_in) AND pn.`estado` = 1)
-                LEFT JOIN `nom_liq_segsocial_empdo`  seg ON (seg.`id_empleado` = d.`id_empleado` AND seg.`id_nomina` IN ($ids_in) AND seg.`estado` = 1)
-                LEFT JOIN `nom_retencion_fte`        rte ON (rte.`id_empleado` = d.`id_empleado` AND rte.`id_nomina` IN ($ids_in) AND rte.`estado` = 1)
+                LEFT JOIN `nom_liq_salario`          s   ON (s.`id_empleado`   = d.`id_empleado` AND s.`id_nomina`   = d.`id_nomina` AND s.`estado` = 1)
+                LEFT JOIN `nom_liq_bsp`              bsp ON (bsp.`id_empleado` = d.`id_empleado` AND bsp.`id_nomina` = d.`id_nomina` AND bsp.`estado` = 1)
+                LEFT JOIN `nom_liq_cesantias`        ces ON (ces.`id_empleado` = d.`id_empleado` AND ces.`id_nomina` = d.`id_nomina` AND ces.`estado` = 1)
+                LEFT JOIN `nom_liq_prima`            ps  ON (ps.`id_empleado`  = d.`id_empleado` AND ps.`id_nomina`  = d.`id_nomina` AND ps.`estado` = 1)
+                LEFT JOIN `nom_liq_prima_nav`        pn  ON (pn.`id_empleado`  = d.`id_empleado` AND pn.`id_nomina`  = d.`id_nomina` AND pn.`estado` = 1)
+                LEFT JOIN `nom_liq_segsocial_empdo`  seg ON (seg.`id_empleado` = d.`id_empleado` AND seg.`id_nomina` = d.`id_nomina` AND seg.`estado` = 1)
+                LEFT JOIN `nom_retencion_fte`        rte ON (rte.`id_empleado` = d.`id_empleado` AND rte.`id_nomina` = d.`id_nomina` AND rte.`estado` = 1)
                 LEFT JOIN (
-                    SELECT ni.`id_empleado`, SUM(li.`pago_empresa`) AS `pago_empresa`
+                    SELECT ni.`id_empleado`, li.`id_nomina`, SUM(li.`pago_empresa`) AS `pago_empresa`
                     FROM `nom_liq_incap` li
                     INNER JOIN `nom_incapacidad` ni ON ni.`id_incapacidad` = li.`id_incapacidad`
                     WHERE li.`id_nomina` IN ($ids_in) AND li.`estado` = 1
-                    GROUP BY ni.`id_empleado`
-                ) AS inc ON (inc.`id_empleado` = d.`id_empleado`)
+                    GROUP BY ni.`id_empleado`, li.`id_nomina`
+                ) AS inc ON (inc.`id_empleado` = d.`id_empleado` AND inc.`id_nomina` = d.`id_nomina`)
                 LEFT JOIN (
-                    SELECT nv.`id_empleado`, SUM(lv.`val_liq`) AS `val_liq`
+                    SELECT nv.`id_empleado`, lv.`id_nomina`, SUM(lv.`val_liq`) AS `val_liq`
                     FROM `nom_liq_vac` lv
                     INNER JOIN `nom_vacaciones` nv ON nv.`id_vac` = lv.`id_vac`
                     WHERE lv.`id_nomina` IN ($ids_in) AND lv.`estado` = 1
-                    GROUP BY nv.`id_empleado`
-                ) AS vac ON (vac.`id_empleado` = d.`id_empleado`)
+                    GROUP BY nv.`id_empleado`, lv.`id_nomina`
+                ) AS vac ON (vac.`id_empleado` = d.`id_empleado` AND vac.`id_nomina` = d.`id_nomina`)
+                LEFT JOIN (
+                    SELECT nod.`id_empleado`, nld.`id_nomina`, SUM(nld.`valor`) AS `valor`
+                    FROM `nom_liq_devengado` AS `nld`
+                    INNER JOIN `nom_otros_devengados` AS `nod` ON (`nld`.`id_devengado` = `nod`.`id_devengado`)
+                    WHERE `nld`.`estado` = 1 AND `nld`.`id_nomina` IN ($ids_in)
+                    GROUP BY nod.`id_empleado`, nld.`id_nomina`
+                ) AS odev ON (odev.`id_empleado` = d.`id_empleado` AND odev.`id_nomina` = d.`id_nomina`)
                 WHERE d.`id_empleado` = :id_empleado
                   AND d.`id_nomina` IN ($ids_in)
                   AND d.`estado` = 1";

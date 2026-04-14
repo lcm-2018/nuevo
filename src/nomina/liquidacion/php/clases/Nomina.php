@@ -561,8 +561,8 @@ class Nomina
      */
     public static function getIdVigenciaPorAnio($anio): int
     {
-        $sql = "SELECT `id_vigencia` FROM `nom_vigencia`
-                WHERE `vigencia` = ? LIMIT 1";
+        $sql = "SELECT `id_vigencia` FROM `tb_vigencias`
+                WHERE `anio` = ? LIMIT 1";
         $stmt = Conexion::getConexion()->prepare($sql);
         $stmt->bindValue(1, intval($anio), PDO::PARAM_INT);
         $stmt->execute();

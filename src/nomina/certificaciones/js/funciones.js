@@ -47,6 +47,11 @@ if (gridCerts) {
         // --- Validar tercero ---
         const id_tercero = document.getElementById('id_tercero')?.value || '0';
         const buscaTercero = document.getElementById('buscaTercero');
+
+        // --- Datos de la tarjeta ---
+        const id_cert = btn.dataset.idCert;
+        const formato = btn.dataset.formato;   // 'pdf' (imprimir) o 'excel' (descarga)
+
         if (id_tercero === '0' || id_tercero === '') {
             if (buscaTercero) {
                 buscaTercero.classList.add('is-invalid');
@@ -82,10 +87,6 @@ if (gridCerts) {
         }
         document.getElementById('fechaTermina')?.classList.remove('is-invalid');
 
-        // --- Datos de la tarjeta ---
-        const id_cert = btn.dataset.idCert;
-        const formato = btn.dataset.formato;   // 'pdf' o 'word'
-
         // --- Enviar a la ruta del reporte ---
         _abrirReporte(id_cert, formato, id_tercero, fechaInicia, fechaTermina);
     });
@@ -102,19 +103,44 @@ function _abrirReporte(id_cert, formato, id_tercero, fecha_ini, fecha_fin) {
         4: '../php/reportes/laboral_nomina.php',
     };
 
-    const ruta = rutas[parseInt(id_cert)];
+    let ruta = rutas[parseInt(id_cert)];
     if (!ruta) {
         mjeError('Error', 'No existe el reporte para este tipo de certificado.');
         return;
     }
 
-    ImprimirReporte(ruta, {
+    if (id_cert === '1' && formato === 'excel') {
+        ruta = '../php/reportes/form220_consolidado.php';
+    }
+
+    const params = {
         id_tercero: id_tercero,
         fecha_ini: fecha_ini,
         fecha_fin: fecha_fin,
         id_cert: id_cert,
-        formato: formato     // 'pdf' o 'word' — el reporte decide la cabecera de respuesta
-    });
+        formato: formato,
+    };
+
+    if (formato === 'excel') {
+        // Descarga directa del Excel (igual que el botón E= de liquidado)
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = ruta;
+        form.target = '_blank'; // evita bloqueo de popup en algunas configuraciones
+        Object.entries(params).forEach(([k, v]) => {
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = k;
+            inp.value = v;
+            form.appendChild(inp);
+        });
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    } else {
+        // Abre en navegador para imprimir (igual que el botón imprimir/DDF de liquidado)
+        ImprimirReporte(ruta, params);
+    }
 }
 
 // ============================================================

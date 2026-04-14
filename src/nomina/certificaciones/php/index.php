@@ -42,38 +42,43 @@ if (empty($tipos)) {
         $grad = $conf['gradient'];
         $clr  = $conf['color'];
 
-        $cards_html .= <<<HTML
-        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3 cert-col">
-            <div class="cert-card shadow" data-id-cert="{$id}" style="border-top: 4px solid {$clr};">
-                <div class="cert-card-header" style="background: {$grad};">
-                    <i class="fas {$icon} cert-icon"></i>
-                    <div class="cert-glow"></div>
-                </div>
-                <div class="cert-card-body">
-                    <h6 class="cert-title">{$desc}</h6>
-                    <p class="text-muted small mb-0">Certificado #{$id}</p>
-                </div>
-                <div class="cert-card-footer d-flex gap-1">
-                    <button type="button"
-                            class="btn-generar-cert btn flex-fill btn-sm btn-outline-danger"
-                            data-id-cert="{$id}"
-                            data-desc="{$desc}"
-                            data-formato="pdf"
-                            title="Generar PDF">
-                        <i class="fas fa-file-pdf me-1"></i> PDF
-                    </button>
-                    <button type="button"
-                            class="btn-generar-cert btn flex-fill btn-sm btn-outline-primary"
-                            data-id-cert="{$id}"
-                            data-desc="{$desc}"
-                            data-formato="word"
-                            title="Generar Word">
-                        <i class="fas fa-file-word me-1"></i> Word
-                    </button>
-                </div>
-            </div>
-        </div>
-        HTML;
+        // Botones según tipo de certificado
+        if ($id == 1) {
+            // Form 220: Imprimir (HTML en browser) + Excel (Consolidado)
+            $btns_html =
+                '<button type="button" class="btn-generar-cert btn flex-fill btn-sm btn-outline-danger"'
+                . ' data-id-cert="' . $id . '" data-desc="' . $desc . '" data-formato="pdf" title="Imprimir">'
+                . '<i class="fas fa-print me-1"></i> Imprimir</button>'
+                . '<button type="button" class="btn-generar-cert btn flex-fill btn-sm btn-outline-success"'
+                . ' data-id-cert="' . $id . '" data-desc="' . $desc . '" data-formato="excel" title="Descargar Consolidado Excel">'
+                . '<i class="fas fa-file-excel me-1"></i> Excel</button>';
+        } else {
+            // Otros certificados: PDF + Word (comportamiento original)
+            $btns_html =
+                '<button type="button" class="btn-generar-cert btn flex-fill btn-sm btn-outline-danger"'
+                . ' data-id-cert="' . $id . '" data-desc="' . $desc . '" data-formato="pdf" title="Generar PDF">'
+                . '<i class="fas fa-file-pdf me-1"></i> PDF</button>'
+                . '<button type="button" class="btn-generar-cert btn flex-fill btn-sm btn-outline-primary"'
+                . ' data-id-cert="' . $id . '" data-desc="' . $desc . '" data-formato="word" title="Generar Word">'
+                . '<i class="fas fa-file-word me-1"></i> Word</button>';
+        }
+
+        $cards_html .=
+            '<div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3 cert-col">' .
+            '<div class="cert-card shadow" data-id-cert="' . $id . '" style="border-top: 4px solid ' . $clr . ';">' .
+            '<div class="cert-card-header" style="background: ' . $grad . ';">' .
+            '<i class="fas ' . $icon . ' cert-icon"></i>' .
+            '<div class="cert-glow"></div>' .
+            '</div>' .
+            '<div class="cert-card-body">' .
+            '<h6 class="cert-title">' . $desc . '</h6>' .
+            '<p class="text-muted small mb-0">Certificado #' . $id . '</p>' .
+            '</div>' .
+            '<div class="cert-card-footer d-flex gap-1">' .
+            $btns_html .
+            '</div>' .
+            '</div>' .
+            '</div>';
     }
 }
 
