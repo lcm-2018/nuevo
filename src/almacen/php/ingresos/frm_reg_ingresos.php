@@ -19,7 +19,7 @@ $sql = "SELECT II.fec_ingreso,II.hor_ingreso,II.num_ingreso,II.id_sede,II.id_bod
             II.id_pedido,
             BO.nombre AS nom_bodega,
             CASE II.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado,
-            CONCAT(PP.detalle,'(',PP.fec_pedido,')') AS des_pedido,
+            CONCAT(PP.num_pedido,' - ',PP.detalle,'(',PP.fec_pedido,')') AS des_pedido,
             IITP.orden_compra
         FROM far_orden_ingreso AS II
         INNER JOIN far_bodegas AS BO ON (BO.id_bodega=II.id_bodega)
@@ -64,7 +64,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center bg-sofia">
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
             <h5 class="text-white mb-0">REGISTRAR ORDEN DE INGRESO</h5>
         </div>
         <div class="p-2">
@@ -128,7 +128,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     <div class="col-md-6">
                         <div class="row mb-2">
                             <div class="col-md-10">
-                                <label for="txt_des_pedido" class="small">Pedido de Almacén - Orden de Coampra</label>
+                                <label for="txt_des_pedido" class="small">No. Pedido de Almacén - Orden de Coampra</label>
                                 <input type="text" class="form-control form-control-sm bg-input" id="txt_des_pedido" name="txt_des_pedido" class="small" value="<?php echo $obj['des_pedido'] ?>" readonly="readonly" title="Doble Click para Seleccionar el No. de Pedido">
                             </div>
                             <div class="col-md-1">

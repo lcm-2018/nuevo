@@ -16,9 +16,8 @@
                 className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     $.post("frm_reg_traslados.php", function (he) {
-                        $('#divTamModalForms').removeClass('modal-sm');
-                        $('#divTamModalForms').removeClass('modal-lg');
-                        $('#divTamModalForms').addClass('modal-xl');
+                        $('#divTamModalForms').removeClass('modal-sm modal-lg modal-xl');
+                        $('#divTamModalForms').addClass('modal-xxl');
                         $('#divModalForms').modal('show');
                         $("#divForms").html(he);
                     });
@@ -58,13 +57,14 @@
                 { 'data': 'nom_estado', 'name': 'nom_estado' },
                 { 'data': 'estado2' },
                 { 'data': 'nom_estado2', 'name': 'nom_estado2' },
+                { 'data': 'num_pedido' },
                 { 'data': 'botones' }
             ],
             columnDefs: [
                 { class: 'text-wrap', targets: [4, 5, 6, 7, 8] },
                 { type: "numeric-comma", targets: 9 },
                 { visible: false, targets: [10, 12] },
-                { orderable: false, targets: 14 }
+                { orderable: false, targets: 15 }
             ],
             rowCallback: function (row, data) {
                 if (data.estado == 1) {
@@ -122,8 +122,10 @@
         $('#divIngreso').hide();
         if ($(this).val() == 1) {
             $('#divPedido').show();
+            $("#txt_des_pedido").trigger("dblclick");
         } else if ($(this).val() == 2) {
             $('#divIngreso').show();
+            $("#txt_des_ingreso").trigger("dblclick");
         }
     });
 
@@ -142,7 +144,7 @@
     $('#divModalBus').on('dblclick', '#tb_pedidos_tra tr', function () {
         let data = $('#tb_pedidos_tra').DataTable().row(this).data();
         $('#txt_id_pedido').val(data.id_pedido);
-        $('#txt_des_pedido').val(data.detalle + '(' + data.fec_pedido + ')');
+        $('#txt_des_pedido').val(data.num_pedido + ' - ' + data.detalle + '(' + data.fec_pedido + ')');
 
         if (data.id_pedido) {
             $('#sl_tip_traslado').prop('disabled', true);
@@ -209,7 +211,7 @@
     $('#divModalBus').on('dblclick', '#tb_ingresos_tra tr', function () {
         let data = $('#tb_ingresos_tra').DataTable().row(this).data();
         $('#txt_id_ingreso').val(data.id_ingreso);
-        $('#txt_des_ingreso').val(data.detalle + '(' + data.fec_ingreso + ')');
+        $('#txt_des_ingreso').val(data.num_ingreso + ' - ' + data.detalle + '(' + data.fec_ingreso + ')');
 
         if (data.id_ingreso) {
             $('#sl_tip_traslado').prop('disabled', true);
@@ -277,7 +279,8 @@
     $('#tb_traslados').on('click', '.btn_editar', function () {
         let id = $(this).attr('value');
         $.post("frm_reg_traslados.php", { id: id }, function (he) {
-            $('#divTamModalForms').addClass('modal-xl');
+            $('#divTamModalForms').removeClass('modal-sm modal-lg modal-xl');
+            $('#divTamModalForms').addClass('modal-xxl');
             $('#divModalForms').modal('show');
             $("#divForms").html(he);
         });
@@ -685,6 +688,20 @@
     $('#divForms').on("click", "#btn_imprimir", function () {
         $.post("imp_traslado.php", {
             id: $('#id_traslado').val()
+        }, function (he) {
+            $('#divTamModalImp').removeClass('modal-sm');
+            $('#divTamModalImp').removeClass('modal-lg');
+            $('#divTamModalImp').addClass('modal-xl');
+            $('#divModalImp').modal('show');
+            $("#divImp").html(he);
+        });
+    });
+
+    //Imprimit un Traslado desde el formulario principal
+    $('#tb_traslados').on('click', '.btn_imprimir', function () {
+        let id = $(this).attr('value');
+        $.post("imp_traslado.php", {
+            id: id
         }, function (he) {
             $('#divTamModalImp').removeClass('modal-sm');
             $('#divTamModalImp').removeClass('modal-lg');

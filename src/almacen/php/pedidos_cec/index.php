@@ -107,7 +107,7 @@ $content = <<<HTML
                         <th rowspan="2" class="bg-sofia">Valor Total</th>
                         <th rowspan="2" class="bg-sofia">Id.Estado</th>
                         <th rowspan="2" class="bg-sofia">Estado</th>
-                        <th rowspan="2" class="bg-sofia">Ids Egresos</th>
+                        <th rowspan="2" class="bg-sofia">No. Egresos</th>
                         <th rowspan="2" class="bg-sofia">Acciones</th>
                     </tr>
                     <tr>

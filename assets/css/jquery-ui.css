@@ -1299,3 +1299,8 @@ a.ui-button:active,
 .ui-widget-shadow {
 	box-shadow: 0/*{offsetLeftShadow}*/ 0/*{offsetTopShadow}*/ 5px/*{thicknessShadow}*/ #666666/*{bgColorShadow}*/;
 }
+
+.modal-dialog.modal-xxl {
+  max-width: 75%;        /* ancho casi completo */
+  margin: 1.75rem auto;  /* centrado vertical */
+}

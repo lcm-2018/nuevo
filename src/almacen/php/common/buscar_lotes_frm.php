@@ -24,8 +24,8 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center bg-sofia">
-            <h5 class="text-white mb-0">BUSCAR ARTICULOS - LOTES</h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h7 class="text-white mb-0">BUSCAR ARTICULOS - LOTES</h7>
         </div>
         <div class="p-2">
 

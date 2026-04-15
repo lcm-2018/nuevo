@@ -629,6 +629,7 @@ function tipo_reporte_exi_lote($titulo = '')
     echo '<option value="3">Lotes a vencerse en N días -> Agrupado por Sede-Bodega-Subgrupo </option>';
     echo '<option value="4">Captura de Inventario Físico -> Agrupado por Sede-Bodega-Subgrupo-Articulo</option>';
     echo '<option value="5">Semaforización-vencimiento de Lotes -> Agrupado por Sede-Bodega-Subgrupo </option>';
+    echo '<option value="6">Detallado por Articulo -> Agrupado por Sede-Bodega-Subgrupo </option>';
 }
 function tipo_reporte_exi_fecha($titulo = '')
 {

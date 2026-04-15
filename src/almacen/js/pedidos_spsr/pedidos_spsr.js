@@ -17,9 +17,8 @@
                 className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     $.post("frm_reg_pedidos.php", function (he) {
-                        $('#divTamModalForms').removeClass('modal-sm');
-                        $('#divTamModalForms').removeClass('modal-lg');
-                        $('#divTamModalForms').addClass('modal-xl');
+                        $('#divTamModalForms').removeClass('modal-sm modal-lg modal-xl');
+                        $('#divTamModalForms').addClass('modal-xxl');
                         $('#divModalForms').modal('show');
                         $("#divForms").html(he);
                     });
@@ -118,7 +117,8 @@
     $('#tb_pedidos').on('click', '.btn_editar', function () {
         let id = $(this).attr('value');
         $.post("frm_reg_pedidos.php", { id: id }, function (he) {
-            $('#divTamModalForms').addClass('modal-xl');
+            $('#divTamModalForms').removeClass('modal-sm modal-lg modal-xl');
+            $('#divTamModalForms').addClass('modal-xxl');
             $('#divModalForms').modal('show');
             $("#divForms").html(he);
         });
@@ -467,6 +467,20 @@
     $('#divForms').on("click", "#btn_imprimir", function () {
         $.post("imp_pedido.php", {
             id: $('#id_pedido').val()
+        }, function (he) {
+            $('#divTamModalImp').removeClass('modal-sm');
+            $('#divTamModalImp').removeClass('modal-lg');
+            $('#divTamModalImp').addClass('modal-xl');
+            $('#divModalImp').modal('show');
+            $("#divImp").html(he);
+        });
+    });
+
+    //Imprimit un Pedido desde el formulario principal
+    $('#tb_pedidos').on('click', '.btn_imprimir', function () {
+        let id = $(this).attr('value');
+        $.post("imp_pedido.php", {
+            id: id
         }, function (he) {
             $('#divTamModalImp').removeClass('modal-sm');
             $('#divTamModalImp').removeClass('modal-lg');

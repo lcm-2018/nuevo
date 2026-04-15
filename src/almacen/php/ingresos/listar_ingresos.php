@@ -72,12 +72,14 @@ try {
 	            far_orden_ingreso.num_factura,far_orden_ingreso.fec_factura,far_orden_ingreso.detalle,
                 tb_terceros.nom_tercero,far_orden_ingreso_tipo.nom_tipo_ingreso,far_orden_ingreso.val_total,
                 tb_sedes.nom_sede,far_bodegas.nombre AS nom_bodega,far_orden_ingreso.estado,
-	            CASE far_orden_ingreso.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado
+	            CASE far_orden_ingreso.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado,
+                far_alm_pedido.num_pedido
             FROM far_orden_ingreso
             INNER JOIN far_orden_ingreso_tipo ON (far_orden_ingreso_tipo.id_tipo_ingreso=far_orden_ingreso.id_tipo_ingreso)
             INNER JOIN tb_terceros ON (tb_terceros.id_tercero=far_orden_ingreso.id_provedor)
             INNER JOIN tb_sedes ON (tb_sedes.id_sede=far_orden_ingreso.id_sede)
             INNER JOIN far_bodegas ON (far_bodegas.id_bodega=far_orden_ingreso.id_bodega)
+            LEFT JOIN far_alm_pedido ON (far_alm_pedido.id_pedido=far_orden_ingreso.id_pedido)
             $where ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);
@@ -117,6 +119,7 @@ if (!empty($objs)) {
             "val_total" => formato_valor($obj['val_total']),
             "estado" => $obj['estado'],
             "nom_estado" => $obj['nom_estado'],
+            "num_pedido" => $obj['num_pedido'],
             "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
         ];
     }

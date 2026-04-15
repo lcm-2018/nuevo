@@ -12,8 +12,8 @@ $fecha_sis = date('Y-m-d');
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center bg-sofia">
-            <h5 class="text-white mb-0">INGRESOS DE ALMACEN POR FIANZA</h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h7 class="text-white mb-0">INGRESOS DE ALMACEN POR FIANZA</h7>
         </div>
         <div class="p-2">
 

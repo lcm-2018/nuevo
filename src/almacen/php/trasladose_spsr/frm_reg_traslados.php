@@ -17,14 +17,14 @@ $sql = "SELECT TT.fec_traslado,TT.hor_traslado,TT.num_traslado,TT.tipo,
             TT.id_sede_destino,TT.id_bodega_destino,
             TT.estado,TT.detalle,TT.val_total,
             CASE TT.estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO-EGRESADO' WHEN 3 THEN 'ENVIADO' END AS nom_estado,
-            PEDIDO.id_pedido,CONCAT(PEDIDO.detalle,'(',PEDIDO.fec_pedido,')') AS des_pedido,
-            OI.id_ingreso,CONCAT(OI.detalle,'(',OI.fec_ingreso,')') AS des_ingreso,
+            PEDIDO.id_pedido,CONCAT(PEDIDO.num_pedido,' - ',PEDIDO.detalle,'(',PEDIDO.fec_pedido,')') AS des_pedido,
+            OI.id_ingreso,CONCAT(OI.num_ingreso,' - ',OI.detalle,'(',OI.fec_ingreso,')') AS des_ingreso,
             TT.estado2
         FROM far_traslado_r AS TT
         INNER JOIN tb_sedes AS SP ON (SP.id_sede=TT.id_sede_origen)
         INNER JOIN far_bodegas AS BP ON (BP.id_bodega=TT.id_bodega_origen)        
         LEFT JOIN far_orden_ingreso AS OI ON (OI.id_ingreso=TT.id_ingreso)
-        LEFT JOIN (SELECT TD.id_traslado,PD.id_pedido,PP.detalle,PP.fec_pedido
+        LEFT JOIN (SELECT TD.id_traslado,PD.id_pedido,PP.num_pedido,PP.detalle,PP.fec_pedido
                     FROM far_traslado_r_detalle AS TD 
                     INNER JOIN far_pedido_detalle AS PD ON (PD.id_ped_detalle=TD.id_ped_detalle)
                     INNER JOIN far_pedido AS PP ON (PP.id_pedido=PD.id_pedido)
@@ -113,7 +113,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     <div class="col-md-6">
                         <div class="row mb-2">
                             <div class="col-md-10">
-                                <label for="txt_des_pedido" class="small">Pedido de una Bodega para el Traslado</label>
+                                <label for="txt_des_pedido" class="small">No. Pedido de una Bodega para el Traslado</label>
                                 <input type="text" class="form-control form-control-sm bg-input" id="txt_des_pedido" name="txt_des_pedido" class="small" value="<?php echo $obj['des_pedido'] ?>" readonly="readonly" title="Doble Click para Seleccionar el No. de Pedido">
                             </div>
                             <div class="col-md-1">
@@ -139,7 +139,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     <div class="col-md-6">
                         <div class="row mb-2">
                             <div class="col-md-10">
-                                <label for="txt_des_ingreso" class="small">Ingreso de Almacen A Trasladar</label>
+                                <label for="txt_des_ingreso" class="small">No. Ingreso de Almacen A Trasladar</label>
                                 <input type="text" class="form-control form-control-sm bg-input" id="txt_des_ingreso" name="txt_des_ingreso" class="small" value="<?php echo $obj['des_ingreso'] ?>" readonly="readonly" title="Doble Click para Seleccionar el No. de Ingreso">
                             </div>
                             <div class="col-md-1">

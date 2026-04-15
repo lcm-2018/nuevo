@@ -17,9 +17,8 @@
                 className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     $.post("frm_reg_pedidos.php", function (he) {
-                        $('#divTamModalForms').removeClass('modal-sm');
-                        $('#divTamModalForms').removeClass('modal-lg');
-                        $('#divTamModalForms').addClass('modal-xl');
+                        $('#divTamModalForms').removeClass('modal-sm modal-lg modal-xl');
+                        $('#divTamModalForms').addClass('modal-xxl');
                         $('#divModalForms').modal('show');
                         $("#divForms").html(he);
                     });
@@ -100,7 +99,8 @@
     $('#tb_pedidos').on('click', '.btn_editar', function () {
         let id = $(this).attr('value');
         $.post("frm_reg_pedidos.php", { id: id }, function (he) {
-            $('#divTamModalForms').addClass('modal-xl');
+            $('#divTamModalForms').removeClass('modal-sm modal-lg modal-xl');
+            $('#divTamModalForms').addClass('modal-xxl');
             $('#divModalForms').modal('show');
             $("#divForms").html(he);
         });

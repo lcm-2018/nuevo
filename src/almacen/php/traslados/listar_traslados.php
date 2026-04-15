@@ -81,12 +81,18 @@ try {
                 tb_so.nom_sede AS nom_sede_origen,tb_bo.nombre AS nom_bodega_origen,
                 tb_sd.nom_sede AS nom_sede_destino,tb_bd.nombre AS nom_bodega_destino,
                 far_traslado.val_total,far_traslado.estado,
-                CASE far_traslado.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado
+                CASE far_traslado.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado,
+                PEDIDO.num_pedido
             FROM far_traslado
             INNER JOIN tb_sedes AS tb_so ON (tb_so.id_sede=far_traslado.id_sede_origen)
             INNER JOIN far_bodegas AS tb_bo ON (tb_bo.id_bodega=far_traslado.id_bodega_origen)
             INNER JOIN tb_sedes AS tb_sd ON (tb_sd.id_sede=far_traslado.id_sede_destino)
             INNER JOIN far_bodegas AS tb_bd ON (tb_bd.id_bodega=far_traslado.id_bodega_destino)
+            LEFT JOIN (SELECT TD.id_traslado,PP.num_pedido
+                        FROM far_traslado_detalle AS TD 
+                        INNER JOIN far_pedido_detalle AS PD ON (PD.id_ped_detalle=TD.id_ped_detalle)
+                        INNER JOIN far_pedido AS PP ON (PP.id_pedido=PD.id_pedido)
+                        GROUP BY TD.id_traslado) AS PEDIDO ON (PEDIDO.id_traslado=far_traslado.id_traslado) 
             $where_usr $where ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);
@@ -111,6 +117,9 @@ if (!empty($objs)) {
         if ($permisos->PermisosUsuario($opciones, 5008, 4) || $id_rol == 1) {
             $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         }
+        if ($permisos->PermisosUsuario($opciones, 5008, 1) || $id_rol == 1) {
+            $imprimir =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_imprimir" title="Imprimir"><span class="fas fa-print "></span></a>';
+        }
         $data[] = [
             "id_traslado" => $id,
             "num_traslado" => $obj['num_traslado'],
@@ -124,7 +133,8 @@ if (!empty($objs)) {
             "val_total" => formato_valor($obj['val_total']),
             "estado" => $obj['estado'],
             "nom_estado" => $obj['nom_estado'],
-            "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
+            "num_pedido" => $obj['num_pedido'],
+            "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];
     }
 }

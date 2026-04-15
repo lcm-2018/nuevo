@@ -101,7 +101,8 @@ try {
 	            far_orden_egreso_tipo.id_tipo_egreso,far_orden_egreso_tipo.nom_tipo_egreso,
                 far_orden_egreso.val_total,tb_sedes.nom_sede,far_bodegas.nombre AS nom_bodega,
                 far_orden_egreso.estado,
-	            CASE far_orden_egreso.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado
+	            CASE far_orden_egreso.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado,
+                EGRESO.num_pedido
             FROM far_orden_egreso
             INNER JOIN far_orden_egreso_tipo ON (far_orden_egreso_tipo.id_tipo_egreso=far_orden_egreso.id_tipo_egreso)
             INNER JOIN tb_terceros ON (tb_terceros.id_tercero=far_orden_egreso.id_cliente)
@@ -110,6 +111,11 @@ try {
             LEFT JOIN tb_sedes AS tb_sedes_area ON (tb_sedes_area.id_sede=far_centrocosto_area.id_sede)
             INNER JOIN tb_sedes ON (tb_sedes.id_sede=far_orden_egreso.id_sede)
             INNER JOIN far_bodegas ON (far_bodegas.id_bodega=far_orden_egreso.id_bodega)
+            LEFT JOIN (SELECT ED.id_egreso,PP.num_pedido
+                    FROM far_orden_egreso_detalle AS ED 
+                    INNER JOIN far_cec_pedido_detalle AS PD ON (PD.id_ped_detalle=ED.id_ped_detalle)
+                    INNER JOIN far_cec_pedido AS PP ON (PP.id_pedido=PD.id_pedido)
+                    GROUP BY ED.id_egreso) AS EGRESO ON (EGRESO.id_egreso=far_orden_egreso.id_egreso)   
             $where_usr $where ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);
@@ -155,6 +161,7 @@ if (!empty($objs)) {
             "val_total" => formato_valor($obj['val_total']),
             "estado" => $obj['estado'],
             "nom_estado" => $obj['nom_estado'],
+            "num_pedido" => $obj['num_pedido'],
             "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];
     }

@@ -66,9 +66,9 @@ try {
             FROM far_alm_pedido
             INNER JOIN tb_sedes ON (tb_sedes.id_sede=far_alm_pedido.id_sede)
             INNER JOIN far_bodegas ON (far_bodegas.id_bodega=far_alm_pedido.id_bodega)
-            LEFT JOIN (SELECT id_pedido,GROUP_CONCAT(id_ingreso) AS ingresos 
+            LEFT JOIN (SELECT id_pedido,GROUP_CONCAT(num_ingreso) AS ingresos 
                         FROM far_orden_ingreso
-                        WHERE id_pedido IS NOT NULL
+                        WHERE id_pedido IS NOT NULL AND estado=2
                         GROUP BY id_pedido
                         ) AS PEDIDO ON (PEDIDO.id_pedido=far_alm_pedido.id_pedido)
             $where ORDER BY $col $dir $limit";
