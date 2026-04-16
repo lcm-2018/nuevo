@@ -24,8 +24,7 @@
                             proceso: 'mingr',
                             id_sede: $('#id_txt_sede').val(),
                             id_bodega: $('#id_txt_nom_bod').val(),
-                            tipo: 'I',
-                            id_subgrupo: sessionStorage.getItem("id_subgrupo")
+                            es_clinico: sessionStorage.getItem("es_clinico")
                         }, function (he) {
                             $('#divTamModalBus').removeClass('modal-lg');
                             $('#divTamModalBus').removeClass('modal-sm');

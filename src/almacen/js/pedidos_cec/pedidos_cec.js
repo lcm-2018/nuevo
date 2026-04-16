@@ -467,4 +467,18 @@
         });
     });
 
+    //Imprimit un Pedido desde el formulario principal
+    $('#tb_pedidos').on('click', '.btn_imprimir', function () {
+        let id = $(this).attr('value');
+        $.post("imp_pedido.php", {
+            id: id
+        }, function (he) {
+            $('#divTamModalImp').removeClass('modal-sm');
+            $('#divTamModalImp').removeClass('modal-lg');
+            $('#divTamModalImp').addClass('modal-xl');
+            $('#divModalImp').modal('show');
+            $("#divImp").html(he);
+        });
+    });
+
 })(jQuery);

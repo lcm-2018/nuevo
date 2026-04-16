@@ -25,7 +25,7 @@
                             proceso: 'mtras',
                             id_sede: $('#sl_sede_origen').val(),
                             id_bodega: $('#sl_bodega_origen').val(),
-                            id_subgrupo: sessionStorage.getItem("id_subgrupo")
+                            es_clinico: sessionStorage.getItem("es_clinico")
                         }, function (he) {
                             $('#divTamModalBus').removeClass('modal-lg');
                             $('#divTamModalBus').removeClass('modal-sm');

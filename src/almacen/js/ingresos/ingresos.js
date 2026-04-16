@@ -693,4 +693,18 @@
         });
     });
 
+    //Imprimit una Orden de Ingreso desde el formulario principal
+    $('#tb_ingresos').on('click', '.btn_imprimir', function () {
+        let id = $(this).attr('value');
+        $.post("imp_ingreso.php", {
+            id: id
+        }, function (he) {
+            $('#divTamModalImp').removeClass('modal-sm');
+            $('#divTamModalImp').removeClass('modal-lg');
+            $('#divTamModalImp').addClass('modal-xl');
+            $('#divModalImp').modal('show');
+            $("#divImp").html(he);
+        });
+    });
+
 })(jQuery);

@@ -29,6 +29,9 @@ if ($_POST['proceso'] == "pspsr") {           //Pedido SPSR
 }
 
 $where = $where_gen;
+if (isset($_POST['es_clinico']) && strlen($_POST['es_clinico']))  {
+    $where .= " AND far_medicamentos.es_clinico=" . $_POST['es_clinico'];
+}
 if (isset($_POST['id_subgrupo']) && $_POST['id_subgrupo']) {
     $where .= " AND far_medicamentos.id_subgrupo=" . $_POST['id_subgrupo'];
 }

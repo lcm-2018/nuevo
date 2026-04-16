@@ -49,7 +49,7 @@ try {
             INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_lote = far_traslado_r_detalle.id_lote_origen)
             INNER JOIN far_medicamentos ON (far_medicamentos.id_med = far_medicamento_lote.id_med)
             INNER JOIN acf_marca ON (acf_marca.id=far_medicamento_lote.id_marca)
-            WHERE far_traslado_r_detalle.id_traslado=" . $id . " ORDER BY far_traslado_r_detalle.id_tra_detalle";
+            WHERE far_traslado_r_detalle.id_traslado=" . $id . " ORDER BY far_medicamentos.nom_medicamento";
     $rs = $cmd->query($sql);
     $obj_ds = $rs->fetchAll();
     $rs->closeCursor();

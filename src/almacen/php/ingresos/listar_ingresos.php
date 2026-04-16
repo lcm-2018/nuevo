@@ -73,6 +73,7 @@ try {
                 tb_terceros.nom_tercero,far_orden_ingreso_tipo.nom_tipo_ingreso,far_orden_ingreso.val_total,
                 tb_sedes.nom_sede,far_bodegas.nombre AS nom_bodega,far_orden_ingreso.estado,
 	            CASE far_orden_ingreso.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado,
+                far_orden_ingreso.creado_far,
                 far_alm_pedido.num_pedido
             FROM far_orden_ingreso
             INNER JOIN far_orden_ingreso_tipo ON (far_orden_ingreso_tipo.id_tipo_ingreso=far_orden_ingreso.id_tipo_ingreso)
@@ -97,12 +98,16 @@ $data = [];
 if (!empty($objs)) {
     foreach ($objs as $obj) {
         $id = $obj['id_ingreso'];
+        $creado_far = $obj['creado_far'];
         //Permite crear botones en la cuadricula si tiene permisos de 1-Consultar,2-Crear,3-Editar,4-Eliminar,5-Anular,6-Imprimir
-        if ($permisos->PermisosUsuario($opciones, 5006, 3) || $id_rol == 1) {
+        if (($permisos->PermisosUsuario($opciones, 5006, 3) || $id_rol == 1) && $creado_far == 0) {
             $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
         }
-        if ($permisos->PermisosUsuario($opciones, 5006, 4) || $id_rol == 1) {
+        if (($permisos->PermisosUsuario($opciones, 5006, 4) || $id_rol == 1) && $creado_far == 0) {
             $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
+        }
+        if ($permisos->PermisosUsuario($opciones, 5006, 1) || $id_rol == 1) {
+            $imprimir =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_imprimir" title="Imprimir"><span class="fas fa-print "></span></a>';
         }
         $data[] = [
             "id_ingreso" => $id,
@@ -120,7 +125,7 @@ if (!empty($objs)) {
             "estado" => $obj['estado'],
             "nom_estado" => $obj['nom_estado'],
             "num_pedido" => $obj['num_pedido'],
-            "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
+            "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];
     }
 }

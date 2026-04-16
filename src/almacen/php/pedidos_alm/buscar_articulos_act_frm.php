@@ -9,7 +9,7 @@ include '../common/cargar_combos.php';
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
-$id_subgrupo = isset($_POST['id_subgrupo']) ? $_POST['id_subgrupo'] : 0;
+$es_clinico = isset($_POST['es_clinico']) ? $_POST['es_clinico'] : 0;
 
 ?>
 <div class="px-0">
@@ -23,10 +23,15 @@ $id_subgrupo = isset($_POST['id_subgrupo']) ? $_POST['id_subgrupo'] : 0;
             <form id="frm_buscar_articulos">
                 <div class="row mb-2">
                     <div class="col-md-2">
-                        <select class="form-select form-select-sm bg-input" id="sl_subgrupo_art_fil">
-                            <?php subgrupo_articulo($cmd, '--Subgrupo--', $id_subgrupo) ?>
+                        <select class="filtro_art form-select form-select-sm bg-input" id="sl_clinico_fil">
+                            <?php tipo_insumo('--Tipo Insumo--', $es_clinico); ?>
                         </select>
                     </div>
+                    <div class="col-md-2">
+                        <select class="filtro_art form-select form-select-sm bg-input" id="sl_subgrupo_art_fil">
+                            <?php subgrupo_articulo($cmd, '--Subgrupo--', 0) ?>
+                        </select>
+                    </div>                    
                     <div class="col-md-2">
                         <input type="text" class="filtro_art form-control form-control-sm bg-input" id="txt_codigo_art_fil" placeholder="Codigo">
                     </div>
@@ -81,6 +86,7 @@ $id_subgrupo = isset($_POST['id_subgrupo']) ? $_POST['id_subgrupo'] : 0;
                     type: 'POST',
                     dataType: 'json',
                     data: function(data) {
+                        data.es_clinico = $('#sl_clinico_fil').val();
                         data.id_subgrupo = $('#sl_subgrupo_art_fil').val();
                         data.codigo = $('#txt_codigo_art_fil').val();
                         data.nombre = $('#txt_nombre_art_fil').val();
@@ -139,7 +145,8 @@ $id_subgrupo = isset($_POST['id_subgrupo']) ? $_POST['id_subgrupo'] : 0;
         $('#tb_articulos_activos').DataTable().ajax.reload(null, false);        
     });
 
-    $('#sl_subgrupo_art_fil').on("change", function() {
-        sessionStorage.setItem("id_subgrupo", $(this).val());
+    $('#sl_clinico_fil').on("change", function() {
+        sessionStorage.setItem("es_clinico", $(this).val());
     });
+
 </script>

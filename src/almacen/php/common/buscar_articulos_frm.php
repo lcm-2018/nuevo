@@ -10,7 +10,8 @@ include '../common/cargar_combos.php';
 $cmd = \Config\Clases\Conexion::getConexion();
 
 $proceso = isset($_POST['proceso']) && $_POST['proceso'] ? $_POST['proceso'] : '';
-$id_subgrupo = isset($_POST['id_subgrupo']) ? $_POST['id_subgrupo'] : 0;
+$es_clinico = isset($_POST['es_clinico']) ? $_POST['es_clinico'] : 0;
+
 $id_sede = isset($_POST['id_sede']) ? $_POST['id_sede'] : -1;
 $id_bodega = isset($_POST['id_bodega']) && $_POST['id_bodega'] ? $_POST['id_bodega'] : -1;
 
@@ -35,37 +36,40 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
                 <div class="row mb-2">
                     <div class="col-md-3">
                         <input type="text" class="form-control form-control-sm bg-input" class="small" value="<?php echo $nom_bodega ?>" readonly="readonly">
+                    </div>  
+                    <div class="col-md-2">
+                        <select class="filtro_art form-select form-select-sm bg-input" id="sl_clinico_fil">
+                            <?php tipo_insumo('--Tipo Insumo--', $es_clinico); ?>
+                        </select>
+                    </div>                  
+                    <div class="col-md-2">
+                        <select class="filtro_art form-select form-select-sm bg-input" id="sl_subgrupo_art_fil">
+                            <?php subgrupo_articulo($cmd, '--Subgrupo--', 0) ?>
+                        </select>
+                    </div>                    
+                    <div class="col-md-2">
+                        <input type="text" class="filtro_art form-control form-control-sm bg-input" id="txt_codigo_art_fil" placeholder="Codigo">
                     </div>
                     <div class="col-md-2">
-                        <select class="form-select form-select-sm bg-input" id="sl_subgrupo_art_fil">
-                            <?php subgrupo_articulo($cmd, '--Subgrupo--', $id_subgrupo) ?>
-                        </select>
+                        <input type="text" class="filtro_art form-control form-control-sm bg-input" id="txt_nombre_art_fil" placeholder="Nombre">
                     </div>
-                    <div class="col-md-7">
-                        <div class="row mb-2">
-                            <div class="col-md-2">
-                                <input type="text" class="filtro_art form-control form-control-sm bg-input" id="txt_codigo_art_fil" placeholder="Codigo">
-                            </div>
-                            <div class="col-md-3">
-                                <input type="text" class="filtro_art form-control form-control-sm bg-input" id="txt_nombre_art_fil" placeholder="Nombre">
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-control form-control-sm bg-input">
-                                    <input class="filtro_art form-check-input" type="checkbox" id="chk_novencido_lot_fil" checked>
-                                    <label class="filtro_art form-check-label small" for="chk_novencido_lot_fil">NO Vencidos</label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-control form-control-sm bg-input">
-                                    <input class="filtro_art form-check-input" type="checkbox" id="chk_conexistencia_lot_fil" checked>
-                                    <label class="filtro_art form-check-label small" for="chk_conexistencia_lot_fil">Con Existencias</label>
-                                </div>
-                            </div>
-                            <div class="col-md-1">
-                                <button type="button" id="btn_buscar_articulo_fil" class="btn btn-outline-success btn-sm" title="Filtrar">
-                                    <span class="fas fa-search fa-lg" aria-hidden="true"></span>
-                                </button>
-                            </div>
+                    <div class="col-md-1">
+                        <button type="button" id="btn_buscar_articulo_fil" class="btn btn-outline-success btn-sm" title="Filtrar">
+                            <span class="fas fa-search fa-lg" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </div>            
+                <div class="row mb-2">
+                    <div class="col-md-2">
+                        <div class="form-control form-control-sm bg-input">
+                            <input class="filtro_art form-check-input" type="checkbox" id="chk_novencido_lot_fil" checked>
+                            <label class="filtro_art form-check-label small" for="chk_novencido_lot_fil">NO Vencidos</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-control form-control-sm bg-input">
+                            <input class="filtro_art form-check-input" type="checkbox" id="chk_conexistencia_lot_fil" checked>
+                            <label class="filtro_art form-check-label small" for="chk_conexistencia_lot_fil">Con Existencias</label>
                         </div>
                     </div>
                 </div>
@@ -109,6 +113,7 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
                         data.proceso = $('#proceso_fil').val();
                         data.id_sede = $('#id_sede_fil').val();
                         data.id_bodega = $('#id_bodega_fil').val();
+                        data.es_clinico = $('#sl_clinico_fil').val();
                         data.id_subgrupo = $('#sl_subgrupo_art_fil').val();
                         data.codigo = $('#txt_codigo_art_fil').val();
                         data.nombre = $('#txt_nombre_art_fil').val();
@@ -171,7 +176,8 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
         $('#tb_articulos_bodega').DataTable().ajax.reload(null, false);
     });
 
-    $('#sl_subgrupo_art_fil').on("change", function() {
-        sessionStorage.setItem("id_subgrupo", $(this).val());
+    $('#sl_clinico_fil').on("change", function() {
+        sessionStorage.setItem("es_clinico", $(this).val());
     });
+
 </script>

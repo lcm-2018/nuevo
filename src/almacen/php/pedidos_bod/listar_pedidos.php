@@ -83,6 +83,7 @@ try {
                 SPRO.nom_sede AS nom_sede_provee,BPRO.nombre AS nom_bodega_provee,                    
                 far_pedido.val_total,far_pedido.estado,
                 CASE far_pedido.estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CONFIRMADO' WHEN 3 THEN 'FINALIZADO' END AS nom_estado,
+                far_pedido.creado_far,
                 PEDIDO.traslados
             FROM far_pedido             
             INNER JOIN tb_sedes AS SSOL ON (SSOL.id_sede = far_pedido.id_sede_destino)
@@ -113,11 +114,13 @@ $data = [];
 if (!empty($objs)) {
     foreach ($objs as $obj) {
         $id = $obj['id_pedido'];
+        $creado_far = $obj['creado_far'];
+
         //Permite crear botones en la cuadricula si tiene permisos de 3-Editar,4-Eliminar
-        if ($permisos->PermisosUsuario($opciones, 5003, 3) || $id_rol == 1) {
+        if (($permisos->PermisosUsuario($opciones, 5003, 3) || $id_rol == 1) && $creado_far == 0) {
             $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
         }
-        if ($permisos->PermisosUsuario($opciones, 5003, 4) || $id_rol == 1) {
+        if (($permisos->PermisosUsuario($opciones, 5003, 4) || $id_rol == 1) && $creado_far == 0) {
             $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         }
         if ($permisos->PermisosUsuario($opciones, 5003, 1) || $id_rol == 1) {

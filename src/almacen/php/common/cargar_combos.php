@@ -486,6 +486,15 @@ function estados_sino($titulo = '', $estado = -1)
     echo '<option value="0"' . $selected . '>NO</option>';
 }
 
+function tipo_insumo($titulo = '', $estado = -1)
+{
+    echo '<option value="">' . $titulo . '</option>';
+    $selected = ($estado == 1) ? 'selected="selected"' : '';
+    echo '<option value="1"' . $selected . '>Insumo Asistenciales</option>';
+    $selected = ($estado == 0) ? 'selected="selected"' : '';
+    echo '<option value="0"' . $selected . '>Insumo Administrativos</option>';
+}
+
 function modulo_origen($titulo = '', $estado = -1)
 {
     echo '<option value="">' . $titulo . '</option>';
