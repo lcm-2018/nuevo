@@ -46,37 +46,43 @@ $id_api_comfam = $kpf !== false ? $parafiscales[$kpf]['id_tercero_api'] : exit('
 $Detalles = new Detalles();
 $Nomina = new Nomina();
 
-$datos = $Detalles->getAporteSocial($id_nomina);
+$datos = $Detalles->getAporteSocialCcosto($id_nomina);
 $nomina = $Nomina->getRegistro($id_nomina);
 
-// Agrupar aportes por cargo y tipo
+// Agrupar aportes por cargo (para presupuesto/Admin-Oper) y por centro de costo (para contabilidad)
 // Para parafiscales: valores simples
 // Para seguridad social (eps, arl, afp): arrays por ID de entidad
 $admin = [];
 $oper = [];
+$totales = []; // Totales por centro de costo -> entidad
 
 foreach ($datos as $row) {
     $cargo = $row['cargo']; // 'admin' o 'oper'
     $tipo = $row['tipo']; // 'eps', 'arl', 'afp', 'sena', 'icbf', 'caja'
     $id_entidad = $row['id']; // ID de la entidad (EPS, ARL, AFP, etc.)
-    $valor = $row['valor'];
+    $valor = $row['valor']; // Valor de la empresa
+    $ccosto = $row['id_ccosto']; // Nuevo campo de centro de costo
 
+    // 1. Agrupar presupuesto global (admin/oper)
     if ($cargo == 'admin') {
         if (in_array($tipo, ['eps', 'arl', 'afp'])) {
-            // Para seguridad social, agrupar por ID de entidad
             $admin[$tipo][$id_entidad] = ($admin[$tipo][$id_entidad] ?? 0) + $valor;
         } else {
-            // Para parafiscales, sumar directamente
             $admin[$tipo] = ($admin[$tipo] ?? 0) + $valor;
         }
     } else { // 'oper'
         if (in_array($tipo, ['eps', 'arl', 'afp'])) {
-            // Para seguridad social, agrupar por ID de entidad
             $oper[$tipo][$id_entidad] = ($oper[$tipo][$id_entidad] ?? 0) + $valor;
         } else {
-            // Para parafiscales, sumar directamente
             $oper[$tipo] = ($oper[$tipo] ?? 0) + $valor;
         }
+    }
+
+    // 2. Agrupar por centro de costo para asientos contables (libaux)
+    if (in_array($tipo, ['eps', 'arl', 'afp'])) {
+        $totales[$ccosto][$tipo][$id_entidad] = ($totales[$ccosto][$tipo][$id_entidad] ?? 0) + $valor;
+    } else {
+        $totales[$ccosto][$tipo] = ($totales[$ccosto][$tipo] ?? 0) + $valor;
     }
 }
 
@@ -138,76 +144,8 @@ try {
     exit();
 }
 
-// Obtener centros de costo por empleado y tipo de cargo
-try {
-    $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT 
-                `nls`.`id_empleado`
-                , IFNULL(`ncc`.`id_ccosto`, 21) AS `id_ccosto`
-                , `nca`.`tipo_cargo`
-                , `nlse`.`id_eps`
-                , `nlse`.`id_arl`
-                , `nlse`.`id_afp`
-            FROM 
-                `nom_liq_salario` AS `nls`
-                INNER JOIN `nom_contratos_empleados` AS `nce`
-                    ON `nce`.`id_contrato_emp` = `nls`.`id_contrato`
-                INNER JOIN `nom_cargo_empleado` AS `nca`
-                    ON `nca`.`id_cargo` = `nce`.`id_cargo`
-                LEFT JOIN `nom_ccosto_empleado` AS `ncc`
-                    ON `nls`.`id_empleado` = `ncc`.`id_empleado`
-                LEFT JOIN `nom_liq_segsocial_empdo` AS `nlse`
-                    ON `nlse`.`id_empleado` = `nls`.`id_empleado` 
-                    AND `nlse`.`id_nomina` = `nls`.`id_nomina` 
-                    AND `nlse`.`estado` = 1
-            WHERE 
-                `nls`.`id_nomina` = $id_nomina AND `nls`.`estado` = 1";
-    $rs = $cmd->query($sql);
-    $empleados_ccosto = $rs->fetchAll(PDO::FETCH_ASSOC);
-    $rs->closeCursor();
-    unset($rs);
-    $cmd = null;
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
-    exit();
-}
-
-// Reconstruir totales por centro de costo usando los datos de getAporteSocial()
-$totales = [];
-foreach ($datos as $row) {
-    // Buscar el centro de costo para este empleado y tipo de aporte
-    foreach ($empleados_ccosto as $emp) {
-        $tipo_cargo_calc = $emp['tipo_cargo'] == 1 ? 'admin' : 'oper';
-
-        // Determinar si este registro corresponde a este empleado
-        $coincide = false;
-        if ($row['tipo'] == 'eps' && $emp['id_eps'] == $row['id'] && $row['cargo'] == $tipo_cargo_calc) {
-            $coincide = true;
-        } elseif ($row['tipo'] == 'arl' && $emp['id_arl'] == $row['id'] && $row['cargo'] == $tipo_cargo_calc) {
-            $coincide = true;
-        } elseif ($row['tipo'] == 'afp' && $emp['id_afp'] == $row['id'] && $row['cargo'] == $tipo_cargo_calc) {
-            $coincide = true;
-        } elseif (in_array($row['tipo'], ['sena', 'icbf', 'caja']) && $row['cargo'] == $tipo_cargo_calc) {
-            $coincide = true;
-        }
-
-        if ($coincide) {
-            $ccosto = $emp['id_ccosto'];
-            $tipo = $row['tipo'];
-
-            if (in_array($tipo, ['eps', 'arl', 'afp'])) {
-                // Para seguridad social, agrupar por ID de entidad
-                $id_entidad = $row['id'];
-                $totales[$ccosto][$tipo][$id_entidad] = ($totales[$ccosto][$tipo][$id_entidad] ?? 0) + $row['valor'];
-            } else {
-                // Para parafiscales (caja, icbf, sena)
-                $totales[$ccosto][$tipo] = ($totales[$ccosto][$tipo] ?? 0) + $row['valor'];
-            }
-            break; // Ya encontramos el empleado, salir del bucle
-        }
-    }
-}
-
+// [El bloque manual de extracción de centros de costo ha sido eliminado, 
+// ya que 'getAporteSocialCcosto' consolida los datos correctamente en la parte superior].
 // Obtener relación de rubros
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -278,26 +216,6 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
     exit();
 }
-
-// Configuración de constantes
-$meses = array(
-    '00' => '',
-    '01' => 'Enero',
-    '02' => 'Febrero',
-    '03' => 'Marzo',
-    '04' => 'Abril',
-    '05' => 'Mayo',
-    '06' => 'Junio',
-    '07' => 'Julio',
-    '08' => 'Agosto',
-    '09' => 'Septiembre',
-    '10' => 'Octubre',
-    '11' => 'Noviembre',
-    '12' => 'Diciembre'
-);
-
-$mes = $nomina['mes'] != '' ? $nomina['mes'] : '00';
-$nom_mes = isset($meses[$mes]) ? 'MES DE ' . mb_strtoupper($meses[$mes]) : '';
 
 // Mapa entre id_tipo → clave usada en admin/oper
 $map = [

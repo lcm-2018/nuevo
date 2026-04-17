@@ -55,12 +55,14 @@
             $('body').append(form);
             form.submit();
 
-            // Ocultar overlay después de un breve delay (tiempo para que inicie la descarga)
+            // Ocultar overlay después de un breve delay
+            // ATENCIÓN: No eliminamos el iframe ni el form. Un reporte de un año entero puede 
+            // tardar 10-20 segundos. Si removemos el iframe a los 2 segundos, el navegador cancela la descarga en silencio.
             setTimeout(function () {
                 ocultarOverlay();
-                form.remove();
-                iframe.remove();
-            }, 2000); // 2 segundos es suficiente para que inicie la descarga
+                // form.remove();
+                // iframe.remove();
+            }, 3000);
         }
     });
 })(jQuery);

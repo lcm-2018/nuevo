@@ -1,6 +1,7 @@
 <?php
 session_start();
 ini_set("memory_limit", "-1");
+ini_set("max_execution_time", "0");
 if (!isset($_SESSION['user'])) {
     header('Location: ../../index.php');
     exit();
@@ -31,7 +32,9 @@ if ($id_tipo_doc > 0) {
 $datos_sedes = obtenerSedesActivas($cmd);
 $sedes = $datos_sedes['sedes'];
 $sede_principal = $datos_sedes['sede_principal'];
-$bd_principal = !empty($sede_principal['bd_sede']) ? $sede_principal['bd_sede'] : null;
+
+// Optimo para cualquier hospital: Obtiene el nombre de la base de datos a la que se conectó la Clase Conexion
+$bd_principal = $cmd->query("SELECT DATABASE()")->fetchColumn();
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -101,6 +104,13 @@ try {
     // Abrir salida directa
     $output = fopen("php://output", "w");
 
+    // Escribir encabezados generales del reporte SIEMPRE (para evitar que descargue un archivo vacío si no hay datos)
+    fputcsv($output, ["ENTIDAD", $razhd]);
+    fputcsv($output, ["NIT", $nithd]);
+    fputcsv($output, ["REPORTE", "LIBROS AUXILIARES"]);
+    fputcsv($output, ["FECHA INICIAL", $fec_ini]);
+    fputcsv($output, ["FECHA FINAL", $fec_fin]);
+
     $cmd = \Config\Clases\Conexion::getConexion();
     foreach ($obj_cuentas as $obj_c) {
         // Array para consolidar movimientos de todas las sedes
@@ -109,13 +119,19 @@ try {
 
         // Iterar sobre todas las sedes activas
         foreach ($sedes as $sede) {
-            // Usar conexión actual para la sede principal, conectar para las demás
+            // Usar conexión actual para la sede principal
             if ($sede['es_principal'] == 1) {
                 $cmd_sede = $cmd;
                 if (!empty($bd_principal)) {
                     $cmd_sede->exec("USE `{$bd_principal}`");
                 }
             } else {
+                // Si la sede no tiene bd o es la misma que la principal, la omitimos.
+                // Sus datos ya vendrán en la consulta de la bd principal porque comparten la misma base de datos.
+                if (empty($sede['bd_sede']) || $sede['bd_sede'] == $bd_principal) {
+                    continue;
+                }
+
                 $cmd_sede = conectarSede($sede['bd_sede']);
                 if ($cmd_sede === null) {
                     error_log("No se pudo conectar a la sede {$sede['nom_sede']} para el libro de bancos Excel");
@@ -177,10 +193,10 @@ try {
                 $rs->bindValue(':fec_fin', $fec_fin, PDO::PARAM_STR);
                 $rs->bindValue(':cuenta', $obj_c['cuenta'] . '%', PDO::PARAM_STR);
                 if ($id_tercero > 0) {
-                    $rs->bindValue(':id_tercero', $id_tercero, PDO::PARAM_INT);
+                    // No need to bind, it's injected directly in the string
                 }
                 if ($id_tipo_doc > 0) {
-                    $rs->bindValue(':id_tipo_doc', $id_tipo_doc, PDO::PARAM_INT);
+                    // No need to bind, it's injected directly in the string
                 }
                 $rs->execute();
                 $movimientos_sede = $rs->fetchAll();
@@ -251,8 +267,8 @@ try {
         });
 
 
-        // Si no hay movimientos en esta cuenta, continuar con la siguiente
-        if (empty($obj_informe)) {
+        // Si no hay movimientos en esta cuenta Y TAMPOCO tiene saldo inicial, omitimos la cuenta
+        if (empty($obj_informe) && $saldos_iniciales['filas'] == 0) {
             continue;
         }
 
@@ -275,15 +291,7 @@ try {
             $total_cre = 0;
         }
 
-        // (opcional) Escribir encabezados del CSV
-        if ($reg == 0) {
-            $reg++;
-            fputcsv($output, ["ENTIDAD", $razhd]);
-            fputcsv($output, ["NIT", $nithd]);
-            fputcsv($output, ["REPORTE", "LIBROS AUXILIARES"]);
-            fputcsv($output, ["FECHA INICIAL", $fec_ini]);
-            fputcsv($output, ["FECHA FINAL", $fec_fin]);
-        }
+        // (Los encabezados generales fueron movidos fuera de este ciclo)
         $reg++;
         fputcsv($output, ["CUENTA", strval($obj_c['cuenta'] . ' - ' . $obj_c['nombre'])]);
         fputcsv($output, []);

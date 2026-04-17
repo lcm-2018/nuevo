@@ -2305,6 +2305,91 @@ class Detalles
         return !empty($datos) ? $datos : [];
     }
 
+    /**
+     * Obtiene los aportes de seguridad social y parafiscales distribuidos por los centros de costo de los empleados
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array
+     */
+    public function getAporteSocialCcosto($id_nomina)
+    {
+        $sql = "SELECT
+                    IF(`nca`.`tipo_cargo` = 1,'admin','oper') AS `cargo`,
+                    IFNULL(`cce`.`id_ccosto`, 21) AS `id_ccosto`,
+                    CASE `tipo_valor`.`tipo`
+                    WHEN 1 THEN 'eps'
+                        WHEN 2 THEN 'afp'
+                        WHEN 3 THEN 'arl'
+                        WHEN 4 THEN 'sena'
+                        WHEN 5 THEN 'icbf'
+                        WHEN 6 THEN 'caja'
+                        ELSE 'otro'
+                    END AS `tipo`,
+                    CASE `tipo_valor`.`tipo`
+                        WHEN 1 THEN `nlse`.`id_eps`
+                        WHEN 2 THEN `nlse`.`id_afp`
+                        WHEN 3 THEN `nlse`.`id_arl`
+                        ELSE 1
+                    END AS `id`,
+                    SUM((CASE `tipo_valor`.`tipo`
+                            WHEN 1 THEN `nlse`.`aporte_salud_empresa`
+                            WHEN 2 THEN `nlse`.`aporte_pension_empresa`
+                            WHEN 3 THEN `nlse`.`aporte_rieslab`
+                            WHEN 4 THEN `nlp`.`val_sena`
+                            WHEN 5 THEN `nlp`.`val_icbf`
+                            WHEN 6 THEN `nlp`.`val_comfam`
+                        END) / IFNULL(`cce`.`cant_ccosto`, 1)) AS `valor`,
+                    SUM((CASE `tipo_valor`.`tipo`
+                            WHEN 1 THEN `nlse`.`aporte_salud_emp`
+                            WHEN 2 THEN `nlse`.`aporte_pension_emp` + IFNULL(`nlse`.`aporte_solidaridad_pensional`, 0)
+                            ELSE 0
+                        END) / IFNULL(`cce`.`cant_ccosto`, 1)) AS `valor_emp`
+                FROM 
+                    `nom_liq_salario` AS `nls`
+                    INNER JOIN `nom_contratos_empleados` AS `nce`
+                        ON `nce`.`id_contrato_emp` = `nls`.`id_contrato`
+                    INNER JOIN `nom_cargo_empleado` AS `nca`
+                        ON `nca`.`id_cargo` = `nce`.`id_cargo`
+                    LEFT JOIN (
+                        SELECT t1.id_empleado, t1.id_ccosto, t2.cant_ccosto
+                        FROM `nom_ccosto_empleado` t1
+                        INNER JOIN (
+                            SELECT id_empleado, COUNT(id_ccosto) AS cant_ccosto
+                            FROM `nom_ccosto_empleado`
+                            GROUP BY id_empleado
+                        ) t2 ON t1.id_empleado = t2.id_empleado
+                    ) AS `cce`
+                        ON `cce`.`id_empleado` = `nls`.`id_empleado`
+                    LEFT JOIN `nom_liq_segsocial_empdo` AS `nlse`
+                        ON `nlse`.`id_empleado` = `nls`.`id_empleado` AND `nlse`.`id_nomina` = `nls`.`id_nomina` AND `nlse`.`estado` = 1
+                    LEFT JOIN `nom_liq_parafiscales` AS `nlp`
+                        ON `nlp`.`id_empleado` = `nls`.`id_empleado` AND `nlp`.`id_nomina` = `nls`.`id_nomina` AND `nlp`.`estado` = 1
+                    CROSS JOIN (
+                        SELECT 1 AS `tipo` UNION ALL SELECT 2 UNION ALL SELECT 3 
+                        UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6
+                    ) AS `tipo_valor`
+                WHERE 
+                    `nls`.`id_nomina` = :id_nomina AND `nls`.`estado` = 1
+                    AND ((`tipo_valor`.`tipo` IN (1, 2, 3) AND `nlse`.`id_empleado` IS NOT NULL)
+                        OR (`tipo_valor`.`tipo` IN (4, 5, 6) AND `nlp`.`id_empleado` IS NOT NULL))
+                GROUP BY 
+                    `tipo_valor`.`tipo`, `nca`.`tipo_cargo`, IFNULL(`cce`.`id_ccosto`, 21),
+                    CASE `tipo_valor`.`tipo`
+                        WHEN 1 THEN `nlse`.`id_eps`
+                        WHEN 2 THEN `nlse`.`id_afp`
+                        WHEN 3 THEN `nlse`.`id_arl`
+                        ELSE 1
+                    END
+                ORDER BY IFNULL(`cce`.`id_ccosto`, 21) ASC, `nca`.`tipo_cargo` ASC, `tipo_valor`.`tipo` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($datos) ? $datos : [];
+    }
+
     public function getDetalleOtrosDevengados($id_empleado, $id_nomina)
     {
         $sql = "SELECT
