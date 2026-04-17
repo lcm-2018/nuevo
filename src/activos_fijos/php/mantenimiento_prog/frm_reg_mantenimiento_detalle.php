@@ -29,7 +29,7 @@ $editar = in_array($obj['estado'], [1, 2]) && $id_md != -1 && in_array($obj['est
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center bg-sofia">
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
             <h5 class="text-white mb-0">OBSERVACIÓN DE FINALIZACIÓN DE MANTENIMIENTO</h5>
         </div>
         <div class="p-2">

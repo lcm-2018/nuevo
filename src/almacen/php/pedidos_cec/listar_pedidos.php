@@ -91,11 +91,11 @@ try {
             INNER JOIN tb_centrocostos ON (tb_centrocostos.id_centro = far_cec_pedido.id_cencosto)      
             INNER JOIN tb_sedes ON (tb_sedes.id_sede = far_cec_pedido.id_sede)
             INNER JOIN far_bodegas ON (far_bodegas.id_bodega = far_cec_pedido.id_bodega)   
-            LEFT JOIN (SELECT PPD.id_pedido,GROUP_CONCAT(DISTINCT EE.id_egreso) AS egresos
+            LEFT JOIN (SELECT PPD.id_pedido,GROUP_CONCAT(DISTINCT EE.num_egreso) AS egresos
                         FROM far_orden_egreso_detalle AS EED
                         INNER JOIN far_orden_egreso AS EE ON (EE.id_egreso=EED.id_egreso)
                         INNER JOIN far_cec_pedido_detalle AS PPD ON (PPD.id_ped_detalle=EED.id_ped_detalle)
-                        WHERE EE.estado<>0 
+                        WHERE EE.estado=2
                         GROUP BY PPD.id_pedido
                         ) AS PEDIDO ON (PEDIDO.id_pedido=far_cec_pedido.id_pedido)
             $where_usr $where ORDER BY $col $dir $limit";
@@ -122,6 +122,9 @@ if (!empty($objs)) {
         if ($permisos->PermisosUsuario($opciones, 5004, 4) || $id_rol == 1) {
             $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         }
+        if ($permisos->PermisosUsuario($opciones, 5003, 1) || $id_rol == 1) {
+            $imprimir =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_imprimir" title="Imprimir"><span class="fas fa-print "></span></a>';
+        }
         $data[] = [
             "id_pedido" => $id,
             "num_pedido" => $obj['num_pedido'],
@@ -135,7 +138,7 @@ if (!empty($objs)) {
             "estado" => $obj['estado'],
             "nom_estado" => $obj['nom_estado'],
             "egresos" => $obj['egresos'],
-            "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
+            "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];
     }
 }

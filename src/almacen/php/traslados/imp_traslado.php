@@ -20,14 +20,20 @@ try {
             CASE far_traslado.estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' END AS estado,
             CASE far_traslado.estado WHEN 0 THEN far_traslado.fec_anulacion WHEN 1 THEN far_traslado.fec_creacion WHEN 2 THEN far_traslado.fec_cierre END AS fec_estado,
             CONCAT_WS(' ',usr.nombre1,usr.nombre2,usr.apellido1,usr.apellido2) AS usr_cierra,
-            usr.descripcion AS usr_perfil,usr.nom_firma
+            usr.descripcion AS usr_perfil,usr.nom_firma,
+            PEDIDO.num_pedido
         FROM far_traslado       
         INNER JOIN tb_sedes AS tb_so ON (tb_so.id_sede=far_traslado.id_sede_origen)
         INNER JOIN far_bodegas AS tb_bo ON (tb_bo.id_bodega=far_traslado.id_bodega_origen)
         INNER JOIN tb_sedes AS tb_sd ON (tb_sd.id_sede=far_traslado.id_sede_destino)
         INNER JOIN far_bodegas AS tb_bd ON (tb_bd.id_bodega=far_traslado.id_bodega_destino)
         LEFT JOIN seg_usuarios_sistema AS usr ON (usr.id_usuario=far_traslado.id_usr_cierre)
-        WHERE id_traslado=" . $id . " LIMIT 1";
+        LEFT JOIN (SELECT TD.id_traslado,PP.num_pedido
+                    FROM far_traslado_detalle AS TD 
+                    INNER JOIN far_pedido_detalle AS PD ON (PD.id_ped_detalle=TD.id_ped_detalle)
+                    INNER JOIN far_pedido AS PP ON (PP.id_pedido=PD.id_pedido)
+                    GROUP BY TD.id_traslado) AS PEDIDO ON (PEDIDO.id_traslado=far_traslado.id_traslado)    
+        WHERE far_traslado.id_traslado=" . $id . " LIMIT 1";
     $rs = $cmd->query($sql);
     $obj_e = $rs->fetch();
 
@@ -87,8 +93,9 @@ try {
             <td>No. Traslado</td>
             <td>Fecha Traslado</td>
             <td>Hora Traslado</td>
-            <td>Estado</td>
-            <td>Fecha Estado</td>
+            <td>Estado Traslado</td>
+            <td>Fecha Estado Traslado</td>
+            <td>No. Pedido</td>
         </tr>
         <tr>
             <td><?php echo $obj_e['id_traslado']; ?></td>
@@ -97,22 +104,24 @@ try {
             <td><?php echo $obj_e['hor_traslado']; ?></td>
             <td><?php echo $obj_e['estado']; ?></td>
             <td><?php echo $obj_e['fec_estado']; ?></td>
+            <td><?php echo $obj_e['num_pedido']; ?></td>
         </tr>
         <tr style="background-color:#CED3D3; border:#A9A9A9 1px solid">
             <td colspan="3">Sede y Bodega Origen</td>
-            <td colspan="3">Sede y Bodega Destino (De donde se solicita)</td>
+            <td colspan="4">Sede y Bodega Destino (De donde se solicita)</td>
         </tr>
         <tr>
             <td colspan="2"><?php echo $obj_e['nom_sede_origen']; ?></td>
             <td><?php echo $obj_e['nom_bodega_origen']; ?></td>
             <td colspan="2"><?php echo $obj_e['nom_sede_destino']; ?></td>
             <td><?php echo $obj_e['nom_bodega_destino']; ?></td>
+            <td></td>
         </tr>
         <tr style="background-color:#CED3D3; border:#A9A9A9 1px solid">
-            <td colspan="6">Detalle</td>
+            <td colspan="7">Detalle</td>
         </tr>
         <tr>
-            <td colspan="6"><?php echo $obj_e['detalle']; ?></td>
+            <td colspan="7"><?php echo $obj_e['detalle']; ?></td>
         </tr>
     </table>
 
@@ -170,7 +179,9 @@ try {
                 <div><?php echo $obj_e['usr_perfil']; ?></div>
             </td>
             <td style="vertical-align: top">
-                <div>-------------------------------------------------</div>
+                <div>Firma: ---------------------------------------------------</div>                
+                <div>Nombre: -------------------------------------------------</div>
+                <div>Cédula: -------------------------------------------------</div>
                 <div>Recibido Por</div>
             </td>
         </tr>

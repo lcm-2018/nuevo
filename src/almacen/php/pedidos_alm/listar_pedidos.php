@@ -66,9 +66,9 @@ try {
             FROM far_alm_pedido
             INNER JOIN tb_sedes ON (tb_sedes.id_sede=far_alm_pedido.id_sede)
             INNER JOIN far_bodegas ON (far_bodegas.id_bodega=far_alm_pedido.id_bodega)
-            LEFT JOIN (SELECT id_pedido,GROUP_CONCAT(id_ingreso) AS ingresos 
+            LEFT JOIN (SELECT id_pedido,GROUP_CONCAT(num_ingreso) AS ingresos 
                         FROM far_orden_ingreso
-                        WHERE id_pedido IS NOT NULL
+                        WHERE id_pedido IS NOT NULL AND estado=2
                         GROUP BY id_pedido
                         ) AS PEDIDO ON (PEDIDO.id_pedido=far_alm_pedido.id_pedido)
             $where ORDER BY $col $dir $limit";
@@ -95,6 +95,9 @@ if (!empty($objs)) {
         if ($permisos->PermisosUsuario($opciones, 5005, 4) || $id_rol == 1) {
             $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         }
+        if ($permisos->PermisosUsuario($opciones, 5003, 1) || $id_rol == 1) {
+            $imprimir =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_imprimir" title="Imprimir"><span class="fas fa-print "></span></a>';
+        }
         $data[] = [
             "id_pedido" => $id,
             "num_pedido" => $obj['num_pedido'],
@@ -107,7 +110,7 @@ if (!empty($objs)) {
             "estado" => $obj['estado'],
             "nom_estado" => $obj['nom_estado'],
             "ingresos" => $obj['ingresos'],
-            "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
+            "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];
     }
 }

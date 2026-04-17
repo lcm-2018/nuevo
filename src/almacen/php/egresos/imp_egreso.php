@@ -24,7 +24,8 @@ try {
             CASE far_orden_egreso.estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' END AS estado,
             CASE far_orden_egreso.estado WHEN 0 THEN far_orden_egreso.fec_anulacion WHEN 1 THEN far_orden_egreso.fec_creacion WHEN 2 THEN far_orden_egreso.fec_cierre END AS fec_estado,
             CONCAT_WS(' ',usr.nombre1,usr.nombre2,usr.apellido1,usr.apellido2) AS usr_cierra,
-            usr.descripcion AS usr_perfil,usr.nom_firma
+            usr.descripcion AS usr_perfil,usr.nom_firma,
+            EGRESO.num_pedido
         FROM far_orden_egreso 
         INNER JOIN tb_sedes ON (tb_sedes.id_sede=far_orden_egreso.id_sede)
         INNER JOIN far_bodegas ON (far_bodegas.id_bodega=far_orden_egreso.id_bodega)
@@ -34,7 +35,12 @@ try {
         INNER JOIN tb_sedes AS tb_sedes_area ON (tb_sedes_area.id_sede=far_centrocosto_area.id_sede)
         INNER JOIN far_orden_egreso_tipo ON (far_orden_egreso_tipo.id_tipo_egreso=far_orden_egreso.id_tipo_egreso)
         LEFT JOIN seg_usuarios_sistema AS usr ON (usr.id_usuario=far_orden_egreso.id_usr_cierre)
-        WHERE id_egreso=" . $id . " LIMIT 1";
+        LEFT JOIN (SELECT ED.id_egreso,PP.num_pedido
+                    FROM far_orden_egreso_detalle AS ED 
+                    INNER JOIN far_cec_pedido_detalle AS PD ON (PD.id_ped_detalle=ED.id_ped_detalle)
+                    INNER JOIN far_cec_pedido AS PP ON (PP.id_pedido=PD.id_pedido)
+                    GROUP BY ED.id_egreso) AS EGRESO ON (EGRESO.id_egreso=far_orden_egreso.id_egreso) 
+        WHERE far_orden_egreso.id_egreso=" . $id . " LIMIT 1";
     $rs = $cmd->query($sql);
     $obj_e = $rs->fetch();
 
@@ -94,8 +100,9 @@ try {
             <td>No. Egreso</td>
             <td>Fecha Egreso</td>
             <td>Hora Egreso</td>
-            <td>Estado</td>
-            <td colspan="2">Fecha Estado</td>
+            <td>Estado Egreso</td>
+            <td>Fecha Estado Egreso</td>
+            <td>No. Pedido</td>
         </tr>
         <tr>
             <td><?php echo $obj_e['id_egreso']; ?></td>
@@ -103,7 +110,8 @@ try {
             <td><?php echo $obj_e['fec_egreso']; ?></td>
             <td><?php echo $obj_e['hor_egreso']; ?></td>
             <td><?php echo $obj_e['estado']; ?></td>
-            <td colspan="2"><?php echo $obj_e['fec_estado']; ?></td>
+            <td><?php echo $obj_e['fec_estado']; ?></td>
+            <td><?php echo $obj_e['num_pedido']; ?></td>
         </tr>
         <tr style="background-color:#CED3D3; border:#A9A9A9 1px solid">
             <td>Sede Origen</td>
@@ -185,7 +193,9 @@ try {
                 <div><?php echo $obj_e['usr_perfil']; ?></div>
             </td>
             <td style="vertical-align: top">
-                <div>-------------------------------------------------</div>
+                <div>Firma: ---------------------------------------------------</div>                
+                <div>Nombre: -------------------------------------------------</div>
+                <div>Cédula: -------------------------------------------------</div>
                 <div>Recibido Por</div>
             </td>
         </tr>

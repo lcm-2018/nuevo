@@ -82,12 +82,18 @@ try {
                 tb_sd.nom_sede AS nom_sede_destino,tb_bd.nombre AS nom_bodega_destino,
                 far_traslado_r.val_total,far_traslado_r.estado,far_traslado_r.estado2,
                 CASE far_traslado_r.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO-EGRESADO' WHEN 3 THEN 'ENVIADO' WHEN 0 THEN 'ANULADO' END AS nom_estado,
-                CASE far_traslado_r.estado2 WHEN 1 THEN 'PENDIENTE' WHEN 4 THEN 'CERRADO-INGRESADO' WHEN 5 THEN 'RECHAZADO' END AS nom_estado2
+                CASE far_traslado_r.estado2 WHEN 1 THEN 'PENDIENTE' WHEN 4 THEN 'CERRADO-INGRESADO' WHEN 5 THEN 'RECHAZADO' END AS nom_estado2,
+                PEDIDO.num_pedido
             FROM far_traslado_r
             INNER JOIN tb_sedes AS tb_so ON (tb_so.id_sede=far_traslado_r.id_sede_origen)
             INNER JOIN far_bodegas AS tb_bo ON (tb_bo.id_bodega=far_traslado_r.id_bodega_origen)
             INNER JOIN tb_sedes AS tb_sd ON (tb_sd.id_sede=far_traslado_r.id_sede_destino)
             INNER JOIN far_bodegas AS tb_bd ON (tb_bd.id_bodega=far_traslado_r.id_bodega_destino)
+            LEFT JOIN (SELECT TD.id_traslado,PP.num_pedido
+                    FROM far_traslado_r_detalle AS TD 
+                    INNER JOIN far_pedido_detalle AS PD ON (PD.id_ped_detalle=TD.id_ped_detalle)
+                    INNER JOIN far_pedido AS PP ON (PP.id_pedido=PD.id_pedido)
+                    GROUP BY TD.id_traslado) AS PEDIDO ON (PEDIDO.id_traslado=far_traslado_r.id_traslado) 
             $where_usr $where ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);
@@ -112,6 +118,9 @@ if (!empty($objs)) {
         if ($permisos->PermisosUsuario($opciones, 5017, 4) || $id_rol == 1) {
             $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         }
+        if ($permisos->PermisosUsuario($opciones, 5017, 1) || $id_rol == 1) {
+            $imprimir =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_imprimir" title="Imprimir"><span class="fas fa-print "></span></a>';
+        }
         $data[] = [
             "id_traslado" => $id,
             "num_traslado" => $obj['num_traslado'],
@@ -127,7 +136,8 @@ if (!empty($objs)) {
             "nom_estado" => $obj['nom_estado'],
             "estado2" => $obj['estado2'],
             "nom_estado2" => $obj['nom_estado2'],
-            "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
+            "num_pedido" => $obj['num_pedido'],
+            "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];
     }
 }

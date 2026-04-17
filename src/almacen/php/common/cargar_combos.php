@@ -486,6 +486,15 @@ function estados_sino($titulo = '', $estado = -1)
     echo '<option value="0"' . $selected . '>NO</option>';
 }
 
+function tipo_insumo($titulo = '', $estado = -1)
+{
+    echo '<option value="">' . $titulo . '</option>';
+    $selected = ($estado == 1) ? 'selected="selected"' : '';
+    echo '<option value="1"' . $selected . '>Insumo Asistenciales</option>';
+    $selected = ($estado == 0) ? 'selected="selected"' : '';
+    echo '<option value="0"' . $selected . '>Insumo Administrativos</option>';
+}
+
 function modulo_origen($titulo = '', $estado = -1)
 {
     echo '<option value="">' . $titulo . '</option>';
@@ -629,6 +638,7 @@ function tipo_reporte_exi_lote($titulo = '')
     echo '<option value="3">Lotes a vencerse en N días -> Agrupado por Sede-Bodega-Subgrupo </option>';
     echo '<option value="4">Captura de Inventario Físico -> Agrupado por Sede-Bodega-Subgrupo-Articulo</option>';
     echo '<option value="5">Semaforización-vencimiento de Lotes -> Agrupado por Sede-Bodega-Subgrupo </option>';
+    echo '<option value="6">Detallado por Articulo -> Agrupado por Sede-Bodega-Subgrupo </option>';
 }
 function tipo_reporte_exi_fecha($titulo = '')
 {

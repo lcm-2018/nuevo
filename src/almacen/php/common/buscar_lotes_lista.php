@@ -23,10 +23,13 @@ $dir = $_POST['order'][0]['dir'];
 $id_bodega = $_POST['id_bodega'];
 $where_gen = " WHERE far_medicamento_lote.id_bodega=$id_bodega AND far_medicamento_lote.estado=1 AND far_medicamentos.estado=1";
 if ($_POST['proceso'] == "mspsr") {           //Traslado SPSR
-    $where_gen = " AND far_medicamentos.es_clinico=1";
+    $where_gen .= " AND far_medicamentos.es_clinico=1";
 }
 
 $where = $where_gen;
+if (isset($_POST['es_clinico']) && strlen($_POST['es_clinico']))  {
+    $where .= " AND far_medicamentos.es_clinico=" . $_POST['es_clinico'];
+}
 if (isset($_POST['id_subgrupo']) && $_POST['id_subgrupo']) {
     $where .= " AND far_medicamentos.id_subgrupo=" . $_POST['id_subgrupo'];
 }

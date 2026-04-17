@@ -25,7 +25,7 @@
                             proceso: 'mspsr',
                             id_sede: $('#id_sede_origen').val(),
                             id_bodega: $('#id_bodega_origen').val(),
-                            id_subgrupo: sessionStorage.getItem("id_subgrupo")
+                            es_clinico: sessionStorage.getItem("es_clinico")
                         }, function (he) {
                             $('#divTamModalBus').removeClass('modal-lg');
                             $('#divTamModalBus').removeClass('modal-sm');

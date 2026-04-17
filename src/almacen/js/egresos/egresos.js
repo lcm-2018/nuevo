@@ -17,9 +17,8 @@
                 className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     $.post("frm_reg_egresos.php", function (he) {
-                        $('#divTamModalForms').removeClass('modal-sm');
-                        $('#divTamModalForms').removeClass('modal-lg');
-                        $('#divTamModalForms').addClass('modal-xl');
+                        $('#divTamModalForms').removeClass('modal-sm modal-lg modal-xl');
+                        $('#divTamModalForms').addClass('modal-xxl');
                         $('#divModalForms').modal('show');
                         $("#divForms").html(he);
                     });
@@ -65,13 +64,14 @@
                 { 'data': 'val_total' },
                 { 'data': 'estado' },
                 { 'data': 'nom_estado' },
+                { 'data': 'num_pedido' },
                 { 'data': 'botones' }
             ],
             columnDefs: [
                 { class: 'text-wrap', targets: [4, 5, 6, 7, 8, 9, 10, 11] },
                 { type: "numeric-comma", targets: 12 },
                 { visible: false, targets: 13 },
-                { orderable: false, targets: 15 }
+                { orderable: false, targets: 16 }
             ],
             rowCallback: function (row, data) {
                 if (data.estado == 1) {
@@ -129,8 +129,11 @@
         $('#divDevFianza').hide();
         if (es_conpedido == 1) {
             $('#divConPedido').show();
+            $("#txt_des_pedido").trigger("dblclick");
         } else if (es_devfianza == 1) {
             $('#divDevFianza').show();
+            $("#txt_des_ingreso").trigger("dblclick");
+
         }
     });
 
@@ -149,7 +152,7 @@
     $('#divModalBus').on('dblclick', '#tb_pedidos_egr tr', function () {
         let data = $('#tb_pedidos_egr').DataTable().row(this).data();
         $('#txt_id_pedido').val(data.id_pedido);
-        $('#txt_des_pedido').val(data.detalle + '(' + data.fec_pedido + ')');
+        $('#txt_des_pedido').val(data.num_pedido + ' - ' + data.detalle + '(' + data.fec_pedido + ')');
 
         if (data.id_pedido) {
             $('#sl_tip_egr').prop('disabled', true);
@@ -217,7 +220,7 @@
     $('#divModalBus').on('dblclick', '#tb_ingresos_fz tr', function () {
         let data = $('#tb_ingresos_fz').DataTable().row(this).data();
         $('#txt_id_ingreso').val(data.id_ingreso);
-        $('#txt_des_ingreso').val(data.detalle + '(' + data.fec_ingreso + ')');
+        $('#txt_des_ingreso').val(data.num_ingreso + ' - ' + data.detalle + '(' + data.fec_ingreso + ')');
 
         if (data.id_ingreso) {
             $('#sl_tip_egr').prop('disabled', true);
@@ -317,7 +320,8 @@
     $('#tb_egresos').on('click', '.btn_editar', function () {
         let id = $(this).attr('value');
         $.post("frm_reg_egresos.php", { id: id }, function (he) {
-            $('#divTamModalForms').addClass('modal-xl');
+            $('#divTamModalForms').removeClass('modal-sm modal-lg modal-xl');
+            $('#divTamModalForms').addClass('modal-xxl');
             $('#divModalForms').modal('show');
             $("#divForms").html(he);
         });

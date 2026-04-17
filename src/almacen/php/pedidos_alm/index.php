@@ -78,7 +78,7 @@ $content = <<<HTML
                         <th class="bg-sofia">Vr. Total</th>
                         <th class="bg-sofia">Id.Estado</th>
                         <th class="bg-sofia">Estado</th>
-                        <th class="bg-sofia">Ids Ingresos</th>
+                        <th class="bg-sofia">No. Ingresos</th>
                         <th class="bg-sofia">Acciones</th>
                     </tr>
                 </thead>

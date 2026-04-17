@@ -11,8 +11,8 @@ $cmd = \Config\Clases\Conexion::getConexion();
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center bg-sofia">
-            <h5 class="text-white mb-0">PEDIDOS DE DEPENDENCIA</h5>
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
+            <h7 class="text-white mb-0">PEDIDOS DE DEPENDENCIA</h7>
         </div>
         <div class="p-2">
 

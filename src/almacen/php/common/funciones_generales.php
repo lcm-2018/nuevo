@@ -148,6 +148,27 @@ function datos_articulo($cmd, $id_med){
     }
 }
 
+//FUNCION QUE RETORNAR LA EXISTENCIA Y DE UN ARTICULO EN UNA BODEGA
+function existencia_articulo($cmd, $id_med, $id_bodega){
+    try {
+        $res = array(); 
+        $sql = "SELECT SUM(existencia) AS existencia
+                FROM far_medicamento_lote
+                WHERE id_med=$id_med AND id_bodega=$id_bodega";
+        $rs = $cmd->query($sql);
+        $obj = $rs->fetch();
+        if (isset($obj['existencia'])) {
+            $res = array('existencia' => $obj['existencia']);
+        } else {
+            $res = array('existencia' => 0);
+        }
+        $cmd = null;
+        return $res;
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    }
+}
+
 //SEDE UNICA DE UN USUARIO
 function sede_unica_usuario($cmd){
     try {

@@ -130,6 +130,9 @@
             case '5':
                 reporte = "imp_existencias_lote_semaf.php";
                 break;
+            case '6':
+                reporte = "imp_existencias_articulo_asbsg.php";
+                break;
         }
 
         $.post(reporte, {

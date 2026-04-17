@@ -128,6 +128,7 @@ $content = <<<HTML
                         <th class="bg-sofia">Vr. Total</th>
                         <th class="bg-sofia">Id.Estado</th>
                         <th class="bg-sofia">Estado</th>
+                        <th class="bg-sofia">No. Orden Compra</th>
                         <th class="bg-sofia">Acciones</th>
                     </tr>
                 </thead>

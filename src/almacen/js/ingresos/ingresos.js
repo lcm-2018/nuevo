@@ -17,9 +17,8 @@
                 className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     $.post("frm_reg_ingresos.php", function (he) {
-                        $('#divTamModalForms').removeClass('modal-sm');
-                        $('#divTamModalForms').removeClass('modal-lg');
-                        $('#divTamModalForms').addClass('modal-xl');
+                        $('#divTamModalForms').removeClass('modal-sm modal-lg modal-xl');
+                        $('#divTamModalForms').addClass('modal-xxl');
                         $('#divModalForms').modal('show');
                         $("#divForms").html(he);
                     });
@@ -60,13 +59,14 @@
                 { 'data': 'val_total' },
                 { 'data': 'estado' },
                 { 'data': 'nom_estado' },
+                { 'data': 'num_pedido' },
                 { 'data': 'botones' }
             ],
             columnDefs: [
                 { class: 'text-wrap', targets: [6, 7, 8, 9, 10] },
                 { type: "numeric-comma", targets: 11 },
                 { visible: false, targets: 12 },
-                { orderable: false, targets: 14 }
+                { orderable: false, targets: 15 }
             ],
             rowCallback: function (row, data) {
                 if (data.estado == 1) {
@@ -142,7 +142,7 @@
     $('#divModalBus').on('dblclick', '#tb_pedidos_ing tr', function () {
         let data = $('#tb_pedidos_ing').DataTable().row(this).data();
         $('#txt_id_pedido').val(data.id_pedido);
-        $('#txt_des_pedido').val(data.detalle + '(' + data.fec_pedido + ')');
+        $('#txt_des_pedido').val(data.num_pedido + ' - ' + data.detalle + '(' + data.fec_pedido + ')');
         $('#divModalBus').modal('hide');
     });
 
@@ -212,7 +212,8 @@
     $('#tb_ingresos').on('click', '.btn_editar', function () {
         let id = $(this).attr('value');
         $.post("frm_reg_ingresos.php", { id: id }, function (he) {
-            $('#divTamModalForms').addClass('modal-xl');
+            $('#divTamModalForms').removeClass('modal-sm modal-lg modal-xl');
+            $('#divTamModalForms').addClass('modal-xxl');
             $('#divModalForms').modal('show');
             $("#divForms").html(he);
         });
@@ -683,6 +684,20 @@
     $('#divForms').on("click", "#btn_imprimir", function () {
         $.post("imp_ingreso.php", {
             id: $('#id_ingreso').val()
+        }, function (he) {
+            $('#divTamModalImp').removeClass('modal-sm');
+            $('#divTamModalImp').removeClass('modal-lg');
+            $('#divTamModalImp').addClass('modal-xl');
+            $('#divModalImp').modal('show');
+            $("#divImp").html(he);
+        });
+    });
+
+    //Imprimit una Orden de Ingreso desde el formulario principal
+    $('#tb_ingresos').on('click', '.btn_imprimir', function () {
+        let id = $(this).attr('value');
+        $.post("imp_ingreso.php", {
+            id: id
         }, function (he) {
             $('#divTamModalImp').removeClass('modal-sm');
             $('#divTamModalImp').removeClass('modal-lg');

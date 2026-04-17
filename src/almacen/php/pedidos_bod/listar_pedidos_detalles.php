@@ -53,8 +53,8 @@ try {
     $sql = "SELECT far_pedido_detalle.id_ped_detalle,far_medicamentos.cod_medicamento,far_medicamentos.nom_medicamento,
                     far_pedido_detalle.cantidad,far_pedido_detalle.valor,
                     (far_pedido_detalle.cantidad*far_pedido_detalle.valor) AS val_total
-                FROM far_pedido_detalle
-                INNER JOIN far_medicamentos ON (far_medicamentos.id_med = far_pedido_detalle.id_medicamento)
+            FROM far_pedido_detalle
+            INNER JOIN far_medicamentos ON (far_medicamentos.id_med = far_pedido_detalle.id_medicamento)
             WHERE far_pedido_detalle.id_pedido=" . $_POST['id_pedido'] . $where . " ORDER BY $col $dir $limit";
     $rs = $cmd->query($sql);
     $objs = $rs->fetchAll();
@@ -85,7 +85,7 @@ if (!empty($objs)) {
             "cantidad" => $obj['cantidad'],
             "valor" => formato_valor($obj['valor']),
             "val_total" => formato_valor($obj['val_total']),
-            "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
+            "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>'
         ];
     }
 }

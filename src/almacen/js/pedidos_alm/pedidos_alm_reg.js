@@ -8,7 +8,7 @@
                 className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     $.post("buscar_articulos_act_frm.php", {
-                        id_subgrupo: sessionStorage.getItem("id_subgrupo")
+                        es_clinico: sessionStorage.getItem("es_clinico")                       
                     }, function (he) {
                         $('#divTamModalBus').removeClass('modal-lg');
                         $('#divTamModalBus').removeClass('modal-sm');

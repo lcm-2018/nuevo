@@ -12,6 +12,8 @@ $cmd = \Config\Clases\Conexion::getConexion();
 
 $id_med = isset($_POST['id_med']) ? $_POST['id_med'] : -1;
 $id = isset($_POST['id']) ? $_POST['id'] : -1;
+$id_bodega = isset($_POST['id_bodega']) ? $_POST['id_bodega'] : -1;
+
 $sql = "SELECT far_pedido_detalle.*,
             far_medicamentos.nom_medicamento AS nom_articulo
         FROM far_pedido_detalle
@@ -32,6 +34,10 @@ if (empty($obj)) {
     $obj['id_medicamento'] = $articulo['id_med'];
     $obj['nom_articulo'] = $articulo['nom_articulo'];
     $obj['valor'] = $articulo['val_promedio'];
+
+    $existencia = existencia_articulo($cmd, $id_med, $id_bodega)['existencia'];
+} else {
+    $existencia = existencia_articulo($cmd, $obj['id_medicamento'], $id_bodega)['existencia'];
 }
 ?>
 
@@ -58,6 +64,10 @@ if (empty($obj)) {
                     <div class="col-md-3">
                         <label for="txt_val_pro" class="small">Vr. Promedio</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_val_pro" name="txt_val_pro" value="<?php echo $obj['valor'] ?>" readonly="readonly">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="txt_existencia" class="small">Existencia Actual</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_existencia" name="txt_existencia" value="<?php echo $existencia ?>" readonly="readonly">
                     </div>
                 </div>
             </form>

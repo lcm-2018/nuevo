@@ -16,15 +16,15 @@ $sql = "SELECT EE.fec_egreso,EE.hor_egreso,EE.num_egreso,EE.id_sede,EE.id_bodega
             EE.id_area,TE.id_tercero,TE.nom_tercero,
             EE.estado,EE.detalle,EE.val_total,
             CASE EE.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado,
-            EGRESO.id_pedido,CONCAT(EGRESO.detalle,'(',EGRESO.fec_pedido,')') AS des_pedido,
-            II.id_ingreso,CONCAT(II.detalle,'(',II.fec_ingreso,')') AS des_ingreso,
+            EGRESO.id_pedido,CONCAT(EGRESO.num_pedido,' - ',EGRESO.detalle,'(',EGRESO.fec_pedido,')') AS des_pedido,
+            II.id_ingreso,CONCAT(II.num_ingreso,' - ',II.detalle,'(',II.fec_ingreso,')') AS des_ingreso,
             EETP.con_pedido,EETP.dev_fianza    
         FROM far_orden_egreso AS EE
         INNER JOIN far_orden_egreso_tipo AS EETP ON (EETP.id_tipo_egreso=EE.id_tipo_egreso)
         INNER JOIN tb_terceros AS TE ON (TE.id_tercero=EE.id_cliente)
         LEFT JOIN far_centrocosto_area AS FA ON (FA.id_area=EE.id_area)
         LEFT JOIN far_orden_ingreso AS II ON (II.id_ingreso=EE.id_ingreso_fz)
-        LEFT JOIN (SELECT ED.id_egreso,PD.id_pedido,PP.detalle,PP.fec_pedido
+        LEFT JOIN (SELECT ED.id_egreso,PD.id_pedido,PP.num_pedido,PP.detalle,PP.fec_pedido
                     FROM far_orden_egreso_detalle AS ED 
                     INNER JOIN far_cec_pedido_detalle AS PD ON (PD.id_ped_detalle=ED.id_ped_detalle)
                     INNER JOIN far_cec_pedido AS PP ON (PP.id_pedido=PD.id_pedido)
@@ -64,7 +64,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
 
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header py-2 text-center bg-sofia">
+        <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
             <h5 class="text-white mb-0">REGISTRAR ORDEN DE EGRESO</h5>
         </div>
         <div class="p-2">
@@ -154,7 +154,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     <div class="col-md-6">
                         <div class="row mb-2">
                             <div class="col-md-10">
-                                <label for="txt_des_pedido" class="small">Pedido de una Dependencia</label>
+                                <label for="txt_des_pedido" class="small">No. Pedido de una Dependencia</label>
                                 <input type="text" class="form-control form-control-sm bg-input" id="txt_des_pedido" name="txt_des_pedido" class="small" value="<?php echo $obj['des_pedido'] ?>" readonly="readonly" title="Doble Click para Seleccionar el No. de Pedido">
                             </div>
                             <div class="col-md-1">
@@ -180,7 +180,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     <div class="col-md-6">
                         <div class="row mb-2">
                             <div class="col-md-10">
-                                <label for="txt_des_ingreso" class="small">ingreso de Almacen con Fianza</label>
+                                <label for="txt_des_ingreso" class="small">No. Ingreso de Almacen con Fianza</label>
                                 <input type="text" class="form-control form-control-sm bg-input" id="txt_des_ingreso" name="txt_des_ingreso" class="small" value="<?php echo $obj['des_ingreso'] ?>" readonly="readonly" title="Doble Click para Seleccionar el No. de Ingreso Fianza">
                             </div>
                             <div class="col-md-1">

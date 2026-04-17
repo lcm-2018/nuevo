@@ -84,11 +84,11 @@ try {
             INNER JOIN far_bodegas AS BSOL ON (BSOL.id_bodega = far_pedido.id_bodega_destino)           
             INNER JOIN tb_sedes AS SPRO ON (SPRO.id_sede = far_pedido.id_sede_origen)
             INNER JOIN far_bodegas AS BPRO ON (BPRO.id_bodega = far_pedido.id_bodega_origen)
-            LEFT JOIN (SELECT PPD.id_pedido,GROUP_CONCAT(DISTINCT TT.id_traslado) AS traslados
+            LEFT JOIN (SELECT PPD.id_pedido,GROUP_CONCAT(DISTINCT TT.num_traslado) AS traslados
                         FROM far_traslado_r_detalle AS TTD
                         INNER JOIN far_traslado_r AS TT ON (TT.id_traslado=TTD.id_traslado)
                         INNER JOIN far_pedido_detalle AS PPD ON (PPD.id_ped_detalle=TTD.id_ped_detalle)
-                        WHERE TT.estado<>0 
+                        WHERE TT.estado=2
                         GROUP BY PPD.id_pedido
                         ) AS PEDIDO ON (PEDIDO.id_pedido=far_pedido.id_pedido)
             $where_usr $where ORDER BY $col $dir $limit";
@@ -115,6 +115,9 @@ if (!empty($objs)) {
         if ($permisos->PermisosUsuario($opciones, 5018, 4) || $id_rol == 1) {
             $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         }
+        if ($permisos->PermisosUsuario($opciones, 5018, 1) || $id_rol == 1) {
+            $imprimir =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_imprimir" title="Imprimir"><span class="fas fa-print "></span></a>';
+        }
         $data[] = [
             "id_pedido" => $id,
             "num_pedido" => $obj['num_pedido'],
@@ -129,7 +132,7 @@ if (!empty($objs)) {
             "estado" => $obj['estado'],
             "nom_estado" => $obj['nom_estado'],
             "traslados" => $obj['traslados'],
-            "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
+            "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];
     }
 }

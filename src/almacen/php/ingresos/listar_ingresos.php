@@ -72,12 +72,15 @@ try {
 	            far_orden_ingreso.num_factura,far_orden_ingreso.fec_factura,far_orden_ingreso.detalle,
                 tb_terceros.nom_tercero,far_orden_ingreso_tipo.nom_tipo_ingreso,far_orden_ingreso.val_total,
                 tb_sedes.nom_sede,far_bodegas.nombre AS nom_bodega,far_orden_ingreso.estado,
-	            CASE far_orden_ingreso.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado
+	            CASE far_orden_ingreso.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado,
+                far_orden_ingreso.creado_far,
+                far_alm_pedido.num_pedido
             FROM far_orden_ingreso
             INNER JOIN far_orden_ingreso_tipo ON (far_orden_ingreso_tipo.id_tipo_ingreso=far_orden_ingreso.id_tipo_ingreso)
             INNER JOIN tb_terceros ON (tb_terceros.id_tercero=far_orden_ingreso.id_provedor)
             INNER JOIN tb_sedes ON (tb_sedes.id_sede=far_orden_ingreso.id_sede)
             INNER JOIN far_bodegas ON (far_bodegas.id_bodega=far_orden_ingreso.id_bodega)
+            LEFT JOIN far_alm_pedido ON (far_alm_pedido.id_pedido=far_orden_ingreso.id_pedido)
             $where ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);
@@ -95,12 +98,16 @@ $data = [];
 if (!empty($objs)) {
     foreach ($objs as $obj) {
         $id = $obj['id_ingreso'];
+        $creado_far = $obj['creado_far'];
         //Permite crear botones en la cuadricula si tiene permisos de 1-Consultar,2-Crear,3-Editar,4-Eliminar,5-Anular,6-Imprimir
-        if ($permisos->PermisosUsuario($opciones, 5006, 3) || $id_rol == 1) {
+        if (($permisos->PermisosUsuario($opciones, 5006, 3) || $id_rol == 1) && $creado_far == 0) {
             $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
         }
-        if ($permisos->PermisosUsuario($opciones, 5006, 4) || $id_rol == 1) {
+        if (($permisos->PermisosUsuario($opciones, 5006, 4) || $id_rol == 1) && $creado_far == 0) {
             $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
+        }
+        if ($permisos->PermisosUsuario($opciones, 5006, 1) || $id_rol == 1) {
+            $imprimir =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_imprimir" title="Imprimir"><span class="fas fa-print "></span></a>';
         }
         $data[] = [
             "id_ingreso" => $id,
@@ -117,7 +124,8 @@ if (!empty($objs)) {
             "val_total" => formato_valor($obj['val_total']),
             "estado" => $obj['estado'],
             "nom_estado" => $obj['nom_estado'],
-            "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
+            "num_pedido" => $obj['num_pedido'],
+            "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];
     }
 }

@@ -117,7 +117,8 @@ $content = <<<HTML
                         <th colspan="2" class="bg-sofia">Unidad Principal (Sistema Local)</th>
                         <th colspan="2" class="bg-sofia">Unidad Destino (Sistema Remoto)</th>                                        
                         <th rowspan="2" class="bg-sofia">Vr. Total</th>
-                        <th colspan="4" class="bg-sofia">Estado</th>
+                        <th colspan="4" class="bg-sofia">Estado</th>                        
+                        <th rowspan="2" class="bg-sofia">No. Pedido</th>
                         <th rowspan="2" class="bg-sofia">Acciones</th>
                     </tr>
                     <tr>

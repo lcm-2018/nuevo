@@ -83,17 +83,18 @@ try {
                 SPRO.nom_sede AS nom_sede_provee,BPRO.nombre AS nom_bodega_provee,                    
                 far_pedido.val_total,far_pedido.estado,
                 CASE far_pedido.estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CONFIRMADO' WHEN 3 THEN 'FINALIZADO' END AS nom_estado,
+                far_pedido.creado_far,
                 PEDIDO.traslados
             FROM far_pedido             
             INNER JOIN tb_sedes AS SSOL ON (SSOL.id_sede = far_pedido.id_sede_destino)
             INNER JOIN far_bodegas AS BSOL ON (BSOL.id_bodega = far_pedido.id_bodega_destino)           
             INNER JOIN tb_sedes AS SPRO ON (SPRO.id_sede = far_pedido.id_sede_origen)
             INNER JOIN far_bodegas AS BPRO ON (BPRO.id_bodega = far_pedido.id_bodega_origen)
-            LEFT JOIN (SELECT PPD.id_pedido,GROUP_CONCAT(DISTINCT TT.id_traslado) AS traslados
+            LEFT JOIN (SELECT PPD.id_pedido,GROUP_CONCAT(DISTINCT TT.num_traslado) AS traslados
                         FROM far_traslado_detalle AS TTD
                         INNER JOIN far_traslado AS TT ON (TT.id_traslado=TTD.id_traslado)
                         INNER JOIN far_pedido_detalle AS PPD ON (PPD.id_ped_detalle=TTD.id_ped_detalle)
-                        WHERE TT.estado<>0 
+                        WHERE TT.estado=2 
                         GROUP BY PPD.id_pedido
                         ) AS PEDIDO ON (PEDIDO.id_pedido=far_pedido.id_pedido)
             $where_usr $where ORDER BY $col $dir $limit";
@@ -113,12 +114,17 @@ $data = [];
 if (!empty($objs)) {
     foreach ($objs as $obj) {
         $id = $obj['id_pedido'];
+        $creado_far = $obj['creado_far'];
+
         //Permite crear botones en la cuadricula si tiene permisos de 3-Editar,4-Eliminar
-        if ($permisos->PermisosUsuario($opciones, 5003, 3) || $id_rol == 1) {
+        if (($permisos->PermisosUsuario($opciones, 5003, 3) || $id_rol == 1) && $creado_far == 0) {
             $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
         }
-        if ($permisos->PermisosUsuario($opciones, 5003, 4) || $id_rol == 1) {
+        if (($permisos->PermisosUsuario($opciones, 5003, 4) || $id_rol == 1) && $creado_far == 0) {
             $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
+        }
+        if ($permisos->PermisosUsuario($opciones, 5003, 1) || $id_rol == 1) {
+            $imprimir =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_imprimir" title="Imprimir"><span class="fas fa-print "></span></a>';
         }
         $data[] = [
             "id_pedido" => $id,
@@ -134,7 +140,7 @@ if (!empty($objs)) {
             "estado" => $obj['estado'],
             "nom_estado" => $obj['nom_estado'],
             "traslados" => $obj['traslados'],
-            "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
+            "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];
     }
 }

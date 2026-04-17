@@ -11,7 +11,7 @@
                         proceso: 'pbode',
                         id_sede: $('#sl_sede_proveedor').val(),
                         id_bodega: $('#sl_bodega_proveedor').val(),
-                        id_subgrupo: sessionStorage.getItem("id_subgrupo")
+                        es_clinico: sessionStorage.getItem("es_clinico")
                     }, function (he) {
                         $('#divTamModalBus').removeClass('modal-lg');
                         $('#divTamModalBus').removeClass('modal-sm');
