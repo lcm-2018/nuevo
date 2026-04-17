@@ -66,7 +66,7 @@ if (empty($obj)) {
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_val_pro" name="txt_val_pro" value="<?php echo $obj['valor'] ?>" readonly="readonly">
                     </div>
                     <div class="col-md-3">
-                        <label for="txt_existencia" class="small">Existencia Actual</label>
+                        <label for="txt_existencia" class="small">Existencia en Bodega Local</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_existencia" name="txt_existencia" value="<?php echo $existencia ?>" readonly="readonly">
                     </div>
                 </div>
