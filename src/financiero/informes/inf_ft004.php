@@ -1,4 +1,7 @@
 <?php
+
+use Config\Clases\Conexion;
+
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: ../../index.php');
@@ -87,7 +90,7 @@ foreach ($detalles as $r) {
 $id_t = array_values(array_unique($id_t));
 $payload = json_encode($id_t);
 //API URL
-$url = $api . 'terceros/datos/res/lista/reportes';
+$url = Conexion::Api() . 'terceros/datos/res/lista/reportes';
 $ch = curl_init($url);
 //curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');

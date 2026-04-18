@@ -139,3 +139,25 @@ const LoadInforme = (id) => {
         value: $('#periodo').val()
     })).appendTo('body').submit();
 }
+
+$('#areaReporte').on('click', '#btnExcelEntrada', function () {
+    // Obtener todo el contenido del área de impresión (encabezado + tabla de datos)
+    let contenido = $('#areaImprimir').html();
+    if (!contenido || !contenido.trim().length) {
+        mjeError('No hay datos para exportar. Consulte primero el informe.');
+        return;
+    }
+
+    // Generar el archivo Excel directamente en el navegador usando Blob
+    // Esto evita el límite de post_max_size de PHP con tablas grandes
+    let htmlCompleto = '\uFEFF<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' + contenido + '</body></html>';
+    let blob = new Blob([htmlCompleto], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = 'reporte_excel.xls';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+});
