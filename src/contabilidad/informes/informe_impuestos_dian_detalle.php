@@ -5,29 +5,6 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-?>
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>CONTAFACIL</title>
-    <style>
-        .text {
-            mso-number-format: "\@"
-        }
-    </style>
-
-    <?php
-
-    header("Content-type: application/vnd.ms-excel charset=utf-8");
-    header("Content-Disposition: attachment; filename=Descuentos_municipio.xls");
-    header("Pragma: no-cache");
-    header("Expires: 0");
-
-    ?>
-</head>
-<?php
 $vigencia = $_SESSION['vigencia'];
 // estraigo las variables que llegan por post en json
 $fecha_inicial = $_POST['fecha_inicial'];
@@ -43,26 +20,29 @@ $cmd = \Config\Clases\Conexion::getConexion();
 //Consulto descuentos de retefuente
 try {
     $sql = "SELECT
-    ctb_doc.fecha as fecha,
-    ctb_doc.id_manu as documento,
-    tb_terceros.nom_tercero as tercero,
-    tb_tipos_documento.descripcion as tipo_tercero,
-    tb_terceros.nit_tercero as nit,
-    ctb_doc.detalle as detalle,
-    ctb_causa_retencion.valor_base as base,
-    ctb_causa_retencion.tarifa as tarifa,
-    ctb_causa_retencion.valor_retencion as valor_retencion,
-    ctb_retenciones.nombre_retencion as nombre_retencion
-FROM
-    ctb_causa_retencion
-    INNER JOIN ctb_doc ON (ctb_causa_retencion.id_ctb_doc = ctb_doc.id_ctb_doc)
-    INNER JOIN ctb_retencion_rango ON (ctb_causa_retencion.id_rango = ctb_retencion_rango.id_rango)
-    INNER JOIN ctb_retenciones ON (ctb_retencion_rango.id_retencion = ctb_retenciones.id_retencion)
-    INNER JOIN tb_terceros ON (tb_terceros.id_tercero_api = ctb_doc.id_tercero)
-    LEFT JOIN tb_tipos_documento ON (tb_terceros.tipo_doc = tb_tipos_documento.id_tipodoc)
-WHERE 
-    ctb_retenciones.id_retencion_tipo IN (1,2)
-    AND ctb_doc.fecha BETWEEN '$fecha_inicial' AND '$fecha_corte' AND ctb_doc.estado =2";
+                ctb_doc.fecha as fecha,
+                ctb_doc.id_manu as documento,
+                tb_terceros.nom_tercero as tercero,
+                tb_tipos_documento.descripcion as tipo_tercero,
+                tb_terceros.nit_tercero as nit,
+                ctb_doc.detalle as detalle,
+                ctb_causa_retencion.valor_base as base,
+                ctb_causa_retencion.tarifa as tarifa,
+                ctb_causa_retencion.valor_retencion as valor_retencion,
+                ctb_retenciones.nombre_retencion as nombre_retencion,
+                ctb_pgcp.cuenta as cuenta
+
+            FROM
+                ctb_causa_retencion
+                INNER JOIN ctb_doc ON (ctb_causa_retencion.id_ctb_doc = ctb_doc.id_ctb_doc)
+                INNER JOIN ctb_retencion_rango ON (ctb_causa_retencion.id_rango = ctb_retencion_rango.id_rango)
+                INNER JOIN ctb_retenciones ON (ctb_retencion_rango.id_retencion = ctb_retenciones.id_retencion)
+                INNER JOIN tb_terceros ON (tb_terceros.id_tercero_api = ctb_doc.id_tercero)
+                LEFT JOIN tb_tipos_documento ON (tb_terceros.tipo_doc = tb_tipos_documento.id_tipodoc)
+                LEFT JOIN ctb_pgcp ON (ctb_retenciones.id_cuenta = ctb_pgcp.id_pgcp)
+            WHERE 
+                ctb_retenciones.id_retencion_tipo IN (1,2)
+                AND DATE_FORMAT(ctb_doc.fecha, '%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte' AND ctb_doc.estado =2";
     $res = $cmd->query($sql);
     $causaciones = $res->fetchAll();
     $res->closeCursor();
@@ -87,7 +67,7 @@ FROM
 
         </br>
         </br>
-        <table class="table-bordered bg-light" style="width:100% !important;">
+        <table class="table-bordered bg-light mt-3" style="width:100% !important; font-size: 80%;">
             <tr>
                 <td colspan="5" style="text-align:center"><?php echo ''; ?></td>
             </tr>
@@ -110,7 +90,7 @@ FROM
         </table>
         </br>
         </br>
-        <table class="table-bordered bg-light" style="width:100% !important;">
+        <table class="table-bordered bg-light" style="width:100% !important; font-size: 80%;">
             <tr>
                 <td>FECHA INICIO</td>
                 <td style='text-align: left;'><?php echo $fecha_inicial; ?></td>
@@ -122,7 +102,7 @@ FROM
         </table>
         </br> &nbsp;
         </br>
-        <table class="table-bordered bg-light" style="width:100% !important;" border=1>
+        <table class="table-bordered bg-light" style="width:100% !important; font-size: 80%;" border=1>
             <tr>
                 <td>Fecha</td>
                 <td>Documento</td>
@@ -135,6 +115,7 @@ FROM
                 <td>Valor retencion</td>
                 <td>Valor a pagar</td>
                 <td>Nombre retencion</td>
+                <td>Cuenta</td>
             </tr>
             <?php
             $total_base =   0;
@@ -155,6 +136,7 @@ FROM
                     <td class='text-end'>" . number_format($rp['valor_retencion'], 2, ".", ",")  . "</td>
                     <td class='text-end'>" . number_format($pago, 2, ".", ",")  . "</td>
                      <td class='text'>" . $rp['nombre_retencion'] . "</td>
+                    <td class='text'>" . $rp['cuenta'] . "</td>
                     </tr>";
                 $total_base =   $total_base + $rp['base'];
                 $total_ret = $total_ret + $rp['valor_retencion'];

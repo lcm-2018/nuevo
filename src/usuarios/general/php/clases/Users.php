@@ -133,7 +133,7 @@ class Users
             $id = -1;
         }
         $sql = "SELECT 
-                    `id_usuario`, `login` ,`clave` , CONCAT(`nombre1`, ' ', `apellido1`) as `nombre` ,`id_rol` , `estado`,`nombre1`,`nombre2`,`apellido1`,`apellido2`, `id_tipo_doc`,`num_documento`,`email`,`telefono`, `direccion`, `descripcion` AS `cargo`, `id_centrocosto`, `sexo`
+                    `id_usuario`, `login` ,`clave` , CONCAT(`nombre1`, ' ', `apellido1`) as `nombre` ,`id_rol` , `estado`,`nombre1`,`nombre2`,`apellido1`,`apellido2`, `id_tipo_doc`,`num_documento`,`email`,`telefono`, `direccion`, `descripcion` AS `cargo`, `id_centrocosto`, `sexo`, `id_area`
                 FROM `seg_usuarios_sistema`  
                 WHERE `id_usuario` = ?";
         $stmt = $this->conexion->prepare($sql);
@@ -162,10 +162,133 @@ class Users
                 'direccion'     => '',
                 'cargo'         => '',
                 'id_centrocosto' => 0,
-                'sexo'          => 'M'
+                'sexo'          => 'M',
+                'id_area'       => 0
             ];
         }
         return $datos;
+    }
+
+    private function getSelectedRelationIds($table, $column, $idUsuario)
+    {
+        if ((int) $idUsuario <= 0) {
+            return [];
+        }
+
+        $sql = "SELECT `$column` FROM `$table` WHERE `id_usuario` = ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute([(int) $idUsuario]);
+        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return array_map('intval', $ids ?: []);
+    }
+
+    private function getUsuarioSedesIds($idUsuario)
+    {
+        return $this->getSelectedRelationIds('seg_sedes_usuario', 'id_sede', $idUsuario);
+    }
+
+    private function getUsuarioBodegasIds($idUsuario)
+    {
+        return $this->getSelectedRelationIds('seg_bodegas_usuario', 'id_bodega', $idUsuario);
+    }
+
+    private function getFormSedesRows($idUsuario)
+    {
+        $selected = array_flip($this->getUsuarioSedesIds($idUsuario));
+        $sql = "SELECT
+                    `id_sede`,
+                    `nom_sede`,
+                    `dir_sede`,
+                    `tel_sede`
+                FROM `tb_sedes`
+                WHERE `estado` = 1
+                ORDER BY `es_principal` DESC, `nom_sede` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        if (empty($rows)) {
+            return '<tr><td colspan="5" class="text-center text-muted">No hay sedes disponibles.</td></tr>';
+        }
+
+        $html = '';
+        foreach ($rows as $row) {
+            $idSede = (int) $row['id_sede'];
+            $checked = isset($selected[$idSede]) ? 'checked' : '';
+            $nomSede = htmlspecialchars((string) $row['nom_sede'], ENT_QUOTES, 'UTF-8');
+            $dirSede = htmlspecialchars((string) ($row['dir_sede'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $telSede = htmlspecialchars((string) ($row['tel_sede'] ?? ''), ENT_QUOTES, 'UTF-8');
+
+            $html .= <<<HTML
+                <tr class="sede-row" data-sede="{$idSede}">
+                    <td class="text-center">
+                        <input type="checkbox" class="form-check-input chk-sede" name="sedes[]" value="{$idSede}" {$checked}>
+                    </td>
+                    <td class="text-center">{$idSede}</td>
+                    <td>{$nomSede}</td>
+                    <td>{$dirSede}</td>
+                    <td>{$telSede}</td>
+                </tr>
+            HTML;
+        }
+
+        return $html;
+    }
+
+    private function getFormBodegasRows($idUsuario)
+    {
+        $selected = array_flip($this->getUsuarioBodegasIds($idUsuario));
+        $sql = "SELECT
+                    `tsb`.`id_sede`,
+                    `fb`.`id_bodega`,
+                    `fb`.`nombre`,
+                    `fb`.`tipo`,
+                    `fb`.`estado`
+                FROM `tb_sedes_bodega` AS `tsb`
+                INNER JOIN `far_bodegas` AS `fb`
+                    ON (`tsb`.`id_bodega` = `fb`.`id_bodega`)
+                INNER JOIN `tb_sedes` AS `ts`
+                    ON (`tsb`.`id_sede` = `ts`.`id_sede`)
+                WHERE `ts`.`estado` = 1
+                ORDER BY `tsb`.`id_sede` ASC, `fb`.`es_principal` DESC, `fb`.`nombre` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        if (empty($rows)) {
+            return '<tr><td colspan="5" class="text-center text-muted">No hay bodegas disponibles.</td></tr>';
+        }
+
+        $html = '';
+        foreach ($rows as $row) {
+            $idSede = (int) $row['id_sede'];
+            $idBodega = (int) $row['id_bodega'];
+            $checked = isset($selected[$idBodega]) ? 'checked' : '';
+            $nomBodega = htmlspecialchars((string) $row['nombre'], ENT_QUOTES, 'UTF-8');
+            $tipo = htmlspecialchars((string) ($row['tipo'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $estado = (int) $row['estado'] === 1 ? 'ACTIVA' : 'INACTIVA';
+
+            $html .= <<<HTML
+                <tr class="bodega-row" data-sede="{$idSede}">
+                    <td class="text-center">
+                        <input type="checkbox" class="form-check-input chk-bodega" name="bodegas[]" value="{$idBodega}" {$checked}>
+                    </td>
+                    <td class="text-center">{$idBodega}</td>
+                    <td>{$nomBodega}</td>
+                    <td>{$tipo}</td>
+                    <td class="text-center">{$estado}</td>
+                </tr>
+            HTML;
+        }
+
+        return $html;
     }
 
     public function getFormUsuario($id_user)
@@ -174,6 +297,9 @@ class Users
         $tpDocs = Combos::getTiposDocumento($obj['id_tipo_doc']);
         $rol    = Combos::getRolUser($obj['id_rol']);
         $ccosto = Combos::getCentrosCosto($obj['id_centrocosto']);
+        $areas  = Combos::getAreasxCentrosCosto($obj['id_centrocosto'], $obj['id_area']);
+        $sedesRows = $this->getFormSedesRows($id_user);
+        $bodegasRows = $this->getFormBodegasRows($id_user);
         $M = $obj['sexo'] == 'M' ? 'checked' : '';
         $F = $obj['sexo'] == 'F' ? 'checked' : '';
         $html =
@@ -266,18 +392,20 @@ class Users
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label small" for="sl_centroCosto">Centro de costo - Dependencia</label>
-                                    <select class="form-select form-select-sm bg-input" id="sl_centroCosto" name="sl_centroCosto">
+                                    <select class="form-select form-select-sm bg-input" id="sl_centroCosto" name="sl_centroCosto" onchange="CargaCombos('sl_areaCentroCosto','area',this.value)">
                                         {$ccosto}
                                     </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small" for="sl_areaCentroCosto">Area</label>
-                                    <select class="form-select form-select-sm bg-input" id="sl_areaCentroCosto" name="sl_areaCentroCosto"></select>
+                                    <select class="form-select form-select-sm bg-input" id="sl_areaCentroCosto" name="sl_areaCentroCosto">
+                                        {$areas}
+                                    </select>
                                 </div>
                             </div>
                             <div class="row mt-3">
                                 <label style="width:50%; font-size:80%">Sedes</label>
-                                <label style="width:50%; font-size:80%">Bodegas</label>
+                                <label style="width:50%; font-size:80%">Bodegas <span id="txtSedeBodegaActiva" class="text-muted"></span></label>
                             </div>
                             <div class="row">
                                 <!--Lista de sedes-->
@@ -294,6 +422,9 @@ class Users
                                                 <th class="bg-sofia">Teléfono</th>
                                             </tr>
                                         </thead>
+                                        <tbody>
+                                            {$sedesRows}
+                                        </tbody>
                                     </table>
                                 </div>
                                 <div class="col-md-6">
@@ -309,6 +440,12 @@ class Users
                                                 <th class="bg-sofia">Estado</th>
                                             </tr>
                                         </thead>
+                                        <tbody>
+                                            <tr id="rowEmptyBodegasUsuario">
+                                                <td colspan="5" class="text-center text-muted">Seleccione una sede para visualizar sus bodegas.</td>
+                                            </tr>
+                                            {$bodegasRows}
+                                        </tbody>
                                     </table>
                                 </div>
                             </div>
@@ -323,12 +460,120 @@ class Users
         return $html;
     }
 
+    private function getNullableInt($value)
+    {
+        $value = filter_var($value, FILTER_VALIDATE_INT);
+        return ($value === false || $value <= 0) ? null : $value;
+    }
+
+    private function getCentroCostoAreaData($data)
+    {
+        $idCentroCosto = $this->getNullableInt($data['sl_centroCosto'] ?? null);
+        $idArea = $this->getNullableInt($data['sl_areaCentroCosto'] ?? null);
+
+        if ($idCentroCosto === null) {
+            $idArea = null;
+        }
+
+        return [$idCentroCosto, $idArea];
+    }
+
+    private function bindNullableInt($stmt, $parameter, $value)
+    {
+        if ($value === null) {
+            $stmt->bindValue($parameter, null, PDO::PARAM_NULL);
+            return;
+        }
+
+        $stmt->bindValue($parameter, $value, PDO::PARAM_INT);
+    }
+
+    private function getPositiveIntArray($values)
+    {
+        if (!is_array($values)) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($values as $value) {
+            $id = filter_var($value, FILTER_VALIDATE_INT);
+            if ($id !== false && $id > 0) {
+                $ids[] = (int) $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    private function filterBodegasBySedes(array $sedes, array $bodegas)
+    {
+        if (empty($sedes) || empty($bodegas)) {
+            return [];
+        }
+
+        $sedesPlaceholders = implode(',', array_fill(0, count($sedes), '?'));
+        $bodegasPlaceholders = implode(',', array_fill(0, count($bodegas), '?'));
+        $sql = "SELECT DISTINCT `id_bodega`
+                FROM `tb_sedes_bodega`
+                WHERE `id_sede` IN ($sedesPlaceholders)
+                    AND `id_bodega` IN ($bodegasPlaceholders)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute(array_merge($sedes, $bodegas));
+        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return array_map('intval', $ids ?: []);
+    }
+
+    private function syncUsuarioItems($table, $column, $idUsuario, array $ids)
+    {
+        $sqlDelete = "DELETE FROM `$table` WHERE `id_usuario` = ?";
+        $stmtDelete = $this->conexion->prepare($sqlDelete);
+        $stmtDelete->execute([(int) $idUsuario]);
+        $stmtDelete->closeCursor();
+        unset($stmtDelete);
+
+        if (empty($ids)) {
+            return 'si';
+        }
+
+        $sqlInsert = "INSERT INTO `$table` (`$column`, `id_usuario`) VALUES (?, ?)";
+        $stmtInsert = $this->conexion->prepare($sqlInsert);
+        foreach ($ids as $id) {
+            if (!$stmtInsert->execute([(int) $id, (int) $idUsuario])) {
+                $stmtInsert->closeCursor();
+                unset($stmtInsert);
+                return "No se pudo guardar la relación en $table.";
+            }
+        }
+        $stmtInsert->closeCursor();
+        unset($stmtInsert);
+
+        return 'si';
+    }
+
+    private function syncUsuarioUbicaciones($idUsuario, $data)
+    {
+        $sedes = $this->getPositiveIntArray($data['sedes'] ?? []);
+        $bodegas = $this->getPositiveIntArray($data['bodegas'] ?? []);
+        $bodegas = $this->filterBodegasBySedes($sedes, $bodegas);
+
+        $resp = $this->syncUsuarioItems('seg_sedes_usuario', 'id_sede', $idUsuario, $sedes);
+        if ($resp !== 'si') {
+            return $resp;
+        }
+
+        return $this->syncUsuarioItems('seg_bodegas_usuario', 'id_bodega', $idUsuario, $bodegas);
+    }
+
     function addRegistro($d)
     {
         try {
             if (!$this->conexion->inTransaction()) {
                 $this->conexion->beginTransaction();
             }
+            [$idCentroCosto, $idArea] = $this->getCentroCostoAreaData($d);
             $sql = "INSERT INTO `seg_usuarios_sistema`
                         (`login`,`clave`,`id_rol`,`id_tipo_doc`,`num_documento`,`apellido1`,`apellido2`,`nombre1`,`nombre2`,`sexo`,`direccion`,`telefono`,`email`,`descripcion`,`id_centrocosto`,`id_usr_crea`,`fec_creacion`,`estado`,`id_area`)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -347,14 +592,20 @@ class Users
             $stmt->bindValue(12, $d['txt_telefono'], PDO::PARAM_STR);
             $stmt->bindValue(13, $d['mailuser'], PDO::PARAM_STR);
             $stmt->bindValue(14, $d['txt_cargo'], PDO::PARAM_STR);
-            $stmt->bindValue(15, NULL, PDO::PARAM_INT);
+            $this->bindNullableInt($stmt, 15, $idCentroCosto);
             $stmt->bindValue(16, Sesion::IdUser(), PDO::PARAM_INT);
             $stmt->bindValue(17, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->bindValue(18, 1, PDO::PARAM_INT);
-            $stmt->bindValue(19, NULL, PDO::PARAM_INT);
+            $this->bindNullableInt($stmt, 19, $idArea);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $respUbicaciones = $this->syncUsuarioUbicaciones($id, $d);
+                if ($respUbicaciones !== 'si') {
+                    $this->conexion->rollBack();
+                    return $respUbicaciones;
+                }
+
                 if ($d['slcRolUser'] != 1) {
                     $Permisos = new Permisos();
                     $obj    = $Permisos->getPermisosRoles($d['slcRolUser']);
@@ -394,6 +645,7 @@ class Users
             if (!$this->conexion->inTransaction()) {
                 $this->conexion->beginTransaction();
             }
+            [$idCentroCosto, $idArea] = $this->getCentroCostoAreaData($d);
             $sql = "UPDATE `seg_usuarios_sistema`
                         SET `login` = ?, `clave` = ?, `id_rol` = ?, `id_tipo_doc` = ?, `num_documento` = ?, `apellido1` = ?, `apellido2` = ?, `nombre1` = ?, `nombre2` = ?, `sexo` = ?, `direccion` = ?, `telefono` = ?, `email` = ?, `descripcion` = ?, `id_centrocosto` = ?, `id_area` = ?
                         WHERE `id_usuario` = ?";
@@ -412,10 +664,16 @@ class Users
             $stmt->bindValue(12, $d['txt_telefono'], PDO::PARAM_STR);
             $stmt->bindValue(13, $d['mailuser'], PDO::PARAM_STR);
             $stmt->bindValue(14, $d['txt_cargo'], PDO::PARAM_STR);
-            $stmt->bindValue(15, $d['sl_centroCosto'] ?? null, PDO::PARAM_INT);
-            $stmt->bindValue(16, $d['sl_areaCentroCosto'] ?? null, PDO::PARAM_INT);
+            $this->bindNullableInt($stmt, 15, $idCentroCosto);
+            $this->bindNullableInt($stmt, 16, $idArea);
             $stmt->bindValue(17, $d['id_usuario'], PDO::PARAM_INT);
-            if ($stmt->execute() && $stmt->rowCount() > 0) {
+            if ($stmt->execute()) {
+                $respUbicaciones = $this->syncUsuarioUbicaciones($d['id_usuario'], $d);
+                if ($respUbicaciones !== 'si') {
+                    $this->conexion->rollBack();
+                    return $respUbicaciones;
+                }
+
                 $Permisos = new Permisos();
                 if ($d['hidRol'] != $d['slcRolUser']) {
                     $sep = $Permisos->delRegistro($d['id_usuario']);

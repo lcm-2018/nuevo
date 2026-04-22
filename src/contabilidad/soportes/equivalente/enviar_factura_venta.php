@@ -47,22 +47,22 @@ try {
     // Enviar factura de venta
     $resultado = $service->enviarFacturaVenta($id_facno);
 
-    // Retornar respuesta (como array para mantener compatibilidad)
-    echo json_encode([$resultado]);
+    // Retornar respuesta
+    echo json_encode($resultado);
 } catch (PDOException $e) {
     $errorMsg = $e->getCode() == 2002
         ? 'Sin Conexión a Mysql (Error: 2002)'
         : 'Error de base de datos: ' . $e->getMessage();
 
-    echo json_encode([[
+    echo json_encode([
         'value' => 'Error',
         'msg' => $errorMsg
-    ]]);
+    ]);
 } catch (Exception $e) {
-    echo json_encode([[
+    echo json_encode([
         'value' => 'Error',
         'msg' => 'Error inesperado: ' . $e->getMessage()
-    ]]);
+    ]);
 } finally {
     // Cerrar conexión
     $conexion = null;

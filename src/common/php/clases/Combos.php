@@ -41,6 +41,23 @@ class Combos
         return (new self())->setConsulta($sql, $id);
     }
 
+    public  static function getAreasxCentrosCosto($cc = 0, $id = 0)
+    {
+        if ($cc == 0) {
+            return '<option value="0" selected disabled>--Seleccione un Centro de Costo--</option>';
+        }
+        $sql = "SELECT
+                    `fcca`.`id_area`
+                    , CONCAT_WS(' - ', `fcca`.`nom_area`, `ts`.`nom_sede`) AS `nom_area`
+                FROM
+                    `far_centrocosto_area` AS `fcca`
+                    INNER JOIN `tb_sedes` AS `ts` 
+                        ON (`fcca`.`id_sede` = `ts`.`id_sede`)
+                WHERE (`fcca`.`id_centrocosto` = $cc AND `fcca`.`estado` = 1)
+                ORDER BY `fcca`.`nom_area` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
+
     public  static function getTiposDocumento($id)
     {
         $sql = "SELECT `id_tipodoc`,`descripcion` FROM `tb_tipos_documento`

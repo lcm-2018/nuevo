@@ -163,7 +163,7 @@ try {
                 <td style="border:#A9A9A9 1px solid;"><?php echo $obj_crps['manucdp'] ?></td>
                 <td style="border:#A9A9A9 1px solid;"><?php echo $obj_crps['manucrp'] ?></td>
                 <th style="border:#A9A9A9 1px solid;" colspan="3"><?php echo $obj_codigo['cod_pptal'] ?> - <?php echo $obj_codigo['nom_rubro']; ?></th>
-                <th style="text-align:right; border:#A9A9A9 1px solid;"><?php echo formato_valor($obj_liberacion['valor_liberado']); ?></th>
+                <th style="text-align:right; border:#A9A9A9 1px solid;"><?php echo number_format($obj_liberacion['valor_liberado'], 2, ',', '.'); ?></th>
             </tr>
         </tbody>
     </table>

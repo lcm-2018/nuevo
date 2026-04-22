@@ -1,6 +1,111 @@
 let tablaAsistencial;
 let tablaFinanciero;
 let tablaOpciones;
+let sedeUsuarioActiva = null;
+
+const getUserSedeRows = () => Array.from(document.querySelectorAll('#tb_sedes tbody .sede-row'));
+const getUserBodegaRows = () => Array.from(document.querySelectorAll('#tb_bodegas tbody .bodega-row'));
+
+const findUserSedeRow = (idSede) => document.querySelector(`#tb_sedes tbody .sede-row[data-sede="${idSede}"]`);
+
+const isUserSedeChecked = (idSede) => {
+    const row = findUserSedeRow(idSede);
+    return !!row?.querySelector('.chk-sede')?.checked;
+};
+
+const getUserSedeNombre = (idSede) => {
+    const row = findUserSedeRow(idSede);
+    return row?.children[2]?.textContent.trim() || '';
+};
+
+const clearUserBodegasBySede = (idSede) => {
+    getUserBodegaRows()
+        .filter((row) => row.dataset.sede === String(idSede))
+        .forEach((row) => {
+            const checkbox = row.querySelector('.chk-bodega');
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+        });
+};
+
+const updateUserLocationHeaderChecks = () => {
+    const chkAllSedes = document.getElementById('chk_sel_filtro_sedes');
+    const chkAllBodegas = document.getElementById('chk_sel_filtro_bodegas');
+    const sedes = getUserSedeRows().map((row) => row.querySelector('.chk-sede')).filter(Boolean);
+    const bodegasVisibles = getUserBodegaRows()
+        .filter((row) => row.style.display !== 'none')
+        .map((row) => row.querySelector('.chk-bodega'))
+        .filter((checkbox) => checkbox && !checkbox.disabled);
+
+    if (chkAllSedes) {
+        chkAllSedes.checked = sedes.length > 0 && sedes.every((checkbox) => checkbox.checked);
+    }
+
+    if (chkAllBodegas) {
+        chkAllBodegas.checked = bodegasVisibles.length > 0 && bodegasVisibles.every((checkbox) => checkbox.checked);
+    }
+};
+
+const refreshUserBodegasTable = () => {
+    const emptyRow = document.getElementById('rowEmptyBodegasUsuario');
+    const label = document.getElementById('txtSedeBodegaActiva');
+    const activeId = sedeUsuarioActiva ? String(sedeUsuarioActiva) : '';
+    const sedeChecked = activeId !== '' && isUserSedeChecked(activeId);
+    let visibles = 0;
+
+    getUserBodegaRows().forEach((row) => {
+        const visible = activeId !== '' && row.dataset.sede === activeId;
+        row.style.display = visible ? '' : 'none';
+        if (visible) {
+            visibles++;
+            const checkbox = row.querySelector('.chk-bodega');
+            if (checkbox) {
+                checkbox.disabled = !sedeChecked;
+            }
+        }
+    });
+
+    if (label) {
+        label.textContent = activeId !== '' ? `(${getUserSedeNombre(activeId)})` : '';
+    }
+
+    if (emptyRow) {
+        const messageCell = emptyRow.querySelector('td');
+        emptyRow.style.display = visibles === 0 ? '' : 'none';
+        if (messageCell) {
+            if (activeId === '') {
+                messageCell.textContent = 'Seleccione una sede para visualizar sus bodegas.';
+            } else if (!sedeChecked) {
+                messageCell.textContent = 'Marque la sede para habilitar sus bodegas.';
+            } else {
+                messageCell.textContent = 'Esta sede no tiene bodegas disponibles.';
+            }
+        }
+    }
+
+    updateUserLocationHeaderChecks();
+};
+
+const setUserActiveSede = (idSede) => {
+    sedeUsuarioActiva = idSede ? String(idSede) : null;
+
+    getUserSedeRows().forEach((row) => {
+        row.classList.toggle('table-active', sedeUsuarioActiva !== null && row.dataset.sede === sedeUsuarioActiva);
+    });
+
+    refreshUserBodegasTable();
+};
+
+const initializeUserLocationSelector = () => {
+    if (!document.getElementById('formUserSistema')) {
+        return;
+    }
+
+    const firstChecked = getUserSedeRows().find((row) => row.querySelector('.chk-sede')?.checked);
+    const firstRow = getUserSedeRows()[0];
+    setUserActiveSede(firstChecked?.dataset.sede || firstRow?.dataset.sede || null);
+};
 
 const tablaUsersSystem = crearDataTable(
     '#tableUsersSystem',
@@ -68,6 +173,11 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
     const btnEstado = event.target.closest('.estado');
     const btnOpciones = event.target.closest('.opciones');
     const btnGuardar = event.target.closest('#btnGuardaUser');
+    const sedeRow = event.target.closest('#tb_sedes tbody .sede-row');
+
+    if (sedeRow) {
+        setUserActiveSede(sedeRow.dataset.sede);
+    }
 
     if (btnEstado) {
         var data = new FormData();
@@ -132,10 +242,96 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
     }
 });
 
+document.querySelector('#modalForms').addEventListener('change', function (event) {
+    const target = event.target;
+
+    if (target.matches('.chk-sede')) {
+        const row = target.closest('.sede-row');
+        if (!row) {
+            return;
+        }
+
+        setUserActiveSede(row.dataset.sede);
+        if (!target.checked) {
+            clearUserBodegasBySede(row.dataset.sede);
+        }
+        refreshUserBodegasTable();
+        return;
+    }
+
+    if (target.matches('#chk_sel_filtro_sedes')) {
+        getUserSedeRows().forEach((row) => {
+            const checkbox = row.querySelector('.chk-sede');
+            if (checkbox) {
+                checkbox.checked = target.checked;
+                if (!target.checked) {
+                    clearUserBodegasBySede(row.dataset.sede);
+                }
+            }
+        });
+
+        if (target.checked) {
+            const firstRow = getUserSedeRows()[0];
+            if (firstRow) {
+                setUserActiveSede(firstRow.dataset.sede);
+            }
+        } else {
+            refreshUserBodegasTable();
+        }
+        return;
+    }
+
+    if (target.matches('.chk-bodega')) {
+        const row = target.closest('.bodega-row');
+        if (!row) {
+            return;
+        }
+
+        if (target.checked && !isUserSedeChecked(row.dataset.sede)) {
+            const sedeCheckbox = findUserSedeRow(row.dataset.sede)?.querySelector('.chk-sede');
+            if (sedeCheckbox) {
+                sedeCheckbox.checked = true;
+            }
+        }
+
+        setUserActiveSede(row.dataset.sede);
+        updateUserLocationHeaderChecks();
+        return;
+    }
+
+    if (target.matches('#chk_sel_filtro_bodegas')) {
+        if (!sedeUsuarioActiva) {
+            target.checked = false;
+            return;
+        }
+
+        if (target.checked && !isUserSedeChecked(sedeUsuarioActiva)) {
+            const sedeCheckbox = findUserSedeRow(sedeUsuarioActiva)?.querySelector('.chk-sede');
+            if (sedeCheckbox) {
+                sedeCheckbox.checked = true;
+            }
+            refreshUserBodegasTable();
+        }
+
+        getUserBodegaRows()
+            .filter((row) => row.style.display !== 'none')
+            .forEach((row) => {
+                const checkbox = row.querySelector('.chk-bodega');
+                if (checkbox && !checkbox.disabled) {
+                    checkbox.checked = target.checked;
+                }
+            });
+
+        updateUserLocationHeaderChecks();
+    }
+});
+
 
 const modalForms = document.getElementById('modalForms');
 if (modalForms) {
     modalForms.addEventListener('shown.bs.modal', function () {
+        initializeUserLocationSelector();
+
         const idUserEl = document.getElementById('id_user');
         if (document.getElementById('tableModulosAsistencial') && idUserEl) {
             const id_user = idUserEl.value;
@@ -185,6 +381,10 @@ if (modalForms) {
                 ordering: false
             });
         }
+    });
+
+    modalForms.addEventListener('hidden.bs.modal', function () {
+        sedeUsuarioActiva = null;
     });
 }
 // validar si ya existe modalModulos

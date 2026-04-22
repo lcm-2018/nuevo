@@ -790,6 +790,7 @@ foreach ($documentos_tes as $documento) {
         }
         $cadena = implode(',', $cadena);
         $cad_rubros = implode(',', $cad_rubros);
+        $firmas = $reportes->getFormFirmas($elabora, $id_modulo, $fecha, 'REVA', $tercero_nombre);
     ?>
         <div class="px-2 " style="width:90% !important;margin: 0 auto;">
             <table style="width: 100%;" class="page_break_avoid">
@@ -824,12 +825,13 @@ foreach ($documentos_tes as $documento) {
                             <p>ARTICULO SEGUNDO: El valor reconocido en el artículo primero se imputará al (los) rubro(s) <?= $cad_rubros; ?>.</p>
                             <p>ARTICULO TERCERO: Entréguese copia de la presente resolución con sus respectivos anexos para su correspondiente pago a la oficina de Tesorería de el(la) <?= $ips['nombre'] ?> para lo de su competencia.</p>
                             <p style="text-align:center; padding-bottom:30px;"><b>COMUNÍQUESE Y CÚMPLASE.</b></p>
-                            <p style="padding-bottom:40px;">Dada en <?= $ips['nom_municipio'] ?>, a los <?= $f_exp[2] ?> días del mes de <?= $meses[$f_exp[1]] ?> del año <?= $f_exp[0] ?>.</p>
+                            <p style="padding-bottom:30px;">Dada en <?= $ips['nom_municipio'] ?>, a los <?= $f_exp[2] ?> días del mes de <?= $meses[$f_exp[1]] ?> del año <?= $f_exp[0] ?>.</p>
                             <div class="row">
                                 <div class="col-12">
                                     <div style="text-align: center;">
-                                        <?= $aprobo_nombre . '<br>' . $aprobo_cargo ?>
+                                        <?= $firmas ?>
                                     </div>
+                                    <br>
                                 </div>
                             </div>
                         </td>

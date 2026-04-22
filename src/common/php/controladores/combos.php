@@ -22,6 +22,10 @@ switch ($_POST['action']) {
         $res['status'] = 'ok';
         $res['msg'] = Empleados::getTerceroNomina('', 0, $_POST['id']);
         break;
+    case 'area':
+        $res['status'] = 'ok';
+        $res['msg'] = Combos::getAreasxCentrosCosto($_POST['id'], 0);
+        break;
 }
 
 echo json_encode($res);
