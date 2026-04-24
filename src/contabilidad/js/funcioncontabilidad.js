@@ -3496,6 +3496,9 @@ const cargarReporteContable = (id) => {
 	if (id == 25) {
 		url = "informe_certificado_ingresos_form.php";
 	}
+	if (id == 26) {
+		url = "informe_movimientos_integracion_form.php";
+	}
 	fetch(url, {
 		method: "POST",
 		body: JSON.stringify({ id: id }),
@@ -3581,6 +3584,8 @@ const generarInformeCtb = (boton) => {
 		ruta = ruta + "informe_balance_prueba_detalle.php";
 	} else if (id == 13) {
 		ruta = ruta + "informe_contaduria_detalle.php";
+	} else if (id == 14) {
+		ruta = ruta + "informe_movimientos_integracion_detalle.php";
 	}
 	mostrarOverlay();
 	$.ajax({

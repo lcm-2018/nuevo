@@ -83,6 +83,16 @@ $content = <<<HTML
                     </a></li>
                 </ul>
             </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">
+                    <i class="fas fa-link me-1"></i> Otros
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="cargarReporteContable(26);">
+                        <i class="fas fa-chain me-2"></i> Movimientos Integración
+                    </a></li>
+                </ul>   
+            </li>
         </ul>
         
         <div class="tab-content" id="informesTabContent">
