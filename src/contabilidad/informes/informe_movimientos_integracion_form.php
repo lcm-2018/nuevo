@@ -42,10 +42,6 @@ $hoy = date("Y-m-d");
                         <div class="col-12">
                             <div class="text-center pt-3">
                                 <button class="btn btn-primary" onclick="generarInformeCtb(this)" value="14"><span></span>Generar</button>
-                                <a type="" id="btnExcelEntrada" class="btn btn-outline-success" value="01" title="Exprotar a Excel">
-                                    <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
-                                </a>
-                                <a type="button" class="btn btn-danger" title="Imprimir" onclick="imprSelecTes('areaImprimir','<?php echo 0; ?>');"><span class="fas fa-print fa-lg" aria-hidden="true"></span></a>
                             </div>
                         </div>
                     </div>
@@ -53,5 +49,6 @@ $hoy = date("Y-m-d");
             </div>
         </div>
     </div>
-</div>
+    <div id="areaImprimir">
+    </div>
 </div>

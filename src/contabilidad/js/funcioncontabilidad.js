@@ -3586,6 +3586,21 @@ const generarInformeCtb = (boton) => {
 		ruta = ruta + "informe_contaduria_detalle.php";
 	} else if (id == 14) {
 		ruta = ruta + "informe_movimientos_integracion_detalle.php";
+		let form = $('<form>', {
+			action: ruta,
+			method: 'post'
+		});
+		$.each(data, function(key, value) {
+			form.append($('<input>', {
+				type: 'hidden',
+				name: key,
+				value: value
+			}));
+		});
+		$('body').append(form);
+		form.submit();
+		form.remove();
+		return false;
 	}
 	mostrarOverlay();
 	$.ajax({
