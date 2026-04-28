@@ -29,64 +29,35 @@ $content = <<<HTML
     </div>
     <div class="card-body p-2 bg-wiev">
         <input type="hidden" id="peReg" value="{$peReg}">
+        <!-- Filtros reducidos -->
+        <div class="row mb-3">
+            <div class="col-md-3 col-lg-2">
+                <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_nombre_filtro" placeholder="Nombre">
+            </div>
+            <div class="col-md-2 col-lg-2">
+                <select class="form-select form-select-sm bg-input" id="sl_estado_filtro">{$comboEstados}</select>
+            </div>
+            <div class="col-md-2">
+                <button type="button" id="btn_buscar_filtro" class="btn btn-outline-success btn-sm" title="Filtrar"><span class="fas fa-search"></span></button>
+                <button type="button" id="btn_imprime_filtro" class="btn btn-outline-success btn-sm" title="Imprimir"><span class="fas fa-print"></span></button>
+            </div>
+        </div>
 
-        <ul class="nav nav-tabs mb-3" id="bdatosTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="analitica-tab" data-bs-toggle="tab" data-bs-target="#analitica" type="button" role="tab">Analítica</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="parametros-tab" data-bs-toggle="tab" data-bs-target="#parametros" type="button" role="tab">Parámetros</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="bdatos-tab" data-bs-toggle="tab" data-bs-target="#bdatos" type="button" role="tab" aria-selected="true">Bases de Datos</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios" type="button" role="tab">Usuarios Autorizados</button>
-            </li>
-        </ul>
-
-        <div class="tab-content">
-            <div class="tab-pane fade" id="analitica" role="tabpanel">
-                <div class="p-2 small text-muted">Panel de analítica. Agrega widgets o reportes aquí.</div>
-            </div>
-            <div class="tab-pane fade" id="parametros" role="tabpanel">
-                <div class="p-2 small text-muted">Parámetros de configuración.</div>
-            </div>
-            <div class="tab-pane fade show active" id="bdatos" role="tabpanel">
-                <!-- Filtros reducidos -->
-                <div class="row mb-3">
-                    <div class="col-md-3 col-lg-2">
-                        <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_nombre_filtro" placeholder="Nombre">
-                    </div>
-                    <div class="col-md-2 col-lg-2">
-                        <select class="form-select form-select-sm bg-input" id="sl_estado_filtro">{$comboEstados}</select>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="button" id="btn_buscar_filtro" class="btn btn-outline-success btn-sm" title="Filtrar"><span class="fas fa-search"></span></button>
-                        <button type="button" id="btn_imprime_filtro" class="btn btn-outline-success btn-sm" title="Imprimir"><span class="fas fa-print"></span></button>
-                    </div>
-                </div>
-
-                <div class="table-responsive shadow p-2">
-                    <table id="tb_bdatos" class="table table-striped table-bordered table-sm nowrap table-hover shadow w-100" style="font-size:80%">
-                        <thead class="text-center">
-                            <tr>
-                                <th class="bg-sofia">Id</th>
-                                <th class="bg-sofia">Nombre</th>
-                                <th class="bg-sofia">Descripción</th>
-                                <th class="bg-sofia">IP Servidor</th>
-                                <th class="bg-sofia">Nombre BD</th>
-                                <th class="bg-sofia">Puerto BD</th>
-                                <th class="bg-sofia">Estado</th>
-                                <th class="bg-sofia">Acciones</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-            <div class="tab-pane fade" id="usuarios" role="tabpanel">
-                <div class="p-2 small text-muted">Lista de usuarios autorizados y permisos.</div>
-            </div>
+        <div class="table-responsive shadow p-2">
+            <table id="tb_bdatos" class="table table-striped table-bordered table-sm nowrap table-hover shadow w-100" style="font-size:80%">
+                <thead class="text-center">
+                    <tr>
+                        <th class="bg-sofia">Id</th>
+                        <th class="bg-sofia">Nombre</th>
+                        <th class="bg-sofia">Descripción</th>
+                        <th class="bg-sofia">IP Servidor</th>
+                        <th class="bg-sofia">Nombre BD</th>
+                        <th class="bg-sofia">Puerto BD</th>
+                        <th class="bg-sofia">Estado</th>
+                        <th class="bg-sofia">Acciones</th>
+                    </tr>
+                </thead>
+            </table>
         </div>
     </div>
 </div>

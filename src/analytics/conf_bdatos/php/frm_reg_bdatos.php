@@ -47,13 +47,13 @@ $obj['estado'] = 1;
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_usr_bd" name="txt_usr_bd" value="<?php echo $obj['usuario_bd'] ?>" maxlength="20">
                     </div>
                     <div class="col-md-3">
-                        <label for="txt_pws_bd" class="small">Password Base Datos</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_pws_bd" name="txt_pws_bd" value="<?php echo $obj['password_bd'] ?>" maxlength="20">
-                    </div>
-                    <div class="col-md-3">
                         <label for="txt_pto_bd" class="small">Puerto Base Datos</label>
                         <input type="text" class="form-control form-control-sm bg-input number" id="txt_pto_bd" name="txt_pto_bd" value="<?php echo $obj['puerto_bd'] ?>" maxlength="10">
                     </div>
+                    <div class="col-md-4">
+                        <label for="txt_pws_bd" class="small">Password Base Datos</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_pws_bd" name="txt_pws_bd" value="<?php echo $obj['password_bd'] ?>" maxlength="20">
+                    </div>                    
                     <div class="col-md-3">
                         <label for="sl_estado" class="small">Estado</label>
                         <select class="form-select form-select-sm bg-input" id="sl_estado" name="sl_estado">

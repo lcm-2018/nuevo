@@ -57,10 +57,9 @@ try {
             <tr style="background-color:#CED3D3; color:#000000; text-align:center">
                 <th>ID</th>
                 <th>Título</th>                
-                <th>Tipo Analítica</th>
-                <th>Tipo Bdatos</th>
+                <th>Tipo Base Datos</th>
                 <th>Tipo Informe</th>
-                <th>Tipo Consulta</th>
+                <th>Tipo Servidor</th>
                 <th>Tipo Acceso</th>
                 <th>Estado</th>
             </tr>
@@ -72,8 +71,7 @@ try {
                 $tabla .=  '<tr class="resaltar" style="text-align:center"> 
                     <td>' . $obj['id_consulta'] . '</td>                    
                     <td style="text-align:left">' . mb_strtoupper($obj['titulo_consulta']) . '</td>
-                    <td>' . $obj['tipo_analitica'] . '</td>
-                    <td>' . $obj['tipo_bdatosb'] . '</td>
+                    <td>' . $obj['tipo_bdatos'] . '</td>
                     <td>' . $obj['tipo_informe'] . '</td>
                     <td>' . $obj['tipo_consulta'] . '</td>
                     <td>' . $obj['tipo_acceso'] . '</td>
@@ -84,7 +82,7 @@ try {
         </tbody>
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
-                <td colspan="7" style="text-align:left">
+                <td colspan="6" style="text-align:left">
                     No. de Registros: <?php echo count($objs); ?>
                 </td>
             </tr>

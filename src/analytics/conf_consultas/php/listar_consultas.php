@@ -55,8 +55,7 @@ if (!empty($objs)) {
         $data[] = [
             "id_consulta" => $id,
             "titulo_consulta" => mb_strtoupper($obj['titulo_consulta']),
-            "tipo_analitica" => $obj['tipo_analitica'],
-            "tipo_bdatosb" => $obj['tipo_bdatosb'],
+            "tipo_bdatos" => $obj['tipo_bdatos'],
             "tipo_informe" => $obj['tipo_informe'],
             "tipo_consulta" => $obj['tipo_consulta'],
             "tipo_acceso" => $obj['tipo_acceso'],

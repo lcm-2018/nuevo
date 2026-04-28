@@ -56,10 +56,9 @@ class ConsultasModel
 
         $sql = "SELECT dash_consultas.id_consulta,
                     dash_consultas.titulo_consulta,                    
-                    IF(dash_consultas.tipo_analitica=1,'CONSULTA ANALÍTICA','PANEL ANALÍTICO') AS tipo_analitica,
-                    IF(dash_consultas.tipo_bdatos=1,'BD LOCAL','MULTIPLES BD') AS tipo_bdatosb,
-                    IF(dash_consultas.tipo_informe=1,'UN INFORME','MULTIPLES INFORMES') AS tipo_informe,
-                    IF(dash_consultas.tipo_consulta=1,'BD LOCALES','BD REMOTAS') AS tipo_consulta,
+                    IF(dash_consultas.tipo_bdatos=1,'BD PRIMARIA','BDs DISTRIBUIDAS') AS tipo_bdatos,
+                    IF(dash_consultas.tipo_informe=1,'UN INFORME CONSOLIDADO','INFORMES SEPARADOS POR BD') AS tipo_informe,
+                    IF(dash_consultas.tipo_consulta=1,'SERVIDOR LOCAL','SERVIDORES REMOTOS') AS tipo_consulta,
                     IF(dash_consultas.tipo_acceso=1,'PUBLICO','USUARIOS AUTORIZADOS') AS tipo_acceso,                    
                     IF(dash_consultas.estado=1,'ACTIVO','INACTIVO') AS estado,
                     dash_consultas.fec_crea,dash_consultas.id_usr_crea
@@ -91,18 +90,17 @@ class ConsultasModel
     public function insert(array $d)
     {
         $sql = "INSERT INTO dash_consultas(
-                    titulo_consulta,detalle_consulta,tipo_analitica,tipo_bdatos,
+                    titulo_consulta,detalle_consulta,tipo_bdatos,
                     consulta_sql,consulta_sql_group,tipo_informe,tipo_consulta,tipo_acceso,
                     estado,fec_crea,id_usr_crea
                 ) VALUES(
-                    :titulo_consulta,:detalle_consulta,:tipo_analitica,:tipo_bdatos,
+                    :titulo_consulta,:detalle_consulta,:tipo_bdatos,
                     :consulta_sql,:consulta_sql_group,:tipo_informe,:tipo_consulta,:tipo_acceso,
                     :estado,:fec_crea,:id_usr_crea
                 )";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(':titulo_consulta', $d['titulo_consulta']);
         $stmt->bindParam(':detalle_consulta', $d['detalle_consulta']);
-        $stmt->bindParam(':tipo_analitica', $d['tipo_analitica']);
         $stmt->bindParam(':tipo_bdatos', $d['tipo_bdatos']);
         $stmt->bindParam(':consulta_sql', $d['consulta_sql']);
         $stmt->bindParam(':consulta_sql_group', $d['consulta_sql_group']);
@@ -125,7 +123,7 @@ class ConsultasModel
     {
         $sql = "UPDATE dash_consultas 
                 SET titulo_consulta=:titulo_consulta,detalle_consulta=:detalle_consulta,
-                    tipo_analitica=:tipo_analitica,tipo_bdatos=:tipo_bdatos,
+                    tipo_bdatos=:tipo_bdatos,
                     consulta_sql=:consulta_sql,consulta_sql_group=:consulta_sql_group,
                     tipo_informe=:tipo_informe,tipo_consulta=:tipo_consulta,
                     tipo_acceso=:tipo_acceso,estado=:estado
@@ -133,7 +131,6 @@ class ConsultasModel
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(':titulo_consulta', $d['titulo_consulta']);
         $stmt->bindParam(':detalle_consulta', $d['detalle_consulta']);
-        $stmt->bindParam(':tipo_analitica', $d['tipo_analitica']);
         $stmt->bindParam(':tipo_bdatos', $d['tipo_bdatos']);
         $stmt->bindParam(':consulta_sql', $d['consulta_sql']);
         $stmt->bindParam(':consulta_sql_group', $d['consulta_sql_group']);

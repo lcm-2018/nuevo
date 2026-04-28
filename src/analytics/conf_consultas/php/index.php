@@ -56,11 +56,10 @@ $content = <<<HTML
                 <thead class="text-center">
                     <tr>
                         <th class="bg-sofia">Id</th>                                        
-                        <th class="bg-sofia">Título</th>
-                        <th class="bg-sofia">Tipo Analítica</th>
-                        <th class="bg-sofia">Tipo BD</th>
+                        <th class="bg-sofia">Título</th>                        
+                        <th class="bg-sofia">Tipo Base Datos</th>
                         <th class="bg-sofia">Tipo Informe</th>
-                        <th class="bg-sofia">Tipo Consulta</th>
+                        <th class="bg-sofia">Tipo Servidor</th>
                         <th class="bg-sofia">Tipo Acceso</th>
                         <th class="bg-sofia">Estado</th>
                         <th class="bg-sofia">Acciones</th>

@@ -9,8 +9,7 @@ const tableConsultas = crearDataTable(
     [
         { data: 'id_consulta' },
         { data: 'titulo_consulta' },
-        { data: 'tipo_analitica' },
-        { data: 'tipo_bdatosb' },
+        { data: 'tipo_bdatos' },
         { data: 'tipo_informe' },
         { data: 'tipo_consulta' },
         { data: 'tipo_acceso' },
@@ -28,8 +27,8 @@ const tableConsultas = crearDataTable(
             .then(r => r.text())
             .then(html => {
                 const tam = document.getElementById('divTamModalForms');
-                tam.classList.remove('modal-sm', 'modal-lg');
-                tam.classList.add('modal-xl');
+                tam.classList.remove('modal-sm', 'modal-lg', 'modal-xl');
+                tam.classList.add('modal-xxl');
 
                 document.getElementById('divForms').innerHTML = html;
                 const modal = new bootstrap.Modal(document.getElementById('divModalForms'));
@@ -51,7 +50,7 @@ const tableConsultas = crearDataTable(
         },
         columnDefs: [
             { className: 'text-wrap', targets: [1, 2] },
-            { orderable: false, targets: 7 }
+            { orderable: false, targets: 6 }
         ]
     }
 );
@@ -94,8 +93,8 @@ function editarRegistro(id) {
     .then(r => r.text())
     .then(html => {
         const tam = document.getElementById('divTamModalForms');
-        tam.classList.remove('modal-sm', 'modal-lg');
-        tam.classList.add('modal-xl');
+        tam.classList.remove('modal-sm', 'modal-lg', 'modal-xl');
+        tam.classList.add('modal-xxl');
 
         document.getElementById('divForms').innerHTML = html;
         const modal = new bootstrap.Modal(document.getElementById('divModalForms'));
@@ -162,7 +161,6 @@ document.getElementById('divForms').addEventListener('click', function (event) {
     let error = 0;
     error += verifica_vacio(document.querySelector('#txt_titulo_consulta'));
     error += verifica_vacio(document.querySelector('#txt_detalle_consulta'));
-    error += verifica_vacio(document.querySelector('#sl_tipo_analitica'));
     error += verifica_vacio(document.querySelector('#sl_tipo_bdatos'));
     error += verifica_vacio(document.querySelector('#txt_consulta_sql'));
     error += verifica_vacio(document.querySelector('#txt_consulta_sql_group'));
@@ -206,15 +204,15 @@ document.getElementById('btn_imprime_filtro').addEventListener('click', function
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-            nombre: document.getElementById('txt_nombre_filtro').value,
+            nombre: document.getElementById('txt_titulo_filtro').value,
             estado: document.getElementById('sl_estado_filtro').value
         })
     })
     .then(r => r.text())
     .then(html => {
         const tam = document.getElementById('divTamModalImp');
-        tam.classList.remove('modal-sm', 'modal-lg');
-        tam.classList.add('modal-xl');
+        tam.classList.remove('modal-sm', 'modal-lg', 'modal-xl');
+        tam.classList.add('modal-xxl');
 
         document.getElementById('divImp').innerHTML = html;
         const modal = new bootstrap.Modal(document.getElementById('divModalImp'));

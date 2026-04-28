@@ -27,7 +27,7 @@ const tableBdatos = crearDataTable(
             .then(r => r.text())
             .then(html => {
                 const tam = document.getElementById('divTamModalForms');
-                tam.classList.remove('modal-sm', 'modal-xl');
+                tam.classList.remove('modal-sm', 'modal-xl', 'modal-xxl');
                 tam.classList.add('modal-lg');
 
                 document.getElementById('divForms').innerHTML = html;
@@ -93,7 +93,7 @@ function editarRegistro(id) {
     .then(r => r.text())
     .then(html => {
         const tam = document.getElementById('divTamModalForms');
-        tam.classList.remove('modal-sm', 'modal-xl');
+        tam.classList.remove('modal-sm', 'modal-xl', 'modal-xxl');
         tam.classList.add('modal-lg');
 
         document.getElementById('divForms').innerHTML = html;
@@ -177,7 +177,7 @@ document.getElementById('divForms').addEventListener('click', function (event) {
         if (r.mensaje === 'ok') {                                    
             mje('Conexión exitosa al Servidor de base de datos MySQL');
         } else {
-            mjeError(r.mensaje);
+            mjeError(r.mensaje, 0);
         }
     })
     .finally(() => {

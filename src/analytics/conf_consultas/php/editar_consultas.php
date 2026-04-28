@@ -34,7 +34,6 @@ try {
             $data = [
                 'titulo_consulta' => $_POST['txt_titulo_consulta'],
                 'detalle_consulta' => $_POST['txt_detalle_consulta'],
-                'tipo_analitica' => $_POST['sl_tipo_analitica'],
                 'tipo_bdatos' => $_POST['sl_tipo_bdatos'],
                 'consulta_sql' => $_POST['txt_consulta_sql'],
                 'consulta_sql_group' => $_POST['txt_consulta_sql_group'],
