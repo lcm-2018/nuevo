@@ -233,7 +233,7 @@ class Sindicatos
         $sql = "SELECT
                     `id_cuota_sindical`,`id_sindicato`,`porcentaje_cuota`,`val_fijo`,`estado`,  `fec_fin`, `val_sidicalizacion`, `id_empleado`, `primera_vez` 
                 FROM `nom_cuota_sindical`
-                WHERE `estado` = 1 AND (`fec_fin` >= ? OR `fec_fin` IS NULL)";
+                WHERE `estado` <> 0 AND (`fec_fin` >= ? OR `fec_fin` IS NULL)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
         $stmt->execute();

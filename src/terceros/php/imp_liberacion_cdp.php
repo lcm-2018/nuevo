@@ -19,12 +19,14 @@ try {
                 , DATE_FORMAT(fecha_libera, '%Y-%m-%d') AS fecha
                 , concepto_libera
                 , valor_liberado
+                , fecha_reg
             FROM
                 pto_cdp_detalle
             WHERE
                 id_pto_cdp_det = $id_lib";
     $rs = $cmd->query($sql);
     $obj_liberacion = $rs->fetch();
+    $fecha_reg_lib = $obj_liberacion['fecha_reg'] ?? '';
 
     //-----cdps-----------------------
     $sql = "SELECT
@@ -40,10 +42,11 @@ try {
         FROM
             pto_cdp_detalle 
             INNER JOIN pto_cdp ON (pto_cdp_detalle.id_pto_cdp = pto_cdp.id_pto_cdp)
-            INNER JOIN pto_crp_detalle ON (pto_cdp_detalle.id_pto_cdp_det = pto_crp_detalle.id_pto_cdp_det)    
-            INNER JOIN pto_crp ON (pto_crp_detalle.id_pto_crp = pto_crp.id_pto_crp)  
+            LEFT JOIN pto_crp_detalle ON (pto_cdp_detalle.id_pto_cdp_det = pto_crp_detalle.id_pto_cdp_det)    
+            LEFT JOIN pto_crp ON (pto_crp_detalle.id_pto_crp = pto_crp.id_pto_crp)  
         WHERE 
-            pto_cdp.id_pto_cdp = $id_cdp";
+            pto_cdp.id_pto_cdp = $id_cdp
+        GROUP BY pto_cdp.id_pto_cdp";
 
     $rs = $cmd->query($sql);
     $obj_cdps = $rs->fetch(); // solo una fila agregada por CDP
@@ -70,13 +73,15 @@ try {
                     id_pto_cdp,
                     id_rubro,
                     id_pto_cdp_det,
+                    fecha_reg,
                     SUM(valor) AS valor,
                     SUM(IFNULL(valor_liberado,0)) AS valor_liberado
                 FROM pto_cdp_detalle
                 GROUP BY
                     id_pto_cdp,
                     id_rubro,
-                    id_pto_cdp_det
+                    id_pto_cdp_det,
+                    fecha_reg
             ) AS pto_cdp_detalle2
                 ON pto_cdp_detalle2.id_pto_cdp = pto_cdp.id_pto_cdp
             LEFT JOIN pto_crp
@@ -95,6 +100,7 @@ try {
                 ON pto_cdp_detalle2.id_rubro = pto_cargue.id_cargue
             WHERE
                 pto_cdp_detalle2.id_pto_cdp = $id_cdp
+                AND pto_cdp_detalle2.fecha_reg = '{$fecha_reg_lib}'
             GROUP BY
                 pto_cdp_detalle2.id_pto_cdp,
                 pto_cdp_detalle2.id_rubro,
@@ -107,7 +113,7 @@ try {
                 pto_cdp_detalle2.id_pto_cdp_det;";
 
     $rs = $cmd->query($sql);
-    // 🔹 AHORA sí traemos TODOS los rubros
+    // AHORA sí traemos TODOS los rubros de esta liberación en particular
     $obj_codigo = $rs->fetchAll(PDO::FETCH_ASSOC);
 
     //----datos usuario----------------

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Config\Clases\Plantilla;
 
@@ -27,35 +27,34 @@ $cmd = \Config\Clases\Conexion::getConexion();
 
 // CONSULTA OPTIMIZADA CON CTEs Y SELF-JOIN PARA ACUMULADOS
 $sql = "WITH 
-    -- CTE para modificaciones (adiciones y reducciones)
     modificaciones AS (
         SELECT
             pmd.id_cargue,
             SUM(CASE 
-                WHEN pm.id_tipo_mod = 2 AND pm.fecha BETWEEN :fecha_ini AND :fecha_corte 
+                WHEN pm.id_tipo_mod = 2 AND DATE(pm.fecha) BETWEEN :fecha_ini AND :fecha_corte 
                 THEN pmd.valor_deb 
                 ELSE 0 
             END) AS val_adicion,
             SUM(CASE 
-                WHEN pm.id_tipo_mod = 3 AND pm.fecha BETWEEN :fecha_ini AND :fecha_corte 
-                THEN pmd.valor_cred 
+                WHEN pm.id_tipo_mod = 3 AND DATE(pm.fecha) BETWEEN :fecha_ini AND :fecha_corte 
+                THEN pmd.valor_deb 
                 ELSE 0 
             END) AS val_reduccion,
             SUM(CASE 
-                WHEN pm.id_tipo_mod = 2 AND pm.fecha BETWEEN :fecha_ini_mes AND :fecha_corte 
+                WHEN pm.id_tipo_mod = 2 AND DATE(pm.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte 
                 THEN pmd.valor_deb 
                 ELSE 0 
             END) AS val_adicion_mes,
             SUM(CASE 
-                WHEN pm.id_tipo_mod = 3 AND pm.fecha BETWEEN :fecha_ini_mes AND :fecha_corte 
-                THEN pmd.valor_cred 
+                WHEN pm.id_tipo_mod = 3 AND DATE(pm.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte 
+                THEN pmd.valor_deb 
                 ELSE 0 
             END) AS val_reduccion_mes
         FROM pto_mod_detalle pmd
         INNER JOIN pto_mod pm ON pmd.id_pto_mod = pm.id_pto_mod
         WHERE pm.estado = 2 
             AND pm.id_tipo_mod IN (2, 3)
-            AND pm.fecha BETWEEN :fecha_ini AND :fecha_corte
+            AND DATE(pm.fecha) BETWEEN :fecha_ini AND :fecha_corte
         GROUP BY pmd.id_cargue
     ),
     -- CTE para reconocimientos
@@ -63,24 +62,24 @@ $sql = "WITH
         SELECT
             prd.id_rubro,
             SUM(CASE 
-                WHEN pr.fecha BETWEEN :fecha_ini AND :fecha_fin_mes_ant 
+                WHEN DATE(pr.fecha) BETWEEN :fecha_ini AND :fecha_fin_mes_ant 
                 THEN IFNULL(prd.valor, 0) - IFNULL(prd.valor_liberado, 0)
                 ELSE 0 
             END) AS val_reconocimiento_ant,
             SUM(CASE 
-                WHEN pr.fecha BETWEEN :fecha_ini_mes AND :fecha_corte 
+                WHEN DATE(pr.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte 
                 THEN IFNULL(prd.valor, 0)
                 ELSE 0 
             END) AS val_reconocimiento_mes,
             SUM(CASE 
-                WHEN pr.fecha BETWEEN :fecha_ini_mes AND :fecha_corte 
+                WHEN DATE(pr.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte 
                 THEN IFNULL(prd.valor_liberado, 0)
                 ELSE 0 
             END) AS val_liberado_mes
         FROM pto_rad_detalle prd
         INNER JOIN pto_rad pr ON prd.id_pto_rad = pr.id_pto_rad
         WHERE pr.estado = 2
-            AND pr.fecha BETWEEN :fecha_ini AND :fecha_corte
+            AND DATE(pr.fecha) BETWEEN :fecha_ini AND :fecha_corte
         GROUP BY prd.id_rubro
     ),
     -- CTE para recaudos
@@ -88,17 +87,17 @@ $sql = "WITH
         SELECT
             COALESCE(prd.id_rubro, prdd.id_rubro) AS id_rubro,
             SUM(CASE 
-                WHEN pr.fecha BETWEEN :fecha_ini AND :fecha_fin_mes_ant 
+                WHEN DATE(pr.fecha) BETWEEN :fecha_ini AND :fecha_fin_mes_ant 
                 THEN IFNULL(prd.valor, 0) - IFNULL(prd.valor_liberado, 0)
                 ELSE 0 
             END) AS val_recaudo_ant,
             SUM(CASE 
-                WHEN pr.fecha BETWEEN :fecha_ini_mes AND :fecha_corte 
+                WHEN DATE(pr.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte 
                 THEN IFNULL(prd.valor, 0)
                 ELSE 0 
             END) AS val_recaudo_mes,
             SUM(CASE 
-                WHEN pr.fecha BETWEEN :fecha_ini_mes AND :fecha_corte 
+                WHEN DATE(pr.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte 
                 THEN IFNULL(prd.valor_liberado, 0)
                 ELSE 0 
             END) AS val_recaudo_liberado_mes
@@ -106,7 +105,7 @@ $sql = "WITH
         INNER JOIN pto_rec pr ON prd.id_pto_rac = pr.id_pto_rec
         LEFT JOIN pto_rad_detalle prdd ON prd.id_pto_rad_detalle = prdd.id_pto_rad_det
         WHERE pr.estado = 2
-            AND pr.fecha BETWEEN :fecha_ini AND :fecha_corte
+            AND DATE(pr.fecha) BETWEEN :fecha_ini AND :fecha_corte
         GROUP BY COALESCE(prd.id_rubro, prdd.id_rubro)
     ),
     -- CTE base con valores individuales
@@ -157,65 +156,16 @@ $sql = "WITH
     ORDER BY parent.cod_pptal ASC";
 
 try {
-    $datos_sedes = obtenerSedesActivas($cmd);
-    $sedes = $datos_sedes['sedes'];
-    if (empty($sedes)) {
-        $sedes = [['es_principal' => 1, 'nom_sede' => 'PRINCIPAL']];
-    }
-
-    $rubros_consolidados = [];
-    foreach ($sedes as $sede) {
-        if ($sede['es_principal'] == 1) {
-            $cmd_sede = $cmd;
-        } else {
-            $cmd_sede = conectarSede($sede['bd_sede']);
-            if ($cmd_sede === null) {
-                error_log("No se pudo conectar a la sede {$sede['nom_sede']} para ejecución de ingresos");
-                continue;
-            }
-        }
-
-        try {
-            $stmt = $cmd_sede->prepare($sql);
-            $stmt->bindParam(':fecha_ini', $fecha_ini, PDO::PARAM_STR);
-            $stmt->bindParam(':fecha_corte', $fecha_corte, PDO::PARAM_STR);
-            $stmt->bindParam(':fecha_ini_mes', $fecha_ini_mes, PDO::PARAM_STR);
-            $stmt->bindParam(':fecha_fin_mes_ant', $fecha_fin_mes_ant, PDO::PARAM_STR);
-            $stmt->bindParam(':id_vigencia', $id_vigencia, PDO::PARAM_INT);
-            $stmt->execute();
-            $rubros_sede = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $stmt->closeCursor();
-
-            foreach ($rubros_sede as $registro) {
-                $clave = $registro['cod_pptal'];
-                if (!isset($rubros_consolidados[$clave])) {
-                    $rubros_consolidados[$clave] = $registro;
-                } else {
-                    // 'inicial' solo se toma de la sede principal (es_principal = 1),
-                    // no se acumula de las sedes secundarias.
-                    $rubros_consolidados[$clave]['adicion'] += $registro['adicion'];
-                    $rubros_consolidados[$clave]['reduccion'] += $registro['reduccion'];
-                    $rubros_consolidados[$clave]['recaudo_ant'] += $registro['recaudo_ant'];
-                    $rubros_consolidados[$clave]['reconocimiento_ant'] += $registro['reconocimiento_ant'];
-                    $rubros_consolidados[$clave]['adicion_mes'] += $registro['adicion_mes'];
-                    $rubros_consolidados[$clave]['reduccion_mes'] += $registro['reduccion_mes'];
-                    $rubros_consolidados[$clave]['recaudo_mes'] += $registro['recaudo_mes'];
-                    $rubros_consolidados[$clave]['recaudo_liberado_mes'] += $registro['recaudo_liberado_mes'];
-                    $rubros_consolidados[$clave]['reconocimiento_mes'] += $registro['reconocimiento_mes'];
-                    $rubros_consolidados[$clave]['liberado_mes'] += $registro['liberado_mes'];
-                }
-            }
-            unset($stmt);
-        } catch (PDOException $e) {
-            error_log("Error consultando ejecución de ingresos en sede {$sede['nom_sede']}: " . $e->getMessage());
-        }
-
-        if ($sede['es_principal'] != 1) {
-            $cmd_sede = null;
-        }
-    }
-
-    $rubros = array_values($rubros_consolidados);
+    $stmt = $cmd->prepare($sql);
+    $stmt->bindParam(':fecha_ini', $fecha_ini, PDO::PARAM_STR);
+    $stmt->bindParam(':fecha_corte', $fecha_corte, PDO::PARAM_STR);
+    $stmt->bindParam(':fecha_ini_mes', $fecha_ini_mes, PDO::PARAM_STR);
+    $stmt->bindParam(':fecha_fin_mes_ant', $fecha_fin_mes_ant, PDO::PARAM_STR);
+    $stmt->bindParam(':id_vigencia', $id_vigencia, PDO::PARAM_INT);
+    $stmt->execute();
+    $rubros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
+    unset($stmt);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

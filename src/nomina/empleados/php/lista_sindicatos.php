@@ -46,7 +46,7 @@ if (!empty($obj)) {
         if ($o['estado'] == '0') {
             $actualizar = $eliminar = '';
         }
-        $estado = $o['estado'] == 1 ? '<a href="javascript:CambiaEstadoDeducido(' . $id . ',0,\'sindicatos\');" title="Inactivar"><i class="fas fa-toggle-on fa-lg text-success"></i></a>' : '<a href="javascript:CambiaEstadoDeducido(' . $id . ',1,\'sindicatos\');" title="Activar"><i class="fas fa-toggle-off fa-lg text-secondary"></i></a>';
+        $estado = $o['estado'] !== 0 ? '<a href="javascript:CambiaEstadoDeducido(' . $id . ',0,\'sindicatos\');" title="Inactivar"><i class="fas fa-toggle-on fa-lg text-success"></i></a>' : '<a href="javascript:CambiaEstadoDeducido(' . $id . ',1,\'sindicatos\');" title="Activar"><i class="fas fa-toggle-off fa-lg text-secondary"></i></a>';
 
         $datos[] = [
             'id'                => $id,

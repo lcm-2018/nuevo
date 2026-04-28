@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -66,12 +66,18 @@ try {
                     ON (`pto_mod_detalle`.`id_cargue` = `pto_cargue`.`id_cargue`)
                 INNER JOIN `pto_presupuestos`
                     ON (`pto_cargue`.`id_pto` = `pto_presupuestos`.`id_pto`)
-            WHERE (`pto_mod`.`id_tipo_mod` = $tipo_doc AND `pto_mod`.`estado` >= 1)
+            WHERE (`pto_mod`.`id_tipo_mod` = $tipo_doc AND `pto_mod`.`estado` >= 1 AND `pto_presupuestos`.`id_vigencia` = $id_vigencia)
             GROUP BY `pto_mod_detalle`.`id_pto_mod`, `pto_presupuestos`.`id_tipo`";
     $rs = $cmd->query($sql);
     $valores = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
+
+    // Agrupar los valores por id_pto_mod para evitar el uso ineficiente de array_filter dentro del ciclo
+    $valores_agrupados = [];
+    foreach ($valores as $val) {
+        $valores_agrupados[$val['id_pto_mod']][] = $val;
+    }
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -82,15 +88,11 @@ if (!empty($listappto)) {
         $detalles = $cerrar = $editar = $borrar = $anular = $imprimir = '';
         $id_pto = $lp['id_pto_mod'];
         $fecha = date('Y-m-d', strtotime($lp['fecha']));
-        $key = array_search($id_pto, array_column($valores, 'id_pto_mod'));
-        if ($key !== false) {
-            // filtrar por id_pto_mod para obtener todos los valores 
-            $filtro = [];
-            $filtro = array_filter($valores, function ($val) use ($id_pto) {
-                return $val['id_pto_mod'] == $id_pto;
-            });
+        $filtro = isset($valores_agrupados[$id_pto]) ? $valores_agrupados[$id_pto] : [];
+        if (!empty($filtro)) {
             $valor1 = 0;
             $valor2 = 0;
+            $valor_mostrar = 0;
             foreach ($filtro as $f) {
                 $tipo_pto = $f['id_tipo'];
                 if ($tipo_pto == '1' && ($tipo_doc == '3' || $tipo_doc == '2')) {
@@ -103,10 +105,15 @@ if (!empty($listappto)) {
                     $valor1 += $f['debito'];
                     $valor2 += $f['credito'];
                 }
+                $valor_mostrar += abs($f['debito']) + abs($f['credito']);
+            }
+            if ($tipo_doc == '1' || $tipo_doc == '2' || $tipo_doc == '3') {
+                $valor_mostrar = $valor_mostrar / 2;
             }
         } else {
             $valor1 = 0;
             $valor2 = 0;
+            $valor_mostrar = 0;
         }
         $diferencia = $valor1 - $valor2;
         if ($permisos->PermisosUsuario($opciones, 5401, 1) || $id_rol == 1) {
@@ -135,8 +142,8 @@ if (!empty($listappto)) {
             $diferencia = 0;
         }
         if ($diferencia == 0) {
-            $valor2 = number_format($valor2, 2, '.', ',');
-            $estado = '<div class="text-end" ' . $valor1 . '-' . $valor2 . '>' . $valor2 . '</div>';
+            $valor_formateado = number_format($valor_mostrar, 2, '.', ',');
+            $estado = '<div class="text-end" title="Calculado: ' . $valor1 . '-' . $valor2 . '">' . $valor_formateado . '</div>';
         } else {
             $estado = '<div class="text-center"><span class="label text-danger">Incorrecto</span></div>';
         }

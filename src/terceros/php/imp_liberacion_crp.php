@@ -18,12 +18,14 @@ try {
                 DATE_FORMAT(fecha_libera, '%Y-%m-%d') AS fecha
                 , concepto_libera
                 , valor_liberado
+                , fecha_reg
             FROM
                 pto_crp_detalle
             WHERE
                 id_pto_crp_det=$id_lib";
     $rs = $cmd->query($sql);
     $obj_liberacion = $rs->fetch();
+    $fecha_reg_lib = $obj_liberacion['fecha_reg'] ?? '';
 
     //-----crps-----------------------
     $sql = "SELECT
@@ -47,28 +49,46 @@ try {
 
     //------ codigos ppto cargue con id_rubro
     $sql = "SELECT
-            COUNT(*) AS filas
-            , pto_crp.id_pto_crp
-            , pto_cdp_detalle.id_pto_cdp_det
-            , pto_cargue.cod_pptal 
-            , pto_cargue.nom_rubro
-            , SUM(IFNULL(pto_crp_detalle2.valor,0)) AS vr_crp
-            , SUM(IFNULL(pto_crp_detalle2.valor_liberado,0)) AS vr_crp_liberado
-            , SUM(IFNULL(pto_cop_detalle.valor,0)) AS vr_cop
-            , SUM(IFNULL(pto_cop_detalle.valor_liberado,0)) AS vr_cop_liberado
-            ,(SUM(IFNULL(pto_crp_detalle2.valor,0)) - SUM(IFNULL(pto_crp_detalle2.valor_liberado,0)))-(SUM(IFNULL(pto_cop_detalle.valor,0)) - SUM(IFNULL(pto_cop_detalle.valor_liberado,0))) AS saldo_final
-        FROM
-            (SELECT id_pto_crp,id_pto_crp_det,id_pto_cdp_det,SUM(valor) AS valor,SUM(valor_liberado) AS valor_liberado FROM pto_crp_detalle GROUP BY id_pto_crp) AS pto_crp_detalle2
-            LEFT JOIN pto_cop_detalle ON (pto_cop_detalle.id_pto_crp_det = pto_crp_detalle2.id_pto_crp_det)
-            INNER JOIN pto_cdp_detalle ON (pto_crp_detalle2.id_pto_cdp_det = pto_cdp_detalle.id_pto_cdp_det)
-            INNER JOIN pto_crp ON (pto_crp_detalle2.id_pto_crp = pto_crp.id_pto_crp)
-            INNER JOIN pto_cargue ON (pto_cdp_detalle.id_rubro = pto_cargue.id_cargue)
-
-            WHERE pto_crp_detalle2.id_pto_crp =  $id_crp 
-            GROUP BY pto_crp.id_cdp";
+                pto_crp_detalle2.id_pto_crp,
+                pto_cdp_detalle.id_rubro,
+                pto_cargue.cod_pptal,
+                pto_cargue.nom_rubro,
+                pto_crp_detalle2.id_pto_crp_det,
+                SUM(pto_crp_detalle2.valor) AS valorcrp,
+                SUM(IFNULL(pto_crp_detalle2.valor_liberado,0)) AS crpliberado
+            FROM (
+                SELECT
+                    id_pto_crp,
+                    id_pto_cdp_det,
+                    id_pto_crp_det,
+                    fecha_reg,
+                    SUM(valor) AS valor,
+                    SUM(IFNULL(valor_liberado,0)) AS valor_liberado
+                FROM pto_crp_detalle
+                GROUP BY
+                    id_pto_crp,
+                    id_pto_cdp_det,
+                    id_pto_crp_det,
+                    fecha_reg
+            ) AS pto_crp_detalle2
+            INNER JOIN pto_cdp_detalle ON pto_crp_detalle2.id_pto_cdp_det = pto_cdp_detalle.id_pto_cdp_det
+            INNER JOIN pto_cargue ON pto_cdp_detalle.id_rubro = pto_cargue.id_cargue
+            WHERE
+                pto_crp_detalle2.id_pto_crp = $id_crp
+                AND pto_crp_detalle2.fecha_reg = '{$fecha_reg_lib}'
+            GROUP BY
+                pto_crp_detalle2.id_pto_crp,
+                pto_cdp_detalle.id_rubro,
+                pto_crp_detalle2.id_pto_crp_det,
+                pto_cargue.cod_pptal,
+                pto_cargue.nom_rubro
+            HAVING
+                SUM(IFNULL(pto_crp_detalle2.valor_liberado,0)) > 0
+            ORDER BY
+                pto_crp_detalle2.id_pto_crp_det;";
 
     $rs = $cmd->query($sql);
-    $obj_codigo = $rs->fetch();
+    $obj_codigo = $rs->fetchAll(PDO::FETCH_ASSOC);
 
     //----datos usuario----------------
     $sql = "SELECT 
@@ -159,12 +179,14 @@ try {
             </tr>
         </thead>
         <tbody style="font-size: 70%;">
+            <?php foreach ($obj_codigo as $codigo): ?>
             <tr style="text-align:left; border:#A9A9A9 1px solid;">
-                <td style="border:#A9A9A9 1px solid;"><?php echo $obj_crps['manucdp'] ?></td>
-                <td style="border:#A9A9A9 1px solid;"><?php echo $obj_crps['manucrp'] ?></td>
-                <th style="border:#A9A9A9 1px solid;" colspan="3"><?php echo $obj_codigo['cod_pptal'] ?> - <?php echo $obj_codigo['nom_rubro']; ?></th>
-                <th style="text-align:right; border:#A9A9A9 1px solid;"><?php echo number_format($obj_liberacion['valor_liberado'], 2, ',', '.'); ?></th>
+                <td style="border:#A9A9A9 1px solid;"><?php echo $obj_crps['manucdp']; ?></td>
+                <td style="border:#A9A9A9 1px solid;"><?php echo $obj_crps['manucrp']; ?></td>
+                <th style="border:#A9A9A9 1px solid;" colspan="3"><?php echo $codigo['cod_pptal'] ?> - <?php echo $codigo['nom_rubro']; ?></th>
+                <th style="text-align:right; border:#A9A9A9 1px solid;"><?php echo number_format($codigo['crpliberado'], 2, ',', '.'); ?></th>
             </tr>
+            <?php endforeach; ?>
         </tbody>
     </table>
 

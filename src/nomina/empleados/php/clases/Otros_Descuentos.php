@@ -193,7 +193,7 @@ class Otros_Descuentos
         $sql = "SELECT
                     `id_dcto`,`id_empleado`,`id_tipo_dcto`,`fecha_fin`,`concepto`,`valor`
                 FROM `nom_otros_descuentos`
-                WHERE `estado`  = 1 AND `fecha_fin` >= ?";
+                WHERE `estado`  = 1 AND (`fecha_fin` IS NULL OR `fecha_fin` >= ?)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $f, PDO::PARAM_STR);
         $stmt->execute();
