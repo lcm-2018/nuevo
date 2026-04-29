@@ -78,7 +78,6 @@ foreach ($sedes as $sede) {
                     LEFT JOIN `tb_terceros`
                         ON (`pto_rec`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
                 ORDER BY `pto_rec`.`fecha` ASC, `pto_rec`.`id_manu` ASC";
-
         $res = $cmd_sede->query($sql);
         $causaciones_sede = $res->fetchAll(PDO::FETCH_ASSOC);
         $res->closeCursor();
