@@ -1,4 +1,7 @@
-﻿<?php
+<?php
+
+use Config\Clases\Plantilla;
+
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -11,6 +14,8 @@ $informe = $_POST['informe'];
 $fecha_ini = $vigencia . '-01-01';
 $campos = '';
 $join = '';
+$id_vigencia = $_SESSION['id_vigencia'];
+
 switch ($id_corte) {
     case 1:
         $fecha_corte = $vigencia . '-03-31';
@@ -33,7 +38,7 @@ switch ($id_corte) {
         break;
 }
 if ($tipo_pto == 1 && $informe == 1) {
-    $titulo = "A_PROGRAMACION_DE _INGRESOS";
+    $titulo = "A_PROGRAMACION_DE_INGRESOS";
     $campos = ", IFNULL(`adicion`.`valor`,0) AS `adicion` 
                 , IFNULL(`reduccion`.`valor`,0) AS `reduccion`
                 ,'0' AS `credito`
@@ -48,7 +53,7 @@ if ($tipo_pto == 1 && $informe == 1) {
                         ON (`pto_mod_detalle`.`id_pto_mod` = `pto_mod`.`id_pto_mod`)
                     INNER JOIN `pto_presupuestos` 
                         ON (`pto_mod`.`id_pto` = `pto_presupuestos`.`id_pto`)
-                WHERE (DATE_FORMAT(`pto_mod`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_mod`.`estado` = 2 AND `pto_mod`.`id_tipo_mod` = 2 AND `pto_presupuestos`.`id_tipo` = 2)
+                WHERE (DATE_FORMAT(`pto_mod`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_mod`.`estado` = 2 AND `pto_mod`.`id_tipo_mod` = 2 AND (`pto_presupuestos`.`id_tipo` = 1 OR `pto_presupuestos`.`id_tipo` = 2) AND `pto_presupuestos`.`id_vigencia` = $id_vigencia)
                 GROUP BY `pto_mod_detalle`.`id_cargue`) AS `adicion`
                 ON(`adicion`.`id_cargue` = `pto_cargue`.`id_cargue`)
             LEFT JOIN
@@ -61,7 +66,7 @@ if ($tipo_pto == 1 && $informe == 1) {
                         ON (`pto_mod_detalle`.`id_pto_mod` = `pto_mod`.`id_pto_mod`)
                     INNER JOIN `pto_presupuestos` 
                         ON (`pto_mod`.`id_pto` = `pto_presupuestos`.`id_pto`)
-                WHERE (DATE_FORMAT(`pto_mod`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_mod`.`estado` = 2 AND `pto_mod`.`id_tipo_mod` = 3 AND `pto_presupuestos`.`id_tipo` = 1)
+                WHERE (DATE_FORMAT(`pto_mod`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte' AND `pto_mod`.`estado` = 2 AND `pto_mod`.`id_tipo_mod` = 3 AND `pto_presupuestos`.`id_tipo` = 1 AND `pto_presupuestos`.`id_vigencia` = $id_vigencia)
                 GROUP BY `pto_mod_detalle`.`id_cargue`) AS `reduccion`
                 ON(`reduccion`.`id_cargue` = `pto_cargue`.`id_cargue`)";
 } else if ($tipo_pto == 1 && $informe == 2) {
@@ -260,6 +265,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 $tabla = $tipo_pto == 1 ? 'pto_homologa_ingresos' : 'pto_homologa_gastos';
+
 try {
     $sql = "SELECT 
                 `pto_cargue`.`id_cargue`
@@ -272,7 +278,11 @@ try {
                     ON ($tabla.`id_cargue` = `pto_cargue`.`id_cargue`)
                 INNER JOIN `pto_codigo_cgr` 
                     ON ($tabla.`id_cgr` = `pto_codigo_cgr`.`id_cod`)
-                $join";
+                INNER JOIN `pto_presupuestos` 
+                    ON (`pto_cargue`.`id_pto` = `pto_presupuestos`.`id_pto`)
+                $join
+            WHERE `pto_presupuestos`.`id_vigencia` = $id_vigencia 
+              AND `pto_presupuestos`.`id_tipo` = $tipo_pto";
     $res = $cmd->query($sql);
     $rubros = $res->fetchAll(PDO::FETCH_ASSOC);
     $res->closeCursor();
@@ -282,7 +292,10 @@ try {
 }
 $data = [];
 if (($tipo_pto == 2 && $informe == 1) || ($tipo_pto == 1 && $informe == 1)) {
+    $procesados = [];
     foreach ($rubros as $fila) {
+        if (in_array($fila['id_cargue'], $procesados)) continue;
+        $procesados[] = $fila['id_cargue'];
         $id = $fila['id_cgr'];
         $ini = $fila['inicial'];
         $def = $fila['inicial'] + $fila['adicion'] - $fila['reduccion'] + $fila['credito'] - $fila['contracredito'];
@@ -303,9 +316,14 @@ if (($tipo_pto == 2 && $informe == 1) || ($tipo_pto == 1 && $informe == 1)) {
     }
 }
 if ($tipo_pto == 1 && $informe == 2) {
+    $procesados = [];
     foreach ($rubros as $fila) {
         $id = $fila['id_cgr'] . '|' . $fila['codigo_cpc'] . '|' . $fila['codigo_fte'] . '|' . $fila['codigo_terc'] . '|' . $fila['codigo_pol'];
-        $recaudo = $fila['recaudo'];
+        $recaudo = 0;
+        if (!in_array($fila['id_cargue'], $procesados)) {
+            $recaudo = $fila['recaudo'];
+            $procesados[] = $fila['id_cargue'];
+        }
         if (isset($data[$id])) {
             $val_12 = $data[$id]['unodos'];
             $val_11 = $data[$id]['unouno'];
@@ -345,11 +363,18 @@ if ($tipo_pto == 1 && $informe == 2) {
     }
 }
 if ($tipo_pto == 2 && $informe == 2) {
+    $procesados = [];
     foreach ($rubros as $fila) {
         $id = $fila['id_cgr'] . '|' . $fila['id_vigencia'] . '|' . $fila['id_seccion'] . '|' . $fila['id_sector'] . '|' . $fila['codigo_cpc'] . '|' . $fila['codigo_fte'] . '|' . $fila['id_situacion'] . '|' . $fila['codigo_pol'] . '|' . $fila['codigo_terc'];
-        $registrado = $fila['registrado'];
-        $causado = $fila['causado'];
-        $pagado = $fila['pagado'];
+        $registrado = 0;
+        $causado = 0;
+        $pagado = 0;
+        if (!in_array($fila['id_cargue'], $procesados)) {
+            $registrado = $fila['registrado'];
+            $causado = $fila['causado'];
+            $pagado = $fila['pagado'];
+            $procesados[] = $fila['id_cargue'];
+        }
 
         if (isset($data[$id])) {
             $val_r = $data[$id]['registrado'];
@@ -384,7 +409,7 @@ if ($tipo_pto == 2 && $informe == 2) {
 <table style="width:100% !important; border-collapse: collapse;">
     <thead>
         <tr>
-            <td rowspan="4" style="text-align:center"><label class="small"><img src="<?php echo $_SESSION['urlin'] ?>/images/logos/logo.png" width="100"></label></td>
+            <td rowspan="4" style="text-align:center"><label class="small"><img src="<?= Plantilla::getHost(); ?>/assets/images/logo.png" width="100"></label></td>
             <td colspan="13" style="text-align:center"><?php echo $empresa['nombre']; ?></td>
         </tr>
         <tr>

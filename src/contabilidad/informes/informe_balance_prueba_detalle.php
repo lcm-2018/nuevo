@@ -152,7 +152,7 @@ foreach ($datos as $dato) {
         }
         if (($c['tipo_dato'] == 'M' && strpos($cuenta, $c['cuenta']) === 0) || ($c['tipo_dato'] != 'M' && $cuenta == $c['cuenta'])) {
             $cta = $c['cuenta'] . $idTer;
-            if (!isset($acum[$c['cuenta']])) {
+            if (!isset($acum[$cta])) {
                 $acum[$cta] = [
                     'cuenta' => $c['cuenta'],
                     'nombre' => $c['nombre'],
@@ -175,6 +175,12 @@ foreach ($datos as $dato) {
         }
     }
 }
+
+// Ordenar el arreglo acumulado por la cuenta (clave del arreglo) de forma ascendente
+if (!empty($acum)) {
+    ksort($acum, SORT_STRING);
+}
+
 $nom_informe = "LIBRO MAYOR Y BALANCE";
 include_once '../../financiero/encabezado_empresa.php';
 

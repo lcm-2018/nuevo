@@ -42,9 +42,18 @@ try {
             INNER JOIN tb_terceros ON (pto_crp.id_tercero_api = tb_terceros.id_tercero_api)   
             INNER JOIN pto_cargue ON (pto_cdp_detalle2.id_rubro = pto_cargue.id_cargue)
             LEFT JOIN (
-                SELECT pto_crp_detalle2.id_pto_crp, SUM(pto_cop_detalle.valor) AS b_valor_cop_detalle
-                FROM (SELECT id_pto_crp, id_pto_crp_det FROM pto_crp_detalle GROUP BY id_pto_crp, id_pto_crp_det) pto_crp_detalle2
+                SELECT 
+                    pto_crp_detalle2.id_pto_crp, SUM(pto_cop_detalle.valor) AS b_valor_cop_detalle
+                FROM 
+                    (SELECT 
+                        pcd.id_pto_crp, pcd.id_pto_crp_det 
+                    FROM pto_crp_detalle AS pcd
+                        INNER JOIN pto_crp AS prp ON (prp.id_pto_crp = pcd.id_pto_crp)
+                    WHERE prp.estado = 2
+                    GROUP BY id_pto_crp, id_pto_crp_det) pto_crp_detalle2
                 INNER JOIN pto_cop_detalle ON (pto_cop_detalle.id_pto_crp_det = pto_crp_detalle2.id_pto_crp_det)
+                INNER JOIN ctb_doc ON (ctb_doc.id_ctb_doc = pto_cop_detalle.id_ctb_doc)
+                WHERE ctb_doc.estado = 2
                 GROUP BY pto_crp_detalle2.id_pto_crp
             ) cop_sum ON cop_sum.id_pto_crp = pto_crp.id_pto_crp
             LEFT JOIN (
@@ -116,4 +125,3 @@ include_once 'encabezado_empresa.php';
         ?>
     </tbody>
 </table>
-</div>
