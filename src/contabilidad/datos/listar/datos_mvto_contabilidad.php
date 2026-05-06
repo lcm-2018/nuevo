@@ -178,17 +178,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 // consultar la fecha de cierre del periodo del módulo de presupuesto 
-try {
-    $sql = "SELECT MAX(fecha_cierre) AS fecha_cierre  FROM tb_fin_periodos WHERE id_modulo = 55";
-    $rs = $cmd->query($sql);
-    $fecha_cierre = $rs->fetch();
-    $fecha_cierre = !empty($fecha_cierre) ? $fecha_cierre['fecha_cierre'] : date("Y-m-d");
-    $fecha_cierre = date('Y-m-d', strtotime($fecha_cierre));
-    // incrementar un dia a $fecha cierre
-    $fecha_cierre = date('Y-m-d', strtotime($fecha_cierre . '+1 day'));
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
+$fecha_cierre = fechaCierre($_SESSION['vigencia'], 55, $cmd);
 // consulto la diferencia de la suma debito credito de la tabla ctb_libaux
 try {
     $sql = "SELECT

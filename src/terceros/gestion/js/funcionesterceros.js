@@ -329,6 +329,77 @@ function FormResponsabilidad(id) {
 
         });
         $('#tableDocumento').wrap('<div class="overflow" />');
+
+        //dataTable Dependientes
+        $('#tableDependientes').DataTable({
+            dom: setdom,
+            buttons: $('#peReg').val() == 1 ? [{
+                text: '<span class="fa-solid fa-plus fa-lg"></span>',
+                className: 'btn btn-success btn-sm shadow',
+                action: function (e, dt, node, config) {
+                    $.post("datos/registrar/formadd_dependiente.php", { idt: idt }, function (he) {
+                        $('#divTamModalForms').removeClass('modal-xl');
+                        $('#divTamModalForms').removeClass('modal-sm');
+                        $('#divTamModalForms').addClass('modal-lg');
+                        $('#divModalForms').modal('show');
+                        $("#divForms").html(he);
+                        $('#slcTipoDocs').focus();
+                    });
+                }
+            }] : [],
+            language: dataTable_es,
+            "ajax": {
+                url: 'datos/listar/datos_dependientes.php',
+                type: 'POST',
+                data: { id_t: id_t },
+                dataType: 'json',
+            },
+            "columns": [
+                { 'data': 'tipo_doc' },
+                { 'data': 'nombre' },
+                { 'data': 'documento' },
+                { 'data': 'parentesco' },
+                { 'data': 'acciones' },
+            ],
+            "order": [
+                [0, "asc"]
+            ],
+        });
+        $('#tableDependientes').wrap('<div class="overflow" />');
+
+        //dataTable Deducciones
+        $('#tableDeducciones').DataTable({
+            dom: setdom,
+            buttons: $('#peReg').val() == 1 ? [{
+                text: '<span class="fa-solid fa-pencil-alt fa-lg me-1"></span>GESTIONAR',
+                className: 'btn btn-primary btn-sm shadow',
+                action: function (e, dt, node, config) {
+                    $.post("datos/registrar/formadd_deduccion.php", { idt: idt }, function (he) {
+                        $('#divTamModalForms').removeClass('modal-xl');
+                        $('#divTamModalForms').removeClass('modal-sm');
+                        $('#divTamModalForms').addClass('modal-lg');
+                        $('#divModalForms').modal('show');
+                        $("#divForms").html(he);
+                        $('#txtIntereses').focus();
+                    });
+                }
+            }] : [],
+            language: dataTable_es,
+            "ajax": {
+                url: 'datos/listar/datos_deducciones.php',
+                type: 'POST',
+                data: { id_t: id_t },
+                dataType: 'json',
+            },
+            "columns": [
+                { 'data': 'tipo' },
+                { 'data': 'valor' }
+            ],
+            bSort: false,
+            paging: false,
+            info: false
+        });
+        $('#tableDeducciones').wrap('<div class="overflow" />');
     });
     //Nuevo tercero
     $('#divModalForms').on('click', '#btnNewTercero', function (e) {
@@ -564,6 +635,85 @@ function FormResponsabilidad(id) {
             $('#slcRespEcon').focus();
         });
     });
+    // Guardar Dependiente
+    $('#divForms').on('click', '#btnGuardaDependiente', function () {
+        $('.is-invalid').removeClass('is-invalid');
+        if ($('#slcTipoDocs').val() === '0') {
+            $('#slcTipoDocs').addClass('is-invalid').focus();
+            mjeError('¡Debe seleccionar un tipo de documento!');
+        } else if ($('#txtNumDoc').val() === '') {
+            $('#txtNumDoc').addClass('is-invalid').focus();
+            mjeError('¡Debe ingresar el número de documento!');
+        } else if ($('#txtNombreCompleto').val() === '') {
+            $('#txtNombreCompleto').addClass('is-invalid').focus();
+            mjeError('¡Debe ingresar el nombre completo!');
+        } else if ($('#slcCalidadDependiente').val() === '0') {
+            $('#slcCalidadDependiente').addClass('is-invalid').focus();
+            mjeError('¡Debe seleccionar la calidad del dependiente!');
+        } else {
+            let datos = $('#formAddDependiente').serialize();
+            mostrarOverlay();
+            $.ajax({
+                type: 'POST',
+                url: 'datos/registrar/new_dependiente.php',
+                data: datos,
+                success: function (r) {
+                    if (r === 'ok') {
+                        $('#tableDependientes').DataTable().ajax.reload(null, false);
+                        $('#divModalForms').modal('hide');
+                        mje('Dependiente guardado correctamente');
+                    } else {
+                        mjeError(r);
+                    }
+                }
+            }).always(function () {
+                ocultarOverlay();
+            });
+        }
+        return false;
+    });
+
+    // Guardar Deduccion
+    $('#divForms').on('click', '#btnGuardaDeduccion', function () {
+        $('.is-invalid').removeClass('is-invalid');
+        if ($('#txtIntereses').val() === '') {
+            $('#txtIntereses').addClass('is-invalid').focus();
+            mjeError('¡Debe ingresar el valor de Intereses!');
+        } else if ($('#txtMedicina').val() === '') {
+            $('#txtMedicina').addClass('is-invalid').focus();
+            mjeError('¡Debe ingresar el valor de Medicina prepagada!');
+        } else if ($('#txtPolizas').val() === '') {
+            $('#txtPolizas').addClass('is-invalid').focus();
+            mjeError('¡Debe ingresar el valor de Pólizas de salud!');
+        } else if ($('#txtAfc').val() === '') {
+            $('#txtAfc').addClass('is-invalid').focus();
+            mjeError('¡Debe ingresar el valor de Ahorros AFC!');
+        } else if ($('#txtPension').val() === '') {
+            $('#txtPension').addClass('is-invalid').focus();
+            mjeError('¡Debe ingresar el valor de Aportes Pensión!');
+        } else {
+            let datos = $('#formAddDeduccion').serialize();
+            mostrarOverlay();
+            $.ajax({
+                type: 'POST',
+                url: 'datos/registrar/new_deduccion.php',
+                data: datos,
+                success: function (r) {
+                    if (r === 'ok') {
+                        $('#tableDeducciones').DataTable().ajax.reload(null, false);
+                        $('#divModalForms').modal('hide');
+                        mje('Deducción guardada correctamente');
+                    } else {
+                        mjeError(r);
+                    }
+                }
+            }).always(function () {
+                ocultarOverlay();
+            });
+        }
+        return false;
+    });
+
     //Agregar Responsabilidad Economica
     $('#divForms').on('click', '#btnAddRespEcon', function () {
 
@@ -1221,3 +1371,46 @@ function BorrarPerfilTercero(id) {
         }
     });
 }
+
+function BorrarDependiente(id) {
+    Swal.fire({
+        title: "¿Confirma eliminar el dependiente?",
+        text: "¡No podrás revertir esto!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#00994C",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Si!",
+        cancelButtonText: "NO",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            mostrarOverlay();
+            $.ajax({
+                type: 'POST',
+                url: '../gestion/datos/eliminar/del_dependiente.php',
+                data: { id: id },
+                success: function (r) {
+                    if (r === '1') {
+                        $('#tableDependientes').DataTable().ajax.reload(null, false);
+                        mje('Eliminado', 'Dependiente eliminado correctamente');
+                    } else {
+                        mjeError('Error', r);
+                    }
+                }
+            }).always(function () {
+                ocultarOverlay();
+            });
+        }
+    });
+}
+
+function EditarDependiente(id) {
+    $.post("datos/registrar/formadd_dependiente.php", { id: id }, function (he) {
+        $('#divTamModalForms').removeClass('modal-xl');
+        $('#divTamModalForms').removeClass('modal-sm');
+        $('#divTamModalForms').addClass('modal-lg');
+        $('#divModalForms').modal('show');
+        $("#divForms").html(he);
+        $('#slcTipoDocs').focus();
+    });
+}

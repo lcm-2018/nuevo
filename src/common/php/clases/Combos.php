@@ -252,4 +252,11 @@ class Combos
         }
         return $resultado;
     }
+
+    public static function getTiposDependientes($id)
+    {
+        $sql = "SELECT `id_tipo`,`descripcion` FROM `tb_tipo_dependientes`
+                ORDER BY `descripcion` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
 }

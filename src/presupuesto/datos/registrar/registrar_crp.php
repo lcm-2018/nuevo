@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -17,6 +17,8 @@ $tesoreria = isset($_POST['chDestTes']) ? 1 : 0;
 $id_cdp = $_POST['id_cdp'];
 $id_user = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
+$fecha2 = $date->format('Y-m-d H:i:s');
+
 $estado = 1;
 $id_vigencia = $_SESSION['id_vigencia'];
 $response['status'] = 'error';
@@ -119,6 +121,11 @@ if ($id_crp == 0) {
                     exit();
                 }
             }
+            // Inicializar variables para evitar advertencias de variables indefinidas con bindParam
+            $id_detalle = NULL;
+            $valor = 0;
+            $id_crp_det = NULL;
+
             $query = "INSERT INTO `pto_crp_detalle`
                         (`id_pto_crp`,`id_pto_cdp_det`,`id_tercero_api`,`valor`,`id_user_reg`,`fecha_reg`)
                     VALUES (?, ?, ?, ?, ?, ?)";
@@ -129,32 +136,40 @@ if ($id_crp == 0) {
             $query->bindParam(4, $valor, PDO::PARAM_STR);
             $query->bindParam(5, $id_user, PDO::PARAM_INT);
             $query->bindValue(6, $date->format('Y-m-d H:i:s'));
+
+            // Preparamos la consulta de COP fuera del bucle para optimizar rendimiento
+            if ($tesoreria == 1) {
+                $query2 = "INSERT INTO `pto_cop_detalle`
+                        (`id_ctb_doc`, `id_pto_crp_det`, `id_tercero_api`, `valor`, `valor_liberado`, `id_user_reg`, `fecha_reg`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+                $query2 = $cmd->prepare($query2);
+                $query2->bindParam(1, $id_doc, PDO::PARAM_INT);
+                $query2->bindParam(2, $id_crp_det, PDO::PARAM_INT);
+                $query2->bindParam(3, $tercero, PDO::PARAM_INT);
+                $query2->bindParam(4, $valor, PDO::PARAM_STR);
+                $query2->bindValue(5, 0, PDO::PARAM_STR); // liberado siempre 0 al crear
+                $query2->bindParam(6, $id_user, PDO::PARAM_INT);
+                $query2->bindValue(7, $fecha2, PDO::PARAM_STR);
+            }
+
             foreach ($detalles as $key => $value) {
                 $id_detalle = $key;
                 $valor = str_replace(',', '', $value);
-                $query->execute();
-                $id_crp_det = $cmd->lastInsertId();
-                if (!($id_crp_det > 0)) {
-                    $response['msg'] = $query->errorInfo()[2];
-                    break;
-                } else {
-                    if ($tesoreria == 1) {
-                        $liberado = 0;
-                        $query2 = "INSERT INTO `pto_cop_detalle`
-                                (`id_ctb_doc`, `id_pto_crp_det`, `id_tercero_api`, `valor`, `valor_liberado`, `id_user_reg`, `fecha_reg`)
-                            VALUES (?, ?, ?, ?, ?, ?, ?)";
-                        $query2 = $cmd->prepare($query2);
-                        $query2->bindParam(1, $id_doc, PDO::PARAM_INT);
-                        $query2->bindParam(2, $id_crp_det, PDO::PARAM_INT);
-                        $query2->bindParam(3, $tercero, PDO::PARAM_INT);
-                        $query2->bindParam(4, $valor, PDO::PARAM_STR);
-                        $query2->bindParam(5, $liberado, PDO::PARAM_STR);
-                        $query2->bindParam(6, $id_user, PDO::PARAM_INT);
-                        $query2->bindParam(7, $fecha2, PDO::PARAM_STR);
-                        $query2->execute();
-                        if (!($query2->rowCount() > 0)) {
-                            $response['msg'] = $query2->errorInfo()[2];
-                            break;
+
+                // Solo insertamos si el valor es mayor a 0 para evitar registros vacíos o "duplicados"
+                if ($valor > 0) {
+                    $query->execute();
+                    $id_crp_det = $cmd->lastInsertId();
+                    if (!($id_crp_det > 0)) {
+                        $response['msg'] = $query->errorInfo()[2];
+                        break;
+                    } else {
+                        if ($tesoreria == 1) {
+                            $query2->execute();
+                            if (!($query2->rowCount() > 0)) {
+                                $response['msg'] = $query2->errorInfo()[2];
+                                break;
+                            }
                         }
                     }
                 }

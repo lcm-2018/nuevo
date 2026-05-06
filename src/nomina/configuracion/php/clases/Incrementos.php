@@ -10,6 +10,7 @@ use Src\Nomina\Empleados\Php\Clases\Empleados;
 
 use PDO;
 use PDOException;
+use Src\Common\Php\Clases\Valores;
 
 class Incrementos
 {
@@ -207,7 +208,7 @@ class Incrementos
                         'id_empleado' => $e['id_empleado'],
                         'id_contrato' => $contrato,
                         'vigencia' => Sesion::Vigencia(),
-                        'salario_basico' => $new_salario,
+                        'salario_basico' => Valores::Redondear($new_salario),
                         'id_inc' => $id,
 
                     ];

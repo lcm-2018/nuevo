@@ -1,10 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header('Location: ../index.php');
+    header('Location: ../../../index.php');
     exit();
 }
 include '../../../config/autoloader.php';
+include_once '../../financiero/consultas.php';
 $_post = json_decode(file_get_contents('php://input'), true);
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -25,16 +26,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
-try {
-    // seleccionar la fecha minima de tb_fin_periodos cuando vigencia es igual a $vigencia
-    $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT MIN(`fecha_cierre`) as `fecha_cierre` FROM `tb_fin_periodos` WHERE `vigencia` = '$_post[vigencia]'";
-    $rs = $cmd->query($sql);
-    $datos = $rs->fetch();
-    $fecha_cierre = date('Y-m-d', strtotime($datos['fecha_cierre']));
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
-}
+$fecha_cierre = fechaCierre($_SESSION['vigencia'], 54, $cmd);
 $fecha_max = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-12-31'));
 $url = $_SESSION['urlin'];
 $cmd = null;

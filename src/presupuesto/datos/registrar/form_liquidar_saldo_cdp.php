@@ -1,10 +1,11 @@
 ﻿<?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header('Location: ../../index.php');
+    header('Location: ../../../../index.php');
     exit();
 }
 include '../../../../config/autoloader.php';
+include_once '../../../financiero/consultas.php';
 $cmd = \Config\Clases\Conexion::getConexion();
 
 
@@ -26,15 +27,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
-try {
-    // seleccionar la fecha minima de tb_fin_periodos cuando vigencia es igual a $vigencia
-    $sql = "SELECT min(fecha_cierre) as fecha_cierre FROM tb_fin_periodos WHERE vigencia = '2022'";
-    $res = $cmd->query($sql);
-    $datos = $res->fetch();
-    $fecha_cierre = date('Y-m-d', strtotime($datos['fecha_cierre']));
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
-}
+$fecha_cierre = fechaCierre($_SESSION['vigencia'], 54, $cmd);
 try {
     $sql = "SELECT
     `pto_documento`.`id_manu` 

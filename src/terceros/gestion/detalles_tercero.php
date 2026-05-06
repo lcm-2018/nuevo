@@ -203,6 +203,46 @@ $content = <<<HTML
                     </div>
                 </div>
             </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button shadow collapsed bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDptes" aria-expanded="false" aria-controls="collapseDptes">
+                        <span class="text-warning"><i class="fas fa-baby me-2"></i>VIÑETA. Dependientes.</span>
+                    </button>
+                </h2>
+                <div id="collapseDptes" class="accordion-collapse collapse" data-bs-parent="#accDetalles">
+                    <div class="accordion-body bg-wiev">
+                        <div class="row">
+                            <div class="col-6">
+                                <table id="tableDependientes" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
+                                    <thead class="text-center">
+                                        <tr>
+                                            <th class="bg-sofia">Tipo Doc.</th>
+                                            <th class="bg-sofia">Nombre</th>
+                                            <th class="bg-sofia">Documento</th>
+                                            <th class="bg-sofia">Parentesco</th>
+                                            <th class="bg-sofia"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modificarDependientes">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table id="tableDeducciones" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
+                                    <thead class="text-center">
+                                        <tr>
+                                            <th class="bg-sofia">Tipo Deducción</th>
+                                            <th class="bg-sofia">Valor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modificarDeducciones">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

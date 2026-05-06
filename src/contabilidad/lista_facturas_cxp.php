@@ -115,7 +115,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 $fecha_doc = date('Y-m-d');
-$fecha_cierre = fechaCierre($_SESSION['vigencia'], 5, $cmd);
+$fecha_cierre = fechaCierre($_SESSION['vigencia'], 55, $cmd);
 $fecha = fechaSesion($_SESSION['vigencia'], $_SESSION['id_user'], $cmd);
 $fecha_max = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-12-31'));
 $fecha_fact = $fecha;
