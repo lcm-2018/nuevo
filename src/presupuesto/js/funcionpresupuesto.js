@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     //Superponer modales
     $(".bttn-plus-dt span").html('<span class="icon-dt fas fa-plus-circle "></span>');
     $(document).on("show.bs.modal", ".modal", function () {
@@ -1462,7 +1462,7 @@ $('#tableHomologaPto').on('click', '#desmarcar', function () {
 $('#modificaHomologaPto').on('click', '.dupLine', function () {
     var elemento = $(this);
     var id = $(this).val();
-    var cgr = cpc = fte = tercero = politica = siho = sia = situacion = vig = secc = sect = csia = hm = '0';
+    var cgr = cpc = fte = tercero = politica = siho = sia = situacion = vig = secc = sect = csia = hm = ps = '0';
     var txtcgr = txtcpc = txtfte = txttercero = txtpolitica = txtsiho = txtsia = txtvig = txtsecc = txtsect = txtcsia = '';
     var ppto = $('#id_pto_tipo').val();
     if (elemento.is(':checked')) {
@@ -1493,7 +1493,8 @@ $('#modificaHomologaPto').on('click', '.dupLine', function () {
                     txtsect = $('input[name="cuatro[' + id_pto + ']"]').val();
                     csia = $('input[name="csia[' + id_pto + ']"]').val();
                     txtcsia = $('input[name="once[' + id_pto + ']"]').val();
-                    hm = $('input[name="mmto_h[' + id_pto + ']"]:checked').val();
+                    hm = $('input[name="mmto_h[' + id_pto + ']"][type="checkbox"]').is(':checked') ? '1' : '0';
+                    ps = $('input[name="prest_s[' + id_pto + ']"][type="checkbox"]').is(':checked') ? '1' : '0';
                 } else {
                     vig = $('select[name="vigencia[' + id_pto + ']"]').val();
                 }
@@ -1526,7 +1527,8 @@ $('#modificaHomologaPto').on('click', '.dupLine', function () {
             $('input[name="cuatro[' + id + ']"]').val(txtsect);
             $('input[name="csia[' + id + ']"]').val(csia);
             $('input[name="once[' + id + ']"]').val(txtcsia);
-            hm == 1 ? $('#si_' + id).prop('checked', true) : $('#no_' + id).prop('checked', true);
+            hm == '1' ? $('#mh_' + id).prop('checked', true) : $('#mh_' + id).prop('checked', false);
+            ps == '1' ? $('#ps_' + id).prop('checked', true) : $('#ps_' + id).prop('checked', false);
         } else {
             $('select[name="vigencia[' + id + ']"]').val(vig)
         }

@@ -220,6 +220,7 @@ $content = <<<HTML
                                             <th class="bg-sofia">Nombre</th>
                                             <th class="bg-sofia">Documento</th>
                                             <th class="bg-sofia">Parentesco</th>
+                                            <th class="bg-sofia">Estado</th>
                                             <th class="bg-sofia"></th>
                                         </tr>
                                     </thead>
@@ -231,8 +232,14 @@ $content = <<<HTML
                                 <table id="tableDeducciones" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
                                     <thead class="text-center">
                                         <tr>
-                                            <th class="bg-sofia">Tipo Deducción</th>
-                                            <th class="bg-sofia">Valor</th>
+                                            <th class="bg-sofia">Vigencia</th>
+                                            <th class="bg-sofia">Intereses</th>
+                                            <th class="bg-sofia">Med. Prepagada</th>
+                                            <th class="bg-sofia">Pólizas</th>
+                                            <th class="bg-sofia">AFC</th>
+                                            <th class="bg-sofia">Pensión</th>
+                                            <th class="bg-sofia">Estado</th>
+                                            <th class="bg-sofia">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody id="modificarDeducciones">

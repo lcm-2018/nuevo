@@ -362,28 +362,37 @@
     //----------------anular liberacion crp
     $('#divFormsReg').on('click', '.btn_anular_liberacion_crp', function () {
         let id = $(this).attr('value');
-        confirmar_del('liberacion_crp', id);
-    });
-
-    $('#divModalConfDel').on("click", "#liberacion_crp", function () {
-        var id = $(this).attr('value');
-        $.ajax({
-            type: 'POST',
-            url: ValueInput('host') + '/src/terceros/php/registrar_liberacion_crp.php',
-            dataType: 'json',
-            data: { id: id, oper: 'del' }
-        }).done(function (r) {
-            $('#divModalConfDel').modal('hide');
-            if (r.mensaje == 'ok') {
-                $('#tb_liberacionescrp').DataTable().ajax.reload(null, false);
-                $('#tb_reg_presupuestal').DataTable().ajax.reload(null, false);
-                $('#tb_cdps').DataTable().ajax.reload(null, false);
-            } else {
-                $('#divModalError').modal('show');
-                $('#divMsgError').html(r.mensaje);
+        Swal.fire({
+            title: "¿Confirma anular liberación?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#00994C",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si!",
+            cancelButtonText: "NO",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let ruta = ValueInput('host') + '/src/terceros/php/registrar_liberacion_crp.php';
+                let data = new FormData();
+                data.append('oper', 'del');
+                data.append('id', id);
+                mostrarOverlay();
+                fetch(ruta, {
+                    method: "POST",
+                    body: data,
+                }).then((response) => response.json()).then((response) => {
+                    if (response.mensaje == "ok") {
+                        mje("Proceso exitoso");
+                        $('#tb_liberacionescrp').DataTable().ajax.reload(null, false);
+                        $('#tb_reg_presupuestal').DataTable().ajax.reload(null, false);
+                        $('#tb_cdps').DataTable().ajax.reload(null, false);
+                    } else {
+                        mjeError("Error: " + response.mensaje);
+                    }
+                }).finally(() => {
+                    ocultarOverlay();
+                });
             }
-        }).always(function () { }).fail(function () {
-            alert('Ocurrió un error');
         });
     });
 
@@ -503,6 +512,7 @@ function RegLiberacionCrp() {
         let datos = $('#frm_liberarsaldos_crp').serialize();
         let url;
         url = ValueInput('host') + '/src/terceros/php/registrar_liberacion_crp.php';
+        mostrarOverlay();
         $.ajax({
             type: 'POST',
             url: url,
@@ -513,12 +523,13 @@ function RegLiberacionCrp() {
                     $('#tb_cdps').DataTable().ajax.reload(null, false);
                     $('#tb_reg_presupuestal').DataTable().ajax.reload(null, false);
                     mje('Liberacion ejecutada correctamente');
-                    //$(this).closest('.modal').modal('hide');
+                    $('#divModalReg').modal('hide');
                 } else {
                     mjeError(r);
                 }
             }
+        }).always(function () {
+            ocultarOverlay();
         });
-        $(this).closest('.modal').modal('hide');
     }
 }

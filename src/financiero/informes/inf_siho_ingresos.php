@@ -33,9 +33,18 @@ if ($periodo == '03') {
 $cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "WITH
+                `homologa` AS (
+                    SELECT `pto_homologa_ingresos`.`id_cargue`, MAX(`pto_homologa_ingresos`.`id_siho`) AS `id_siho`
+                    FROM `pto_homologa_ingresos`
+                    INNER JOIN `pto_cargue` ON `pto_homologa_ingresos`.`id_cargue` = `pto_cargue`.`id_cargue`
+                    INNER JOIN `pto_presupuestos` ON `pto_cargue`.`id_pto` = `pto_presupuestos`.`id_pto`
+                    WHERE `pto_presupuestos`.`id_vigencia` = $id_vigencia
+                      AND `pto_homologa_ingresos`.`id_siho` IS NOT NULL
+                    GROUP BY `pto_homologa_ingresos`.`id_cargue`
+                ),
                 `taux` AS 
                     (SELECT 	
-                        `pto_homologa_ingresos`.`id_siho`
+                        `homologa`.`id_siho`
                         , SUM(`vals`.`valor`) AS `valor`
                         , `vals`.`mes`
                     FROM
@@ -49,11 +58,11 @@ try {
                             LEFT JOIN `pto_rad_detalle` ON (`pto_rec_detalle`.`id_pto_rad_detalle` = `pto_rad_detalle`.`id_pto_rad_det`)
                         WHERE (DATE_FORMAT(`pto_rec`.`fecha`,'%Y-%m-%d') BETWEEN  '$vigencia-01-01' AND '$vigencia-12-31' AND `pto_rec`.`estado` = 2)
                         GROUP BY `pto_rec_detalle`.`id_rubro`, DATE_FORMAT(`pto_rec`.`fecha`,'%m')) AS `vals`
-                        INNER JOIN `pto_homologa_ingresos`
-                            ON (`pto_homologa_ingresos`.`id_cargue` = `vals`.`id_rubro`)
-                    GROUP BY `pto_homologa_ingresos`.`id_siho`, `vals`.`mes`)
+                        INNER JOIN `homologa`
+                            ON (`homologa`.`id_cargue` = `vals`.`id_rubro`)
+                    GROUP BY `homologa`.`id_siho`, `vals`.`mes`)
             SELECT 
-                DISTINCT(`pto_homologa_ingresos`.`id_siho`) AS `id_siho`
+                DISTINCT(`homologa`.`id_siho`) AS `id_siho`
                 , `pto_siho`.`nombre`
                 , (IFNULL(`ppto`.`inicial`,0) +IFNULL(`add`.`debito`,0) -IFNULL(`red`.`credito`,0)) AS `definitivo`  
                 , IFNULL(`rec`.`valor`,0) AS `reconocimiento`
@@ -70,66 +79,66 @@ try {
                 , IFNULL(`noviembre`.`valor`,0) AS `val_noviembre`
                 , IFNULL(`diciembre`.`valor`,0) AS `val_diciembre`
             FROM
-                `pto_homologa_ingresos`
+                `homologa`
                 INNER JOIN `pto_siho`
-                    ON (`pto_siho`.`id_siho` = `pto_homologa_ingresos`.`id_siho`)
+                    ON (`pto_siho`.`id_siho` = `homologa`.`id_siho`)
                 INNER JOIN
                     (SELECT
-                        `pto_homologa_ingresos`.`id_siho`
+                        `homologa`.`id_siho`
                         , SUM(`pto_cargue`.`valor_aprobado`) AS `inicial`
                     FROM
-                        `pto_homologa_ingresos`
+                        `homologa`
                         INNER JOIN `pto_cargue` 
-                        ON (`pto_homologa_ingresos`.`id_cargue` = `pto_cargue`.`id_cargue`)
-                    GROUP BY `pto_homologa_ingresos`.`id_siho`) AS `ppto`
-                    ON (`ppto`.`id_siho` = `pto_homologa_ingresos`.`id_siho`)
+                        ON (`homologa`.`id_cargue` = `pto_cargue`.`id_cargue`)
+                    GROUP BY `homologa`.`id_siho`) AS `ppto`
+                    ON (`ppto`.`id_siho` = `homologa`.`id_siho`)
                 LEFT JOIN
                     (SELECT
-                        `pto_homologa_ingresos`.`id_siho`
+                        `homologa`.`id_siho`
                         , SUM(`pto_mod_detalle`.`valor_deb`) AS `debito`
                     FROM
                         `pto_mod_detalle`
                         INNER JOIN `pto_mod` ON (`pto_mod_detalle`.`id_pto_mod` = `pto_mod`.`id_pto_mod`)
-                        INNER JOIN `pto_homologa_ingresos` ON (`pto_mod_detalle`.`id_cargue` = `pto_homologa_ingresos`.`id_cargue`)
+                        INNER JOIN `homologa` ON (`pto_mod_detalle`.`id_cargue` = `homologa`.`id_cargue`)
                     WHERE (DATE_FORMAT(`pto_mod`.`fecha`,'%Y-%m-%d') BETWEEN  $rango AND `pto_mod`.`id_tipo_mod` IN (1,2,6) AND `pto_mod`.`estado` = 2)
-                    GROUP BY `pto_homologa_ingresos`.`id_siho`) AS `add`
-                    ON (`pto_homologa_ingresos`.`id_siho` = `add`.`id_siho`)
+                    GROUP BY `homologa`.`id_siho`) AS `add`
+                    ON (`homologa`.`id_siho` = `add`.`id_siho`)
                 LEFT JOIN
                     (SELECT
-                        `pto_homologa_ingresos`.`id_siho`
+                        `homologa`.`id_siho`
                         , SUM(`pto_mod_detalle`.`valor_cred`) AS `credito`
                     FROM
                         `pto_mod_detalle`
                         INNER JOIN `pto_mod` ON (`pto_mod_detalle`.`id_pto_mod` = `pto_mod`.`id_pto_mod`)
-                        INNER JOIN `pto_homologa_ingresos` ON (`pto_homologa_ingresos`.`id_cargue` = `pto_mod_detalle`.`id_cargue`)
+                        INNER JOIN `homologa` ON (`homologa`.`id_cargue` = `pto_mod_detalle`.`id_cargue`)
                     WHERE (DATE_FORMAT(`pto_mod`.`fecha`,'%Y-%m-%d') BETWEEN  $rango AND `pto_mod`.`id_tipo_mod` IN (1,3,6) AND `pto_mod`.`estado` = 2)
-                    GROUP BY `pto_homologa_ingresos`.`id_siho`) AS `red`
-                    ON (`pto_homologa_ingresos`.`id_siho` = `red`.`id_siho`)
+                    GROUP BY `homologa`.`id_siho`) AS `red`
+                    ON (`homologa`.`id_siho` = `red`.`id_siho`)
                 LEFT JOIN
                     (SELECT
-                        `pto_homologa_ingresos`.`id_siho`
-                        , SUM(`pto_rad_detalle`.`valor` -`pto_rad_detalle`.`valor_liberado`) AS `valor`
+                        `homologa`.`id_siho`
+                        , SUM(IFNULL(`pto_rad_detalle`.`valor`, 0) - IFNULL(`pto_rad_detalle`.`valor_liberado`, 0)) AS `valor`
                     FROM
                         `pto_rad_detalle`
                         INNER JOIN `pto_rad` 
                         ON (`pto_rad_detalle`.`id_pto_rad` = `pto_rad`.`id_pto_rad`)
-                        INNER JOIN `pto_homologa_ingresos` 
-                        ON (`pto_rad_detalle`.`id_rubro` = `pto_homologa_ingresos`.`id_cargue`)
+                        INNER JOIN `homologa` 
+                        ON (`pto_rad_detalle`.`id_rubro` = `homologa`.`id_cargue`)
                     WHERE (DATE_FORMAT(`pto_rad`.`fecha`,'%Y-%m-%d') BETWEEN  $rango AND `pto_rad`.`estado` = 2)
-                    GROUP BY `pto_homologa_ingresos`.`id_siho`) AS `rec`
-                    ON (`pto_homologa_ingresos`.`id_siho` = `rec`.`id_siho`)
-                LEFT JOIN `taux` AS `enero` ON `enero`.`id_siho` = `pto_homologa_ingresos`.`id_siho` AND `enero`.`mes` = '01'
-                LEFT JOIN `taux` AS `febrero` ON `febrero`.`id_siho` = `pto_homologa_ingresos`.`id_siho` AND `febrero`.`mes` = '02'
-                LEFT JOIN `taux` AS `marzo` ON `marzo`.`id_siho` = `pto_homologa_ingresos`.`id_siho` AND `marzo`.`mes` = '03'
-                LEFT JOIN `taux` AS `abril` ON `abril`.`id_siho` = `pto_homologa_ingresos`.`id_siho` AND `abril`.`mes` = '04'
-                LEFT JOIN `taux` AS `mayo` ON `mayo`.`id_siho` = `pto_homologa_ingresos`.`id_siho` AND `mayo`.`mes` = '05'
-                LEFT JOIN `taux` AS `junio` ON `junio`.`id_siho` = `pto_homologa_ingresos`.`id_siho` AND `junio`.`mes` = '06'
-                LEFT JOIN `taux` AS `julio` ON `julio`.`id_siho` = `pto_homologa_ingresos`.`id_siho` AND `julio`.`mes` = '07'
-                LEFT JOIN `taux` AS `agosto` ON `agosto`.`id_siho` = `pto_homologa_ingresos`.`id_siho` AND `agosto`.`mes` = '08'
-                LEFT JOIN `taux` AS `septiembre` ON `septiembre`.`id_siho` = `pto_homologa_ingresos`.`id_siho` AND `septiembre`.`mes` = '09'
-                LEFT JOIN `taux` AS `octubre` ON `octubre`.`id_siho` = `pto_homologa_ingresos`.`id_siho` AND `octubre`.`mes` = '10'
-                LEFT JOIN `taux` AS `noviembre` ON `noviembre`.`id_siho` = `pto_homologa_ingresos`.`id_siho` AND `noviembre`.`mes` = '11'
-                LEFT JOIN `taux` AS `diciembre` ON `diciembre`.`id_siho` = `pto_homologa_ingresos`.`id_siho` AND `diciembre`.`mes` = '12'";
+                    GROUP BY `homologa`.`id_siho`) AS `rec`
+                    ON (`homologa`.`id_siho` = `rec`.`id_siho`)
+                LEFT JOIN `taux` AS `enero` ON `enero`.`id_siho` = `homologa`.`id_siho` AND `enero`.`mes` = '01'
+                LEFT JOIN `taux` AS `febrero` ON `febrero`.`id_siho` = `homologa`.`id_siho` AND `febrero`.`mes` = '02'
+                LEFT JOIN `taux` AS `marzo` ON `marzo`.`id_siho` = `homologa`.`id_siho` AND `marzo`.`mes` = '03'
+                LEFT JOIN `taux` AS `abril` ON `abril`.`id_siho` = `homologa`.`id_siho` AND `abril`.`mes` = '04'
+                LEFT JOIN `taux` AS `mayo` ON `mayo`.`id_siho` = `homologa`.`id_siho` AND `mayo`.`mes` = '05'
+                LEFT JOIN `taux` AS `junio` ON `junio`.`id_siho` = `homologa`.`id_siho` AND `junio`.`mes` = '06'
+                LEFT JOIN `taux` AS `julio` ON `julio`.`id_siho` = `homologa`.`id_siho` AND `julio`.`mes` = '07'
+                LEFT JOIN `taux` AS `agosto` ON `agosto`.`id_siho` = `homologa`.`id_siho` AND `agosto`.`mes` = '08'
+                LEFT JOIN `taux` AS `septiembre` ON `septiembre`.`id_siho` = `homologa`.`id_siho` AND `septiembre`.`mes` = '09'
+                LEFT JOIN `taux` AS `octubre` ON `octubre`.`id_siho` = `homologa`.`id_siho` AND `octubre`.`mes` = '10'
+                LEFT JOIN `taux` AS `noviembre` ON `noviembre`.`id_siho` = `homologa`.`id_siho` AND `noviembre`.`mes` = '11'
+                LEFT JOIN `taux` AS `diciembre` ON `diciembre`.`id_siho` = `homologa`.`id_siho` AND `diciembre`.`mes` = '12'";
     $res = $cmd->query($sql);
     $lista = $res->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../../index.php");
@@ -91,14 +91,15 @@ if ($presupuesto == 1) {
     $codSector = $_POST['sector'];
     $codClaseSia = $_POST['csia'];
     $mhs = $_POST['mmto_h'];
+    $pss = isset($_POST['prest_s']) ? $_POST['prest_s'] : [];
     try {
         $cmd = \Config\Clases\Conexion::getConexion();
 
         $sqlI = "INSERT INTO `pto_homologa_gastos`
-                    (`id_cargue`, `id_cgr`, `id_cpc`, `id_fuente`, `id_tercero`, `id_politica`, `id_siho`, `id_sia`, `id_situacion`, `id_vigencia`, `id_seccion`, `id_sector`, `id_csia`, `id_user_reg`, `fec_reg`,`id_mh`)
-                VALUES (?, ?, ?, ? , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    (`id_cargue`, `id_cgr`, `id_cpc`, `id_fuente`, `id_tercero`, `id_politica`, `id_siho`, `id_sia`, `id_situacion`, `id_vigencia`, `id_seccion`, `id_sector`, `id_csia`, `id_user_reg`, `fec_reg`,`id_mh`,`id_ps`)
+                VALUES (?, ?, ?, ? , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $sqlU = "UPDATE `pto_homologa_gastos` 
-                    SET `id_cargue` = ?, `id_cgr` = ?, `id_cpc` = ?, `id_fuente` = ?, `id_tercero` = ?, `id_politica` = ?, `id_siho` = ?, `id_sia` = ?, `id_situacion` = ?, `id_vigencia` = ?, `id_seccion` = ?, `id_sector` = ?, `id_csia` = ?, `id_mh` = ?
+                    SET `id_cargue` = ?, `id_cgr` = ?, `id_cpc` = ?, `id_fuente` = ?, `id_tercero` = ?, `id_politica` = ?, `id_siho` = ?, `id_sia` = ?, `id_situacion` = ?, `id_vigencia` = ?, `id_seccion` = ?, `id_sector` = ?, `id_csia` = ?, `id_mh` = ?, `id_ps` = ?
                 WHERE `id_homologacion` = ?";
         $insert = $cmd->prepare($sqlI);
         $update = $cmd->prepare($sqlU);
@@ -120,7 +121,8 @@ if ($presupuesto == 1) {
                     $codClaseSia[$key],
                     (int) $iduser,
                     $date->format('Y-m-d H:i:s'),
-                    (int) $mhs[$key]
+                    (int) $mhs[$key],
+                    (int) ($pss[$key] ?? 0)
                 ];
                 $idHom = $idsHomolgacion[$key];
 
@@ -134,6 +136,7 @@ if ($presupuesto == 1) {
                 } else {
                     $paramsUpdate = array_slice($params, 0, 13);
                     $paramsUpdate[] = (int) $mhs[$key];
+                    $paramsUpdate[] = (int) ($pss[$key] ?? 0);
                     $paramsUpdate[] = (int) $idHom;
                     $update->execute($paramsUpdate);
                     if ($update->rowCount() > 0) {

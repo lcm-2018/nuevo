@@ -359,6 +359,7 @@ function FormResponsabilidad(id) {
                 { 'data': 'nombre' },
                 { 'data': 'documento' },
                 { 'data': 'parentesco' },
+                { 'data': 'estado' },
                 { 'data': 'acciones' },
             ],
             "order": [
@@ -371,8 +372,8 @@ function FormResponsabilidad(id) {
         $('#tableDeducciones').DataTable({
             dom: setdom,
             buttons: $('#peReg').val() == 1 ? [{
-                text: '<span class="fa-solid fa-pencil-alt fa-lg me-1"></span>GESTIONAR',
-                className: 'btn btn-primary btn-sm shadow',
+                text: '<span class="fa-solid fa-plus fa-lg"></span>',
+                className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     $.post("datos/registrar/formadd_deduccion.php", { idt: idt }, function (he) {
                         $('#divTamModalForms').removeClass('modal-xl');
@@ -380,7 +381,7 @@ function FormResponsabilidad(id) {
                         $('#divTamModalForms').addClass('modal-lg');
                         $('#divModalForms').modal('show');
                         $("#divForms").html(he);
-                        $('#txtIntereses').focus();
+                        $('#slcVigencia').focus();
                     });
                 }
             }] : [],
@@ -392,12 +393,18 @@ function FormResponsabilidad(id) {
                 dataType: 'json',
             },
             "columns": [
-                { 'data': 'tipo' },
-                { 'data': 'valor' }
+                { 'data': 'vigencia' },
+                { 'data': 'intereses' },
+                { 'data': 'medicina' },
+                { 'data': 'polizas' },
+                { 'data': 'afc' },
+                { 'data': 'pension' },
+                { 'data': 'estado' },
+                { 'data': 'acciones' },
             ],
-            bSort: false,
-            paging: false,
-            info: false
+            "order": [
+                [0, "desc"]
+            ],
         });
         $('#tableDeducciones').wrap('<div class="overflow" />');
     });
@@ -676,7 +683,11 @@ function FormResponsabilidad(id) {
     // Guardar Deduccion
     $('#divForms').on('click', '#btnGuardaDeduccion', function () {
         $('.is-invalid').removeClass('is-invalid');
-        if ($('#txtIntereses').val() === '') {
+        let valVigencia = $('#slcVigenciaDeduc').val();
+        if (!valVigencia || valVigencia == 0 || valVigencia === '0') {
+            $('#slcVigenciaDeduc').addClass('is-invalid').focus();
+            mjeError('¡Debe seleccionar una Vigencia!');
+        } else if ($('#txtIntereses').val() === '') {
             $('#txtIntereses').addClass('is-invalid').focus();
             mjeError('¡Debe ingresar el valor de Intereses!');
         } else if ($('#txtMedicina').val() === '') {
@@ -696,7 +707,7 @@ function FormResponsabilidad(id) {
             mostrarOverlay();
             $.ajax({
                 type: 'POST',
-                url: 'datos/registrar/new_deduccion.php',
+                url: 'datos/registrar/new_deduccion.php?v=1',
                 data: datos,
                 success: function (r) {
                     if (r === 'ok') {
@@ -1055,7 +1066,7 @@ function FormResponsabilidad(id) {
     });
     //cambiar estado documento tercero
     $('#modificarDocs').on('click', '.estadodoc', function () {
-        let e   = $(this).find('span').hasClass('activo') ? '0' : '1';
+        let e = $(this).find('span').hasClass('activo') ? '0' : '1';
         let idt = $(this).attr('value');
         mostrarOverlay();
         $.ajax({
@@ -1065,6 +1076,52 @@ function FormResponsabilidad(id) {
             success: function (r) {
                 if (r === '0' || r === '1') {
                     $('#tableDocumento').DataTable().ajax.reload(null, false);
+                } else {
+                    $('#divModalError').modal('show');
+                    $('#divMsgError').html(r);
+                }
+            },
+            complete: function () {
+                ocultarOverlay();
+            }
+        });
+        return false;
+    });
+    //cambiar estado deduccion
+    $('#modificarDeducciones').on('click', '.estadodeduc', function () {
+        let e = $(this).find('span').hasClass('activo') ? '0' : '1';
+        let idt = $(this).attr('value');
+        mostrarOverlay();
+        $.ajax({
+            type: 'POST',
+            url: 'actualizar/upestadodeduccion.php',
+            data: { e: e, idt: idt },
+            success: function (r) {
+                if (r === '0' || r === '1') {
+                    $('#tableDeducciones').DataTable().ajax.reload(null, false);
+                } else {
+                    $('#divModalError').modal('show');
+                    $('#divMsgError').html(r);
+                }
+            },
+            complete: function () {
+                ocultarOverlay();
+            }
+        });
+        return false;
+    });
+    //cambiar estado dependiente
+    $('#modificarDependientes').on('click', '.estadodepend', function () {
+        let e = $(this).find('span').hasClass('activo') ? '0' : '1';
+        let idt = $(this).attr('value');
+        mostrarOverlay();
+        $.ajax({
+            type: 'POST',
+            url: 'actualizar/upestadodependiente.php',
+            data: { e: e, idt: idt },
+            success: function (r) {
+                if (r === '0' || r === '1') {
+                    $('#tableDependientes').DataTable().ajax.reload(null, false);
                 } else {
                     $('#divModalError').modal('show');
                     $('#divMsgError').html(r);
@@ -1413,4 +1470,47 @@ function EditarDependiente(id) {
         $("#divForms").html(he);
         $('#slcTipoDocs').focus();
     });
-}
+}
+
+function BorrarDeduccion(id) {
+    Swal.fire({
+        title: "¿Confirma eliminar la deducción?",
+        text: "¡No podrás revertir esto!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#00994C",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Si!",
+        cancelButtonText: "NO",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            mostrarOverlay();
+            $.ajax({
+                type: 'POST',
+                url: '../gestion/datos/eliminar/del_deduccion.php',
+                data: { id: id },
+                success: function (r) {
+                    if (r === '1') {
+                        $('#tableDeducciones').DataTable().ajax.reload(null, false);
+                        mje('Eliminado', 'Deducción eliminada correctamente');
+                    } else {
+                        mjeError('Error', r);
+                    }
+                }
+            }).always(function () {
+                ocultarOverlay();
+            });
+        }
+    });
+}
+
+function EditarDeduccion(id) {
+    $.post("datos/registrar/formadd_deduccion.php", { id_deduc: id }, function (he) {
+        $('#divTamModalForms').removeClass('modal-xl');
+        $('#divTamModalForms').removeClass('modal-sm');
+        $('#divTamModalForms').addClass('modal-lg');
+        $('#divModalForms').modal('show');
+        $("#divForms").html(he);
+        $('#slcVigencia').focus();
+    });
+}

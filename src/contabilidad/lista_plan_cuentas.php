@@ -52,6 +52,9 @@ $content = <<<HTML
         <input type="hidden" id="peReg" value="{$peReg}">
         
         <div class="d-flex justify-content-end align-items-center gap-2 mb-2">
+            <a class="btn btn-outline-primary btn-sm" id="homologarCtb" title="Homologar cuentas contables con exógena" href="{$host}/src/contabilidad/lista_homologacion_ctb.php">
+                <i class="fas fa-exchange-alt fa-lg"></i>
+            </a>
             {$botonesAdicionales}
         </div>
 

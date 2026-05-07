@@ -50,6 +50,7 @@
                 <th class="bg-sofia">Clase<br>SIA</th>
                 <th class="bg-sofia">Situación<br>Fondos</th>
                 <th class="bg-sofia" title="Mantenimiento hospitalario">MH</th>
+                <th class="bg-sofia" title="Prestación de Servicios">PS</th>
             <?php
             }
             ?>
@@ -121,7 +122,7 @@
                         </td>";
                 }
             } else if ($nomPresupuestos['id_tipo'] == 2) {
-                $colspan = $tp_cta == 'D' ? 1 : 14;
+                $colspan = $tp_cta == 'D' ? 1 : 15;
                 echo "<td colspan='" . $colspan . "'>" . $rb['nom_rubro'] . "</td>";
                 if ($tp_cta == 'D') {
                     $key = false;
@@ -185,29 +186,21 @@
                         $slc = $val_sit == $s['id_situacion'] ? 'selected' : '';
                         echo '<option value="' . $s['id_situacion'] . '" ' . $slc . '>' . $s['concepto'] . '</option>';
                     }
-                    $cero = 'checked';
                     $uno = $key !== false && ($homologacion[$key]['id_mh'] == '1') ? 'checked' : '';
-                    if ($uno == 'checked') {
-                        $cero = '';
-                    }
                     echo    '</select>
                         </td>
-                        <td class="p-0">
-                            <div class="mb-0">
-                                <div class="form-control form-control-sm d-inline-flex align-items-center border-0">
-                                    <div class="form-check form-check-inline m-0 me-1">
-                                        <input type="radio" id="si_' . $rb['id_cargue'] . '" name="mmto_h[' . $rb['id_cargue'] . ']" class="form-check-input" ' . $uno . ' value="1">
-                                        <label class="form-check-label" for="si_' . $rb['id_cargue'] . '">Sí</label>
-                                    </div>
-                                    <div class="form-check form-check-inline m-0">
-                                        <input type="radio" id="no_' . $rb['id_cargue'] . '" name="mmto_h[' . $rb['id_cargue'] . ']" class="form-check-input" ' . $cero . ' value="0">
-                                        <label class="form-check-label" for="no_' . $rb['id_cargue'] . '">No</label>
-                                    </div>
-                                </div>
-                            </div>
+                        <td class="p-0 text-center align-middle">
+                            <input type="hidden" name="mmto_h[' . $rb['id_cargue'] . ']" value="0">
+                            <input type="checkbox" id="mh_' . $rb['id_cargue'] . '" name="mmto_h[' . $rb['id_cargue'] . ']" class="form-check-input mt-2" ' . $uno . ' value="1">
+                        </td>';
+                    
+                    $uno_ps = $key !== false && ($homologacion[$key]['id_ps'] == '1') ? 'checked' : '';
+                    echo '<td class="p-0 text-center align-middle">
+                            <input type="hidden" name="prest_s[' . $rb['id_cargue'] . ']" value="0">
+                            <input type="checkbox" id="ps_' . $rb['id_cargue'] . '" name="prest_s[' . $rb['id_cargue'] . ']" class="form-check-input mt-2" ' . $uno_ps . ' value="1">
                         </td>';
                 } else {
-                    echo "<td colspan='13'></td>";
+                    echo "<td colspan='15'></td>";
                 }
             }
             echo "</tr>";

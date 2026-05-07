@@ -1,4 +1,7 @@
 <?php
+
+use Config\Clases\Plantilla;
+
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -88,3 +91,4 @@ $otro_form = isset($_POST['otro_form']) ? $_POST['otro_form'] : 0;
         });
     })(jQuery);
 </script>
+<script src="<?= Plantilla::getHost() ?>/src/terceros/js/historialtercero/historialtercero_reg.js"></script>

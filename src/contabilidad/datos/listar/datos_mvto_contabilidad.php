@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+include_once '../../../financiero/consultas.php';
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 

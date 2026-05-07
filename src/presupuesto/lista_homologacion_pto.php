@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: ../../index.php');
@@ -83,7 +83,8 @@ try {
                     , `pto_homologa_gastos`.`id_csia`
                     , `pto_clase_sia`.`codigo` AS `codigo_csia`
                     , `pto_clase_sia`.`clase_sia` AS `nombre_csia`
-                    , `pto_homologa_gastos`.`id_mh`';
+                    , `pto_homologa_gastos`.`id_mh`
+                    , `pto_homologa_gastos`.`id_ps`';
         $condicion = 'INNER JOIN `pto_vigencias` 
                         ON (`pto_homologa_gastos`.`id_vigencia` = `pto_vigencias`.`id_vigencia`)
                     INNER JOIN `pto_seccion` 

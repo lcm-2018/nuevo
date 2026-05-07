@@ -52,11 +52,18 @@ if (!empty($dependientes)) {
             $borrar = '<a onclick="BorrarDependiente(' . $id_dep . ')" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1" title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
         }
 
+        if ($d['estado'] == 1) {
+            $estado = '<a href="#" value="' . $id_dep . '" class="estadodepend" title="Activo - Click para desactivar"><span class="fas fa-toggle-on fa-lg activo text-success"></span></a>';
+        } else {
+            $estado = '<a href="#" value="' . $id_dep . '" class="estadodepend" title="Inactivo - Click para activar"><span class="fas fa-toggle-off fa-lg inactivo text-secondary"></span></a>';
+        }
+
         $data[] = [
             'tipo_doc'   => mb_strtoupper($d['tipo_doc']),
             'nombre'     => mb_strtoupper($d['nombre_completo']),
             'documento'  => $d['no_documento'],
             'parentesco' => mb_strtoupper($d['parentesco']),
+            'estado'     => '<div class="text-center">' . $estado . '</div>',
             'acciones'   => '<div class="text-center">' . $editar . $borrar . '</div>',
         ];
     }

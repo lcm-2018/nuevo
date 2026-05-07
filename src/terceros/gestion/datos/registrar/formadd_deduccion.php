@@ -6,24 +6,30 @@ if (!isset($_SESSION['user'])) {
 }
 include '../../../../../config/autoloader.php';
 
-$id_t = isset($_POST['idt']) ? $_POST['idt'] : 0;
-$id_deduc = 0;
+use Src\Common\Php\Clases\Combos;
 
+$id_t = isset($_POST['idt']) ? $_POST['idt'] : 0;
+$id_deduc = isset($_POST['id_deduc']) ? $_POST['id_deduc'] : 0;
+
+$id_vigencia = 0;
 $intereses = 0;
 $medicina = 0;
 $polizas = 0;
 $afc = 0;
 $pension = 0;
+$titulo = "REGISTRAR DEDUCCIONES";
 
-if ($id_t > 0) {
+if ($id_deduc > 0) {
     try {
         $cmd = \Config\Clases\Conexion::getConexion();
-        $sql = "SELECT * FROM tb_terceros_deducciones WHERE id_tercero_api = ?";
+        $sql = "SELECT * FROM tb_terceros_deducciones WHERE id_deduccion = ?";
         $stmt = $cmd->prepare($sql);
-        $stmt->execute([$id_t]);
+        $stmt->execute([$id_deduc]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row) {
-            $id_deduc = $row['id_deduccion'];
+            $titulo = "ACTUALIZAR DEDUCCIONES";
+            $id_t = $row['id_tercero_api'];
+            $id_vigencia = $row['id_vigencia'];
             $intereses = $row['intereses_vivienda'];
             $medicina = $row['medicina_prepagada'];
             $polizas = $row['polizas_salud'];
@@ -38,16 +44,27 @@ if ($id_t > 0) {
 ?>
 <div class="px-0">
     <div class="shadow">
-        <div class="card-header bg-sofia mb-3 p-2 text-white">
+        <div class="card-header bg-sofia mb-3 p-2 text-white text-center">
             <h5 class="m-0">
-                <i class="fas fa-file-invoice-dollar fa-lg mb-1 me-2"></i> GESTIONAR DEDUCCIONES
+                <i class="fas fa-file-invoice-dollar fa-lg mb-1 me-2"></i> <?php echo $titulo; ?>
             </h5>
         </div>
         <div class="px-3 pb-2">
             <form id="formAddDeduccion">
                 <input type="hidden" id="idTercero" name="idTercero" value="<?php echo $id_t; ?>">
                 <input type="hidden" id="idDeduccion" name="idDeduccion" value="<?php echo $id_deduc; ?>">
-                
+
+                <div class="row align-items-center mb-2">
+                    <div class="col-6">
+                        <label for="slcVigenciaDeduc" class="small text-secondary">Vigencia</label>
+                    </div>
+                    <div class="col-6">
+                        <select class="form-select form-select-sm" id="slcVigenciaDeduc" name="slcVigenciaDeduc" required>
+                            <?php echo Combos::getVigencias($id_vigencia); ?>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="row align-items-center mb-2">
                     <div class="col-6">
                         <label for="txtIntereses" class="small text-secondary">Intereses por crédito de vivienda</label>
