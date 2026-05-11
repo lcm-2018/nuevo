@@ -159,7 +159,7 @@ try {
             echo $tabla;
             ?>
         </tbody>
-        <tfoot style="font-size:60%">
+        <tfoot style="font-size:60%; font-weight:bold;">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="7"></td>
                 <td>TOTAL:</td>
@@ -169,14 +169,7 @@ try {
     </table>
 
     <table style="width:100%; font-size:70%; text-align:center">
-        <tr>
-            <td style="width:50%">
-                <?php if ($obj_e['nom_firma']) : ?>
-                    <img src="<?php echo $ruta_firmas . $obj_e['nom_firma'] ?>">
-                <?php endif; ?>
-            </td>
-            <td style="width:50%">
-            </td>
+        <tr style="height: 25px;">
         </tr>
         <tr>
             <td style="vertical-align: top">
@@ -188,7 +181,6 @@ try {
                 <div>Firma: ---------------------------------------------------</div>                
                 <div>Nombre: -------------------------------------------------</div>
                 <div>Cédula: -------------------------------------------------</div>                
-                <div>Entregado Por</div>
             </td>
         </tr>
     </table>

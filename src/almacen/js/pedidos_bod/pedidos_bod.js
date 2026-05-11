@@ -10,7 +10,6 @@
     $(document).ready(function () {
         //Tabla de Registros
         $('#tb_pedidos').DataTable({
-
             dom: setdom,
             buttons: $('#peReg').val() == 1 ? [{
                 text: '<span class="fa-solid fa-plus "></span>',
@@ -27,7 +26,7 @@
             language: dataTable_es,
             processing: true,
             serverSide: true,
-            searching: false,
+            searching: false,            
             ajax: {
                 url: 'listar_pedidos.php',
                 type: 'POST',
@@ -84,7 +83,6 @@
                 [10, 25, 50, 'TODO'],
             ],
         });
-
 
         $('#tb_pedidos').wrap('<div class="overflow"/>');
     });
@@ -444,6 +442,9 @@
         });
     });
 
+    /* ---------------------------------------------------
+    IMPRESIONES
+    -----------------------------------------------------*/
     //Imprimir listado de registros
     $('#btn_imprime_filtro').on('click', function () {
         $('#tb_pedidos').DataTable().ajax.reload(null, false);
@@ -474,7 +475,7 @@
         }
     });
 
-    //Imprimit un Pedido
+    //Imprimit un Pedido desde el formaulario de edición
     $('#divForms').on("click", "#btn_imprimir", function () {
         $.post("imp_pedido.php", {
             id: $('#id_pedido').val()
@@ -498,6 +499,59 @@
             $('#divTamModalImp').addClass('modal-xl');
             $('#divModalImp').modal('show');
             $("#divImp").html(he);
+        });
+    });
+
+    /* ---------------------------------------------------
+    DUPLICAR PEDIDO
+    -----------------------------------------------------*/
+    $('#tb_pedidos').on('click', 'tr', function () {
+        let tabla = $('#tb_pedidos').DataTable();
+        let data = tabla.row(this).data(); 
+        if (!data) return;
+        $('#txt_peddup').val(data.id_pedido);
+    });
+
+    $('#tb_pedidos').on('draw.dt', function () {
+        $('#txt_peddup').val('');
+    });
+
+    $('#btn_duplicar_pedido').on('click', function () {    
+        let id = $('#txt_peddup').val();
+        if (!id) {
+            mjeError('Debe seleccionar un pedido para duplicar');
+            return;
+        }
+        Swal.fire({
+            title: "¿Está seguro de duplicar el pedido " + id + " ?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, duplicar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_pedidos.php',
+                    dataType: 'json',
+                    data: { id: id, oper: 'dupl' }
+                }).done(function (r) {
+                    if (r.mensaje == 'ok') {                        
+                        $('#tb_pedidos').DataTable().ajax.reload(null, false);
+                        mje("Proceso realizado correctamente","Nuevo Pedido creado: " + r.id,0);
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                }).fail(function () {
+                    alert('Ocurrió un error');
+                });
+            }
         });
     });
 })(jQuery);

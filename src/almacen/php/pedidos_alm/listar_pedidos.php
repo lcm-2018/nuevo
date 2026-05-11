@@ -84,6 +84,7 @@ try {
 
 $editar = NULL;
 $eliminar = NULL;
+$imprimir = NULL;
 $data = [];
 if (!empty($objs)) {
     foreach ($objs as $obj) {

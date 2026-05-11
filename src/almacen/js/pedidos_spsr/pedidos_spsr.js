@@ -88,12 +88,12 @@
 
     //Filtrar las Bodegas acorde a la Sede y Usuario de sistema
     $('#sl_sedsol_filtro').on("change", function () {
-        $('#sl_bodsol_filtro').load('../common/cargar_bodegas_usuario.php', { id_sede: $(this).val(), titulo: '--Bodega Solititante--' }, function () { });
+        $('#sl_bodsol_filtro').load('../common/cargar_bodegas_usuario.php', { id_sede: $(this).val(), tipo: 1,  titulo: '--Bodega Solititante--' }, function () { });
     });
     $('#sl_sedsol_filtro').trigger('change');
 
     $('#divForms').on("change", "#sl_sede_solicitante", function () {
-        $('#sl_bodega_solicitante').load('../common/cargar_bodegas_usuario.php', { id_sede: $(this).val() }, function () { });
+        $('#sl_bodega_solicitante').load('../common/cargar_bodegas_usuario.php', { id_sede: $(this).val(), tipo: 1 }, function () { });
         $('#id_sede_solicitante').val($('#sl_sede_solicitante').val());
     });
 

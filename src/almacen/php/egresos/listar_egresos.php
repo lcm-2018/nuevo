@@ -128,14 +128,14 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
+$editar = NULL;
+$eliminar = NULL;
+$imprimir = NULL;
 $data = [];
 if (!empty($objs)) {
     foreach ($objs as $obj) {
         $id = $obj['id_egreso'];
         $creado_far = $obj['creado_far'];
-        $editar = NULL;
-        $eliminar = NULL;
-        $imprimir = NULL;
         //Permite crear botones en la cuadricula si tiene permisos de 1-Consultar,2-Crear,3-Editar,4-Eliminar,5-Anular,6-Imprimir
         if (($permisos->PermisosUsuario($opciones, 5007, 3) || $id_rol == 1) && $creado_far == 0) {
             $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';

@@ -28,7 +28,7 @@ $dir = $_POST['order'][0]['dir'];
 $where = "";
 if (isset($_POST['search']['value']) && $_POST['search']['value']) {
     $search = $_POST['search']['value'];
-    $where .= " AND (far_medicamentos.nom_medicamento LIKE '%$search%')";
+    $where .= " AND (far_medicamentos.cod_medicamento LIKE '%$search%' OR far_medicamentos.nom_medicamento LIKE '%$search%')";
 }
 
 try {

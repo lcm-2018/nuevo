@@ -30,6 +30,7 @@ try {
         ($permisos->PermisosUsuario($opciones, 5003, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5003, 3) && $oper == 'conf') ||
         ($permisos->PermisosUsuario($opciones, 5003, 3) && $oper == 'close') ||
+        ($permisos->PermisosUsuario($opciones, 5003, 2) && $oper == 'dupl') ||
         ($permisos->PermisosUsuario($opciones, 5003, 5) && $oper == 'annul' || $id_rol == 1)
     ) {
 
@@ -183,7 +184,7 @@ try {
                     $res['mensaje'] = 'ok';
                 }
             } else {
-                $res['mensaje'] = 'Solo se puede Finalizar Pedidos en estado Confirmado.<br/>';
+                $res['mensaje'] = 'Solo se puede Finalizar Pedidos en estado Confirmado';
             }*/
             $res['mensaje'] = 'Funcionalidad no habilitada, el pedido ya está Confirmado';
         }
@@ -215,9 +216,72 @@ try {
                 }
             } else {
                 if ($estado != 2) {
-                    $res['mensaje'] = 'Solo se puede anular pedidos en estado cerrado.<br/>';
+                    $res['mensaje'] = 'Solo se puede anular pedidos en estado cerrado';
                 } else if ($det_traslado >= 1) {
                     $res['mensaje'] = 'El Pedido ya tiene registros de entrega en un Traslado';
+                }
+            }
+        }
+
+        if ($oper == 'dupl') {
+            $id = $_POST['id'];
+
+            $sql = 'SELECT estado FROM far_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
+            $rs = $cmd->query($sql);
+            $obj_pedido = $rs->fetch();
+            $estado = isset($obj_pedido['estado']) ? $obj_pedido['estado'] : -1;
+
+            $sql = "SELECT COUNT(*) AS total FROM far_pedido_detalle WHERE id_pedido=" . $id;
+            $rs = $cmd->query($sql);
+            $obj_pedido = $rs->fetch();
+            $num_detalles = $obj_pedido['total'];
+
+            if ($estado == 2 && $num_detalles > 0) {
+                $error = 0;
+                $cmd->beginTransaction();
+
+                date_default_timezone_set('America/Bogota');
+                $fec_pedido = date('Y-m-d');
+                $hor_pedido = date('h:iA');
+
+                $sql = "INSERT INTO far_pedido(fec_pedido,hor_pedido,detalle,id_sede_origen,id_bodega_origen,id_sede_destino,id_bodega_destino,
+                            id_usr_crea,fec_creacion,creado_far,es_pedido_spsr,estado) 
+                        SELECT '$fec_pedido','$hor_pedido',detalle,id_sede_origen,id_bodega_origen,id_sede_destino,id_bodega_destino,
+                            $id_usr_ope,'$fecha_ope',0,0,1 
+                        FROM far_pedido WHERE id_pedido=$id";
+                $rs1 = $cmd->query($sql);
+
+                $sql = 'SELECT LAST_INSERT_ID() AS id';
+                $rs = $cmd->query($sql);
+                $obj = $rs->fetch();
+                $id_pedido = $obj['id'];
+                
+                $sql = "INSERT INTO far_pedido_detalle(id_pedido,id_medicamento,cantidad,valor) 
+                        SELECT $id_pedido,far_pedido_detalle.id_medicamento,far_pedido_detalle.cantidad,far_medicamentos.val_promedio
+                        FROM far_pedido_detalle
+                        INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_pedido_detalle.id_medicamento)
+                        WHERE id_pedido=$id";
+                $rs2 = $cmd->query($sql);
+
+                $sql = "UPDATE far_pedido SET val_total=(SELECT SUM(valor*cantidad) FROM far_pedido_detalle WHERE id_pedido=$id_pedido) WHERE id_pedido=$id_pedido";
+                $rs3 = $cmd->query($sql);
+
+                if ($rs1 == false || $rs2 == false || $rs3 == false || error_get_last()) {
+                    $error = 1;
+                }
+                if ($error == 0) {
+                    $cmd->commit();
+                    $res['id'] = $id_pedido;
+                    $res['mensaje'] = 'ok';
+                } else {
+                    $res['mensaje'] = 'Error de Ejecución de Proceso';
+                    $cmd->rollBack();
+                }                
+            } else {
+                if ($estado != 2) {
+                    $res['mensaje'] = 'Solo se puede duplicar pedidos en estado cerrado';
+                } else if ($num_detalles == 0) {
+                    $res['mensaje'] = 'El Pedido a duplicar no tiene detalles';
                 }
             }
         }
