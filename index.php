@@ -1,7 +1,11 @@
 <?php
+
+use Config\Clases\Logs;
+
 session_start();
 
 if (isset($_SESSION['user'])) {
+    Logs::guardaLog('Cerrar sesión');
     session_destroy();
     session_unset();
 }

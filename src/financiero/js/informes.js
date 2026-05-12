@@ -19,6 +19,9 @@ const FormInfFinanciero = (tipo) => {
         case 6:
             url = 'form_ft004.php?tipo=6';
             break;
+        case 7:
+            url = 'form_exogena.php';
+            break;
         default:
             console.error('Tipo de informe no válido');
             return;
@@ -161,3 +164,18 @@ $('#areaReporte').on('click', '#btnExcelEntrada', function () {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 });
+
+const exportarExogenaCsv = (id_informe) => {
+    const ruta = ValueInput('host') + '/src/financiero/informes/exogena/' + id_informe + ".php";
+
+    $('<form>', {
+        action: ruta,
+        method: 'POST'
+    }).append($('<input>', {
+        type: 'hidden',
+        name: 'id',
+        value: id_informe
+    })).appendTo('body').submit().remove();
+
+    return false;
+};

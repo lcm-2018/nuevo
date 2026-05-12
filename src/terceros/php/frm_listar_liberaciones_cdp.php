@@ -43,6 +43,11 @@ $otro_form = isset($_POST['otro_form']) ? $_POST['otro_form'] : 0;
 <script>
     (function($) {
         $(document).ready(function() {
+            if ($.fn.DataTable.isDataTable('#tb_liberacionescdp')) {
+                $('#tb_liberacionescdp').DataTable().destroy();
+                $('#tb_liberacionescdp').unwrap('.overflow');
+            }
+
             $('#tb_liberacionescdp').DataTable({
                 language: dataTable_es,
                 processing: true,

@@ -329,6 +329,7 @@ class Certificados
         $sql = "SELECT
                     SUM(IFNULL(s.`val_liq`, 0))                                   AS `total_salario`,
                     SUM(IFNULL(d.`val_liq_dias`, 0))                               AS `total_laborado`,
+                    SUM(IFNULL(com.`val_compensa`, 0))                             AS `total_compensa`,
                     SUM(IFNULL(d.`val_liq_auxt`, 0))                               AS `total_aux_transporte`,
                     SUM(IFNULL(d.`aux_alim`, 0))                                   AS `total_aux_alim`,
                     SUM(IFNULL(d.`g_representa`, 0))                               AS `total_g_representa`,
@@ -348,6 +349,7 @@ class Certificados
                     SUM(IFNULL(rte.`base`, 0))                                     AS `base_retencion`,
                     SUM(
                         IFNULL(d.`val_liq_dias`, 0) + IFNULL(d.`val_liq_auxt`, 0)
+                        + IFNULL(com.`val_compensa`, 0)
                         + IFNULL(d.`aux_alim`, 0) + IFNULL(d.`g_representa`, 0)
                         + IFNULL(d.`horas_ext`, 0)
                         + IFNULL(ps.`val_liq_ps`, 0) + IFNULL(pn.`val_liq_pv`, 0)
@@ -364,6 +366,7 @@ class Certificados
                     )                                                               AS `total_deducciones`
                 FROM `nom_liq_dlab_auxt` d
                 LEFT JOIN `nom_liq_salario`          s   ON (s.`id_empleado`   = d.`id_empleado` AND s.`id_nomina`   = d.`id_nomina` AND s.`estado` = 1)
+                LEFT JOIN `nom_liq_compesatorio`     com ON (com.`id_empleado` = d.`id_empleado` AND com.`id_nomina` = d.`id_nomina` AND com.`estado` = 1)
                 LEFT JOIN `nom_liq_bsp`              bsp ON (bsp.`id_empleado` = d.`id_empleado` AND bsp.`id_nomina` = d.`id_nomina` AND bsp.`estado` = 1)
                 LEFT JOIN `nom_liq_cesantias`        ces ON (ces.`id_empleado` = d.`id_empleado` AND ces.`id_nomina` = d.`id_nomina` AND ces.`estado` = 1)
                 LEFT JOIN `nom_liq_prima`            ps  ON (ps.`id_empleado`  = d.`id_empleado` AND ps.`id_nomina`  = d.`id_nomina` AND ps.`estado` = 1)

@@ -1,5 +1,10 @@
 (function ($) {
     $(document).ready(function () {
+        if ($.fn.DataTable.isDataTable('#tb_cdps')) {
+            $('#tb_cdps').DataTable().ajax.reload(null, false);
+            return;
+        }
+
         $('#tb_cdps').DataTable({
             //va con este codigo para que no se muestre el boton de + encima
             dom: setdom,

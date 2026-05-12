@@ -131,6 +131,16 @@ foreach ($codigos as $cd) {
         }
     }
 }
+//ordenar data por codigo como una  texto en el valor cod_pptal
+function compareCodPptal($a, $b)
+{
+    if ($a['cod_pptal'] == $b['cod_pptal']) {
+        return 0;
+    }
+    return ($a['cod_pptal'] < $b['cod_pptal']) ? -1 : 1;
+}
+
+ksort($data, SORT_NATURAL);
 
 // consulto el nombre de la empresa de la tabla tb_datos_ips
 $etiqueta = !empty($rubros) ? mb_strtolower($rubros[0]['nombre']) : '';

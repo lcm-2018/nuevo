@@ -31,17 +31,17 @@ $content = <<<HTML
                 </a>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="javascript:void(0)" onclick="FormInfFinanciero(1);">
-                        <i class="fas fa-file-contract me-2"></i> Contraloría SIA
+                        <i class="fas fa-file-contract me-2 text-secondary"></i> Contraloría SIA
                     </a></li>
                     <li><a class="dropdown-item" href="javascript:void(0)" onclick="FormInfFinanciero(2);">
-                        <i class="fas fa-file-alt me-2"></i> Contraloría General - Cuipo
+                        <i class="fas fa-file-alt me-2 text-secondary"></i> Contraloría General - Cuipo
                     </a></li>
                     <li><a class="dropdown-item" href="javascript:void(0)" onclick="FormInfFinanciero(3);">
-                        <i class="fas fa-chart-line me-2"></i> Contraloría General - Ejecución
+                        <i class="fas fa-chart-line me-2 text-secondary"></i> Contraloría General - Ejecución
                     </a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="javascript:void(0)" onclick="FormInfFinanciero(4);">
-                        <i class="fas fa-eye me-2"></i> Sia Observa
+                        <i class="fas fa-eye me-2 text-secondary"></i> Sia Observa
                     </a></li>
                 </ul>
             </li>
@@ -51,7 +51,7 @@ $content = <<<HTML
                 </a>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="javascript:void(0)" onclick="FormInfFinanciero(5);">
-                        <i class="fas fa-chart-bar me-2"></i> Ejecución Presupuestal
+                        <i class="fas fa-chart-bar me-2 text-secondary"></i> Ejecución Presupuestal
                     </a></li>
                 </ul>
             </li>
@@ -61,7 +61,17 @@ $content = <<<HTML
                 </a>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="javascript:void(0)" onclick="FormInfFinanciero(6);" title="Cuentas por pagar">
-                        <i class="fas fa-file-invoice-dollar me-2"></i> FT004
+                        <i class="fas fa-file-invoice-dollar me-2 text-secondary"></i> FT004
+                    </a></li>
+                </ul>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">
+                    <i class="fas fa-shield me-1"></i> EXÓGENA DIAN
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="FormInfFinanciero(7);" title="Pagos o abonos en cuenta y retenciones practicadas">
+                        <i class="fas fa-money-check-alt me-2 text-secondary"></i> FORMULARIOS
                     </a></li>
                 </ul>
             </li>
@@ -70,7 +80,7 @@ $content = <<<HTML
         <div class="tab-content" id="informesTabContent">
             <div class="tab-pane fade show active" id="informes" role="tabpanel">
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
+                    <i class="fas fa-info-circle me-2 text-secondary"></i>
                     Seleccione un informe del menú superior para visualizarlo
                 </div>
             </div>

@@ -1,8 +1,8 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header("Location: ../../../../../../index.php");
-    exit();
+  header("Location: ../../../../../../index.php");
+  exit();
 }
 
 include_once '../../../../../config/autoloader.php';
@@ -36,7 +36,7 @@ if (empty($resumen)) exit('El empleado no tiene movimientos en el período selec
 
 function copR(float $v): string
 {
-    return number_format($v, 0, ',', '.');
+  return number_format($v, 0, ',', '.');
 }
 
 $anio_ini = date('Y', strtotime($fecha_ini));
@@ -46,8 +46,8 @@ $periodo  = $anio_ini === $anio_fin ? $anio_ini : "$anio_ini - $anio_fin";
 $id_vigencia_cert = Nomina::getIdVigenciaPorAnio($anio_fin);
 $params_liq = [];
 if ($id_vigencia_cert > 0) {
-    $raw = Nomina::getParamLiqPorVigencia($id_vigencia_cert);
-    $params_liq = array_column($raw, 'valor', 'id_concepto');
+  $raw = Nomina::getParamLiqPorVigencia($id_vigencia_cert);
+  $params_liq = array_column($raw, 'valor', 'id_concepto');
 }
 $uvt = floatval($params_liq[6] ?? 0);
 
@@ -58,25 +58,26 @@ $periodoFin     = date('d/m/Y', strtotime($fecha_fin));
 
 // Valores calculados
 $v = [];
-$v['salarios']     = floatval($resumen['total_laborado'] ?? 0);
+$v['salarios']     = floatval($resumen['total_laborado'] ?? 0)
+  + floatval($resumen['total_compensa'] ?? 0);
 $v['varios']       = 0;
 $v['honorarios']   = 0;
 $v['servicios']    = 0;
 $v['comisiones']   = 0;
 $v['presociales']  = floatval($resumen['total_prima_serv'] ?? 0)
-    + floatval($resumen['total_prima_nav'] ?? 0)
-    + floatval($resumen['total_bsp'] ?? 0)
-    + floatval($resumen['total_cesantias'] ?? 0)
-    + floatval($resumen['total_int_cesantias'] ?? 0)
-    + floatval($resumen['total_vacaciones'] ?? 0);
+  + floatval($resumen['total_prima_nav'] ?? 0)
+  + floatval($resumen['total_bsp'] ?? 0)
+  + floatval($resumen['total_cesantias'] ?? 0)
+  + floatval($resumen['total_int_cesantias'] ?? 0)
+  + floatval($resumen['total_vacaciones'] ?? 0);
 $v['viaticos']     = 0;
 $v['represent']    = floatval($resumen['total_g_representa'] ?? 0);
 $v['compensa']     = 0;
 $v['otros']        = floatval($resumen['total_aux_transporte'] ?? 0)
-    + floatval($resumen['total_aux_alim'] ?? 0)
-    + floatval($resumen['total_horas_ext'] ?? 0)
-    + floatval($resumen['total_incap'] ?? 0)
-    + floatval($resumen['otros_dev'] ?? 0);
+  + floatval($resumen['total_aux_alim'] ?? 0)
+  + floatval($resumen['total_horas_ext'] ?? 0)
+  + floatval($resumen['total_incap'] ?? 0)
+  + floatval($resumen['otros_dev'] ?? 0);
 $v['cesantias']    = 0;
 $v['pension']      = 0;
 $v['total_ing']    = $v['salarios'] + $v['presociales'] + $v['represent'] + $v['otros'];
@@ -102,14 +103,14 @@ $nombreArchivo = "Form220_{$cedula}_{$periodo}";
 // ── Funciones auxiliares de celdas HTML ───────────────────────
 function thDian(string $txt, string $bg = '#2E75B6', string $color = '#fff', int $colspan = 1, string $align = 'center'): string
 {
-    $cs = $colspan > 1 ? " colspan='{$colspan}'" : '';
-    return "<th{$cs} style='background:{$bg};color:{$color};font-size:7pt;font-weight:bold;text-align:{$align};padding:2px 4px;border:1px solid #999;'>{$txt}</th>";
+  $cs = $colspan > 1 ? " colspan='{$colspan}'" : '';
+  return "<th{$cs} style='background:{$bg};color:{$color};font-size:7pt;font-weight:bold;text-align:{$align};padding:2px 4px;border:1px solid #999;'>{$txt}</th>";
 }
 function tdDian(string $txt, string $bg = '#ffffff', string $align = 'left', bool $bold = false, int $colspan = 1): string
 {
-    $b  = $bold ? 'font-weight:bold;' : '';
-    $cs = $colspan > 1 ? " colspan='{$colspan}'" : '';
-    return "<td{$cs} style='background:{$bg};font-size:7pt;{$b}text-align:{$align};padding:2px 4px;border:1px solid #999;'>{$txt}</td>";
+  $b  = $bold ? 'font-weight:bold;' : '';
+  $cs = $colspan > 1 ? " colspan='{$colspan}'" : '';
+  return "<td{$cs} style='background:{$bg};font-size:7pt;{$b}text-align:{$align};padding:2px 4px;border:1px solid #999;'>{$txt}</td>";
 }
 
 // ── Construir tabla HTML del Form 220 ─────────────────────────
@@ -121,16 +122,16 @@ ob_start();
   <!-- ENCABEZADO -->
   <tr>
     <td style='width:120px;border:1px solid #999;padding:4px;vertical-align:middle;text-align:center;'>
-<?php
-$logoPath = __DIR__ . '/../../image1.png';
-if ($esExcel) {
-    // Excel no renderiza base64: mostramos solo texto
-    echo "<span style='font-size:8pt;font-weight:bold;'>DIAN</span>";
-} elseif (file_exists($logoPath)) {
-    $logoData = base64_encode(file_get_contents($logoPath));
-    echo "<img src='data:image/png;base64,{$logoData}' style='max-height:30px;'>";
-}
-?>
+      <?php
+      $logoPath = __DIR__ . '/../../image1.png';
+      if ($esExcel) {
+        // Excel no renderiza base64: mostramos solo texto
+        echo "<span style='font-size:8pt;font-weight:bold;'>DIAN</span>";
+      } elseif (file_exists($logoPath)) {
+        $logoData = base64_encode(file_get_contents($logoPath));
+        echo "<img src='data:image/png;base64,{$logoData}' style='max-height:30px;'>";
+      }
+      ?>
     </td>
     <td colspan='2' style='background:#2E75B6;color:#fff;font-size:10pt;font-weight:bold;text-align:center;border:1px solid #999;padding:4px;'>
       Certificado de Ingresos y Retenciones por Rentas de<br>
@@ -212,8 +213,8 @@ if ($esExcel) {
     <?= thDian('', '#2E75B6') ?>
     <?= thDian('Valor', '#2E75B6', '#fff', 2) ?>
   </tr>
-<?php
-$ingresos = [
+  <?php
+  $ingresos = [
     ['Pagos por salarios o emolumentos eclesiásticos', 36, $v['salarios']],
     ['Pagos realizados con bonos electrónicos o de papel, cheques, tarjetas, vales, etc.', 37, $v['varios']],
     ['Pagos por honorarios', 38, $v['honorarios']],
@@ -227,8 +228,8 @@ $ingresos = [
     ['Cesantías e intereses de cesantías efectivamente pagadas', 46, $v['cesantias']],
     ['Pensiones de jubilación, vejez o invalidez', 47, $v['pension']],
     ['Total de Ingresos brutos (Sume 36 a 47)', 48, $v['total_ing'], true],
-];
-foreach ($ingresos as $row) {
+  ];
+  foreach ($ingresos as $row) {
     $isT = $row[3] ?? false;
     $bg  = $isT ? '#BDD7EE' : '#ffffff';
     echo '<tr>';
@@ -237,16 +238,16 @@ foreach ($ingresos as $row) {
     echo "<td style='background:{$bg};font-size:7pt;border:1px solid #999;padding:2px 4px;'>\$</td>";
     echo tdDian(copR($row[2]), $bg, 'right', $isT);
     echo '</tr>';
-}
-?>
+  }
+  ?>
   <!-- APORTES -->
   <tr>
     <?= thDian('Concepto de los aportes', '#2E75B6') ?>
     <?= thDian('', '#2E75B6') ?>
     <?= thDian('Valor', '#2E75B6', '#fff', 2) ?>
   </tr>
-<?php
-$aportes = [
+  <?php
+  $aportes = [
     ['Aportes obligatorios por salud a cargo del trabajador', 49, $v['salud_emp']],
     ['Aportes obligatorios a fondos de pensiones y solidaridad a cargo del trabajador', 50, $v['pension_emp']],
     ['Cotizaciones voluntarias al régimen de ahorro individual - RAIS', 51, $v['solidaridad']],
@@ -255,8 +256,8 @@ $aportes = [
     ['Aportes a cuentas AFC', 54, $v['afc']],
     ['Valor de la retención en la fuente por ingresos laborales y de pensiones', 55, $v['retencion'], true],
     ['Retenciones por aportes obligatorios al impuesto solidario por COVID 19', 56, $v['ret_covid']],
-];
-foreach ($aportes as $row) {
+  ];
+  foreach ($aportes as $row) {
     $isT = $row[3] ?? false;
     $bg  = $isT ? '#BDD7EE' : '#ffffff';
     echo '<tr>';
@@ -265,8 +266,8 @@ foreach ($aportes as $row) {
     echo "<td style='background:{$bg};font-size:7pt;border:1px solid #999;padding:2px 4px;'>\$</td>";
     echo tdDian(copR($row[2]), $bg, 'right', $isT);
     echo '</tr>';
-}
-?>
+  }
+  ?>
   <tr>
     <td colspan='4' style='background:#D6E4F0;font-size:6pt;font-weight:bold;border:1px solid #999;padding:2px 4px;'>Nombre del pagador o agente retenedor</td>
   </tr>
@@ -274,7 +275,9 @@ foreach ($aportes as $row) {
 
 <table style='border-collapse:collapse;width:100%;font-family:Arial,sans-serif;margin-top:2px;'>
   <!-- DATOS CARGO TRABAJADOR -->
-  <tr><td colspan='5' style='background:#1F3864;color:#fff;font-size:7pt;font-weight:bold;text-align:center;border:1px solid #999;padding:2px;'>Datos a cargo del trabajador o pensionado</td></tr>
+  <tr>
+    <td colspan='5' style='background:#1F3864;color:#fff;font-size:7pt;font-weight:bold;text-align:center;border:1px solid #999;padding:2px;'>Datos a cargo del trabajador o pensionado</td>
+  </tr>
   <tr>
     <?= thDian('Concepto de otros ingresos', '#2E75B6') ?>
     <?= thDian('', '#2E75B6') ?>
@@ -282,8 +285,8 @@ foreach ($aportes as $row) {
     <?= thDian('', '#2E75B6') ?>
     <?= thDian('Valor retenido', '#2E75B6') ?>
   </tr>
-<?php
-$otros = [
+  <?php
+  $otros = [
     ['Arrendamientos', 57, 64],
     ['Honorarios, comisiones y servicios', 58, 65],
     ['Intereses y rendimientos financieros', 59, 66],
@@ -291,8 +294,8 @@ $otros = [
     ['Loterías, rifas, apuestas y similares', 61, 68],
     ['Otros', 62, 69],
     ['Totales: (Valor recibido: Sume 57 a 62), (Valor retenido: Sume 64 a 69)', 63, 70, true],
-];
-foreach ($otros as $row) {
+  ];
+  foreach ($otros as $row) {
     $isT = $row[3] ?? false;
     $bg  = $isT ? '#BDD7EE' : '#ffffff';
     echo '<tr>';
@@ -302,8 +305,8 @@ foreach ($otros as $row) {
     echo tdDian((string)$row[2], $bg, 'center');
     echo tdDian('', $bg, 'right');
     echo '</tr>';
-}
-?>
+  }
+  ?>
   <tr>
     <td colspan='2' style='background:#BDD7EE;font-size:7pt;font-weight:bold;border:1px solid #999;padding:2px 4px;'>
       Total retenciones a&ntilde;o gravable <?= htmlspecialchars($periodo) ?> (Sume 55 + 56 + 70)
@@ -320,13 +323,13 @@ foreach ($otros as $row) {
     <?= thDian('72. Identificaci&oacute;n de los bienes pose&iacute;dos', '#2E75B6', '#fff') ?>
     <?= thDian('73. Valor patrimonial', '#2E75B6', '#fff') ?>
   </tr>
-<?php for ($i = 1; $i <= 5; $i++): ?>
-  <tr>
-    <?= tdDian((string)$i, '#fff', 'center', false) ?>
-    <?= tdDian('', '#fff') ?>
-    <?= tdDian('', '#fff', 'right') ?>
-  </tr>
-<?php endfor; ?>
+  <?php for ($i = 1; $i <= 5; $i++): ?>
+    <tr>
+      <?= tdDian((string)$i, '#fff', 'center', false) ?>
+      <?= tdDian('', '#fff') ?>
+      <?= tdDian('', '#fff', 'right') ?>
+    </tr>
+  <?php endfor; ?>
   <tr>
     <td colspan='2' style='background:#BDD7EE;font-size:7pt;font-weight:bold;border:1px solid #999;padding:2px 4px;'>
       Deudas vigentes a 31 de Diciembre de <?= htmlspecialchars($periodo) ?>
@@ -337,9 +340,11 @@ foreach ($otros as $row) {
 
 <table style='border-collapse:collapse;width:100%;font-family:Arial,sans-serif;margin-top:2px;'>
   <!-- DEPENDIENTES -->
-  <tr><td colspan='4' style='background:#1F3864;color:#fff;font-size:7pt;font-weight:bold;text-align:center;border:1px solid #999;padding:2px;'>
-    Identificaci&oacute;n del dependiente econ&oacute;mico de acuerdo al par&aacute;grafo 2 del art&iacute;culo 387 del Estatuto Tributario
-  </td></tr>
+  <tr>
+    <td colspan='4' style='background:#1F3864;color:#fff;font-size:7pt;font-weight:bold;text-align:center;border:1px solid #999;padding:2px;'>
+      Identificaci&oacute;n del dependiente econ&oacute;mico de acuerdo al par&aacute;grafo 2 del art&iacute;culo 387 del Estatuto Tributario
+    </td>
+  </tr>
   <tr>
     <?= thDian('75. Tipo documento', '#D6E4F0', '#333') ?>
     <?= thDian('76. No. Documento', '#D6E4F0', '#333') ?>
@@ -385,52 +390,61 @@ $htmlBody = ob_get_clean();
 
 // ── SALIDA según formato ─────────────────────────────────────
 if ($formato === 'excel') {
-    // Descarga como Excel (HTML con headers MSO para colores correctos)
-    header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
-    header("Content-Disposition: attachment; filename=\"{$nombreArchivo}.xls\"");
-    header('Pragma: no-cache');
-    header('Expires: 0');
-    echo "\xEF\xBB\xBF"; // UTF-8 BOM
-    echo "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\""
-       . " xmlns:x=\"urn:schemas-microsoft-com:office:excel\""
-       . " xmlns=\"http://www.w3.org/TR/REC-html40\">";
-    echo "<head>"
-       . "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
-       . "<meta name=\"ProgId\" content=\"Excel.Sheet\">"
-       . "<meta name=\"Generator\" content=\"Microsoft Excel 11\">"
-       // Estilos MSO que fuerzan colores de fondo y fuentes en Excel
-       . "<style>"
-       . "  table { border-collapse: collapse; }"
-       . "  td, th {"
-       . "    font-family: Arial, sans-serif;"
-       . "    font-size: 7pt;"
-       . "    mso-number-format: '\\@';" // tratar celdas como texto
-       . "  }"
-       . "  /* Forzar que background-color se aplique en Excel */"
-       . "  .xl-bg { mso-pattern: auto; }"
-       . "</style>"
-       . "</head>";
-    echo "<body>{$htmlBody}</body></html>";
-    exit();
+  // Descarga como Excel (HTML con headers MSO para colores correctos)
+  header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
+  header("Content-Disposition: attachment; filename=\"{$nombreArchivo}.xls\"");
+  header('Pragma: no-cache');
+  header('Expires: 0');
+  echo "\xEF\xBB\xBF"; // UTF-8 BOM
+  echo "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\""
+    . " xmlns:x=\"urn:schemas-microsoft-com:office:excel\""
+    . " xmlns=\"http://www.w3.org/TR/REC-html40\">";
+  echo "<head>"
+    . "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
+    . "<meta name=\"ProgId\" content=\"Excel.Sheet\">"
+    . "<meta name=\"Generator\" content=\"Microsoft Excel 11\">"
+    // Estilos MSO que fuerzan colores de fondo y fuentes en Excel
+    . "<style>"
+    . "  table { border-collapse: collapse; }"
+    . "  td, th {"
+    . "    font-family: Arial, sans-serif;"
+    . "    font-size: 7pt;"
+    . "    mso-number-format: '\\@';" // tratar celdas como texto
+    . "  }"
+    . "  /* Forzar que background-color se aplique en Excel */"
+    . "  .xl-bg { mso-pattern: auto; }"
+    . "</style>"
+    . "</head>";
+  echo "<body>{$htmlBody}</body></html>";
+  exit();
 }
 
 // ── Formato HTML: vista carta + auto-print ─────────────────
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <title>Formulario 220 &ndash; <?= htmlspecialchars($periodo) ?></title>
   <style>
     /* ── Reset ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     /* ── Página (fondo gris, hoja blanca centrada) ── */
-    html, body {
+    html,
+    body {
       background: #6c757d;
       font-family: Arial, sans-serif;
       font-size: 7pt;
     }
+
     body {
       display: flex;
       flex-direction: column;
@@ -442,65 +456,85 @@ if ($formato === 'excel') {
     /* ── Hoja tamaño carta ── */
     #hoja {
       background: #ffffff;
-      width: 816px;          /* 8.5 in × 96 dpi */
-      min-height: 1056px;    /* 11 in × 96 dpi  */
+      width: 816px;
+      /* 8.5 in × 96 dpi */
+      min-height: 1056px;
+      /* 11 in × 96 dpi  */
       padding: 18px 22px 24px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
     }
 
     /* ── Tablas ── */
-    table { border-collapse: collapse; width: 100%; }
-    td, th { padding: 2px 4px; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    td,
+    th {
+      padding: 2px 4px;
+    }
 
     /* ══ IMPRESIÓN: hoja carta sin márgenes del browser + colores exactos ══ */
     @media print {
-      html, body {
+
+      html,
+      body {
         background: #ffffff !important;
         padding: 0 !important;
         margin: 0 !important;
       }
+
       #hoja {
         width: 100% !important;
         min-height: unset !important;
         box-shadow: none !important;
         padding: 6mm 8mm !important;
       }
-      .no-print { display: none !important; }
+
+      .no-print {
+        display: none !important;
+      }
 
       /* CRÍTICO: forzar colores e imágenes de fondo en impresión */
       * {
         -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
         color-adjust: exact !important;
       }
     }
-    @page { size: letter portrait; margin: 8mm 10mm; }
+
+    @page {
+      size: letter portrait;
+      margin: 8mm 10mm;
+    }
   </style>
 </head>
+
 <body>
 
-<!-- Botón imprimir (solo pantalla) -->
-<div class="no-print" style="margin-bottom:10px;">
-  <button onclick="window.print()"
-          style="background:#1a6eb5;color:#fff;border:none;padding:7px 22px;
+  <!-- Botón imprimir (solo pantalla) -->
+  <div class="no-print" style="margin-bottom:10px;">
+    <button onclick="window.print()"
+      style="background:#1a6eb5;color:#fff;border:none;padding:7px 22px;
                  border-radius:5px;font-size:9pt;cursor:pointer;font-family:Arial,sans-serif;">
-    <span style="margin-right:5px;">🖨️</span> Imprimir / Guardar PDF
-  </button>
-</div>
+      <span style="margin-right:5px;">🖨️</span> Imprimir / Guardar PDF
+    </button>
+  </div>
 
-<div id="hoja">
-<?= $htmlBody ?>
-</div>
+  <div id="hoja">
+    <?= $htmlBody ?>
+  </div>
 
-<script>
-  // Auto-imprimir al cargar la página
-  window.addEventListener('load', function () {
-    window.print();
-  });
-</script>
+  <script>
+    // Auto-imprimir al cargar la página
+    window.addEventListener('load', function() {
+      window.print();
+    });
+  </script>
 
 </body>
+
 </html>
 <?php
 exit();
-

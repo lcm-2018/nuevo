@@ -43,7 +43,7 @@ add_dev($conceptos, 'Auxilio de transporte', $resumen['total_aux_transporte'] ??
 add_dev($conceptos, 'Bonificación de recreación', 0);
 add_dev($conceptos, 'Bonificación Servicios Prestados', $resumen['total_bsp'] ?? 0);
 add_dev($conceptos, 'Cesantías', $resumen['total_cesantias'] ?? 0);
-add_dev($conceptos, 'Compensatorios', 0);
+add_dev($conceptos, 'Compensatorios', $resumen['total_compensa'] ?? 0);
 add_dev($conceptos, 'Gastos de representación', $resumen['total_g_representa'] ?? 0);
 add_dev($conceptos, 'Horas extra', $resumen['total_horas_ext'] ?? 0);
 add_dev($conceptos, 'Incapacidades', $resumen['total_incap'] ?? 0);

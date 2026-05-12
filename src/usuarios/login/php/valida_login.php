@@ -2,6 +2,7 @@
 session_start();
 include_once '../../../../config/autoloader.php';
 
+use Config\Clases\Logs;
 use Src\Usuarios\Login\Php\Clases\Usuario;
 
 $usuario = $_POST['txtUser'];
@@ -26,6 +27,7 @@ if (($obj != null) && $obj['login'] === $usuario && ($obj['clave'] === $clave)) 
         $_SESSION['vigencia'] = $vigencia['anio'];
         $_SESSION['nit_emp'] = $empresa['nit'];
         $_SESSION['pto'] = $empresa['tiene_pto'];
+        Logs::guardaLog('Inicio de sesión');
         $res['status'] = 'ok';
     } else if ($obj['estado'] == 0) {
         $res['msg'] = 'Usuario inactivo, por favor comuníquese con el administrador del sistema.';
