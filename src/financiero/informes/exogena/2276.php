@@ -5,19 +5,42 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-// Configurar cabeceras para forzar la descarga del CSV por streaming
-$nombre_archivo = "Formato_2276_" . date("Ymd_His") . ".csv";
+// Configurar cabeceras para forzar la descarga del Excel por streaming
+$nombre_archivo = "Formato_2276_" . date("Ymd_His") . ".xls";
 
-header('Content-Type: text/csv; charset=utf-8');
+header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
 header('Content-Disposition: attachment; filename="' . $nombre_archivo . '"');
 header('Pragma: no-cache');
 header('Expires: 0');
 
-// Abrir la salida estándar de PHP (stream)
-$output = fopen('php://output', 'w');
-
 // Escribir el BOM de UTF-8 para que Excel reconozca las tildes y ñ correctamente al abrirlo
-fputs($output, "\xEF\xBB\xBF");
+echo "\xEF\xBB\xBF";
+
+function imprimirFilaExcel($valores, $columnas_texto = [], $es_encabezado = false)
+{
+    $etiqueta = $es_encabezado ? 'th' : 'td';
+    $estilo_base = $es_encabezado
+        ? 'background-color:#d9e2f3;font-weight:bold;text-align:center;'
+        : '';
+
+    echo '<tr>';
+    foreach ($valores as $indice => $valor) {
+        $es_texto = isset($columnas_texto[$indice]);
+        $estilo = $estilo_base . ($es_texto ? 'mso-number-format:"\@";' : '');
+        echo '<' . $etiqueta . ' style=\'' . $estilo . '\'>';
+        echo htmlspecialchars((string) ($valor ?? ''), ENT_QUOTES, 'UTF-8');
+        echo '</' . $etiqueta . '>';
+    }
+    echo '</tr>';
+}
+
+function liberarSalida()
+{
+    if (ob_get_level() > 0) {
+        ob_flush();
+    }
+    flush();
+}
 
 // Definir los encabezados de las columnas (Formato 2276)
 $columnas = [
@@ -68,13 +91,25 @@ $columnas = [
     'Identificación participante en contrato colaboración'
 ];
 
-// Imprimir los encabezados en el CSV
-// Usamos el separador ',' (coma)
-fputcsv($output, $columnas, ',');
+// Las columnas de identificación se fuerzan como texto para conservar ceros a la izquierda.
+$columnas_texto = array_flip([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 40, 41, 42, 43, 44]);
+
+echo '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+echo '<head>';
+echo '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">';
+echo '<style>
+        table { border-collapse: collapse; }
+        td, th { border: 1px solid #999; font-family: Arial, sans-serif; font-size: 11px; padding: 3px; }
+      </style>';
+echo '</head>';
+echo '<body>';
+echo '<table>';
+
+// Imprimir los encabezados en el Excel
+imprimirFilaExcel($columnas, [], true);
 
 // Liberar buffer para que empiece a descargar de inmediato los encabezados
-ob_flush();
-flush();
+liberarSalida();
 
 // -------------------------------------------------------------------------
 // ESPACIO PARA TU CONSULTA SQL (Lógica de Streaming)
@@ -109,7 +144,7 @@ try {
                     ON cl.id_ctb_doc = cd.id_ctb_doc
                 WHERE ch.id_vigencia = $id_vigencia
                   AND cl.debito > 0 AND cd.estado = 2
-                  AND DATE_FORMAT(cd.fecha,'%Y-%m-%d') BETWEEN '$vigencia-01-01' AND '$vigencia-12-31'
+                  AND DATE_FORMAT(cd.fecha,'%Y') = '$vigencia'
             ),
             datos_base AS (
                 -- Todos los conceptos excepto el 14 (Cesantías Consignadas)
@@ -129,7 +164,7 @@ try {
                 WHERE ch.id_vigencia = $id_vigencia
                   AND (cl.debito > 0 OR cl.credito > 0) AND cd.estado = 2 AND cl.id_tercero_api > 0
                   AND cce.cod_concepto IN ('1','2','3','4','5','6','7','8','9','10','11','12','13','15','16','17','18','19')
-                  AND DATE_FORMAT(cd.fecha,'%Y-%m-%d') BETWEEN '$vigencia-01-01' AND '$vigencia-12-31'
+                  AND DATE_FORMAT(cd.fecha,'%Y') = '$vigencia'
                 
                 UNION ALL
                 
@@ -298,7 +333,7 @@ try {
             $row['nombre2'], // Otros Nombres
             $row['dir_tercero'], // Dirección (Asumiendo que el campo se llama dir_tercero)
             $row['codigo_departamento'], // Departamento
-            $row['codigo_municipio'], // Municipio
+            $row['codigo_departamento'] . $row['codigo_municipio'], // Municipio
             '169', // País (169 es Colombia)
             $row['pagos_salarios'], // (1) Salarios
             $row['pagos_emolumentos'], // (2) Emolumentos
@@ -331,19 +366,23 @@ try {
             round($row['valor_promedio'] ?? 0, 2), // Promedio de los últimos 6 meses laborados
             $row['tipos_doc_dependientes'] ?? '', // Tipo documento dependiente (separados por coma)
             $row['nums_doc_dependientes'] ?? '', // Numero de documento dependiente (separados por coma)
+            '', // Identificación del fideicomiso
+            '', // Tipo documento participante en contrato de colaboración
+            '', // Identificación participante en contrato colaboración
         ];
 
-        // 4. Escribir la línea en el CSV
-        fputcsv($output, $linea, ',');
+        // 4. Escribir la línea en el Excel
+        imprimirFilaExcel($linea, $columnas_texto);
 
         // 5. MÁGIA DEL STREAMING: Vaciar los buffers
-        ob_flush();
-        flush();
+        liberarSalida();
     }
 } catch (PDOException $e) {
-    fputcsv($output, ['Error en la consulta: ' . $e->getMessage()]);
+    echo '<tr><td colspan="' . count($columnas) . '">';
+    echo htmlspecialchars('Error en la consulta: ' . $e->getMessage(), ENT_QUOTES, 'UTF-8');
+    echo '</td></tr>';
 }
 
-// Cerrar el stream
-fclose($output);
+echo '</table>';
+echo '</body></html>';
 exit();

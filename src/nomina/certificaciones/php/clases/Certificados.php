@@ -404,4 +404,180 @@ class Certificados
         $stmt->closeCursor();
         return $dato;
     }
+
+    /**
+     * Sumatoria para Formulario 220 desde contabilidad/libro auxiliar.
+     * Usa la homologación de exógena id_form=15 y respeta la naturaleza
+     * definida para cada casilla: ingresos por débito, retenciones por crédito
+     * y aportes por el mayor valor entre débito y crédito.
+     */
+    public function getResumenForm220Libaux(int $id_tercero, string $fecha_ini, string $fecha_fin, int $id_vigencia): array
+    {
+        if ($id_tercero <= 0 || $id_vigencia <= 0 || $fecha_ini === '' || $fecha_fin === '') {
+            return [];
+        }
+
+        $sql = "WITH movimientos_pgcp AS (
+                    SELECT
+                        ch.id_cuenta_otros,
+                        ch.id_cuenta,
+                        cce.cod_concepto,
+                        cp.cuenta,
+                        cp.nombre,
+                        SUM(cl.debito) AS debito,
+                        SUM(cl.credito) AS credito,
+                        cl.id_tercero_api
+                    FROM ctb_homologacion AS ch
+                    INNER JOIN ctb_ctas_exogena AS cce
+                        ON ch.id_cuenta_otros = cce.id_cuenta
+                    INNER JOIN ctb_pgcp AS cp
+                        ON ch.id_cuenta = cp.id_pgcp
+                    INNER JOIN ctb_libaux AS cl
+                        ON cl.id_cuenta = cp.id_pgcp
+                    INNER JOIN ctb_doc AS cd
+                        ON cl.id_ctb_doc = cd.id_ctb_doc
+                    WHERE ch.id_vigencia = :id_vigencia
+                        AND cce.id_form = 15
+                        AND cl.id_tercero_api = :id_tercero
+                        AND (cl.debito > 0 OR cl.credito > 0)
+                        AND cd.estado = 2
+                        AND DATE_FORMAT(cd.fecha, '%Y-%m-%d') BETWEEN :fecha_ini AND :fecha_fin
+                        AND cce.cod_concepto IN ('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19')
+                    GROUP BY
+                        ch.id_cuenta_otros,
+                        ch.id_cuenta,
+                        cce.cod_concepto,
+                        cp.cuenta,
+                        cp.nombre,
+                        cl.id_tercero_api
+                )
+                SELECT
+                    SUM(CASE WHEN cod_concepto IN ('1','2') THEN debito ELSE 0 END) AS salarios,
+                    SUM(CASE WHEN cod_concepto = '3' THEN debito ELSE 0 END) AS varios,
+                    SUM(CASE WHEN cod_concepto = '5' THEN debito ELSE 0 END) AS honorarios,
+                    SUM(CASE WHEN cod_concepto = '6' THEN debito ELSE 0 END) AS servicios,
+                    SUM(CASE WHEN cod_concepto = '7' THEN debito ELSE 0 END) AS comisiones,
+                    SUM(CASE WHEN cod_concepto = '8' THEN debito ELSE 0 END) AS presociales,
+                    SUM(CASE WHEN cod_concepto = '9' THEN debito ELSE 0 END) AS viaticos,
+                    SUM(CASE WHEN cod_concepto = '10' THEN debito ELSE 0 END) AS represent,
+                    SUM(CASE WHEN cod_concepto = '11' THEN debito ELSE 0 END) AS compensa,
+                    SUM(CASE WHEN cod_concepto IN ('4','12') THEN debito ELSE 0 END) AS otros,
+                    SUM(CASE WHEN cod_concepto IN ('13','14','15') THEN debito ELSE 0 END) AS cesantias,
+                    SUM(CASE WHEN cod_concepto = '16' THEN debito ELSE 0 END) AS pension,
+                    GREATEST(
+                        SUM(CASE WHEN cod_concepto = '17' THEN debito ELSE 0 END),
+                        SUM(CASE WHEN cod_concepto = '17' THEN credito ELSE 0 END)
+                    ) AS salud_emp,
+                    GREATEST(
+                        SUM(CASE WHEN cod_concepto = '18' THEN debito ELSE 0 END),
+                        SUM(CASE WHEN cod_concepto = '18' THEN credito ELSE 0 END)
+                    ) AS pension_emp,
+                    SUM(CASE WHEN cod_concepto = '19' THEN credito ELSE 0 END) AS retencion,
+                    SUM(debito + credito) AS total_movimientos
+                FROM movimientos_pgcp";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_vigencia', $id_vigencia, PDO::PARAM_INT);
+        $stmt->bindValue(':id_tercero', $id_tercero, PDO::PARAM_INT);
+        $stmt->bindValue(':fecha_ini', $fecha_ini, PDO::PARAM_STR);
+        $stmt->bindValue(':fecha_fin', $fecha_fin, PDO::PARAM_STR);
+        $stmt->execute();
+        $dato = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+
+        if (empty($dato) || floatval($dato['total_movimientos'] ?? 0) <= 0) {
+            return [];
+        }
+
+        $dato['total_ing'] = floatval($dato['salarios'] ?? 0)
+            + floatval($dato['varios'] ?? 0)
+            + floatval($dato['honorarios'] ?? 0)
+            + floatval($dato['servicios'] ?? 0)
+            + floatval($dato['comisiones'] ?? 0)
+            + floatval($dato['presociales'] ?? 0)
+            + floatval($dato['viaticos'] ?? 0)
+            + floatval($dato['represent'] ?? 0)
+            + floatval($dato['compensa'] ?? 0)
+            + floatval($dato['otros'] ?? 0)
+            + floatval($dato['cesantias'] ?? 0)
+            + floatval($dato['pension'] ?? 0);
+
+        return $dato;
+    }
+
+    /**
+     * Detalle contable del Formulario 220 por cuenta PGCP.
+     * Sirve para el consolidado, donde interesa ver cada cuenta homologada
+     * dentro del concepto DIAN, no solo el total de la casilla.
+     */
+    public function getDetalleForm220Libaux(int $id_tercero, string $fecha_ini, string $fecha_fin, int $id_vigencia): array
+    {
+        if ($id_tercero <= 0 || $id_vigencia <= 0 || $fecha_ini === '' || $fecha_fin === '') {
+            return [];
+        }
+
+        $sql = "WITH movimientos_pgcp AS (
+                    SELECT
+                        ch.id_cuenta_otros,
+                        ch.id_cuenta,
+                        cce.cod_concepto,
+                        cp.cuenta,
+                        cp.nombre,
+                        SUM(cl.debito) AS debito,
+                        SUM(cl.credito) AS credito,
+                        cl.id_tercero_api
+                    FROM ctb_homologacion AS ch
+                    INNER JOIN ctb_ctas_exogena AS cce
+                        ON ch.id_cuenta_otros = cce.id_cuenta
+                    INNER JOIN ctb_pgcp AS cp
+                        ON ch.id_cuenta = cp.id_pgcp
+                    INNER JOIN ctb_libaux AS cl
+                        ON cl.id_cuenta = cp.id_pgcp
+                    INNER JOIN ctb_doc AS cd
+                        ON cl.id_ctb_doc = cd.id_ctb_doc
+                    WHERE ch.id_vigencia = :id_vigencia
+                        AND cce.id_form = 15
+                        AND cl.id_tercero_api = :id_tercero
+                        AND (cl.debito > 0 OR cl.credito > 0)
+                        AND cd.estado = 2
+                        AND DATE_FORMAT(cd.fecha, '%Y-%m-%d') BETWEEN :fecha_ini AND :fecha_fin
+                        AND cce.cod_concepto IN ('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19')
+                    GROUP BY
+                        ch.id_cuenta_otros,
+                        ch.id_cuenta,
+                        cce.cod_concepto,
+                        cp.cuenta,
+                        cp.nombre,
+                        cl.id_tercero_api
+                )
+                SELECT
+                    id_cuenta_otros,
+                    id_cuenta,
+                    cod_concepto,
+                    cuenta,
+                    nombre,
+                    CASE
+                        WHEN cod_concepto IN ('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16') THEN debito
+                        ELSE 0
+                    END AS devengado,
+                    CASE
+                        WHEN cod_concepto IN ('17','18') THEN GREATEST(debito, credito)
+                        WHEN cod_concepto = '19' THEN credito
+                        ELSE 0
+                    END AS deducido
+                FROM movimientos_pgcp
+                HAVING devengado > 0 OR deducido > 0
+                ORDER BY cod_concepto + 0, cuenta";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_vigencia', $id_vigencia, PDO::PARAM_INT);
+        $stmt->bindValue(':id_tercero', $id_tercero, PDO::PARAM_INT);
+        $stmt->bindValue(':fecha_ini', $fecha_ini, PDO::PARAM_STR);
+        $stmt->bindValue(':fecha_fin', $fecha_fin, PDO::PARAM_STR);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+
+        return $datos;
+    }
 }

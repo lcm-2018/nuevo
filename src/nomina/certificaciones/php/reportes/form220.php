@@ -26,13 +26,6 @@ $Cert    = new Certificados();
 $empresa = (new Usuario())->getEmpresa();
 $empleado = $Cert->getDatosEmpleadoPorTercero($id_tercero);
 if (empty($empleado)) exit('No se encontró un empleado asociado al tercero seleccionado.');
-$id_empleado = intval($empleado['id_empleado']);
-
-$ids_nomina = $Cert->getNominasPorRango($fecha_ini, $fecha_fin);
-if (empty($ids_nomina)) exit('No se encontraron nóminas liquidadas (estado 5) en el rango.');
-
-$resumen = $Cert->getResumenAnual($id_empleado, $ids_nomina);
-if (empty($resumen)) exit('El empleado no tiene movimientos en el período seleccionado.');
 
 function copR(float $v): string
 {
@@ -43,13 +36,18 @@ $anio_ini = date('Y', strtotime($fecha_ini));
 $anio_fin = date('Y', strtotime($fecha_fin));
 $periodo  = $anio_ini === $anio_fin ? $anio_ini : "$anio_ini - $anio_fin";
 
-$id_vigencia_cert = Nomina::getIdVigenciaPorAnio($anio_fin);
+$id_vigencia_cert = isset($_SESSION['id_vigencia']) ? intval($_SESSION['id_vigencia']) : 0;
+if ($id_vigencia_cert <= 0) {
+  $id_vigencia_cert = Nomina::getIdVigenciaPorAnio($anio_fin);
+}
 $params_liq = [];
 if ($id_vigencia_cert > 0) {
   $raw = Nomina::getParamLiqPorVigencia($id_vigencia_cert);
   $params_liq = array_column($raw, 'valor', 'id_concepto');
 }
 $uvt = floatval($params_liq[6] ?? 0);
+$resumen_libaux = $Cert->getResumenForm220Libaux($id_tercero, $fecha_ini, $fecha_fin, $id_vigencia_cert);
+if (empty($resumen_libaux)) exit('El empleado no tiene movimientos contables homologados para el Formato 220 en el período seleccionado.');
 
 $hoy            = date('d/m/Y');
 $cedula         = $empleado['no_documento'] ?? '';
@@ -57,39 +55,29 @@ $periodoIni     = date('d/m/Y', strtotime($fecha_ini));
 $periodoFin     = date('d/m/Y', strtotime($fecha_fin));
 
 // Valores calculados
-$v = [];
-$v['salarios']     = floatval($resumen['total_laborado'] ?? 0)
-  + floatval($resumen['total_compensa'] ?? 0);
-$v['varios']       = 0;
-$v['honorarios']   = 0;
-$v['servicios']    = 0;
-$v['comisiones']   = 0;
-$v['presociales']  = floatval($resumen['total_prima_serv'] ?? 0)
-  + floatval($resumen['total_prima_nav'] ?? 0)
-  + floatval($resumen['total_bsp'] ?? 0)
-  + floatval($resumen['total_cesantias'] ?? 0)
-  + floatval($resumen['total_int_cesantias'] ?? 0)
-  + floatval($resumen['total_vacaciones'] ?? 0);
-$v['viaticos']     = 0;
-$v['represent']    = floatval($resumen['total_g_representa'] ?? 0);
-$v['compensa']     = 0;
-$v['otros']        = floatval($resumen['total_aux_transporte'] ?? 0)
-  + floatval($resumen['total_aux_alim'] ?? 0)
-  + floatval($resumen['total_horas_ext'] ?? 0)
-  + floatval($resumen['total_incap'] ?? 0)
-  + floatval($resumen['otros_dev'] ?? 0);
-$v['cesantias']    = 0;
-$v['pension']      = 0;
-$v['total_ing']    = $v['salarios'] + $v['presociales'] + $v['represent'] + $v['otros'];
-
-$v['salud_emp']    = floatval($resumen['total_salud_emp'] ?? 0);
-$v['pension_emp']  = floatval($resumen['total_pension_emp'] ?? 0);
-$v['solidaridad']  = floatval($resumen['total_solidaridad'] ?? 0);
-$v['covid']        = 0;
-$v['vol_pension']  = 0;
-$v['afc']          = 0;
-$v['retencion']    = floatval($resumen['total_retencion'] ?? 0);
-$v['ret_covid']    = 0;
+$v = [
+  'salarios'    => floatval($resumen_libaux['salarios'] ?? 0),
+  'varios'      => floatval($resumen_libaux['varios'] ?? 0),
+  'honorarios'  => floatval($resumen_libaux['honorarios'] ?? 0),
+  'servicios'   => floatval($resumen_libaux['servicios'] ?? 0),
+  'comisiones'  => floatval($resumen_libaux['comisiones'] ?? 0),
+  'presociales' => floatval($resumen_libaux['presociales'] ?? 0),
+  'viaticos'    => floatval($resumen_libaux['viaticos'] ?? 0),
+  'represent'   => floatval($resumen_libaux['represent'] ?? 0),
+  'compensa'    => floatval($resumen_libaux['compensa'] ?? 0),
+  'otros'       => floatval($resumen_libaux['otros'] ?? 0),
+  'cesantias'   => floatval($resumen_libaux['cesantias'] ?? 0),
+  'pension'     => floatval($resumen_libaux['pension'] ?? 0),
+  'total_ing'   => floatval($resumen_libaux['total_ing'] ?? 0),
+  'salud_emp'   => floatval($resumen_libaux['salud_emp'] ?? 0),
+  'pension_emp' => floatval($resumen_libaux['pension_emp'] ?? 0),
+  'solidaridad' => 0,
+  'covid'       => 0,
+  'vol_pension' => 0,
+  'afc'         => 0,
+  'retencion'   => floatval($resumen_libaux['retencion'] ?? 0),
+  'ret_covid'   => 0,
+];
 
 $v['patrimonio']   = $uvt * 4500;
 $v['ingr_uvt']     = $uvt * 1400;

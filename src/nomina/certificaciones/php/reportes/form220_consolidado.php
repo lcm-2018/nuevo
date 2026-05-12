@@ -8,6 +8,7 @@ if (!isset($_SESSION['user'])) {
 include_once '../../../../../config/autoloader.php';
 
 use Src\Nomina\Certificaciones\Php\Clases\Certificados;
+use Src\Nomina\Liquidacion\Php\Clases\Nomina;
 use Src\Usuarios\Login\Php\Clases\Usuario;
 
 $id_tercero = isset($_POST['id_tercero']) ? intval($_POST['id_tercero']) : 0;
@@ -19,57 +20,27 @@ if (!$id_tercero || !$fecha_ini || !$fecha_fin) exit('Parámetros insuficientes.
 $Cert    = new Certificados();
 $empleado = $Cert->getDatosEmpleadoPorTercero($id_tercero);
 if (empty($empleado)) exit('No se encontró un empleado asociado al tercero seleccionado.');
-$id_empleado = intval($empleado['id_empleado']);
 
-$ids_nomina = $Cert->getNominasPorRango($fecha_ini, $fecha_fin);
-if (empty($ids_nomina)) exit('No se encontraron nóminas liquidadas (estado 5) en el rango.');
+$anio_fin = date('Y', strtotime($fecha_fin));
+$id_vigencia_cert = isset($_SESSION['id_vigencia']) ? intval($_SESSION['id_vigencia']) : 0;
+if ($id_vigencia_cert <= 0) {
+    $id_vigencia_cert = Nomina::getIdVigenciaPorAnio($anio_fin);
+}
 
-$resumen = $Cert->getResumenAnual($id_empleado, $ids_nomina);
-if (empty($resumen)) exit('El empleado no tiene movimientos en el período seleccionado.');
+$resumen = $Cert->getResumenForm220Libaux($id_tercero, $fecha_ini, $fecha_fin, $id_vigencia_cert);
+if (empty($resumen)) exit('El empleado no tiene movimientos contables homologados para el Formato 220 en el período seleccionado.');
+$detalle = $Cert->getDetalleForm220Libaux($id_tercero, $fecha_ini, $fecha_fin, $id_vigencia_cert);
+if (empty($detalle)) exit('El empleado no tiene detalle contable homologado para el Formato 220 en el período seleccionado.');
 
 // Preparar los conceptos al estilo Consolidado como en Excel
 $conceptos = [];
-
-// DEVENGADOS
-function add_dev(&$arr, $nombre, $valor)
-{
-    if ($valor >= 0) {
-        $arr[] = ['concepto' => $nombre, 'devengado' => floatval($valor), 'deducido' => 0];
-    }
+foreach ($detalle as $fila) {
+    $conceptos[] = [
+        'concepto' => trim(($fila['cuenta'] ?? '') . ' - ' . ($fila['nombre'] ?? '')),
+        'devengado' => floatval($fila['devengado'] ?? 0),
+        'deducido' => floatval($fila['deducido'] ?? 0),
+    ];
 }
-
-add_dev($conceptos, 'Auxilio de alimentación', $resumen['total_aux_alim'] ?? 0);
-add_dev($conceptos, 'Auxilio de transporte', $resumen['total_aux_transporte'] ?? 0);
-add_dev($conceptos, 'Bonificación de recreación', 0);
-add_dev($conceptos, 'Bonificación Servicios Prestados', $resumen['total_bsp'] ?? 0);
-add_dev($conceptos, 'Cesantías', $resumen['total_cesantias'] ?? 0);
-add_dev($conceptos, 'Compensatorios', $resumen['total_compensa'] ?? 0);
-add_dev($conceptos, 'Gastos de representación', $resumen['total_g_representa'] ?? 0);
-add_dev($conceptos, 'Horas extra', $resumen['total_horas_ext'] ?? 0);
-add_dev($conceptos, 'Incapacidades', $resumen['total_incap'] ?? 0);
-add_dev($conceptos, 'Indemnización de vacaciones', 0);
-add_dev($conceptos, 'Intereses a las cesantías', $resumen['total_int_cesantias'] ?? 0);
-add_dev($conceptos, 'Laborado', $resumen['total_laborado'] ?? 0);
-add_dev($conceptos, 'Licencias', 0);
-add_dev($conceptos, 'Otros devengados', $resumen['otros_dev'] ?? 0);
-add_dev($conceptos, 'Prima de navidad', $resumen['total_prima_nav'] ?? 0);
-add_dev($conceptos, 'Prima de servicios', $resumen['total_prima_serv'] ?? 0);
-add_dev($conceptos, 'Prima de vacaciones', 0);
-add_dev($conceptos, 'Vacaciones', $resumen['total_vacaciones'] ?? 0);
-add_dev($conceptos, 'Viáticos', 0);
-
-// DEDUCIDOS
-function add_ded(&$arr, $nombre, $valor)
-{
-    if ($valor >= 0) {
-        $arr[] = ['concepto' => $nombre, 'devengado' => 0, 'deducido' => floatval($valor)];
-    }
-}
-
-add_ded($conceptos, 'Aporte a pensión', $resumen['total_pension_emp'] ?? 0);
-add_ded($conceptos, 'Aporte a salud', $resumen['total_salud_emp'] ?? 0);
-add_ded($conceptos, 'Fondo de Solidaridad Pensional', $resumen['total_solidaridad'] ?? 0);
-add_ded($conceptos, 'Retención en la fuente', $resumen['total_retencion'] ?? 0);
 
 $tot_devengado = 0;
 $tot_deducido = 0;
