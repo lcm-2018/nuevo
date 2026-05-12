@@ -312,13 +312,26 @@ function BuscaDataTable(tabla) {
     }
 }
 
-function mje(titulo, html, timer = 2000) {
+/*function mje(titulo, html, timer = 2000) {
     Swal.fire({
         title: titulo,
         icon: "success",
         showConfirmButton: true,
         timer: timer,
         html: html,
+    });
+}
+*/
+
+function mje(titulo, html, timer = 2000) {
+    Swal.fire({
+        title: titulo,
+        icon: "success",
+        showConfirmButton: true,
+        html: html,
+        timer: timer > 0 ? timer : null,
+        allowOutsideClick: timer > 0,
+        allowEscapeKey: timer > 0
     });
 }
 

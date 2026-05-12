@@ -131,7 +131,7 @@
                 if (r.mensaje == 'ok') {
                     $('#tb_cencos_areas').DataTable().ajax.reload(null, false);
                     $('#id_area').val(r.id);
-                    mje("Proceso realizado correctamente");
+                    mje("Proceso realizado correctamente",r.es_almacen);
                 } else {
                     mjeError(r.mensaje);
                 }

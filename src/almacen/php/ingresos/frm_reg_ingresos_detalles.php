@@ -88,7 +88,7 @@ if (empty($obj)) {
                     </div>
                     <div class="col-md-3">
                         <label for="txt_can_ing" class="small">Cantidad</label>
-                        <input type="number" class="form-control form-control-sm bg-input numberint" id="txt_can_ing" name="txt_can_ing" required value="<?php echo $obj['cantidad'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input numberfloat" id="txt_can_ing" name="txt_can_ing" required value="<?php echo $obj['cantidad'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="txt_val_uni" class="small">Vr. Unitario</label>

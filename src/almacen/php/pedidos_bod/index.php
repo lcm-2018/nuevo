@@ -77,6 +77,12 @@ $content = <<<HTML
                 <button type="button" id="btn_imprime_filtro" class="btn btn-outline-success btn-sm" title="Imprimir">
                     <span class="fas fa-print" aria-hidden="true"></span>
                 </button>
+            </div>    
+            <div class="col-md-1">
+                <button type="button" id="btn_duplicar_pedido" class="btn btn-outline-primary btn-sm" title="Duplicar Pedido">
+                    <span class="fas fa-clone" aria-hidden="true"></span>
+                </button>
+                <input type="hidden" id="txt_peddup" class="form-control form-control-sm bg-input">
             </div>
         </div>
         <div class="row mb-3">

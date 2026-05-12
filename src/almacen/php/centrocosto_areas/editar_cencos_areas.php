@@ -54,6 +54,13 @@ try {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
             } else {
+                $sql = "SELECT es_almacen,nom_area FROM far_centrocosto_area WHERE id_area=" . $id;
+                $rs = $cmd->query($sql);
+                $obj_alm = $rs->fetch();
+                if ($obj_alm['es_almacen'] == 1) { 
+                    $nom_area = $obj_alm['nom_area'];
+                }
+
                 $sql = "UPDATE far_centrocosto_area 
                         SET nom_area='$nom_area',id_centrocosto=$id_cencos,id_tipo_area=$id_tipare,
                             id_responsable=$id_respon,id_sede=$id_sede,id_bodega=$id_bodega,estado=$estado
@@ -62,6 +69,7 @@ try {
 
                 if ($rs) {
                     $res['mensaje'] = 'ok';
+                    $res['es_almacen'] = $obj_alm['es_almacen'] == 1 ? 'El nombre del Área no se modifico: ' . $obj_alm['nom_area'] : '';   
                     $res['id'] = $id;
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -70,15 +78,24 @@ try {
         }
 
         if ($oper == 'del') {
-            $id = $_POST['id'];
-            $sql = "DELETE FROM far_centrocosto_area WHERE id_area=" . $id;
+            $id = $_POST['id'];            
+            
+            $sql = "SELECT es_almacen,nom_area FROM far_centrocosto_area WHERE id_area=" . $id;
             $rs = $cmd->query($sql);
-            if ($rs) {
-                Logs::guardaLog($sql);
-                $res['mensaje'] = 'ok';
+            $obj_alm = $rs->fetch();
+
+            if ($obj_alm['es_almacen'] == 0) {                
+                $sql = "DELETE FROM far_centrocosto_area WHERE id_area=" . $id;
+                $rs = $cmd->query($sql);
+                if ($rs) {
+                    Logs::guardaLog($sql);
+                    $res['mensaje'] = 'ok';
+                } else {
+                    $res['mensaje'] = $cmd->errorInfo()[2];
+                }
             } else {
-                $res['mensaje'] = $cmd->errorInfo()[2];
-            }
+                $res['mensaje'] = 'No se puede eliminar el Área: ' . $obj_alm['nom_area'];      
+            }        
         }
     } else {
         $res['mensaje'] = 'El Usuario del Sistema no tiene Permisos para esta Acción';
