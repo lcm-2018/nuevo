@@ -121,201 +121,201 @@ $id_vigencia = $_SESSION['id_vigencia'];
 
 try {
     // 1. Aquí colocas tu consulta SQL PIVOTEADA
-    $sql = "WITH rubros_cesantias AS (
-                SELECT r_admin AS id_rubro
-                FROM nom_rel_rubro
-                WHERE id_vigencia = $id_vigencia AND id_tipo = 18 AND r_admin > 0
+    $sql = "WITH `rubros_cesantias` AS (
+                SELECT `r_admin` AS `id_rubro`
+                FROM `nom_rel_rubro`
+                WHERE `id_vigencia` = $id_vigencia AND `id_tipo` = 18 AND `r_admin` > 0
 
                 UNION
 
-                SELECT r_operativo AS id_rubro
-                FROM nom_rel_rubro
-                WHERE id_vigencia = $id_vigencia AND id_tipo = 18 AND r_operativo > 0
+                SELECT `r_operativo` AS `id_rubro`
+                FROM `nom_rel_rubro`
+                WHERE `id_vigencia` = $id_vigencia AND `id_tipo` = 18 AND `r_operativo` > 0
             ),
-            docs_14 AS (
+            `docs_14` AS (
                 -- Primero obtenemos los comprobantes (Causaciones o Pagos) que tocaron la cuenta de Cesantías Consignadas (Concepto 14)
-                SELECT DISTINCT cd.id_ctb_doc, cd.fecha
-                FROM ctb_homologacion AS ch
-                INNER JOIN ctb_ctas_exogena AS cce 
-                    ON cce.id_cuenta = ch.id_cuenta_otros AND cce.id_form = 15 AND cce.cod_concepto = '14'
-                INNER JOIN ctb_libaux AS cl 
-                    ON cl.id_cuenta = ch.id_cuenta
-                INNER JOIN ctb_doc AS cd 
-                    ON cl.id_ctb_doc = cd.id_ctb_doc
-                WHERE ch.id_vigencia = $id_vigencia
-                  AND cl.debito > 0 AND cd.estado = 2
-                  AND DATE_FORMAT(cd.fecha,'%Y') = '$vigencia'
+                SELECT DISTINCT `cd`.`id_ctb_doc`, `cd`.`fecha`
+                FROM `ctb_homologacion` AS `ch`
+                INNER JOIN `ctb_ctas_exogena` AS `cce` 
+                    ON `cce`.`id_cuenta` = `ch`.`id_cuenta_otros` AND `cce`.`id_form` = 15 AND `cce`.`cod_concepto` = '14'
+                INNER JOIN `ctb_libaux` AS `cl` 
+                    ON `cl`.`id_cuenta` = `ch`.`id_cuenta`
+                INNER JOIN `ctb_doc` AS `cd` 
+                    ON `cl`.`id_ctb_doc` = `cd`.`id_ctb_doc`
+                WHERE `ch`.`id_vigencia` = $id_vigencia
+                  AND `cl`.`debito` > 0 AND `cd`.`estado` = 2
+                  AND DATE_FORMAT(`cd`.`fecha`,'%Y') = '$vigencia'
             ),
-            datos_base AS (
+            `datos_base` AS (
                 -- Todos los conceptos excepto el 14 (Cesantías Consignadas)
                 SELECT 
-                    cl.id_tercero_api,
-                    cce.cod_concepto,
-                    cl.debito,
-                    cl.credito,
-                    cd.fecha
-                FROM ctb_homologacion AS ch
-                INNER JOIN ctb_ctas_exogena AS cce 
-                    ON cce.id_cuenta = ch.id_cuenta_otros AND cce.id_form = 15
-                INNER JOIN ctb_libaux AS cl 
-                    ON cl.id_cuenta = ch.id_cuenta
-                INNER JOIN ctb_doc AS cd 
-                    ON cl.id_ctb_doc = cd.id_ctb_doc
-                WHERE ch.id_vigencia = $id_vigencia
-                  AND (cl.debito > 0 OR cl.credito > 0) AND cd.estado = 2 AND cl.id_tercero_api > 0
-                  AND cce.cod_concepto IN ('1','2','3','4','5','6','7','8','9','10','11','12','13','15','16','17','18','19')
-                  AND DATE_FORMAT(cd.fecha,'%Y') = '$vigencia'
+                    `cl`.`id_tercero_api`,
+                    `cce`.`cod_concepto`,
+                    `cl`.`debito`,
+                    `cl`.`credito`,
+                    `cd`.`fecha`
+                FROM `ctb_homologacion` AS `ch`
+                INNER JOIN `ctb_ctas_exogena` AS `cce` 
+                    ON `cce`.`id_cuenta` = `ch`.`id_cuenta_otros` AND `cce`.`id_form` = 15
+                INNER JOIN `ctb_libaux` AS `cl` 
+                    ON `cl`.`id_cuenta` = `ch`.`id_cuenta`
+                INNER JOIN `ctb_doc` AS `cd` 
+                    ON `cl`.`id_ctb_doc` = `cd`.`id_ctb_doc`
+                WHERE `ch`.`id_vigencia` = $id_vigencia
+                  AND (`cl`.`debito` > 0 OR `cl`.`credito` > 0) AND `cd`.`estado` = 2 AND `cl`.`id_tercero_api` > 0
+                  AND `cce`.`cod_concepto` IN ('1','2','3','4','5','6','7','8','9','10','11','12','13','15','16','17','18','19')
+                  AND DATE_FORMAT(`cd`.`fecha`,'%Y') = '$vigencia'
                 
                 UNION ALL
                 
                 -- Concepto 14: Extraído desde pto_cop_detalle (si el asiento fue una Causación)
                 SELECT 
-                    pcd.id_tercero_api,
-                    '14' AS cod_concepto,
-                    pcd.valor AS debito,
-                    0 AS credito,
-                    docs.fecha
-                FROM pto_cop_detalle pcd
-                INNER JOIN docs_14 docs ON pcd.id_ctb_doc = docs.id_ctb_doc
-                INNER JOIN pto_crp_detalle pcrpd ON pcd.id_pto_crp_det = pcrpd.id_pto_crp_det
-                INNER JOIN pto_cdp_detalle pcdpd ON pcrpd.id_pto_cdp_det = pcdpd.id_pto_cdp_det
-                INNER JOIN rubros_cesantias rc ON pcdpd.id_rubro = rc.id_rubro
-                WHERE pcd.id_tercero_api > 0 AND pcd.valor > 0
+                    `pcd`.`id_tercero_api`,
+                    '14' AS `cod_concepto`,
+                    `pcd`.`valor` AS `debito`,
+                    0 AS `credito`,
+                    `docs`.`fecha`
+                FROM `pto_cop_detalle` `pcd`
+                INNER JOIN `docs_14` `docs` ON `pcd`.`id_ctb_doc` = `docs`.`id_ctb_doc`
+                INNER JOIN `pto_crp_detalle` `pcrpd` ON `pcd`.`id_pto_crp_det` = `pcrpd`.`id_pto_crp_det`
+                INNER JOIN `pto_cdp_detalle` `pcdpd` ON `pcrpd`.`id_pto_cdp_det` = `pcdpd`.`id_pto_cdp_det`
+                INNER JOIN `rubros_cesantias` `rc` ON `pcdpd`.`id_rubro` = `rc`.`id_rubro`
+                WHERE `pcd`.`id_tercero_api` > 0 AND `pcd`.`valor` > 0
                 
                 UNION ALL
                 
                 -- Concepto 14: Extraído desde pto_pag_detalle (si el asiento fue un Pago / Egreso)
                 SELECT 
-                    ppd.id_tercero_api,
-                    '14' AS cod_concepto,
-                    ppd.valor AS debito,
-                    0 AS credito,
-                    docs.fecha
-                FROM pto_pag_detalle ppd
-                INNER JOIN docs_14 docs ON ppd.id_ctb_doc = docs.id_ctb_doc
-                INNER JOIN pto_cop_detalle pcd ON ppd.id_pto_cop_det = pcd.id_pto_cop_det
-                INNER JOIN pto_crp_detalle pcrpd ON pcd.id_pto_crp_det = pcrpd.id_pto_crp_det
-                INNER JOIN pto_cdp_detalle pcdpd ON pcrpd.id_pto_cdp_det = pcdpd.id_pto_cdp_det
-                INNER JOIN rubros_cesantias rc ON pcdpd.id_rubro = rc.id_rubro
-                WHERE ppd.id_tercero_api > 0 AND ppd.valor > 0
+                    `ppd`.`id_tercero_api`,
+                    '14' AS `cod_concepto`,
+                    `ppd`.`valor` AS `debito`,
+                    0 AS `credito`,
+                    `docs`.`fecha`
+                FROM `pto_pag_detalle` `ppd`
+                INNER JOIN `docs_14` `docs` ON `ppd`.`id_ctb_doc` = `docs`.`id_ctb_doc`
+                INNER JOIN `pto_cop_detalle` `pcd` ON `ppd`.`id_pto_cop_det` = `pcd`.`id_pto_cop_det`
+                INNER JOIN `pto_crp_detalle` `pcrpd` ON `pcd`.`id_pto_crp_det` = `pcrpd`.`id_pto_crp_det`
+                INNER JOIN `pto_cdp_detalle` `pcdpd` ON `pcrpd`.`id_pto_cdp_det` = `pcdpd`.`id_pto_cdp_det`
+                INNER JOIN `rubros_cesantias` `rc` ON `pcdpd`.`id_rubro` = `rc`.`id_rubro`
+                WHERE `ppd`.`id_tercero_api` > 0 AND `ppd`.`valor` > 0
             ),
-            ultimo_pago AS (
+            `ultimo_pago` AS (
                 -- 1. Buscamos cuál fue el último pago de nómina de cada empleado
                 SELECT 
-                    id_tercero_api,
-                    MAX(fecha) AS max_fecha,
-                    DATE_SUB(MAX(fecha), INTERVAL 6 MONTH) AS fecha_inicio_6m
-                FROM datos_base
-                WHERE cod_concepto IN ('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16')
-                GROUP BY id_tercero_api
+                    `id_tercero_api`,
+                    MAX(`fecha`) AS `max_fecha`,
+                    DATE_SUB(MAX(`fecha`), INTERVAL 6 MONTH) AS `fecha_inicio_6m`
+                FROM `datos_base`
+                WHERE `cod_concepto` IN ('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16')
+                GROUP BY `id_tercero_api`
             ),
-            promedio_6m AS (
+            `promedio_6m` AS (
                 -- 2. Sumamos los últimos 6 meses de cada empleado y lo dividimos 
                 -- entre la cantidad real de meses que trabajaron en ese lapso.
                 SELECT 
-                    db.id_tercero_api,
-                    SUM(db.debito) / COUNT(DISTINCT DATE_FORMAT(db.fecha, '%Y-%m')) AS valor_promedio
-                FROM datos_base db
-                INNER JOIN ultimo_pago up 
-                    ON db.id_tercero_api = up.id_tercero_api
-                WHERE db.cod_concepto IN ('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16')
+                    `db`.`id_tercero_api`,
+                    SUM(`db`.`debito`) / COUNT(DISTINCT DATE_FORMAT(`db`.`fecha`, '%Y-%m')) AS `valor_promedio`
+                FROM `datos_base` `db`
+                INNER JOIN `ultimo_pago` `up` 
+                    ON `db`.`id_tercero_api` = `up`.`id_tercero_api`
+                WHERE `db`.`cod_concepto` IN ('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16')
                   -- Filtramos desde el mes de su último pago hacia 6 meses atrás
-                  AND db.fecha > up.fecha_inicio_6m AND db.fecha <= up.max_fecha
-                GROUP BY db.id_tercero_api
+                  AND `db`.`fecha` > `up`.`fecha_inicio_6m` AND `db`.`fecha` <= `up`.`max_fecha`
+                GROUP BY `db`.`id_tercero_api`
             ),
-            dependientes AS (
+            `dependientes` AS (
                 SELECT 
-                    tdep.id_tercero_api,
-                    GROUP_CONCAT(tdoc.codigo_ne SEPARATOR ',') AS tipos_doc_dependientes,
-                    GROUP_CONCAT(tdep.no_documento SEPARATOR ',') AS nums_doc_dependientes
-                FROM tb_terceros_dependientes tdep
-                INNER JOIN tb_tipos_documento tdoc 
-                    ON tdep.id_tipo_doc = tdoc.id_tipodoc
-                WHERE tdep.estado = 1
-                GROUP BY tdep.id_tercero_api
+                    `tdep`.`id_tercero_api`,
+                    GROUP_CONCAT(`tdoc`.`codigo_ne` SEPARATOR ',') AS `tipos_doc_dependientes`,
+                    GROUP_CONCAT(`tdep`.`no_documento` SEPARATOR ',') AS `nums_doc_dependientes`
+                FROM `tb_terceros_dependientes` `tdep`
+                INNER JOIN `tb_tipos_documento` `tdoc` 
+                    ON `tdep`.`id_tipo_doc` = `tdoc`.`id_tipodoc`
+                WHERE `tdep`.`estado` = 1
+                GROUP BY `tdep`.`id_tercero_api`
             ),
-            pivote AS (
+            `pivote` AS (
                 SELECT
-                    id_tercero_api,
+                    `id_tercero_api`,
                     
                     -- Aquí pivoteamos según el cod_concepto 
-                    SUM(CASE WHEN cod_concepto = '1' THEN debito ELSE 0 END) AS pagos_salarios,
-                    SUM(CASE WHEN cod_concepto = '2' THEN debito ELSE 0 END) AS pagos_emolumentos,
-                    SUM(CASE WHEN cod_concepto = '3' THEN debito ELSE 0 END) AS pagos_bonos,
-                    SUM(CASE WHEN cod_concepto = '4' THEN debito ELSE 0 END) AS exceso_pagos_alim,
-                    SUM(CASE WHEN cod_concepto = '5' THEN debito ELSE 0 END) AS pagos_honorarios,
-                    SUM(CASE WHEN cod_concepto = '6' THEN debito ELSE 0 END) AS pagos_servicios,
-                    SUM(CASE WHEN cod_concepto = '7' THEN debito ELSE 0 END) AS pagos_comisiones,
-                    SUM(CASE WHEN cod_concepto = '8' THEN debito ELSE 0 END) AS pagos_prestaciones,
-                    SUM(CASE WHEN cod_concepto = '9' THEN debito ELSE 0 END) AS pagos_viaticos,
-                    SUM(CASE WHEN cod_concepto = '10' THEN debito ELSE 0 END) AS gastos_representacion,
-                    SUM(CASE WHEN cod_concepto = '11' THEN debito ELSE 0 END) AS compensaciones_coop,
-                    SUM(CASE WHEN cod_concepto = '12' THEN debito ELSE 0 END) AS otros_pagos,
-                    SUM(CASE WHEN cod_concepto = '13' THEN debito ELSE 0 END) AS cesantias_pagadas,
-                    SUM(CASE WHEN cod_concepto = '14' THEN debito ELSE 0 END) AS cesantias_consignadas,
-                    SUM(CASE WHEN cod_concepto = '15' THEN debito ELSE 0 END) AS auxilio_cesantias,
-                    SUM(CASE WHEN cod_concepto = '16' THEN debito ELSE 0 END) AS pensiones,
+                    SUM(CASE WHEN `cod_concepto` = '1' THEN `debito` ELSE 0 END) AS `pagos_salarios`,
+                    SUM(CASE WHEN `cod_concepto` = '2' THEN `debito` ELSE 0 END) AS `pagos_emolumentos`,
+                    SUM(CASE WHEN `cod_concepto` = '3' THEN `debito` ELSE 0 END) AS `pagos_bonos`,
+                    SUM(CASE WHEN `cod_concepto` = '4' THEN `debito` ELSE 0 END) AS `exceso_pagos_alim`,
+                    SUM(CASE WHEN `cod_concepto` = '5' THEN `debito` ELSE 0 END) AS `pagos_honorarios`,
+                    SUM(CASE WHEN `cod_concepto` = '6' THEN `debito` ELSE 0 END) AS `pagos_servicios`,
+                    SUM(CASE WHEN `cod_concepto` = '7' THEN `debito` ELSE 0 END) AS `pagos_comisiones`,
+                    SUM(CASE WHEN `cod_concepto` = '8' THEN `debito` ELSE 0 END) AS `pagos_prestaciones`,
+                    SUM(CASE WHEN `cod_concepto` = '9' THEN `debito` ELSE 0 END) AS `pagos_viaticos`,
+                    SUM(CASE WHEN `cod_concepto` = '10' THEN `debito` ELSE 0 END) AS `gastos_representacion`,
+                    SUM(CASE WHEN `cod_concepto` = '11' THEN `debito` ELSE 0 END) AS `compensaciones_coop`,
+                    SUM(CASE WHEN `cod_concepto` = '12' THEN `debito` ELSE 0 END) AS `otros_pagos`,
+                    SUM(CASE WHEN `cod_concepto` = '13' THEN `debito` ELSE 0 END) AS `cesantias_pagadas`,
+                    SUM(CASE WHEN `cod_concepto` = '14' THEN `debito` ELSE 0 END) AS `cesantias_consignadas`,
+                    SUM(CASE WHEN `cod_concepto` = '15' THEN `debito` ELSE 0 END) AS `auxilio_cesantias`,
+                    SUM(CASE WHEN `cod_concepto` = '16' THEN `debito` ELSE 0 END) AS `pensiones`,
                     GREATEST(
-                        SUM(CASE WHEN cod_concepto = '17' THEN debito ELSE 0 END),
-                        SUM(CASE WHEN cod_concepto = '17' THEN credito ELSE 0 END)
-                    ) AS aportes_salud,
+                        SUM(CASE WHEN `cod_concepto` = '17' THEN `debito` ELSE 0 END),
+                        SUM(CASE WHEN `cod_concepto` = '17' THEN `credito` ELSE 0 END)
+                    ) AS `aportes_salud`,
                     GREATEST(
-                        SUM(CASE WHEN cod_concepto = '18' THEN debito ELSE 0 END),
-                        SUM(CASE WHEN cod_concepto = '18' THEN credito ELSE 0 END)
-                    ) AS aportes_pensiones,
-                    SUM(CASE WHEN cod_concepto = '19' THEN credito ELSE 0 END) AS retenciones
+                        SUM(CASE WHEN `cod_concepto` = '18' THEN `debito` ELSE 0 END),
+                        SUM(CASE WHEN `cod_concepto` = '18' THEN `credito` ELSE 0 END)
+                    ) AS `aportes_pensiones`,
+                    SUM(CASE WHEN `cod_concepto` = '19' THEN `credito` ELSE 0 END) AS `retenciones`
                     
-                FROM datos_base
-                GROUP BY id_tercero_api
+                FROM `datos_base`
+                GROUP BY `id_tercero_api`
             )
             SELECT 
-                p.id_tercero_api,
-                p.pagos_salarios,
-                p.pagos_emolumentos,
-                p.pagos_bonos,
-                p.exceso_pagos_alim,
-                p.pagos_honorarios,
-                p.pagos_servicios,
-                p.pagos_comisiones,
-                p.pagos_prestaciones,
-                p.pagos_viaticos,
-                p.gastos_representacion,
-                p.compensaciones_coop,
-                p.otros_pagos,
-                p.cesantias_pagadas,
-                p.cesantias_consignadas,
-                p.auxilio_cesantias,
-                p.pensiones,
-                p.aportes_salud,
-                p.aportes_pensiones,
-                p.retenciones,
-                td.codigo_ne,
-                ne.no_documento,
-                ne.nombre1,
-                ne.nombre2,
-                ne.apellido1,
-                ne.apellido2,
-                t.dir_tercero,
-                m.codigo_municipio,
-                d.codigo_departamento,
-                pr.valor_promedio,
-                dep.tipos_doc_dependientes,
-                dep.nums_doc_dependientes
-            FROM pivote p
-            INNER JOIN tb_terceros AS t 
-                ON p.id_tercero_api = t.id_tercero_api
-            INNER JOIN nom_empleado AS ne 
-                ON t.nit_tercero = ne.no_documento
-            INNER JOIN tb_tipos_documento AS td 
-                ON td.id_tipodoc = ne.tipo_doc
-            LEFT JOIN tb_municipios AS m 
-                ON t.id_municipio = m.id_municipio
-            LEFT JOIN tb_departamentos AS d 
-                ON m.id_departamento = d.id_departamento
-            LEFT JOIN promedio_6m AS pr 
-                ON p.id_tercero_api = pr.id_tercero_api
-            LEFT JOIN dependientes AS dep 
-                ON p.id_tercero_api = dep.id_tercero_api";
+                `p`.`id_tercero_api`,
+                `p`.`pagos_salarios`,
+                `p`.`pagos_emolumentos`,
+                `p`.`pagos_bonos`,
+                `p`.`exceso_pagos_alim`,
+                `p`.`pagos_honorarios`,
+                `p`.`pagos_servicios`,
+                `p`.`pagos_comisiones`,
+                `p`.`pagos_prestaciones`,
+                `p`.`pagos_viaticos`,
+                `p`.`gastos_representacion`,
+                `p`.`compensaciones_coop`,
+                `p`.`otros_pagos`,
+                `p`.`cesantias_pagadas`,
+                `p`.`cesantias_consignadas`,
+                `p`.`auxilio_cesantias`,
+                `p`.`pensiones`,
+                `p`.`aportes_salud`,
+                `p`.`aportes_pensiones`,
+                `p`.`retenciones`,
+                `td`.`codigo_ne`,
+                `ne`.`no_documento`,
+                `ne`.`nombre1`,
+                `ne`.`nombre2`,
+                `ne`.`apellido1`,
+                `ne`.`apellido2`,
+                `t`.`dir_tercero`,
+                `m`.`codigo_municipio`,
+                `d`.`codigo_departamento`,
+                `pr`.`valor_promedio`,
+                `dep`.`tipos_doc_dependientes`,
+                `dep`.`nums_doc_dependientes`
+            FROM `pivote` AS `p`
+            INNER JOIN `tb_terceros` AS `t` 
+                ON `p`.`id_tercero_api` = `t`.`id_tercero_api`
+            INNER JOIN `nom_empleado` AS `ne` 
+                ON `t`.`nit_tercero` = `ne`.`no_documento`
+            INNER JOIN `tb_tipos_documento` AS `td` 
+                ON `td`.`id_tipodoc` = `ne`.`tipo_doc`
+            LEFT JOIN `tb_municipios` AS `m` 
+                ON `t`.`id_municipio` = `m`.`id_municipio`
+            LEFT JOIN `tb_departamentos` AS `d` 
+                ON `m`.`id_departamento` = `d`.`id_departamento`
+            LEFT JOIN `promedio_6m` AS `pr` 
+                ON `p`.`id_tercero_api` = `pr`.`id_tercero_api`
+            LEFT JOIN `dependientes` AS `dep` 
+                ON `p`.`id_tercero_api` = `dep`.`id_tercero_api`";
     $stmt = $conexion->prepare($sql);
     $stmt->execute();
 

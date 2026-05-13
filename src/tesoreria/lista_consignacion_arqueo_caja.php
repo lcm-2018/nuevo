@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header('Location: ../index.php');
+    header('Location: ../../index.php');
     exit();
 }
 include '../../config/autoloader.php';
@@ -142,12 +142,12 @@ try {
     // ── Evento: asignar / desasignar arqueo al documento CTCB ────────────────
     // El id_ctb_doc del documento destino vive en la página padre
     $(document).on('change', '.chk-doc', function() {
-        const chk       = this;
-        const idArqueo  = chk.value;
+        const chk = this;
+        const idArqueo = chk.value;
         // Buscar el id_ctb_doc en la página padre (lista_documentos_pag.php)
-        const idCtbDoc  = document.getElementById('id_ctb_doc')
-                          ? document.getElementById('id_ctb_doc').value
-                          : 0;
+        const idCtbDoc = document.getElementById('id_ctb_doc') ?
+            document.getElementById('id_ctb_doc').value :
+            0;
 
         if (!idCtbDoc || idCtbDoc <= 0) {
             mjeError('Error', 'No se encontró el documento de consignación (id_ctb_doc).');
@@ -159,9 +159,9 @@ try {
 
         Swal.fire({
             title: chk.checked ? '¿Asignar este arqueo?' : '¿Desasignar este arqueo?',
-            text: chk.checked
-                ? 'Se vinculará el arqueo al documento de consignación y se generarán los movimientos contables.'
-                : 'Se eliminará el vínculo y los movimientos contables generados.',
+            text: chk.checked ?
+                'Se vinculará el arqueo al documento de consignación y se generarán los movimientos contables.' :
+                'Se eliminará el vínculo y los movimientos contables generados.',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#16a085',
@@ -176,11 +176,10 @@ try {
 
             mostrarOverlay();
             $.post(
-                ValueInput('host') + '/src/tesoreria/procesar/asignar_arqueo_consignacion.php',
-                {
+                ValueInput('host') + '/src/tesoreria/procesar/asignar_arqueo_consignacion.php', {
                     id_ctb_doc: idCtbDoc,
-                    id_arqueo:  idArqueo,
-                    accion:     accion
+                    id_arqueo: idArqueo,
+                    accion: accion
                 },
                 function(res) {
                     if (res.status === 'ok') {
