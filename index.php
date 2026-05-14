@@ -1,4 +1,5 @@
 <?php
+include_once 'config/autoloader.php';
 
 use Config\Clases\Logs;
 
@@ -10,7 +11,6 @@ if (isset($_SESSION['user'])) {
     session_unset();
 }
 
-include_once 'config/autoloader.php';
 
 use Config\Clases\Plantilla;
 

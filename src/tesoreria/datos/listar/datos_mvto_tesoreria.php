@@ -22,6 +22,7 @@ $vigencia = $_SESSION['vigencia'];
 $id_vigencia = $_SESSION['id_vigencia'];
 $start = isset($_POST['start']) ? intval($_POST['start']) : 0;
 $length = isset($_POST['length']) ? intval($_POST['length']) : 10;
+$draw = isset($_POST['draw']) ? intval($_POST['draw']) : 0;
 $limit = "";
 if ($length != -1) {
     $limit = "LIMIT $start, $length";
@@ -29,6 +30,9 @@ if ($length != -1) {
 $col = $_POST['order'][0]['column'] + 1;
 $dir = $_POST['order'][0]['dir'];
 $dato = null;
+$data = [];
+$totalRecords = 0;
+$totalRecordsFilter = 0;
 $where = $_POST['search']['value'] != '' ? "AND (`ctb_doc`.`fecha` LIKE '%{$_POST['search']['value']}%' OR `ctb_doc`.`id_manu` LIKE '%{$_POST['search']['value']}%' OR  `tb_terceros`.`nom_tercero` LIKE '%{$_POST['search']['value']}%' OR `tb_terceros`.`nit_tercero` LIKE '%{$_POST['search']['value']}%')" : '';
 if ($anulados == 1 || $_POST['search']['value'] != '') {
     $where .= " AND `ctb_doc`.`estado` >= 0";
@@ -177,7 +181,7 @@ try {
                     ON (`nom_nomina_pto_ctb_tes`.`id_nomina` = `nom_nominas`.`id_nomina`)
                 LEFT JOIN `tb_terceros`
                     ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
-            WHERE (`ctb_doc`.`id_tipo_doc` = $id_ctb_doc AND `ctb_doc`.`id_vigencia` = $id_vigencia $where)";
+            WHERE (`ctb_doc`.`id_tipo_doc` = $id_ctb_doc AND `ctb_doc`.`id_vigencia` = $id_vigencia $where) $andwhere";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
     $totalRecordsFilter = $total['total'];
@@ -309,6 +313,7 @@ if (!empty($listappto)) {
 }
 $cmd = null;
 $datos = [
+    'draw' => $draw,
     'data' => $data,
     'fecha_cierre' => $fecha_cierre,
     'recordsFiltered' => $totalRecordsFilter,

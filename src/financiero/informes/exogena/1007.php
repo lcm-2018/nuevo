@@ -126,8 +126,8 @@ try {
                 `ttd`.`codigo_ne`                   AS `tipo_documento`,
                 `t`.`nit_tercero`                   AS `no_documento`,
                 `t`.`nom_tercero`                   AS `nom_tercero`,
-                SUM(IFNULL(`cl`.`debito`,  0))      AS `debito`,
-                SUM(IFNULL(`cl`.`credito`, 0))      AS `credito`
+                SUM(CASE WHEN `cp`.`cuenta` LIKE '4395%' THEN (IFNULL(`cl`.`debito`, 0) - IFNULL(`cl`.`credito`, 0)) ELSE 0 END) AS `devoluciones`,
+                SUM(CASE WHEN `cp`.`cuenta` NOT LIKE '4395%' THEN (IFNULL(`cl`.`credito`, 0) - IFNULL(`cl`.`debito`, 0)) ELSE 0 END) AS `ingresos`
             FROM `ctb_homologacion`   AS `ch`
             INNER JOIN `ctb_ctas_exogena` AS `cce`
                 ON (`ch`.`id_cuenta_otros` = `cce`.`id_cuenta` AND `cce`.`id_form` = 6)
@@ -153,11 +153,11 @@ try {
     // Iterar línea por línea sin cargar todo en memoria
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-        $ingresos     = (float) $row['debito'];
-        $devoluciones = (float) $row['credito'];
+        $ingresos     = (float) $row['ingresos'];
+        $devoluciones = (float) $row['devoluciones'];
 
-        // Omitir registros sin ingresos
-        if ($ingresos == 0) continue;
+        // Omitir registros si ambos son cero
+        if ($ingresos == 0 && $devoluciones == 0) continue;
 
         // NIT → nom_tercero va en Razón social.
         // CC  → nom_tercero se parsea en apellidos/nombres.
@@ -174,8 +174,8 @@ try {
             $es_cc ? ($nombre['nombre2']   ?? '') : '', // Otros nombres del informado
             !$es_cc ? $row['nom_tercero']  : '',        // Razón social informado
             '169',                                      // País de residencia o domicilio (169 = Colombia)
-            round($ingresos, 2),                        // Ingresos brutos recibidos
-            round($devoluciones, 2),                    // Devoluciones, rebajas y descuentos
+            round($ingresos, 2),                           // Ingresos brutos recibidos
+            round($devoluciones, 2),                       // Devoluciones, rebajas y descuentos
         ];
 
         imprimirFilaExcel($linea, $columnas_texto);
