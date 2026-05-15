@@ -1,15 +1,21 @@
 <?php
+
+use Src\Common\Php\Clases\Permisos;
+
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-if ($_SESSION['rol'] != 1) {
-    header("Location: ../../../index.php");
-    exit();
-}
+
+
 include_once '../../../config/autoloader.php';
 
+$id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : 0;
+$opciones = (new Permisos)->PermisoOpciones($id_user);
+if (!(new Permisos)->PermisosUsuario($opciones, 6001, 0)) {
+    exit('No permitido');
+}
 
 use Config\Clases\Plantilla;
 use Src\Common\Php\Clases\Combos;

@@ -257,7 +257,7 @@ class Prestaciones_Sociales
         $terceros_ss =  $Empleado->getRegistro();
         $empresa =      (new Usuario())->getEmpresa();
         //Devengados
-        $horas =            (new Horas_Extra())->getHorasPorMes($inicia, $fin, 2);
+        $horas =            (new Horas_Extra())->getHorasPorMes($inicia, $fin, 1);
 
         //otros 
         $cortes =       array_column(((new Liquidacion())->getCortes($ids, $fin)), null, 'id_empleado');
@@ -566,7 +566,7 @@ class Prestaciones_Sociales
                             `nom_liq_salario` AS `nls`
                             INNER JOIN `nom_nominas` AS `nn` 
                             ON (`nls`.`id_nomina` = `nn`.`id_nomina`)
-                        WHERE (`nn`.`tipo` = 'N' AND `nn`.`estado` > 0 AND `nls`.`estado` = 1)
+                        WHERE (`nn`.`tipo` IN ('N','RA') AND `nn`.`estado` > 0 AND `nls`.`estado` = 1)
                         GROUP BY `nls`.`id_contrato`, `nls`.`id_empleado`)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->execute();

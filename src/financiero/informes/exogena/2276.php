@@ -42,6 +42,35 @@ function liberarSalida()
     flush();
 }
 
+/**
+ * Divide nom_tercero en sus partes para personas naturales.
+ * Orden esperado en la cadena: nombre1 [nombre2] apellido1 [apellido2]
+ * Retorna siempre las 4 claves: apellido1, apellido2, nombre1, nombre2.
+ */
+function parsearNombreNatural(string $cadena): array
+{
+    $partes = preg_split('/\s+/', trim($cadena), -1, PREG_SPLIT_NO_EMPTY);
+    $n = count($partes);
+
+    switch ($n) {
+        case 1:
+            return ['apellido1' => $partes[0], 'apellido2' => '', 'nombre1' => '', 'nombre2' => ''];
+        case 2:
+            return ['apellido1' => $partes[1], 'apellido2' => '', 'nombre1' => $partes[0], 'nombre2' => ''];
+        case 3:
+            return ['apellido1' => $partes[1], 'apellido2' => $partes[2], 'nombre1' => $partes[0], 'nombre2' => ''];
+        case 4:
+            return ['apellido1' => $partes[2], 'apellido2' => $partes[3], 'nombre1' => $partes[0], 'nombre2' => $partes[1]];
+        default:
+            return [
+                'apellido1' => $partes[$n - 2],
+                'apellido2' => $partes[$n - 1],
+                'nombre1'   => $partes[0],
+                'nombre2'   => implode(' ', array_slice($partes, 1, $n - 3)),
+            ];
+    }
+}
+
 // Definir los encabezados de las columnas (Formato 2276)
 $columnas = [
     'Entidad Informante',
@@ -147,7 +176,7 @@ try {
                   AND DATE_FORMAT(`cd`.`fecha`,'%Y') = '$vigencia'
             ),
             `datos_base` AS (
-                -- Todos los conceptos excepto el 14 (Cesantías Consignadas)
+                -- Conceptos 1-4, 7-13, 15-19 (empleados normales, sin filtro PS)
                 SELECT 
                     `cl`.`id_tercero_api`,
                     `cce`.`cod_concepto`,
@@ -163,7 +192,37 @@ try {
                     ON `cl`.`id_ctb_doc` = `cd`.`id_ctb_doc`
                 WHERE `ch`.`id_vigencia` = $id_vigencia
                   AND (`cl`.`debito` > 0 OR `cl`.`credito` > 0) AND `cd`.`estado` = 2 AND `cl`.`id_tercero_api` > 0
-                  AND `cce`.`cod_concepto` IN ('1','2','3','4','5','6','7','8','9','10','11','12','13','15','16','17','18','19')
+                  AND `cce`.`cod_concepto` IN ('1','2','3','4','7','8','9','10','11','12','13','15','16','17','18','19')
+                  AND DATE_FORMAT(`cd`.`fecha`,'%Y') = '$vigencia'
+
+                UNION ALL
+
+                -- Conceptos 5 (honorarios) y 6 (servicios): solo contratistas con id_ps = 1
+                SELECT 
+                    `cl`.`id_tercero_api`,
+                    `cce`.`cod_concepto`,
+                    `cl`.`debito`,
+                    `cl`.`credito`,
+                    `cd`.`fecha`
+                FROM `ctb_homologacion` AS `ch`
+                INNER JOIN `ctb_ctas_exogena` AS `cce` 
+                    ON `cce`.`id_cuenta` = `ch`.`id_cuenta_otros` AND `cce`.`id_form` = 15
+                INNER JOIN `ctb_libaux` AS `cl` 
+                    ON `cl`.`id_cuenta` = `ch`.`id_cuenta`
+                INNER JOIN `ctb_doc` AS `cd` 
+                    ON `cl`.`id_ctb_doc` = `cd`.`id_ctb_doc`
+                -- Cadena presupuestal para verificar id_ps = 1
+                INNER JOIN `pto_cop_detalle` AS `pcopc`
+                    ON `pcopc`.`id_ctb_doc` = `cl`.`id_ctb_doc`
+                INNER JOIN `pto_crp_detalle` AS `pcrpc`
+                    ON `pcrpc`.`id_pto_crp_det` = `pcopc`.`id_pto_crp_det`
+                INNER JOIN `pto_cdp_detalle` AS `pcdpc`
+                    ON `pcdpc`.`id_pto_cdp_det` = `pcrpc`.`id_pto_cdp_det`
+                INNER JOIN `pto_homologa_gastos` AS `phg`
+                    ON `phg`.`id_cargue` = `pcdpc`.`id_pto_cdp_det` AND `phg`.`id_ps` = 1
+                WHERE `ch`.`id_vigencia` = $id_vigencia
+                  AND (`cl`.`debito` > 0 OR `cl`.`credito` > 0) AND `cd`.`estado` = 2 AND `cl`.`id_tercero_api` > 0
+                  AND `cce`.`cod_concepto` IN ('5','6')
                   AND DATE_FORMAT(`cd`.`fecha`,'%Y') = '$vigencia'
                 
                 UNION ALL
@@ -243,8 +302,14 @@ try {
                     SUM(CASE WHEN `cod_concepto` = '2' THEN `debito` ELSE 0 END) AS `pagos_emolumentos`,
                     SUM(CASE WHEN `cod_concepto` = '3' THEN `debito` ELSE 0 END) AS `pagos_bonos`,
                     SUM(CASE WHEN `cod_concepto` = '4' THEN `debito` ELSE 0 END) AS `exceso_pagos_alim`,
-                    SUM(CASE WHEN `cod_concepto` = '5' THEN `debito` ELSE 0 END) AS `pagos_honorarios`,
-                    SUM(CASE WHEN `cod_concepto` = '6' THEN `debito` ELSE 0 END) AS `pagos_servicios`,
+                    GREATEST(
+                        SUM(CASE WHEN `cod_concepto` = '5' THEN `debito` ELSE 0 END),
+                        SUM(CASE WHEN `cod_concepto` = '5' THEN `credito` ELSE 0 END)
+                    ) AS `pagos_honorarios`,
+                    GREATEST(
+                        SUM(CASE WHEN `cod_concepto` = '6' THEN `debito` ELSE 0 END),
+                        SUM(CASE WHEN `cod_concepto` = '6' THEN `credito` ELSE 0 END)
+                    ) AS `pagos_servicios`,
                     SUM(CASE WHEN `cod_concepto` = '7' THEN `debito` ELSE 0 END) AS `pagos_comisiones`,
                     SUM(CASE WHEN `cod_concepto` = '8' THEN `debito` ELSE 0 END) AS `pagos_prestaciones`,
                     SUM(CASE WHEN `cod_concepto` = '9' THEN `debito` ELSE 0 END) AS `pagos_viaticos`,
@@ -289,12 +354,9 @@ try {
                 `p`.`aportes_salud`,
                 `p`.`aportes_pensiones`,
                 `p`.`retenciones`,
-                `td`.`codigo_ne`,
-                `ne`.`no_documento`,
-                `ne`.`nombre1`,
-                `ne`.`nombre2`,
-                `ne`.`apellido1`,
-                `ne`.`apellido2`,
+                `ttd`.`codigo_ne`,
+                `t`.`nit_tercero`   AS `no_documento`,
+                `t`.`nom_tercero`   AS `nom_tercero`,
                 `t`.`dir_tercero`,
                 `m`.`codigo_municipio`,
                 `d`.`codigo_departamento`,
@@ -304,10 +366,8 @@ try {
             FROM `pivote` AS `p`
             INNER JOIN `tb_terceros` AS `t` 
                 ON `p`.`id_tercero_api` = `t`.`id_tercero_api`
-            INNER JOIN `nom_empleado` AS `ne` 
-                ON `t`.`nit_tercero` = `ne`.`no_documento`
-            INNER JOIN `tb_tipos_documento` AS `td` 
-                ON `td`.`id_tipodoc` = `ne`.`tipo_doc`
+            LEFT JOIN `tb_tipos_documento` AS `ttd` 
+                ON `ttd`.`id_tipodoc` = `t`.`tipo_doc`
             LEFT JOIN `tb_municipios` AS `m` 
                 ON `t`.`id_municipio` = `m`.`id_municipio`
             LEFT JOIN `tb_departamentos` AS `d` 
@@ -322,53 +382,56 @@ try {
     // 2. Iterar línea por línea sin cargar todo en memoria
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
+        // Parsear nombre desde tb_terceros (aplica a empleados y contratistas)
+        $nombre = parsearNombreNatural($row['nom_tercero'] ?? '');
+
         // 3. Mapear los datos de tu fila a un arreglo (debe coincidir con el orden de $columnas)
         $linea = [
-            '1', // Entidad Informante
-            $row['codigo_ne'], // Tipo doc (ej: 13, 31, etc.)
-            $row['no_documento'], // Num doc
-            $row['apellido1'], // Primer Apellido
-            $row['apellido2'], // Segundo Apellido
-            $row['nombre1'], // Primer Nombre
-            $row['nombre2'], // Otros Nombres
-            $row['dir_tercero'], // Dirección (Asumiendo que el campo se llama dir_tercero)
-            $row['codigo_departamento'], // Departamento
+            '1',                                            // Entidad Informante
+            $row['codigo_ne'],                              // Tipo doc
+            $row['no_documento'],                           // Num doc
+            $nombre['apellido1'],                           // Primer Apellido
+            $nombre['apellido2'],                           // Segundo Apellido
+            $nombre['nombre1'],                             // Primer Nombre
+            $nombre['nombre2'],                             // Otros Nombres
+            $row['dir_tercero'],                            // Dirección
+            $row['codigo_departamento'],                    // Departamento
             $row['codigo_departamento'] . $row['codigo_municipio'], // Municipio
-            '169', // País (169 es Colombia)
-            $row['pagos_salarios'], // (1) Salarios
-            $row['pagos_emolumentos'], // (2) Emolumentos
-            $row['pagos_bonos'], // (3) Bonos
-            $row['exceso_pagos_alim'], // (4) Exceso Alim.
-            $row['pagos_honorarios'], // (5) Honorarios
-            $row['pagos_servicios'], // (6) Servicios
-            $row['pagos_comisiones'], // (7) Comisiones
-            $row['pagos_prestaciones'], // (8) Prestaciones
-            $row['pagos_viaticos'], // (9) Viáticos
-            $row['gastos_representacion'], // (10) Gastos Rep.
-            $row['compensaciones_coop'], // (11) Compensaciones Coop.
-            0, // Valor apoyos económicos no reembolsables (Revisa qué cod_concepto es este)
-            $row['otros_pagos'], // (12) Otros pagos
-            $row['cesantias_pagadas'], // (13) Cesantías pagadas
-            $row['cesantias_consignadas'], // (14) Cesantías consignadas
-            $row['auxilio_cesantias'], // (15) Auxilio cesantías
-            $row['pensiones'], // (16) Pensiones
-            $row['pagos_salarios'] + $row['pagos_emolumentos'] + $row['pagos_bonos'] + $row['exceso_pagos_alim'] + $row['pagos_honorarios'] + $row['pagos_servicios'] + $row['pagos_comisiones'] + $row['pagos_prestaciones'] + $row['pagos_viaticos'] + $row['gastos_representacion'] + $row['compensaciones_coop'] + $row['otros_pagos'] + $row['cesantias_pagadas'] + $row['cesantias_consignadas'] + $row['auxilio_cesantias'] + $row['pensiones'], // (1- 16) Total
-            $row['aportes_salud'], // (17) Aportes salud
-            $row['aportes_pensiones'], // (18) Aportes pensiones
+            '169',                                          // País (169 es Colombia)
+            $row['pagos_salarios'],                         // (1) Salarios
+            $row['pagos_emolumentos'],                      // (2) Emolumentos
+            $row['pagos_bonos'],                            // (3) Bonos
+            $row['exceso_pagos_alim'],                      // (4) Exceso Alim.
+            $row['pagos_honorarios'],                       // (5) Honorarios
+            $row['pagos_servicios'],                        // (6) Servicios
+            $row['pagos_comisiones'],                       // (7) Comisiones
+            $row['pagos_prestaciones'],                     // (8) Prestaciones
+            $row['pagos_viaticos'],                         // (9) Viáticos
+            $row['gastos_representacion'],                  // (10) Gastos Rep.
+            $row['compensaciones_coop'],                    // (11) Compensaciones Coop.
+            0,                                              // Valor apoyos económicos no reembolsables
+            $row['otros_pagos'],                            // (12) Otros pagos
+            $row['cesantias_pagadas'],                      // (13) Cesantías pagadas
+            $row['cesantias_consignadas'],                  // (14) Cesantías consignadas
+            $row['auxilio_cesantias'],                      // (15) Auxilio cesantías
+            $row['pensiones'],                              // (16) Pensiones
+            $row['pagos_salarios'] + $row['pagos_emolumentos'] + $row['pagos_bonos'] + $row['exceso_pagos_alim'] + $row['pagos_honorarios'] + $row['pagos_servicios'] + $row['pagos_comisiones'] + $row['pagos_prestaciones'] + $row['pagos_viaticos'] + $row['gastos_representacion'] + $row['compensaciones_coop'] + $row['otros_pagos'] + $row['cesantias_pagadas'] + $row['cesantias_consignadas'] + $row['auxilio_cesantias'] + $row['pensiones'], // Total (1-16)
+            $row['aportes_salud'],                          // (17) Aportes salud
+            $row['aportes_pensiones'],                      // (18) Aportes pensiones
             0,
             0,
             0,
             0,
-            $row['retenciones'], // (19) Retenciones
+            $row['retenciones'],                            // (19) Retenciones
             0,
             0,
             0,
-            round($row['valor_promedio'] ?? 0, 2), // Promedio de los últimos 6 meses laborados
-            $row['tipos_doc_dependientes'] ?? '', // Tipo documento dependiente (separados por coma)
-            $row['nums_doc_dependientes'] ?? '', // Numero de documento dependiente (separados por coma)
-            '', // Identificación del fideicomiso
-            '', // Tipo documento participante en contrato de colaboración
-            '', // Identificación participante en contrato colaboración
+            round($row['valor_promedio'] ?? 0, 2),          // Promedio últimos 6 meses
+            $row['tipos_doc_dependientes'] ?? '',            // Tipo doc dependiente
+            $row['nums_doc_dependientes'] ?? '',             // Num doc dependiente
+            '',                                             // Identificación del fideicomiso
+            '',                                             // Tipo doc participante contrato colaboración
+            '',                                             // Identificación participante contrato colaboración
         ];
 
         // 4. Escribir la línea en el Excel

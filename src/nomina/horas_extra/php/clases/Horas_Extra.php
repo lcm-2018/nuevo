@@ -213,6 +213,29 @@ class Horas_Extra
      */
     public function getHorasPorMes($inicia, $fin, $tipo = 1)
     {
+
+        /*
+        para ver si se implementa por horas sin liquidar 
+        SELECT 
+                        t.`id_he_trab`, 
+                        t.`id_empleado`, 
+                        t.`id_he`, 
+                        t.`cantidad_he`, 
+                        th.`factor`
+                    FROM `nom_horas_ex_trab` t
+                    INNER JOIN `nom_tipo_horaex` th
+                        ON t.`id_he` = th.`id_he`
+                    LEFT JOIN `nom_liq_horex` l
+                        ON l.`id_he_lab` = t.`id_he_trab`
+                    LEFT JOIN `nom_nominas` n
+                        ON l.`id_nomina` = n.`id_nomina`
+                    WHERE t.`tipo` = $tipo 
+                    AND t.`estado` = 1
+                    AND (
+                        l.`id_he_lab` IS NULL 
+                        OR l.`estado` = 0
+                        OR n.`estado` <= 0)
+        */
         try {
             $sql = "SELECT 
                     `id_he_trab`, `id_empleado`, `nom_horas_ex_trab`.`id_he`, `cantidad_he`, `factor`
