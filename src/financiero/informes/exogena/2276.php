@@ -213,15 +213,17 @@ try {
                     ON `cl`.`id_ctb_doc` = `cd`.`id_ctb_doc`
                 -- Cadena presupuestal para verificar id_ps = 1
                 INNER JOIN `pto_cop_detalle` AS `pcopc`
-                    ON `pcopc`.`id_ctb_doc` = `cl`.`id_ctb_doc`
+                    ON `pcopc`.`id_ctb_doc` = `cd`.`id_ctb_doc`
                 INNER JOIN `pto_crp_detalle` AS `pcrpc`
                     ON `pcrpc`.`id_pto_crp_det` = `pcopc`.`id_pto_crp_det`
                 INNER JOIN `pto_cdp_detalle` AS `pcdpc`
                     ON `pcdpc`.`id_pto_cdp_det` = `pcrpc`.`id_pto_cdp_det`
+                INNER JOIN `pto_cargue` AS `pcarg`
+                    ON `pcarg`.`id_cargue` = `pcdpc`.`id_rubro`
                 INNER JOIN `pto_homologa_gastos` AS `phg`
-                    ON `phg`.`id_cargue` = `pcdpc`.`id_pto_cdp_det` AND `phg`.`id_ps` = 1
+                    ON `phg`.`id_cargue` = `pcarg`.`id_cargue` AND `phg`.`id_ps` = 1
                 WHERE `ch`.`id_vigencia` = $id_vigencia
-                  AND (`cl`.`debito` > 0 OR `cl`.`credito` > 0) AND `cd`.`estado` = 2 AND `cl`.`id_tercero_api` > 0
+                  AND `cl`.`credito` > 0 AND `cd`.`estado` = 2 AND `cl`.`id_tercero_api` > 0
                   AND `cce`.`cod_concepto` IN ('5','6')
                   AND DATE_FORMAT(`cd`.`fecha`,'%Y') = '$vigencia'
                 
@@ -285,7 +287,19 @@ try {
             `dependientes` AS (
                 SELECT 
                     `tdep`.`id_tercero_api`,
-                    GROUP_CONCAT(`tdoc`.`codigo_ne` SEPARATOR ',') AS `tipos_doc_dependientes`,
+                    GROUP_CONCAT(
+                    CASE `tdoc`.`codigo_ne`
+                        WHEN 'CC'  THEN '13'
+                        WHEN 'TI'  THEN '12'
+                        WHEN 'CE'  THEN '22'
+                        WHEN 'NIT' THEN '31'
+                        WHEN 'PAS' THEN '41'
+                        WHEN 'FI'  THEN '43'
+                        WHEN 'PEP' THEN '47'
+                        WHEN 'VIS' THEN '48'
+                        ELSE `tdoc`.`codigo_ne`
+                    END
+                    SEPARATOR ',') AS `tipos_doc_dependientes`,
                     GROUP_CONCAT(`tdep`.`no_documento` SEPARATOR ',') AS `nums_doc_dependientes`
                 FROM `tb_terceros_dependientes` `tdep`
                 INNER JOIN `tb_tipos_documento` `tdoc` 
@@ -296,20 +310,12 @@ try {
             `pivote` AS (
                 SELECT
                     `id_tercero_api`,
-                    
-                    -- Aquí pivoteamos según el cod_concepto 
                     SUM(CASE WHEN `cod_concepto` = '1' THEN `debito` ELSE 0 END) AS `pagos_salarios`,
                     SUM(CASE WHEN `cod_concepto` = '2' THEN `debito` ELSE 0 END) AS `pagos_emolumentos`,
                     SUM(CASE WHEN `cod_concepto` = '3' THEN `debito` ELSE 0 END) AS `pagos_bonos`,
                     SUM(CASE WHEN `cod_concepto` = '4' THEN `debito` ELSE 0 END) AS `exceso_pagos_alim`,
-                    GREATEST(
-                        SUM(CASE WHEN `cod_concepto` = '5' THEN `debito` ELSE 0 END),
-                        SUM(CASE WHEN `cod_concepto` = '5' THEN `credito` ELSE 0 END)
-                    ) AS `pagos_honorarios`,
-                    GREATEST(
-                        SUM(CASE WHEN `cod_concepto` = '6' THEN `debito` ELSE 0 END),
-                        SUM(CASE WHEN `cod_concepto` = '6' THEN `credito` ELSE 0 END)
-                    ) AS `pagos_servicios`,
+                    SUM(CASE WHEN `cod_concepto` = '5' THEN `credito` ELSE 0 END) AS `pagos_honorarios`,
+                    SUM(CASE WHEN `cod_concepto` = '6' THEN `credito` ELSE 0 END) AS `pagos_servicios`,
                     SUM(CASE WHEN `cod_concepto` = '7' THEN `debito` ELSE 0 END) AS `pagos_comisiones`,
                     SUM(CASE WHEN `cod_concepto` = '8' THEN `debito` ELSE 0 END) AS `pagos_prestaciones`,
                     SUM(CASE WHEN `cod_concepto` = '9' THEN `debito` ELSE 0 END) AS `pagos_viaticos`,
@@ -320,16 +326,9 @@ try {
                     SUM(CASE WHEN `cod_concepto` = '14' THEN `debito` ELSE 0 END) AS `cesantias_consignadas`,
                     SUM(CASE WHEN `cod_concepto` = '15' THEN `debito` ELSE 0 END) AS `auxilio_cesantias`,
                     SUM(CASE WHEN `cod_concepto` = '16' THEN `debito` ELSE 0 END) AS `pensiones`,
-                    GREATEST(
-                        SUM(CASE WHEN `cod_concepto` = '17' THEN `debito` ELSE 0 END),
-                        SUM(CASE WHEN `cod_concepto` = '17' THEN `credito` ELSE 0 END)
-                    ) AS `aportes_salud`,
-                    GREATEST(
-                        SUM(CASE WHEN `cod_concepto` = '18' THEN `debito` ELSE 0 END),
-                        SUM(CASE WHEN `cod_concepto` = '18' THEN `credito` ELSE 0 END)
-                    ) AS `aportes_pensiones`,
+                    SUM(CASE WHEN `cod_concepto` = '17' THEN `credito` ELSE 0 END) AS `aportes_salud`,
+                    SUM(CASE WHEN `cod_concepto` = '18' THEN `credito` ELSE 0 END) AS `aportes_pensiones`,
                     SUM(CASE WHEN `cod_concepto` = '19' THEN `credito` ELSE 0 END) AS `retenciones`
-                    
                 FROM `datos_base`
                 GROUP BY `id_tercero_api`
             )
@@ -354,7 +353,17 @@ try {
                 `p`.`aportes_salud`,
                 `p`.`aportes_pensiones`,
                 `p`.`retenciones`,
-                `ttd`.`codigo_ne`,
+                CASE `ttd`.`codigo_ne`
+                    WHEN 'CC'  THEN '13'
+                    WHEN 'TI'  THEN '12'
+                    WHEN 'CE'  THEN '22'
+                    WHEN 'NIT' THEN '31'
+                    WHEN 'PAS' THEN '41'
+                    WHEN 'FI'  THEN '43'
+                    WHEN 'PEP' THEN '47'
+                    WHEN 'VIS' THEN '48'
+                    ELSE `ttd`.`codigo_ne`
+                END AS `codigo_ne`,
                 `t`.`nit_tercero`   AS `no_documento`,
                 `t`.`nom_tercero`   AS `nom_tercero`,
                 `t`.`dir_tercero`,
@@ -396,7 +405,7 @@ try {
             $nombre['nombre2'],                             // Otros Nombres
             $row['dir_tercero'],                            // Dirección
             $row['codigo_departamento'],                    // Departamento
-            $row['codigo_departamento'] . $row['codigo_municipio'], // Municipio
+            $row['codigo_municipio'],                       // Municipio
             '169',                                          // País (169 es Colombia)
             $row['pagos_salarios'],                         // (1) Salarios
             $row['pagos_emolumentos'],                      // (2) Emolumentos

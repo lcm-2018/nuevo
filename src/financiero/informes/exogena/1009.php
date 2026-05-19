@@ -126,7 +126,17 @@ $id_vigencia = $_SESSION['id_vigencia'];
 try {
     $sql = "SELECT
                 `cce`.`cod_concepto`                                          AS `concepto`,
-                `ttd`.`codigo_ne`                                             AS `tipo_documento`,
+                CASE `ttd`.`codigo_ne`
+                    WHEN 'CC'  THEN '13'
+                    WHEN 'TI'  THEN '12'
+                    WHEN 'CE'  THEN '22'
+                    WHEN 'NIT' THEN '31'
+                    WHEN 'PAS' THEN '41'
+                    WHEN 'FI'  THEN '43'
+                    WHEN 'PEP' THEN '47'
+                    WHEN 'VIS' THEN '48'
+                    ELSE `ttd`.`codigo_ne`
+                END                                                             AS `tipo_documento`,
                 `t`.`nit_tercero`                                             AS `no_documento`,
                 calcularDV(`t`.`nit_tercero`)                                 AS `dv`,
                 `t`.`nom_tercero`                                             AS `nom_tercero`,
@@ -167,7 +177,7 @@ try {
         // NIT → persona jurídica: nom_tercero va en Razón social, DV calculado.
         // CC  → persona natural:  nom_tercero se parsea en apellidos/nombres.
         // DV se escribe siempre (calcularDV lo resuelve en el SQL para todos).
-        $es_cc  = ($row['tipo_documento'] === 'CC');
+        $es_cc  = ($row['tipo_documento'] === '13'); // 13 = Cédula de ciudadanía (persona natural)
         $saldo  = $row['debito'] - $row['credito'];
 
         // Omitir registros con saldo cero

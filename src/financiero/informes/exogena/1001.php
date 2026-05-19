@@ -6,7 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 // Configurar cabeceras para forzar la descarga del Excel por streaming
-$nombre_archivo = "Formato_1007_" . date("Ymd_His") . ".xls";
+$nombre_archivo = "Formato_1001_" . date("Ymd_His") . ".xls";
 
 header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
 header('Content-Disposition: attachment; filename="' . $nombre_archivo . '"');
@@ -75,25 +75,34 @@ function parsearNombreNatural(string $cadena): array
     }
 }
 
-// Definir los encabezados de las columnas (Formato 1007)
+// Definir los encabezados de las columnas (Formato 1001)
 $columnas = [
-    'Concepto',
-    'Tipo de documento',
-    'Número identificación del informado',
-    'Primer apellido del informado',
-    'Segundo apellido del informado',
-    'Primer nombre del informado',
-    'Otros nombres del informado',
-    'Razón social informado',
-    'País de residencia o domicilio',
-    'Ingresos brutos recibidos',
-    'Devoluciones, rebajas y descuentos',
+    'Concepto',                                                                         //  0
+    'Tipo de documento',                                                                //  1
+    'Número identificación',                                                            //  2
+    'Primer apellido del informado',                                                    //  3
+    'Segundo apellido del informado',                                                   //  4
+    'Primer nombre del informado',                                                      //  5
+    'Otros nombres del informado',                                                      //  6
+    'Razón social informado',                                                           //  7
+    'Dirección',                                                                        //  8
+    'Código dpto',                                                                      //  9
+    'Código mcp',                                                                       // 10
+    'País de Residencia o domicilio',                                                   // 11
+    'Pago o abono en cuenta deducible',                                                 // 12
+    'Pago o abono en cuenta NO deducible',                                              // 13
+    'IVA mayor valor del costo o gasto, deducible',                                     // 14
+    'IVA mayor valor del costo o gasto no deducible',                                   // 15
+    'Retención en la fuente practicada Renta',                                          // 16
+    'Retención en la fuente asumida Renta',                                             // 17
+    'Retención en la fuente practicada IVA a responsables del IVA',                     // 18
+    'Retención en la fuente practicada IVA a no residentes o no domiciliados',          // 19
 ];
 
-// Las columnas de identificación se fuerzan como texto para conservar ceros a la izquierda.
+// Columnas forzadas como texto para conservar ceros a la izquierda / formato alfanumérico
 // Índices: Tipo doc(1), Num id(2), Apellido1(3), Apellido2(4), Nombre1(5), OtrosNombres(6),
-//          Razón social(7), País(8)
-$columnas_texto = array_flip([1, 2, 3, 4, 5, 6, 7, 8]);
+//          Razón social(7), Dirección(8), Cod dpto(9), Cod mcp(10), País(11)
+$columnas_texto = array_flip([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
 echo '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
 echo '<head>';
@@ -113,7 +122,7 @@ imprimirFilaExcel($columnas, [], true);
 liberarSalida();
 
 // -------------------------------------------------------------------------
-// CONSULTA SQL — Formato 1007 (Ingresos recibidos por terceros)
+// CONSULTA SQL — Formato 1001 (Pagos o abonos en cuenta y retenciones)
 // -------------------------------------------------------------------------
 include '../../../../config/autoloader.php';
 $conexion    = \Config\Clases\Conexion::getConexion();
@@ -122,15 +131,40 @@ $id_vigencia = $_SESSION['id_vigencia'];
 
 try {
     $sql = "SELECT
-                `cce`.`cod_concepto`                AS `concepto`,
-                `ttd`.`codigo_ne`                   AS `tipo_documento`,
-                `t`.`nit_tercero`                   AS `no_documento`,
-                `t`.`nom_tercero`                   AS `nom_tercero`,
-                SUM(IFNULL(`cl`.`debito`,  0))      AS `debito`,
-                SUM(IFNULL(`cl`.`credito`, 0))      AS `credito`
+                `cce`.`cod_concepto`                                        AS `concepto`,
+                CASE `ttd`.`codigo_ne`
+                    WHEN 'CC'  THEN '13'
+                    WHEN 'TI'  THEN '12'
+                    WHEN 'CE'  THEN '22'
+                    WHEN 'NIT' THEN '31'
+                    WHEN 'PAS' THEN '41'
+                    WHEN 'FI'  THEN '43'
+                    WHEN 'PEP' THEN '47'
+                    WHEN 'VIS' THEN '48'
+                    ELSE `ttd`.`codigo_ne`
+                END                                                             AS `tipo_documento`,
+                `t`.`nit_tercero`                                           AS `no_documento`,
+                `t`.`nom_tercero`                                           AS `nom_tercero`,
+                `t`.`dir_tercero`                                           AS `dir_tercero`,
+                `d`.`codigo_departamento`                                   AS `codigo_departamento`,
+                `m`.`codigo_municipio`                                      AS `codigo_municipio`,
+                -- Pago o abono deducible y NO deducible: ambos vienen del débito de la homologación
+                SUM(IFNULL(`cl`.`debito`, 0))                               AS `pago_deducible`,
+                SUM(IFNULL(`cl`.`debito`, 0))                               AS `pago_no_deducible`,
+                -- Ret. renta practicada: crédito de cuentas 2436 EXCEPTO 243625 y 243627
+                SUM(CASE
+                    WHEN `cp`.`cuenta` LIKE '2436%'
+                     AND `cp`.`cuenta` NOT IN ('243625','243627')
+                    THEN IFNULL(`cl`.`credito`, 0) ELSE 0
+                END)                                                        AS `retencion_renta`,
+                -- Ret. IVA a responsables del IVA: crédito de la cuenta 243625 únicamente
+                SUM(CASE
+                    WHEN `cp`.`cuenta` = '243625'
+                    THEN IFNULL(`cl`.`credito`, 0) ELSE 0
+                END)                                                        AS `retencion_iva_res`
             FROM `ctb_homologacion`   AS `ch`
             INNER JOIN `ctb_ctas_exogena` AS `cce`
-                ON (`ch`.`id_cuenta_otros` = `cce`.`id_cuenta` AND `cce`.`id_form` = 6)
+                ON (`ch`.`id_cuenta_otros` = `cce`.`id_cuenta` AND `cce`.`id_form` = 1)
             INNER JOIN `ctb_pgcp`     AS `cp`
                 ON (`ch`.`id_cuenta` = `cp`.`id_pgcp`)
             INNER JOIN `ctb_libaux`   AS `cl`
@@ -141,11 +175,16 @@ try {
                 ON (`cl`.`id_tercero_api` = `t`.`id_tercero_api`)
             LEFT JOIN `tb_tipos_documento` AS `ttd`
                 ON (`t`.`tipo_doc` = `ttd`.`id_tipodoc`)
+            LEFT JOIN `tb_municipios` AS `m`
+                ON (`t`.`id_municipio` = `m`.`id_municipio`)
+            LEFT JOIN `tb_departamentos` AS `d`
+                ON (`m`.`id_departamento` = `d`.`id_departamento`)
             WHERE `ch`.`id_vigencia` = $id_vigencia
-              AND `cd`.`estado`  = 2
+              AND `cd`.`estado`     = 2
+              AND `cd`.`id_tipo_doc` = 3
               AND `cl`.`id_tercero_api` > 0
               AND DATE_FORMAT(`cd`.`fecha`,'%Y') = '$vigencia'
-            GROUP BY `cl`.`id_tercero_api`, `cce`.`cod_concepto`, `ch`.`id_cuenta_otros`";
+            GROUP BY `cl`.`id_tercero_api`, `cce`.`cod_concepto`";
 
     $stmt = $conexion->prepare($sql);
     $stmt->execute();
@@ -153,29 +192,47 @@ try {
     // Iterar línea por línea sin cargar todo en memoria
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-        $ingresos     = (float) $row['debito'];
-        $devoluciones = (float) $row['credito'];
+        $pago_deducible     = (float) $row['pago_deducible'];
+        $pago_no_deducible  = (float) $row['pago_no_deducible'];
+        $iva_deducible      = 0;    // TODO: ajustar cuando se disponga de la cuenta correspondiente
+        $iva_no_deducible   = 0;    // TODO: ajustar cuando se disponga de la cuenta correspondiente
+        $retencion_renta    = (float) $row['retencion_renta'];    // cuentas 2436 excl. 243625/243627
+        $retencion_asumida  = 0;    // TODO: ajustar cuando se disponga de la cuenta correspondiente
+        $retencion_iva_res  = (float) $row['retencion_iva_res'];  // cuenta 243625
+        $retencion_iva_nres = 0;    // TODO: ajustar cuando se disponga de la cuenta correspondiente
 
-        // Omitir registros sin ingresos
-        if ($ingresos == 0) continue;
+        // Omitir registros sin ningún movimiento relevante
+        if (
+            $pago_deducible == 0 && $pago_no_deducible == 0
+            && $retencion_renta == 0 && $retencion_iva_res == 0
+        ) continue;
 
         // NIT → nom_tercero va en Razón social.
         // CC  → nom_tercero se parsea en apellidos/nombres.
-        $es_cc  = ($row['tipo_documento'] === 'CC');
+        $es_cc  = ($row['tipo_documento'] === '13'); // 13 = Cédula de ciudadanía (persona natural)
         $nombre = $es_cc ? parsearNombreNatural($row['nom_tercero']) : [];
 
         $linea = [
-            $row['concepto'],                           // Concepto
-            $row['tipo_documento'],                     // Tipo de documento
-            $row['no_documento'],                       // Número identificación del informado
-            $es_cc ? ($nombre['apellido1'] ?? '') : '', // Primer apellido del informado
-            $es_cc ? ($nombre['apellido2'] ?? '') : '', // Segundo apellido del informado
-            $es_cc ? ($nombre['nombre1']   ?? '') : '', // Primer nombre del informado
-            $es_cc ? ($nombre['nombre2']   ?? '') : '', // Otros nombres del informado
-            !$es_cc ? $row['nom_tercero']  : '',        // Razón social informado
-            '169',                                      // País de residencia o domicilio (169 = Colombia)
-            round($ingresos, 2),                        // Ingresos brutos recibidos
-            round($devoluciones, 2),                    // Devoluciones, rebajas y descuentos
+            $row['concepto'],                                       //  0  Concepto
+            $row['tipo_documento'],                                 //  1  Tipo de documento
+            $row['no_documento'],                                   //  2  Número identificación
+            $es_cc ? ($nombre['apellido1'] ?? '') : '',             //  3  Primer apellido
+            $es_cc ? ($nombre['apellido2'] ?? '') : '',             //  4  Segundo apellido
+            $es_cc ? ($nombre['nombre1']   ?? '') : '',             //  5  Primer nombre
+            $es_cc ? ($nombre['nombre2']   ?? '') : '',             //  6  Otros nombres
+            !$es_cc ? $row['nom_tercero']  : '',                    //  7  Razón social
+            $row['dir_tercero']             ?? '',                  //  8  Dirección
+            $row['codigo_departamento']     ?? '',                  //  9  Código dpto
+            $row['codigo_municipio'],                              // 10  Código mcp
+            '169',                                                  // 11  País (169 = Colombia)
+            round($pago_deducible,     2),                          // 12  Pago o abono deducible
+            round($pago_no_deducible,  2),                          // 13  Pago o abono NO deducible
+            round($iva_deducible,      2),                          // 14  IVA deducible
+            round($iva_no_deducible,   2),                          // 15  IVA no deducible
+            round($retencion_renta,    2),                          // 16  Ret. fuente practicada Renta (2436 excl. 243625/243627)
+            round($retencion_asumida,  2),                          // 17  Ret. fuente asumida Renta
+            round($retencion_iva_res,  2),                          // 18  Ret. fuente IVA responsables (243625)
+            round($retencion_iva_nres, 2),                          // 19  Ret. fuente IVA no residentes
         ];
 
         imprimirFilaExcel($linea, $columnas_texto);

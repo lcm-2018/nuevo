@@ -123,7 +123,17 @@ $id_vigencia = $_SESSION['id_vigencia'];
 try {
     $sql = "SELECT
                 `cce`.`cod_concepto`                AS `concepto`,
-                `ttd`.`codigo_ne`                   AS `tipo_documento`,
+                CASE `ttd`.`codigo_ne`
+                    WHEN 'CC'  THEN '13'
+                    WHEN 'TI'  THEN '12'
+                    WHEN 'CE'  THEN '22'
+                    WHEN 'NIT' THEN '31'
+                    WHEN 'PAS' THEN '41'
+                    WHEN 'FI'  THEN '43'
+                    WHEN 'PEP' THEN '47'
+                    WHEN 'VIS' THEN '48'
+                    ELSE `ttd`.`codigo_ne`
+                END                   AS `tipo_documento`,
                 `t`.`nit_tercero`                   AS `no_documento`,
                 `t`.`nom_tercero`                   AS `nom_tercero`,
                 SUM(CASE WHEN `cp`.`cuenta` LIKE '4395%' THEN (IFNULL(`cl`.`debito`, 0) - IFNULL(`cl`.`credito`, 0)) ELSE 0 END) AS `devoluciones`,
@@ -161,7 +171,7 @@ try {
 
         // NIT → nom_tercero va en Razón social.
         // CC  → nom_tercero se parsea en apellidos/nombres.
-        $es_cc  = ($row['tipo_documento'] === 'CC');
+        $es_cc  = ($row['tipo_documento'] === '13'); // 13 = Cédula de ciudadanía (persona natural)
         $nombre = $es_cc ? parsearNombreNatural($row['nom_tercero']) : [];
 
         $linea = [
