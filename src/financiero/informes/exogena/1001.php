@@ -192,7 +192,7 @@ try {
     // Iterar línea por línea sin cargar todo en memoria
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-        $pago_deducible     = (float) $row['pago_deducible'];
+        $pago_deducible     = 0;
         $pago_no_deducible  = (float) $row['pago_no_deducible'];
         $iva_deducible      = 0;    // TODO: ajustar cuando se disponga de la cuenta correspondiente
         $iva_no_deducible   = 0;    // TODO: ajustar cuando se disponga de la cuenta correspondiente
