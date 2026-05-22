@@ -130,8 +130,85 @@ $vigencia    = $_SESSION['vigencia'];
 $id_vigencia = $_SESSION['id_vigencia'];
 
 try {
-    $sql = "SELECT
-                `cce`.`cod_concepto`                                        AS `concepto`,
+    $sql = "WITH movimientos AS (
+                -- Movimientos de la homologación (Formato 1001 principal)
+                SELECT
+                    `cce`.`cod_concepto`                                        AS `concepto`,
+                    `cl`.`id_tercero_api`                                       AS `id_tercero`,
+                    SUM(IFNULL(`cl`.`debito`, 0))                               AS `pago_deducible`,
+                    SUM(IFNULL(`cl`.`debito`, 0))                               AS `pago_no_deducible`,
+                    SUM(CASE
+                        WHEN `cp`.`cuenta` LIKE '2436%'
+                         AND `cp`.`cuenta` NOT IN ('243625','243627')
+                        THEN IFNULL(`cl`.`credito`, 0) ELSE 0
+                    END)                                                        AS `retencion_renta`,
+                    SUM(CASE
+                        WHEN `cp`.`cuenta` = '243625'
+                        THEN IFNULL(`cl`.`credito`, 0) ELSE 0
+                    END)                                                        AS `retencion_iva_res`
+                FROM `ctb_homologacion`   AS `ch`
+                INNER JOIN `ctb_ctas_exogena` AS `cce`
+                    ON (`ch`.`id_cuenta_otros` = `cce`.`id_cuenta` AND `cce`.`id_form` = 1)
+                INNER JOIN `ctb_pgcp`     AS `cp`
+                    ON (`ch`.`id_cuenta` = `cp`.`id_pgcp`)
+                INNER JOIN `ctb_libaux`   AS `cl`
+                    ON (`cl`.`id_cuenta` = `cp`.`id_pgcp`)
+                INNER JOIN `ctb_doc`      AS `cd`
+                    ON (`cl`.`id_ctb_doc` = `cd`.`id_ctb_doc`)
+                WHERE `ch`.`id_vigencia` = $id_vigencia
+                  AND `cd`.`estado`     = 2
+                  AND `cd`.`id_tipo_doc` = 3
+                  AND `cl`.`id_tercero_api` > 0
+                  AND DATE_FORMAT(`cd`.`fecha`,'%Y') = '$vigencia'
+                GROUP BY `cl`.`id_tercero_api`, `cce`.`cod_concepto`
+            
+                UNION ALL
+            
+                -- Movimientos extra (Concepto 5012)
+                SELECT
+                    '5012'                                                      AS `concepto`,
+                    `ctb_libaux`.`id_tercero_api`                               AS `id_tercero`,
+                    0                                                           AS `pago_deducible`,
+                    SUM(`ctb_libaux`.`debito`)                                  AS `pago_no_deducible`,
+                    0                                                           AS `retencion_renta`,
+                    0                                                           AS `retencion_iva_res`
+                FROM `ctb_libaux`
+                INNER JOIN `ctb_doc` 
+                    ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
+                INNER JOIN `ctb_pgcp` 
+                    ON (`ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
+                WHERE `ctb_doc`.`id_tipo_doc` = 4
+                  AND `ctb_doc`.`estado` = 2
+                  AND DATE_FORMAT(`ctb_doc`.`fecha`, '%Y') ='$vigencia'
+                  AND `ctb_pgcp`.`cuenta` LIKE '242401%'
+                  AND `ctb_libaux`.`id_tercero_api` > 0
+                GROUP BY `ctb_libaux`.`id_tercero_api`
+            
+                UNION ALL
+            
+                -- Movimientos extra (Concepto 5011)
+                SELECT
+                    '5011'                                                      AS `concepto`,
+                    `ctb_libaux`.`id_tercero_api`                               AS `id_tercero`,
+                    0                                                           AS `pago_deducible`,
+                    SUM(`ctb_libaux`.`debito`)                                  AS `pago_no_deducible`,
+                    0                                                           AS `retencion_renta`,
+                    0                                                           AS `retencion_iva_res`
+                FROM `ctb_libaux`
+                INNER JOIN `ctb_doc` 
+                    ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
+                INNER JOIN `ctb_pgcp` 
+                    ON (`ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
+                WHERE `ctb_doc`.`id_tipo_doc` = 4
+                  AND `ctb_doc`.`estado` = 2
+                  AND DATE_FORMAT(`ctb_doc`.`fecha`, '%Y') ='$vigencia'
+                  AND `ctb_pgcp`.`cuenta` LIKE '242402%'
+                  AND `ctb_libaux`.`id_tercero_api` > 0
+                GROUP BY `ctb_libaux`.`id_tercero_api`
+            )
+            SELECT
+                `m`.`concepto`,
+                `m`.`id_tercero`,
                 CASE `ttd`.`codigo_ne`
                     WHEN 'CC'  THEN '13'
                     WHEN 'TI'  THEN '12'
@@ -147,44 +224,25 @@ try {
                 `t`.`nom_tercero`                                           AS `nom_tercero`,
                 `t`.`dir_tercero`                                           AS `dir_tercero`,
                 `d`.`codigo_departamento`                                   AS `codigo_departamento`,
-                `m`.`codigo_municipio`                                      AS `codigo_municipio`,
-                -- Pago o abono deducible y NO deducible: ambos vienen del débito de la homologación
-                SUM(IFNULL(`cl`.`debito`, 0))                               AS `pago_deducible`,
-                SUM(IFNULL(`cl`.`debito`, 0))                               AS `pago_no_deducible`,
-                -- Ret. renta practicada: crédito de cuentas 2436 EXCEPTO 243625 y 243627
-                SUM(CASE
-                    WHEN `cp`.`cuenta` LIKE '2436%'
-                     AND `cp`.`cuenta` NOT IN ('243625','243627')
-                    THEN IFNULL(`cl`.`credito`, 0) ELSE 0
-                END)                                                        AS `retencion_renta`,
-                -- Ret. IVA a responsables del IVA: crédito de la cuenta 243625 únicamente
-                SUM(CASE
-                    WHEN `cp`.`cuenta` = '243625'
-                    THEN IFNULL(`cl`.`credito`, 0) ELSE 0
-                END)                                                        AS `retencion_iva_res`
-            FROM `ctb_homologacion`   AS `ch`
-            INNER JOIN `ctb_ctas_exogena` AS `cce`
-                ON (`ch`.`id_cuenta_otros` = `cce`.`id_cuenta` AND `cce`.`id_form` = 1)
-            INNER JOIN `ctb_pgcp`     AS `cp`
-                ON (`ch`.`id_cuenta` = `cp`.`id_pgcp`)
-            INNER JOIN `ctb_libaux`   AS `cl`
-                ON (`cl`.`id_cuenta` = `cp`.`id_pgcp`)
-            INNER JOIN `ctb_doc`      AS `cd`
-                ON (`cl`.`id_ctb_doc` = `cd`.`id_ctb_doc`)
+                `mun`.`codigo_municipio`                                    AS `codigo_municipio`,
+                SUM(`m`.`pago_deducible`)                                   AS `pago_deducible`,
+                SUM(`m`.`pago_no_deducible`)                                AS `pago_no_deducible`,
+                SUM(`m`.`retencion_renta`)                                  AS `retencion_renta`,
+                SUM(`m`.`retencion_iva_res`)                                AS `retencion_iva_res`
+            FROM `movimientos` AS `m`
             INNER JOIN `tb_terceros`  AS `t`
-                ON (`cl`.`id_tercero_api` = `t`.`id_tercero_api`)
+                ON (`m`.`id_tercero` = `t`.`id_tercero_api`)
             LEFT JOIN `tb_tipos_documento` AS `ttd`
                 ON (`t`.`tipo_doc` = `ttd`.`id_tipodoc`)
-            LEFT JOIN `tb_municipios` AS `m`
-                ON (`t`.`id_municipio` = `m`.`id_municipio`)
+            LEFT JOIN `tb_municipios` AS `mun`
+                ON (`t`.`id_municipio` = `mun`.`id_municipio`)
             LEFT JOIN `tb_departamentos` AS `d`
-                ON (`m`.`id_departamento` = `d`.`id_departamento`)
-            WHERE `ch`.`id_vigencia` = $id_vigencia
-              AND `cd`.`estado`     = 2
-              AND `cd`.`id_tipo_doc` = 3
-              AND `cl`.`id_tercero_api` > 0
-              AND DATE_FORMAT(`cd`.`fecha`,'%Y') = '$vigencia'
-            GROUP BY `cl`.`id_tercero_api`, `cce`.`cod_concepto`";
+                ON (`mun`.`id_departamento` = `d`.`id_departamento`)
+            GROUP BY `m`.`id_tercero`, `m`.`concepto`
+            HAVING `pago_deducible` != 0
+                OR `pago_no_deducible` != 0
+                OR `retencion_renta` != 0
+                OR `retencion_iva_res` != 0";
 
     $stmt = $conexion->prepare($sql);
     $stmt->execute();
@@ -192,7 +250,7 @@ try {
     // Iterar línea por línea sin cargar todo en memoria
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-        $pago_deducible     = 0;
+        $pago_deducible     = 0; // Se mantiene 0 como en la versión original
         $pago_no_deducible  = (float) $row['pago_no_deducible'];
         $iva_deducible      = 0;    // TODO: ajustar cuando se disponga de la cuenta correspondiente
         $iva_no_deducible   = 0;    // TODO: ajustar cuando se disponga de la cuenta correspondiente
@@ -200,12 +258,6 @@ try {
         $retencion_asumida  = 0;    // TODO: ajustar cuando se disponga de la cuenta correspondiente
         $retencion_iva_res  = (float) $row['retencion_iva_res'];  // cuenta 243625
         $retencion_iva_nres = 0;    // TODO: ajustar cuando se disponga de la cuenta correspondiente
-
-        // Omitir registros sin ningún movimiento relevante
-        if (
-            $pago_deducible == 0 && $pago_no_deducible == 0
-            && $retencion_renta == 0 && $retencion_iva_res == 0
-        ) continue;
 
         // NIT → nom_tercero va en Razón social.
         // CC  → nom_tercero se parsea en apellidos/nombres.

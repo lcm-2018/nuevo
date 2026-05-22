@@ -213,6 +213,7 @@ $content = <<<HTML
                     <div class="accordion-body bg-wiev">
                         <div class="row">
                             <div class="col-6">
+                                <div style="overflow: auto;">   
                                 <table id="tableDependientes" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
                                     <thead class="text-center">
                                         <tr>
@@ -227,8 +228,10 @@ $content = <<<HTML
                                     <tbody id="modificarDependientes">
                                     </tbody>
                                 </table>
+                                </div>  
                             </div>
                             <div class="col-6">
+                                <div style="overflow: auto;">   
                                 <table id="tableDeducciones" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
                                     <thead class="text-center">
                                         <tr>
@@ -245,6 +248,7 @@ $content = <<<HTML
                                     <tbody id="modificarDeducciones">
                                     </tbody>
                                 </table>
+                                </div>  
                             </div>
                         </div>
                     </div>

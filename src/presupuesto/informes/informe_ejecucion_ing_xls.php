@@ -274,7 +274,7 @@ try {
             $recaudo_acumulado = $value['recaudo_ant'] + $value['recaudo_mes'] - $value['recaudo_liberado_mes'];
             $presupuesto_por_ejecutar = $definitivo - $reconocimiento_acumulado;
             $cuentas_por_cobrar = $reconocimiento_acumulado - $recaudo_acumulado;
-            $porc_ejec = $reconocimiento_acumulado != 0 ? round(($definitivo / $reconocimiento_acumulado) * 100, 2) : 0;
+            $porc_ejec = $definitivo != 0 ? round(($recaudo_acumulado / $definitivo) * 100, 2) : 0;
             echo '<tr class="resaltar">
                     <td class="text">' . $key . '</td>
                     <td class="text">' . $nomrb . '</td>
