@@ -25,13 +25,13 @@ try {
 
     $model = new BdatosModel();
 
-    if (($permisos->PermisosUsuario($opciones, 3002, 2) && $oper == 'add' && $_POST['id_entidad'] == -1) ||
-        ($permisos->PermisosUsuario($opciones, 3002, 3) && $oper == 'add' && $_POST['id_entidad'] != -1) ||
+    if (($permisos->PermisosUsuario($opciones, 3002, 2) && $oper == 'add' && $_POST['id_bdatos'] == -1) ||
+        ($permisos->PermisosUsuario($opciones, 3002, 3) && $oper == 'add' && $_POST['id_bdatos'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 3002, 4) && $oper == 'del') || $id_rol == 1
     ) {
 
         if ($oper == 'add') {
-            $id = $_POST['id_entidad'];
+            $id = $_POST['id_bdatos'];
             $data = [
                 'nombre_entidad' => $_POST['txt_nom_entidad'],
                 'descri_entidad' => $_POST['txt_des_entidad'],
@@ -68,7 +68,7 @@ try {
             $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
             $ok = $model->delete($id);
             if ($ok) {
-                Logs::guardaLog("DELETE FROM dash_bdatos WHERE id_entidad={$id}");
+                Logs::guardaLog("DELETE FROM dash_bdatos WHERE id_bdatos={$id}");
                 $res['mensaje'] = 'ok';
             } else {
                 $res['mensaje'] = 'Error al eliminar registro';

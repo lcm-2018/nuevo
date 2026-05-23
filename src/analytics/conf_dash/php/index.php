@@ -74,10 +74,8 @@ HTML;
 $plantilla = new Plantilla($content, 2);
 $plantilla->addCssFile("{$host}/assets/css/jquery-ui.css?v=" . date("YmdHis"));
 $plantilla->addScriptFile("{$host}/assets/js/jquery-ui.js?v=" . date("YmdHis"));
-
 $plantilla->addScriptFile("{$host}/src/analytics/conf_consultas/js/consultas.js?v=" . date("YmdHis"));
 $plantilla->addScriptFile("{$host}/src/analytics/common/js/common.js?v=" . date("YmdHis"));
-
 $modal = $plantilla->getModal('divModalForms', 'divTamModalForms', 'divForms');
 $plantilla->addModal($modal);
 $modal = $plantilla->getModal('divModalReg', 'divTamModalReg', 'divFormsReg');

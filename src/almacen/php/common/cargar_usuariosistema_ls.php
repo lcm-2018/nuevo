@@ -12,7 +12,7 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT id_usuario,CONCAT_WS(' ',nombre1,nombre2,apellido1,apellido2) AS nom_usuario
             FROM seg_usuarios_sistema
-            WHERE CONCAT(nombre1,nombre2,apellido1,apellido2) LIKE '$term%'
+            WHERE CONCAT(nombre1,nombre2,apellido1,apellido2) LIKE '%$term%'
             ORDER BY nombre1,nombre2,apellido1,apellido2";
     $rs = $cmd->query($sql);
     $objs = $rs->fetchAll();

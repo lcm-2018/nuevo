@@ -407,7 +407,7 @@ function grupo_articulo($cmd, $titulo = '', $id = 0)
 }
 
 function subgrupo_articulo($cmd, $titulo = '', $id = 0)
-{
+{   // Id. Subgrupo 1-Consumible, 2-Consumible Control
     try {
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT id_subgrupo,nom_subgrupo FROM far_subgrupos WHERE id_grupo IN (1,2)";
@@ -644,7 +644,8 @@ function tipo_reporte_exi_fecha($titulo = '')
 {
     echo '<option value="">' . $titulo . '</option>';
     echo '<option value="1">Detallado por Lote -> Agrupado por Sede-Bodega-Subgrupo </option>';
-    echo '<option value="2">Detallado por Articulo -> Agrupado por Sede-Bodega-Subgrupo </option>';
+    echo '<option value="2">Detallado por Articulo -> Agrupado por Sede-Bodega-Subgrupo (Vr. Promedio) </option>';
+    echo '<option value="5">Detallado por Articulo -> Agrupado por Sede-Bodega-Subgrupo (Vr. Ultimo Ingreso) </option>';
     echo '<option value="3">Totalizado por Sede-Bodega-Subgrupo</option>';
     echo '<option value="4">Captura de Inventario Físico -> Agrupado por Sede-Bodega-Subgrupo-Articulo</option>';
 }

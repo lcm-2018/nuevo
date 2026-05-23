@@ -70,51 +70,31 @@ try {
                 far_subgrupos.nom_subgrupo,e.existencia_fecha,v.val_promedio_fecha,
                 (e.existencia_fecha*v.val_promedio_fecha) AS val_total
             FROM far_medicamentos
-            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
-            INNER JOIN (SELECT ke.id_med,SUM(ke.existencia_lote) AS existencia_fecha 
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo = far_medicamentos.id_subgrupo)
+            INNER JOIN (SELECT ke.id_med,SUM(ke.existencia_lote) AS existencia_fecha
                         FROM far_kardex AS ke
-                        WHERE ke.id_kardex IN (SELECT MAX(far_kardex.id_kardex) 
-                                               FROM far_kardex
-                                               INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_lote=far_kardex.id_lote) 
-                                               $where_kar 
-                                               GROUP BY far_kardex.id_lote)
-                        GROUP BY ke.id_med	
-                        ) AS e ON (e.id_med = far_medicamentos.id_med)	
-            INNER JOIN (SELECT kv.id_med,kv.val_promedio AS val_promedio_fecha 
+                        INNER JOIN (SELECT MAX(far_kardex.id_kardex) AS id_kardex
+                                    FROM far_kardex
+                                    INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_lote = far_kardex.id_lote)
+                                    $where_kar
+                                    GROUP BY far_kardex.id_lote
+                                    ) AS ultimos_kardex ON (ultimos_kardex.id_kardex = ke.id_kardex)
+                        GROUP BY ke.id_med
+                        ) AS e ON (e.id_med = far_medicamentos.id_med)
+            INNER JOIN (SELECT kv.id_med,kv.val_promedio AS val_promedio_fecha
                         FROM far_kardex AS kv
-                        WHERE kv.id_kardex IN (SELECT MAX(far_kardex.id_kardex) 
-                                               FROM far_kardex				
-                                               WHERE far_kardex.fec_movimiento<='$fecha' AND far_kardex.estado=1 
-                                               GROUP BY far_kardex.id_med)
-                        ) AS v ON (v.id_med = far_medicamentos.id_med) 
+                        INNER JOIN (SELECT MAX(far_kardex.id_kardex) AS id_kardex
+                                    FROM far_kardex
+                                    WHERE far_kardex.fec_movimiento <= '$fecha' AND far_kardex.estado = 1
+                                    GROUP BY far_kardex.id_med
+                                    ) AS ultimos_valores ON (ultimos_valores.id_kardex = kv.id_kardex)
+                        ) AS v ON (v.id_med = far_medicamentos.id_med)
             $where_art ORDER BY far_medicamentos.nom_medicamento ASC";
     $rs = $cmd->query($sql);
     $objs = $rs->fetchAll();
     $rs->closeCursor();
     unset($rs);
-
-    $sql = "SELECT SUM(e.existencia_fecha*v.val_promedio_fecha) AS val_total
-            FROM far_medicamentos
-            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
-            INNER JOIN (SELECT ke.id_med,SUM(ke.existencia_lote) AS existencia_fecha 
-                        FROM far_kardex AS ke
-                        WHERE ke.id_kardex IN (SELECT MAX(far_kardex.id_kardex) 
-                                               FROM far_kardex 
-                                               INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_lote=far_kardex.id_lote)
-                                               $where_kar 
-                                               GROUP BY far_kardex.id_lote)                        
-                        GROUP BY ke.id_med	
-                        ) AS e ON (e.id_med = far_medicamentos.id_med)	
-            INNER JOIN (SELECT kv.id_med,kv.val_promedio AS val_promedio_fecha 
-                        FROM far_kardex AS kv
-                        WHERE kv.id_kardex IN (SELECT MAX(id_kardex) 
-                                               FROM far_kardex				
-                                               WHERE fec_movimiento<='$fecha' AND estado=1 
-                                               GROUP BY id_med)
-                        ) AS v ON (v.id_med = far_medicamentos.id_med) 
-            $where_art";
-    $rs = $cmd->query($sql);
-    $obj_tot = $rs->fetch();
+    
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -166,15 +146,17 @@ try {
         <tbody style="font-size: 60%;">
             <?php
             $tabla = '';
+            $total = 0;
             foreach ($objs as $obj) {
                 $tabla .=  '<tr class="resaltar"> 
                         <td>' . $obj['id_med'] . '</td>
                         <td>' . $obj['cod_medicamento'] . '</td>
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_medicamento']) . '</td>   
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_subgrupo']) . '</td>   
-                        <td>' . $obj['existencia_fecha'] . '</td>   
-                        <td>' . formato_valor($obj['val_promedio_fecha']) . '</td>   
-                        <td>' . formato_valor($obj['val_total']) . '</td></tr>';
+                        <td style="text-align:center">' . $obj['existencia_fecha'] . '</td>   
+                        <td style="text-align:right">' . formato_valor($obj['val_promedio_fecha']) . '</td>   
+                        <td style="text-align:right">' . formato_valor($obj['val_total']) . '</td></tr>';
+                $total += $obj['val_total'];        
             }
             echo $tabla;
             ?>
@@ -188,7 +170,7 @@ try {
                     TOTAL:
                 </td>
                 <td style="text-align:center">
-                    <?php echo formato_valor($obj_tot['val_total']); ?>
+                    <?php echo formato_valor($total); ?>
                 </td>
             </tr>
         </tfoot>

@@ -29,7 +29,7 @@ function usuarios($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT id_usuario,CONCAT_WS(' ',apellido1,apellido2,nombre1,nombre2) AS nom_usuario 
                 FROM seg_usuarios_sistema 
-                WHERE estado=1 AND es_administrativo=1
+                WHERE estado=1 
                 ORDER BY apellido1,apellido2,nombre1,nombre2";
         $rs = $cmd->query($sql);
         $objs = $rs->fetchAll();

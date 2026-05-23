@@ -14,7 +14,9 @@ $id = isset($_POST['id']) ? (int)$_POST['id'] : -1;
 $model = new BdatosModel();
 $obj = ($id !== -1) ? $model->getById($id) : $model->getById(0); 
 
-$obj['estado'] = 1;
+if ($id == -1) {
+    $obj['estado'] = 1;
+}
 
 ?>
 <div class="px-0">
@@ -24,7 +26,7 @@ $obj['estado'] = 1;
         </div>
         <div class="p-3">
             <form id="frm_reg_bdatos">
-                <input type="hidden" id="id_entidad" name="id_entidad" value="<?php echo $id ?>">
+                <input type="hidden" id="id_bdatos" name="id_bdatos" value="<?php echo $id ?>">
                 <div class="row">
                     <div class="col-md-12">
                         <label for="txt_nom_entidad" class="small">Entidad</label>
