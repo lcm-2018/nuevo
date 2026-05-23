@@ -15,6 +15,7 @@ use Src\Nomina\Liquidacion\Php\Clases\Liquidacion;
 use Src\Nomina\Liquidacion\Php\Clases\Nomina;
 use Src\Nomina\Liquidacion\Php\Clases\Otros;
 use Src\Usuarios\Login\Php\Clases\Usuario;
+use Src\Nomina\Empleados\Php\Clases\Compesatorios;
 
 /**
  * Clase para gestionar las primas de los empleados.
@@ -257,7 +258,7 @@ class Prestaciones_Sociales
         $terceros_ss =  $Empleado->getRegistro();
         $empresa =      (new Usuario())->getEmpresa();
         //Devengados
-        $horas =            (new Horas_Extra())->getHorasPorMes($inicia, $fin, 1);
+        $horas =            (new Horas_Extra())->getHorasPorMes($inicia, $fin, 2);
 
         //otros 
         $cortes =       array_column(((new Liquidacion())->getCortes($ids, $fin)), null, 'id_empleado');
@@ -267,8 +268,12 @@ class Prestaciones_Sociales
         $liquidados =   array_column($liquidados, 'id_sal_liq', 'id_empleado');
         $error = '';
 
-        $uSalario = $this->getUltimoSalarioLiquidado();
+        $uSalario = $this->getUltimoSalarioLiquidado('N');
         $uSalario = array_column($uSalario, 'id_nomina', 'id_empleado');
+
+        $uSalarioRA = $this->getUltimoSalarioLiquidado('RA');
+        $uSalarioRA = array_column($uSalarioRA, 'id_nomina', 'id_empleado');
+
         $inserts = 0;
 
         $Cesantias = new Cesantias();
@@ -293,6 +298,12 @@ class Prestaciones_Sociales
                     }
 
                     $param = (new Valores_Liquidacion())->getRegistro($uSalario[$id_empleado], $id_empleado);
+
+                    if (isset($uSalarioRA[$id_empleado]) && $uSalarioRA[$id_empleado] > $uSalario[$id_empleado]) {
+                        $paramRA = (new Valores_Liquidacion())->getRegistro($uSalarioRA[$id_empleado], $id_empleado);
+                        $param['salario'] = $paramRA['salario'];
+                    }
+
                     if ($param['id_nomina'] == 0) {
                         throw new Exception("No se encontró registro de valores de liquidación");
                     }
@@ -372,7 +383,7 @@ class Prestaciones_Sociales
                     }
 
                     //laborado 
-                    $valTotalLab = Valores::Redondear($laborado[$id_empleado] * ($param['salario'] / 30));
+                    $valTotalLab = 0;
                     $valAuxTrans = 0;
                     $valAuxAlim = 0;
                     $grepre = 0;
@@ -400,11 +411,22 @@ class Prestaciones_Sociales
                             throw new Exception("Laborado: {$response['msg']}");
                         }
                     }
+                    //Compensatorios
+                    $valCompensa = Valores::Redondear($laborado[$id_empleado] * ($param['salario'] / 30));
+                    if ($laborado[$id_empleado] > 0) {
+                        $Compensatorio = new Compesatorios();
+                        $Compensatorio->addRegistro([
+                            'id_empleado'   => $id_empleado,
+                            'val_compensa'  => $valCompensa,
+                            'dias'          => $laborado[$id_empleado],
+                            'id_nomina'     => $id_nomina,
+                        ]);
+                    }
                     //Seguridad social
                     if ($empleados[$id_empleado]['salario_integral'] == 1) {
                         $ibc = $valTotalLab * 0.7;
                     } else {
-                        $ibc = $valTotalLab + $valTotalHe + $valTotalBSP + $grepre + $valTotVac;
+                        $ibc = $valTotalLab + $valCompensa + $valTotalHe + $valTotalBSP + $grepre + $valTotVac;
                     }
 
                     $response = (new Liquidacion())->LiquidaSeguridadSocial($param, $novedad, $ibc, $tipo_emp, $subtipo_emp, $laborado[$id_empleado]);
@@ -443,7 +465,7 @@ class Prestaciones_Sociales
                         throw new Exception("Cesantias Mes: {$response['msg']}");
                     }
 
-                    $baseDctos = $valTotalLab + $valAuxTrans + $valAuxAlim + $valTotSegSoc + $valPriSer + $valPriNav + $valCes + $valIntCes + $valTotalHe + $valTotVac  + $valTotalBSP + $valTotPrimVac + $valBonRec + $grepre - ($valTotSegSoc ?? 0);
+                    $baseDctos = $valTotalLab + $valCompensa + $valAuxTrans + $valAuxAlim + $valTotSegSoc + $valPriSer + $valPriNav + $valCes + $valIntCes + $valTotalHe + $valTotVac  + $valTotalBSP + $valTotPrimVac + $valBonRec + $grepre - ($valTotSegSoc ?? 0);
 
                     //otros descuentos
                     $filtro = $otrosDctos[$id_empleado] ?? [];
@@ -455,7 +477,7 @@ class Prestaciones_Sociales
                         }
                     }
 
-                    $baseDep = $valTotalLab + $valTotalBSP + $valTotalHe + $valTotVac + $valTotPrimVac + $valBonRec + $grepre;
+                    $baseDep = $valTotalLab + $valCompensa + $valTotalBSP + $valTotalHe + $valTotVac + $valTotPrimVac + $valBonRec + $grepre;
                     $pagoxdependiente = $empleados[$id_empleado]['dependientes'] == 0 ? 0 : $baseDep * 0.1;
                     $valIntViv = $iVivienda[$id_empleado] ?? 0;
                     $valrf = $baseDep - ($valTotSegSoc ?? 0) - $pagoxdependiente - $valIntViv;
@@ -553,7 +575,7 @@ class Prestaciones_Sociales
     /**
      * Obtiene empleados liquidados
      */
-    private function getUltimoSalarioLiquidado()
+    private function getUltimoSalarioLiquidado($tipo = 'N')
     {
         try {
             $sql = "SELECT
@@ -566,7 +588,7 @@ class Prestaciones_Sociales
                             `nom_liq_salario` AS `nls`
                             INNER JOIN `nom_nominas` AS `nn` 
                             ON (`nls`.`id_nomina` = `nn`.`id_nomina`)
-                        WHERE (`nn`.`tipo` IN ('N','RA') AND `nn`.`estado` > 0 AND `nls`.`estado` = 1)
+                        WHERE (`nn`.`tipo` = '$tipo' AND `nn`.`estado` = 5 AND `nls`.`estado` = 1)
                         GROUP BY `nls`.`id_contrato`, `nls`.`id_empleado`)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->execute();
