@@ -3590,7 +3590,7 @@ const generarInformeCtb = (boton) => {
 			action: ruta,
 			method: 'post'
 		});
-		$.each(data, function(key, value) {
+		$.each(data, function (key, value) {
 			form.append($('<input>', {
 				type: 'hidden',
 				name: key,
@@ -3830,11 +3830,7 @@ function GuardarReferenciaDr(boton) {
 		$('#codigoCta2').addClass('is-invalid');
 		$('#codigoCta2').focus();
 		mjeError('La cuenta contable debe ser de detalle crédito');
-	} else if ($('#accion').val() == '1' && ($('#rubroCod').val() == '' || $('#rubroCod').val() == '0')) {
-		$('#rubroCod').addClass('is-invalid');
-		$('#rubroCod').focus();
-		mjeError('Debe seleccionar un rubro presupuestal');
-	} else if ($('#accion').val() == '1' && $('#tipoRubro').val() == '0') {
+	} else if ($('#accion').val() == '1' && $('#tipoRubro').val() == '0' && $('#id_rubroCod').val() != '0') {
 		$('#rubroCod').addClass('is-invalid');
 		$('#rubroCod').focus();
 		mjeError('El rubro debe ser de detalle');

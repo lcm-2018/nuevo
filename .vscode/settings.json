@@ -1,7 +1,7 @@
 {
     "editor.defaultFormatter": null,
     "[php]": {
-        "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+        "editor.defaultFormatter": "DEVSENSE.phptools-vscode"
     },
     "[javascript]": {
         "editor.defaultFormatter": "vscode.typescript-language-features"
