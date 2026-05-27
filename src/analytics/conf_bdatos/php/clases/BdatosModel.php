@@ -16,7 +16,7 @@ class BdatosModel
 
     private function buildWhere(array $filters): string
     {
-        $where = "WHERE dash_bdatos.id_entidad<>0";
+        $where = "WHERE dash_bdatos.id_bdatos<>0";
         if (!empty($filters['nombre'])) {
             $where .= " AND dash_bdatos.nombre_entidad LIKE '%" . $filters['nombre'] . "%'";
         }
@@ -28,7 +28,7 @@ class BdatosModel
 
     public function countAll(): int
     {
-        $sql = "SELECT COUNT(*) AS total FROM dash_bdatos WHERE id_entidad<>0";
+        $sql = "SELECT COUNT(*) AS total FROM dash_bdatos WHERE id_bdatos<>0";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $r = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -45,7 +45,7 @@ class BdatosModel
         return (int)($r['total'] ?? 0);
     }
 
-    public function fetchList(array $filters = [], int $start = 0, int $length = 10, string $orderBy = 'id_entidad', string $dir = 'DESC')
+    public function fetchList(array $filters = [], int $start = 0, int $length = 10, string $orderBy = 'id_bdatos', string $dir = 'DESC')
     {
         $bw = $this->buildWhere($filters);
         
@@ -54,7 +54,7 @@ class BdatosModel
             $limitSql = " LIMIT :start, :length";
         }
 
-        $sql = "SELECT dash_bdatos.id_entidad,dash_bdatos.nombre_entidad,dash_bdatos.descri_entidad,
+        $sql = "SELECT dash_bdatos.id_bdatos,dash_bdatos.nombre_entidad,dash_bdatos.descri_entidad,
                     dash_bdatos.ip_servidor,dash_bdatos.nombre_bd,dash_bdatos.puerto_bd,
                     IF(dash_bdatos.estado=1,'ACTIVO','INACTIVO') AS estado
                 FROM dash_bdatos " . $bw . " ORDER BY $orderBy $dir" . $limitSql;
@@ -69,9 +69,9 @@ class BdatosModel
 
     public function getById(int $id)
     {
-        $sql = "SELECT * FROM dash_bdatos WHERE id_entidad = :id_entidad LIMIT 1";
+        $sql = "SELECT * FROM dash_bdatos WHERE id_bdatos = :id_bdatos LIMIT 1";
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bindParam(':id_entidad', $id, PDO::PARAM_INT);
+        $stmt->bindParam(':id_bdatos', $id, PDO::PARAM_INT);
         $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row === false) {
@@ -111,7 +111,7 @@ class BdatosModel
         $sql = "UPDATE dash_bdatos 
                 SET nombre_entidad=:nombre_entidad,descri_entidad=:descri_entidad,ip_servidor=:ip_servidor,
                     nombre_bd=:nombre_bd,usuario_bd=:usuario_bd,password_bd=:password_bd,puerto_bd=:puerto_bd,estado=:estado
-                WHERE id_entidad=:id_entidad";
+                WHERE id_bdatos=:id_bdatos";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(':nombre_entidad', $d['nombre_entidad']);
         $stmt->bindParam(':descri_entidad', $d['descri_entidad']);
@@ -121,15 +121,15 @@ class BdatosModel
         $stmt->bindParam(':password_bd', $d['password_bd']);
         $stmt->bindParam(':puerto_bd', $d['puerto_bd']);
         $stmt->bindParam(':estado', $d['estado']);
-        $stmt->bindParam(':id_entidad', $id, PDO::PARAM_INT);
+        $stmt->bindParam(':id_bdatos', $id, PDO::PARAM_INT);
         return $stmt->execute();
     }
 
     public function delete(int $id)
     {
-        $sql = "DELETE FROM dash_bdatos WHERE id_entidad = :id_entidad";
+        $sql = "DELETE FROM dash_bdatos WHERE id_bdatos = :id_bdatos";
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bindParam(':id_entidad', $id, PDO::PARAM_INT);
+        $stmt->bindParam(':id_bdatos', $id, PDO::PARAM_INT);
         return $stmt->execute();
     }    
 }

@@ -86,12 +86,15 @@ try {
     $sql = "SELECT COUNT(*) AS total
             FROM far_medicamentos
             INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
-            INNER JOIN (SELECT ke.id_med 
+            INNER JOIN (SELECT ke.id_med,SUM(ke.existencia_lote) AS existencia_fecha
                         FROM far_kardex AS ke
-                        WHERE ke.id_kardex IN (SELECT MAX(far_kardex.id_kardex) 
-                                               FROM far_kardex $where_usr 
-                                               GROUP BY far_kardex.id_lote)
-                        GROUP BY ke.id_med	
+                        INNER JOIN (SELECT MAX(far_kardex.id_kardex) AS id_kardex
+                                    FROM far_kardex
+                                    INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_lote = far_kardex.id_lote)
+                                    $where_kar
+                                    GROUP BY far_kardex.id_lote
+                                    ) AS ultimos_kardex ON (ultimos_kardex.id_kardex = ke.id_kardex)
+                        GROUP BY ke.id_med
                         ) AS e ON (e.id_med = far_medicamentos.id_med)
             WHERE far_subgrupos.id_grupo IN (0,1,2)";
     $rs = $cmd->query($sql);
@@ -102,42 +105,44 @@ try {
     $sql = "SELECT COUNT(*) AS total
             FROM far_medicamentos
             INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
-            INNER JOIN (SELECT ke.id_med,SUM(ke.existencia_lote) AS existencia_fecha 
+            INNER JOIN (SELECT ke.id_med,SUM(ke.existencia_lote) AS existencia_fecha
                         FROM far_kardex AS ke
-                        WHERE ke.id_kardex IN (SELECT MAX(far_kardex.id_kardex) 
-                                               FROM far_kardex 
-                                               INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_lote=far_kardex.id_lote)
-                                               $where_kar 
-                                               GROUP BY far_kardex.id_lote) 
-                        GROUP BY ke.id_med	
-                        ) AS e ON (e.id_med = far_medicamentos.id_med)	
+                        INNER JOIN (SELECT MAX(far_kardex.id_kardex) AS id_kardex
+                                    FROM far_kardex
+                                    INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_lote = far_kardex.id_lote)
+                                    $where_kar
+                                    GROUP BY far_kardex.id_lote
+                                    ) AS ultimos_kardex ON (ultimos_kardex.id_kardex = ke.id_kardex)
+                        GROUP BY ke.id_med
+                        ) AS e ON (e.id_med = far_medicamentos.id_med)
             $where_art";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
     $totalRecordsFilter = $total['total'];
-
-    //Consulta los datos para listarlos en la tabla
+    
     $sql = "SELECT far_medicamentos.id_med,far_medicamentos.cod_medicamento,far_medicamentos.nom_medicamento,
                 far_subgrupos.nom_subgrupo,e.existencia_fecha,v.val_promedio_fecha,
                 (e.existencia_fecha*v.val_promedio_fecha) AS val_total
             FROM far_medicamentos
-            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo)
-            INNER JOIN (SELECT ke.id_med,SUM(ke.existencia_lote) AS existencia_fecha 
+            INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo = far_medicamentos.id_subgrupo)
+            INNER JOIN (SELECT ke.id_med,SUM(ke.existencia_lote) AS existencia_fecha
                         FROM far_kardex AS ke
-                        WHERE ke.id_kardex IN (SELECT MAX(far_kardex.id_kardex) 
-                                               FROM far_kardex 
-                                               INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_lote=far_kardex.id_lote)
-                                               $where_kar 
-                                               GROUP BY far_kardex.id_lote)
-                        GROUP BY ke.id_med	
-                        ) AS e ON (e.id_med = far_medicamentos.id_med)	
-            INNER JOIN (SELECT kv.id_med,kv.val_promedio AS val_promedio_fecha 
+                        INNER JOIN (SELECT MAX(far_kardex.id_kardex) AS id_kardex
+                                    FROM far_kardex
+                                    INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_lote = far_kardex.id_lote)
+                                    $where_kar
+                                    GROUP BY far_kardex.id_lote
+                                    ) AS ultimos_kardex ON (ultimos_kardex.id_kardex = ke.id_kardex)
+                        GROUP BY ke.id_med
+                        ) AS e ON (e.id_med = far_medicamentos.id_med)
+            INNER JOIN (SELECT kv.id_med,kv.val_promedio AS val_promedio_fecha
                         FROM far_kardex AS kv
-                        WHERE kv.id_kardex IN (SELECT MAX(far_kardex.id_kardex) 
-                                               FROM far_kardex				
-                                               WHERE far_kardex.fec_movimiento<='$fecha' AND far_kardex.estado=1 
-                                               GROUP BY far_kardex.id_med)
-                        ) AS v ON (v.id_med = far_medicamentos.id_med) 
+                        INNER JOIN (SELECT MAX(far_kardex.id_kardex) AS id_kardex
+                                    FROM far_kardex
+                                    WHERE far_kardex.fec_movimiento <= '$fecha' AND far_kardex.estado = 1
+                                    GROUP BY far_kardex.id_med
+                                    ) AS ultimos_valores ON (ultimos_valores.id_kardex = kv.id_kardex)
+                        ) AS v ON (v.id_med = far_medicamentos.id_med)
             $where_art ORDER BY $col $dir $limit";
     $rs = $cmd->query($sql);
     $objs = $rs->fetchAll();

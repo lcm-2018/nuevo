@@ -6,7 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 include '../../../../config/autoloader.php';
-use Src\Analytics\Conf_Bdatos\Php\Clases\BdatosModel;
+use Src\Analytics\Conf_Consultas\Php\Clases\ConsultasModel;
 
 $filters = [
     'nombre' => isset($_POST['nombre']) ? trim($_POST['nombre']) : '',
@@ -14,8 +14,8 @@ $filters = [
 ];
 
 try {
-    $model = new BdatosModel();
-    $objs = $model->fetchList($filters, 0, -1, 'id_bdatos', 'DESC');
+    $model = new ConsultasModel();
+    $objs = $model->fetchList($filters, 0, -1, 'id_consulta', 'DESC');
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -48,7 +48,7 @@ try {
 
     <table style="width:100%; font-size:80%">
         <tr style="text-align:center">
-            <th>REPORTE DE ENTIDADES - BASES DE DATOS</th>
+            <th>REPORTE DE CONSULTAS ANALÍTICAS</th>
         </tr>
     </table>
 
@@ -56,11 +56,11 @@ try {
         <thead style="font-size:80%">
             <tr style="background-color:#CED3D3; color:#000000; text-align:center">
                 <th>ID</th>
-                <th>Nombre</th>                
-                <th>Descripción</th>
-                <th>IP Servidor</th>
-                <th>Nombre BD</th>
-                <th>Puerto BD</th>
+                <th>Título</th>                
+                <th>Tipo Base Datos</th>
+                <th>Tipo Informe</th>
+                <th>Tipo Servidor</th>
+                <th>Tipo Acceso</th>
                 <th>Estado</th>
             </tr>
         </thead>
@@ -69,12 +69,12 @@ try {
             $tabla = '';
             foreach ($objs as $obj) {
                 $tabla .=  '<tr class="resaltar" style="text-align:center"> 
-                    <td>' . $obj['id_bdatos'] . '</td>                    
-                    <td style="text-align:left">' . mb_strtoupper($obj['nombre_entidad']) . '</td>
-                    <td>' . $obj['descri_entidad'] . '</td>
-                    <td>' . $obj['ip_servidor'] . '</td>
-                    <td>' . $obj['nombre_bd'] . '</td>
-                    <td>' . $obj['puerto_bd'] . '</td>
+                    <td>' . $obj['id_consulta'] . '</td>                    
+                    <td style="text-align:left">' . mb_strtoupper($obj['titulo_consulta']) . '</td>
+                    <td>' . $obj['tipo_bdatos'] . '</td>
+                    <td>' . $obj['tipo_informe'] . '</td>
+                    <td>' . $obj['tipo_consulta'] . '</td>
+                    <td>' . $obj['tipo_acceso'] . '</td>
                     <td>' . $obj['estado'] . '</td></tr>';
             }
             echo $tabla;
@@ -82,7 +82,7 @@ try {
         </tbody>
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
-                <td colspan="7" style="text-align:left">
+                <td colspan="6" style="text-align:left">
                     No. de Registros: <?php echo count($objs); ?>
                 </td>
             </tr>

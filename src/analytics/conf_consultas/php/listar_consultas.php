@@ -23,6 +23,11 @@ $filters = [
     'estado' => isset($_POST['estado']) ? $_POST['estado'] : '',
 ];  
 
+$permisos = null;
+$opciones = null;
+$totalRecords = 0;
+$totalRecordsFilter = 0;
+
 try {
     $permisos = new Permisos();
     $opciones = $permisos->PermisoOpciones($id_user);

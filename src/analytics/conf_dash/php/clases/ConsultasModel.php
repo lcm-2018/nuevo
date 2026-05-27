@@ -45,7 +45,7 @@ class ConsultasModel
         return (int)($r['total'] ?? 0);
     }
 
-    public function fetchList(array $filters = [], int $start = 0, int $length = 10, string $orderBy = 'id_consulta', string $dir = 'DESC')
+    public function fetchList(array $filters = [], int $start = 0, int $length = 10, string $orderBy = 'id_entidad', string $dir = 'DESC')
     {
         $bw = $this->buildWhere($filters);
         

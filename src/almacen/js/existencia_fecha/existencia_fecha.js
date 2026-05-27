@@ -99,6 +99,9 @@
             case '4':
                 reporte = "imp_existencias_fecha_invfis.php";
                 break;
+            case '5':
+                reporte = "imp_existencias_fecha_asbsg_a.php";
+                break;    
         }
 
         $.post(reporte, {
