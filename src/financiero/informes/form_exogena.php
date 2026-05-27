@@ -89,6 +89,25 @@ if (!isset($_SESSION['user'])) {
                         </div>
                     </div>
 
+                    <!-- Formulario 1012 -->
+                    <div class="col">
+                        <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                            <div class="text-white text-center py-4 position-relative" style="background-color: #0f766e;">
+                                <i class="fas fa-university fa-3x position-relative" style="z-index: 1;"></i>
+                                <div class="position-absolute rounded-circle" style="right: -20px; bottom: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.15);"></div>
+                            </div>
+                            <div class="card-body">
+                                <h6 class="card-title fw-bold mb-1">FORMULARIO 1012</h6>
+                                <p class="card-text small text-muted" style="min-height: 40px;">Informaci&oacute;n de declaraciones tributarias, acciones y aportes, inversiones, cuentas de ahorro y corrientes</p>
+                            </div>
+                            <div class="card-footer bg-white border-top-0 pt-0 pb-3 px-3">
+                                <button class="btn btn-outline-success w-100 btn-sm fw-bold" onclick="exportarExogenaCsv(1012)">
+                                    <i class="fas fa-file-excel me-2"></i> Generar CSV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Formulario 2276 -->
                     <div class="col">
                         <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
