@@ -42,34 +42,7 @@ function liberarSalida()
     flush();
 }
 
-/**
- * Divide nom_tercero en sus partes para personas naturales.
- * Orden esperado en la cadena: nombre1 [nombre2] apellido1 [apellido2]
- * Retorna siempre las 4 claves: apellido1, apellido2, nombre1, nombre2.
- */
-function parsearNombreNatural(string $cadena): array
-{
-    $partes = preg_split('/\s+/', trim($cadena), -1, PREG_SPLIT_NO_EMPTY);
-    $n = count($partes);
 
-    switch ($n) {
-        case 1:
-            return ['apellido1' => $partes[0], 'apellido2' => '', 'nombre1' => '', 'nombre2' => ''];
-        case 2:
-            return ['apellido1' => $partes[1], 'apellido2' => '', 'nombre1' => $partes[0], 'nombre2' => ''];
-        case 3:
-            return ['apellido1' => $partes[1], 'apellido2' => $partes[2], 'nombre1' => $partes[0], 'nombre2' => ''];
-        case 4:
-            return ['apellido1' => $partes[2], 'apellido2' => $partes[3], 'nombre1' => $partes[0], 'nombre2' => $partes[1]];
-        default:
-            return [
-                'apellido1' => $partes[$n - 2],
-                'apellido2' => $partes[$n - 1],
-                'nombre1'   => $partes[0],
-                'nombre2'   => implode(' ', array_slice($partes, 1, $n - 3)),
-            ];
-    }
-}
 
 // Definir los encabezados de las columnas (Formato 2276)
 $columnas = [
@@ -223,7 +196,7 @@ try {
                 INNER JOIN `pto_homologa_gastos` AS `phg`
                     ON `phg`.`id_cargue` = `pcarg`.`id_cargue` AND `phg`.`id_ps` = 1
                 WHERE `ch`.`id_vigencia` = $id_vigencia
-                  AND `cl`.`credito` > 0 AND `cd`.`estado` = 2 AND `cl`.`id_tercero_api` > 0
+                  AND `cl`.`debito` > 0 AND `cd`.`estado` = 2 AND `cl`.`id_tercero_api` > 0
                   AND `cce`.`cod_concepto` IN ('5','6')
                   AND DATE_FORMAT(`cd`.`fecha`,'%Y') = '$vigencia'
                 
@@ -314,8 +287,8 @@ try {
                     SUM(CASE WHEN `cod_concepto` = '2' THEN `debito` ELSE 0 END) AS `pagos_emolumentos`,
                     SUM(CASE WHEN `cod_concepto` = '3' THEN `debito` ELSE 0 END) AS `pagos_bonos`,
                     SUM(CASE WHEN `cod_concepto` = '4' THEN `debito` ELSE 0 END) AS `exceso_pagos_alim`,
-                    SUM(CASE WHEN `cod_concepto` = '5' THEN `credito` ELSE 0 END) AS `pagos_honorarios`,
-                    SUM(CASE WHEN `cod_concepto` = '6' THEN `credito` ELSE 0 END) AS `pagos_servicios`,
+                    SUM(CASE WHEN `cod_concepto` = '5' THEN `debito` ELSE 0 END) AS `pagos_honorarios`,
+                    SUM(CASE WHEN `cod_concepto` = '6' THEN `debito` ELSE 0 END) AS `pagos_servicios`,
                     SUM(CASE WHEN `cod_concepto` = '7' THEN `debito` ELSE 0 END) AS `pagos_comisiones`,
                     SUM(CASE WHEN `cod_concepto` = '8' THEN `debito` ELSE 0 END) AS `pagos_prestaciones`,
                     SUM(CASE WHEN `cod_concepto` = '9' THEN `debito` ELSE 0 END) AS `pagos_viaticos`,
@@ -388,11 +361,57 @@ try {
     $stmt = $conexion->prepare($sql);
     $stmt->execute();
 
+    // de lso resultados de la consulta se debe obtener el id de api  en forma de arrray
+    $id_terceros = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $id_terceros[] = $row['id_tercero_api'];
+    }
+    $payload = json_encode($id_terceros);
+    $api = \Config\Clases\Conexion::Api();
+    $url = $api . 'terceros/datos/res/lista/terceros';
+    $ch = curl_init($url);
+    //curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    $result = curl_exec($ch);
+    curl_close($ch);
+    $terceros = json_decode($result, true);
+    $terceros = is_array($terceros) ? $terceros : [];
+
+    $terceros_api_idx = [];
+    foreach ($terceros as $t) {
+        $terceros_api_idx[$t['id_tercero']] = $t;
+    }
+
+    // Se vuelve a ejecutar la consulta para el streaming, ya que el primer fetch agotó el result set.
+    $stmt->execute();
+
     // 2. Iterar línea por línea sin cargar todo en memoria
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-        // Parsear nombre desde tb_terceros (aplica a empleados y contratistas)
-        $nombre = parsearNombreNatural($row['nom_tercero'] ?? '');
+        $datos_api = $terceros_api_idx[$row['id_tercero_api']] ?? null;
+
+        $nombre = [
+            'apellido1' => '',
+            'apellido2' => '',
+            'nombre1'   => '',
+            'nombre2'   => ''
+        ];
+
+        if ($datos_api) {
+            if ($datos_api['tipo_doc'] == 5) {
+                $nombre['apellido1'] = $datos_api['razon_social'] ?? '';
+            } else {
+                $nombre['apellido1'] = $datos_api['apellido1'] ?? '';
+                $nombre['apellido2'] = $datos_api['apellido2'] ?? '';
+                $nombre['nombre1']   = $datos_api['nombre1'] ?? '';
+                $nombre['nombre2']   = $datos_api['nombre2'] ?? '';
+            }
+        }
 
         // 3. Mapear los datos de tu fila a un arreglo (debe coincidir con el orden de $columnas)
         $linea = [

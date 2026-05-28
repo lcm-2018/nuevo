@@ -18,6 +18,7 @@ $id_cta_credito = $id_cta_credito == 0 ? NULL : $id_cta_credito;
 $nombre = isset($_POST['nombre']) ? $_POST['nombre'] : '';
 $accion_pto = isset($_POST['afectacion']) ? ($accion == 1 ? $_POST['afectacion'] : 0) : 0;
 $id_rubro = isset($_POST['id_rubroCod']) ? ($accion == 1 ? $_POST['id_rubroCod'] : NULL) : NULL;
+$id_rubro = $id_rubro > 0 ? $id_rubro : NULL;
 $estado = 1;
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));

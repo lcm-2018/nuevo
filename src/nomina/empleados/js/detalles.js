@@ -1483,31 +1483,31 @@ document.addEventListener('change', function (e) {
     if (!e.target || e.target.id !== 'slcTipoDev') return;
     const id_tipo = e.target.value;
     const txtAdmin = document.getElementById('txtRubroAdmin');
-    const txtOper  = document.getElementById('txtRubroOper');
+    const txtOper = document.getElementById('txtRubroOper');
     const hidAdmin = document.getElementById('idRubroAdminDev');
-    const hidOper  = document.getElementById('idRubroOperDev');
+    const hidOper = document.getElementById('idRubroOperDev');
     if (!txtAdmin) return;
 
     if (!id_tipo || id_tipo === '0') {
         txtAdmin.value = '';
-        txtOper.value  = '';
+        txtOper.value = '';
         if (hidAdmin) hidAdmin.value = '';
-        if (hidOper)  hidOper.value  = '';
+        if (hidOper) hidOper.value = '';
         return;
     }
 
     var fd = new FormData();
-    fd.append('action',  'get_tipo');
-    fd.append('id',      0);
+    fd.append('action', 'get_tipo');
+    fd.append('id', 0);
     fd.append('id_tipo', id_tipo);
 
     SendPost('../php/controladores/otros_devengados.php', fd).then((response) => {
         if (response.status === 'ok') {
             const d = response.msg;
             txtAdmin.value = d.nom_admin || '';
-            txtOper.value  = d.nom_oper  || '';
+            txtOper.value = d.nom_oper || '';
             if (hidAdmin) hidAdmin.value = d.r_admin || '';
-            if (hidOper)  hidOper.value  = d.r_oper  || '';
+            if (hidOper) hidOper.value = d.r_oper || '';
         }
     });
 });

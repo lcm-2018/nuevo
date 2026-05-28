@@ -42,38 +42,7 @@ function liberarSalida()
     flush();
 }
 
-/**
- * Divide nom_tercero en sus partes para personas naturales (tipo CC).
- * Orden esperado en la cadena: nombre1 [nombre2] apellido1 [apellido2]
- * Retorna siempre las 4 claves: apellido1, apellido2, nombre1, nombre2.
- */
-function parsearNombreNatural(string $cadena): array
-{
-    $partes = preg_split('/\s+/', trim($cadena), -1, PREG_SPLIT_NO_EMPTY);
-    $n = count($partes);
 
-    switch ($n) {
-        case 1: // Sólo un token → se trata como apellido
-            return ['apellido1' => $partes[0], 'apellido2' => '', 'nombre1' => '', 'nombre2' => ''];
-
-        case 2: // nombre1 apellido1
-            return ['apellido1' => $partes[1], 'apellido2' => '', 'nombre1' => $partes[0], 'nombre2' => ''];
-
-        case 3: // nombre1 apellido1 apellido2
-            return ['apellido1' => $partes[1], 'apellido2' => $partes[2], 'nombre1' => $partes[0], 'nombre2' => ''];
-
-        case 4: // nombre1 nombre2 apellido1 apellido2 (caso ideal)
-            return ['apellido1' => $partes[2], 'apellido2' => $partes[3], 'nombre1' => $partes[0], 'nombre2' => $partes[1]];
-
-        default: // 5+ partes: primer y últimas dos son nombre1 / apellido1 apellido2; el resto va en nombre2
-            return [
-                'apellido1' => $partes[$n - 2],
-                'apellido2' => $partes[$n - 1],
-                'nombre1'   => $partes[0],
-                'nombre2'   => implode(' ', array_slice($partes, 1, $n - 3)),
-            ];
-    }
-}
 
 // Definir los encabezados de las columnas (Formato 1007)
 $columnas = [
@@ -122,6 +91,7 @@ $id_vigencia = $_SESSION['id_vigencia'];
 
 try {
     $sql = "SELECT
+                `cl`.`id_tercero_api`               AS `id_tercero`,
                 `cce`.`cod_concepto`                AS `concepto`,
                 CASE `ttd`.`codigo_ne`
                     WHEN 'CC'  THEN '13'
@@ -161,6 +131,35 @@ try {
     $stmt->execute();
 
     // Iterar línea por línea sin cargar todo en memoria
+    $id_terceros = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $id_terceros[] = $row['id_tercero'];
+    }
+    $id_terceros = array_unique($id_terceros);
+
+    $payload = json_encode(array_values($id_terceros));
+    $api = \Config\Clases\Conexion::Api();
+    $url = $api . 'terceros/datos/res/lista/terceros';
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    $result = curl_exec($ch);
+    curl_close($ch);
+
+    $terceros = json_decode($result, true);
+    $terceros = is_array($terceros) ? $terceros : [];
+
+    $terceros_api_idx = [];
+    foreach ($terceros as $t) {
+        $terceros_api_idx[$t['id_tercero']] = $t;
+    }
+
+    $stmt->execute();
+
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
         $ingresos     = (float) $row['ingresos'];
@@ -169,20 +168,36 @@ try {
         // Omitir registros si ambos son cero
         if ($ingresos == 0 && $devoluciones == 0) continue;
 
-        // NIT → nom_tercero va en Razón social.
-        // CC  → nom_tercero se parsea en apellidos/nombres.
-        $es_cc  = ($row['tipo_documento'] === '13'); // 13 = Cédula de ciudadanía (persona natural)
-        $nombre = $es_cc ? parsearNombreNatural($row['nom_tercero']) : [];
+        $datos_api = $terceros_api_idx[$row['id_tercero']] ?? null;
+
+        $nombre = [
+            'apellido1' => '',
+            'apellido2' => '',
+            'nombre1'   => '',
+            'nombre2'   => ''
+        ];
+        $razon_social = '';
+
+        if ($datos_api) {
+            if ($datos_api['tipo_doc'] == 5) {
+                $razon_social = $datos_api['razon_social'] ?? '';
+            } else {
+                $nombre['apellido1'] = $datos_api['apellido1'] ?? '';
+                $nombre['apellido2'] = $datos_api['apellido2'] ?? '';
+                $nombre['nombre1']   = $datos_api['nombre1'] ?? '';
+                $nombre['nombre2']   = $datos_api['nombre2'] ?? '';
+            }
+        }
 
         $linea = [
             $row['concepto'],                           // Concepto
             $row['tipo_documento'],                     // Tipo de documento
             $row['no_documento'],                       // Número identificación del informado
-            $es_cc ? ($nombre['apellido1'] ?? '') : '', // Primer apellido del informado
-            $es_cc ? ($nombre['apellido2'] ?? '') : '', // Segundo apellido del informado
-            $es_cc ? ($nombre['nombre1']   ?? '') : '', // Primer nombre del informado
-            $es_cc ? ($nombre['nombre2']   ?? '') : '', // Otros nombres del informado
-            !$es_cc ? $row['nom_tercero']  : '',        // Razón social informado
+            $nombre['apellido1'],                       // Primer apellido del informado
+            $nombre['apellido2'],                       // Segundo apellido del informado
+            $nombre['nombre1'],                         // Primer nombre del informado
+            $nombre['nombre2'],                         // Otros nombres del informado
+            $razon_social,                              // Razón social informado
             '169',                                      // País de residencia o domicilio (169 = Colombia)
             round($ingresos, 2),                           // Ingresos brutos recibidos
             round($devoluciones, 2),                       // Devoluciones, rebajas y descuentos
