@@ -20,12 +20,16 @@ $dir = $_POST['order'][0]['dir'];
   Totalizado la cantidad por articuoo
   Utilizado en: Pedidos de Bodega, Pedidos de Dependencia, Pedidos SPSR
 */
-
+$con_lotes = $_POST['con_lotes'];
 $id_bodega = $_POST['id_bodega'];
-$where_gen = " WHERE far_medicamento_lote.id_bodega=$id_bodega AND far_medicamento_lote.estado=1 AND far_medicamentos.estado=1";
+
+$where_gen = " WHERE far_medicamentos.estado=1";
+if ($con_lotes == 1) {
+    $where_gen .= " AND far_medicamento_lote.id_bodega=$id_bodega AND far_medicamento_lote.estado=1";
+}
 
 if ($_POST['proceso'] == "pspsr") {           //Pedido SPSR
-    $where_gen = " AND far_medicamentos.es_clinico=1";
+    $where_gen .= " AND far_medicamentos.es_clinico=1";
 }
 
 $where = $where_gen;
@@ -41,26 +45,31 @@ if (isset($_POST['codigo']) && $_POST['codigo']) {
 if (isset($_POST['nombre']) && $_POST['nombre']) {
     $where .= " AND far_medicamentos.nom_medicamento LIKE '" . $_POST['nombre'] . "%'";
 }
-if (isset($_POST['no_vencidos']) && $_POST['no_vencidos']) {
-    $where .= " AND far_medicamento_lote.fec_vencimiento>='" . date('Y-m-d') . "'";
-}
-if (isset($_POST['con_existencia']) && $_POST['con_existencia']) {
-    $where .= " AND far_medicamento_lote.existencia>0";
-}
+
+if ($con_lotes == 1) {
+    if (isset($_POST['no_vencidos']) && $_POST['no_vencidos']) {
+        $where .= " AND far_medicamento_lote.fec_vencimiento>='" . date('Y-m-d') . "'";
+    }
+    if (isset($_POST['con_existencia']) && $_POST['con_existencia']) {
+        $where .= " AND far_medicamento_lote.existencia>0";
+    }
+}    
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
     //Consulta el total de registros de la tabla
-    $sql = "SELECT COUNT(DISTINCT far_medicamentos.id_med) AS total FROM far_medicamento_lote
-            INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)" . $where_gen;
+    $sql = "SELECT COUNT(DISTINCT far_medicamentos.id_med) AS total 
+            FROM far_medicamentos
+            LEFT JOIN far_medicamento_lote ON (far_medicamento_lote.id_med=far_medicamentos.id_med)" . $where_gen;
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
     $totalRecords = $total['total'];
 
     //Consulta el total de registros aplicando el filtro
-    $sql = "SELECT COUNT(DISTINCT far_medicamentos.id_med) AS total FROM far_medicamento_lote
-    INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)" . $where;
+    $sql = "SELECT COUNT(DISTINCT far_medicamentos.id_med) AS total 
+            FROM far_medicamentos
+            LEFT JOIN far_medicamento_lote ON (far_medicamento_lote.id_med=far_medicamentos.id_med)" . $where;
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
     $totalRecordsFilter = $total['total'];
@@ -71,9 +80,9 @@ try {
 	            IF(SUM(far_medicamento_lote.existencia)>0,'SI','NO') as existencia,
                 far_medicamentos.val_promedio,                
                 REPLACE(GROUP_CONCAT(IF(far_medicamento_lote.existencia>0,CONCAT(' ',far_medicamento_lote.lote,'[Fv:',far_medicamento_lote.fec_vencimiento,']'),'-')),'-,','') as lotes
-            FROM far_medicamento_lote
-            INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)"
-        . $where . " GROUP BY far_medicamentos.id_med ORDER BY $col $dir $limit";
+            FROM far_medicamentos
+            LEFT JOIN far_medicamento_lote ON (far_medicamento_lote.id_med=far_medicamentos.id_med)"
+            . $where . " GROUP BY far_medicamentos.id_med ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);
     $objs = $rs->fetchAll();

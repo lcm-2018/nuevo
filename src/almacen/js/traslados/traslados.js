@@ -398,7 +398,7 @@
 
                 mje("Proceso realizado correctamente");
             } else {
-                mjeError(r.mensaje);
+                mjeError('Inconsistencia de registros', '', r.mensaje, 0);
             }
         }).always(function () {
             ocultarOverlay();
@@ -478,7 +478,7 @@
 
                         mje("Proceso realizado correctamente");
                     } else {
-                        mjeError(r.mensaje);
+                        mjeError('Inconsistencia de registros', '', r.mensaje, 0);
                     }
                 }).always(function () {
                     ocultarOverlay();

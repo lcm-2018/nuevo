@@ -102,8 +102,7 @@ try {
                     far_medicamentos.id_med,far_medicamentos.cod_medicamento,far_medicamentos.nom_medicamento,
                     far_medicamento_lote.id_lote,far_medicamento_lote.lote,far_medicamento_lote.fec_vencimiento,
                     e.existencia_lote,
-                    v.val_promedio AS val_unitario,
-                    (e.existencia_lote * v.val_promedio) AS val_total
+                    v.val_promedio AS val_unitario
                 FROM far_medicamento_lote
                 INNER JOIN far_medicamentos ON far_medicamentos.id_med = far_medicamento_lote.id_med
                 INNER JOIN far_subgrupos ON far_subgrupos.id_subgrupo = far_medicamentos.id_subgrupo
@@ -132,8 +131,7 @@ try {
                     far_medicamentos.id_med,far_medicamentos.cod_medicamento,far_medicamentos.nom_medicamento,
                     far_medicamento_lote.id_lote,far_medicamento_lote.lote,far_medicamento_lote.fec_vencimiento,
                     e.existencia_lote,
-                    v.val_ingreso AS val_unitario,
-                    (e.existencia_lote * v.val_ingreso) AS val_total
+                    v.val_ingreso AS val_unitario
                 FROM far_medicamento_lote
                 INNER JOIN far_medicamentos ON far_medicamentos.id_med = far_medicamento_lote.id_med
                 INNER JOIN far_subgrupos ON far_subgrupos.id_subgrupo = far_medicamentos.id_subgrupo
@@ -185,7 +183,7 @@ try {
     ========================================================= */
 
     $sql = "SELECT id_sede,nom_sede,id_bodega,nom_bodega,
-                SUM(val_total) AS val_total_sb
+                SUM(existencia_lote*val_unitario) AS val_total_sb
             FROM tmp_existencias
             GROUP BY id_sede,id_bodega
             ORDER BY id_sede,nom_bodega";
@@ -197,7 +195,7 @@ try {
     ========================================================= */
 
     $sql = "SELECT id_subgrupo,nom_subgrupo,
-                SUM(val_total) AS val_total_sg
+                SUM(existencia_lote*val_unitario) AS val_total_sg
             FROM tmp_existencias
             WHERE id_sede = :id_sede AND id_bodega = :id_bodega
             GROUP BY id_subgrupo
@@ -210,7 +208,7 @@ try {
 
     $sql = "SELECT id_med,cod_medicamento,nom_medicamento,
                 SUM(existencia_lote) AS existencia,val_unitario,
-                SUM(val_total) AS val_total
+                SUM(existencia_lote*val_unitario) AS val_total
             FROM tmp_existencias
             WHERE id_sede = :id_sede AND id_bodega = :id_bodega AND id_subgrupo = :id_subgrupo
             GROUP BY id_med
@@ -329,7 +327,7 @@ try {
                     
                     $numreg++;
                 }
-                $total += $obj['val_total'];
+                $total += $obj2['val_total_sg'];
             }
         }
         echo $tabla;

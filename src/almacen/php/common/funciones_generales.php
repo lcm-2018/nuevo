@@ -40,20 +40,21 @@ function bodega_principal($cmd){
 function bodega_principal_general($cmd){
     try {
         $res = array();
-        $sql = "SELECT far_bodegas.id_bodega,far_bodegas.nombre,tb_sedes_bodega.id_sede
+        $sql = "SELECT far_bodegas.id_bodega,far_bodegas.nombre,tb_sedes_bodega.id_sede,tb_sedes.nom_sede
                 FROM far_bodegas 
                 LEFT JOIN tb_sedes_bodega ON (tb_sedes_bodega.id_bodega=far_bodegas.id_bodega)
+                LEFT JOIN tb_sedes ON (tb_sedes.id_sede = tb_sedes_bodega.id_sede)
                 WHERE far_bodegas.es_principal=1";
         $rs = $cmd->query($sql);
         $obj = $rs->fetch();
         if (isset($obj['id_bodega'])) {
             if (isset($obj['id_sede'])) {
-                $res = array('id_bodega' => $obj['id_bodega'], 'nom_bodega' => $obj['nombre'], 'id_sede' => $obj['id_sede']);
+                $res = array('id_bodega' => $obj['id_bodega'], 'nom_bodega' => $obj['nombre'], 'id_sede' => $obj['id_sede'], 'nom_sede' => $obj['nom_sede']);
             } else {
-                $res = array('id_bodega' => '', 'nom_bodega' => 'La Bodega Principal no tiene Sede', 'id_sede' => '');    
+                $res = array('id_bodega' => '', 'nom_bodega' => 'La Bodega Principal no tiene Sede', 'id_sede' => '', 'nom_sede' => '');    
             }    
         } else {
-            $res = array('id_bodega' => '', 'nom_bodega' => 'No Existe Bodega Principal', 'id_sede' => '');
+            $res = array('id_bodega' => '', 'nom_bodega' => 'No Existe Bodega Principal', 'id_sede' => '', 'nom_sede' => '');
         }
         $cmd = null;
         return $res;
