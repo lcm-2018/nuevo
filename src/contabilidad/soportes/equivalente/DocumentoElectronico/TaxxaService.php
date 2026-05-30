@@ -333,6 +333,24 @@ class TaxxaService
     }
 
     /**
+     * Obtiene el token JWT activo (necesario para servicios externos como nómina)
+     * @return string|null Token activo o null si no se autenticó
+     */
+    public function getToken(): ?string
+    {
+        return $this->token;
+    }
+
+    /**
+     * Obtiene el endpoint configurado para hacer peticiones directas
+     * @return string URL del servicio Taxxa
+     */
+    public function getEndpoint(): string
+    {
+        return $this->endpoint;
+    }
+
+    /**
      * Obtiene la última respuesta recibida
      * @return string|null JSON de la última respuesta
      */

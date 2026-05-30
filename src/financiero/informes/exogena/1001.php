@@ -195,7 +195,7 @@ try {
                 INNER JOIN `ctb_doc` AS `cd` 
                     ON `cl`.`id_ctb_doc` = `cd`.`id_ctb_doc`
                 INNER JOIN `pto_cop_detalle` AS `pcopc`
-                    ON `pcopc`.`id_ctb_doc` = `cd`.`id_ctb_doc`
+                    ON `pcopc`.`id_ctb_doc` = `cd`.`id_ctb_doc` AND `pcopc`.`valor` > 0 
                 INNER JOIN `pto_crp_detalle` AS `pcrpc`
                     ON `pcrpc`.`id_pto_crp_det` = `pcopc`.`id_pto_crp_det`
                 INNER JOIN `pto_cdp_detalle` AS `pcdpc`
@@ -297,8 +297,8 @@ try {
         $nombre = [
             'apellido1' => '',
             'apellido2' => '',
-            'nombre1'   => '',
-            'nombre2'   => ''
+            'nombre1' => '',
+            'nombre2' => ''
         ];
         $razon_social = '';
 
@@ -308,8 +308,8 @@ try {
             } else {
                 $nombre['apellido1'] = $datos_api['apellido1'] ?? '';
                 $nombre['apellido2'] = $datos_api['apellido2'] ?? '';
-                $nombre['nombre1']   = $datos_api['nombre1'] ?? '';
-                $nombre['nombre2']   = $datos_api['nombre2'] ?? '';
+                $nombre['nombre1'] = $datos_api['nombre1'] ?? '';
+                $nombre['nombre2'] = $datos_api['nombre2'] ?? '';
             }
         }
 

@@ -32,6 +32,28 @@ spl_autoload_register(function ($class) {
 });
 
 // ============================================================================
+// AUTOLOADER ESPECÍFICO PARA Src\Nomina\Electronica\Php\Clases (PSR-4)
+// ============================================================================
+spl_autoload_register(function ($class) {
+    $prefix  = 'Src\\Nomina\\Electronica\\Php\\Clases\\';
+    $baseDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'nomina'
+        . DIRECTORY_SEPARATOR . 'electronica' . DIRECTORY_SEPARATOR . 'php'
+        . DIRECTORY_SEPARATOR . 'clases' . DIRECTORY_SEPARATOR;
+
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        return;
+    }
+
+    $relative_class = substr($class, $len);
+    $file = $baseDir . str_replace('\\', DIRECTORY_SEPARATOR, $relative_class) . '.php';
+
+    if (file_exists($file)) {
+        require_once $file;
+    }
+});
+
+// ============================================================================
 // AUTOLOADER GENÉRICO (Original)
 // ============================================================================
 spl_autoload_register(function ($class) {

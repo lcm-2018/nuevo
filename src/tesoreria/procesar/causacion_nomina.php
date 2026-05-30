@@ -575,7 +575,7 @@ try {
                         $valor = $d['val_indemniza'];
                         break;
                     case 10:
-                        $valor = $d['valor_luto'];
+                        $valor = $d['valor_luto'] + $d['valor_mp'];
                         break;
                     case 17:
                         $valor = $d['valor_vacacion'] - $restar;

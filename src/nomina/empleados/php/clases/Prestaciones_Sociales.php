@@ -303,7 +303,6 @@ class Prestaciones_Sociales
                     if (isset($uSalarioRA[$id_empleado]) && $uSalarioRA[$id_empleado] > $uSalario[$id_empleado]) {
                         $param['salario'] = $uSalarioRA_base[$id_empleado];
                     }
-                    exit(json_encode($param));
 
                     if ($param['id_nomina'] == 0) {
                         throw new Exception("No se encontró registro de valores de liquidación");
