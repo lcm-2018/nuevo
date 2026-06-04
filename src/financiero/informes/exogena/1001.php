@@ -101,19 +101,21 @@ $id_vigencia = $_SESSION['id_vigencia'];
 try {
     $sql = "WITH movimientos AS (
                 -- Movimientos de la homologación (Formato 1001 principal)
+                -- Las cuentas 2436x aparecen como líneas de retención en los mismos documentos,
+                -- no como cuentas homologadas, por eso se unen por id_ctb_doc (LEFT JOIN adicional).
                 SELECT
                     `cce`.`cod_concepto`                                        AS `concepto`,
                     `cl`.`id_tercero_api`                                       AS `id_tercero`,
                     SUM(IFNULL(`cl`.`debito`, 0))                               AS `pago_deducible`,
                     SUM(IFNULL(`cl`.`debito`, 0))                               AS `pago_no_deducible`,
                     SUM(CASE
-                        WHEN `cp`.`cuenta` LIKE '2436%'
-                         AND `cp`.`cuenta` NOT IN ('243625','243627')
-                        THEN IFNULL(`cl`.`credito`, 0) ELSE 0
+                        WHEN `cp_ret`.`cuenta` LIKE '2436%'
+                         AND `cp_ret`.`cuenta` NOT IN ('243625','243627')
+                        THEN IFNULL(`cl_ret`.`credito`, 0) ELSE 0
                     END)                                                        AS `retencion_renta`,
                     SUM(CASE
-                        WHEN `cp`.`cuenta` = '243625'
-                        THEN IFNULL(`cl`.`credito`, 0) ELSE 0
+                        WHEN `cp_ret`.`cuenta` = '243625'
+                        THEN IFNULL(`cl_ret`.`credito`, 0) ELSE 0
                     END)                                                        AS `retencion_iva_res`
                 FROM `ctb_homologacion`   AS `ch`
                 INNER JOIN `ctb_ctas_exogena` AS `cce`
@@ -124,6 +126,13 @@ try {
                     ON (`cl`.`id_cuenta` = `cp`.`id_pgcp`)
                 INNER JOIN `ctb_doc`      AS `cd`
                     ON (`cl`.`id_ctb_doc` = `cd`.`id_ctb_doc`)
+                -- Líneas de retención (2436x) del mismo documento contable
+                LEFT JOIN `ctb_libaux`    AS `cl_ret`
+                    ON (`cl_ret`.`id_ctb_doc` = `cd`.`id_ctb_doc`
+                        AND `cl_ret`.`id_tercero_api` = `cl`.`id_tercero_api`)
+                LEFT JOIN `ctb_pgcp`      AS `cp_ret`
+                    ON (`cl_ret`.`id_cuenta` = `cp_ret`.`id_pgcp`
+                        AND `cp_ret`.`cuenta` LIKE '2436%')
                 WHERE `ch`.`id_vigencia` = $id_vigencia
                   AND `cd`.`estado`     = 2
                   AND `cd`.`id_tipo_doc` = 3

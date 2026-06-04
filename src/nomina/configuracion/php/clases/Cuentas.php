@@ -135,7 +135,7 @@ class Cuentas
             $slc = ($fila['id_tipo'] == $o['id_rubro']) ? 'selected' : '';
             $lst .= "<option value='{$o['id_rubro']}' {$slc}>{$o['nombre']}</option>";
         }
-        $lst2 = Combos::getCentrosCosto($fila['id_cc']);
+        $lst2 = $this->getCentrosCostoFormulario($fila['id_cc']);
         $ver = $id == 0 ? '' : 'disabled';
         $html =
             <<<HTML
@@ -182,6 +182,22 @@ class Cuentas
                 </div>
             HTML;
         return $html;
+    }
+
+    private function getCentrosCostoFormulario($id)
+    {
+        $sql = "SELECT `id_centro`, `nom_centro`
+                FROM `tb_centrocostos`
+                WHERE `id_centro` > 0
+                    AND (`es_pasivo` = 0 OR `id_centro` = ?)
+                ORDER BY `nom_centro` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(1, $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($data) ? Combos::setOption($data, $id) : '';
     }
 
     public function getRegistro($id)

@@ -247,6 +247,10 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
                 }
                 params.id_concepto = id_concepto;
                 break;
+            case '6':
+                archivo = 'liquidacion_factores';
+                params = { id: id_nomina };
+                break;
             case '5':
                 if (text === 'P') {
                     // Muestra los desprendibles en el navegador y abre la impresión

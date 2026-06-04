@@ -163,6 +163,9 @@ class Anulacion
             "UPDATE `nom_liq_salario` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina",
             "UPDATE `nom_liq_segsocial_empdo` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina",
             "UPDATE `nom_retencion_fte` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina",
+
+            //valores liquidacion de nom_valores_liquidacion
+            "UPDATE `nom_valores_liquidacion` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina",
         ];
 
         try {

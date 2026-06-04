@@ -1620,7 +1620,7 @@ class Liquidacion
                                     MAX(`nlb`.`id_bonificaciones`)
                                 FROM `nom_liq_bsp` `nlb`
                                     INNER JOIN `nom_nominas` `nn` ON `nlb`.`id_nomina` = `nn`.`id_nomina`
-                                WHERE `nn`.`vigencia` <= :vigencia AND `nn`.`tipo` = 'N' AND  `nlb`.`estado` = 1
+                                WHERE `nn`.`vigencia` <= :vigencia AND `nn`.`tipo` = 'N' AND  `nlb`.`estado` = 1 AND `nlb`.`val_bsp` > 0
                                 AND `nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
                                 GROUP BY `nlb`.`id_empleado`)),
                         `bsp_ra` AS
@@ -1634,16 +1634,13 @@ class Liquidacion
                                     MAX(`sub_nlb`.`id_bonificaciones`)
                                 FROM `nom_liq_bsp` `sub_nlb`
                                     INNER JOIN `nom_nominas` `sub_nn` ON `sub_nlb`.`id_nomina` = `sub_nn`.`id_nomina`
-                                WHERE `sub_nn`.`vigencia` <= :vigencia AND `sub_nn`.`tipo` = 'RA' AND  `sub_nlb`.`estado` = 1
+                                WHERE `sub_nn`.`vigencia` <= :vigencia AND `sub_nn`.`tipo` = 'RA' AND  `sub_nlb`.`estado` = 1 AND `sub_nlb`.`val_bsp` > 0
                                 AND `sub_nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
                                 GROUP BY `sub_nlb`.`id_empleado`)),
                         `t1` AS
                             (SELECT
                                 `n`.`id_empleado`,
-                                CASE
-                                    WHEN `n`.`fec_corte` > IFNULL(`r`.`fec_final`, '1900-01-01') THEN `n`.`val_bsp`
-                                    ELSE IFNULL(`n`.`val_bsp`, 0) + IFNULL(`r`.`val_bsp_ra`, 0)
-                                END AS `val_bsp`,
+                                IFNULL(`n`.`val_bsp`, 0) + IFNULL(`r`.`val_bsp_ra`, 0) AS `val_bsp`,
                                 `n`.`fec_corte`
                             FROM `bsp_n` `n`
                             LEFT JOIN `bsp_ra` `r` ON (`n`.`id_empleado` = `r`.`id_empleado`)),
@@ -1666,7 +1663,7 @@ class Liquidacion
                                 (SELECT MAX(`nlp`.`id_liq_prima`)
                                 FROM `nom_liq_prima` `nlp`
                                     INNER JOIN `nom_nominas` `nn` ON `nlp`.`id_nomina` = `nn`.`id_nomina`
-                                WHERE `nn`.`tipo` = 'PV' AND `nn`.`vigencia` <= :vigencia AND `nlp`.`estado` = 1
+                                WHERE `nn`.`tipo` = 'PV' AND `nn`.`vigencia` <= :vigencia AND `nlp`.`estado` = 1 AND `nlp`.`val_liq_ps` > 0
                                 AND `nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
                                 GROUP BY `nlp`.`id_empleado`)),
                         `prima_ra` AS
@@ -1681,16 +1678,13 @@ class Liquidacion
                                 (SELECT MAX(`sub_nlp`.`id_liq_prima`)
                                 FROM `nom_liq_prima` `sub_nlp`
                                     INNER JOIN `nom_nominas` `sub_nn` ON `sub_nlp`.`id_nomina` = `sub_nn`.`id_nomina`
-                                WHERE `sub_nn`.`tipo` = 'RA' AND `sub_nn`.`vigencia` <= :vigencia AND `sub_nlp`.`estado` = 1
+                                WHERE `sub_nn`.`tipo` = 'RA' AND `sub_nn`.`vigencia` <= :vigencia AND `sub_nlp`.`estado` = 1 AND `sub_nlp`.`val_liq_ps` > 0
                                 AND `sub_nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
                                 GROUP BY `sub_nlp`.`id_empleado`)),
                         `t3` AS
                             (SELECT
                                 `pv`.`id_empleado`,
-                                CASE
-                                    WHEN `pv`.`corte_pv` > IFNULL(`ra`.`corte_ra`, '1900-01-01') THEN IFNULL(`pv`.`val_liq_pv`, 0)
-                                    ELSE IFNULL(`pv`.`val_liq_pv`, 0) + IFNULL(`ra`.`val_liq_ra`, 0)
-                                END AS `val_liq_ps`,
+                                IFNULL(`pv`.`val_liq_pv`, 0) + IFNULL(`ra`.`val_liq_ra`, 0) AS `val_liq_ps`,
                                 `pv`.`corte_pv` AS `corte_prim_sv`
                             FROM `prima_pv` `pv`
                             LEFT JOIN `prima_ra` `ra` ON (`pv`.`id_empleado` = `ra`.`id_empleado`)),
@@ -1702,7 +1696,7 @@ class Liquidacion
                                 SELECT MAX(`nlpn`.`id_liq_privac`)
                                 FROM `nom_liq_prima_nav` `nlpn`
                                     INNER JOIN `nom_nominas` `nn` ON `nlpn`.`id_nomina` = `nn`.`id_nomina`
-                                WHERE `nn`.`tipo` = 'PN' AND `nn`.`vigencia` <= :vigencia AND `nlpn`.`estado` = 1
+                                WHERE `nn`.`tipo` = 'PN' AND `nn`.`vigencia` <= :vigencia AND `nlpn`.`estado` = 1 AND `nlpn`.`val_liq_pv` > 0
                                 AND `nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
                                 GROUP BY `nlpn`.`id_empleado`)),
                         `vac_n` AS
@@ -1716,7 +1710,7 @@ class Liquidacion
                                 FROM `nom_liq_vac` `sub_nlv`
                                     INNER JOIN `nom_nominas` `sub_nn` ON `sub_nlv`.`id_nomina` = `sub_nn`.`id_nomina`
                                     INNER JOIN `nom_vacaciones` `sub_nv` ON `sub_nlv`.`id_vac` = `sub_nv`.`id_vac`
-                                WHERE `sub_nn`.`vigencia` <= :vigencia AND `sub_nlv`.`estado` = 1
+                                WHERE `sub_nn`.`vigencia` <= :vigencia AND `sub_nlv`.`estado` = 1 AND `sub_nlv`.`val_liq` > 0
                                 AND (`sub_nn`.`tipo` = 'VC' OR `sub_nn`.`tipo` = 'N')
                                 AND `sub_nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
                                 GROUP BY `sub_nv`.`id_empleado`)),
@@ -1742,18 +1736,9 @@ class Liquidacion
                         `t5` AS
                             (SELECT
                                 `n`.`id_empleado`,
-                                CASE
-                                    WHEN `n`.`corte` > IFNULL(`r`.`fec_final`, '1900-01-01') THEN IFNULL(`n`.`val_prima_vac`, 0)
-                                    ELSE IFNULL(`n`.`val_prima_vac`, 0) + IFNULL(`r`.`val_prima_vac_racv`, 0)
-                                END AS `val_prima_vac`,
-                                CASE
-                                    WHEN `n`.`corte` > IFNULL(`r`.`fec_final`, '1900-01-01') THEN IFNULL(`n`.`val_liq`, 0)
-                                    ELSE IFNULL(`n`.`val_liq`, 0) + IFNULL(`r`.`val_liq_racv`, 0)
-                                END AS `val_liq`,
-                                CASE
-                                    WHEN `n`.`corte` > IFNULL(`r`.`fec_final`, '1900-01-01') THEN IFNULL(`n`.`val_bon_recrea`, 0)
-                                    ELSE IFNULL(`n`.`val_bon_recrea`, 0) + IFNULL(`r`.`val_bon_recrea_racv`, 0)
-                                END AS `val_bon_recrea`,
+                                IFNULL(`n`.`val_prima_vac`, 0) + IFNULL(`r`.`val_prima_vac_racv`, 0) AS `val_prima_vac`,
+                                IFNULL(`n`.`val_liq`, 0) + IFNULL(`r`.`val_liq_racv`, 0) AS `val_liq`,
+                                IFNULL(`n`.`val_bon_recrea`, 0) + IFNULL(`r`.`val_bon_recrea_racv`, 0) AS `val_bon_recrea`,
                                 `n`.`corte`
                             FROM `vac_n` `n`
                             LEFT JOIN `vac_ra` `r` ON `n`.`id_empleado` = `r`.`id_empleado`),
@@ -1808,6 +1793,7 @@ class Liquidacion
             return 'Error SQL: ' . $e->getMessage();
         }
     }
+
 
     public function LiquidaHorasExtra($filtro, $param)
     {
@@ -1959,7 +1945,7 @@ class Liquidacion
         $grepre = ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
         $auxtra = $param['aux_trans'];
         $auxali = $param['aux_alim'];
-        $bspant = floatval($param['val_bsp'] ?? 0);
+        $bspant = floatval($cortes['val_bsp'] ?? 0);
         $base = $salbas + $grepre + $auxtra + $auxali + $bspant / 12;
         $corte = $param['corte_prim_sv'] ?? NULL;
         $id_nomina = $param['id_nomina'];
@@ -1999,9 +1985,9 @@ class Liquidacion
         $grepre = ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
         $auxtra = $param['aux_trans'];
         $auxali = $param['aux_alim'];
-        $bspant = floatval($param['val_bsp'] ?? 0);
-        $prima_ant = floatval($param['val_liq_ps'] ?? 0);
-        $vac_ant = floatval($param['val_prima_vac'] ?? 0);
+        $bspant = floatval($cortes['val_bsp'] ?? 0);
+        $prima_ant = floatval($cortes['val_liq_ps'] ?? 0);
+        $vac_ant = floatval($cortes['val_prima_vac'] ?? 0);
         $base = $salbas + $grepre + $auxtra + $auxali + ($bspant / 12) + ($prima_ant / 12) + ($vac_ant / 12);
         $corte = $param['corte_psv'] ?? NULL;
         $id_nomina = $param['id_nomina'];

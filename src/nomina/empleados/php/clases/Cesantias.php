@@ -5,6 +5,7 @@ namespace Src\Nomina\Empleados\Php\Clases;
 use Config\Clases\Conexion;
 use Config\Clases\Logs;
 use Config\Clases\Sesion;
+use DateTime;
 use Exception;
 use PDO;
 use PDOException;
@@ -189,13 +190,13 @@ class Cesantias
      */
     public function addRegistroN($array, $opcion = 0)
     {
-        $ids =          $array['chk_liquidacion'];
-        $contratos =    $array['id_contrato'];
-        $mpago =        $array['metodo'];
-        $tipo =         $array['tipo'];
-        $mes =          $array['mes'];
-        $incremento =   isset($array['incremento']) ? $array['incremento'] : NULL;
-        $nomina =       Nomina::getIDNomina($mes, $tipo);
+        $ids = $array['chk_liquidacion'];
+        $contratos = $array['id_contrato'];
+        $mpago = $array['metodo'];
+        $tipo = $array['tipo'];
+        $mes = $array['mes'];
+        $incremento = isset($array['incremento']) ? $array['incremento'] : NULL;
+        $nomina = Nomina::getIDNomina($mes, $tipo);
 
         // Verificar si necesitamos crear la nómina de cesantías
         $crearNominaCes = ($nomina['id_nomina'] > 0 && $nomina['estado'] >= 2) || $nomina['id_nomina'] == 0;
@@ -238,26 +239,26 @@ class Cesantias
         $inicia = Sesion::Vigencia() . '-' . $mes . '-01';
         $fin = date('Y-m-t', strtotime($inicia));
 
-        $Empleado =     new Empleados();
-        $empleados =    array_column($Empleado->getEmpleados(), null, 'id_empleado');
-        $salarios =     $Empleado->getSalarioMasivo($mes);
-        $salarios =     array_column($salarios, 'basico', 'id_empleado');
-        $terceros_ss =  $Empleado->getRegistro();
+        $Empleado = new Empleados();
+        $empleados = array_column($Empleado->getEmpleados(), null, 'id_empleado');
+        $salarios = $Empleado->getSalarioMasivo($mes);
+        $salarios = array_column($salarios, 'basico', 'id_empleado');
+        $terceros_ss = $Empleado->getRegistro();
 
-        $cortes =       array_column(((new Liquidacion())->getCortes($ids, $fin)), null, 'id_empleado');
-        $liquidados =   (new Liquidacion())->getEmpleadosLiq($id_nomina, $ids);
-        $liquidados =   array_column($liquidados, 'id_sal_liq', 'id_empleado');
+        $cortes = array_column(((new Liquidacion())->getCortes($ids, $fin)), null, 'id_empleado');
+        $liquidados = (new Liquidacion())->getEmpleadosLiq($id_nomina, $ids);
+        $liquidados = array_column($liquidados, 'id_sal_liq', 'id_empleado');
         $error = '';
 
         if ($opcion == 0) {
-            $param['smmlv'] =           $parametro[1];
-            $param['uvt'] =             $parametro[6];
-            $param['base_bsp'] =        $parametro[7];
-            $param['grep'] =            $parametro[8];
-            $param['base_alim'] =       $parametro[9];
-            $param['min_vital'] =       $parametro[10] ?? 0;
-            $param['id_nomina'] =       $id_nomina;
-            $param['tipo'] =            $tipo;
+            $param['smmlv'] = $parametro[1];
+            $param['uvt'] = $parametro[6];
+            $param['base_bsp'] = $parametro[7];
+            $param['grep'] = $parametro[8];
+            $param['base_alim'] = $parametro[9];
+            $param['min_vital'] = $parametro[10] ?? 0;
+            $param['id_nomina'] = $id_nomina;
+            $param['tipo'] = $tipo;
         }
 
         $inserts = 0;
@@ -274,31 +275,31 @@ class Cesantias
                         throw new Exception("No tiene registrado novedades de seguridad social");
                     }
 
-                    $cortes_empleado =  $cortes[$id_empleado] ?? [];
+                    $cortes_empleado = $cortes[$id_empleado] ?? [];
                     if (!$this->conexion->inTransaction()) {
                         $this->conexion->beginTransaction();
                     }
 
                     if ($opcion == 0) {
-                        $param['id_empleado'] =     $id_empleado;
-                        $param['salario'] =         $salarios[$id_empleado];
-                        $param['tiene_grep'] =      $cortes_empleado['tiene_grep'] ?? 0;
-                        $param['bsp_ant'] =         $cortes_empleado['val_bsp'] ?? 0;
-                        $param['pri_ser_ant'] =     $cortes_empleado['val_liq_ps'] ?? 0;
-                        $param['pri_vac_ant'] =     $cortes_empleado['val_liq_pv'] ?? 0;
-                        $param['pri_nav_ant'] =     $cortes_empleado['val_liq'] ?? 0;
-                        $param['prom_horas'] =      $cortes_empleado['prom'] ?? 0;
+                        $param['id_empleado'] = $id_empleado;
+                        $param['salario'] = $salarios[$id_empleado];
+                        $param['tiene_grep'] = $cortes_empleado['tiene_grep'] ?? 0;
+                        $param['bsp_ant'] = $cortes_empleado['val_bsp'] ?? 0;
+                        $param['pri_ser_ant'] = $cortes_empleado['val_liq_ps'] ?? 0;
+                        $param['pri_vac_ant'] = $cortes_empleado['val_liq_pv'] ?? 0;
+                        $param['pri_nav_ant'] = $cortes_empleado['val_liq'] ?? 0;
+                        $param['prom_horas'] = $cortes_empleado['prom'] ?? 0;
                     } else if ($opcion == 1) {
                         $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
                     }
 
-                    $param['aux_trans'] =   $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
-                    $param['aux_alim'] =    $salarios[$id_empleado] <= $param['base_alim'] ? $parametro[3] : 0;
-                    $tipo_emp =             $empleados[$id_empleado]['tipo_empleado'];
+                    $param['aux_trans'] = $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
+                    $param['aux_alim'] = $salarios[$id_empleado] <= $param['base_alim'] ? $parametro[3] : 0;
+                    $tipo_emp = $empleados[$id_empleado]['tipo_empleado'];
 
                     if ($tipo_emp == 12 || $tipo_emp == 8) {
-                        $param['aux_trans'] =   0;
-                        $param['aux_alim'] =    0;
+                        $param['aux_trans'] = 0;
+                        $param['aux_alim'] = 0;
                     }
 
                     if ($opcion == 0) {
@@ -317,13 +318,13 @@ class Cesantias
 
                     $neto = 0;
                     $data = [
-                        'id_empleado'   =>  $id_empleado,
-                        'id_nomina'     =>  $id_nomina,
-                        'metodo_pago'   =>  $mpago[$id_empleado],
-                        'val_liq'       =>  $neto,
-                        'forma_pago'    =>  1,
-                        'sal_base'      =>  $salarios[$id_empleado],
-                        'id_contrato'   =>  $contratos[$id_empleado],
+                        'id_empleado' => $id_empleado,
+                        'id_nomina' => $id_nomina,
+                        'metodo_pago' => $mpago[$id_empleado],
+                        'val_liq' => $neto,
+                        'forma_pago' => 1,
+                        'sal_base' => $salarios[$id_empleado],
+                        'id_contrato' => $contratos[$id_empleado],
                     ];
                     $response = (new Liquidacion($this->conexion))->LiquidaSalarioNeto($data);
                     if (!$response['insert']) {
@@ -389,7 +390,7 @@ class Cesantias
         return 'No se ha implementado eliminar aún';
         try {
             $sql = "DELETE FROM `nom_indemniza_vac` WHERE `id_indemniza` = ?";
-            $consulta  = "DELETE FROM `nom_indemniza_vac` WHERE `id_indemniza` = $id";
+            $consulta = "DELETE FROM `nom_indemniza_vac` WHERE `id_indemniza` = $id";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->execute();
@@ -519,40 +520,47 @@ class Cesantias
      */
     public function calcularDias($fI, $fF, $id)
     {
-        $fechaInicial = strtotime($fI);
-        $fechaFinal = strtotime($fF);
-        $dias360 = 0;
-        if (!($fechaInicial > $fechaFinal)) {
-            while ($fechaInicial < $fechaFinal) {
-                $dias360 += 30; // Agregar 30 días por cada mes
-                $fechaInicial = strtotime('+1 month', $fechaInicial);
-            }
+        $fi = new DateTime($fI);
+        $ff = new DateTime($fF);
 
-            // Agregar los días restantes después del último mes completo
-            $dias360 += ($fechaFinal - $fechaInicial) / (60 * 60 * 24);
-            $dias360 = $dias360 + 1;
+        $d1 = (int) $fi->format('d');
+        $m1 = (int) $fi->format('m');
+        $y1 = (int) $fi->format('Y');
+
+        $d2 = (int) $ff->format('d');
+        $m2 = (int) $ff->format('m');
+        $y2 = (int) $ff->format('Y');
+
+        if ($d1 == 31)
+            $d1 = 30;
+        if ($d2 == 31)
+            $d2 = 30;
+
+        if ($d2 < $d1) {
+            $d2 = 30;
         }
+
+        $dias360 = (($y2 - $y1) * 360) +
+            (($m2 - $m1) * 30) +
+            ($d2 - $d1);
+
         try {
-            $sql = "SELECT
-                        SUM(`dias_inactivo`) AS `dias`
-                    FROM
-                        `nom_licenciasnr`
-                    WHERE ((`fec_inicio` BETWEEN ? AND ?) OR (`fec_fin` BETWEEN ? AND ?)) AND `id_empleado` = ?";
+            $sql = "SELECT SUM(`dias_inactivo`) AS `dias`
+                FROM `nom_licenciasnr`
+                WHERE ((`fec_inicio` BETWEEN ? AND ?) 
+                OR (`fec_fin` BETWEEN ? AND ?)) 
+                AND `id_empleado` = ?";
+
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bindParam(1, $fI, PDO::PARAM_STR);
-            $stmt->bindParam(2, $fF, PDO::PARAM_STR);
-            $stmt->bindParam(3, $fI, PDO::PARAM_STR);
-            $stmt->bindParam(4, $fF, PDO::PARAM_STR);
-            $stmt->bindParam(5, $id, PDO::PARAM_INT);
-            $stmt->execute();
+            $stmt->execute([$fI, $fF, $fI, $fF, $id]);
+
             $dias = $stmt->fetch(PDO::FETCH_ASSOC);
             $dlcnr = !empty($dias) ? $dias['dias'] : 0;
-            $stmt->closeCursor();
-            unset($stmt);
+
         } catch (PDOException $e) {
             $dlcnr = 0;
         }
-        $dias360 = $dias360 > $dlcnr ? $dias360 - $dlcnr : 0;
-        return $dias360;
+
+        return $dias360 > $dlcnr ? $dias360 - $dlcnr : 0;
     }
 }

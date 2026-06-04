@@ -50,10 +50,10 @@ class NominaElectronicaService
      */
     public function __construct(PDO $conexion, int $idUser)
     {
-        $this->conexion    = $conexion;
-        $this->idUser      = $idUser;
-        $this->repository  = new NominaRepository($conexion);
-        $this->builder     = new NominaBuilder();
+        $this->conexion = $conexion;
+        $this->idUser = $idUser;
+        $this->repository = new NominaRepository($conexion);
+        $this->builder = new NominaBuilder();
     }
 
     /**
@@ -65,9 +65,9 @@ class NominaElectronicaService
      */
     public function enviarNominaElectronica(int $idNomina, string $anio): array
     {
-        $procesado   = 0;
+        $procesado = 0;
         $incorrectos = 0;
-        $errores     = [];
+        $errores = [];
 
         try {
             // 1. Nonce (se actualiza fuera de transacción, igual que documento soporte)
@@ -78,7 +78,7 @@ class NominaElectronicaService
 
             // 3. Datos de la nómina
             $nomina = $this->repository->getNominaData($idNomina);
-            $mes    = $nomina['mes'];   // '01' .. '12'
+            $mes = $nomina['mes'];   // '01' .. '12'
             $fecLiq = date('Y-m-d', strtotime($nomina['fec_reg']));
 
             // 4. Calcular período del mes
@@ -89,11 +89,11 @@ class NominaElectronicaService
 
             if (empty($detalles)) {
                 return [
-                    'value'       => 'ok',
-                    'msg'         => 'No hay empleados liquidados en esta nómina',
-                    'procesados'  => 0,
+                    'value' => 'ok',
+                    'msg' => 'No hay empleados liquidados en esta nómina',
+                    'procesados' => 0,
                     'incorrectos' => 0,
-                    'errores'     => [],
+                    'errores' => [],
                 ];
             }
 
@@ -105,7 +105,12 @@ class NominaElectronicaService
 
             // 8. Horas extra (indexadas por id_empleado)
             $todasHorasExtra = $this->repository->getHorasExtra($idNomina);
-            $horasExtraIdx   = $this->indexarPorEmpleado($todasHorasExtra);
+            $horasExtraIdx = $this->indexarPorEmpleado($todasHorasExtra);
+
+            // 8b. Detalle de libranzas, embargos y sindicatos (indexados por id_empleado)
+            $libranzasIdx = $this->repository->getLibranzasDetalle($idNomina);
+            $embargosIdx = $this->repository->getEmbargosDetalle($idNomina);
+            $sindicatosIdx = $this->repository->getSindicatosDetalle($idNomina);
 
             // 9. Autenticar en Taxxa
             $this->taxxaService = new TaxxaService(
@@ -117,7 +122,7 @@ class NominaElectronicaService
             $this->taxxaService->authenticate();
 
             // Preparar fecha e índice del loop
-            $hoy   = date('Y-m-d');
+            $hoy = date('Y-m-d');
             $indice = 1;
 
             // 10. Procesar cada empleado
@@ -142,14 +147,24 @@ class NominaElectronicaService
 
                 // Obtener consecutivo actual
                 $consecutivo = $this->repository->getConsecutivo();
-                $numero      = $anio . $mes . str_pad($consecutivo, 3, '0', STR_PAD_LEFT);
+                $numero = $anio . $mes . str_pad($consecutivo, 3, '0', STR_PAD_LEFT);
 
                 // Construir el jPayroll para ESTE empleado
                 $this->builder->reset()
                     ->setEnvironment(self::ENTORNO)
                     ->setPeriodo($fecInicio, $fecFin, $hoy)
                     ->setEmployer($empresa)
-                    ->addWorker($empleado, $hoexEmpleado, $bancariaEmpleado, self::TIPO_REF, $numero, $indice);
+                    ->addWorker(
+                        $empleado,
+                        $hoexEmpleado,
+                        $bancariaEmpleado,
+                        self::TIPO_REF,
+                        $numero,
+                        $indice,
+                        $libranzasIdx[$idEmp] ?? [],
+                        $embargosIdx[$idEmp] ?? [],
+                        $sindicatosIdx[$idEmp] ?? []
+                    );
 
                 $jPayroll = $this->builder->build();
 
@@ -161,7 +176,7 @@ class NominaElectronicaService
 
                 if (isset($response['rerror']) && $response['rerror'] == 0) {
                     // Éxito: guardar hash y referencia
-                    $shash      = $response['aresult'][$indicene]['shash'] ?? '';
+                    $shash = $response['aresult'][$indicene]['shash'] ?? '';
                     $sreference = $response['aresult'][$indicene]['sreference'] ?? (self::TIPO_REF . '-' . $numero);
 
                     try {
@@ -183,8 +198,12 @@ class NominaElectronicaService
                     // Error de Taxxa
                     $incorrectos++;
                     $msgError = $this->extraerMensajeError($response);
+                    // Si no había smessage útil, adjuntar la respuesta cruda para diagnóstico
+                    if ($msgError === 'Error desconocido') {
+                        $msgError .= ' | Respuesta: ' . json_encode($response, JSON_UNESCAPED_UNICODE);
+                    }
                     $errores[] = "Empleado #{$idEmp} ({$empleado['nombre1']} {$empleado['apellido1']}): "
-                               . "Error " . ($response['rerror'] ?? '?') . " - " . $msgError;
+                        . "Error " . ($response['rerror'] ?? '?') . " - " . $msgError;
                 }
             }
 
@@ -196,11 +215,11 @@ class NominaElectronicaService
             }
 
             return [
-                'value'       => 'ok',
-                'msg'         => "Se procesaron <b>{$procesado}</b> soporte(s) de nómina electrónica",
-                'procesados'  => $procesado,
+                'value' => 'ok',
+                'msg' => "Se procesaron <b>{$procesado}</b> soporte(s) de nómina electrónica",
+                'procesados' => $procesado,
                 'incorrectos' => $incorrectos,
-                'errores'     => $errores,
+                'errores' => $errores,
             ];
 
         } catch (Exception $e) {
@@ -214,11 +233,11 @@ class NominaElectronicaService
             }
 
             return [
-                'value'       => 'Error',
-                'msg'         => $e->getMessage(),
-                'procesados'  => $procesado,
+                'value' => 'Error',
+                'msg' => $e->getMessage(),
+                'procesados' => $procesado,
                 'incorrectos' => $incorrectos,
-                'errores'     => $errores,
+                'errores' => $errores,
             ];
         }
     }
@@ -237,17 +256,17 @@ class NominaElectronicaService
     {
         $payload = [
             'sToken' => $this->taxxaService->getToken(),
-            'jApi'   => [
+            'jApi' => [
                 'sMethod' => 'classTaxxa.fjPayrollAdd',
                 'jParams' => [
-                    'bAsync'   => false,
+                    'bAsync' => false,
                     'jPayroll' => $jPayroll,
                 ]
             ]
         ];
 
         $endpoint = $this->taxxaService->getEndpoint();
-        $jsonData  = json_encode($payload);
+        $jsonData = json_encode($payload);
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $endpoint);
@@ -329,8 +348,10 @@ class NominaElectronicaService
     }
 
     /**
-     * Extrae el mensaje de error de la respuesta de Taxxa
-     * La nómina puede retornar el mensaje en smessage como string
+     * Extrae el mensaje de error de la respuesta de Taxxa.
+     * smessage puede ser un string simple o un array anidado
+     * (ej: {"aWorkers": {"key": ["mensaje de validación"]}}).
+     * Se serializa con json_encode para no perder el detalle.
      */
     private function extraerMensajeError(array $response): string
     {
@@ -340,7 +361,8 @@ class NominaElectronicaService
                 return $msg;
             }
             if (is_array($msg)) {
-                return implode('; ', array_filter($msg));
+                // Serializar el array completo para ver el error real de Taxxa
+                return json_encode($msg, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
             }
         }
         return 'Error desconocido';

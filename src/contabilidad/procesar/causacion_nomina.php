@@ -74,6 +74,7 @@ function indexarOtrosDevengadosNomina($otrosDevengados)
             'documento' => $otroDevengado['documento'] ?? '',
             'rubro' => isset($otroDevengado['rubro']) ? (int) $otroDevengado['rubro'] : 0,
             'cuenta' => isset($otroDevengado['cuenta']) ? (int) $otroDevengado['cuenta'] : 0,
+            'id_tipo_devengado' => isset($otroDevengado['id_tipo_devengado']) ? (int) $otroDevengado['id_tipo_devengado'] : 0,
             'valor' => isset($otroDevengado['valor']) ? (float) $otroDevengado['valor'] : 0,
         ];
     }
@@ -148,6 +149,7 @@ try {
                 `nom_tipo_rubro`.`id_rubro`
                 , `nom_rel_rubro`.`id_tipo`
                 , `nom_tipo_rubro`.`nombre`
+                , `nom_tipo_rubro`.`id_devengado`
                 , `nom_rel_rubro`.`r_admin`
                 , `nom_rel_rubro`.`r_operativo`
                 , `nom_rel_rubro`.`id_ccosto`
@@ -172,6 +174,7 @@ try {
                 `nom_causacion`.`id_causacion`
                 , `nom_causacion`.`centro_costo`
                 , `nom_causacion`.`id_tipo`
+                , `nom_tipo_rubro`.`id_devengado`
                 , `nom_tipo_rubro`.`nombre`
                 , `nom_causacion`.`cuenta`
                 , `nom_causacion`.`detalle`
@@ -543,21 +546,24 @@ try {
                 $credito = 0;
                 $tipo = $ca['id_tipo'];
                 $cuenta = $ca['cuenta'];
-                if ((int) $tipo === 34) {
+                if ((int) $tipo >= 34) {
+                    $id_devengado_rel = $ca['id_devengado'];
                     if (!empty($otrosDevengadosEmpleado)) {
                         foreach ($otrosDevengadosEmpleado as $otroDevengado) {
-                            $valor = $otroDevengado['valor'] / $num_ccostos;
-                            $cuenta = $otroDevengado['cuenta'];
-                            if ($valor > 0 && !($cuenta > 0)) {
-                                throw new Exception(
-                                    'No existe cuenta contable configurada en el tipo de otros devengados para el empleado ' .
-                                    ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
-                                );
-                            }
-                            if ($valor > 0 && $cuenta != '') {
-                                $sql1->execute();
-                                if (!($cmd->lastInsertId() > 0)) {
-                                    throw new Exception($sql1->errorInfo()[2]);
+                            if ($otroDevengado['id_tipo_devengado'] == $id_devengado_rel) {
+                                $valor = $otroDevengado['valor'] / $num_ccostos;
+                                $cuenta = $ca['cuenta'];
+                                if ($valor > 0 && !($cuenta > 0)) {
+                                    throw new Exception(
+                                        'No existe cuenta contable configurada en el tipo de causación (débito) para el empleado ' .
+                                        ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                                    );
+                                }
+                                if ($valor > 0 && $cuenta != '') {
+                                    $sql1->execute();
+                                    if (!($cmd->lastInsertId() > 0)) {
+                                        throw new Exception($sql1->errorInfo()[2]);
+                                    }
                                 }
                             }
                         }
@@ -798,9 +804,6 @@ try {
                             $restar = 0;
                         }
                         break;
-                    case 34:
-                        $credito = $dd['valor_otros'];
-                        break;
                     case 33:
                         if (!empty($dcto)) {
                             foreach ($dcto as $dc) {
@@ -817,6 +820,29 @@ try {
                         $credito = 0;
                         break;
                     default:
+                        if ($tipo >= 34) {
+                            $id_devengado_rel = $cp['id_devengado'];
+                            if (!empty($otrosDevengadosEmpleado)) {
+                                foreach ($otrosDevengadosEmpleado as $otroDevengado) {
+                                    if ($otroDevengado['id_tipo_devengado'] == $id_devengado_rel) {
+                                        $credito = $otroDevengado['valor'];
+                                        $cuenta = $cp['cuenta'];
+                                        if ($credito > 0 && !($cuenta > 0)) {
+                                            throw new Exception(
+                                                'No existe cuenta contable configurada en la causación (pasivo) para el devengado del empleado ' .
+                                                ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                                            );
+                                        }
+                                        if ($credito > 0 && $cuenta != '') {
+                                            $sql1->execute();
+                                            if (!($cmd->lastInsertId() > 0)) {
+                                                throw new Exception($sql1->errorInfo()[2]);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         $credito = 0;
                         break;
                 }
