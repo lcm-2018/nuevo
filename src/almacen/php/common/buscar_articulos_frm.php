@@ -62,6 +62,12 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
                 <div class="row mb-2">
                     <div class="col-md-2">
                         <div class="form-control form-control-sm bg-input">
+                            <input class="form-check-input" type="checkbox" id="chk_con_lot_fil" checked>
+                            <label class="form-check-label small" for="chk_con_lot_fil">CON Lotes</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-control form-control-sm bg-input">
                             <input class="filtro_art form-check-input" type="checkbox" id="chk_novencido_lot_fil" checked>
                             <label class="filtro_art form-check-label small" for="chk_novencido_lot_fil">NO Vencidos</label>
                         </div>
@@ -117,6 +123,7 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
                         data.id_subgrupo = $('#sl_subgrupo_art_fil').val();
                         data.codigo = $('#txt_codigo_art_fil').val();
                         data.nombre = $('#txt_nombre_art_fil').val();
+                        data.con_lotes = $('#chk_con_lot_fil').is(':checked') ? 1 : 0;
                         data.no_vencidos = $('#chk_novencido_lot_fil').is(':checked') ? 1 : 0;
                         data.con_existencia = $('#chk_conexistencia_lot_fil').is(':checked') ? 1 : 0;
                     }
@@ -162,7 +169,7 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
     })(jQuery);
 
     //Buascar registros de articulos de Articulos
-    $('#btn_buscar_articulo_fil').on("click", function() {
+    $('#btn_buscar_articulo_fil').on("click", function() {  
         $('#tb_articulos_bodega').DataTable().ajax.reload(null, false);
     });
 
@@ -178,6 +185,14 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
 
     $('#sl_clinico_fil').on("change", function() {
         sessionStorage.setItem("es_clinico", $(this).val());
+    });
+
+    $('#chk_con_lot_fil').on('change', function() {
+        if (!this.checked) {
+            $('#chk_novencido_lot_fil').prop('checked', false);
+            $('#chk_conexistencia_lot_fil').prop('checked', false);            
+        }       
+        $('#tb_articulos_bodega').DataTable().ajax.reload(null, false);
     });
 
 </script>

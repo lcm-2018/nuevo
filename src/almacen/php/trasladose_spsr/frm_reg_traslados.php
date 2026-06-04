@@ -179,7 +179,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     <div class="col-md-3">
                         <label for="sl_bodega_destino" class="small">Bodega Destino</label>
                         <select class="form-select form-select-sm bg-input" id="sl_bodega_destino" name="sl_bodega_destino" <?php echo $editar ?>>
-                            <?php bodegas_sede($cmd, '', $obj['id_sede_destino'], $obj['id_bodega_destino']) ?>
+                            <?php bodegas_farmacia_principal($cmd, '', $obj['id_sede_destino'], $obj['id_bodega_destino']) ?>
                         </select>
                         <input type="hidden" id="id_bodega_destino" name="id_bodega_destino" value="<?php echo $obj['id_bodega_destino'] ?>">
                     </div>

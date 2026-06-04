@@ -30,7 +30,7 @@ if (empty($obj)) {
         $obj[$name] = NULL;
     endfor;
     //Inicializa variable por defecto
-    $bodega = bodega_principal($cmd);
+    $bodega = bodega_principal_general($cmd);
     $obj['id_bodega_origen'] = $bodega['id_bodega'];
     $obj['nom_bodega_origen'] = $bodega['nom_bodega'];
     $obj['id_sede_origen'] = $bodega['id_sede'];
@@ -108,7 +108,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     <div class="col-md-3">
                         <label for="sl_bodega_solicitante" class="small">Bodega DE donde se Solicita</label>
                         <select class="form-select form-select-sm bg-input" id="sl_bodega_solicitante" name="sl_bodega_solicitante">
-                            <?php bodegas_usuario($cmd, '', $obj['id_sede_destino'], $obj['id_bodega_destino']) ?>
+                            <?php bodegas_farmacia_principal($cmd, '', $obj['id_sede_destino'], $obj['id_bodega_destino']) ?>
                         </select>
                         <input type="hidden" id="id_bodega_solicitante" name="id_bodega_solicitante" value="<?php echo $obj['id_bodega_destino'] ?>">
                     </div>

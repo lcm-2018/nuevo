@@ -31,7 +31,7 @@ try {
 
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    $bodega = bodega_principal($cmd);
+    $bodega = bodega_principal_general($cmd);
     $id_bodega_origen = $bodega['id_bodega'] ? $bodega['id_bodega'] : 0;
 
     $where_usr = " WHERE far_pedido.es_pedido_spsr=1 AND far_pedido.id_bodega_origen=$id_bodega_origen";

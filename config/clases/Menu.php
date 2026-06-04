@@ -718,14 +718,14 @@ class Menu
         // 5006: [Movimientos][Ingresos]
         if ($this->permisos->PermisosUsuario($this->opciones, 5006, 0) || $this->id_rol == 1) {
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/ingresos/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-door-open me-2 fa-fw"></i> Ingresos</a></li>';
+        }        
+        // 5008: [Movimientos][Traslados]
+        if ($this->permisos->PermisosUsuario($this->opciones, 5008, 0) || $this->id_rol == 1) {
+            $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-exchange-alt me-2 fa-fw"></i> Traslados</a></li>';
         }
         // 5007: [Movimientos][Egresos]
         if ($this->permisos->PermisosUsuario($this->opciones, 5007, 0) || $this->id_rol == 1) {
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/egresos/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-sign-out-alt me-2 fa-fw"></i> Egresos</a></li>';
-        }
-        // 5008: [Movimientos][Traslados]
-        if ($this->permisos->PermisosUsuario($this->opciones, 5008, 0) || $this->id_rol == 1) {
-            $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-exchange-alt me-2 fa-fw"></i> Traslados</a></li>';
         }
         // 5017: [Movimientos][Traslado SPSR]
         /*if ($this->permisos->PermisosUsuario($this->opciones, 5017, 0) || $this->id_rol == 1) {

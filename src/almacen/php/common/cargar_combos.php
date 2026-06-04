@@ -145,6 +145,34 @@ function bodegas_usuario($cmd, $titulo = '', $idsede = 0, $id = 0)
     }
 }
 
+function bodegas_farmacia_principal($cmd, $titulo = '', $idsede = 0, $id = 0)
+{
+    try {
+        echo '<option value="">' . $titulo . '</option>';
+        if ($idsede != 0) {
+             $sql = "SELECT far_bodegas.id_bodega,far_bodegas.nombre FROM far_bodegas
+                INNER JOIN tb_sedes_bodega ON (tb_sedes_bodega.id_bodega=far_bodegas.id_bodega)
+                WHERE tb_sedes_bodega.id_sede=$idsede AND far_bodegas.tipo=1
+                ORDER BY far_bodegas.nombre";
+            $rs = $cmd->query($sql);
+            $objs = $rs->fetchAll();
+            $rs->closeCursor();
+            unset($rs);
+            foreach ($objs as $obj) {
+                if ($obj['id_bodega']  == $id) {
+                    echo '<option value="' . $obj['id_bodega'] . '" selected="selected">' . $obj['nombre'] . '</option>';
+                } else {
+                    echo '<option value="' . $obj['id_bodega'] . '">' . $obj['nombre'] . '</option>';
+                }
+            }
+            $cmd = null;
+        }
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    }
+}
+
+
 function centros_costo($cmd, $titulo = '', $id = 0)
 {
     try {
