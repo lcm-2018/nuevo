@@ -1749,10 +1749,12 @@ class Liquidacion
                             FROM `nom_liq_horex` `l`
                                 INNER JOIN `nom_horas_ex_trab` `h` ON `l`.`id_he_lab` = `h`.`id_he_trab`
                                 INNER JOIN `nom_nominas` `n` ON `l`.`id_nomina` = `n`.`id_nomina`
-                                INNER JOIN `t2` ON `h`.`id_empleado` = `t2`.`id_empleado`
-                            WHERE `l`.`estado` = 1 AND `n`.`estado` = 5 AND `h`.`fec_inicio` BETWEEN `t2`.`corte_ces` AND '$ffin'
-                            AND `n`.`id_nomina` AND `l`.`estado` = 1
-                            IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
+                                INNER JOIN `ctt` ON `h`.`id_empleado` = `ctt`.`id_empleado`
+                                INNER JOIN `nom_contratos_empleados` `ct` ON `ct`.`id_contrato_emp` = `ctt`.`contrato`
+                                LEFT JOIN `t2` ON `h`.`id_empleado` = `t2`.`id_empleado`
+                            WHERE `l`.`estado` = 1 AND `n`.`estado` = 5 
+                            AND `h`.`fec_inicio` BETWEEN IFNULL(`t2`.`corte_ces`, `ct`.`fec_inicio`) AND '$ffin'
+                            AND `n`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
                             GROUP BY `h`.`id_empleado`)
                     SELECT
                         `e`.`id_empleado`,
@@ -1903,6 +1905,8 @@ class Liquidacion
         $dliq = $filtro['dias_liquidar'];
         $corte = $filtro['corte'];
         $id_nomina = $param['id_nomina'];
+        $dhabiles = $dhabiles > 15 ? 15 : $dhabiles;
+        $dinactiv = $dinactiv > 22 ? 22 : $dinactiv;
 
         $prima_vac_dia = ($base * $dhabiles) / (30 * 360);
         $prima_vac = Valores::Redondear($prima_vac_dia * $dliq);
@@ -2028,7 +2032,7 @@ class Liquidacion
         $salbas = $param['salario'];
         $id_empleado = $param['id_empleado'];
         $cant_dias = $dliq;
-        $grepre = ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
+        $grepre = $param['tiene_grep'] == 1 ? $param['grep'] : 0;
         $auxtra = $param['aux_trans'];
         $auxali = $param['aux_alim'];
         $bspant = floatval($param['bsp_ant'] ?? 0);
@@ -2040,7 +2044,7 @@ class Liquidacion
         $corte = $param['corte_psv'] ?? NULL;
         $id_nomina = $param['id_nomina'];
 
-        $cesantia_dia = $base / 320;
+        $cesantia_dia = $base / 360;
         $val_cesantias = Valores::Redondear($cesantia_dia * $dliq);
         $val_icesantias = Valores::Redondear($val_cesantias * 0.12);
 

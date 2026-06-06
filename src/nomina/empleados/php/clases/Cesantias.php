@@ -523,6 +523,10 @@ class Cesantias
         $fi = new DateTime($fI);
         $ff = new DateTime($fF);
 
+        if ($fi->format('Y-m-d') === $ff->format('Y-m-d')) {
+            return 0;
+        }
+
         $d1 = (int) $fi->format('d');
         $m1 = (int) $fi->format('m');
         $y1 = (int) $fi->format('Y');
@@ -531,18 +535,25 @@ class Cesantias
         $m2 = (int) $ff->format('m');
         $y2 = (int) $ff->format('Y');
 
-        if ($d1 == 31)
+        if ($d1 == 31) {
             $d1 = 30;
-        if ($d2 == 31)
-            $d2 = 30;
-
-        if ($d2 < $d1) {
+        }
+        if ($d2 == 31) {
             $d2 = 30;
         }
 
-        $dias360 = (($y2 - $y1) * 360) +
-            (($m2 - $m1) * 30) +
-            ($d2 - $d1);
+        // Ajuste para que febrero se considere de 30 días
+        $lastDayFeb1 = (int) $fi->format('t');
+        if ($m1 == 2 && $d1 == $lastDayFeb1) {
+            $d1 = 30;
+        }
+        
+        $lastDayFeb2 = (int) $ff->format('t');
+        if ($m2 == 2 && $d2 == $lastDayFeb2) {
+            $d2 = 30;
+        }
+
+        $dias360 = (($y2 - $y1) * 360) + (($m2 - $m1) * 30) + ($d2 - $d1) + 1;
 
         try {
             $sql = "SELECT SUM(`dias_inactivo`) AS `dias`

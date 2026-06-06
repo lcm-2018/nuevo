@@ -310,6 +310,8 @@ class Prestaciones_Sociales
                     }
                     $param['id_nomina'] = $id_nomina;
 
+                    $param['prom_horas'] = $cortes_empleado['prom'] ?? 0;
+
                     $tipo_emp = $empleados[$id_empleado]['tipo_empleado'];
                     $subtipo_emp = $empleados[$id_empleado]['subtipo_empleado'];
 
@@ -482,7 +484,7 @@ class Prestaciones_Sociales
                         throw new Exception("Cesantias Mes: {$response['msg']}");
                     }
 
-                    $baseDctos = $valTotalLab + $valCompensa + $valAuxTrans + $valAuxAlim + $valTotSegSoc + $valPriSer + $valPriNav + $valCes + $valIntCes + $valTotalHe + $valTotVac + $valTotalBSP + $valTotPrimVac + $valBonRec + $grepre + $valTotalViaticos - ($valTotSegSoc ?? 0);
+                    $baseDctos = $valTotalLab + $valCompensa + $valAuxTrans + $valAuxAlim + $valPriSer + $valPriNav + $valCes + $valIntCes + $valTotalHe + $valTotVac + $valTotalBSP + $valTotPrimVac + $valBonRec + $grepre + $valTotalViaticos - ($valTotSegSoc ?? 0);
 
                     //otros descuentos
                     $filtro = $otrosDctos[$id_empleado] ?? [];
