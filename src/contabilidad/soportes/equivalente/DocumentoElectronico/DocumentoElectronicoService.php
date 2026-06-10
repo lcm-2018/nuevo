@@ -482,6 +482,36 @@ class DocumentoElectronicoService
                 'msg' => json_encode('Documento enviado correctamente'),
                 'data' => $response['data']
             ];
+        } else if ($response['error'] === 2) {
+            // Documento ya fue procesado anteriormente, consultar para obtener el CUFE
+            try {
+                $consulta = $this->taxxaService->getDocument($numero);
+
+                if ($consulta['error'] === 0) {
+                    $hash = $consulta['data']['shash'] ?? '';
+                    $referencia = $numero;
+
+                    if ($idSoporte !== null) {
+                        $this->repository->actualizarSoporte($idSoporte, $hash, $referencia, $idDocumento, $this->idUser);
+                    }
+
+                    return [
+                        'value' => 'ok',
+                        'msg' => json_encode('Documento ya estaba enviado, CUFE actualizado correctamente'),
+                        'data' => $consulta['data']
+                    ];
+                }
+
+                return [
+                    'value' => 'Error',
+                    'msg' => 'Documento ya procesado pero no se pudo obtener el CUFE: ' . $consulta['message']
+                ];
+            } catch (Exception $e) {
+                return [
+                    'value' => 'Error',
+                    'msg' => 'Error al consultar documento existente: ' . $e->getMessage()
+                ];
+            }
         } else {
             return [
                 'value' => 'Error',

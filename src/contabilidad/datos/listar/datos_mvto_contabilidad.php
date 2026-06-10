@@ -14,8 +14,7 @@ use Src\Common\Php\Clases\Permisos;
 
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_user);
-//aumentar memoria  toda 
-ini_set('memory_limit', '-1');
+
 // Div de acciones de la lista
 $id_ctb_doc = $_POST['id_doc'];
 $anulados = $_POST['anulados'];
@@ -54,66 +53,8 @@ if (isset($_POST['estado']) && strlen($_POST['estado'])) {
 }
 
 //-------------------------------------------------------------------------
-
-try {
-    $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT
-                `pto_crp`.`id_manu` AS `id_crp`
-                , `ctb_doc`.`id_ctb_doc`
-                , `ctb_doc`.`id_manu`
-                , `ctb_factura`.`id_tipo_doc` AS `tipo`
-                , `ctb_factura`.`id_cta_factura` AS `id_fac`
-                , `ctb_doc`.`fecha`
-                , `ctb_doc`.`detalle`
-                , `ctb_doc`.`id_tercero`
-                , `tb_terceros`.`nom_tercero`
-                , `tb_terceros`.`nit_tercero`
-                , `ctb_doc`.`estado`
-                , `ctb_fuente`.`cod`
-                , `ctb_fuente`.`nombre`
-                , `pag`.`id_ctb_doc` AS `pag`
-                , `tb_terceros`.`nom_tercero` AS `nom_tercero`
-                , `tb_terceros`.`nit_tercero` AS `nit_tercero`
-            FROM
-                `ctb_doc`
-                LEFT JOIN `ctb_fuente` 
-                    ON (`ctb_doc`.`id_tipo_doc` = `ctb_fuente`.`id_doc_fuente`)
-                LEFT JOIN `pto_cop_detalle` 
-                    ON (`pto_cop_detalle`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                LEFT JOIN `pto_crp_detalle` 
-                    ON (`pto_cop_detalle`.`id_pto_crp_det` = `pto_crp_detalle`.`id_pto_crp_det`)
-                LEFT JOIN `pto_crp` 
-                    ON (`pto_crp_detalle`.`id_pto_crp` = `pto_crp`.`id_pto_crp`)
-                LEFT JOIN `tb_terceros` 
-                    ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
-                LEFT JOIN `ctb_factura` 
-                    ON (`ctb_factura`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                LEFT JOIN 
-                    (SELECT
-                        `pto_cop_detalle`.`id_ctb_doc`
-                    FROM
-                        `pto_pag_detalle`
-                        INNER JOIN `pto_cop_detalle` 
-                            ON (`pto_pag_detalle`.`id_pto_cop_det` = `pto_cop_detalle`.`id_pto_cop_det`)
-                        INNER JOIN `ctb_doc`
-                            ON (`pto_pag_detalle`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                    WHERE `ctb_doc`.`estado` > 0
-                    GROUP BY `pto_cop_detalle`.`id_ctb_doc`) AS `pag`
-                    ON (`pag`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-            WHERE (`ctb_doc`.`id_tipo_doc` = $id_ctb_doc AND `ctb_doc`.`id_vigencia` = $id_vigencia) $andwhere
-            GROUP BY `ctb_doc`.`id_ctb_doc`
-            ORDER BY $col $dir $limit";
-    $rs = $cmd->query($sql);
-    $listappto = $rs->fetchAll();
-    $rs->closeCursor();
-    unset($rs);
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
-try {
-    $sql = "SELECT
-                COUNT(DISTINCT `ctb_doc`.`id_ctb_doc`) AS `total`
-            FROM
+// Definir la parte FROM/WHERE compartida para evitar repetir los JOINs
+$fromJoins = "FROM
                 `ctb_doc`
                 LEFT JOIN `ctb_fuente` 
                     ON (`ctb_doc`.`id_tipo_doc` = `ctb_fuente`.`id_doc_fuente`)
@@ -140,83 +81,116 @@ try {
                     GROUP BY `pto_cop_detalle`.`id_ctb_doc`) AS `pag`
                     ON (`pag`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
             WHERE (`ctb_doc`.`id_tipo_doc` = $id_ctb_doc AND `ctb_doc`.`id_vigencia` = $id_vigencia) $andwhere";
+
+$whereBase = "WHERE (`ctb_doc`.`id_tipo_doc` = $id_ctb_doc AND `ctb_doc`.`id_vigencia` = $id_vigencia)";
+
+try {
+    $cmd = \Config\Clases\Conexion::getConexion();
+    
+    // 1. Consulta principal paginada
+    $sql = "SELECT
+                `pto_crp`.`id_manu` AS `id_crp`
+                , `ctb_doc`.`id_ctb_doc`
+                , `ctb_doc`.`id_manu`
+                , `ctb_factura`.`id_tipo_doc` AS `tipo`
+                , `ctb_factura`.`id_cta_factura` AS `id_fac`
+                , `ctb_doc`.`fecha`
+                , `ctb_doc`.`detalle`
+                , `ctb_doc`.`id_tercero`
+                , `tb_terceros`.`nom_tercero`
+                , `tb_terceros`.`nit_tercero`
+                , `ctb_doc`.`estado`
+                , `ctb_fuente`.`cod`
+                , `ctb_fuente`.`nombre`
+                , `pag`.`id_ctb_doc` AS `pag`
+                , `tb_terceros`.`nom_tercero` AS `nom_tercero`
+                , `tb_terceros`.`nit_tercero` AS `nit_tercero`
+            $fromJoins
+            GROUP BY `ctb_doc`.`id_ctb_doc`
+            ORDER BY $col $dir $limit";
+    $rs = $cmd->query($sql);
+    $listappto = $rs->fetchAll();
+    $rs->closeCursor();
+    unset($rs);
+    
+    // 2. Conteo con filtros aplicados (recordsFiltered)
+    $sql = "SELECT COUNT(DISTINCT `ctb_doc`.`id_ctb_doc`) AS `total` $fromJoins";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
     $totalRecordsFilter = $total['total'];
-    $sql = "SELECT
-                COUNT(DISTINCT `ctb_doc`.`id_ctb_doc`) AS `total`
-            FROM
-                `ctb_doc`
-                LEFT JOIN `ctb_fuente` 
-                    ON (`ctb_doc`.`id_tipo_doc` = `ctb_fuente`.`id_doc_fuente`)
-                LEFT JOIN `pto_cop_detalle` 
-                    ON (`pto_cop_detalle`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                LEFT JOIN `pto_crp_detalle` 
-                    ON (`pto_cop_detalle`.`id_pto_crp_det` = `pto_crp_detalle`.`id_pto_crp_det`)
-                LEFT JOIN `pto_crp` 
-                    ON (`pto_crp_detalle`.`id_pto_crp` = `pto_crp`.`id_pto_crp`)
-                LEFT JOIN `tb_terceros` 
-                    ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
-                LEFT JOIN `ctb_factura` 
-                    ON (`ctb_factura`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                LEFT JOIN 
-                    (SELECT
-                        `pto_cop_detalle`.`id_ctb_doc`
-                    FROM
-                        `pto_pag_detalle`
-                        INNER JOIN `pto_cop_detalle` 
-                            ON (`pto_pag_detalle`.`id_pto_cop_det` = `pto_cop_detalle`.`id_pto_cop_det`)
-                        INNER JOIN `ctb_doc`
-                            ON (`pto_pag_detalle`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                    WHERE `ctb_doc`.`estado` > 0
-                    GROUP BY `pto_cop_detalle`.`id_ctb_doc`) AS `pag`
-                    ON (`pag`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-            WHERE (`ctb_doc`.`id_tipo_doc` = $id_ctb_doc AND `ctb_doc`.`id_vigencia` = $id_vigencia)";
+    $rs->closeCursor();
+    unset($rs);
+    
+    // 3. Conteo total sin filtros adicionales (recordsTotal) - consulta simplificada
+    $sql = "SELECT COUNT(*) AS `total` FROM `ctb_doc` $whereBase";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
     $totalRecords = $total['total'];
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
-// consultar la fecha de cierre del periodo del módulo de presupuesto 
-$fecha_cierre = fechaCierre($_SESSION['vigencia'], 55, $cmd);
-// consulto la diferencia de la suma debito credito de la tabla ctb_libaux
-try {
-    $sql = "SELECT
-                `id_ctb_doc`
-                ,SUM(`debito`) AS `debito`
-                , SUM(`credito`) AS `credito`
-                , SUM(`debito` - `credito`) AS `diferencia`
-            FROM
-                `ctb_libaux`
-            GROUP BY `id_ctb_doc`";
-    $rs = $cmd->query($sql);
-    $diferencias = $rs->fetchAll();
     $rs->closeCursor();
     unset($rs);
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
-$inicia = $_SESSION['vigencia'] . '-01-01';
-$termina = $_SESSION['vigencia'] . '-12-31';
-try {
-    $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT
-                `id_soporte`, `id_factura_no`, `shash`, `referencia`, `fecha`
-            FROM
-                `seg_soporte_fno`
-            WHERE (`fecha` BETWEEN '$inicia' AND '$termina')";
-    $rs = $cmd->query($sql);
-    $equivalente = $rs->fetchAll();
-    $rs->closeCursor();
-    unset($rs);
+    
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 
-// Crear lookup tables indexadas para búsquedas O(1) en lugar de O(n)
-$diferenciasLookup = array_column($diferencias, null, 'id_ctb_doc');
-$equivalenteLookup = array_column($equivalente, null, 'id_factura_no');
+// consultar la fecha de cierre del periodo del módulo de presupuesto 
+$fecha_cierre = fechaCierre($_SESSION['vigencia'], 55, $cmd);
+
+// Extraer los IDs de los documentos de la página actual para filtrar consultas secundarias
+$ids_pagina = [];
+if (!empty($listappto)) {
+    foreach ($listappto as $lp) {
+        $ids_pagina[] = intval($lp['id_ctb_doc']);
+    }
+}
+
+$diferenciasLookup = [];
+$equivalenteLookup = [];
+
+if (!empty($ids_pagina)) {
+    $idsIn = implode(',', $ids_pagina);
+    
+    // consulto la diferencia de la suma debito credito de la tabla ctb_libaux
+    // SOLO para los documentos de la página actual
+    try {
+        $sql = "SELECT
+                    `id_ctb_doc`
+                    ,SUM(`debito`) AS `debito`
+                    , SUM(`credito`) AS `credito`
+                    , SUM(`debito` - `credito`) AS `diferencia`
+                FROM
+                    `ctb_libaux`
+                WHERE `id_ctb_doc` IN ($idsIn)
+                GROUP BY `id_ctb_doc`";
+        $rs = $cmd->query($sql);
+        $diferencias = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
+        // Crear lookup table indexada para búsquedas O(1)
+        $diferenciasLookup = array_column($diferencias, null, 'id_ctb_doc');
+        unset($diferencias);
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    }
+    
+    // Consultar equivalentes electrónicos SOLO para los documentos de la página actual
+    try {
+        $sql = "SELECT
+                    `id_soporte`, `id_factura_no`, `shash`, `referencia`, `fecha`
+                FROM
+                    `seg_soporte_fno`
+                WHERE `id_factura_no` IN ($idsIn)";
+        $rs = $cmd->query($sql);
+        $equivalente = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
+        // Crear lookup table indexada para búsquedas O(1)
+        $equivalenteLookup = array_column($equivalente, null, 'id_factura_no');
+        unset($equivalente);
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    }
+}
 
 $data = [];
 if (!empty($listappto)) {

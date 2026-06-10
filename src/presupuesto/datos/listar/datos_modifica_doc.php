@@ -41,9 +41,12 @@ try {
                     ON (`pto_mod`.`id_tipo_mod` = `pto_tipo_mvto`.`id_tmvto`)
                 INNER JOIN `pto_actos_admin` 
                     ON (`pto_mod`.`id_tipo_acto` = `pto_actos_admin`.`id_acto`)
-                INNER JOIN `pto_presupuestos` 
-                    ON (`pto_mod`.`id_pto` = `pto_presupuestos`.`id_pto`)
-            WHERE `pto_mod`.`id_tipo_mod` = $tipo_doc AND `pto_presupuestos`.`id_vigencia` = $id_vigencia
+            WHERE `pto_mod`.`id_tipo_mod` = $tipo_doc 
+                AND EXISTS (
+                    SELECT 1 FROM `pto_presupuestos` 
+                    WHERE `pto_presupuestos`.`id_pto` = `pto_mod`.`id_pto` 
+                        AND `pto_presupuestos`.`id_vigencia` = $id_vigencia
+                )
             ORDER BY `pto_mod`.`id_manu` ASC";
     $rs = $cmd->query($sql);
     $listappto = $rs->fetchAll(PDO::FETCH_ASSOC);
