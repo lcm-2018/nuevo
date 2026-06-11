@@ -157,6 +157,21 @@ if ($id_cta_factura == 0) {
 } else {
     try {
         $num_doc = $_POST['numFac'];
+
+        // Obtener id_ctb_doc y num_doc actual del registro existente
+        $sqlGetDoc = "SELECT `id_ctb_doc`, `num_doc` AS `num_doc_actual`, `id_tipo_doc` AS `tipo_doc_actual` FROM `ctb_factura` WHERE `id_cta_factura` = ?";
+        $stmtGetDoc = $cmd->prepare($sqlGetDoc);
+        $stmtGetDoc->bindParam(1, $id_cta_factura, PDO::PARAM_INT);
+        $stmtGetDoc->execute();
+        $datosExistente = $stmtGetDoc->fetch();
+        $id_ctb_doc_existente = $datosExistente['id_ctb_doc'];
+
+        // Para tipo documento 3 (doc equivalente), NO permitir cambiar el num_doc
+        // El consecutivo se asignó al crear y no debe modificarse
+        if ($id_tipo_doc == '3' && !empty($datosExistente['num_doc_actual'])) {
+            $num_doc = $datosExistente['num_doc_actual'];
+        }
+
         $sql = "UPDATE `ctb_factura`
                     SET `id_tipo_doc` = ?, `num_doc` = ?, `fecha_fact` = ?, `fecha_ven` = ?, `valor_pago` = ?, `valor_iva` = ?, `valor_base` = ?, `detalle` = ?
                 WHERE `id_cta_factura` = ?";
@@ -196,9 +211,10 @@ if ($id_cta_factura == 0) {
                     $referencia = $pref . '-' . $numeroSolo;
 
                     // Verificar si ya existe registro en seg_soporte_fno con tipo = 0
+                    // Usar id_ctb_doc (no id_cta_factura) para consistencia con el INSERT
                     $sqlVerifSoporte = "SELECT COUNT(*) as existe FROM `seg_soporte_fno` WHERE `id_factura_no` = ? AND `tipo` = 0";
                     $stmtVerifSoporte = $cmd->prepare($sqlVerifSoporte);
-                    $stmtVerifSoporte->bindParam(1, $id_cta_factura, PDO::PARAM_INT);
+                    $stmtVerifSoporte->bindParam(1, $id_ctb_doc_existente, PDO::PARAM_INT);
                     $stmtVerifSoporte->execute();
                     $existeSoporte = $stmtVerifSoporte->fetch();
 
@@ -207,14 +223,15 @@ if ($id_cta_factura == 0) {
                         $sqlSoporte = "UPDATE `seg_soporte_fno` SET `referencia` = ? WHERE `id_factura_no` = ? AND `tipo` = 0";
                         $stmtSoporte = $cmd->prepare($sqlSoporte);
                         $stmtSoporte->bindParam(1, $referencia, PDO::PARAM_STR);
-                        $stmtSoporte->bindParam(2, $id_cta_factura, PDO::PARAM_INT);
+                        $stmtSoporte->bindParam(2, $id_ctb_doc_existente, PDO::PARAM_INT);
                         $stmtSoporte->execute();
                     } else {
-                        // Insertar nuevo registro con tipo = 0 (valor por defecto)
-                        $sqlSoporte = "INSERT INTO `seg_soporte_fno` (`id_factura_no`, `referencia`, `tipo`) VALUES (?, ?, 0)";
+                        // Insertar nuevo registro con tipo = 0
+                        $sqlSoporte = "INSERT INTO `seg_soporte_fno` (`id_factura_no`, `referencia`, `tipo`, `fecha`) VALUES (?, ?, 0, ?)";
                         $stmtSoporte = $cmd->prepare($sqlSoporte);
-                        $stmtSoporte->bindParam(1, $id_cta_factura, PDO::PARAM_INT);
+                        $stmtSoporte->bindParam(1, $id_ctb_doc_existente, PDO::PARAM_INT);
                         $stmtSoporte->bindParam(2, $referencia, PDO::PARAM_STR);
+                        $stmtSoporte->bindParam(3, $fecha_fact, PDO::PARAM_STR);
                         $stmtSoporte->execute();
                     }
                 }

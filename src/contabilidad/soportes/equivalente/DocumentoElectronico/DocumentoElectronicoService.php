@@ -69,13 +69,16 @@ class DocumentoElectronicoService
             $soporteExistente = $this->repository->getSoporteExistente($idDocumento);
             $secuencia = intval($resolucion['consecutivo']);
             $idSoporte = null;
+            $isNew = true;
 
             if ($soporteExistente) {
+                // Ya existe soporte: usar la secuencia almacenada previamente
                 $dato = explode('-', $soporteExistente['referencia']);
                 $secuencia = intval($dato[1]);
                 $idSoporte = $soporteExistente['id_soporte'];
+                $isNew = false;
             } else {
-                // Crear nuevo soporte
+                // Crear nuevo soporte con el consecutivo de la resolución
                 $referencia = $resolucion['prefijo'] . '-' . $secuencia;
                 $idSoporte = $this->repository->crearSoporte(
                     $idDocumento,
@@ -95,13 +98,14 @@ class DocumentoElectronicoService
                 'classTaxxa.fjDocumentExternalAdd'
             );
 
-            // 8. Procesar respuesta
+            // 8. Procesar respuesta (solo actualiza consecutivo/num_doc si es nuevo)
             $result = $this->procesarRespuesta(
                 $response,
                 $idSoporte,
                 $idDocumento,
                 $resolucion,
-                $secuencia
+                $secuencia,
+                $isNew
             );
 
             // 9. Guardar log
@@ -390,7 +394,7 @@ class DocumentoElectronicoService
      * @param int $secuencia Secuencia utilizada
      * @return array Resultado procesado
      */
-    private function procesarRespuesta(array $response, int $idSoporte, int $idDocumento, array $resolucion, int $secuencia): array
+    private function procesarRespuesta(array $response, int $idSoporte, int $idDocumento, array $resolucion, int $secuencia, bool $isNew = true): array
     {
         $numero = $resolucion['prefijo'] . $secuencia;
 
@@ -400,8 +404,13 @@ class DocumentoElectronicoService
             $referencia = $response['data']['sdocumentreference'] ?? $numero;
 
             $this->repository->actualizarSoporte($idSoporte, $hash, $referencia, $idDocumento, $this->idUser);
-            $this->repository->actualizarConsecutivo($resolucion['id_resol'], $secuencia + 1);
-            $this->repository->actualizarNumeroFactura($idDocumento, $numero);
+
+            // Solo actualizar consecutivo de resolución y num_doc si el soporte es nuevo
+            // Si ya existía, el consecutivo ya fue consumido previamente
+            if ($isNew) {
+                $this->repository->actualizarConsecutivo($resolucion['id_resol'], $secuencia + 1);
+                $this->repository->actualizarNumeroFactura($idDocumento, $numero);
+            }
 
             return [
                 'value' => 'ok',
