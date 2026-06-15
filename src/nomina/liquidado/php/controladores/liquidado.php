@@ -124,8 +124,16 @@ switch ($action) {
                 }
                 break;
             case 2:
+                $nominaActual = (new Nomina())->getRegistro($_POST['id_nomina']);
+                $codigoNomina = $nominaActual['tipo'] ?? '';
+                $liquidaTodos = in_array($codigoNomina, ['N', 'PS', 'RA', 'IN']);
+                $liquidaPrimaServicio = $liquidaTodos || $codigoNomina == 'PV';
+                $liquidaPrimaNavidad = $liquidaTodos || $codigoNomina == 'PN';
+                $liquidaCesantias = $liquidaTodos || in_array($codigoNomina, ['CE', 'IC']);
+                $liquidaBsp = $liquidaTodos;
+                $liquidaVacaciones = $liquidaTodos || $codigoNomina == 'VC';
+
                 $id             = (new Valores_Liquidacion($conexion))->getRegistroLiq($_POST);
-                $_POST['id']    = $id;
                 $val_liq        = (new Valores_Liquidacion($conexion))->editRegistroLiq($_POST);
                 if ($val_liq == 'si') {
                     $suma++;
@@ -137,7 +145,7 @@ switch ($action) {
                 }
                 //primas
                 $Primas         = new Primas($conexion);
-                if ($_POST['valor_ps'] >= 0) {
+                if ($liquidaPrimaServicio && $_POST['valor_ps'] >= 0) {
                     $id             = $Primas->getRegistroLiq1($_POST);
                     $data           = [
                         'id_empleado'   => $id_empleado,
@@ -164,7 +172,7 @@ switch ($action) {
                         exit(json_encode($Servicio));
                     }
                 }
-                if ($_POST['valor_pv'] >= 0) {
+                if ($liquidaPrimaNavidad && $_POST['valor_pv'] >= 0) {
                     $id             = $Primas->getRegistroLiq2($_POST);
                     $data           = [
                         'id_empleado'   => $id_empleado,
@@ -192,7 +200,7 @@ switch ($action) {
                     }
                 }
                 //Cesantías
-                if ($_POST['val_cesantias'] >= 0) {
+                if ($liquidaCesantias && $_POST['val_cesantias'] >= 0) {
                     $Cesantias      = new Cesantias($conexion);
                     $id             = $Cesantias->getRegistroLiq($_POST);
                     $data = [
@@ -220,12 +228,13 @@ switch ($action) {
                     }
                 }
                 //BSP
-                $BSP            = new Bsp($conexion);
-                $data           = $BSP->getRegistroLiq($_POST);
-                $id             = $data['id'];
-                $val            = $data['valor'];
-                if ($id > 0 && $val != $_POST['valor_bsp']) {
-                    $data = [
+                if ($liquidaBsp) {
+                    $BSP            = new Bsp($conexion);
+                    $data           = $BSP->getRegistroLiq($_POST);
+                    $id             = $data['id'];
+                    $val            = $data['valor'];
+                    if ($id > 0 && $val != $_POST['valor_bsp']) {
+                        $data = [
                         'numValor'      => $_POST['valor_bsp'],
                         'datFecCorte'   => $_POST['corte_bsp'],
                         'tipo'          => 'M',
@@ -256,17 +265,19 @@ switch ($action) {
                     } else {
                         $conexion->rollBack();
                         exit(json_encode($bsp));
+                        }
                     }
                 }
                 //Vacaciones
-                $Vacaciones     = new Vacaciones($conexion);
-                $data           = $Vacaciones->getRegistroLiq($_POST);
-                $id             = $data['id'];
-                $valVac         = $data['val_vac'];
-                $valPrima       = $data['prima_vac'];
-                $valBonif       = $data['bon_recrea'];
-                if ($id > 0 && ($valVac != $_POST['valor_vacacion'] || $valPrima != $_POST['val_prima_vac'] || $valBonif != $_POST['val_bon_recrea'])) {
-                    $data = [
+                if ($liquidaVacaciones) {
+                    $Vacaciones     = new Vacaciones($conexion);
+                    $data           = $Vacaciones->getRegistroLiq($_POST);
+                    $id             = $data['id'];
+                    $valVac         = $data['val_vac'];
+                    $valPrima       = $data['prima_vac'];
+                    $valBonif       = $data['bon_recrea'];
+                    if ($id > 0 && ($valVac != $_POST['valor_vacacion'] || $valPrima != $_POST['val_prima_vac'] || $valBonif != $_POST['val_bon_recrea'])) {
+                        $data = [
                         'val_vac'      => $_POST['valor_vacacion'],
                         'prima_vac'    => $_POST['val_prima_vac'],
                         'bon_recrea'   => $_POST['val_bon_recrea'],
@@ -281,6 +292,7 @@ switch ($action) {
                     } else if ($vac != 'no') {
                         $conexion->rollBack();
                         exit(json_encode($vac));
+                        }
                     }
                 }
                 //Anular
@@ -297,16 +309,41 @@ switch ($action) {
                         exit(json_encode($resul));
                     }
                     if ($suma > 0) {
-                        $Liquidacion = new Liquidacion($conexion);
+                        $stmtTipo = $conexion->prepare("SELECT `id_tipo` FROM `nom_tipo_liquidacion` WHERE `codigo` = ? LIMIT 1");
+                        $stmtTipo->execute([$codigoNomina]);
+                        $id_tipo_nomina = $stmtTipo->fetchColumn() ?: 2;
+
                         $array = [
                             'chk_liquidacion' => [0  => $id_empleado],
                             'id_contrato'     => [$id_empleado => $_POST['id_contrato']],
                             'lab'             => [$id_empleado => $_POST['dias_lab']],
                             'metodo'          => [$id_empleado => $_POST['metodo_pago']],
-                            'tipo'            => 2,
+                            'tipo'            => $id_tipo_nomina,
                             'mes'             => $_POST['mes'],
                         ];
-                        $rstd = $Liquidacion->addRegistro($array, 1);
+
+                        switch ($codigoNomina) {
+                            case 'PV':
+                            case 'PN':
+                                $Clase = new Primas($conexion);
+                                $rstd = $Clase->addRegistroPsPn($array, 1);
+                                break;
+                            case 'CE':
+                            case 'IC':
+                                $Clase = new Cesantias($conexion);
+                                $rstd = $Clase->addRegistroN($array, 1);
+                                break;
+                            case 'VC':
+                                $Clase = new Vacaciones($conexion);
+                                $rstd = $Clase->addRegistroNoVc($array, 1);
+                                break;
+                            default:
+                                $array['tipo'] = 2; // Mantener el comportamiento original para los demas
+                                $Liquidacion = new Liquidacion($conexion);
+                                $rstd = $Liquidacion->addRegistro($array, 1);
+                                break;
+                        }
+
                         if ($rstd == 'si') {
                             $suma++;
                             //echo 'Recalculada liquidación.';

@@ -497,29 +497,154 @@ class Detalles
         $datos = $this->getRegistrosDT(1, -1, ['id_empleado' => $id_empleado, 'id_nomina' => $id_nomina], 1, 'ASC');
         $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
         $estado = $datos['estado_nomina'];
-        $uno = $item == 1 ? 'show' : '';
-        $dos = $item == 2 ? 'show' : '';
-        $tres = $item == 3 ? 'show' : '';
-        $cuatro = $item == 4 ? 'show' : '';
+        $codigo = $datos['codigo_nomina'] ?? '';
+        // Códigos que muestran todos los items del acordeón
+        $mostrarTodos = in_array($codigo, ['N', 'PS', 'RA']);
+
+        if ($mostrarTodos) {
+            $uno = $item == 1 ? 'show' : '';
+            $dos = $item == 2 ? 'show' : '';
+            $tres = $item == 3 ? 'show' : '';
+            $cuatro = $item == 4 ? 'show' : '';
+        } else {
+            // Solo se muestra Prestaciones Sociales, siempre expandido
+            $uno = '';
+            $dos = 'show';
+            $tres = '';
+            $cuatro = '';
+        }
         $boton1 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarSalarios">Guardar y Reliquidar</button>' : '';
         $boton2 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarPretaciones">Guardar y Reliquidar</button>' : '';
         $boton3 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarParafiscales">Guardar</button>' : '';
         $boton4 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarDctos">Guardar</button>' : '';
         $dataid = base64_encode($id_empleado . '|' . $id_nomina);
-        $html =
-            <<<HTML
-                <div>
-                    <div class="shadow text-center rounded">
-                        <div class="rounded-top py-2" style="background-color: #16a085 !important;">
-                            <h5 style="color: white;" class="mb-0"><b>EMPLEADO:</b> {$datos['nombre']}</h5>
-                        </div>
-                        <div class="p-3">
-                            <input type="hidden" id="id_empleado" name="id_empleado" value="{$id_empleado}">
-                            <div class="accordion" id="acordeonDetallesNom">
-                                <div class="text-end mb-2">
-                                    <button type="button" class="btn btn-outline-warning btn-sm" id="btnImprimir" title="Imprimir desprendible de nómina" data-id="{$dataid}"><i class="fas fa-print"></i></button>
-                                    <button type="button" class="btn btn-outline-info btn-sm" id="btnEnviarCorreo" title="Enviar desprendible por correo" data-id="{$dataid}"><i class="fas fa-envelope"></i></button>
-                                </div>
+        $codigosPrestacionesParciales = ['VC', 'PV', 'PN', 'CE', 'IC'];
+        $mostrarPrestacionesCompletas = !in_array($codigo, $codigosPrestacionesParciales);
+        $mostrarBsp = $mostrarPrestacionesCompletas;
+        $mostrarPrimaServicios = $mostrarPrestacionesCompletas || $codigo == 'PV';
+        $mostrarPrimaNavidad = $mostrarPrestacionesCompletas || $codigo == 'PN';
+        $mostrarCesantias = $mostrarPrestacionesCompletas || $codigo == 'CE';
+        $mostrarInteresCesantias = $mostrarPrestacionesCompletas || $codigo == 'IC';
+        $mostrarVacaciones = $mostrarPrestacionesCompletas || $codigo == 'VC';
+        $htmlHiddenPrestaciones = '';
+        $htmlFilasValoresLiquidados = '';
+        $htmlTablaValoresLiquidados = '';
+        $htmlVacaciones = '';
+
+        if ($codigo == 'CE') {
+            $htmlHiddenPrestaciones .= '<input type="hidden" name="val_icesantias" value="' . $datos['val_icesantias'] . '">';
+        } else if ($codigo == 'IC') {
+            $htmlHiddenPrestaciones .= '<input type="hidden" name="val_cesantias" value="' . $datos['val_cesantias'] . '">';
+            $htmlHiddenPrestaciones .= '<input type="hidden" name="corte_ces" value="' . $datos['corte_ces'] . '">';
+            $htmlHiddenPrestaciones .= '<input type="hidden" name="dias_ces" value="' . $datos['dias_ces'] . '">';
+        }
+
+        if ($mostrarBsp) {
+            $htmlFilasValoresLiquidados .= <<<BSP
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">BonificaciÃ³n Servicios Prestados <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_bsp" value="{$datos['val_bsp']}"></td>
+                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_bsp" value="{$datos['corte_bsp']}"></td>
+                                                                    <td>-</td>
+                                                                </tr>
+BSP;
+        }
+
+        if ($mostrarPrimaServicios) {
+            $htmlFilasValoresLiquidados .= <<<PRIMA_SERVICIOS
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Prima de Servicios <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_ps" value="{$datos['valor_ps']}"></td>
+                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_ps" value="{$datos['corte_ps']}"></td>
+                                                                    <td title="Dias liquidados"><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_ps" value="{$datos['dias_ps']}"></td>
+                                                                </tr>
+PRIMA_SERVICIOS;
+        }
+
+        if ($mostrarPrimaNavidad) {
+            $htmlFilasValoresLiquidados .= <<<PRIMA_NAVIDAD
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Prima de Navidad <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_pv" value="{$datos['valor_pv']}"></td>
+                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_pn" value="{$datos['corte_pn']}"></td>
+                                                                    <td title="Dias liquidados"><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_pn" value="{$datos['dias_pn']}"></td>
+                                                                </tr>
+PRIMA_NAVIDAD;
+        }
+
+        if ($mostrarCesantias) {
+            $htmlFilasValoresLiquidados .= <<<CESANTIAS
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">CesantÃ­as <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_cesantias" value="{$datos['val_cesantias']}"></td>
+                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_ces" value="{$datos['corte_ces']}"></td>
+                                                                    <td title="Dias liquidados"><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_ces" value="{$datos['dias_ces']}"></td>
+                                                                </tr>
+CESANTIAS;
+        }
+
+        if ($mostrarInteresCesantias) {
+            $htmlFilasValoresLiquidados .= <<<INTERES_CESANTIAS
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Interes CesantÃ­as <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_icesantias" value="{$datos['val_icesantias']}"></td>
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                </tr>
+INTERES_CESANTIAS;
+        }
+
+        if ($htmlFilasValoresLiquidados != '') {
+            $htmlTablaValoresLiquidados = <<<VALORES_LIQUIDADOS
+                                                        <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th class="bg-sofia">CONCEPTO</th>
+                                                                    <th class="bg-sofia">VALOR</th>
+                                                                    <th class="bg-sofia">CORTE</th>
+                                                                    <th class="bg-sofia">DIAS</th>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th class="bg-sofia" colspan="4">Valores Liquidados</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+{$htmlFilasValoresLiquidados}
+                                                            </tbody>
+                                                        </table>
+VALORES_LIQUIDADOS;
+        }
+
+        if ($mostrarVacaciones) {
+            $htmlVacaciones = <<<VACACIONES
+                                                        <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th class="bg-sofia" colspan="2">VACACIONES</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Vacaciones <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_vacacion" value="{$datos['valor_vacacion']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">Prima de vacaciones <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_prima_vac" value="{$datos['val_prima_vac']}"></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="ps-4 text-start">BonificaciÃ³n de recreaciÃ³n <strong>(Actual)</strong></td>
+                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_bon_recrea" value="{$datos['val_bon_recrea']}"></td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+VACACIONES;
+        }
+
+        // Acordeón Item 1: Sueldos y Salarios (solo si mostrarTodos)
+        $htmlSalarios = '';
+        if ($mostrarTodos) {
+            $htmlSalarios = <<<SALARIOS
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
                                         <button class="accordion-button sombra  bg-head-button border" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
@@ -591,6 +716,153 @@ class Detalles
                                         </div>
                                     </div>
                                 </div>
+SALARIOS;
+        }
+
+        // Acordeón Item 3: Seguridad Social y Parafiscales (solo si mostrarTodos)
+        $htmlParafiscales = '';
+        if ($mostrarTodos) {
+            $htmlParafiscales = <<<PARAFISCALES
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button sombra bg-head-button border collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                            Seguridad Social y Parafiscales.
+                                        </button>
+                                    </h2>
+                                    <div id="collapseThree" class="accordion-collapse collapse {$tres}" data-bs-parent="#acordeonDetallesNom">
+                                        <div class="accordion-body">
+                                            <form id="formParafiscalesLiq">
+                                                <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="bg-sofia">CONCEPTO</th>
+                                                            <th class="bg-sofia">VALOR</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Salud empleado <strong>4%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_salud" value="{$datos['valor_salud']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Salud patronal <strong>8.5%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_salud_empresa" value="{$datos['val_salud_empresa']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Pensión empleado <strong>4%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_pension" value="{$datos['valor_pension']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Pensión patronal <strong>12%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_pension_empresa" value="{$datos['val_pension_empresa']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Pensión solidaria</td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_pension_solidaria" value="{$datos['val_psolidaria']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Riesgo Laboral</td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_riesgo_laboral" value="{$datos['val_rieslab']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">SENA <strong>2%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_sena" value="{$datos['val_sena']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">ICBF <strong>3%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_icbf" value="{$datos['val_icbf']}"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Caja Compensación <strong>4%</strong></td>
+                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_caja_compensacion" value="{$datos['val_comfam']}"></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </form>
+                                            <div class="mt-3 text-center">
+                                                {$boton3}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+PARAFISCALES;
+        }
+
+        // Acordeón Item 4: Deducciones (solo si mostrarTodos)
+        $htmlDeducciones = '';
+        if ($mostrarTodos) {
+            $htmlDeducciones = <<<DEDUCCIONES
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button sombra bg-head-button border collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                            Deducciones.
+                                        </button>
+                                    </h2>
+                                    <div id="collapseFour" class="accordion-collapse collapse {$cuatro}" data-bs-parent="#acordeonDetallesNom">
+                                        <div class="accordion-body">
+                                            <form id="formDctosLiq">
+                                                <table id="tableDctosLiq" class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="bg-sofia">CONCEPTO</th>
+                                                            <th class="bg-sofia">VALOR</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Libranzas</td>
+                                                            <td class="pe-4 text-end">{$datos['valor_libranza']}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Embargos</td>
+                                                            <td class="pe-4 text-end">{$datos['valor_embargo']}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Sindicato</td>
+                                                            <td class="pe-4 text-end">{$datos['valor_sind']}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Otros Descuentos</td>
+                                                            <td class="pe-4 text-end">{$datos['valor_dcto']}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Base de retención en la fuente</td>
+                                                            <td>
+                                                                <input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" id="base_retencion" name="base_retencion" value="{$datos['base_retencion']}">
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="ps-4 text-start">Valor retención</td>
+                                                            <td>
+                                                                <input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" id="valor_retencion" name="valor_retencion" value="{$datos['val_retencion']}">
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </form>
+                                            <div class="mt-3 text-center">
+                                                {$boton4}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+DEDUCCIONES;
+        }
+        $html =
+            <<<HTML
+                <div>
+                    <div class="shadow text-center rounded">
+                        <div class="rounded-top py-2" style="background-color: #16a085 !important;">
+                            <h5 style="color: white;" class="mb-0"><b>EMPLEADO:</b> {$datos['nombre']}</h5>
+                        </div>
+                        <div class="p-3">
+                            <input type="hidden" id="id_empleado" name="id_empleado" value="{$id_empleado}">
+                            <div class="accordion" id="acordeonDetallesNom">
+                                <div class="text-end mb-2">
+                                    <button type="button" class="btn btn-outline-warning btn-sm" id="btnImprimir" title="Imprimir desprendible de nómina" data-id="{$dataid}"><i class="fas fa-print"></i></button>
+                                    <button type="button" class="btn btn-outline-info btn-sm" id="btnEnviarCorreo" title="Enviar desprendible por correo" data-id="{$dataid}"><i class="fas fa-envelope"></i></button>
+                                </div>
+                                {$htmlSalarios}
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
                                         <button class="accordion-button sombra bg-head-button border collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
@@ -674,73 +946,9 @@ class Detalles
                                                         </table>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th class="bg-sofia">CONCEPTO</th>
-                                                                    <th class="bg-sofia">VALOR</th>
-                                                                    <th class="bg-sofia">CORTE</th>
-                                                                    <th class="bg-sofia">DIAS</th>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th class="bg-sofia" colspan="4">Valores Liquidados</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td class="ps-4 text-start">Bonificación Servicios Prestados <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_bsp" value="{$datos['val_bsp']}"></td>
-                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_bsp" value="{$datos['corte_bsp']}"></td>
-                                                                    <td>-</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="ps-4 text-start">Prima de Servicios <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_ps" value="{$datos['valor_ps']}"></td>
-                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_ps" value="{$datos['corte_ps']}"></td>
-                                                                    <td title="Dias liquidados"><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_ps" value="{$datos['dias_ps']}"></td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="ps-4 text-start">Prima de Navidad <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_pv" value="{$datos['valor_pv']}"></td>
-                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_pn" value="{$datos['corte_pn']}"></td>
-                                                                    <td title="Dias liquidados"><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_pn" value="{$datos['dias_pn']}"></td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="ps-4 text-start">Cesantías <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_cesantias" value="{$datos['val_cesantias']}"></td>
-                                                                    <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_ces" value="{$datos['corte_ces']}"></td>
-                                                                    <td title="Dias liquidados"><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_ces" value="{$datos['dias_ces']}"></td>
-                                                                </tr>
-                                                                 <tr>
-                                                                    <td class="ps-4 text-start">Interes Cesantías <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_icesantias" value="{$datos['val_icesantias']}"></td>
-                                                                    <td></td>
-                                                                    <td></td>
-                                                                </tr>
-
-                                                            </tbody>
-                                                        </table>
-                                                        <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th class="bg-sofia" colspan="2">VACACIONES</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td class="ps-4 text-start">Vacaciones <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_vacacion" value="{$datos['valor_vacacion']}"></td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="ps-4 text-start">Prima de vacaciones <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_prima_vac" value="{$datos['val_prima_vac']}"></td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="ps-4 text-start">Bonificación de recreación <strong>(Actual)</strong></td>
-                                                                    <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_bon_recrea" value="{$datos['val_bon_recrea']}"></td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
+                                                        {$htmlHiddenPrestaciones}
+                                                        {$htmlTablaValoresLiquidados}
+                                                        {$htmlVacaciones}
                                                     </div>
                                                 </div>
                                             </form>
@@ -750,122 +958,8 @@ class Detalles
                                         </div>
                                     </div>
                                 </div>
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button sombra bg-head-button border collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                            Seguridad Social y Parafiscales.
-                                        </button>
-                                    </h2>
-                                    <div id="collapseThree" class="accordion-collapse collapse {$tres}" data-bs-parent="#acordeonDetallesNom">
-                                        <div class="accordion-body">
-                                            <form id="formParafiscalesLiq">
-                                                <table class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
-                                                    <thead>
-                                                        <tr>
-                                                            <th class="bg-sofia">CONCEPTO</th>
-                                                            <th class="bg-sofia">VALOR</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Salud empleado <strong>4%</strong></td>
-                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_salud" value="{$datos['valor_salud']}"></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Salud patronal <strong>8.5%</strong></td>
-                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_salud_empresa" value="{$datos['val_salud_empresa']}"></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Pensión empleado <strong>4%</strong></td>
-                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_pension" value="{$datos['valor_pension']}"></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Pensión patronal <strong>12%</strong></td>
-                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_pension_empresa" value="{$datos['val_pension_empresa']}"></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Pensión solidaria</td>
-                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_pension_solidaria" value="{$datos['val_psolidaria']}"></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Riesgo Laboral</td>
-                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_riesgo_laboral" value="{$datos['val_rieslab']}"></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">SENA <strong>2%</strong></td>
-                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_sena" value="{$datos['val_sena']}"></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">ICBF <strong>3%</strong></td>
-                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_icbf" value="{$datos['val_icbf']}"></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Caja Compensación <strong>4%</strong></td>
-                                                            <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_caja_compensacion" value="{$datos['val_comfam']}"></td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </form>
-                                            <div class="mt-3 text-center">
-                                                {$boton3}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button sombra bg-head-button border collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                                            Deducciones.
-                                        </button>
-                                    </h2>
-                                    <div id="collapseFour" class="accordion-collapse collapse {$cuatro}" data-bs-parent="#acordeonDetallesNom">
-                                        <div class="accordion-body">
-                                            <form id="formDctosLiq">
-                                                <table id="tableDctosLiq" class="table table-striped table-bordered table-sm table-hover align-middle shadow w-100">
-                                                    <thead>
-                                                        <tr>
-                                                            <th class="bg-sofia">CONCEPTO</th>
-                                                            <th class="bg-sofia">VALOR</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Libranzas</td>
-                                                            <td class="pe-4 text-end">{$datos['valor_libranza']}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Embargos</td>
-                                                            <td class="pe-4 text-end">{$datos['valor_embargo']}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Sindicato</td>
-                                                            <td class="pe-4 text-end">{$datos['valor_sind']}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Otros Descuentos</td>
-                                                            <td class="pe-4 text-end">{$datos['valor_dcto']}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Base de retención en la fuente</td>
-                                                            <td>
-                                                                <input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" id="base_retencion" name="base_retencion" value="{$datos['base_retencion']}">
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Valor retención</td>
-                                                            <td>
-                                                                <input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" id="valor_retencion" name="valor_retencion" value="{$datos['val_retencion']}">
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </form>
-                                            <div class="mt-3 text-center">
-                                                {$boton4}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                {$htmlParafiscales}
+                                {$htmlDeducciones}
                             </div>
                         </div>
                         <div class="text-end pb-3 px-3">

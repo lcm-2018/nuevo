@@ -330,8 +330,8 @@ class DocumentRepository
     {
         try {
             $sql = "INSERT INTO `seg_soporte_fno` 
-                        (`id_factura_no`, `referencia`, `fecha`, `id_user_reg`, `fec_reg`) 
-                    VALUES (:id_doc, :referencia, :fecha, :id_user, :fec_reg)";
+                        (`id_factura_no`, `referencia`, `fecha`, `id_user_reg`, `fec_reg`, `tipo`) 
+                    VALUES (:id_doc, :referencia, :fecha, :id_user, :fec_reg, 0)";
 
             $stmt = $this->conexion->prepare($sql);
             $stmt->execute([
