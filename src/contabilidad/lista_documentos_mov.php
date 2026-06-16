@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
@@ -141,7 +140,7 @@ if ($tipo_doc == '5') {
 HTML;
 }
 
-// BotÃ³n de consecutivos
+// Botón de consecutivos
 $botonConsecutivos = '';
 if ($tipo_doc > 0) {
     $botonConsecutivos = <<<HTML

@@ -299,25 +299,31 @@ class Prestaciones_Sociales
                         $this->conexion->beginTransaction();
                     }
 
-                    if (isset($uSalarioRA[$id_empleado]) && $uSalarioRA[$id_empleado] > ($uSalario[$id_empleado] ?? 0)) {
-                        $param = (new Valores_Liquidacion())->getRegistro($uSalarioRA[$id_empleado], $id_empleado);
-                    } else {
-                        $param = (new Valores_Liquidacion())->getRegistro($uSalario[$id_empleado], $id_empleado);
-                    }
+                    if ($opcion == 0) {
+                        if (isset($uSalarioRA[$id_empleado]) && $uSalarioRA[$id_empleado] > ($uSalario[$id_empleado] ?? 0)) {
+                            $param = (new Valores_Liquidacion())->getRegistro($uSalarioRA[$id_empleado], $id_empleado);
+                        } else {
+                            $param = (new Valores_Liquidacion())->getRegistro($uSalario[$id_empleado], $id_empleado);
+                        }
 
-                    if ($param['id_nomina'] == 0) {
-                        throw new Exception("No se encontró registro de valores de liquidación");
-                    }
-                    $param['id_nomina'] = $id_nomina;
+                        if ($param['id_nomina'] == 0) {
+                            throw new Exception("No se encontró registro de valores de liquidación");
+                        }
+                        $param['id_nomina'] = $id_nomina;
 
-                    $param['prom_horas'] = $cortes_empleado['prom'] ?? 0;
+                        $param['prom_horas'] = $cortes_empleado['prom'] ?? 0;
 
-                    $tipo_emp = $empleados[$id_empleado]['tipo_empleado'];
-                    $subtipo_emp = $empleados[$id_empleado]['subtipo_empleado'];
+                        $tipo_emp = $empleados[$id_empleado]['tipo_empleado'];
+                        $subtipo_emp = $empleados[$id_empleado]['subtipo_empleado'];
 
-                    $resValLiq = (new Valores_Liquidacion($this->conexion))->addRegistro($param);
-                    if ($resValLiq != 'si') {
-                        throw new Exception("Valores de liquidación: $resValLiq");
+                        $resValLiq = (new Valores_Liquidacion($this->conexion))->addRegistro($param);
+                        if ($resValLiq != 'si') {
+                            throw new Exception("Valores de liquidación: $resValLiq");
+                        }
+                    } else if ($opcion == 1) {
+                        $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
+                        $tipo_emp = $empleados[$id_empleado]['tipo_empleado'];
+                        $subtipo_emp = $empleados[$id_empleado]['subtipo_empleado'];
                     }
 
                     //liquidar Horas extras
@@ -537,8 +543,10 @@ class Prestaciones_Sociales
                     if ($response != 'si') {
                         throw new Exception("Contrato: {$response}");
                     }
-                    if ($this->conexion->inTransaction()) {
-                        $this->conexion->commit();
+                    if ($opcion == 0) {
+                        if ($this->conexion->inTransaction()) {
+                            $this->conexion->commit();
+                        }
                     }
                     $inserts++;
                     unset($filtro, $response);

@@ -45,8 +45,8 @@ class Detalles
             $where .= " AND `e`.`id_empleado` = {$array['id_empleado']}";
         }
 
-        if (isset($array['id_sede']) && (int)$array['id_sede'] > 0) {
-            $where .= " AND `e`.`sede_emp` = " . (int)$array['id_sede'];
+        if (isset($array['id_sede']) && (int) $array['id_sede'] > 0) {
+            $where .= " AND `e`.`sede_emp` = " . (int) $array['id_sede'];
         }
 
         if (isset($array['search']) && $array['search'] != '') {
@@ -55,7 +55,8 @@ class Detalles
 
         // Soporta id_nomina como int único (callers existentes) o array (multi-nómina)
         $rawIds = isset($array['id_nomina']) ? $array['id_nomina'] : 0;
-        if (!is_array($rawIds)) $rawIds = [$rawIds];
+        if (!is_array($rawIds))
+            $rawIds = [$rawIds];
         $ids_in = implode(',', array_map('intval', array_filter($rawIds, function ($v) {
             return intval($v) > 0;
         }))) ?: '0';
@@ -542,7 +543,7 @@ class Detalles
         if ($mostrarBsp) {
             $htmlFilasValoresLiquidados .= <<<BSP
                                                                 <tr>
-                                                                    <td class="ps-4 text-start">BonificaciÃ³n Servicios Prestados <strong>(Actual)</strong></td>
+                                                                    <td class="ps-4 text-start">Bonificación Servicios Prestados <strong>(Actual)</strong></td>
                                                                     <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="valor_bsp" value="{$datos['val_bsp']}"></td>
                                                                     <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_bsp" value="{$datos['corte_bsp']}"></td>
                                                                     <td>-</td>
@@ -575,7 +576,7 @@ PRIMA_NAVIDAD;
         if ($mostrarCesantias) {
             $htmlFilasValoresLiquidados .= <<<CESANTIAS
                                                                 <tr>
-                                                                    <td class="ps-4 text-start">CesantÃ­as <strong>(Actual)</strong></td>
+                                                                    <td class="ps-4 text-start">Cesantas <strong>(Actual)</strong></td>
                                                                     <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_cesantias" value="{$datos['val_cesantias']}"></td>
                                                                     <td title="Fecha de corte"><input type="date" class="no-focus text-end border-0 rounded pe-1 w-100" name="corte_ces" value="{$datos['corte_ces']}"></td>
                                                                     <td title="Dias liquidados"><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="dias_ces" value="{$datos['dias_ces']}"></td>
@@ -586,7 +587,7 @@ CESANTIAS;
         if ($mostrarInteresCesantias) {
             $htmlFilasValoresLiquidados .= <<<INTERES_CESANTIAS
                                                                 <tr>
-                                                                    <td class="ps-4 text-start">Interes CesantÃ­as <strong>(Actual)</strong></td>
+                                                                    <td class="ps-4 text-start">Interes Cesantías <strong>(Actual)</strong></td>
                                                                     <td><input type="number" min="0" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_icesantias" value="{$datos['val_icesantias']}"></td>
                                                                     <td></td>
                                                                     <td></td>
@@ -633,7 +634,7 @@ VALORES_LIQUIDADOS;
                                                                     <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_prima_vac" value="{$datos['val_prima_vac']}"></td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td class="ps-4 text-start">BonificaciÃ³n de recreaciÃ³n <strong>(Actual)</strong></td>
+                                                                    <td class="ps-4 text-start">Bonificación de recreación <strong>(Actual)</strong></td>
                                                                     <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="val_bon_recrea" value="{$datos['val_bon_recrea']}"></td>
                                                                 </tr>
                                                             </tbody>
@@ -791,6 +792,99 @@ PARAFISCALES;
         // Acordeón Item 4: Deducciones (solo si mostrarTodos)
         $htmlDeducciones = '';
         if ($mostrarTodos) {
+            // Fetch Libranzas
+            $sqlLib = "SELECT `nll`.`id_lid_lib` AS `id`, IFNULL(`tb`.`nom_tercero`, `ba`.`nom_banco`) AS `nombre`, `nll`.`val_mes_lib` AS `valor`
+                       FROM `nom_liq_libranza` `nll`
+                       INNER JOIN `nom_libranzas` `nl` ON (`nll`.`id_libranza` = `nl`.`id_libranza`)
+                       INNER JOIN `tb_bancos` `ba` ON (`nl`.`id_banco` = `ba`.`id_banco`)
+                       LEFT JOIN `tb_terceros` `tb` ON (`ba`.`id_tercero_api` = `tb`.`id_tercero_api`)
+                       WHERE `nll`.`id_nomina` = :id_nomina AND `nl`.`id_empleado` = :id_empleado AND `nll`.`estado` = 1 AND `nll`.`val_mes_lib` > 0";
+            $stmtLib = $this->conexion->prepare($sqlLib);
+            $stmtLib->execute(['id_nomina' => $id_nomina, 'id_empleado' => $id_empleado]);
+            $libranzas = $stmtLib->fetchAll(PDO::FETCH_ASSOC);
+            $stmtLib->closeCursor();
+
+            // Fetch Embargos
+            $sqlEmb = "SELECT `nle`.`id_liq_embargo` AS `id`, `ne`.`tipo_embargo` AS `nombre`, `nle`.`val_mes_embargo` AS `valor`
+                       FROM `nom_liq_embargo` `nle`
+                       INNER JOIN `nom_embargos` `ne` ON (`nle`.`id_embargo` = `ne`.`id_embargo`)
+                       WHERE `nle`.`id_nomina` = :id_nomina AND `ne`.`id_empleado` = :id_empleado AND `nle`.`estado` = 1 AND `nle`.`val_mes_embargo` > 0";
+            $stmtEmb = $this->conexion->prepare($sqlEmb);
+            $stmtEmb->execute(['id_nomina' => $id_nomina, 'id_empleado' => $id_empleado]);
+            $embargos = $stmtEmb->fetchAll(PDO::FETCH_ASSOC);
+            $stmtEmb->closeCursor();
+
+            // Fetch Sindicatos
+            $sqlSind = "SELECT `nls`.`id_aporte` AS `id`, 'Sindicato' AS `nombre`, `nls`.`val_aporte` AS `valor`
+                        FROM `nom_liq_sindicato_aportes` `nls`
+                        INNER JOIN `nom_cuota_sindical` `ncs` ON (`nls`.`id_cuota_sindical` = `ncs`.`id_cuota_sindical`)
+                        WHERE `nls`.`id_nomina` = :id_nomina AND `ncs`.`id_empleado` = :id_empleado AND `nls`.`estado` = 1 AND `nls`.`val_aporte` > 0";
+            $stmtSind = $this->conexion->prepare($sqlSind);
+            $stmtSind->execute(['id_nomina' => $id_nomina, 'id_empleado' => $id_empleado]);
+            $sindicatos = $stmtSind->fetchAll(PDO::FETCH_ASSOC);
+            $stmtSind->closeCursor();
+
+            // Fetch Otros Descuentos
+            $sqlDcto = "SELECT `nld`.`id_liq` AS `id`, IFNULL(`ntd`.`descripcion`, `nd`.`concepto`) AS `nombre`, `nld`.`valor` AS `valor`
+                        FROM `nom_liq_descuento` `nld`
+                        INNER JOIN `nom_otros_descuentos` `nd` ON (`nld`.`id_dcto` = `nd`.`id_dcto`)
+                        LEFT JOIN `nom_tipo_descuentos` `ntd` ON (`nd`.`id_tipo_dcto` = `ntd`.`id_tipo`)
+                        WHERE `nld`.`id_nomina` = :id_nomina AND `nd`.`id_empleado` = :id_empleado AND `nld`.`estado` = 1 AND `nld`.`valor` > 0";
+            $stmtDcto = $this->conexion->prepare($sqlDcto);
+            $stmtDcto->execute(['id_nomina' => $id_nomina, 'id_empleado' => $id_empleado]);
+            $descuentos = $stmtDcto->fetchAll(PDO::FETCH_ASSOC);
+            $stmtDcto->closeCursor();
+
+            $filasDeducciones = '';
+            
+            // Generate rows for Libranzas
+            if (empty($libranzas)) {
+                $filasDeducciones .= '<tr><td class="ps-4 text-start">Libranzas</td><td class="pe-4 text-end">0</td></tr>';
+            } else {
+                foreach ($libranzas as $lib) {
+                    $filasDeducciones .= '<tr>
+                        <td class="ps-4 text-start">Libranza: ' . htmlspecialchars($lib['nombre']) . '</td>
+                        <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="libranza[' . $lib['id'] . ']" value="' . $lib['valor'] . '"></td>
+                    </tr>';
+                }
+            }
+
+            // Generate rows for Embargos
+            if (empty($embargos)) {
+                $filasDeducciones .= '<tr><td class="ps-4 text-start">Embargos</td><td class="pe-4 text-end">0</td></tr>';
+            } else {
+                foreach ($embargos as $emb) {
+                    $filasDeducciones .= '<tr>
+                        <td class="ps-4 text-start">Embargo: ' . htmlspecialchars($emb['nombre']) . '</td>
+                        <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="embargo[' . $emb['id'] . ']" value="' . $emb['valor'] . '"></td>
+                    </tr>';
+                }
+            }
+
+            // Generate rows for Sindicatos
+            if (empty($sindicatos)) {
+                $filasDeducciones .= '<tr><td class="ps-4 text-start">Sindicato</td><td class="pe-4 text-end">0</td></tr>';
+            } else {
+                foreach ($sindicatos as $sind) {
+                    $filasDeducciones .= '<tr>
+                        <td class="ps-4 text-start">Sindicato: ' . htmlspecialchars($sind['nombre']) . '</td>
+                        <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="sindicato[' . $sind['id'] . ']" value="' . $sind['valor'] . '"></td>
+                    </tr>';
+                }
+            }
+
+            // Generate rows for Otros Descuentos
+            if (empty($descuentos)) {
+                $filasDeducciones .= '<tr><td class="ps-4 text-start">Otros Descuentos</td><td class="pe-4 text-end">0</td></tr>';
+            } else {
+                foreach ($descuentos as $dcto) {
+                    $filasDeducciones .= '<tr>
+                        <td class="ps-4 text-start">Descuento: ' . htmlspecialchars($dcto['nombre']) . '</td>
+                        <td><input type="number" class="no-focus text-end border-0 rounded pe-1 w-100" name="otro_dcto[' . $dcto['id'] . ']" value="' . $dcto['valor'] . '"></td>
+                    </tr>';
+                }
+            }
+
             $htmlDeducciones = <<<DEDUCCIONES
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
@@ -809,22 +903,7 @@ PARAFISCALES;
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Libranzas</td>
-                                                            <td class="pe-4 text-end">{$datos['valor_libranza']}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Embargos</td>
-                                                            <td class="pe-4 text-end">{$datos['valor_embargo']}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Sindicato</td>
-                                                            <td class="pe-4 text-end">{$datos['valor_sind']}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="ps-4 text-start">Otros Descuentos</td>
-                                                            <td class="pe-4 text-end">{$datos['valor_dcto']}</td>
-                                                        </tr>
+                                                        {$filasDeducciones}
                                                         <tr>
                                                             <td class="ps-4 text-start">Base de retención en la fuente</td>
                                                             <td>
@@ -2084,7 +2163,7 @@ DEDUCCIONES;
         }
 
         // 7. Devengados por concepto individual (ordenados A-Z)
-        $id = (int)$id_nomina;
+        $id = (int) $id_nomina;
         $sqlDevengados = "SELECT `concepto`, `devengado` FROM (
                 SELECT 'Auxilio de alimentación'      AS `concepto`, IFNULL(SUM(`aux_alim`), 0)                                                              AS `devengado` FROM `nom_liq_dlab_auxt`   WHERE `id_nomina` = $id AND `estado` = 1
                 UNION ALL
@@ -2139,9 +2218,9 @@ DEDUCCIONES;
             $filasDevengados[] = [
                 'concepto' => $dev['concepto'],
                 'devengado' => floatval($dev['devengado']),
-                'deducido'  => 0,
-                'patronal'  => 0,
-                'es_grupo'  => false
+                'deducido' => 0,
+                'patronal' => 0,
+                'es_grupo' => false
             ];
         }
 
@@ -2158,9 +2237,9 @@ DEDUCCIONES;
             $consolidado[] = [
                 'concepto' => $nombreGrupo,
                 'devengado' => $grupo['total_devengado'],
-                'deducido'  => $grupo['total_deducido'],
-                'patronal'  => $grupo['total_patronal'],
-                'es_grupo'  => true
+                'deducido' => $grupo['total_deducido'],
+                'patronal' => $grupo['total_patronal'],
+                'es_grupo' => true
             ];
 
             // Agregar detalles del grupo
@@ -2168,9 +2247,9 @@ DEDUCCIONES;
                 $consolidado[] = [
                     'concepto' => '- ' . $detalle['concepto'],
                     'devengado' => $detalle['devengado'],
-                    'deducido'  => $detalle['deducido'],
-                    'patronal'  => $detalle['patronal'],
-                    'es_grupo'  => false
+                    'deducido' => $detalle['deducido'],
+                    'patronal' => $detalle['patronal'],
+                    'es_grupo' => false
                 ];
             }
         }

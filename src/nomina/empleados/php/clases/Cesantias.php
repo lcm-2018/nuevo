@@ -289,24 +289,22 @@ class Cesantias
                         $param['pri_vac_ant'] = $cortes_empleado['val_liq_pv'] ?? 0;
                         $param['pri_nav_ant'] = $cortes_empleado['val_liq'] ?? 0;
                         $param['prom_horas'] = $cortes_empleado['prom'] ?? 0;
-                    } else if ($opcion == 1) {
-                        $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
-                    }
+                        
+                        $param['aux_trans'] = $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
+                        $param['aux_alim'] = $salarios[$id_empleado] <= $param['base_alim'] ? $parametro[3] : 0;
+                        $tipo_emp = $empleados[$id_empleado]['tipo_empleado'];
 
-                    $param['aux_trans'] = $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
-                    $param['aux_alim'] = $salarios[$id_empleado] <= $param['base_alim'] ? $parametro[3] : 0;
-                    $tipo_emp = $empleados[$id_empleado]['tipo_empleado'];
-
-                    if ($tipo_emp == 12 || $tipo_emp == 8) {
-                        $param['aux_trans'] = 0;
-                        $param['aux_alim'] = 0;
-                    }
-
-                    if ($opcion == 0) {
+                        if ($tipo_emp == 12 || $tipo_emp == 8) {
+                            $param['aux_trans'] = 0;
+                            $param['aux_alim'] = 0;
+                        }
+                        
                         $res = (new Valores_Liquidacion($this->conexion))->addRegistro($param);
                         if ($res != 'si') {
                             throw new Exception("Valores de liquidación: $res");
                         }
+                    } else if ($opcion == 1) {
+                        $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
                     }
 
                     //Cesantias
@@ -364,7 +362,7 @@ class Cesantias
     public function getRegistroLiq($a)
     {
         $sql = "SELECT
-                    `id_liq_cesan`
+                    `id_liq_cesan`, `val_cesantias`, `val_icesantias`
                 FROM `nom_liq_cesantias`
                 WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1";
         $stmt = $this->conexion->prepare($sql);
@@ -374,7 +372,7 @@ class Cesantias
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($data) ? $data['id_liq_cesan'] : 0;
+        return !empty($data) ? ['id' => $data['id_liq_cesan'], 'val_cesantias' => $data['val_cesantias'], 'val_icesantias' => $data['val_icesantias']] : ['id' => 0, 'val_cesantias' => 0, 'val_icesantias' => 0];
     }
 
 
@@ -480,14 +478,15 @@ class Cesantias
     {
         try {
             $sql = "UPDATE `nom_liq_cesantias`
-                        SET `cant_dias` = ?, `val_cesantias` = ?,`val_icesantias` = ?, `corte` = ?
+                        SET `cant_dias` = ?, `val_cesantias` = ?,`val_icesantias` = ?, `corte` = ?, `tipo` = ?
                     WHERE `id_liq_cesan` = ?";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['cant_dias'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['val_cesantias'], PDO::PARAM_STR);
             $stmt->bindValue(3, $array['val_icesantias'], PDO::PARAM_STR);
             $stmt->bindValue(4, $array['corte'], PDO::PARAM_STR);
-            $stmt->bindValue(5, $array['id'], PDO::PARAM_INT);
+            $stmt->bindValue(5, $array['tipo'] ?? 'S', PDO::PARAM_STR);
+            $stmt->bindValue(6, $array['id'], PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
                 $consulta = "UPDATE `nom_liq_cesantias` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_cesan` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);

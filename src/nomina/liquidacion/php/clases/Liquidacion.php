@@ -703,7 +703,7 @@ class Liquidacion
         $stmt->bindValue(6, $id_nomina, PDO::PARAM_INT);
         $stmt->execute();
         $id = $this->conexion->lastInsertId();
-        return $id > 0 ? 'si' : 'No se insertÃ³ la retenciÃ³n en la fuente.';
+        return $id > 0 ? 'si' : 'No se insertó la retención en la fuente.';
     }
 
     public function addRegistroRetroactivo($array)
@@ -720,7 +720,7 @@ class Liquidacion
 
         $retro = $this->getRetroactivoById($retroactivoId);
         if (empty($retro)) {
-            return 'No se encontrÃ³ el retroactivo seleccionado.';
+            return 'No se encontró el retroactivo seleccionado.';
         }
 
         $mesNomina = !empty($array['mes']) && $array['mes'] !== '0'
@@ -745,7 +745,7 @@ class Liquidacion
 
         $parametros = array_column(Nomina::getParamLiq(), 'valor', 'id_concepto');
         if (empty($parametros[1]) || empty($parametros[6])) {
-            return 'No se han configurado los parÃ¡metros de liquidaciÃ³n.';
+            return 'No se han configurado los parÃ¡metros de liquidación.';
         }
 
         $empleados = array_column((new Empleados())->getEmpleados(), null, 'id_empleado');
@@ -768,7 +768,7 @@ class Liquidacion
 
                 $salarioNuevo = $this->getSalarioRetroactivoEmpleado($id_empleado, $retro);
                 if ($salarioNuevo <= 0) {
-                    throw new Exception('No se encontrÃ³ el salario actualizado para el incremento seleccionado.');
+                    throw new Exception('No se encontró el salario actualizado para el incremento seleccionado.');
                 }
 
                 $filtro = array_filter($terceros_ss, function ($tercero) use ($id_empleado) {
@@ -922,7 +922,7 @@ class Liquidacion
 
                 $resRet = $this->insertRetencionFuenteRetro($id_empleado, $id_nomina, $totales['ret_base'], $totales['retencion']);
                 if ($resRet != 'si') {
-                    throw new Exception('RetenciÃ³n en la fuente: ' . $resRet);
+                    throw new Exception('Retención en la fuente: ' . $resRet);
                 }
 
                 $resSal = $this->LiquidaSalarioNeto([
@@ -952,7 +952,7 @@ class Liquidacion
             return $error;
         }
         if ($inserts === 0) {
-            return 'No se liquidÃ³ ningÃºn empleado.';
+            return 'No se liquidó ningÃºn empleado.';
         }
         return 'si';
     }
@@ -1893,7 +1893,7 @@ class Liquidacion
         ];
         $config = Valores::getOwnerConfig();
         $salbas = floatval($param['salario']);
-        $grepre = ($cortes['representacion'] ?? 0) == 1 ? floatval($param['grep']) : 0;
+        $grepre = ($param['tiene_grep'] == 1) ? floatval($param['grep']) : 0;
         $auxtra = floatval($param['aux_trans']);
         $auxali = floatval($param['aux_alim']);
         $bspant = floatval($param['bsp_ant'] ?? 0);
@@ -1946,10 +1946,10 @@ class Liquidacion
         $cant_dias = $dliq;
         $val_liq_pns = 0;
         $periodo = 1;
-        $grepre = ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
+        $grepre = ($param['tiene_grep'] == 1) ? floatval($param['grep']) : 0;
         $auxtra = $param['aux_trans'];
         $auxali = $param['aux_alim'];
-        $bspant = floatval($cortes['val_bsp'] ?? 0);
+        $bspant = floatval($param['bsp_ant'] ?? 0);
         $base = $salbas + $grepre + $auxtra + $auxali + $bspant / 12;
         $corte = $param['corte_prim_sv'] ?? NULL;
         $id_nomina = $param['id_nomina'];
@@ -1958,6 +1958,15 @@ class Liquidacion
         $val_liq_ps = Valores::Redondear($prima_dia * $dliq);
 
         if ($opcion == 1) {
+            $stmt = $this->conexion->prepare("SELECT `tipo`, `val_liq_ps` FROM `nom_liq_prima` WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1 ORDER BY `id_liq_prima` DESC LIMIT 1");
+            $stmt->execute([$id_empleado, $id_nomina]);
+            $rt = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($rt && $rt['tipo'] == 'M') {
+                $response['valor'] = $rt['val_liq_ps'];
+                $response['insert'] = true;
+                return $response;
+            }
+
             $data = compact('id_empleado', 'cant_dias', 'val_liq_ps', 'val_liq_pns', 'periodo', 'corte', 'id_nomina');
             $res = (new Primas($this->conexion))->addRegistroLiq1($data);
 
@@ -1986,12 +1995,12 @@ class Liquidacion
         $cant_dias = $dliq;
         $val_liq_pnv = 0;
         $periodo = 2;
-        $grepre = ($cortes['representacion'] ?? 0) == 1 ? $param['grep'] : 0;
+        $grepre = ($param['tiene_grep'] == 1) ? floatval($param['grep']) : 0;
         $auxtra = $param['aux_trans'];
         $auxali = $param['aux_alim'];
-        $bspant = floatval($cortes['val_bsp'] ?? 0);
-        $prima_ant = floatval($cortes['val_liq_ps'] ?? 0);
-        $vac_ant = floatval($cortes['val_prima_vac'] ?? 0);
+        $bspant = floatval($param['bsp_ant'] ?? 0);
+        $prima_ant = floatval($param['pri_ser_ant'] ?? 0);
+        $vac_ant = floatval($param['pri_vac_ant'] ?? 0);
         $base = $salbas + $grepre + $auxtra + $auxali + ($bspant / 12) + ($prima_ant / 12) + ($vac_ant / 12);
         $corte = $param['corte_psv'] ?? NULL;
         $id_nomina = $param['id_nomina'];
@@ -2000,6 +2009,15 @@ class Liquidacion
         $val_liq_pv = Valores::Redondear($prima_dia * $dliq);
 
         if ($opcion == 1) {
+            $stmt = $this->conexion->prepare("SELECT `tipo`, `val_liq_pv` FROM `nom_liq_prima_nav` WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1 ORDER BY `id_liq_privac` DESC LIMIT 1");
+            $stmt->execute([$id_empleado, $id_nomina]);
+            $rt = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($rt && $rt['tipo'] == 'M') {
+                $response['valor'] = $rt['val_liq_pv'];
+                $response['insert'] = true;
+                return $response;
+            }
+
             $data = compact('id_empleado', 'cant_dias', 'val_liq_pv', 'val_liq_pnv', 'periodo', 'corte', 'id_nomina');
             $res = (new Primas($this->conexion))->addRegistroLiq2($data);
 
@@ -2049,6 +2067,16 @@ class Liquidacion
         $val_icesantias = Valores::Redondear($val_cesantias * 0.12);
 
         if ($opcion == 1) {
+            $stmt = $this->conexion->prepare("SELECT `tipo`, `val_cesantias`, `val_icesantias` FROM `nom_liq_cesantias` WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1 ORDER BY `id_liq_cesan` DESC LIMIT 1");
+            $stmt->execute([$id_empleado, $id_nomina]);
+            $rt = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($rt && $rt['tipo'] == 'M') {
+                $response['valor'] = $rt['val_cesantias'];
+                $response['interes'] = $rt['val_icesantias'];
+                $response['insert'] = true;
+                return $response;
+            }
+
             if (isset($param['tipo']) && $param['tipo'] == 8) {
                 $val_icesantias = 0;
             } elseif (isset($param['tipo']) && $param['tipo'] == 9) {

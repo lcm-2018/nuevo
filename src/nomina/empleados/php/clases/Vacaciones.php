@@ -530,25 +530,23 @@ class Vacaciones
                         $param['pri_vac_ant'] = $cortes_empleado['val_liq_pv'] ?? 0;
                         $param['pri_nav_ant'] = $cortes_empleado['val_liq'] ?? 0;
                         $param['prom_horas'] = $cortes_empleado['prom'] ?? 0;
-                    } else if ($opcion == 1) {
-                        $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
-                    }
+                        
+                        $param['aux_trans'] = $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
+                        $param['aux_alim'] = $salarios[$id_empleado] <= $param['base_alim'] ? $parametro[3] : 0;
+                        $tipo_emp = $empleados[$id_empleado]['tipo_empleado'];
+                        $subtipo_emp = $empleados[$id_empleado]['subtipo_empleado'];
 
-                    $param['aux_trans'] = $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
-                    $param['aux_alim'] = $salarios[$id_empleado] <= $param['base_alim'] ? $parametro[3] : 0;
-                    $tipo_emp = $empleados[$id_empleado]['tipo_empleado'];
-                    $subtipo_emp = $empleados[$id_empleado]['subtipo_empleado'];
-
-                    if ($tipo_emp == 12 || $tipo_emp == 8) {
-                        $param['aux_trans'] = 0;
-                        $param['aux_alim'] = 0;
-                    }
-
-                    if ($opcion == 0) {
+                        if ($tipo_emp == 12 || $tipo_emp == 8) {
+                            $param['aux_trans'] = 0;
+                            $param['aux_alim'] = 0;
+                        }
+                        
                         $res = (new Valores_Liquidacion($this->conexion))->addRegistro($param);
                         if ($res != 'si') {
                             throw new Exception("Valores de liquidación: $res");
                         }
+                    } else if ($opcion == 1) {
+                        $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
                     }
                     //liquidar vacaciones
                     $valTotVac = 0;
@@ -683,6 +681,7 @@ class Vacaciones
 
     public function addRegistroLiq($d)
     {
+        //var_dump($d);
         try {
             $sql = "INSERT INTO `nom_liq_vac`
                         (`id_vac`,`sal_base`,`g_rep`,`aux_tra`,`aux_alim`,`bsp_ant`,`psv_ant`,`dias_liqs`,`val_liq`,`val_prima_vac`,`val_bon_recrea`,`id_user_reg`,`fec_reg`,`id_nomina`)

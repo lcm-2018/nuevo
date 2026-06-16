@@ -131,24 +131,22 @@ class Primas
                         $param['pri_vac_ant'] =     $cortes_empleado['val_liq_pv'] ?? 0;
                         $param['pri_nav_ant'] =     $cortes_empleado['val_liq'] ?? 0;
                         $param['prom_horas'] =      $cortes_empleado['prom'] ?? 0;
-                    } else if ($opcion == 1) {
-                        $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
-                    }
+                        
+                        $param['aux_trans'] =   $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
+                        $param['aux_alim'] =    $salarios[$id_empleado] <= $param['base_alim'] ? $parametro[3] : 0;
+                        $tipo_emp =             $empleados[$id_empleado]['tipo_empleado'];
 
-                    $param['aux_trans'] =   $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
-                    $param['aux_alim'] =    $salarios[$id_empleado] <= $param['base_alim'] ? $parametro[3] : 0;
-                    $tipo_emp =             $empleados[$id_empleado]['tipo_empleado'];
-
-                    if ($tipo_emp == 12 || $tipo_emp == 8) {
-                        $param['aux_trans'] =   0;
-                        $param['aux_alim'] =    0;
-                    }
-
-                    if ($opcion == 0) {
+                        if ($tipo_emp == 12 || $tipo_emp == 8) {
+                            $param['aux_trans'] =   0;
+                            $param['aux_alim'] =    0;
+                        }
+                        
                         $res = (new Valores_Liquidacion($this->conexion))->addRegistro($param);
                         if ($res != 'si') {
                             throw new Exception("Valores de liquidación: $res");
                         }
+                    } else if ($opcion == 1) {
+                        $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
                     }
 
                     //Prima de Servicios
@@ -216,7 +214,7 @@ class Primas
 
     public function getRegistroLiq1($a)
     {
-        $sql = "SELECT `id_liq_prima` FROM `nom_liq_prima` WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1";
+        $sql = "SELECT `id_liq_prima`, `val_liq_ps` FROM `nom_liq_prima` WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $a['id_empleado'], PDO::PARAM_INT);
         $stmt->bindParam(2, $a['id_nomina'], PDO::PARAM_INT);
@@ -224,12 +222,12 @@ class Primas
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($data) ? $data['id_liq_prima'] : 0;
+        return !empty($data) ? ['id' => $data['id_liq_prima'], 'valor' => $data['val_liq_ps']] : ['id' => 0, 'valor' => 0];
     }
 
     public function getRegistroLiq2($a)
     {
-        $sql = "SELECT `id_liq_privac` FROM `nom_liq_prima_nav` WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1";
+        $sql = "SELECT `id_liq_privac`, `val_liq_pv` FROM `nom_liq_prima_nav` WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $a['id_empleado'], PDO::PARAM_INT);
         $stmt->bindParam(2, $a['id_nomina'], PDO::PARAM_INT);
@@ -237,7 +235,7 @@ class Primas
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($data) ? $data['id_liq_privac'] : 0;
+        return !empty($data) ? ['id' => $data['id_liq_privac'], 'valor' => $data['val_liq_pv']] : ['id' => 0, 'valor' => 0];
     }
 
     public function addRegistroLiq1($array)
@@ -307,13 +305,14 @@ class Primas
     {
         try {
             $sql = "UPDATE `nom_liq_prima`
-                        SET `cant_dias` = ?, `val_liq_ps` = ?,`corte` = ?
+                        SET `cant_dias` = ?, `val_liq_ps` = ?,`corte` = ?, `tipo` = ?
                     WHERE `id_liq_prima` = ?";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['cant_dias'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['val_liq_ps'], PDO::PARAM_STR);
             $stmt->bindValue(3, $array['corte'], PDO::PARAM_STR);
-            $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
+            $stmt->bindValue(4, $array['tipo'] ?? 'S', PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
                 $consulta = "UPDATE `nom_liq_prima` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_prima` = ?";
@@ -335,13 +334,14 @@ class Primas
     {
         try {
             $sql = "UPDATE `nom_liq_prima_nav`
-                        SET `cant_dias` = ?, `val_liq_pv` = ?, `corte` = ?
+                        SET `cant_dias` = ?, `val_liq_pv` = ?, `corte` = ?, `tipo` = ?
                     WHERE `id_liq_privac` = ?";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['cant_dias'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['val_liq_pv'], PDO::PARAM_STR);
             $stmt->bindValue(3, $array['corte'], PDO::PARAM_STR);
-            $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
+            $stmt->bindValue(4, $array['tipo'] ?? 'S', PDO::PARAM_STR);
+            $stmt->bindValue(5, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
                 $consulta = "UPDATE `nom_liq_prima_nav` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_privac` = ?";
