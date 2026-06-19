@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 set_time_limit(5600);
 if (!isset($_SESSION['user'])) {
@@ -42,7 +42,7 @@ foreach ($sedes as $sede) {
         $sql = "SELECT
                     `taux`.`id_pto_rec`
                     , DATE_FORMAT(`pto_rec`.`fecha`,'%Y-%m-%d') AS `fecha`
-                    , `pto_rec`.`id_manu`
+                    , `taux`.`id_manu`
                     , `pto_rec`.`objeto`
                     , `pto_rec`.`num_factura`
                     , `pto_rec`.`estado`
@@ -50,19 +50,27 @@ foreach ($sedes as $sede) {
                     , `pto_cargue`.`nom_rubro`
                     , `pto_cargue`.`cod_pptal` AS `rubro`
                     , `taux`.`id_rubro`
+                    , `taux`.`val1`
+                    , `taux`.`val2`
                     , `taux`.`valor`
                     , `tb_terceros`.`nom_tercero`
                     , `tb_terceros`.`nit_tercero`
                 FROM
                     (SELECT 	
                         `tb1`.`id_rubro`
+                        , SUM(`tb1`.`val1`) AS `val1`
+                        , SUM(`tb1`.`val2`) AS `val2`
                         , SUM(`tb1`.`valor`) AS `valor` 
-                        , `tb1`.`id_pto_rec` 
+                        , MIN(`tb1`.`id_pto_rec`) AS `id_pto_rec` 
+                        , `tb1`.`id_manu`
                     FROM
                         (SELECT
                             IF(`rad`.`id_rubro`IS NULL, `rec`.`id_rubro`, `rad`.`id_rubro` ) AS `id_rubro` 
+                            , IFNULL(`rec`.`valor`,0) AS `val1`
+                            , IFNULL(`rec`.`valor_liberado`,0) AS `val2`
                             , (IFNULL(`rec`.`valor`,0) - IFNULL(`rec`.`valor_liberado`,0)) AS `valor`
                             , `pto_rec`.`id_pto_rec`
+                            , `pto_rec`.`id_manu`
                         FROM
                             `pto_rec_detalle` AS `rec`
                             INNER JOIN `pto_rec`
@@ -70,14 +78,14 @@ foreach ($sedes as $sede) {
                             LEFT JOIN `pto_rad_detalle`  AS `rad`
                             ON (`rec`.`id_pto_rad_detalle` = `rad`.`id_pto_rad_det`)
                         WHERE `pto_rec`.`estado` = 2 AND DATE_FORMAT(`pto_rec`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte') AS `tb1`
-                    GROUP BY `tb1`.`id_rubro`,`tb1`.`id_pto_rec`) AS `taux`
+                    GROUP BY `tb1`.`id_rubro`,`tb1`.`id_manu`) AS `taux`
                     INNER JOIN `pto_rec`
                         ON (`taux`.`id_pto_rec` = `pto_rec`.`id_pto_rec`)
                     INNER JOIN `pto_cargue`
                         ON (`pto_cargue`.`id_cargue` = `taux`.`id_rubro`)
                     LEFT JOIN `tb_terceros`
                         ON (`pto_rec`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
-                ORDER BY `pto_rec`.`fecha` ASC, `pto_rec`.`id_manu` ASC";
+                ORDER BY `pto_rec`.`fecha` ASC, `taux`.`id_manu` ASC";
         $res = $cmd_sede->query($sql);
         $causaciones_sede = $res->fetchAll(PDO::FETCH_ASSOC);
         $res->closeCursor();
@@ -131,34 +139,44 @@ include_once '../../financiero/encabezado_empresa.php';
             <th>Objeto</th>
             <th>Rubro</th>
             <th>Valor</th>
+            <th>Liberado</th>
+            <th>Neto</th>
         </tr>
     </thead>
     <tbody>
         <?php
         if (!empty($causaciones)) {
             $total = 0;
+            $total_val1 = 0;
+            $total_val2 = 0;
             foreach ($causaciones as $rp) {
                 if ($rp['valor'] >= 0) {
                     $total += $rp['valor'];
+                    $total_val1 += $rp['val1'];
+                    $total_val2 += $rp['val2'];
                     echo "<tr>
                         <td style='text-align:left'>" . $rp['nom_sede'] . "</td>
                         <td style='text-align:left;mso-number-format:\@;'>" . $rp['id_manu'] . "</td>
                         <td style='text-align:left;mso-number-format:\@;'>" . $rp['num_factura'] . "</td>
-                        <td style='text-align:left;white-space: nowrap;'>" .   $rp['fecha']   . "</td>
-                        <td style='text-align:left'>" .  $rp['nom_tercero'] . "</td>
-                        <td style='text-align:right;white-space: nowrap;mso-number-format:\@;'>" .  $rp['nit_tercero'] . "</td>
+                        <td style='text-align:left;white-space: nowrap;'>" . $rp['fecha'] . "</td>
+                        <td style='text-align:left'>" . $rp['nom_tercero'] . "</td>
+                        <td style='text-align:right;white-space: nowrap;mso-number-format:\@;'>" . $rp['nit_tercero'] . "</td>
                         <td style='text-align:left'>" . $rp['objeto'] . "</td>
-                        <td style='text-align:left;mso-number-format:\@;'>" .  $rp['rubro'] . "</td>
-                        <td style='text-align:right'>" . number_format($rp['valor'], 2, ".", ",")  . "</td>
+                        <td style='text-align:left;mso-number-format:\@;'>" . $rp['rubro'] . "</td>
+                        <td style='text-align:right'>" . number_format($rp['val1'], 2, ".", ",") . "</td>
+                        <td style='text-align:right'>" . number_format($rp['val2'], 2, ".", ",") . "</td>
+                        <td style='text-align:right'>" . number_format($rp['valor'], 2, ".", ",") . "</td>
                     </tr>";
                 }
             }
             echo "<tr>
                 <th colspan='8' style='text-align:center'>TOTAL</th>
+                <th style='text-align:right'>" . number_format($total_val1, 2, ".", ",") . "</th>
+                <th style='text-align:right'>" . number_format($total_val2, 2, ".", ",") . "</th>
                 <th style='text-align:right'>" . number_format($total, 2, ".", ",") . "</th>
             </tr>";
         } else {
-            echo "<tr><td colspan='9'  style='text-align:center'>No hay datos para mostrar</td></tr>";
+            echo "<tr><td colspan='11'  style='text-align:center'>No hay datos para mostrar</td></tr>";
         }
         ?>
     </tbody>
