@@ -326,28 +326,27 @@ switch ($action) {
                 //Vacaciones
                 if ($liquidaVacaciones) {
                     $Vacaciones = new Vacaciones($conexion);
-                    $data = $Vacaciones->getRegistroLiq($_POST);
-                    $id = $data['id'];
-                    $valVac         = floatval($data['val_vac']);
-                    $valPrima       = floatval($data['prima_vac']);
-                    $valBonif       = floatval($data['bon_recrea']);
-                    
-                    $postValVac     = isset($_POST['valor_vacacion']) ? floatval($_POST['valor_vacacion']) : $valVac;
-                    $postValPrima   = isset($_POST['val_prima_vac']) ? floatval($_POST['val_prima_vac']) : $valPrima;
-                    $postValBonif   = isset($_POST['val_bon_recrea']) ? floatval($_POST['val_bon_recrea']) : $valBonif;
+                    $dataVac = $Vacaciones->getRegistroLiq($_POST);
+                    $id = $dataVac['id'];
+                    $valVac   = floatval($dataVac['val_vac']);
+                    $valPrima = floatval($dataVac['prima_vac']);
+                    $valBonif = floatval($dataVac['bon_recrea']);
+
+                    $postValVac   = isset($_POST['valor_vacacion']) ? floatval($_POST['valor_vacacion']) : $valVac;
+                    $postValPrima = isset($_POST['val_prima_vac'])  ? floatval($_POST['val_prima_vac'])  : $valPrima;
+                    $postValBonif = isset($_POST['val_bon_recrea']) ? floatval($_POST['val_bon_recrea']) : $valBonif;
 
                     if ($id > 0 && ($valVac != $postValVac || $valPrima != $postValPrima || $valBonif != $postValBonif)) {
-                        $data = [
-                            'val_vac'      => $postValVac,
-                            'prima_vac'    => $postValPrima,
-                            'bon_recrea'   => $postValBonif,
-                            'tipo'         => 'M',
-                            'id'           => $id
+                        $dataEdit = [
+                            'val_vac'    => $postValVac,
+                            'prima_vac'  => $postValPrima,
+                            'bon_recrea' => $postValBonif,
+                            'tipo'       => 'M',
+                            'id'         => $id,
                         ];
-                        $vac = $Vacaciones->editRegistroLiq($data);
+                        $vac = $Vacaciones->editRegistroLiq($dataEdit);
                         if ($vac == 'si') {
                             $suma++;
-                            //echo 'Actualizado vacaciones.';
                             $valida = true;
                         } else if ($vac != 'no') {
                             $conexion->rollBack();
@@ -355,6 +354,7 @@ switch ($action) {
                         }
                     }
                 }
+
                 //Anular
                 if ($valida) {
                     $Anular = new Anulacion($conexion);

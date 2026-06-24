@@ -363,8 +363,10 @@ class Prestaciones_Sociales
                             'diasLiquidar' => $dliq,
                         ];
 
+                        // Verificar si ya existe una vacación con ese corte para no crear duplicados al reliquidar
+                        $id_vac_existente = $Vcc->getVacacionPorCorte($id_empleado, $cortes_empleado['fin_ctt']);
                         $filtro = [
-                            'id_vac' => $Vcc->addRegistro($data, false),
+                            'id_vac' => $id_vac_existente > 0 ? $id_vac_existente : $Vcc->addRegistro($data, false),
                             'dias_habiles' => $dliq * 15 / 360,
                             'dias_inactivo' => $dliq * 22 / 360,
                             'dias_liquidar' => $dliq,

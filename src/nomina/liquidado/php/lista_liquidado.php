@@ -7,11 +7,11 @@ if (!isset($_SESSION['user'])) {
 
 include_once '../../../../config/autoloader.php';
 
-$vigencia =                 $_SESSION['vigencia'];
-$start =                    isset($_POST['start']) ? intval($_POST['start']) : 0;
-$length =                   isset($_POST['length']) ? intval($_POST['length']) : 10;
-$col =                      $_POST['order'][0]['column'] + 1;
-$dir =                      $_POST['order'][0]['dir'];
+$vigencia = $_SESSION['vigencia'];
+$start = isset($_POST['start']) ? intval($_POST['start']) : 0;
+$length = isset($_POST['length']) ? intval($_POST['length']) : 10;
+$col = $_POST['order'][0]['column'] + 1;
+$dir = $_POST['order'][0]['dir'];
 
 $filtros = [];
 
@@ -24,16 +24,18 @@ foreach ($_POST as $clave => $valor) {
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 
+
 use Src\Nomina\Liquidado\Php\Clases\Liquidado;
 use Src\Common\Php\Clases\Permisos;
 
-$sql        = new Liquidado();
-$permisos   = new Permisos();
 
-$opciones =             $permisos->PermisoOpciones($id_user);
-$obj =                  $sql->getRegistrosDT($start, $length, $filtros, $col, $dir);
-$totalRecordsFilter =   $sql->getRegistrosFilter($filtros);
-$totalRecords =         $sql->getRegistrosTotal($filtros);
+$sql = new Liquidado();
+$permisos = new Permisos();
+
+$opciones = $permisos->PermisoOpciones($id_user);
+$obj = $sql->getRegistrosDT($start, $length, $filtros, $col, $dir);
+$totalRecordsFilter = $sql->getRegistrosFilter($filtros);
+$totalRecords = $sql->getRegistrosTotal($filtros);
 
 $datos = [];
 if (!empty($obj)) {
@@ -91,18 +93,18 @@ if (!empty($obj)) {
         }
 
         $datos[] = [
-            'id'            =>  $id,
-            'descripcion'   =>  mb_strtoupper($o['descripcion']),
-            'mes'           =>  mb_strtoupper($o['nom_mes']),
-            'tipo'          =>  mb_strtoupper($o['tipo']),
-            'estado'        =>  '<div class="text-center">' . $estado . '</div>',
-            'accion'        =>  '<div class="text-center">' . $editar . $detalles . $imprimir1 . $imprimir2 . $imprimir3 .  $dropdown_acciones . $reportes . '</div>',
+            'id' => $id,
+            'descripcion' => mb_strtoupper($o['descripcion']),
+            'mes' => mb_strtoupper($o['nom_mes']),
+            'tipo' => mb_strtoupper($o['tipo']),
+            'estado' => '<div class="text-center">' . $estado . '</div>',
+            'accion' => '<div class="text-center">' . $editar . $detalles . $imprimir1 . $imprimir2 . $imprimir3 . $dropdown_acciones . $reportes . '</div>',
         ];
     }
 }
 $data = [
-    'data'              => $datos,
-    'recordsFiltered'   => $totalRecordsFilter,
-    'recordsTotal'      => $totalRecords,
+    'data' => $datos,
+    'recordsFiltered' => $totalRecordsFilter,
+    'recordsTotal' => $totalRecords,
 ];
 echo json_encode($data);

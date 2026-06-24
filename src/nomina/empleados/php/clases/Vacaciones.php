@@ -724,7 +724,7 @@ class Vacaciones
             $stmt->bindValue(1, $d['val_vac'], PDO::PARAM_STR);
             $stmt->bindValue(2, $d['prima_vac'], PDO::PARAM_STR);
             $stmt->bindValue(3, $d['bon_recrea'], PDO::PARAM_STR);
-            $stmt->bindValue(4, $d['tipo'], PDO::PARAM_INT);
+            $stmt->bindValue(4, $d['tipo'], PDO::PARAM_STR);
             $stmt->bindValue(5, $d['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
@@ -796,6 +796,33 @@ class Vacaciones
         } catch (PDOException $e) {
             $this->conexion->rollBack();
             return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
+    /**
+     * Busca una vacación existente para un empleado con una fecha de corte específica.
+     * Se utiliza para evitar crear registros duplicados al reliquidar prestaciones sociales.
+     *
+     * @param int    $id_empleado ID del empleado
+     * @param string $corte       Fecha de corte (YYYY-MM-DD)
+     * @return int  ID de la vacación encontrada, o 0 si no existe
+     */
+    public function getVacacionPorCorte($id_empleado, $corte)
+    {
+        try {
+            $sql = "SELECT `id_vac` FROM `nom_vacaciones`
+                    WHERE `id_empleado` = ? AND `corte` = ? AND `estado` = 1
+                    LIMIT 1";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $id_empleado, PDO::PARAM_INT);
+            $stmt->bindValue(2, $corte, PDO::PARAM_STR);
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            unset($stmt);
+            return !empty($row) ? (int)$row['id_vac'] : 0;
+        } catch (PDOException $e) {
+            return 0;
         }
     }
 

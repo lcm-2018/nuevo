@@ -1916,13 +1916,50 @@ class Liquidacion
         $dias_rec = isset($config['dias_recreacion']) ? $config['dias_recreacion'] : 2;
         $bonrecrea = Valores::Redondear(($salbas / 30) * ($dias_rec * $dliq / 360));
         if ($opcion == 1) {
-            $data = compact('idvac', 'corte', 'vacacion', 'prima_vac', 'bonrecrea', 'id_nomina', 'salbas', 'grepre', 'auxtra', 'auxali', 'bspant', 'psvant', 'dhabiles');
-            $res = (new Vacaciones($this->conexion))->addRegistroLiq($data);
+            // Si ya existe un registro editado manualmente (tipo='M'), respetarlo sin recalcular
+            $stmtChk = $this->conexion->prepare(
+                "SELECT `id_liq_vac`, `val_liq`, `val_prima_vac`, `val_bon_recrea`, `tipo`
+                 FROM `nom_liq_vac`
+                 WHERE `id_vac` = ? AND `id_nomina` = ? AND `estado` = 1
+                 ORDER BY `id_liq_vac` DESC LIMIT 1"
+            );
+            $stmtChk->execute([$idvac, $id_nomina]);
+            $rtChk = $stmtChk->fetch(PDO::FETCH_ASSOC);
+            $stmtChk->closeCursor();
 
-            if ($res != 'si') {
-                $response['insert'] = false;
-                $response['msg'] = "<p>$res</p>";
+            if ($rtChk && $rtChk['tipo'] == 'M') {
+                // Valor modificado manualmente — no tocar
+                $response['valor'] = floatval($rtChk['val_liq']);
+                $response['prima'] = floatval($rtChk['val_prima_vac']);
+                $response['bono'] = floatval($rtChk['val_bon_recrea']);
                 return $response;
+            }
+
+            if ($rtChk) {
+                // Existe registro tipo='S': actualizarlo en lugar de anular+insertar
+                $stmtUpd = $this->conexion->prepare(
+                    "UPDATE `nom_liq_vac`
+                     SET `val_liq` = ?, `val_prima_vac` = ?, `val_bon_recrea` = ?,
+                         `sal_base` = ?, `g_rep` = ?, `aux_tra` = ?, `aux_alim` = ?,
+                         `bsp_ant` = ?, `psv_ant` = ?, `dias_liqs` = ?
+                     WHERE `id_liq_vac` = ?"
+                );
+                $stmtUpd->execute([
+                    $vacacion, $prima_vac, $bonrecrea,
+                    $salbas, $grepre, $auxtra, $auxali,
+                    $bspant, $psvant, $dhabiles,
+                    $rtChk['id_liq_vac']
+                ]);
+                $stmtUpd->closeCursor();
+            } else {
+                // No existe registro previo: insertar uno nuevo
+                $data = compact('idvac', 'corte', 'vacacion', 'prima_vac', 'bonrecrea', 'id_nomina', 'salbas', 'grepre', 'auxtra', 'auxali', 'bspant', 'psvant', 'dhabiles');
+                $res = (new Vacaciones($this->conexion))->addRegistroLiq($data);
+                if ($res != 'si') {
+                    $response['insert'] = false;
+                    $response['msg'] = "<p>$res</p>";
+                    return $response;
+                }
             }
         }
 
@@ -2213,6 +2250,24 @@ class Liquidacion
             'insert' => true,
             'valor' => 0
         ];
+
+        $id_empleado = $param['id_empleado'];
+        $id_nomina = $param['id_nomina'];
+
+        // Si ya existe un registro tipo='M' (editado manualmente), respetarlo y no duplicar
+        $stmt = $this->conexion->prepare(
+            "SELECT `val_bsp` FROM `nom_liq_bsp`
+             WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1 AND `tipo` = 'M'
+             ORDER BY `id_bonificaciones` DESC LIMIT 1"
+        );
+        $stmt->execute([$id_empleado, $id_nomina]);
+        $rt = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($rt) {
+            $response['valor'] = floatval($rt['val_bsp']);
+            $response['insert'] = true;
+            return $response;
+        }
+
         $dias = floatval($param['dias_bsp'] ?? 360);
         $salario = floatval($param['salario'] ?? 0);
         $base_bsp = floatval($param['base_bsp'] ?? 0);
@@ -2220,10 +2275,10 @@ class Liquidacion
         $bsp = (($salario + $val_grep) <= $base_bsp ? ($salario + $val_grep) * 0.53 : ($salario + $val_grep) * 0.38);
         $bsp = Valores::Redondear($bsp * $dias / 360);
         $data = [
-            'id_empleado' => $param['id_empleado'],
+            'id_empleado' => $id_empleado,
             'corte' => $param['corte'],
             'valor' => $bsp,
-            'id_nomina' => $param['id_nomina']
+            'id_nomina' => $id_nomina
         ];
 
         $res = (new Bsp($this->conexion))->addRegistro($data);

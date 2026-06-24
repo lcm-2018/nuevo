@@ -955,6 +955,7 @@ DEDUCCIONES;
                                                 <input type="hidden" name="metodo_pago" value="{$datos['metodo_pago']}">
                                                 <input type="hidden" name="mes" value="{$datos['mes']}">
                                                 <input type="hidden" name="dias_lab" value="{$datos['dias_lab']}">
+                                                <input type="hidden" name="corte_vac" value="{$datos['corte_vac']}">
 
                                                 <div class="row">
                                                     <div class="col-md-6">
