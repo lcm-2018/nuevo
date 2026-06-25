@@ -150,24 +150,22 @@ include_once '../../financiero/encabezado_empresa.php';
             $total_val1 = 0;
             $total_val2 = 0;
             foreach ($causaciones as $rp) {
-                if ($rp['valor'] >= 0) {
-                    $total += $rp['valor'];
-                    $total_val1 += $rp['val1'];
-                    $total_val2 += $rp['val2'];
-                    echo "<tr>
-                        <td style='text-align:left'>" . $rp['nom_sede'] . "</td>
-                        <td style='text-align:left;mso-number-format:\@;'>" . $rp['id_manu'] . "</td>
-                        <td style='text-align:left;mso-number-format:\@;'>" . $rp['num_factura'] . "</td>
-                        <td style='text-align:left;white-space: nowrap;'>" . $rp['fecha'] . "</td>
-                        <td style='text-align:left'>" . $rp['nom_tercero'] . "</td>
-                        <td style='text-align:right;white-space: nowrap;mso-number-format:\@;'>" . $rp['nit_tercero'] . "</td>
-                        <td style='text-align:left'>" . $rp['objeto'] . "</td>
-                        <td style='text-align:left;mso-number-format:\@;'>" . $rp['rubro'] . "</td>
-                        <td style='text-align:right'>" . number_format($rp['val1'], 2, ".", ",") . "</td>
-                        <td style='text-align:right'>" . number_format($rp['val2'], 2, ".", ",") . "</td>
-                        <td style='text-align:right'>" . number_format($rp['valor'], 2, ".", ",") . "</td>
-                    </tr>";
-                }
+                $total += $rp['valor'];
+                $total_val1 += $rp['val1'];
+                $total_val2 += $rp['val2'];
+                echo "<tr>
+                    <td style='text-align:left'>" . $rp['nom_sede'] . "</td>
+                    <td style='text-align:left;mso-number-format:\@;'>" . $rp['id_manu'] . "</td>
+                    <td style='text-align:left;mso-number-format:\@;'>" . $rp['num_factura'] . "</td>
+                    <td style='text-align:left;white-space: nowrap;'>" . $rp['fecha'] . "</td>
+                    <td style='text-align:left'>" . $rp['nom_tercero'] . "</td>
+                    <td style='text-align:right;white-space: nowrap;mso-number-format:\@;'>" . $rp['nit_tercero'] . "</td>
+                    <td style='text-align:left'>" . $rp['objeto'] . "</td>
+                    <td style='text-align:left;mso-number-format:\@;'>" . $rp['rubro'] . "</td>
+                    <td style='text-align:right'>" . number_format($rp['val1'], 2, ".", ",") . "</td>
+                    <td style='text-align:right'>" . number_format($rp['val2'], 2, ".", ",") . "</td>
+                    <td style='text-align:right'>" . number_format($rp['valor'], 2, ".", ",") . "</td>
+                </tr>";
             }
             echo "<tr>
                 <th colspan='8' style='text-align:center'>TOTAL</th>

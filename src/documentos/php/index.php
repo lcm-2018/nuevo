@@ -12,8 +12,9 @@ if (!isset($_SESSION['user'])) {
 include_once '../../../config/autoloader.php';
 
 $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : 0;
+$id_rol = $_SESSION['rol'];
 $opciones = (new Permisos)->PermisoOpciones($id_user);
-if (!(new Permisos)->PermisosUsuario($opciones, 6001, 0)) {
+if (!(new Permisos)->PermisosUsuario($opciones, 6001, 0) && $id_rol != 1) {
     exit('No permitido');
 }
 
