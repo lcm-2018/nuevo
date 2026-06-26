@@ -357,14 +357,14 @@ class DocumentRepository
     /**
      * Actualiza un soporte existente con hash y referencia
      * @param int $idSoporte ID del soporte
-     * @param string $hash CUFE/Hash
+     * @param string|null $hash CUFE/Hash (null si no se generó)
      * @param string $referencia Referencia
      * @param int $idDoc ID del documento
      * @param int $idUser ID del usuario
      * @return bool True si se actualizó
      * @throws Exception
      */
-    public function actualizarSoporte(int $idSoporte, string $hash, string $referencia, int $idDoc, int $idUser): bool
+    public function actualizarSoporte(int $idSoporte, ?string $hash, string $referencia, int $idDoc, int $idUser): bool
     {
         try {
             $sql = "UPDATE `seg_soporte_fno` 
@@ -377,15 +377,14 @@ class DocumentRepository
                     WHERE `id_soporte` = :id_soporte";
 
             $stmt = $this->conexion->prepare($sql);
-            return $stmt->execute([
-                ':id_doc' => $idDoc,
-                ':hash' => $hash,
-                ':referencia' => $referencia,
-                ':fecha' => date('Y-m-d'),
-                ':id_user' => $idUser,
-                ':fec_reg' => date('Y-m-d H:i:s'),
-                ':id_soporte' => $idSoporte
-            ]);
+            $stmt->bindValue(':id_doc', $idDoc, \PDO::PARAM_INT);
+            $stmt->bindValue(':hash', $hash, $hash === null ? \PDO::PARAM_NULL : \PDO::PARAM_STR);
+            $stmt->bindValue(':referencia', $referencia, \PDO::PARAM_STR);
+            $stmt->bindValue(':fecha', date('Y-m-d'), \PDO::PARAM_STR);
+            $stmt->bindValue(':id_user', $idUser, \PDO::PARAM_INT);
+            $stmt->bindValue(':fec_reg', date('Y-m-d H:i:s'), \PDO::PARAM_STR);
+            $stmt->bindValue(':id_soporte', $idSoporte, \PDO::PARAM_INT);
+            return $stmt->execute();
         } catch (\PDOException $e) {
             throw new Exception("Error al actualizar soporte: " . $e->getMessage());
         }

@@ -281,7 +281,29 @@ HTML;
 
 $seccionCajaMenor = '';
 if ($tipo_dato == '13' || $tipo_dato == '14' || $tipo_dato == '15') {
-    $btnCajaMenor = ($estado == 1) ? '<button class="btn btn-outline-success" onclick="cargaLegalizacionCajaMenor(\'' . $id_cop . '\')"><span class="fas fa-cash-register fa-lg"></span></button>' : '';
+    $evento = $datosDoc['cod'] == 'CMLG' ? 'disabled' : 'onclick="cargaLegalizacionCajaMenor(' . $id_cop . ')';
+    $btnCajaMenor =
+        <<<HTML
+            <button class="btn btn-outline-success" $evento><span class="fas fa-cash-register fa-lg"></span></button>
+        HTML;
+    $btnCajaMenor = $estado != 1 ? '' : $btnCajaMenor;
+    $inputCaja = '<input type="text" name="arqueo_caja" id="arqueo_caja" value="' . $valor_pago . '" class="form-control form-control-sm bg-input" style="text-align: right;" required readonly>';
+    if ($datosDoc['cod'] == 'CMLG') {
+        $sql = "SELECT
+                    `id_caja_const`, CONCAT_WS(' -> ',`nombre_caja`, `fecha_ini`) AS `caja`
+                FROM
+                    `tes_caja_const`
+                WHERE (`estado` = 1)
+                ORDER BY `fecha_ini` ASC";
+        //hacer el select con esta consulta 
+        $rs = $cmd->query($sql);
+        $cajaMenor = $rs->fetchAll();
+        $optionsCajaMenor = '';
+        foreach ($cajaMenor as $caja) {
+            $optionsCajaMenor .= '<option value="' . $caja['id_caja_const'] . '">' . $caja['caja'] . '</option>';
+        }
+        $inputCaja = '<select name="caja_menor" id="caja_menor" class="form-select form-select-sm bg-input" required><option value="0" class="text-muted">--Seleccionar--</option>' . $optionsCajaMenor . '</select>';
+    }
     $seccionCajaMenor = <<<HTML
     <div class="row mb-1">
         <div class="col-2">
@@ -289,7 +311,7 @@ if ($tipo_dato == '13' || $tipo_dato == '14' || $tipo_dato == '15') {
         </div>
         <div class="col-4">
             <div class="input-group input-group-sm">
-                <input type="text" name="arqueo_caja" id="arqueo_caja" value="{$valor_pago}" class="form-control form-control-sm bg-input" style="text-align: right;" required readonly>
+                {$inputCaja}
                 {$btnCajaMenor}
             </div>
         </div>
@@ -341,7 +363,7 @@ if ($tipo_dato == '6' || $tipo_dato == '16' || $tipo_dato == '7' || $tipo_dato =
 $btnFormaPago = ($estado == 1 && $id_doc_pag > 0) ? '<button class="btn btn-outline-primary" onclick="cargaFormaPago(' . $id_cop . ',0,this)"><span class="fas fa-wallet fa-lg"></span></button>' : '';
 
 $seccionFormaPago = '';
-if (true) {
+if ($datosDoc['cod'] !== 'CMLG') {
     if ($id_doc_rad > 0) {
         $forma = 'FORMA DE RECAUDO :';
     } else {
@@ -362,7 +384,7 @@ if (true) {
 HTML;
 }
 
-if ($ctcb  == 'CTCB') {
+if ($ctcb == 'CTCB') {
     $seccionFormaPago = '';
 }
 
@@ -376,7 +398,7 @@ if ($estado == 1 && $id_doc_pag > 0) {
     $btnGenMov = '';
 }
 $ver_arq = '';
-if ($ctcb  == 'CTCB' && $estado == 1) {
+if ($ctcb == 'CTCB' && $estado == 1) {
     $seccionFormaPago = '';
     $btnGenMov = '<button type="button" class="btn btn-success btn-sm me-1" onclick="CargaArqueoCaja(2)">Ver Listado</button>';
     $ver_arq = '<button type="button" class="btn btn-info btn-sm me-1" onclick="VerListadoArqueoCaja(2)">Asignados</button>';
@@ -414,6 +436,34 @@ if ($estado == '1' && $id_doc_pag > 0) {
     </tr>
 HTML;
 }
+$vigencia = $_SESSION['vigencia'];
+$seccionTraslado = '';
+if ($datosDoc['cod'] == 'CMLG') {
+    $fechaHoy = date('Y-m-d');
+    $seccionTraslado = <<<HTML
+    <div class="row mb-2 mb-1 text-start">
+        <div class="col-md-2">
+            <span class="small">PERIODO:</span>
+        </div>
+        <div class="col-md-6">
+            <div class="row mb-2">
+                <div class="col-md-3">
+                    <span class="small text-muted">FECHA INICIO:</span>
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="fecIniTraslado" id="fecIniTraslado" class="form-control form-control-sm bg-input" value="{$fechaHoy}" min="{$vigencia}-01-01" max="{$vigencia}-12-31" required>
+                </div>
+                <div class="col-md-3">
+                    <span class="small text-muted">FECHA FIN:</span>
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="fecFinTraslado" id="fecFinTraslado" class="form-control form-control-sm bg-input" value="{$fechaHoy}" min="{$vigencia}-01-01" max="{$vigencia}-12-31" required>
+                </div>
+            </div>
+        </div>
+    </div>
+HTML;
+}
 
 $content = <<<HTML
 <div class="card w-100">
@@ -425,7 +475,7 @@ $content = <<<HTML
         <input type="hidden" id="tipo_var" value="{$tipo_var}">
         <input type="hidden" id="peReg" value="{$peReg}">
         <input type="hidden" id="valor_teso" value="{$valor_teso}">
-        
+        <input type="hidden" id="cod_doc" value="{$datosDoc['cod']}">
         <form id="formGetMvtoTes">
             <input type="hidden" id="fec_cierre" value="{$fecha_cierre}">
             
@@ -497,6 +547,7 @@ $content = <<<HTML
             {$seccionPresupuesto}
             {$seccionImputacion}
             {$seccionFormaPago}
+            {$seccionTraslado}
             {$seccionGenerarMov}
             
             <input type="hidden" id="id_ctb_doc" name="id_ctb_doc" value="{$id_doc_pag}">

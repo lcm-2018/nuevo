@@ -2200,13 +2200,20 @@ const generaMovimientoPag = (boton) => {
 	// verificar si los tres valores son iguales
 	let id_crp = $('#id_crp').length ? $('#id_crp').val() : 0;
 	var url = "datos/registrar/registrar_mvto_libaux_auto_pag.php";
+	let bodyData = { id: id, id_crp: id_crp, id_cop: id_cop, tipo: tipo };
 	if ($('#id_doc_rad').length && Number($('#id_doc_rad').val()) > 0) {
 		url = "datos/registrar/registrar_mvto_libaux_auto_rad.php";
+	}
+	if ($('#cod_doc').val() == 'CMLG') {
+		url = "datos/registrar/registrar_mvto_libaux_auto_leg_caja.php";
+		bodyData.fecIniTraslado = $('#fecIniTraslado').val();
+		bodyData.fecFinTraslado = $('#fecFinTraslado').val();
+		bodyData.caja_menor = $('#caja_menor').val();
 	}
 	mostrarOverlay();
 	fetch(url, {
 		method: "POST",
-		body: JSON.stringify({ id: id, id_crp: id_crp, id_cop: id_cop, tipo: tipo }),
+		body: JSON.stringify(bodyData),
 	})
 		.then((response) => response.json())
 		.then((response) => {
