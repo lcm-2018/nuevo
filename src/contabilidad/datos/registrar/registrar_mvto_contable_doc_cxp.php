@@ -50,38 +50,45 @@ if ($id_cta_factura == 0) {
                 }
             }
 
-            // Obtener el último consecutivo DENTRO de la transacción con bloqueo
-            // Usamos FOR UPDATE para bloquear los registros mientras obtenemos el máximo
-            $sqlMax = "SELECT MAX(CAST(REPLACE(`num_doc`, ?, '') AS UNSIGNED)) AS `max_num` 
-                       FROM `ctb_factura` 
-                       WHERE `id_tipo_doc` = ? 
-                       FOR UPDATE";
-            $stmtMax = $cmd->prepare($sqlMax);
-            $stmtMax->bindParam(1, $pref, PDO::PARAM_STR);
-            $stmtMax->bindParam(2, $id_tipo_doc, PDO::PARAM_INT);
-            $stmtMax->execute();
-            $datosMax = $stmtMax->fetch();
-
-            // Calcular el nuevo consecutivo
-            $maxActual = !empty($datosMax['max_num']) ? intval($datosMax['max_num']) : 0;
-            $nuevoConsecutivo = $maxActual + 1;
-
-            // Si hay resolución, tomar el mayor entre el consecutivo de resolución y el calculado
-            if ($siguienteResol >= $nuevoConsecutivo) {
-                $nuevoConsecutivo = $siguienteResol;
+            if ($id_tipo_doc == '1') {
+                $num_doc_final = $num_doc;
+            } else {
+                // Obtener el último consecutivo DENTRO de la transacción con bloqueo
+                // Usamos FOR UPDATE para bloquear los registros mientras obtenemos el máximo
+                $sqlMax = "SELECT MAX(CAST(REPLACE(`num_doc`, ?, '') AS UNSIGNED)) AS `max_num` 
+                           FROM `ctb_factura` 
+                           WHERE `id_tipo_doc` = ? 
+                           FOR UPDATE";
+                $stmtMax = $cmd->prepare($sqlMax);
+                $stmtMax->bindParam(1, $pref, PDO::PARAM_STR);
+                $stmtMax->bindParam(2, $id_tipo_doc, PDO::PARAM_INT);
+                $stmtMax->execute();
+                $datosMax = $stmtMax->fetch();
+    
+                // Calcular el nuevo consecutivo
+                $maxActual = !empty($datosMax['max_num']) ? intval($datosMax['max_num']) : 0;
+                $nuevoConsecutivo = $maxActual + 1;
+    
+                // Si hay resolución, tomar el mayor entre el consecutivo de resolución y el calculado
+                if ($siguienteResol >= $nuevoConsecutivo) {
+                    $nuevoConsecutivo = $siguienteResol;
+                }
+    
+                // Generar el número de documento final con prefijo
+                $num_doc_final = $pref . $nuevoConsecutivo;
             }
 
-            // Generar el número de documento final con prefijo
-            $num_doc_final = $pref . $nuevoConsecutivo;
-
-            // Verificar que no exista este consecutivo (doble validación)
-            $sqlVerif = "SELECT COUNT(*) as existe FROM `ctb_factura` 
-                         WHERE `id_tipo_doc` = ? AND `num_doc` = ?";
-            $stmtVerif = $cmd->prepare($sqlVerif);
-            $stmtVerif->bindParam(1, $id_tipo_doc, PDO::PARAM_INT);
-            $stmtVerif->bindParam(2, $num_doc_final, PDO::PARAM_STR);
-            $stmtVerif->execute();
-            $existe = $stmtVerif->fetch();
+            $existe = ['existe' => 0];
+            if ($id_tipo_doc != '1') {
+                // Verificar que no exista este consecutivo (doble validación)
+                $sqlVerif = "SELECT COUNT(*) as existe FROM `ctb_factura` 
+                             WHERE `id_tipo_doc` = ? AND `num_doc` = ?";
+                $stmtVerif = $cmd->prepare($sqlVerif);
+                $stmtVerif->bindParam(1, $id_tipo_doc, PDO::PARAM_INT);
+                $stmtVerif->bindParam(2, $num_doc_final, PDO::PARAM_STR);
+                $stmtVerif->execute();
+                $existe = $stmtVerif->fetch();
+            }
 
             if ($existe['existe'] > 0) {
                 // El consecutivo ya existe, hacer rollback y reintentar

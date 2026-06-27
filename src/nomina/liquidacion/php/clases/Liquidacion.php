@@ -1945,9 +1945,16 @@ class Liquidacion
                      WHERE `id_liq_vac` = ?"
                 );
                 $stmtUpd->execute([
-                    $vacacion, $prima_vac, $bonrecrea,
-                    $salbas, $grepre, $auxtra, $auxali,
-                    $bspant, $psvant, $dhabiles,
+                    $vacacion,
+                    $prima_vac,
+                    $bonrecrea,
+                    $salbas,
+                    $grepre,
+                    $auxtra,
+                    $auxali,
+                    $bspant,
+                    $psvant,
+                    $dhabiles,
                     $rtChk['id_liq_vac']
                 ]);
                 $stmtUpd->closeCursor();
@@ -1991,7 +1998,7 @@ class Liquidacion
         $corte = $param['corte_prim_sv'] ?? NULL;
         $id_nomina = $param['id_nomina'];
 
-        $prima_dia = $base / 720;
+        $prima_dia = $base / ($_SESSION['caracter'] == 1 ? 360 : 720);
         $val_liq_ps = Valores::Redondear($prima_dia * $dliq);
 
         if ($opcion == 1) {
