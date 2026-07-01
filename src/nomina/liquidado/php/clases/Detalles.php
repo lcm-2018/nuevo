@@ -261,7 +261,7 @@ class Detalles
                     , IFNULL(`dcto`.`valor`,0) AS `valor_dcto`
                     , IFNULL(CAST(`inc`.`dias` AS UNSIGNED),0) AS `dias_incapacidad`
                     , CAST(IFNULL(`lmp`.`dias_liqs`,0) + IFNULL(`luto`.`dias`,0) + IFNULL(`lcnr`.`dias`,0) AS UNSIGNED) AS `dias_licencias`
-                    , 0 AS `dias_otros`
+                    , (IFNULL(`prin`.`dias_pn`,0) + IFNULL(`pris`.`dias_ps`,0)) AS `dias_otros`
                     , IFNULL(CAST(`liq`.`dias_liq` AS UNSIGNED),0) AS `dias_lab`
                     , IFNULL(`liq`.`val_liq_dias`,0) AS `valor_laborado`
                     , IFNULL(`liq`.`val_liq_auxt`,0) AS `aux_tran`
@@ -836,7 +836,7 @@ PARAFISCALES;
             $stmtDcto->closeCursor();
 
             $filasDeducciones = '';
-            
+
             // Generate rows for Libranzas
             if (empty($libranzas)) {
                 $filasDeducciones .= '<tr><td class="ps-4 text-start">Libranzas</td><td class="pe-4 text-end">0</td></tr>';
