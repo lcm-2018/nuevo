@@ -1,7 +1,9 @@
 ﻿<?php
 
+
 include '../../../../config/autoloader.php';
 
+use Config\Clases\Plantilla;
 $cmd = \Config\Clases\Conexion::getConexion();
 
 
@@ -18,10 +20,11 @@ $telhd = $obj_ent['telefono_ips'];
 <table style="width:100% !important; border:#A9A9A9 1px solid">
     <tr>
         <th rowspan="2" style="width:15%">
-            <img src="<?php echo $_SESSION['urlin'] ?>/images/logos/logo.png" width="100">
+            <img src="<?= Plantilla::getHost() ?>/assets/images/logo.png" width="100">
         </th>
         <th colspan="2" style="text-align:right; font-size:50%">
-            Generado por: <strong>CRONHIS</strong>. Fecha Impresión:<?php echo date('Y-m-d h:i:s A') ?>. Usuario:<?php echo mb_strtoupper($_SESSION['user']); ?>
+            Generado por: <strong>CRONHIS</strong>. Fecha Impresión:<?php echo date('Y-m-d h:i:s A') ?>.
+            Usuario:<?php echo mb_strtoupper($_SESSION['user']); ?>
         </th>
     </tr>
     <tr>

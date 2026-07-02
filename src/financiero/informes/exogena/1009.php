@@ -88,8 +88,8 @@ liberarSalida();
 // CONSULTA SQL — Formato 1009 (Cuentas por pagar)
 // -------------------------------------------------------------------------
 include '../../../../config/autoloader.php';
-$conexion    = \Config\Clases\Conexion::getConexion();
-$vigencia    = $_SESSION['vigencia'];
+$conexion = \Config\Clases\Conexion::getConexion();
+$vigencia = $_SESSION['vigencia'];
 $id_vigencia = $_SESSION['id_vigencia'];
 
 try {
@@ -173,18 +173,19 @@ try {
 
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-        $saldo  = $row['debito'] - $row['credito'];
+        $saldo = $row['credito'] - $row['debito'];
 
         // Omitir registros con saldo cero
-        if ($saldo == 0) continue;
+        if ($saldo == 0)
+            continue;
 
         $datos_api = $terceros_api_idx[$row['id_tercero']] ?? null;
 
         $nombre = [
             'apellido1' => '',
             'apellido2' => '',
-            'nombre1'   => '',
-            'nombre2'   => ''
+            'nombre1' => '',
+            'nombre2' => ''
         ];
         $razon_social = '';
 
@@ -194,8 +195,8 @@ try {
             } else {
                 $nombre['apellido1'] = $datos_api['apellido1'] ?? '';
                 $nombre['apellido2'] = $datos_api['apellido2'] ?? '';
-                $nombre['nombre1']   = $datos_api['nombre1'] ?? '';
-                $nombre['nombre2']   = $datos_api['nombre2'] ?? '';
+                $nombre['nombre1'] = $datos_api['nombre1'] ?? '';
+                $nombre['nombre2'] = $datos_api['nombre2'] ?? '';
             }
         }
 
@@ -211,7 +212,7 @@ try {
             $razon_social,                                      // Razón social
             $row['direccion'],                                  // Dirección
             $row['codigo_dpto'] ?? '',                          // Código dpto.
-            $row['codigo_mcp']  ?? '',                          // Código mcp
+            $row['codigo_mcp'] ?? '',                          // Código mcp
             '169',                                              // País (169 = Colombia)
             round($saldo, 2),                                   // Saldo cuentas por pagar al 31-12
         ];

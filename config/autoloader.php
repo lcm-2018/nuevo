@@ -32,6 +32,28 @@ spl_autoload_register(function ($class) {
 });
 
 // ============================================================================
+// AUTOLOADER ESPECÍFICO PARA Src\Nomina\Electronica\Php\Clases (PSR-4)
+// ============================================================================
+spl_autoload_register(function ($class) {
+    $prefix = 'Src\\Nomina\\Electronica\\Php\\Clases\\';
+    $baseDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'nomina'
+        . DIRECTORY_SEPARATOR . 'electronica' . DIRECTORY_SEPARATOR . 'php'
+        . DIRECTORY_SEPARATOR . 'clases' . DIRECTORY_SEPARATOR;
+
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        return;
+    }
+
+    $relative_class = substr($class, $len);
+    $file = $baseDir . str_replace('\\', DIRECTORY_SEPARATOR, $relative_class) . '.php';
+
+    if (file_exists($file)) {
+        require_once $file;
+    }
+});
+
+// ============================================================================
 // AUTOLOADER GENÉRICO (Original)
 // ============================================================================
 spl_autoload_register(function ($class) {
@@ -55,15 +77,15 @@ spl_autoload_register(function ($class) {
 spl_autoload_register(function ($class) {
     // 1. $path = 'Config/Clases/Plantilla'
     $path = str_replace('\\', DIRECTORY_SEPARATOR, $class);
-    
+
     // 2. $baseDir = '/var/www/html/demo'
     $baseDir = dirname(__DIR__);
 
     // 3. Separamos el nombre del archivo (clase) de los directorios
-    
+
     // $className = 'Plantilla'
     $className = basename($path);
-    
+
     // $namespaceDir = 'Config/Clases'
     $namespaceDir = dirname($path);
 

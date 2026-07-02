@@ -253,14 +253,16 @@ class ContratacionService extends DocumentoElectronicoService
                     );
                 }
             } else {
-                // Actualizar soporte existente
-                $this->repository->actualizarSoporte(
-                    $idSoporte,
-                    $hash ?? '',
-                    $referencia,
-                    $idDocumento,
-                    $this->idUser
-                );
+                // Actualizar soporte existente solo si el envío fue exitoso y hay hash
+                if ($hash !== null) {
+                    $this->repository->actualizarSoporte(
+                        $idSoporte,
+                        $hash,
+                        $referencia,
+                        $idDocumento,
+                        $this->idUser
+                    );
+                }
             }
 
             // Actualizar consecutivo si es nuevo y exitoso

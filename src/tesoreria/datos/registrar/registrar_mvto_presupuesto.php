@@ -1,5 +1,9 @@
 ﻿<?php
 session_start();
+
+include '../../../../config/autoloader.php';
+use Src\Common\Php\Clases\Permisos;
+
 if (isset($_POST)) {
     //Recibir variables por POST
     $id_pto_doc = $_POST['id_pto_doc'];
@@ -11,7 +15,7 @@ if (isset($_POST)) {
     $objeto = $_POST['objeto'];
     $num_solicitud = '';
     $fecha = $_POST['fecha'];
-    $valor =  str_replace(",", "", $_POST['valor_ing']);
+    $valor = str_replace(",", "", $_POST['valor_ing']);
     $iduser = $_SESSION['id_user'];
     $date = new DateTime('now', new DateTimeZone('America/Bogota'));
     $fecha2 = $date->format('Y-m-d H:i:s');
@@ -20,15 +24,13 @@ if (isset($_POST)) {
     $sede = 1;
     $vigencia = $_SESSION['vigencia'];
     //
-    include '../../../../config/autoloader.php';
-    
-use Src\Common\Php\Clases\Permisos;
 
-$id_rol = $_SESSION['rol'];
-$id_user = $_SESSION['id_user'];
 
-$permisos = new Permisos();
-$opciones = $permisos->PermisoOpciones($id_user);
+    $id_rol = $_SESSION['rol'];
+    $id_user = $_SESSION['id_user'];
+
+    $permisos = new Permisos();
+    $opciones = $permisos->PermisoOpciones($id_user);
 
     // Consulto el id_tercero_api del facturador en la tabla tb_terceros
     try {
@@ -88,8 +90,8 @@ $opciones = $permisos->PermisoOpciones($id_user);
                             AND `pto_documento_detalles`.`id_detalle` =$id_mvt);";
                     $rs = $cmd->query($sql);
                     $rubros = $rs->fetchAll();
-        $rs->closeCursor();
-        unset($rs);
+                    $rs->closeCursor();
+                    unset($rs);
 
                     foreach ($rubros as $ce) {
                         //$id_doc = $ce['id_ctb_doc'];
@@ -111,7 +113,7 @@ $opciones = $permisos->PermisoOpciones($id_user);
                         $tabla = '  <tr id="' . $id . '">
                             <td class="text-start">' . $ce['rubros'] . ' </td>
                             <td class="text-end"> ' . $valor . '</td>
-                            <td> ' . $editar .  $acciones . '</td>
+                            <td> ' . $editar . $acciones . '</td>
                         </tr>';
                     }
                     $response[] = array("value" => 'oks', "id_pto" => $id_pto_doc, "tabla" => $tabla);

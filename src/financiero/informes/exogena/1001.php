@@ -101,20 +101,16 @@ $id_vigencia = $_SESSION['id_vigencia'];
 try {
     $sql = "WITH movimientos AS (
                 -- Movimientos de la homologación (Formato 1001 principal)
+                -- Las cuentas 2436x aparecen como líneas de retención en los mismos documentos,
+                -- no como cuentas homologadas, por eso se unen por id_ctb_doc (LEFT JOIN adicional).
+                -- 1. Movimientos principales (Pagos)
                 SELECT
                     `cce`.`cod_concepto`                                        AS `concepto`,
                     `cl`.`id_tercero_api`                                       AS `id_tercero`,
                     SUM(IFNULL(`cl`.`debito`, 0))                               AS `pago_deducible`,
                     SUM(IFNULL(`cl`.`debito`, 0))                               AS `pago_no_deducible`,
-                    SUM(CASE
-                        WHEN `cp`.`cuenta` LIKE '2436%'
-                         AND `cp`.`cuenta` NOT IN ('243625','243627')
-                        THEN IFNULL(`cl`.`credito`, 0) ELSE 0
-                    END)                                                        AS `retencion_renta`,
-                    SUM(CASE
-                        WHEN `cp`.`cuenta` = '243625'
-                        THEN IFNULL(`cl`.`credito`, 0) ELSE 0
-                    END)                                                        AS `retencion_iva_res`
+                    0                                                           AS `retencion_renta`,
+                    0                                                           AS `retencion_iva_res`
                 FROM `ctb_homologacion`   AS `ch`
                 INNER JOIN `ctb_ctas_exogena` AS `cce`
                     ON (`ch`.`id_cuenta_otros` = `cce`.`id_cuenta` AND `cce`.`id_form` = 1)
@@ -130,6 +126,40 @@ try {
                   AND `cl`.`id_tercero_api` > 0
                   AND DATE_FORMAT(`cd`.`fecha`,'%Y') = '$vigencia'
                 GROUP BY `cl`.`id_tercero_api`, `cce`.`cod_concepto`
+
+                UNION ALL
+
+                -- 1.B Retenciones de los documentos tipo 3, cruzadas con un concepto base
+                SELECT 
+                    `b`.`concepto`,
+                    `r`.`id_tercero_api` AS `id_tercero`,
+                    0 AS `pago_deducible`,
+                    0 AS `pago_no_deducible`,
+                    SUM(`r`.`ret_renta`) AS `retencion_renta`,
+                    SUM(`r`.`ret_iva`) AS `retencion_iva_res`
+                FROM (
+                    SELECT 
+                        `cl_ret`.`id_ctb_doc`,
+                        `cl_ret`.`id_tercero_api`,
+                        SUM(CASE WHEN `cp_ret`.`cuenta` LIKE '2436%' AND `cp_ret`.`cuenta` NOT IN ('243625','243627') THEN IFNULL(`cl_ret`.`credito`, 0) ELSE 0 END) AS `ret_renta`,
+                        SUM(CASE WHEN `cp_ret`.`cuenta` = '243625' THEN IFNULL(`cl_ret`.`credito`, 0) ELSE 0 END) AS `ret_iva`
+                    FROM `ctb_libaux` AS `cl_ret`
+                    INNER JOIN `ctb_pgcp` AS `cp_ret` ON `cl_ret`.`id_cuenta` = `cp_ret`.`id_pgcp`
+                    INNER JOIN `ctb_doc` AS `cd` ON `cl_ret`.`id_ctb_doc` = `cd`.`id_ctb_doc`
+                    WHERE `cp_ret`.`cuenta` LIKE '2436%' AND `cd`.`estado` = 2 AND `cd`.`id_tipo_doc` = 3 AND DATE_FORMAT(`cd`.`fecha`,'%Y') = '$vigencia'
+                    GROUP BY `cl_ret`.`id_ctb_doc`, `cl_ret`.`id_tercero_api`
+                ) AS `r`
+                INNER JOIN (
+                    -- Obtenemos 1 solo concepto de gasto por documento/tercero para anclar la retención
+                    SELECT `cl`.`id_ctb_doc`, `cl`.`id_tercero_api`, MAX(`cce`.`cod_concepto`) AS `concepto`
+                    FROM `ctb_homologacion` `ch`
+                    INNER JOIN `ctb_ctas_exogena` `cce` ON `ch`.`id_cuenta_otros` = `cce`.`id_cuenta` AND `cce`.`id_form` = 1
+                    INNER JOIN `ctb_pgcp` `cp` ON `ch`.`id_cuenta` = `cp`.`id_pgcp`
+                    INNER JOIN `ctb_libaux` `cl` ON `cl`.`id_cuenta` = `cp`.`id_pgcp`
+                    WHERE `ch`.`id_vigencia` = $id_vigencia
+                    GROUP BY `cl`.`id_ctb_doc`, `cl`.`id_tercero_api`
+                ) AS `b` ON `r`.`id_ctb_doc` = `b`.`id_ctb_doc` AND `r`.`id_tercero_api` = `b`.`id_tercero_api`
+                GROUP BY `r`.`id_tercero_api`, `b`.`concepto`
             
                 UNION ALL
             
@@ -194,20 +224,23 @@ try {
                     ON `cl`.`id_cuenta` = `ch`.`id_cuenta`
                 INNER JOIN `ctb_doc` AS `cd` 
                     ON `cl`.`id_ctb_doc` = `cd`.`id_ctb_doc`
-                INNER JOIN `pto_cop_detalle` AS `pcopc`
-                    ON `pcopc`.`id_ctb_doc` = `cd`.`id_ctb_doc`
-                INNER JOIN `pto_crp_detalle` AS `pcrpc`
-                    ON `pcrpc`.`id_pto_crp_det` = `pcopc`.`id_pto_crp_det`
-                INNER JOIN `pto_cdp_detalle` AS `pcdpc`
-                    ON `pcdpc`.`id_pto_cdp_det` = `pcrpc`.`id_pto_cdp_det`
-                INNER JOIN `pto_cargue` AS `pcarg`
-                    ON `pcarg`.`id_cargue` = `pcdpc`.`id_rubro`
-                INNER JOIN `pto_homologa_gastos` AS `phg`
-                    ON `phg`.`id_cargue` = `pcarg`.`id_cargue` AND `phg`.`id_ps` = 0
                 WHERE `ch`.`id_vigencia` = $id_vigencia
                   AND `cl`.`debito` > 0 AND `cd`.`estado` = 2 AND `cl`.`id_tercero_api` > 0
                   AND `cce15`.`cod_concepto` IN ('5','6')
                   AND DATE_FORMAT(`cd`.`fecha`,'%Y') = '$vigencia'
+                  AND EXISTS (
+                      SELECT 1
+                      FROM `pto_cop_detalle` AS `pcopc`
+                      INNER JOIN `pto_crp_detalle` AS `pcrpc`
+                          ON `pcrpc`.`id_pto_crp_det` = `pcopc`.`id_pto_crp_det`
+                      INNER JOIN `pto_cdp_detalle` AS `pcdpc`
+                          ON `pcdpc`.`id_pto_cdp_det` = `pcrpc`.`id_pto_cdp_det`
+                      INNER JOIN `pto_cargue` AS `pcarg`
+                          ON `pcarg`.`id_cargue` = `pcdpc`.`id_rubro`
+                      INNER JOIN `pto_homologa_gastos` AS `phg`
+                          ON `phg`.`id_cargue` = `pcarg`.`id_cargue` AND `phg`.`id_ps` = 0
+                      WHERE `pcopc`.`id_ctb_doc` = `cd`.`id_ctb_doc` AND `pcopc`.`valor` > 0
+                  )
                 GROUP BY `cl`.`id_tercero_api`, IFNULL(`cce1`.`cod_concepto`, `cce15`.`cod_concepto`)
             )
             SELECT
@@ -297,8 +330,8 @@ try {
         $nombre = [
             'apellido1' => '',
             'apellido2' => '',
-            'nombre1'   => '',
-            'nombre2'   => ''
+            'nombre1' => '',
+            'nombre2' => ''
         ];
         $razon_social = '';
 
@@ -308,8 +341,8 @@ try {
             } else {
                 $nombre['apellido1'] = $datos_api['apellido1'] ?? '';
                 $nombre['apellido2'] = $datos_api['apellido2'] ?? '';
-                $nombre['nombre1']   = $datos_api['nombre1'] ?? '';
-                $nombre['nombre2']   = $datos_api['nombre2'] ?? '';
+                $nombre['nombre1'] = $datos_api['nombre1'] ?? '';
+                $nombre['nombre2'] = $datos_api['nombre2'] ?? '';
             }
         }
 

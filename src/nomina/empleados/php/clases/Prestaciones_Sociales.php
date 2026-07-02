@@ -259,6 +259,7 @@ class Prestaciones_Sociales
         $empresa = (new Usuario())->getEmpresa();
         //Devengados
         $horas = (new Horas_Extra())->getHorasPorMes($inicia, $fin, 2);
+        $viaticosNomina = (new Viaticos())->getViaticosNomina($inicia, $fin);
 
         //otros 
         $cortes = array_column(((new Liquidacion())->getCortes($ids, $fin)), null, 'id_empleado');
@@ -298,26 +299,31 @@ class Prestaciones_Sociales
                         $this->conexion->beginTransaction();
                     }
 
-                    $param = (new Valores_Liquidacion())->getRegistro($uSalario[$id_empleado], $id_empleado);
+                    if ($opcion == 0) {
+                        if (isset($uSalarioRA[$id_empleado]) && $uSalarioRA[$id_empleado] > ($uSalario[$id_empleado] ?? 0)) {
+                            $param = (new Valores_Liquidacion())->getRegistro($uSalarioRA[$id_empleado], $id_empleado);
+                        } else {
+                            $param = (new Valores_Liquidacion())->getRegistro($uSalario[$id_empleado], $id_empleado);
+                        }
 
-                    if (isset($uSalarioRA[$id_empleado]) && $uSalarioRA[$id_empleado] > $uSalario[$id_empleado]) {
-                        $param['salario'] = $uSalarioRA_base[$id_empleado];
-                    }
-                    exit(json_encode($param));
+                        if ($param['id_nomina'] == 0) {
+                            throw new Exception("No se encontró registro de valores de liquidación");
+                        }
+                        $param['id_nomina'] = $id_nomina;
 
-                    if ($param['id_nomina'] == 0) {
-                        throw new Exception("No se encontró registro de valores de liquidación");
-                    }
-                    $param['id_nomina'] = $id_nomina;
+                        $param['prom_horas'] = $cortes_empleado['prom'] ?? 0;
 
-                    $param['aux_trans'] = $param['salario'] <= $param['smmlv'] * 2 ? $param['aux_trans'] : 0;
-                    $param['aux_alim'] = $param['salario'] <= $param['base_alim'] ? $param['aux_alim'] : 0;
-                    $tipo_emp = $empleados[$id_empleado]['tipo_empleado'];
-                    $subtipo_emp = $empleados[$id_empleado]['subtipo_empleado'];
+                        $tipo_emp = $empleados[$id_empleado]['tipo_empleado'];
+                        $subtipo_emp = $empleados[$id_empleado]['subtipo_empleado'];
 
-                    if ($tipo_emp == 12 || $tipo_emp == 8) {
-                        $param['aux_trans'] = 0;
-                        $param['aux_alim'] = 0;
+                        $resValLiq = (new Valores_Liquidacion($this->conexion))->addRegistro($param);
+                        if ($resValLiq != 'si') {
+                            throw new Exception("Valores de liquidación: $resValLiq");
+                        }
+                    } else if ($opcion == 1) {
+                        $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
+                        $tipo_emp = $empleados[$id_empleado]['tipo_empleado'];
+                        $subtipo_emp = $empleados[$id_empleado]['subtipo_empleado'];
                     }
 
                     //liquidar Horas extras
@@ -357,8 +363,10 @@ class Prestaciones_Sociales
                             'diasLiquidar' => $dliq,
                         ];
 
+                        // Verificar si ya existe una vacación con ese corte para no crear duplicados al reliquidar
+                        $id_vac_existente = $Vcc->getVacacionPorCorte($id_empleado, $cortes_empleado['fin_ctt']);
                         $filtro = [
-                            'id_vac' => $Vcc->addRegistro($data, false),
+                            'id_vac' => $id_vac_existente > 0 ? $id_vac_existente : $Vcc->addRegistro($data, false),
                             'dias_habiles' => $dliq * 15 / 360,
                             'dias_inactivo' => $dliq * 22 / 360,
                             'dias_liquidar' => $dliq,
@@ -381,6 +389,24 @@ class Prestaciones_Sociales
                     $valTotalBSP = $response['valor'];
                     if (!$response['insert']) {
                         throw new Exception("BSP: {$response['msg']}");
+                    }
+
+                    // Liquidar Viáticos
+                    $valTotalViaticos = 0;
+                    if (isset($viaticosNomina[$id_empleado])) {
+                        $filtro = $viaticosNomina[$id_empleado];
+                        foreach ($filtro as $viatico) {
+                            $valTotalViaticos += $viatico['val_total'];
+                            $dataLiqViatico = [
+                                'id_viatico' => $viatico['id_viatico'],
+                                'valor' => $viatico['val_total'],
+                                'id_nomina' => $id_nomina
+                            ];
+                            $resLiqV = (new ViaticosLiq($this->conexion))->addRegistro($dataLiqViatico);
+                            if ($resLiqV != 'si') {
+                                throw new Exception("Error al liquidar viático ID {$viatico['id_viatico']}: $resLiqV");
+                            }
+                        }
                     }
 
                     //laborado 
@@ -466,7 +492,7 @@ class Prestaciones_Sociales
                         throw new Exception("Cesantias Mes: {$response['msg']}");
                     }
 
-                    $baseDctos = $valTotalLab + $valCompensa + $valAuxTrans + $valAuxAlim + $valTotSegSoc + $valPriSer + $valPriNav + $valCes + $valIntCes + $valTotalHe + $valTotVac + $valTotalBSP + $valTotPrimVac + $valBonRec + $grepre - ($valTotSegSoc ?? 0);
+                    $baseDctos = $valTotalLab + $valCompensa + $valAuxTrans + $valAuxAlim + $valPriSer + $valPriNav + $valCes + $valIntCes + $valTotalHe + $valTotVac + $valTotalBSP + $valTotPrimVac + $valBonRec + $grepre + $valTotalViaticos - ($valTotSegSoc ?? 0);
 
                     //otros descuentos
                     $filtro = $otrosDctos[$id_empleado] ?? [];
@@ -501,7 +527,7 @@ class Prestaciones_Sociales
                         throw new Exception("Retención en la fuente: {$response['msg']}");
                     }
 
-                    $neto = $baseDctos - $totValRetFte;
+                    $neto = $baseDctos - $totValRetFte + $valTotalViaticos;
                     $data = [
                         'id_empleado' => $id_empleado,
                         'id_nomina' => $id_nomina,
@@ -519,8 +545,10 @@ class Prestaciones_Sociales
                     if ($response != 'si') {
                         throw new Exception("Contrato: {$response}");
                     }
-                    if ($this->conexion->inTransaction()) {
-                        $this->conexion->commit();
+                    if ($opcion == 0) {
+                        if ($this->conexion->inTransaction()) {
+                            $this->conexion->commit();
+                        }
                     }
                     $inserts++;
                     unset($filtro, $response);

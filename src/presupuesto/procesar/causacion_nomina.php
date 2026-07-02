@@ -135,20 +135,20 @@ function resolverIdTerceroEmpleado($documento, $tercerosIndexados)
 function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPorTipoCcosto, $esPtoCaracter)
 {
     if ($esPtoCaracter) {
-        $ccostos = array_filter(array_map('trim', explode(',', (string)($detalleEmpleado['id_ccosto'] ?? ''))));
+        $ccostos = array_filter(array_map('trim', explode(',', (string) ($detalleEmpleado['id_ccosto'] ?? ''))));
         if (count($ccostos) !== 1) {
             throw new Exception(
                 'El empleado con documento ' . $detalleEmpleado['no_documento'] .
-                    ' tiene un centro de costo no vÃ¡lido para la causaciÃ³n: ' . ($detalleEmpleado['id_ccosto'] ?? 'sin definir')
+                ' tiene un centro de costo no vÃ¡lido para la causación: ' . ($detalleEmpleado['id_ccosto'] ?? 'sin definir')
             );
         }
 
         $idCcosto = (int) $ccostos[0];
         if (empty($rubrosPorTipoCcosto[$tipo][$idCcosto])) {
             throw new Exception(
-                'No existe relaciÃ³n de rubro para el tipo ' . $tipo .
-                    ' y centro de costo ' . $idCcosto .
-                    ' del empleado ' . $detalleEmpleado['no_documento']
+                'No existe relación de rubro para el tipo ' . $tipo .
+                ' y centro de costo ' . $idCcosto .
+                ' del empleado ' . $detalleEmpleado['no_documento']
             );
         }
 
@@ -156,7 +156,7 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
     }
 
     if (empty($rubrosPorTipo[$tipo])) {
-        throw new Exception('No existe relaciÃ³n de rubro para el tipo ' . $tipo . '.');
+        throw new Exception('No existe relación de rubro para el tipo ' . $tipo . '.');
     }
 
     $rubro = $detalleEmpleado['tipo_cargo'] == '1'
@@ -166,7 +166,7 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
     if (!($rubro > 0)) {
         throw new Exception(
             'No existe rubro presupuestal configurado para el tipo ' . $tipo .
-                ' y tipo de cargo del empleado ' . $detalleEmpleado['no_documento']
+            ' y tipo de cargo del empleado ' . $detalleEmpleado['no_documento']
         );
     }
 
@@ -197,10 +197,10 @@ try {
     unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin ConexiÃ³n a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 if (empty($valxrubro)) {
-    echo 'No se ha generado una solicitud de CDP para esta nÃ³mina';
+    echo 'No se ha generado una solicitud de CDP para esta nómina';
     exit();
 } else {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -246,7 +246,7 @@ try {
     $pto = $rs->fetch(PDO::FETCH_ASSOC);
     $cmd = null;
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin ConexiÃ³n a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
 $Detalles = new Detalles();
@@ -275,7 +275,7 @@ try {
     $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
     $cmd = null;
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin ConexiÃ³n a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 
 try {
@@ -285,7 +285,7 @@ try {
     $rubros = $rs->fetchAll(PDO::FETCH_ASSOC);
     $cmd = null;
 } catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin ConexiÃ³n a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
 [$rubrosPorTipo, $rubrosPorTipoCcosto] = indexarRubrosNomina($rubros);
@@ -391,14 +391,14 @@ try {
     $sqly->bindParam(5, $liberado, PDO::PARAM_STR);
 
     $tipo_field_map = [
-        1  => ['valor_laborado', 'val_compensa'],
-        2  => 'horas_ext',
-        3  => 'g_representa',
-        4  => 'val_bon_recrea',
-        5  => 'val_bsp',
-        6  => 'aux_tran',
-        7  => 'aux_alim',
-        9  => 'val_indemniza',
+        1 => ['valor_laborado', 'val_compensa'],
+        2 => 'horas_ext',
+        3 => 'g_representa',
+        4 => 'val_bon_recrea',
+        5 => 'val_bsp',
+        6 => 'aux_tran',
+        7 => 'aux_alim',
+        9 => 'val_indemniza',
         10 => 'valor_luto',
         17 => 'valor_vacacion',
         18 => 'val_cesantias',
@@ -414,9 +414,9 @@ try {
         $id_tercero = resolverIdTerceroEmpleado($d['no_documento'] ?? '', $terceros);
         if (!($id_tercero > 0)) {
             throw new Exception(
-                'No se encontrÃ³ un tercero activo con id_tercero_api vÃ¡lido para el empleado con documento ' .
-                    ($d['no_documento'] ?? 'sin documento') .
-                    '. Verifique la coincidencia entre nom_empleado.no_documento y tb_terceros.nit_tercero.'
+                'No se encontró un tercero activo con id_tercero_api vÃ¡lido para el empleado con documento ' .
+                ($d['no_documento'] ?? 'sin documento') .
+                '. Verifique la coincidencia entre nom_empleado.no_documento y tb_terceros.nit_tercero.'
             );
         }
 
@@ -451,7 +451,7 @@ try {
                 if (!($rubro > 0)) {
                     throw new Exception(
                         'No existe rubro presupuestal configurado en el tipo de otros devengados para el empleado ' .
-                            ($d['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                        ($d['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
                     );
                 }
 

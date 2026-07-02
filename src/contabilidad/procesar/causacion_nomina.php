@@ -74,6 +74,7 @@ function indexarOtrosDevengadosNomina($otrosDevengados)
             'documento' => $otroDevengado['documento'] ?? '',
             'rubro' => isset($otroDevengado['rubro']) ? (int) $otroDevengado['rubro'] : 0,
             'cuenta' => isset($otroDevengado['cuenta']) ? (int) $otroDevengado['cuenta'] : 0,
+            'id_tipo_devengado' => isset($otroDevengado['id_tipo_devengado']) ? (int) $otroDevengado['id_tipo_devengado'] : 0,
             'valor' => isset($otroDevengado['valor']) ? (float) $otroDevengado['valor'] : 0,
         ];
     }
@@ -88,7 +89,7 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
         if (count($ccostos) !== 1) {
             throw new Exception(
                 'El empleado con documento ' . $detalleEmpleado['no_documento'] .
-                    ' tiene un centro de costo no válido para la causación: ' . ($detalleEmpleado['id_ccosto'] ?? 'sin definir')
+                ' tiene un centro de costo no válido para la causación: ' . ($detalleEmpleado['id_ccosto'] ?? 'sin definir')
             );
         }
 
@@ -96,8 +97,8 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
         if (empty($rubrosPorTipoCcosto[$tipo][$idCcosto])) {
             throw new Exception(
                 'No existe relación de rubro para el tipo ' . $tipo .
-                    ' y centro de costo ' . $idCcosto .
-                    ' del empleado ' . $detalleEmpleado['no_documento']
+                ' y centro de costo ' . $idCcosto .
+                ' del empleado ' . $detalleEmpleado['no_documento']
             );
         }
 
@@ -115,7 +116,7 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
     if (!($rubro > 0)) {
         throw new Exception(
             'No existe rubro presupuestal configurado para el tipo ' . $tipo .
-                ' y tipo de cargo del empleado ' . $detalleEmpleado['no_documento']
+            ' y tipo de cargo del empleado ' . $detalleEmpleado['no_documento']
         );
     }
 
@@ -148,6 +149,7 @@ try {
                 `nom_tipo_rubro`.`id_rubro`
                 , `nom_rel_rubro`.`id_tipo`
                 , `nom_tipo_rubro`.`nombre`
+                , `nom_tipo_rubro`.`id_devengado`
                 , `nom_rel_rubro`.`r_admin`
                 , `nom_rel_rubro`.`r_operativo`
                 , `nom_rel_rubro`.`id_ccosto`
@@ -172,6 +174,7 @@ try {
                 `nom_causacion`.`id_causacion`
                 , `nom_causacion`.`centro_costo`
                 , `nom_causacion`.`id_tipo`
+                , `nom_tipo_rubro`.`id_devengado`
                 , `nom_tipo_rubro`.`nombre`
                 , `nom_causacion`.`cuenta`
                 , `nom_causacion`.`detalle`
@@ -436,14 +439,14 @@ try {
     $sql2->bindParam(8, $fecha2);
 
     $tipo_field_map = [
-        1  => ['valor_laborado', 'val_compensa'],
-        2  => 'horas_ext',
-        3  => 'g_representa',
-        4  => 'val_bon_recrea',
-        5  => 'val_bsp',
-        6  => 'aux_tran',
-        7  => 'aux_alim',
-        9  => 'val_indemniza',
+        1 => ['valor_laborado', 'val_compensa'],
+        2 => 'horas_ext',
+        3 => 'g_representa',
+        4 => 'val_bon_recrea',
+        5 => 'val_bsp',
+        6 => 'aux_tran',
+        7 => 'aux_alim',
+        9 => 'val_indemniza',
         10 => 'valor_luto',
         17 => 'valor_vacacion',
         18 => 'val_cesantias',
@@ -484,8 +487,8 @@ try {
             if ($valor > 0 && $id_det === NULL) {
                 throw new Exception(
                     'No existe detalle CRP para el rubro ' . $rubro .
-                        ' y tercero ' . $id_ter_api .
-                        ' del empleado ' . $dd['no_documento']
+                    ' y tercero ' . $id_ter_api .
+                    ' del empleado ' . $dd['no_documento']
                 );
             }
 
@@ -507,15 +510,15 @@ try {
                 if ($valor > 0 && $rubro <= 0) {
                     throw new Exception(
                         'No existe rubro presupuestal configurado en el tipo de otros devengados para el empleado ' .
-                            ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                        ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
                     );
                 }
 
                 if ($valor > 0 && $id_det === NULL) {
                     throw new Exception(
                         'No existe detalle CRP para el rubro ' . $rubro .
-                            ' y tercero ' . $id_ter_api .
-                            ' del empleado ' . ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                        ' y tercero ' . $id_ter_api .
+                        ' del empleado ' . ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
                     );
                 }
 
@@ -543,21 +546,24 @@ try {
                 $credito = 0;
                 $tipo = $ca['id_tipo'];
                 $cuenta = $ca['cuenta'];
-                if ((int) $tipo === 34) {
+                if ((int) $tipo >= 34) {
+                    $id_devengado_rel = $ca['id_devengado'];
                     if (!empty($otrosDevengadosEmpleado)) {
                         foreach ($otrosDevengadosEmpleado as $otroDevengado) {
-                            $valor = $otroDevengado['valor'] / $num_ccostos;
-                            $cuenta = $otroDevengado['cuenta'];
-                            if ($valor > 0 && !($cuenta > 0)) {
-                                throw new Exception(
-                                    'No existe cuenta contable configurada en el tipo de otros devengados para el empleado ' .
+                            if ($otroDevengado['id_tipo_devengado'] == $id_devengado_rel) {
+                                $valor = $otroDevengado['valor'] / $num_ccostos;
+                                $cuenta = $ca['cuenta'];
+                                if ($valor > 0 && !($cuenta > 0)) {
+                                    throw new Exception(
+                                        'No existe cuenta contable configurada en el tipo de causación (débito) para el empleado ' .
                                         ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
-                                );
-                            }
-                            if ($valor > 0 && $cuenta != '') {
-                                $sql1->execute();
-                                if (!($cmd->lastInsertId() > 0)) {
-                                    throw new Exception($sql1->errorInfo()[2]);
+                                    );
+                                }
+                                if ($valor > 0 && $cuenta != '') {
+                                    $sql1->execute();
+                                    if (!($cmd->lastInsertId() > 0)) {
+                                        throw new Exception($sql1->errorInfo()[2]);
+                                    }
                                 }
                             }
                         }
@@ -593,7 +599,7 @@ try {
                         $valor = $dd['val_indemniza'] / $num_ccostos;
                         break;
                     case 10:
-                        $valor = $dd['valor_luto'] / $num_ccostos;
+                        $valor = ($dd['valor_luto'] + $dd['valor_mp']) / $num_ccostos;
                         break;
                     case 17:
                         $valor = $dd['valor_vacacion'] / $num_ccostos;
@@ -728,7 +734,7 @@ try {
                         $credito = $dd['val_indemniza'];
                         break;
                     case 10:
-                        $credito = $dd['valor_luto'] - $restar;
+                        $credito = ($dd['valor_luto'] + $dd['valor_mp']) - $restar;
                         if ($credito < 0) {
                             $restar = $credito * -1;
                             $credito = 0;
@@ -798,9 +804,6 @@ try {
                             $restar = 0;
                         }
                         break;
-                    case 34:
-                        $credito = $dd['valor_otros'];
-                        break;
                     case 33:
                         if (!empty($dcto)) {
                             foreach ($dcto as $dc) {
@@ -817,6 +820,29 @@ try {
                         $credito = 0;
                         break;
                     default:
+                        if ($tipo >= 34) {
+                            $id_devengado_rel = $cp['id_devengado'];
+                            if (!empty($otrosDevengadosEmpleado)) {
+                                foreach ($otrosDevengadosEmpleado as $otroDevengado) {
+                                    if ($otroDevengado['id_tipo_devengado'] == $id_devengado_rel) {
+                                        $credito = $otroDevengado['valor'];
+                                        $cuenta = $cp['cuenta'];
+                                        if ($credito > 0 && !($cuenta > 0)) {
+                                            throw new Exception(
+                                                'No existe cuenta contable configurada en la causación (pasivo) para el devengado del empleado ' .
+                                                ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                                            );
+                                        }
+                                        if ($credito > 0 && $cuenta != '') {
+                                            $sql1->execute();
+                                            if (!($cmd->lastInsertId() > 0)) {
+                                                throw new Exception($sql1->errorInfo()[2]);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         $credito = 0;
                         break;
                 }

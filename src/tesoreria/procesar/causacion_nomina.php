@@ -74,6 +74,7 @@ function indexarOtrosDevengadosPorEmpleado($otrosDevengados)
             'rubro' => isset($otroDevengado['rubro']) ? (int) $otroDevengado['rubro'] : 0,
             'valor' => isset($otroDevengado['valor']) ? (float) $otroDevengado['valor'] : 0,
             'documento' => $otroDevengado['documento'] ?? '',
+            'id_tipo_devengado' => isset($otroDevengado['id_tipo_devengado']) ? (int) $otroDevengado['id_tipo_devengado'] : 0,
         ];
     }
 
@@ -149,7 +150,7 @@ try {
     // Cargar cuentas de causación que son pasivos
     $sql = "SELECT
                 `nom_causacion`.`id_causacion`, `nom_causacion`.`centro_costo`, `nom_causacion`.`id_tipo`,
-                `nom_tipo_rubro`.`nombre`, `nom_causacion`.`cuenta`, `nom_causacion`.`detalle`,
+                `nom_tipo_rubro`.`id_devengado`, `nom_tipo_rubro`.`nombre`, `nom_causacion`.`cuenta`, `nom_causacion`.`detalle`,
                 `tb_centrocostos`.`es_pasivo`
             FROM `nom_causacion`
             INNER JOIN `nom_tipo_rubro` ON (`nom_causacion`.`id_tipo` = `nom_tipo_rubro`.`id_rubro`)
@@ -575,7 +576,7 @@ try {
                         $valor = $d['val_indemniza'];
                         break;
                     case 10:
-                        $valor = $d['valor_luto'];
+                        $valor = $d['valor_luto'] + $d['valor_mp'];
                         break;
                     case 17:
                         $valor = $d['valor_vacacion'] - $restar;
@@ -619,14 +620,29 @@ try {
                             $restar = 0;
                         }
                         break;
-                    case 34:
-                        $valor = $d['valor_otros'];
-                        break;
                     case 33: // Otros descuentos
                         // Esta lógica se maneja por separado si es necesario
                         break;
+                    default:
+                        if ($tipo >= 34) {
+                            $id_devengado_rel = $cp['id_devengado'];
+                            if (!empty($otrosDevengadosEmpleado)) {
+                                foreach ($otrosDevengadosEmpleado as $otroDevengado) {
+                                    if ($otroDevengado['id_tipo_devengado'] == $id_devengado_rel) {
+                                        $valor += $otroDevengado['valor'];
+                                    }
+                                }
+                            }
+                        }
+                        break;
                 }
                 if ($valor > 0) {
+                    if (empty($cuenta)) {
+                        throw new Exception(
+                            'No existe cuenta contable configurada para el tipo de causación o devengado del empleado ' .
+                            ($d['no_documento'] ?? 'sin documento')
+                        );
+                    }
                     $stmt_libaux->execute([$id_ctb_doc_ceva, $id_ter_api, $cuenta, $valor, 0, $iduser, $fecha2]);
                     $total_pago_empleado += $valor;
                 }

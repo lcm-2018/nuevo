@@ -5,29 +5,12 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-?>
-<!DOCTYPE html>
-<html lang="es">
 
-<head>
-    <meta http-equiv="Content-Type" content="text/HTML; charset=utf-8" />
-    <title>CONTAFACIL</title>
-    <style>
-        .text {
-            mso-number-format: "\@"
-        }
-    </style>
+header("Content-type: application/vnd.ms-excel charset=utf-8");
+header("Content-Disposition: attachment; filename=Descuentos_municipio.xls");
+header("Pragma: no-cache");
+header("Expires: 0");
 
-    <?php
-
-    header("Content-type: application/vnd.ms-excel charset=utf-8");
-    header("Content-Disposition: attachment; filename=Descuentos_municipio.xls");
-    header("Pragma: no-cache");
-    header("Expires: 0");
-
-    ?>
-</head>
-<?php
 $vigencia = $_SESSION['vigencia'];
 // estraigo las variables que llegan por post en json
 $fecha_inicial = $_POST['fecha_inicial'];
@@ -42,25 +25,26 @@ include '../../financiero/consultas.php';
 $cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT
-    tb_tipos_documento.id_tipodoc,
-    tb_tipos_documento.descripcion,
-    ctb_retenciones.nombre_retencion as nombre,
-    SUM(ctb_causa_retencion.valor_base) AS total_valor_base,
-    SUM(ctb_causa_retencion.valor_retencion) AS total_valor_retencion
-FROM
-    ctb_causa_retencion
-    INNER JOIN ctb_doc ON (ctb_causa_retencion.id_ctb_doc = ctb_doc.id_ctb_doc)
-    INNER JOIN ctb_retencion_rango ON (ctb_causa_retencion.id_rango = ctb_retencion_rango.id_rango)
-    INNER JOIN ctb_retenciones ON (ctb_retencion_rango.id_retencion = ctb_retenciones.id_retencion)
-    INNER JOIN tb_terceros ON (tb_terceros.id_tercero_api = ctb_doc.id_tercero)
-    INNER JOIN tb_tipos_documento ON (tb_terceros.tipo_doc = tb_tipos_documento.id_tipodoc)
-WHERE 
-    ctb_retenciones.id_retencion_tipo =5
-    AND ctb_doc.fecha BETWEEN '$fecha_inicial' AND '$fecha_corte'
-GROUP BY 
-        ctb_retenciones.id_retencion
-ORDER BY 
-        ctb_retenciones.nombre_retencion";
+                tb_tipos_documento.id_tipodoc,
+                tb_tipos_documento.descripcion,
+                ctb_retenciones.nombre_retencion as nombre,
+                SUM(ctb_causa_retencion.valor_base) AS total_valor_base,
+                SUM(ctb_causa_retencion.valor_retencion) AS total_valor_retencion
+            FROM
+                ctb_causa_retencion
+                INNER JOIN ctb_doc ON (ctb_causa_retencion.id_ctb_doc = ctb_doc.id_ctb_doc)
+                INNER JOIN ctb_retencion_rango ON (ctb_causa_retencion.id_rango = ctb_retencion_rango.id_rango)
+                INNER JOIN ctb_retenciones ON (ctb_retencion_rango.id_retencion = ctb_retenciones.id_retencion)
+                INNER JOIN tb_terceros ON (tb_terceros.id_tercero_api = ctb_doc.id_tercero)
+                LEFT JOIN tb_tipos_documento ON (tb_terceros.tipo_doc = tb_tipos_documento.id_tipodoc)
+            WHERE 
+                ctb_retenciones.id_retencion_tipo =5
+                AND ctb_doc.fecha BETWEEN '$fecha_inicial' AND '$fecha_corte'
+                AND ctb_doc.estado = 2 
+            GROUP BY 
+                    ctb_retenciones.id_retencion
+            ORDER BY 
+                    ctb_retenciones.nombre_retencion";
     $res = $cmd->query($sql);
     $causaciones = $res->fetchAll();
     $res->closeCursor();
@@ -87,23 +71,15 @@ FROM
         </br>
         <table class="table-bordered bg-light" style="width:100% !important;">
             <tr>
-                <td colspan="4" style="text-align:center"><?php echo ''; ?></td>
-            </tr>
-
-            <tr>
-                <td colspan="4" style="text-align:center"><?php echo $empresa['razon_social_ips']; ?></td>
+                <td colspan="4" style="text-align:center"><?= $empresa['razon_social_ips']; ?></td>
             </tr>
             <tr>
-                <td colspan="4" style="text-align:center"><?php echo $empresa['nit_ips'] . '-' . $empresa['dv']; ?></td>
+                <td colspan="4" style="text-align:center"><?= $empresa['nit_ips'] . '-' . $empresa['dv']; ?></td>
             </tr>
             <tr>
-                <td colspan="4" style="text-align:center"><?php echo 'RELACION DE DESCUENTOS Y RETENCIONES ESTAMPILLAS'; ?></td>
-            </tr>
-            <tr>
-                <td colspan="4" style="text-align:center"></td>
-            </tr>
-            <tr>
-                <td colspan="4" style="text-align:center"><?php echo ''; ?></td>
+                <td colspan="4" style="text-align:center">
+                    <?= 'RELACION DE DESCUENTOS Y RETENCIONES ESTAMPILLAS'; ?>
+                </td>
             </tr>
         </table>
         </br>
@@ -122,39 +98,28 @@ FROM
         </br>
         <table class="table-bordered bg-light" style="width:100% !important;" border=1>
             <tr>
-                <td>Tipo de retenci&oacute;n</td>
-                <td>Retenci&oacute;n aplicada</td>
+                <td>Tipo de retención</td>
+                <td>Retención aplicada</td>
                 <td>Valor retenido</td>
             </tr>
             <?php
-            $total_base =   0;
+            $total_base = 0;
             $total_ret = 0;
-            $total_pago =  0;
+            $total_pago = 0;
             foreach ($causaciones as $rp) {
                 echo "<tr>
                     <td class='text-start'>" . $rp['nombre'] . "</td>
                     <td class='text'>" . number_format($rp['total_valor_base'], 2, ".", ",") . "</td>
-                    <td class='text-end'>" . number_format($rp['total_valor_retencion'], 2, ".", ",")  . "</td>
+                    <td class='text-end'>" . number_format($rp['total_valor_retencion'], 2, ".", ",") . "</td>
                     </tr>";
                 $total_ret = $total_ret + $rp['total_valor_retencion'];
             }
             echo "<tr>
             <td class='text-end' colspan='2'> Total</td>
-            <td class='text-end'>" . number_format($total_ret, 2, ".", ",")  . "</td>
+            <td class='text-end'>" . number_format($total_ret, 2, ".", ",") . "</td>
             </tr>";
 
             ?>
         </table>
-        &nbsp;
-        &nbsp;
-        &nbsp;
-
-        </br>
-        </br>
-        </br>
-
     </div>
-
 </div>
-
-</html>

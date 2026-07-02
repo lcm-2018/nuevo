@@ -159,10 +159,12 @@ try {
         <div class="px-3">
             <form id="formObligacionesPago">
                 <input type="hidden" name="id_tipo" value="<?= $id_tipo; ?>">
-                <table id="tableObligacionesPago" class="table table-striped table-bordered nowrap table-sm table-hover shadow w-100 align-middle">
+                <table id="tableObligacionesPago"
+                    class="table table-striped table-bordered nowrap table-sm table-hover shadow w-100 align-middle">
                     <thead>
                         <tr>
-                            <th class="bg-sofia" title="Seleccionar todos"><input type="checkbox" id="checkAll" onclick="checkAll(this)"></th>
+                            <th class="bg-sofia" title="Seleccionar todos"><input type="checkbox" id="checkAll"
+                                    onclick="checkAll(this)"></th>
                             <th class="bg-sofia">Causación</th>
                             <th class="bg-sofia">Rp</th>
                             <th class="bg-sofia">Contrato</th>
@@ -182,12 +184,12 @@ try {
                             $editar = null;
 
                             // Consulta terceros en la api
-
+                        
                             $tercero = $ce['nom_tercero'];
                             $ccnit = $ce['nit_tercero'];
 
                             // fin api terceros
-
+                        
                             $saldo_rp = $ce['valor'] - $ce['valor_pagado'];
 
                             if ($permisos->PermisosUsuario($opciones, 5601, 3) || $id_rol == 1) {
@@ -195,21 +197,21 @@ try {
                             }
 
                             if ($saldo_rp > 0) {
-                        ?>
+                                ?>
                                 <tr>
                                     <td class="text-center">
                                         <input type="checkbox" name="check[]" class="check-item" value="<?php echo $id_doc; ?>">
                                     </td>
                                     <td class="text-start"><?php echo $ce['causacion']; ?></td>
                                     <td class="text-start"><?php echo $ce['registro'] ?></td>
-                                    <td class="text-start"><?php echo $ce['num_contrato']   ?></td>
+                                    <td class="text-start"><?php echo $ce['num_contrato'] ?></td>
                                     <td class="text-start"><?php echo $fecha; ?></td>
                                     <td class="text-start"><?php echo $ccnit; ?></td>
                                     <td class="text-start text-wrap"><?php echo $tercero; ?></td>
                                     <td class="text-end"> <?php echo number_format($saldo_rp, 2, ',', '.'); ?></td>
                                     <td class="text-center"> <?php echo $editar; ?></td>
                                 </tr>
-                        <?php
+                                <?php
                             }
                         }
 

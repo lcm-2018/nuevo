@@ -165,6 +165,11 @@ class Anulacion
             "UPDATE `nom_retencion_fte` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina",
         ];
 
+        // Solo anular valores de liquidacion si es anulación completa ($tipo original era != 1)
+        if ($tipo === "") {
+            $queries[] = "UPDATE `nom_valores_liquidacion` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina";
+        }
+
         try {
             // Inicio de transacción
             // verificar si hay transacción activa

@@ -163,6 +163,13 @@ class TaxxaService
 
         // Si el código HTTP no es 200, intentar extraer mensaje de error del JSON
         if ($httpCode !== 200) {
+            // Si la respuesta contiene rerror, dejar que parseResponse() lo maneje
+            // Esto permite procesar casos como rerror=2 (documento ya procesado)
+            // para recuperar el CUFE del documento existente
+            if ($decoded !== null && isset($decoded->rerror)) {
+                return $decoded;
+            }
+
             $errorMessage = "Error HTTP {$httpCode}";
 
             // Si hay respuesta JSON válida, intentar extraer el mensaje de error
@@ -172,15 +179,13 @@ class TaxxaService
                     $errorMessage = $this->formatErrorMessage($decoded->smessage);
                 } elseif (isset($decoded->message)) {
                     $errorMessage = $this->formatErrorMessage($decoded->message);
-                } elseif (isset($decoded->rerror) && isset($decoded->sdebug1)) {
+                } elseif (isset($decoded->sdebug1)) {
                     // Intentar decodificar sdebug1 si está en base64
                     $debug1 = base64_decode($decoded->sdebug1);
                     $debugData = json_decode($debug1);
 
                     if ($debugData !== null && isset($debugData->ErrorMessage)) {
                         $errorMessage = $this->formatErrorMessage($debugData->ErrorMessage);
-                    } else {
-                        $errorMessage .= " - Error {$decoded->rerror}";
                     }
                 }
             }
@@ -330,6 +335,24 @@ class TaxxaService
 
         // Si no se pudo formatear de ninguna forma, convertir a JSON
         return json_encode($message);
+    }
+
+    /**
+     * Obtiene el token JWT activo (necesario para servicios externos como nómina)
+     * @return string|null Token activo o null si no se autenticó
+     */
+    public function getToken(): ?string
+    {
+        return $this->token;
+    }
+
+    /**
+     * Obtiene el endpoint configurado para hacer peticiones directas
+     * @return string URL del servicio Taxxa
+     */
+    public function getEndpoint(): string
+    {
+        return $this->endpoint;
     }
 
     /**

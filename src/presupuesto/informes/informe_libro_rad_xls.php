@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 set_time_limit(10000);
 ini_set('memory_limit', '512M');
@@ -144,14 +144,14 @@ include_once '../../financiero/encabezado_empresa.php';
                         <td style='text-align:left'>" . $rp['nom_sede'] . "</td>
                         <td style='text-align:left;mso-number-format:\@;'>" . $rp['id_manu'] . "</td>
                         <td style='text-align:left;mso-number-format:\@;'>" . $rp['num_factura'] . "</td>
-                        <td style='text-align:left;white-space: nowrap;'>" .   $rp['fecha']   . "</td>
-                        <td style='text-align:left'>" .  $rp['nom_tercero'] . "</td>
-                        <td style='text-align:right;white-space: nowrap;mso-number-format:\@;'>" .  number_format($rp['nit_tercero'], 0, "", ".") . "</td>
+                        <td style='text-align:left;white-space: nowrap;'>" . $rp['fecha'] . "</td>
+                        <td style='text-align:left'>" . $rp['nom_tercero'] . "</td>
+                        <td style='text-align:right;white-space: nowrap;mso-number-format:\@;'>" . number_format($rp['nit_tercero'], 0, "", ".") . "</td>
                         <td style='text-align:left'>" . $rp['objeto'] . "</td>
-                        <td style='text-align:left;mso-number-format:\@;'>" .  $rp['rubro'] . "</td>
-                        <td style='text-align:right'>" . number_format($rp['val1'], 2, ".", ",")  . "</td>
-                        <td style='text-align:right'>" . number_format($rp['val2'], 2, ".", ",")  . "</td>
-                        <td style='text-align:right'>" . number_format($rp['valor'], 2, ".", ",")  . "</td>
+                        <td style='text-align:left;mso-number-format:\@;'>" . $rp['rubro'] . "</td>
+                        <td style='text-align:right'>" . number_format($rp['val1'], 2, ".", ",") . "</td>
+                        <td style='text-align:right'>" . number_format($rp['val2'], 2, ".", ",") . "</td>
+                        <td style='text-align:right'>" . number_format($rp['valor'], 2, ".", ",") . "</td>
                     </tr>";
                 }
             }

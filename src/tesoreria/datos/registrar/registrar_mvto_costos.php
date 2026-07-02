@@ -1,4 +1,8 @@
 ﻿<?php
+include '../../../../config/autoloader.php';
+
+use Src\Common\Php\Clases\Permisos;
+
 session_start();
 if (isset($_POST)) {
     //Recibir variables por POST
@@ -10,15 +14,13 @@ if (isset($_POST)) {
     $date = new DateTime('now', new DateTimeZone('America/Bogota'));
     $fecha2 = $date->format('Y-m-d H:i:s');
     //
-    include '../../../../config/autoloader.php';
-    
-use Src\Common\Php\Clases\Permisos;
 
-$id_rol = $_SESSION['rol'];
-$id_user = $_SESSION['id_user'];
 
-$permisos = new Permisos();
-$opciones = $permisos->PermisoOpciones($id_user);
+    $id_rol = $_SESSION['rol'];
+    $id_user = $_SESSION['id_user'];
+
+    $permisos = new Permisos();
+    $opciones = $permisos->PermisoOpciones($id_user);
     try {
         $cmd = \Config\Clases\Conexion::getConexion();
         if (empty($_POST['id'])) {
@@ -51,8 +53,8 @@ $opciones = $permisos->PermisoOpciones($id_user);
                 WHERE (`ctb_causa_costos`.`id_ctb_doc` =$id_doc AND estado =0);";
                 $rs = $cmd->query($sql);
                 $rubros = $rs->fetchAll();
-        $rs->closeCursor();
-        unset($rs);
+                $rs->closeCursor();
+                unset($rs);
                 foreach ($rubros as $ce) {
                     $id_doc = $ce['id_ctb_doc'];
                     $id = $ce['id'];

@@ -121,7 +121,7 @@ class Valores_Liquidacion
     {
         $sql = "SELECT
                     `id_empleado`,`smmlv`,`aux_trans`,`aux_alim`,`uvt`,`base_bsp`,`base_alim`,`min_vital`,`salario`,`tiene_grep`,`grep`,`prom_horas`,`bsp_ant`,`pri_ser_ant`,`pri_vac_ant`,`pri_nav_ant`,`id_nomina`
-                FROM `nom_valores_liquidacion` WHERE `id_nomina` = ? AND `id_empleado` = ?";
+                FROM `nom_valores_liquidacion` WHERE `id_nomina` = ? AND `id_empleado` = ? AND `estado` = 1";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $id_nomina, PDO::PARAM_INT);
         $stmt->bindParam(2, $id_empleado, PDO::PARAM_INT);
@@ -130,23 +130,23 @@ class Valores_Liquidacion
         $stmt->closeCursor();
         unset($stmt);
         return !empty($valores) ? $valores : [
-            'id_empleado'   => $id_empleado,
-            'smmlv'         => 0,
-            'aux_trans'     => 0,
-            'aux_alim'      => 0,
-            'uvt'           => 0,
-            'base_bsp'      => 0,
-            'base_alim'     => 0,
-            'min_vital'     => 0,
-            'salario'       => 0,
-            'tiene_grep'    => 0,
-            'grep'          => 0,
-            'prom_horas'    => 0,
-            'bsp_ant'       => 0,
-            'pri_ser_ant'   => 0,
-            'pri_vac_ant'   => 0,
-            'pri_nav_ant'   => 0,
-            'id_nomina'     => 0
+            'id_empleado' => $id_empleado,
+            'smmlv' => 0,
+            'aux_trans' => 0,
+            'aux_alim' => 0,
+            'uvt' => 0,
+            'base_bsp' => 0,
+            'base_alim' => 0,
+            'min_vital' => 0,
+            'salario' => 0,
+            'tiene_grep' => 0,
+            'grep' => 0,
+            'prom_horas' => 0,
+            'bsp_ant' => 0,
+            'pri_ser_ant' => 0,
+            'pri_vac_ant' => 0,
+            'pri_nav_ant' => 0,
+            'id_nomina' => 0
         ];
     }
 
@@ -173,7 +173,7 @@ class Valores_Liquidacion
     {
         try {
             $sql = "DELETE FROM `nom_contratos_empleados` WHERE `id_contrato_emp` = ?";
-            $consulta  = "DELETE FROM `nom_contratos_empleados` WHERE `id_contrato_emp` = $id";
+            $consulta = "DELETE FROM `nom_contratos_empleados` WHERE `id_contrato_emp` = $id";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->execute();
@@ -225,7 +225,7 @@ class Valores_Liquidacion
             if ($id > 0) {
                 $stmt->closeCursor();
                 unset($stmt);
-                return  'si';
+                return 'si';
             } else {
                 return 'No se insertó el registro';
             }
@@ -260,7 +260,7 @@ class Valores_Liquidacion
         try {
             $sql = "UPDATE `nom_valores_liquidacion`
                         SET `smmlv` = ?, `aux_trans` = ?, `aux_alim` = ?, `uvt` = ?, `base_bsp` = ?, `base_alim` = ?, `min_vital` = ?, `salario` = ?, `tiene_grep` = ?, `prom_horas` = ?, `bsp_ant` = ?, `pri_ser_ant` = ?, `pri_vac_ant` = ?, `pri_nav_ant` = ?, `grep` = ?
-                    WHERE (`id_valor` = ?)";
+                    WHERE (`id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $l['smmlv'], PDO::PARAM_STR);
             $stmt->bindValue(2, $l['aux_trans'], PDO::PARAM_STR);
@@ -277,13 +277,15 @@ class Valores_Liquidacion
             $stmt->bindValue(13, $l['pri_vac_ant'], PDO::PARAM_STR);
             $stmt->bindValue(14, $l['pri_nav_ant'], PDO::PARAM_STR);
             $stmt->bindValue(15, $l['grep'], PDO::PARAM_STR);
-            $stmt->bindValue(16, $l['id'], PDO::PARAM_INT);
+            $stmt->bindValue(16, $l['id_empleado'], PDO::PARAM_INT);
+            $stmt->bindValue(17, $l['id_nomina'], PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
-                $consulta = "UPDATE `nom_valores_liquidacion` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_valor` = ?";
+                $consulta = "UPDATE `nom_valores_liquidacion` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1";
                 $stmt2 = $this->conexion->prepare($consulta);
                 $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
                 $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
-                $stmt2->bindValue(3, $l['id'], PDO::PARAM_INT);
+                $stmt2->bindValue(3, $l['id_empleado'], PDO::PARAM_INT);
+                $stmt2->bindValue(4, $l['id_nomina'], PDO::PARAM_INT);
                 $stmt2->execute();
                 return 'si';
             } else {

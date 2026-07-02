@@ -458,6 +458,7 @@ class Rubros
         $sql = "SELECT
                     `nod`.`id_empleado`,
                     `e`.`no_documento` AS `documento`,
+                    `ntd`.`id_tipo` AS `id_tipo_devengado`,
                     CASE WHEN `nca`.`tipo_cargo` = 1 THEN `ntd`.`r_admin` ELSE `ntd`.`r_oper` END AS `rubro`,
                     SUM(`nld`.`valor`) AS `valor`
                 FROM `nom_liq_devengado` AS `nld`
@@ -478,6 +479,7 @@ class Rubros
                 GROUP BY
                     `nod`.`id_empleado`,
                     `e`.`no_documento`,
+                    `ntd`.`id_tipo`,
                     CASE WHEN `nca`.`tipo_cargo` = 1 THEN `ntd`.`r_admin` ELSE `ntd`.`r_oper` END";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(1, $id_nomina, PDO::PARAM_INT);
@@ -494,6 +496,7 @@ class Rubros
                     `nod`.`id_empleado`,
                     `e`.`no_documento` AS `documento`,
                     `ntd`.`id_cta` AS `cuenta`,
+                    `ntd`.`id_tipo` AS `id_tipo_devengado`,
                     CASE WHEN `nca`.`tipo_cargo` = 1 THEN `ntd`.`r_admin` ELSE `ntd`.`r_oper` END AS `rubro`,
                     SUM(`nld`.`valor`) AS `valor`
                 FROM `nom_liq_devengado` AS `nld`
@@ -515,6 +518,7 @@ class Rubros
                     `nod`.`id_empleado`,
                     `e`.`no_documento`,
                     `ntd`.`id_cta`,
+                    `ntd`.`id_tipo`,
                     CASE WHEN `nca`.`tipo_cargo` = 1 THEN `ntd`.`r_admin` ELSE `ntd`.`r_oper` END";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(1, $id_nomina, PDO::PARAM_INT);

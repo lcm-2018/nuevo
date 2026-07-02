@@ -46,7 +46,8 @@ try {
                 LEFT JOIN tb_tipos_documento ON (tb_terceros.tipo_doc = tb_tipos_documento.id_tipodoc)
             WHERE 
                 ctb_retenciones.id_retencion_tipo = 5
-                AND ctb_doc.fecha BETWEEN '$fecha_inicial' AND '$fecha_corte';";
+                AND ctb_doc.fecha BETWEEN '$fecha_inicial' AND '$fecha_corte'
+                AND ctb_doc.estado = 2";
     $res = $cmd->query($sql);
     $descuentos = $res->fetchAll();
     $res->closeCursor();
@@ -73,23 +74,16 @@ try {
         </br>
         <table class="table-bordered bg-light" style="width:100% !important;">
             <tr>
-                <td colspan="7" style="text-align:center"><?php echo ''; ?></td>
+                <td colspan="7" style="text-align:center"><?= $empresa['razon_social_ips']; ?></td>
             </tr>
+            <tr>
+                <td colspan="7" style="text-align:center"><?= $empresa['nit_ips'] . '-' . $empresa['dv']; ?></td>
+            </tr>
+            <tr>
+                <td colspan="7" style="text-align:center">
 
-            <tr>
-                <td colspan="7" style="text-align:center"><?php echo '<h3>' . $empresa['razon_social_ips'] . '</h3>'; ?></td>
-            </tr>
-            <tr>
-                <td colspan="7" style="text-align:center"><?php echo $empresa['nit_ips'] . '-' . $empresa['dv']; ?></td>
-            </tr>
-            <tr>
-                <td colspan="7" style="text-align:center"><?php echo 'RELACION DE DESCUENTOS Y RETENCIONES DETALLADO'; ?></td>
-            </tr>
-            <tr>
-                <td colspan="7" style="text-align:center"></td>
-            </tr>
-            <tr>
-                <td colspan="7" style="text-align:center"><?php echo ''; ?></td>
+                    <?= 'RELACION DE DESCUENTOS Y RETENCIONES DETALLADO'; ?>
+                </td>
             </tr>
         </table>
         </br>
@@ -98,12 +92,12 @@ try {
             <tr>
                 <td>MUNICIPIO</td>
                 <td style='text-align: left;'><?php //echo $tercero; 
-                                                ?></td>
+                ?></td>
             </tr>
             <tr>
                 <td>NIT</td>
                 <td style='text-align: left;'><?php //echo $ccnit; 
-                                                ?></td>
+                ?></td>
             </tr>
             <tr>
                 <td>FECHA INICIO</td>
@@ -133,17 +127,17 @@ try {
                 echo "<tr>
                     <td class='text-end'>" . $tp['id_manu'] . "</td>
                     <td class='text-end'>" . $fecha . "</td>
-                    <td class='text-end'>" .  $tp['nom_tercero']  . "</td>
-                    <td class='text'>" .  $tp['nit_tercero'] . "</td>
+                    <td class='text-end'>" . $tp['nom_tercero'] . "</td>
+                    <td class='text'>" . $tp['nit_tercero'] . "</td>
                     <td class='text-end'>" . $tp['detalle'] . "</td>
-                    <td class='text-end'>" . number_format($tp['valor_base'], 2, ".", ",")  . "</td>
-                    <td class='text-end'>" . number_format($tp['valor_retencion'], 2, ".", ",")  . "</td>
+                    <td class='text-end'>" . number_format($tp['valor_base'], 2, ".", ",") . "</td>
+                    <td class='text-end'>" . number_format($tp['valor_retencion'], 2, ".", ",") . "</td>
                     </tr>";
                 $total_ret = $total_ret + $tp['valor_retencion'];
             }
             echo "<tr>
         <td class='text-end' colspan='6'> Total</td>
-        <td class='text-end'>" . number_format($total_ret, 2, ".", ",")  . "</td>
+        <td class='text-end'>" . number_format($total_ret, 2, ".", ",") . "</td>
         </tr>
         </table>
         </br> &nbsp;

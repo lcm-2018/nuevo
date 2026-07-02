@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -77,7 +77,8 @@ try {
                     ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
                 INNER JOIN `pto_cargue` 
                     ON (`pto_cdp_detalle`.`id_rubro` = `pto_cargue`.`id_cargue`)
-            WHERE (`pto_crp_detalle`.`id_pto_crp` = $id_crp)";
+            WHERE (`pto_crp_detalle`.`id_pto_crp` = $id_crp)
+            ORDER BY `pto_cargue`.`cod_pptal`";
     $res = $cmd->query($sql);
     $rubros = $res->fetchAll(PDO::FETCH_ASSOC);
     $res->closeCursor();
@@ -134,6 +135,7 @@ foreach ($codigos as $cd) {
         }
     }
 }
+ksort($data, SORT_NATURAL);
 try {
     $sql = "SELECT `razon_social_ips` AS `nombre`, `nit_ips` AS `nit`, `dv` AS `dig_ver` FROM `tb_datos_ips`;";
     $res = $cmd->query($sql);
@@ -146,7 +148,8 @@ $enletras = numeroLetras($total);
 $id_crp = $crp['estado'] == '0' ? 0 : $id_crp;
 ?>
 <div class="text-end py-3">
-    <a type="button" class="btn btn-primary btn-sm" onclick="imprSelecCrp('areaImprimir', <?php echo $id_crp ?>);"> Imprimir</a>
+    <a type="button" class="btn btn-primary btn-sm" onclick="imprSelecCrp('areaImprimir', <?php echo $id_crp ?>);">
+        Imprimir</a>
     <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
 </div>
 <div class="contenedor bg-light" id="areaImprimir">
@@ -163,10 +166,15 @@ $id_crp = $crp['estado'] == '0' ? 0 : $id_crp;
                 <tr>
                     <td>
                         <div>
-                            <p style="text-align: center;"><b>REGISTRO PRESUPUESTAL No: <?php echo $crp['id_manu']; ?></b></p>
+                            <p style="text-align: center;"><b>REGISTRO PRESUPUESTAL No:
+                                    <?php echo $crp['id_manu']; ?></b></p>
                         </div>
                         <div>
-                            <p style="text-align: justify;"><?= $gen_respon == 'M' ? 'El' : 'La'; ?> suscrit<?= $gen_respon == 'M' ? 'o' : 'a'; ?> <?php echo $cargo_respon; ?> de la entidad <strong><?php echo $empresa['nombre']; ?></strong>, CERTIFICA que se realizó registro presupuestal para respaldar un compromiso de acuerdo al siguiente detalle:</p>
+                            <p style="text-align: justify;"><?= $gen_respon == 'M' ? 'El' : 'La'; ?>
+                                suscrit<?= $gen_respon == 'M' ? 'o' : 'a'; ?> <?php echo $cargo_respon; ?> de la entidad
+                                <strong><?php echo $empresa['nombre']; ?></strong>, CERTIFICA que se realizó registro
+                                presupuestal para respaldar un compromiso de acuerdo al siguiente detalle:
+                            </p>
                         </div>
                         <div style="text-align: justify;">
                             <div>
@@ -192,15 +200,16 @@ $id_crp = $crp['estado'] == '0' ? 0 : $id_crp;
                                     </tr>
                                     <tr>
                                         <td>VALOR:</td>
-                                        <td><label><?= $enletras . "  ($" . number_format($total, 2, ",", ".") . ")"; ?></label></td>
+                                        <td><label><?= $enletras . "  ($" . number_format($total, 2, ",", ".") . ")"; ?></label>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td><label>NUMERO CDP:</label></td>
-                                        <td><?= $crp['num_cdp'];  ?></td>
+                                        <td><?= $crp['num_cdp']; ?></td>
                                     </tr>
                                     <tr>
                                         <td><label>No. CONTRATO:</label></td>
-                                        <td><?= $crp['num_contrato'];  ?></td>
+                                        <td><?= $crp['num_contrato']; ?></td>
                                     </tr>
                                 </table>
                             </div>
@@ -218,7 +227,7 @@ $id_crp = $crp['estado'] == '0' ? 0 : $id_crp;
                                         echo "<tr>
                                                 <td style='text-align:left'>" . $key . "</td>
                                                 <td style='text-align:left'>" . $rubro . "</td>
-                                                <td style='text-align:right'>" . number_format($val, 2, ",", ".")  . "</td>
+                                                <td style='text-align:right'>" . number_format($val, 2, ",", ".") . "</td>
                                             </tr>";
                                     }
                                     ?>

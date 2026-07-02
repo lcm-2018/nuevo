@@ -1213,11 +1213,9 @@ const procesaCausacionPago = (id) => {
 };*/
 //Enviar nómina (Soporte electrónico)
 const EnviarNomina = (boton) => {
-	boton.disabled = true;
 	let id = boton.value;
-	boton.value = "";
-	boton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-	let url = ValueInput('host') + "/src/nomina/enviar/soportenomelec.php";
+	let url = ValueInput('host') + "/src/nomina/electronica/php/controladores/enviar_nomina.php";
+	mostrarOverlay();
 	fetch(url, {
 		method: "POST",
 		body: JSON.stringify({ id: id }),
@@ -1225,21 +1223,24 @@ const EnviarNomina = (boton) => {
 		.then((response) => response.json())
 		.then((response) => {
 			console.log(response);
-			if (response.msg == "ok") {
+			if (response.value == "ok") {
 				$('#tableMvtoTesoreriaPagos').DataTable().ajax.reload(null, false);
-				if (response.incorrec > 0) {
-					response.procesados = response.procesados + ' <br> ' + response.error;
+				let mensaje = response.msg;
+				if (response.incorrectos > 0) {
+					let listaErrores = response.errores.map(e => '<li>' + e + '</li>').join('');
+					mensaje += '<br><br><b>' + response.incorrectos + ' empleado(s) con error:</b><ul>' + listaErrores + '</ul>';
 				}
-				mje(response.procesados);
+				mje(mensaje);
 			} else {
-				boton.disabled = false;
-				boton.value = id;
-				boton.innerHTML = '<span class="fas fa-paper-plane"></span>';
 				mjeError(response.msg);
 			}
 		})
 		.catch((error) => {
-			console.log("Error:");
+			console.log("Error al enviar nómina:", error);
+			mjeError("Error de conexión al enviar nómina electrónica");
+		})
+		.finally(() => {
+			ocultarOverlay();
 		});
 };
 
@@ -2199,13 +2200,20 @@ const generaMovimientoPag = (boton) => {
 	// verificar si los tres valores son iguales
 	let id_crp = $('#id_crp').length ? $('#id_crp').val() : 0;
 	var url = "datos/registrar/registrar_mvto_libaux_auto_pag.php";
+	let bodyData = { id: id, id_crp: id_crp, id_cop: id_cop, tipo: tipo };
 	if ($('#id_doc_rad').length && Number($('#id_doc_rad').val()) > 0) {
 		url = "datos/registrar/registrar_mvto_libaux_auto_rad.php";
+	}
+	if ($('#cod_doc').val() == 'CMLG') {
+		url = "datos/registrar/registrar_mvto_libaux_auto_leg_caja.php";
+		bodyData.fecIniTraslado = $('#fecIniTraslado').val();
+		bodyData.fecFinTraslado = $('#fecFinTraslado').val();
+		bodyData.caja_menor = $('#caja_menor').val();
 	}
 	mostrarOverlay();
 	fetch(url, {
 		method: "POST",
-		body: JSON.stringify({ id: id, id_crp: id_crp, id_cop: id_cop, tipo: tipo }),
+		body: JSON.stringify(bodyData),
 	})
 		.then((response) => response.json())
 		.then((response) => {

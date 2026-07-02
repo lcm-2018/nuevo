@@ -6,7 +6,7 @@
     "[javascript]": {
         "editor.defaultFormatter": "vscode.typescript-language-features"
     },
-    "workbench.colorTheme": "Light Modern",
+    "workbench.colorTheme": "IDEA like light Theme",
     "workbench.colorCustomizations": {
         "[IDEA like light Theme]": {
             "editor.background": "#f8f9fa",

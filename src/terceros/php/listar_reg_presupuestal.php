@@ -54,6 +54,7 @@ try {
                     SUM(valor) AS vr_cop,
                     SUM(valor_liberado) AS vr_cop_liberado
                 FROM pto_cop_detalle
+                INNER JOIN ctb_doc ON pto_cop_detalle.id_ctb_doc = ctb_doc.id_ctb_doc AND  ctb_doc.estado =  2
                 GROUP BY id_pto_crp_det
             ) cop_sum ON cop_sum.id_pto_crp_det = pto_crp_detalle2.id_pto_crp_det
             WHERE pto_crp.id_cdp = $id_cdp
@@ -86,9 +87,9 @@ if (!empty($objs)) {
         // include '../../../permisos.php'; -> Este include se elimina y se usa la clase Permisos
         if ($permisos->PermisosUsuario($opciones, 5401, 3) || $id_rol == 1) {
             if ($saldo > 0 || $saldo < 0) {
-                $liberar =  '<a value="' . $id_crp . '" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 btn_liberar_crp" title="Liberar"><span class="fas fa-arrow-alt-circle-left"></span></a>';
+                $liberar = '<a value="' . $id_crp . '" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 btn_liberar_crp" title="Liberar"><span class="fas fa-arrow-alt-circle-left"></span></a>';
             }
-            $liberaciones =  '<a value="' . $id_crp . '" class="btn btn-outline-warning btn-xs rounded-circle shadow me-1 btn_liberaciones_crp" title="Listar liberaciones"><span class="fas fa-hand-holding-usd"></span></a>';
+            $liberaciones = '<a value="' . $id_crp . '" class="btn btn-outline-warning btn-xs rounded-circle shadow me-1 btn_liberaciones_crp" title="Listar liberaciones"><span class="fas fa-hand-holding-usd"></span></a>';
         }
 
         $data[] = [

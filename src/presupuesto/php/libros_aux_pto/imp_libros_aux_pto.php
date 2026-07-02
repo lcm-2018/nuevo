@@ -59,7 +59,6 @@ try {
             AND pto_mod.estado=2
 
 ORDER BY fecha";
-
     $rs = $cmd->query($sql);
     $obj_informe = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
@@ -114,10 +113,10 @@ if (!empty($obj_informe) && $obj_informe[0]['filas'] > 0) {
         <br>
         <tr style="text-align: center;">
             <label>Tipo de documento: <?php
-                                        if (!empty($obj_informe)) {
-                                            echo $obj_informe[0]['cod_pptal'] . " - " . $obj_informe[0]['nom_rubro'];
-                                        }
-                                        ?></label>
+            if (!empty($obj_informe)) {
+                echo $obj_informe[0]['cod_pptal'] . " - " . $obj_informe[0]['nom_rubro'];
+            }
+            ?></label>
         </tr>
     </table>
 
@@ -146,7 +145,7 @@ if (!empty($obj_informe) && $obj_informe[0]['filas'] > 0) {
             foreach ($obj_informe as $obj) {
                 $saldo_inicial = $saldo_inicial + $obj['valor_deb'] - $obj['valor_cred'];
 
-            ?>
+                ?>
                 <tr class="resaltar">
                     <td style="border:#A9A9A9 1px solid;"><?php echo $obj['fecha'] ?></td>
                     <td style="border:#A9A9A9 1px solid;"><?php echo $obj['id_manu'] ?></td>
@@ -156,7 +155,7 @@ if (!empty($obj_informe) && $obj_informe[0]['filas'] > 0) {
                     <td style="border:#A9A9A9 1px solid;" class="text-end"><?php echo $obj['valor_cred'] ?></td>
                     <td style="border:#A9A9A9 1px solid;" class="text-end"><?php echo $saldo_inicial ?></td>
                 </tr>
-            <?php
+                <?php
                 $total_deb += $obj['valor_deb'];
                 $total_cre += $obj['valor_cred'];
             }

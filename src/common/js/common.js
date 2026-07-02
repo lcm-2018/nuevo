@@ -453,7 +453,8 @@ function inicializarAwesomplete(inputElement, endpoint, idTargetSelector, inclui
         })
             .then(res => res.json())
             .then(data => {
-                const opciones = data.map(item => {
+                const resultados = Array.isArray(data) ? data : (data.msg || []);
+                const opciones = resultados.map(item => {
                     const label = incluirCedula ? `${item.label} - ${item.cedula}` : item.label;
                     tipoMap.set(label, item.tipo); // Guardamos tipo por label
                     return {
@@ -462,6 +463,7 @@ function inicializarAwesomplete(inputElement, endpoint, idTargetSelector, inclui
                     };
                 });
                 awesomplete.list = opciones;
+                awesomplete.evaluate();
             })
             .catch(error => console.log(`Error en la búsqueda (${endpoint}):`, error));
     });
