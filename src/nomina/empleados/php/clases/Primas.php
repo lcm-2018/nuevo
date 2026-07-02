@@ -88,6 +88,7 @@ class Primas
         $terceros_ss = $Empleado->getRegistro();
 
         $cortes = array_column(((new Liquidacion())->getCortes($ids, $fin)), null, 'id_empleado');
+
         $liquidados = (new Liquidacion())->getEmpleadosLiq($id_nomina, $ids);
         $liquidados = array_column($liquidados, 'id_sal_liq', 'id_empleado');
         $error = '';
