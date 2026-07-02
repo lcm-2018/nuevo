@@ -17,7 +17,7 @@
         {
             processing: true,
             serverSide: true,
-            searching: false,
+            searching: true,
             autoWidth: false,
             pageLength: 10,
             order: [[1, 'asc']],
@@ -25,7 +25,7 @@
                 url: 'listar_consulta_bdatos.php',
                 type: 'POST',
                 data: function (d) {
-                    d.id_consulta = document.getElementById('id_consulta').value;
+                    d.id_consulta = document.getElementById('id_consulta_bd').value;
                 }
             },
             columnDefs: [

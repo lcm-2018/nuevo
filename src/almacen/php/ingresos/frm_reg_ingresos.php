@@ -169,6 +169,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                         <th class="bg-sofia">Total</th>
                         <th class="bg-sofia">Observación</th>
                         <th class="bg-sofia">Acciones</th>
+                        <th class="bg-sofia">Rec.Tec.</th>
                     </tr>
                 </thead>
                 <tbody class="text-start"></tbody>
@@ -202,6 +203,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
         <button type="button" class="btn btn-primary btn-sm" id="btn_cerrar" <?php echo $cerrar ?>>Cerrar</button>
         <button type="button" class="btn btn-primary btn-sm" id="btn_anular" <?php echo $anular ?>>Anular</button>
         <button type="button" class="btn btn-primary btn-sm" id="btn_imprimir" <?php echo $imprimir ?>>Imprimir</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn_rec_tec" <?php echo $imprimir ?>>Recepción Tec.</button>
         <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>

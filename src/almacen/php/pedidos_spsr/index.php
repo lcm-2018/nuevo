@@ -110,14 +110,16 @@ $content = <<<HTML
         </div>
         
         <!-- Leyenda de estados -->
-        <table class="table-bordered table-sm col-md-2 mt-2">
-            <tr>
-                <td style="background-color:yellow">Pendiente</td>
-                <td style="background-color:PaleTurquoise">Confirmado</td>
-                <td>Finalizado</td>
-                <td style="background-color:gray">Anulado</td>
-            </tr>
-        </table>
+        <div class="mt-3">
+            <table class="table table-bordered table-sm w-25" style="font-size:85%">
+                <tr class="text-center">
+                    <td style="background-color:yellow"><b>Pendiente</b></td>
+                    <td style="background-color:PaleTurquoise"><b>Confirmado</b></td>
+                    <td><b>Finalizado</b></td>
+                    <td style="background-color:gray; color:white"><b>Anulado</b></td>
+                </tr>
+            </table>
+        </div>                
     </div>
 </div>
 HTML;

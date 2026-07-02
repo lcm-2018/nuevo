@@ -33,7 +33,7 @@ var verifica_vacio_2 = function (objeto1, objeto2, msg = "") {
 
 $(function () {
     //Dato numerico
-    $("#divModalForms,#divModalReg,#divModalBus").on("input", ".number", function () {
+   $(document).on("input", ".number", function () {
         var that = $(this);
         that.val(that.val().replace(/[^0-9]/g, ''));
         if (isNaN(that.val())) {
@@ -41,8 +41,8 @@ $(function () {
         }
     });
 
-    //Dato numerico entero >=0
-    $("#divModalForms,#divModalReg,#divModalBus").on("input", ".numberint", function () {
+    //Dato numerico entero >=0    
+    $(document).on("input", ".numberint", function () {
         var that = $(this);
         that.val(that.val().replace(/[^0-9]/g, ''));
         if (that.val().substring(0, 1).trim() == '0') {
@@ -54,7 +54,7 @@ $(function () {
     });
 
     //Dato numerico flotante
-    $("#divModalForms,#divModalReg,#divModalBus").on("input", ".numberfloat", function () {
+    $(document).on("input", ".numberfloat", function () {
         let val = $(this).val();
         val = val.replace(/[^0-9\.\-]/g, '');
         if ((val.match(/\-/g) || []).length > 1) {
@@ -81,7 +81,7 @@ $(function () {
     });
 
     //Dato letras, numeros, y -
-    $("#divModalForms,#divModalReg,#divModalBus").on("input", ".valcode", function () {
+    $(document).on("input", ".valcode", function () {
         var that = $(this);
         that.val(that.val().replace(/[^0-9a-zA-Z\-]/g, ''));
         if (isNaN(that.val())) {

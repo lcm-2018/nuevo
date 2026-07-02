@@ -65,7 +65,7 @@ if (!empty($objs)) {
             "tipo_consulta" => $obj['tipo_consulta'],
             "tipo_acceso" => $obj['tipo_acceso'],
             "estado" => $obj['estado'],
-            "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
+            "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>'
         ];
     }
 }

@@ -1,6 +1,6 @@
 <?php
 $ruta_firmas = "/cronhis/img/firmas/";
-$ruta_firmas = "/proyecto/hc/img/firmas/";
+#$ruta_firmas = "/proyecto/hc/img/firmas/";
 
 //FUNCION QUE RETORNAR FECHA Y HORA DEL SERVIDOR
 function fecha_hora_servidor(){
@@ -65,5 +65,28 @@ function canConnectToDatabase(string $host, int $port, string $user, string $pas
         return [true, 'Conexión a la base de datos exitosa.'];
     } catch (\PDOException $e) {
         return [false, $e->getMessage()];
+    }
+}
+
+// FUNCIONES GENERALES
+function datos_articulo($cmd, $id_med){
+    try {
+        $res = array();
+        $sql = "SELECT id_med,nom_medicamento,val_promedio
+                FROM far_medicamentos
+                WHERE id_med=$id_med";
+        $rs = $cmd->query($sql);
+        $obj = $rs->fetch();
+        if (isset($obj['id_med'])) {
+            $res = array('id_med' => $obj['id_med'], 
+                        'nom_articulo' => $obj['nom_medicamento'], 
+                        'val_promedio' => $obj['val_promedio']);
+        } else {
+            $res = array('id_med' => '', 'nom_articulo' => '', 'val_promedio' => '');
+        }
+        $cmd = null;
+        return $res;
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
     }
 }

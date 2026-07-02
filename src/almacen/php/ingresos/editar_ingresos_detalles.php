@@ -63,6 +63,12 @@ try {
                         $vr_costo = $_POST['txt_val_cos'];
                         $observacion = $_POST['txt_observacion'];
 
+                        $tam_muestra = $_POST['txt_tam_muestra'] ? $_POST['txt_tam_muestra']: 0;
+                        $def_menores = $_POST['txt_def_menores'] ? $_POST['txt_def_menores'] : 0;
+                        $def_mayores = $_POST['txt_def_mayores'] ? $_POST['txt_def_mayores'] : 0;
+                        $def_criticos = $_POST['txt_def_criticos'] ? $_POST['txt_def_criticos'] : 0;
+                        $obs_recepcion = $_POST['txt_obs_recepcion'] ? $_POST['txt_obs_recepcion'] : '';
+                        
                         //Verificar si es una Orden de compra que la entrada no supere lo aprobado
                         $can_aprobado = 0;
                         $can_ingresada = 0;
@@ -98,8 +104,10 @@ try {
 
                             if ($obj['existe'] == 0) {
                                 if ($id == -1) {
-                                    $sql = "INSERT INTO far_orden_ingreso_detalle(id_ingreso,id_lote,id_presentacion,cantidad,valor_sin_iva,iva,valor,observacion)
-                                            VALUES($id_ingreso,$id_lote,$id_pre_lot,$cantidad,$vr_unidad,$iva,$vr_costo,'$observacion')";
+                                    $sql = "INSERT INTO far_orden_ingreso_detalle(id_ingreso,id_lote,id_presentacion,cantidad,valor_sin_iva,iva,valor,observacion,
+                                                        tam_muestra,def_menores,def_mayores,def_criticos,obs_recepcion)
+                                            VALUES($id_ingreso,$id_lote,$id_pre_lot,$cantidad,$vr_unidad,$iva,$vr_costo,'$observacion',
+                                                        $tam_muestra,$def_menores,$def_mayores,$def_criticos,'$obs_recepcion')";
                                     $rs = $cmd->query($sql);
 
                                     if ($rs) {
@@ -113,7 +121,8 @@ try {
                                     }
                                 } else {
                                     $sql = "UPDATE far_orden_ingreso_detalle 
-                                        SET id_lote=$id_lote,id_presentacion=$id_pre_lot,cantidad=$cantidad,valor_sin_iva=$vr_unidad,iva=$iva,valor=$vr_costo,observacion='$observacion'
+                                        SET id_lote=$id_lote,id_presentacion=$id_pre_lot,cantidad=$cantidad,valor_sin_iva=$vr_unidad,iva=$iva,valor=$vr_costo,observacion='$observacion',
+                                            tam_muestra=$tam_muestra,def_menores=$def_menores,def_mayores=$def_mayores,def_criticos=$def_criticos,obs_recepcion='$obs_recepcion'
                                         WHERE id_ing_detalle=" . $id;
 
                                     $rs = $cmd->query($sql);

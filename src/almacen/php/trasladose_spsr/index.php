@@ -136,32 +136,23 @@ $content = <<<HTML
         </div>
         
         <!-- Leyenda de estados -->
-        <div class="row mt-2">
-            <div class="col-md-4">
-                <table class="table-bordered table-sm w-100">
-                    <tr>
-                        <td colspan="4">Sede Principal</td>
-                    </tr>
-                    <tr>
-                        <td style="background-color:yellow">Pendiente</td>
-                        <td style="background-color:PaleTurquoise">Cerrado-Egresado</td>
-                        <td>Enviado</td>
-                        <td style="background-color:gray">Anulado</td>
-                    </tr>
-                </table>
-            </div>
-            <div class="col-md-4">
-                <table class="table-bordered table-sm w-100">
-                    <tr>
-                        <td colspan="4">Sede Remota</td>
-                    </tr>
-                    <tr>
-                        <td style="background-color:yellow">Pendiente</td>
-                        <td style="background-color:DodgerBlue">Cerrado-Ingresado</td>
-                        <td style="background-color:gray">Rechazado</td>
-                    </tr>
-                </table>
-            </div>
+        <div class="mt-3">
+            <table class="table table-bordered table-sm w-50" style="font-size:85%">
+                <tr class="text-center">
+                    <td colspan="4"><b>Sede Principal</b></td>
+                    <td rowspan="2">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td colspan="3"><b>Sede Remota</b></td>
+                </tr>    
+                <tr class="text-center">    
+                    <td style="background-color:yellow"><b>Pendiente</b></td>
+                    <td style="background-color:PaleTurquoise"><b>Cerrado-Egresado</b></td>
+                    <td><b>Enviado</b></td>
+                    <td style="background-color:gray; color:white"><b>Anulado</b></td>
+                    <td style="background-color:yellow"><b>Pendiente</b></td>
+                    <td style="background-color:DodgerBlue"><b>Cerrado-Ingresado</b></td>
+                    <td style="background-color:gray; color:white"><b>Rechazado</b></td>                                        
+                </tr>
+            </table>
         </div>
     </div>
 </div>

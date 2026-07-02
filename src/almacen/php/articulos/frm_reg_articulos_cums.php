@@ -36,6 +36,7 @@ if (empty($obj)) {
         <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
             <h7 style="color: white;">REGISRTAR CUM/EXPEDIENTE DE ARTICULO</h7>
         </div>
+        
         <div class="p-2">
 
             <!--Formulario de registro de CUM-->

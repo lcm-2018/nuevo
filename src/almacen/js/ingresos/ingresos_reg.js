@@ -60,11 +60,12 @@
                 { 'data': 'valor' },
                 { 'data': 'val_total' },
                 { 'data': 'observacion' },
-                { 'data': 'botones' }
+                { 'data': 'botones' },
+                { 'data': 'recepcion' }
             ],
             columnDefs: [
                 { class: 'text-wrap', targets: [2, 5, 11] },
-                { orderable: false, targets: 12 }
+                { orderable: false, targets: [12, 13] }
             ],
             order: [
                 [0, "asc"]

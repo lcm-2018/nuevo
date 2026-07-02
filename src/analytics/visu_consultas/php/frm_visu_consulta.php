@@ -86,11 +86,11 @@ $tipo_acceso = ($obj['tipo_acceso'] == 1) ? 'disabled="disabled"' : '';
                     <div class="col-md-10">
                         <div class="col-md-12 mt-3">
                             <div class="text-white fw-bold p-2 rounded-top" style="background-color:#2C92B8">Consulta SQL</div>
-                            <textarea class="form-control form-control-sm bg-input" id="txt_consulta_sql" name="txt_consulta_sql" rows="15" spellcheck="false"><?php echo $obj['consulta_sql'] ?></textarea>
+                            <textarea class="form-control form-control-sm bg-input" id="txt_consulta_sql" name="txt_consulta_sql" rows="15"><?php echo $obj['consulta_sql'] ?></textarea>
                         </div>
                         <div class="col-md-12 mt-3">
                             <div class="text-white fw-bold p-2 rounded-top" style="background-color:#2C92B8">Consulta SQL GROUP</div>
-                            <textarea class="form-control form-control-sm bg-input" id="txt_consulta_sql_group" name="txt_consulta_sql_group" rows="5" spellcheck="false"><?php echo $obj['consulta_sql_group'] ?></textarea>
+                            <textarea class="form-control form-control-sm bg-input" id="txt_consulta_sql_group" name="txt_consulta_sql_group" rows="5"><?php echo $obj['consulta_sql_group'] ?></textarea>
                         </div>        
                     </div>
                     <div class="col-md-2 mt-3">
@@ -102,7 +102,6 @@ $tipo_acceso = ($obj['tipo_acceso'] == 1) ? 'disabled="disabled"' : '';
                                         <th class="bg-sofia">Id</th>
                                         <th class="bg-sofia">Parám</th>
                                         <th class="bg-sofia">Nombre</th>
-                                        <th class="bg-sofia">Tipo</th>
                                         <th class="bg-sofia">Tipo</th>
                                         <th class="bg-sofia">Acciones</th>
                                     </tr>

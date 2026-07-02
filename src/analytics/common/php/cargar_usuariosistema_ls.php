@@ -10,9 +10,9 @@ $usuario = $_SESSION['id_user'];
 $term = isset($_POST['term']) ? $_POST['term'] : exit('Acción no permitida');
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT id_usuario,CONCAT_WS(' ',nombre1,nombre2,apellido1,apellido2) AS nom_usuario
+    $sql = "SELECT id_usuario,CONCAT_WS(' ',num_documento,'-',nombre1,nombre2,apellido1,apellido2,'-',descripcion) AS nom_usuario
             FROM seg_usuarios_sistema
-            WHERE CONCAT(nombre1,nombre2,apellido1,apellido2) LIKE '$term%'
+            WHERE CONCAT(num_documento,nombre1,nombre2,apellido1,apellido2) LIKE '%$term%'
             ORDER BY nombre1,nombre2,apellido1,apellido2";
     $rs = $cmd->query($sql);
     $objs = $rs->fetchAll();

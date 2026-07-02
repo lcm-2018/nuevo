@@ -85,7 +85,7 @@ $content = <<<HTML
         
         <!-- Leyenda de estados -->
         <div class="mt-3">
-            <table class="table table-bordered table-sm col-md-3 w-25" style="font-size:85%">
+            <table class="table table-bordered table-sm w-25" style="font-size:85%">
                 <tr class="text-center">
                     <td style="background-color:yellow"><b>Pendiente</b></td>
                     <td style="background-color:PaleTurquoise"><b>Confirmado</b></td>

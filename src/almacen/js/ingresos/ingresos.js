@@ -441,7 +441,7 @@
             $('#id_txt_pre_lot').val(lote.attr('data-id_presentacion'));
             $('#txt_can_lot').val(lote.attr('data-cantidad_umpl'));
             if ($('#sl_tip_ing').find('option:selected').attr('data-fianza') == 1) {
-                $('#txt_val_uni').val(lote.attr('data-val_promedio'));
+               $('#txt_val_uni').val(lote.attr('data-val_promedio'));
             }
         }
     });
@@ -477,7 +477,7 @@
         });
     });
 
-    $('#divModalReg').on('input', '#txt_can_ing, #txt_val_uni, #sl_por_iva', function () {
+    $('#divModalReg').on('input', '#txt_val_uni, #sl_por_iva', function () {
         var valor = $('#txt_val_uni').val() ? $('#txt_val_uni').val() : 0,
             iva = $('#sl_por_iva').val() ? $('#sl_por_iva').val() : 0;
         $('#txt_val_cos').val(parseFloat(valor) + parseFloat(valor) * parseFloat(iva) / 100);
@@ -486,14 +486,34 @@
     //Guardar registro Detalle
     $('#divFormsReg').on("click", "#btn_guardar_detalle", function () {
         $('.is-invalid').removeClass('is-invalid');
-        var error = verifica_vacio($('#sl_lote_art'));
+        let error = verifica_vacio($('#sl_lote_art'));
         error -= verifica_vacio($('#txt_can_ing'));
         error += verifica_vacio($('#txt_val_uni'));
         error += verifica_vacio($('#txt_val_cos'));
 
+        let can_ing = $('#txt_can_ing').val() ? parseInt($('#txt_can_ing').val()) : 0,
+        tam_mue = $('#txt_tam_muestra').val() ? parseInt($('#txt_tam_muestra').val()) : 0,
+        def_men = $('#txt_def_menores').val() ? parseInt($('#txt_def_menores').val()) : 0,
+        def_may = $('#txt_def_mayores').val() ? parseInt($('#txt_def_mayores').val()) : 0,
+        def_cri = $('#txt_def_criticos').val() ? parseInt($('#txt_def_criticos').val()) : 0;
+
         if (error >= 1) {
             mjeError('Los datos resaltados son obligatorios');
-        } else if (!verifica_valmin($('#txt_can_ing'), 1, "La cantidad debe ser mayor igual a 1")) {
+        } else if (verifica_valmin($('#txt_can_ing'), 1)) {
+            mjeError('La cantidad debe ser mayor igual a 1');
+        } else if (tam_mue > can_ing) {
+            mjeError('El tamaño de la muestra no puede ser mayor a la cantidad ingresada');
+            $('#txt_tam_muestra').addClass('is-invalid');    
+        } else if (def_men > tam_mue) {
+            mjeError('La cantidad de defectos menores no puede ser mayor al tamaño de la muestra');    
+            $('#txt_def_menores').addClass('is-invalid');    
+        } else if (def_may > tam_mue) {
+            mjeError('La cantidad de defectos mayores no puede ser mayor al tamaño de la muestra');    
+            $('#txt_def_mayores').addClass('is-invalid');
+        } else if (def_cri > tam_mue) {
+            mjeError('La cantidad de defectos críticos no puede ser mayor al tamaño de la muestra');   
+            $('#txt_def_criticos').addClass('is-invalid');    
+        } else {    
             var data = $('#frm_reg_ingresos_detalles').serialize();
             $.ajax({
                 type: 'POST',
@@ -680,7 +700,7 @@
         }
     });
 
-    //Imprimit un registro 
+    //Imprimir un registro 
     $('#divForms').on("click", "#btn_imprimir", function () {
         $.post("imp_ingreso.php", {
             id: $('#id_ingreso').val()
@@ -693,7 +713,20 @@
         });
     });
 
-    //Imprimit una Orden de Ingreso desde el formulario principal
+    //Imprimir recepcion técnica
+    $('#divForms').on("click", "#btn_rec_tec", function () {
+        $.post("imp_recepcion_tec.php", {
+            id: $('#id_ingreso').val()
+        }, function (he) {
+            $('#divTamModalImp').removeClass('modal-sm');
+            $('#divTamModalImp').removeClass('modal-lg');
+            $('#divTamModalImp').addClass('modal-xl');
+            $('#divModalImp').modal('show');
+            $("#divImp").html(he);
+        });
+    });
+
+    //Imprimir una Orden de Ingreso desde el formulario principal
     $('#tb_ingresos').on('click', '.btn_imprimir', function () {
         let id = $(this).attr('value');
         $.post("imp_ingreso.php", {

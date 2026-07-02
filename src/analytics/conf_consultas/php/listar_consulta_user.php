@@ -21,10 +21,10 @@ if ($length != -1) {
 $col = $_POST['order'][0]['column'] + 1;
 $dir = $_POST['order'][0]['dir'];
 
-$where = " WHERE 1=1";
+$where = "";
 if (isset($_POST['search']['value']) && $_POST['search']['value']) {
     $search = $_POST['search']['value'];
-    $where .= " AND CONCAT(nombre_entidad,nombre_bd) LIKE '%$search%'";
+    $where .= " AND CONCAT(US.nombre1,US.nombre2,US.apellido1,US.apellido2) LIKE '%$search%'";
 }
 
 try {
@@ -33,23 +33,26 @@ try {
     $id_consulta = isset($_POST['id_consulta']) ? (int)$_POST['id_consulta'] : -1;
 
     //Consulta el total de registros de la tabla
-    $sql = "SELECT COUNT(*) AS total FROM dash_bdatos";
+    $sql = "SELECT COUNT(*) AS total FROM dash_consulta_usr WHERE id_consulta = $id_consulta";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
     $totalRecords = $total['total'];
 
-    //Consulta el total de registros de la tabla con el filtro
-    $sql = "SELECT COUNT(*) AS total FROM dash_bdatos $where";
+    //Consulta el total de registros aplicando el filtro
+    $sql = "SELECT COUNT(*) AS total FROM dash_consulta_usr AS CU
+            INNER JOIN seg_usuarios_sistema AS US ON (US.id_usuario=CU.id_usuario)
+            WHERE id_consulta = $id_consulta $where";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
     $totalRecordsFilter = $total['total'];
 
     //Consulta los datos para listarlos en la tabla
-    $sql = "SELECT BD.id_bdatos,BD.nombre_entidad,BD.nombre_bd,
-                IF(CB.id_bdatos IS NULL, 0, 1) AS estado
-            FROM dash_bdatos AS BD
-            LEFT JOIN dash_consulta_bd AS CB ON (BD.id_bdatos = CB.id_bdatos AND CB.id_consulta = $id_consulta)
-            $where
+    $sql = "SELECT US.id_usuario,US.num_documento,
+	                CONCAT_WS(' ',US.nombre1,US.nombre2,US.apellido1,US.apellido2) AS usuario,
+                    US.descripcion AS cargo
+            FROM dash_consulta_usr AS CU
+            INNER JOIN seg_usuarios_sistema AS US ON (US.id_usuario=CU.id_usuario) 
+            WHERE CU.id_consulta = $id_consulta $where
             ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);
@@ -64,19 +67,15 @@ try {
 $data = [];
 if (!empty($objs)) {
     foreach ($objs as $obj) {
-        $boton = NULL;
-        $id = $obj['id_bdatos'];        
-        //Coloca Activar o Inactivar la base de datos para la consulta
-        if ($obj['estado'] == 1){
-            $boton = '<a value="' . $id . '" class="btn btn-link p-0 m-0 btn_inactivar" title="Inactivar"><span class="fas fa-toggle-on fa-sm text-success"></span></a>';
-        } else {
-            $boton = '<a value="' . $id . '" class="btn btn-link p-0 m-0 btn_activar" title="Activar"><span class="fas fa-toggle-off fa-sm text-secondary"></span></a>';
-        }        
+        $eliminar = NULL;
+        $id = $obj['id_usuario'];        
+        $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar_us" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         $data[] = [
-            "id_bdatos" => $id,
-            "nombre_bd" => $obj['nombre_bd'],
-            "nombre_entidad" => $obj['nombre_entidad'],                        
-            "botones" => '<div class="text-center centro-vertical">' . $boton . '</div>',
+            "id_usuario" => $id,
+            "num_documento" => $obj['num_documento'],
+            "usuario" => $obj['usuario'],                        
+            "cargo" => $obj['cargo'],
+            "botones" => '<div class="text-center centro-vertical">' . $eliminar . '</div>',
         ];
     }
 }

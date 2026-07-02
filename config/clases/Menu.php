@@ -1010,11 +1010,11 @@ class Menu
         // --- SECCIÓN: VISUALIZACIÓN ---
         $vis_items = '';
         if ($this->permisos->PermisosUsuario($this->opciones, 3004, 0) || $this->id_rol == 1) {
-            $vis_items .= '<li><a href="' . $this->host . '/src/analytics/php/consultas/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-poll me-2 fa-fw"></i> Consultas Analíticas</a></li>';
+            $vis_items .= '<li><a href="' . $this->host . '/src/analytics/visu_consultas/php/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-poll me-2 fa-fw"></i> Consultas Analíticas</a></li>';
         }
 
         if ($this->permisos->PermisosUsuario($this->opciones, 3005, 0) || $this->id_rol == 1) {
-            $vis_items .= '<li><a href="' . $this->host . '/src/analytics/php/tablero/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-tv me-2 fa-fw"></i> Tablero Analítico</a></li>';
+            $vis_items .= '<li><a href="' . $this->host . '/src/analytics/visu_tablero/php/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-tv me-2 fa-fw"></i> Tablero Analítico</a></li>';
         }
 
         $analytics_visualizacion = '';
