@@ -10,6 +10,7 @@ $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $response['status'] = 'error';
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -27,6 +28,7 @@ try {
             $query->bindParam(2, $fecha2, PDO::PARAM_STR);
             $query->bindParam(3, $id_detalle, PDO::PARAM_INT);
             $query->execute();
+            Logs::guardaLog("UPDATE `tes_caja_respon` SET `estado` = $estado, `id_user_act` = $iduser, `fecha_act` = '$fecha2' WHERE `id_caja_respon` = $id_detalle");
         }
     }
     $cmd = null;

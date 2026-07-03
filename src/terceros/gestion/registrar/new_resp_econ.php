@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $idt = isset($_POST['idTercero']) ? $_POST['idTercero'] : exit('Acción no permitida');
 $id_resp_econ = $_POST['slcRespEcon'];
 $iduser = isset($_SESSION['user']);
@@ -34,6 +35,7 @@ try {
     $sql->bindValue(5, $date->format('Y-m-d H:i:s'));
     $sql->execute();
     if ($cmd->lastInsertId() > 0) {
+        Logs::guardaLog("INSERT INTO `ctt_resposabilidad_terceros` (`id_tercero_api`,`id_responsabilidad`,`estado`,`id_user reg`,`fec_reg`) VALUES($idt, $id_resp_econ, $estado, $iduser, '" . $date->format('Y-m-d H:i:s') . "')");
         echo 'ok';
     } else {
         echo $sql->errorInfo()[2];

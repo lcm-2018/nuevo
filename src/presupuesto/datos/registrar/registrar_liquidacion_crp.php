@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (isset($_POST)) {
     $id_manu = $_POST['numCdp'] ?? 0;
@@ -12,6 +12,7 @@ if (isset($_POST)) {
     $date = new DateTime('now', new DateTimeZone('America/Bogota'));
     $fecha2 = $date->format('Y-m-d H:i:s');
     include '../../../../config/autoloader.php';
+    use Config\Clases\Logs;
     $cmd = \Config\Clases\Conexion::getConexion();
     // consultar id_pto_documento de la tabla pto_documento
     $query = $cmd->prepare("SELECT `id_pto_presupuestos` FROM `pto_presupuestos` WHERE `id_pto_tipo` =2;");
@@ -33,6 +34,7 @@ if (isset($_POST)) {
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
             $id = $cmd->lastInsertId();
+            Logs::guardaLog("INSERT INTO pto_documento (id_pto_presupuestos,id_sede, tipo_doc, id_manu, fecha, objeto,num_solicitud, id_user_reg, fec_reg) VALUES ($id_pto, $sede, '$tipo_doc', '$id_manu', '$fecha', '$objeto', $num_solicitud, $iduser, '$fecha2')");
             $response[] = array("value" => 'ok', "id" => $id);
             // Actualizo id_cdp en la tabla ctt_adquisiciones
         } else {
@@ -51,6 +53,7 @@ if (isset($_POST)) {
         $query->bindParam(7, $id);
         $query->execute();
         if ($query->rowCount() > 0) {
+            Logs::guardaLog("UPDATE pto_documento SET id_manu = '$id_manu', fecha = '$fecha', objeto ='$objeto', id_user_act = $iduser, fec_act='$fecha2', num_solicitud=$num_solicitud WHERE id_pto_doc = $id");
             $response[] = array("value" => 'modificado', "id" => $id);
         } else {
             print_r($query->errorInfo()[2]);

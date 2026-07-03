@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_rad = isset($_POST['id_rad']) ? $_POST['id_rad'] : exit('Acceso no disponible');
 $id_pto = $_POST['id_pto'];
@@ -49,16 +50,24 @@ try {
         exit();
     } else {
         if ($sql->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `pto_rad` SET `fecha` = '$fecha', `objeto` = '$objeto', `num_factura` = '$num_solicitud', `id_manu` = $id_manu, `id_tercero_api` = $id_tercero WHERE `id_pto_rad` = $id_rad");
             $sql = "UPDATE `pto_rad` SET `id_user_act` = ?, `fecha_act` = ? WHERE `id_pto_rad` = ?";
             $sql2 = "UPDATE `pto_rad_detalle` SET `id_tercero_api` = $id_tercero WHERE `id_pto_rad` = $id_rad";
             $sql = $cmd->prepare($sql);
             $sql2 = $cmd->prepare($sql2);
 
             $sql->bindParam(1, $id_user, PDO::PARAM_STR);
-            $sql->bindValue(2, $date->format('Y-m-d H:i:s'));
+            $f_act = $date->format('Y-m-d H:i:s');
+            $sql->bindValue(2, $f_act);
             $sql->bindParam(3, $id_rad, PDO::PARAM_INT);
             $sql->execute();
+            if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `pto_rad` SET `id_user_act` = $id_user, `fecha_act` = '$f_act' WHERE `id_pto_rad` = $id_rad");
+            }
             $sql2->execute();
+            if ($sql2->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `pto_rad_detalle` SET `id_tercero_api` = $id_tercero WHERE `id_pto_rad` = $id_rad");
+            }
             $response['status'] = 'ok';
         } else {
             $response['msg'] = 'No se registró ningún nuevo dato';

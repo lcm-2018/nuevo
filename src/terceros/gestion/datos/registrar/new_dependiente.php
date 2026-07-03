@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_dependiente = isset($_POST['idDependiente']) ? $_POST['idDependiente'] : 0;
 $id_tercero = isset($_POST['idTercero']) ? $_POST['idTercero'] : 0;
@@ -49,6 +50,9 @@ try {
         ]);
 
         if ($stmt->rowCount() > 0 || $stmt->errorCode() == '00000') {
+            if ($stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE tb_terceros_dependientes SET id_tipo_doc = $id_tipo_doc, no_documento = '$num_doc', nombre_completo = '$nombre_completo', id_tipo_dependiente = $id_tipo_dependiente, id_user_act = $id_user, fec_act = '$fecha' WHERE id_dependiente = $id_dependiente");
+            }
             echo 'ok';
         } else {
             echo 'No se actualizó ningún registro.';
@@ -77,6 +81,7 @@ try {
         ]);
 
         if ($stmt->rowCount() > 0) {
+            Logs::guardaLog("INSERT INTO tb_terceros_dependientes (id_tercero_api, id_tipo_doc, no_documento, nombre_completo, id_tipo_dependiente, estado, id_user_reg, fec_reg) VALUES ($id_tercero, $id_tipo_doc, '$num_doc', '$nombre_completo', $id_tipo_dependiente, 1, $id_user, '$fecha')");
             echo 'ok';
         } else {
             echo 'No se guardó el registro.';

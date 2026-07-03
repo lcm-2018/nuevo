@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_compra = isset($_POST['id_cc']) ? $_POST['id_cc'] : exit('Acción no permitida');
 $fec_ini =  date('Y-m-d', strtotime($_POST['datFecIniEjec']));
@@ -27,6 +28,8 @@ try {
     if (!($sql->execute())) {
         echo $sql->errorInfo()[2];
         exit();
+    } else {
+        Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `id_tercero` = $id_tercero WHERE `id_adquisicion` = $id_compra");
     }
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -50,6 +53,7 @@ try {
     $sql->execute();
     $id_contrato = $cmd->lastInsertId();
     if ($id_contrato > 0) {
+        Logs::guardaLog("INSERT INTO `ctt_contratos`(`id_compra`,`fec_ini`,`fec_fin`, `val_contrato`,`id_forma_pago`,`id_supervisor`,`id_secop`,`num_contrato`,`id_user_reg`,`fec_reg`) VALUES ($id_compra, '$fec_ini', '$fec_fin', '$val_contrata', $forma_pago, $supervisor, '$id_secop', '$num_contrato', $id_user, '{$date->format('Y-m-d H:i:s')}')");
         $polizas = isset($_REQUEST['check']) ? $_REQUEST['check'] : '';
         $cant = 0;
         if ($polizas == '') {
@@ -68,6 +72,7 @@ try {
                     $id_pol = $p;
                     $sql->execute();
                     if ($cmd->lastInsertId() > 0) {
+                        Logs::guardaLog("INSERT INTO `ctt_garantias_compra`(`id_contrato_compra`,`id_poliza`,`id_user_reg`,`fec_reg`) VALUES ($id_contrato, $id_pol, $id_user, '{$date->format('Y-m-d H:i:s')}')");
                         $cant++;
                     } else {
                         echo $sql->errorInfo()[2];
@@ -93,6 +98,7 @@ try {
                 if (!($sql->rowCount() > 0)) {
                     echo $sql->errorInfo()[2];
                 } else {
+                    Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `estado`= $estado, `id_user_act` = $id_user, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_adquisicion` = $id_compra");
                     echo 'ok';
                 }
                 $cmd = null;

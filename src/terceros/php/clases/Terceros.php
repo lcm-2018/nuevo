@@ -319,6 +319,10 @@ class Terceros
         $stmt->bindValue(12, $array['mailEmp'], PDO::PARAM_STR);
         try {
             $stmt->execute();
+            if ($stmt->rowCount() > 0) {
+                $nom = trim($array['txtNomb1Emp'] . ' ' . $array['txtNomb2Emp'] . ' ' . $array['txtApe1Emp'] . ' ' . $array['txtApe2Emp']);
+                Logs::guardaLog("INSERT INTO `tb_terceros` (`tipo_doc`, `id_tercero_api`, `nit_tercero`, `estado`, `fec_inicio`, `id_usr_crea`, `genero`, `nom_tercero`,`id_municipio`,`dir_tercero`, `tel_tercero`,`email`) VALUES ({$array['slcTipoDocEmp']}, '{$array['id_tercero_api']}', '{$array['txtCCempleado']}', 1, '" . Sesion::Hoy() . "', " . Sesion::IdUser() . ", '{$array['slcGenero']}', '$nom', {$array['slcMunicipioEmp']}, '{$array['txtDireccion']}', '{$array['txtTelEmp']}', '{$array['mailEmp']}')");
+            }
         } catch (PDOException $e) {
             if ($e->getCode() == 23000) {
                 // Si ya existe, no pasa nada
@@ -342,6 +346,7 @@ class Terceros
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                Logs::guardaLog("INSERT INTO `tb_rel_tercero` (`id_tercero_api`, `id_tipo_tercero`, `id_user_reg`, `fec_reg`) VALUES ('{$array['id_tercero_api']}', 1, " . Sesion::IdUser() . ", '" . Sesion::Hoy() . "')");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -425,6 +430,7 @@ class Terceros
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                Logs::guardaLog("INSERT `nom_rel_rubro` (`id_tipo`,`r_admin`,`r_operativo`,`id_vigencia`,`fec_reg`,`id_user_reg`) VALUES ({$array['slcTipo']}, {$array['idRubroAdmin']}, {$array['idRubroOpera']}, " . Sesion::IdVigencia() . ", '" . Sesion::Hoy() . "', " . Sesion::IdUser() . ")");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -456,6 +462,7 @@ class Terceros
                     $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
                     $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                     $stmt2->execute();
+                    Logs::guardaLog("UPDATE `nom_rel_rubro` SET `id_tipo` = {$array['slcTipo']}, `r_admin` = {$array['idRubroAdmin']}, `r_operativo` = {$array['idRubroOpera']} WHERE `id_relacion` = {$array['id']}");
                     return 'si';
                 } else {
                     return 'No se realizó ningún cambio.';

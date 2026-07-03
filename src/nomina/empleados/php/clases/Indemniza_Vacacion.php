@@ -299,6 +299,9 @@ class Indemniza_Vacacion
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_indemniza_vac` (`id_empleado`,`fec_inica`,`fec_fin`,`cant_dias`,`estado`,`fec_reg`,`id_user_reg`) VALUES ({$array['id_empleado']}, '{$array['datFecInicia']}', '{$array['datFecFin']}', {$array['diasInactivo']}, 1, '$hoy', $idUser)");
                 $array['novedad'] = $id;
                 $array['tipo'] = 6;
                 $Novedad = new Novedades($this->conexion);
@@ -336,6 +339,9 @@ class Indemniza_Vacacion
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_indemniza_vac` (`id_indemnizacion`,`dias_liq`,`val_liq`,`id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$array['id_indemniza']}, {$array['dias']}, {$array['valor']}, $idUser, '$hoy', {$array['id_nomina']})");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -364,12 +370,16 @@ class Indemniza_Vacacion
             $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_indemniza_vac` SET `fec_inica` = '{$array['datFecInicia']}', `fec_fin` = '{$array['datFecFin']}', `cant_dias` = {$array['diasInactivo']} WHERE `id_indemniza` = {$array['id']}");
                 $consulta = "UPDATE `nom_indemniza_vac` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_indemniza` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_indemniza_vac` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_indemniza` = {$array['id']}");
                 $Novedad = new Novedades($this->conexion);
                 $Novedad->delRegistro(6, $array['id']);
                 $array['novedad'] = $array['id'];

@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
 $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
 $permisos = new \Src\Common\Php\Clases\Permisos();
@@ -63,6 +64,7 @@ if ($res['status'] == 1) {
         if (!($sql->rowCount() > 0)) {
             echo $sql->errorInfo()[2];
         } else {
+            Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `id_supervision` = $id_spvr, `estado`= $estado, `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_adquisicion` = $id_adquisicion");
             echo 1;
         }
         $cmd = null;

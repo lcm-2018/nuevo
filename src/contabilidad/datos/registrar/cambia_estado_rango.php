@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $data = isset($_POST['data']) ? $_POST['data'] : exit('Acción no permitida');
 $data = explode('|', base64_decode($data));
@@ -22,6 +23,7 @@ try {
     $sql->bindParam(4, $id_rango, PDO::PARAM_INT);
     $sql->execute();
     if ($sql->rowCount() > 0) {
+        Logs::guardaLog("UPDATE `ctb_retencion_rango` SET `estado` = $estado, `id_user_act` = $iduser WHERE `id_rango` = $id_rango");
         echo 'ok';
     } else {
         echo $sql->errorInfo()[2];

@@ -531,6 +531,9 @@ class Users
         $sqlDelete = "DELETE FROM `$table` WHERE `id_usuario` = ?";
         $stmtDelete = $this->conexion->prepare($sqlDelete);
         $stmtDelete->execute([(int) $idUsuario]);
+        if ($stmtDelete->rowCount() > 0) {
+            Logs::guardaLog("DELETE FROM `$table` WHERE `id_usuario` = " . (int) $idUsuario);
+        }
         $stmtDelete->closeCursor();
         unset($stmtDelete);
 
@@ -545,6 +548,9 @@ class Users
                 $stmtInsert->closeCursor();
                 unset($stmtInsert);
                 return "No se pudo guardar la relación en $table.";
+            }
+            if ($stmtInsert->rowCount() > 0 || $this->conexion->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO `$table` (`$column`, `id_usuario`) VALUES (" . (int) $id . ", " . (int) $idUsuario . ")");
             }
         }
         $stmtInsert->closeCursor();
@@ -600,6 +606,9 @@ class Users
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $idCentroCosto = $idCentroCosto ?? 'NULL';
+                $idArea = $idArea ?? 'NULL';
+                Logs::guardaLog("INSERT INTO `seg_usuarios_sistema` (`login`,`clave`,`id_rol`,`id_tipo_doc`,`num_documento`,`apellido1`,`apellido2`,`nombre1`,`nombre2`,`sexo`,`direccion`,`telefono`,`email`,`descripcion`,`id_centrocosto`,`id_usr_crea`,`fec_creacion`,`estado`,`id_area`) VALUES ('{$d['txtlogin']}', '{$d['clave']}', {$d['slcRolUser']}, {$d['sl_tipoDocumento']}, '{$d['txtCCuser']}', '{$d['txtApe1user']}', '{$d['txtApe2user']}', '{$d['txtNomb1user']}', '{$d['txtNomb2user']}', '{$d['slcSexo']}', '{$d['txt_direccion']}', '{$d['txt_telefono']}', '{$d['mailuser']}', '{$d['txt_cargo']}', " . $idCentroCosto . ", " . Sesion::IdUser() . ", '" . Sesion::Hoy() . "', 1, " . $idArea . ")");
                 $respUbicaciones = $this->syncUsuarioUbicaciones($id, $d);
                 if ($respUbicaciones !== 'si') {
                     $this->conexion->rollBack();
@@ -668,6 +677,11 @@ class Users
             $this->bindNullableInt($stmt, 16, $idArea);
             $stmt->bindValue(17, $d['id_usuario'], PDO::PARAM_INT);
             if ($stmt->execute()) {
+                if ($stmt->rowCount() > 0) {
+                    $idCentroCosto = $idCentroCosto ?? 'NULL';
+                    $idArea = $idArea ?? 'NULL';
+                    Logs::guardaLog("UPDATE `seg_usuarios_sistema` SET `login` = '{$d['txtlogin']}', `clave` = '{$d['clave']}', `id_rol` = {$d['slcRolUser']}, `id_tipo_doc` = {$d['sl_tipoDocumento']}, `num_documento` = '{$d['txtCCuser']}', `apellido1` = '{$d['txtApe1user']}', `apellido2` = '{$d['txtApe2user']}', `nombre1` = '{$d['txtNomb1user']}', `nombre2` = '{$d['txtNomb2user']}', `sexo` = '{$d['slcSexo']}', `direccion` = '{$d['txt_direccion']}', `telefono` = '{$d['txt_telefono']}', `email` = '{$d['mailuser']}', `descripcion` = '{$d['txt_cargo']}', `id_centrocosto` = " . $idCentroCosto . ", `id_area` = " . $idArea . " WHERE `id_usuario` = {$d['id_usuario']}");
+                }
                 $respUbicaciones = $this->syncUsuarioUbicaciones($d['id_usuario'], $d);
                 if ($respUbicaciones !== 'si') {
                     $this->conexion->rollBack();
@@ -723,11 +737,14 @@ class Users
             $stmt->bindValue(2, $d['id_user'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `seg_usuarios_sistema` SET `clave` = '{$d['nuevaClave']}' WHERE `id_usuario` = {$d['id_user']}");
                 $consulta  = "UPDATE `seg_usuarios_sistema` SET `fec_cambioclave` = ? WHERE `id_usuario` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
                 $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
                 $stmt2->bindValue(2, $d['id_user'], PDO::PARAM_INT);
-                $stmt2->execute();
+                if ($stmt2->execute() && $stmt2->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `seg_usuarios_sistema` SET `fec_cambioclave` = '" . Sesion::Hoy() . "' WHERE `id_usuario` = {$d['id_user']}");
+                }
                 return 'si';
             } else {
                 return 'No se pudo actualizar la clave.';
@@ -942,11 +959,15 @@ class Users
             if ($exists) {
                 $sql = "UPDATE `seg_rol_usuario` SET `$col_name` = ? WHERE `id_usuario` = ? AND `id_opcion` = ?";
                 $stmt = $this->conexion->prepare($sql);
-                $stmt->execute([$nuevo_estado, $id_user, $id_opcion]);
+                if ($stmt->execute([$nuevo_estado, $id_user, $id_opcion]) && $stmt->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `seg_rol_usuario` SET `$col_name` = $nuevo_estado WHERE `id_usuario` = $id_user AND `id_opcion` = '$id_opcion'");
+                }
             } else {
                 $sql = "INSERT INTO `seg_rol_usuario` (`id_usuario`, `id_opcion`, `$col_name`) VALUES (?, ?, ?)";
                 $stmt = $this->conexion->prepare($sql);
-                $stmt->execute([$id_user, $id_opcion, $nuevo_estado]);
+                if ($stmt->execute([$id_user, $id_opcion, $nuevo_estado]) && $this->conexion->lastInsertId() > 0) {
+                    Logs::guardaLog("INSERT INTO `seg_rol_usuario` (`id_usuario`, `id_opcion`, `$col_name`) VALUES ($id_user, '$id_opcion', $nuevo_estado)");
+                }
             }
             return 'si';
         } catch (PDOException $e) {
@@ -963,6 +984,7 @@ class Users
             $stmt->bindValue(2, $a['id'], PDO::PARAM_INT);
             $stmt->execute();
             if ($this->conexion->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO `seg_permisos_modulos` (`id_usuario`, `id_modulo`) VALUES ({$a['id_user']}, {$a['id']})");
                 return 'si';
             } else {
                 return 'No se agregó el registro.';
@@ -980,13 +1002,16 @@ class Users
             $stmt->bindValue(1, $estado, PDO::PARAM_INT);
             $stmt->bindValue(2, $id, PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `seg_usuarios_sistema` SET `estado` = $estado WHERE `id_usuario` = $id");
                 $consulta = "UPDATE `seg_usuarios_sistema` 
                                 SET `fec_inactivacion` = ?
                              WHERE `id_usuario` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
                 $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
                 $stmt2->bindValue(2, $id, PDO::PARAM_INT);
-                $stmt2->execute();
+                if ($stmt2->execute() && $stmt2->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `seg_usuarios_sistema` SET `fec_inactivacion` = '" . Sesion::Hoy() . "' WHERE `id_usuario` = $id");
+                }
                 return 'si';
             } else {
                 return 'No se actualizó el estado.';

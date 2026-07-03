@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_doc = isset($_POST['id_doc_fuente']) ? $_POST['id_doc_fuente'] : exit('Acceso no autorizado');
 $codigo = $_POST['txtCodigo'];
 $nombre = $_POST['txtNombre'];
@@ -33,6 +34,7 @@ try {
         $query->execute();
         $id = $cmd->lastInsertId();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `ctb_fuente`(`cod`,`nombre`,`contab`,`tesor`,`estado`,`id_user_reg`) VALUES('$codigo','$nombre','$gpConta',$gpTeso,1,$iduser)");
             $response['value'] = 'ok';
             $response['msg'] = 'Correcto';
         } else {
@@ -56,6 +58,7 @@ try {
                 $query->bindParam(2, $iduser, PDO::PARAM_INT);
                 $query->bindParam(3, $id_doc, PDO::PARAM_INT);
                 $query->execute();
+                Logs::guardaLog("UPDATE `ctb_fuente` SET `cod`='$codigo',`nombre`='$nombre',`contab`='$gpConta',`tesor`=$gpTeso WHERE `id_doc_fuente`=$id_doc");
                 $response['value'] = 'ok';
             } else {
                 $response['msg'] = 'No se realizó ningún cambio';

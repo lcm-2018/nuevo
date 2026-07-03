@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include_once '../../../../config/autoloader.php';
-
+use Config\Clases\Logs;
 
 $tipo = isset($_POST['slcTipo']) ? $_POST['slcTipo'] : exit('Acción no permitida');
 $tbnsv = mb_strtoupper($_POST['txtTipoBnSv']);
@@ -28,6 +28,7 @@ try {
     $sql->bindValue(5, $date->format('Y-m-d H:i:s'));
     $sql->execute();
     if ($cmd->lastInsertId() > 0) {
+        Logs::guardaLog("INSERT INTO `tb_tipo_bien_servicio` (`id_tipo`,`tipo_bn_sv`,`objeto_definido`,`id_user_reg`,`fec_reg`) VALUES ($tipo, '$tbnsv', '$objpre', $iduser, '{$date->format('Y-m-d H:i:s')}')");
         echo '1';
     } else {
         echo $sql->errorInfo()[2];

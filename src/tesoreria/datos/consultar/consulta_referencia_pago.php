@@ -5,6 +5,7 @@ $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $_post = json_decode(file_get_contents('php://input'), true);
 $cmd = \Config\Clases\Conexion::getConexion();
 // Consulto si exite referencia de pago activa
@@ -44,6 +45,7 @@ try {
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
             $id = $cmd->lastInsertId();
+            Logs::guardaLog("INSERT INTO tes_referencia (numero, estado,id_user_reg, fec_reg) VALUES ($ref, $estado, $iduser, '$fecha2')");
             $response[] = array("value" => 'ok', "tipo" => 2, "num_ref" => $ref);
         } else {
             print_r($query->errorInfo()[2]);

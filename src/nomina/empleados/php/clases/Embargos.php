@@ -360,6 +360,8 @@ class Embargos
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("INSERT INTO `nom_embargos` (`id_juzgado`,`id_empleado`,`tipo_embargo`,`valor_total`,`dcto_max`,`valor_mes`,`porcentaje`,`fec_inicio`,`fec_fin`,`estado`,`fec_reg`) VALUES ({$array['slcJuzgado']}, {$array['id_empleado']}, {$array['slcTpEmbargo']}, {$array['numTotLib']}, {$array['numDctoMax']}, {$array['numValMes']}, {$array['numPorcentaje']}, '{$array['datFecInicia']}', '{$array['datFecFin']}', 1, '$hoy')");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -407,6 +409,9 @@ class Embargos
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_embargo` (`id_embargo`,`val_mes_embargo`,`fec_reg`,`id_user_reg`,`id_nomina`) VALUES ({$array['id_embargo']}, {$array['val_mes']}, '$hoy', $idUser, {$array['id_nomina']})");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -432,11 +437,14 @@ class Embargos
             $stmt->bindValue(2, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_liq_embargo` SET `val_mes_embargo` = {$array['valor_embargo']} WHERE `id_liq_embargo` = {$array['id']}");
                 $consulta = "UPDATE `nom_liq_embargo` SET `fec_act` = ? WHERE `id_liq_embargo` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $hoy = Sesion::Hoy();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
                 $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_liq_embargo` SET `fec_act` = '$hoy' WHERE `id_liq_embargo` = {$array['id']}");
                 return 'si';
             } else {
                 return 'no';
@@ -463,11 +471,14 @@ class Embargos
             $stmt->bindValue(9, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_embargos` SET `id_juzgado` = {$array['slcJuzgado']}, `tipo_embargo` = {$array['slcTpEmbargo']}, `valor_total` = {$array['numTotLib']}, `dcto_max` = {$array['numDctoMax']}, `valor_mes` = {$array['numValMes']}, `porcentaje` = {$array['numPorcentaje']}, `fec_inicio` = '{$array['datFecInicia']}', `fec_fin` = '{$array['datFecFin']}' WHERE `id_embargo` = {$array['id']}");
                 $consulta = "UPDATE `nom_embargos` SET `fec_act` = ? WHERE `id_embargo` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $hoy = Sesion::Hoy();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
                 $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_embargos` SET `fec_act` = '$hoy' WHERE `id_embargo` = {$array['id']}");
                 return 'si';
             } else {
                 return 'No se actualizó el registro.';
@@ -487,6 +498,7 @@ class Embargos
             $stmt->bindValue(1, $array['estado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['id'], PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_embargos` SET `estado` = {$array['estado']} WHERE `id_embargo` = {$array['id']}");
                 return 'si';
             } else {
                 return 'No se hizo el cambio de estado.' . $stmt->errorInfo()[2];

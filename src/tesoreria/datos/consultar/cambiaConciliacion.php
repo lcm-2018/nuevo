@@ -1,6 +1,7 @@
 <?php
 
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 session_start();
 $_post = json_decode(file_get_contents('php://input'), true);
 $id = $_post['id'];
@@ -24,6 +25,7 @@ try {
     $query->bindParam(4, $id, PDO::PARAM_INT);
     $query->execute();
     if ($query->rowCount() > 0) {
+        Logs::guardaLog("UPDATE `tes_conciliacion`  SET `estado` = $estado WHERE `mes` =  '$mes' AND `vigencia` = $vigencia AND `id_cuenta` = $id");
         echo "ok";
     } else {
         echo "error: " . $cmd->errorInfo()[2];

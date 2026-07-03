@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 if (isset($_POST)) {
     $id_pto_cdp = $_POST['id_pto_cdp'];
     $rubro = $_POST['id_rubroCdp'];
@@ -6,6 +6,7 @@ if (isset($_POST)) {
     $tipo_mov = 'CDP';
     $estado = 0;
     include '../../../../config/autoloader.php';
+    use Config\Clases\Logs;
     $cmd = \Config\Clases\Conexion::getConexion();
     if (empty($_POST['editarRubro'])) {
         $query = $cmd->prepare("INSERT INTO pto_documento_detalles (id_pto_doc, tipo_mov, rubro, valor,estado) VALUES (?, ?, ?, ?,?)");
@@ -17,6 +18,7 @@ if (isset($_POST)) {
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
             $id = $cmd->lastInsertId();
+            Logs::guardaLog("INSERT INTO pto_documento_detalles (id_pto_doc, tipo_mov, rubro, valor,estado) VALUES ($id_pto_cdp, '$tipo_mov', '$rubro', $valorCdp, $estado)");
             $response[] = array("value" => 'ok', "id" => $id);
         } else {
             print_r($query->errorInfo()[2]);
@@ -29,6 +31,9 @@ if (isset($_POST)) {
         $query->bindParam(2, $valorCdp);
         $query->bindParam(3, $id);
         $query->execute();
+        if ($query->rowCount() > 0) {
+            Logs::guardaLog("UPDATE pto_documento_detalles SET rubro ='$rubro', valor = $valorCdp WHERE id_pto_mvto = $id");
+        }
         $cmd = null;
         $response[] = array("value" => 'modificado', "id" => $id);
     }

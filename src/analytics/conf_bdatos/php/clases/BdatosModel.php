@@ -3,6 +3,7 @@
 namespace Src\Analytics\Conf_Bdatos\Php\Clases;
 
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 use PDO;
 
 class BdatosModel
@@ -101,7 +102,11 @@ class BdatosModel
         if ($ok) {
             $rs = $this->conexion->query('SELECT LAST_INSERT_ID() AS id');
             $obj = $rs->fetch(PDO::FETCH_ASSOC);
-            return $obj['id'] ?? null;
+            $newId = $obj['id'] ?? null;
+            if ($newId) {
+                Logs::guardaLog("INSERT INTO dash_bdatos(nombre_entidad,ip_servidor,nombre_bd,puerto_bd,estado) VALUES('{$d['nombre_entidad']}','{$d['ip_servidor']}','{$d['nombre_bd']}','{$d['puerto_bd']}','{$d['estado']}')");
+            }
+            return $newId;
         }
         return false;
     }
@@ -122,7 +127,11 @@ class BdatosModel
         $stmt->bindParam(':puerto_bd', $d['puerto_bd']);
         $stmt->bindParam(':estado', $d['estado']);
         $stmt->bindParam(':id_bdatos', $id, PDO::PARAM_INT);
-        return $stmt->execute();
+        $ok = $stmt->execute();
+        if ($ok && $stmt->rowCount() > 0) {
+            Logs::guardaLog("UPDATE dash_bdatos SET nombre_entidad='{$d['nombre_entidad']}',ip_servidor='{$d['ip_servidor']}',nombre_bd='{$d['nombre_bd']}',puerto_bd='{$d['puerto_bd']}',estado='{$d['estado']}' WHERE id_bdatos=$id");
+        }
+        return $ok;
     }
 
     public function delete(int $id)

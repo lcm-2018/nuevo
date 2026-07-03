@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_pto = $_POST['id_pto_presupuestos'];
 $id_manu = $_POST['numCdp'];
 $fecha = $_POST['fecha'];
@@ -95,6 +96,7 @@ if ($id_crp == 0) {
         $id_new = $cmd->lastInsertId();
         $cmd = null;
         if ($id_new > 0) {
+            Logs::guardaLog("INSERT INTO `pto_crp` (`id_pto`, `id_cdp`,`fecha`,`id_manu`,`id_tercero_api`,`objeto`,`num_contrato`,`estado`,`id_user_reg`,`fecha_reg`,`tesoreria`) VALUES($id_pto, $id_cdp, '$fecha', $id_manu, $tercero, '$objeto', '$contrato', $estado, $id_user, '" . $date->format('Y-m-d H:i:s') . "', $tesoreria)");
             $cerrado = 2;
             $cmd = \Config\Clases\Conexion::getConexion();
 
@@ -115,6 +117,9 @@ if ($id_crp == 0) {
                 $sql2->bindParam(10, $id_new, PDO::PARAM_INT);
                 $sql2->execute();
                 $id_doc = $cmd->lastInsertId();
+                if ($id_doc > 0) {
+                    Logs::guardaLog("INSERT INTO `ctb_doc` (`id_vigencia`,`id_tipo_doc`,`id_manu`,`id_tercero`,`fecha`,`detalle`,`estado`,`id_user_reg`,`fecha_reg`,`id_crp`) VALUES ($id_vigencia, $id_doc_fuente, $id_consec, $tercero, '$fecha', '$objeto', $cerrado, $id_user, '$fecha2', $id_new)");
+                }
                 if (!($id_doc > 0)) {
                     $response['msg'] = $sql2->errorInfo()[2];
                     echo json_encode($response);
@@ -160,12 +165,18 @@ if ($id_crp == 0) {
                 if ($valor > 0) {
                     $query->execute();
                     $id_crp_det = $cmd->lastInsertId();
+                    if ($id_crp_det > 0) {
+                        Logs::guardaLog("INSERT INTO `pto_crp_detalle` (`id_pto_crp`,`id_pto_cdp_det`,`id_tercero_api`,`valor`,`id_user_reg`,`fecha_reg`) VALUES ($id_new, " . ($id_detalle ?? 'NULL') . ", $tercero, $valor, $id_user, '" . $date->format('Y-m-d H:i:s') . "')");
+                    }
                     if (!($id_crp_det > 0)) {
                         $response['msg'] = $query->errorInfo()[2];
                         break;
                     } else {
                         if ($tesoreria == 1) {
                             $query2->execute();
+                            if ($query2->rowCount() > 0) {
+                                Logs::guardaLog("INSERT INTO `pto_cop_detalle` (`id_ctb_doc`, `id_pto_crp_det`, `id_tercero_api`, `valor`, `valor_liberado`, `id_user_reg`, `fecha_reg`) VALUES ($id_doc, $id_crp_det, $tercero, $valor, 0, $id_user, '$fecha2')");
+                            }
                             if (!($query2->rowCount() > 0)) {
                                 $response['msg'] = $query2->errorInfo()[2];
                                 break;

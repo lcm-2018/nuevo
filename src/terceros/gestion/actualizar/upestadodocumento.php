@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id = isset($_POST['idt']) ? intval($_POST['idt']) : 0;
 $e  = isset($_POST['e'])   ? intval($_POST['e'])   : 0;
@@ -24,6 +25,7 @@ try {
     $stmt->execute();
 
     if ($stmt->rowCount() > 0) {
+        Logs::guardaLog("UPDATE `ctt_documentos` SET `estado` = $e WHERE `id_soportester` = $id");
         echo $e; // devuelve '1' (activo) o '0' (inactivo)
     } else {
         echo 'Sin cambios';

@@ -18,6 +18,7 @@ $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 $id_fte = $_POST['codigo_fuente'];
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $response['status'] = 'error';
 $cmd = \Config\Clases\Conexion::getConexion();
 try {
@@ -39,6 +40,7 @@ try {
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
             $id = $cmd->lastInsertId();
+            Logs::guardaLog("INSERT INTO `tes_cuentas` (`id_banco`,`id_tipo_cuenta`,`id_cuenta`,`nombre`,`numero`,`estado`, `id_user_reg`,`fecha_reg`, `id_fte`) VALUES ($banco, $tipo_cuenta, $cuentas, '$nombre', '$numero', $estado, $iduser, '$fecha2', $id_fte)");
             $response['status'] = 'ok';
         } else {
             $response['msg'] = $query->errorInfo()[2];
@@ -65,6 +67,7 @@ try {
                 $query->bindParam(2, $iduser, PDO::PARAM_INT);
                 $query->bindParam(3, $id_tes_cuenta, PDO::PARAM_INT);
                 $query->execute();
+                Logs::guardaLog("UPDATE `tes_cuentas` SET `id_banco` = $banco, `id_tipo_cuenta` = $tipo_cuenta, `id_cuenta` = $cuentas, `nombre` = '$nombre', `numero` = '$numero', `id_fte` = $id_fte, `fec_act` = '$fecha2', `id_user_act` = $iduser WHERE `id_tes_cuenta` = $id_tes_cuenta");
                 $response['status'] = 'ok';
             } else {
                 $response['msg'] = 'No se realizó ningún cambio';

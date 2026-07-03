@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $valfac = isset($_POST['valfac']) ? $_POST['valfac'] : exit('Acción no permitida');
 $id_fno = $_POST['id_fno'];
@@ -63,6 +64,10 @@ try {
     if (!($sql->execute())) {
         echo $sql->errorInfo()[2];
         exit();
+    } else {
+        if ($sql->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `tb_terceros` SET `procedencia` = $procede, `tipo_org` = $tipo_org, `reg_fiscal` = $reg_fiscal, `resp_fiscal` = $resp_fiscal WHERE `id_tercero_api` = $id_tercero");
+        }
     }
     $cmd = null;
 } catch (PDOException $e) {
@@ -95,6 +100,9 @@ try {
         $sql->bindValue(17, $date->format('Y-m-d H:i:s'));
         $sql->execute();
         $id_fno = $cmd->lastInsertId();
+        if ($id_fno > 0) {
+             Logs::guardaLog("INSERT INTO `ctt_fact_noobligado` (`id_tercero_no`, `fec_compra`, `fec_vence`, `met_pago`, `forma_pago`, `val_retefuente`, `porc_retefuente`, `val_reteiva`, `porc_reteiva`, `val_iva`, `porc_iva`, `val_dcto`, `porc_dcto`, `observaciones`, `vigencia`, `id_user_reg`, `fec_reg`) VALUES ($id_tercero, '$fec_compra', '$fec_vence', '$met_pago', '$forma_pago', '$valprtefte', '$prteftel', '$valpretiva', '$pretiva', '$valivag', '$pivag', '$valdctog', '$pdctog', '$observaciones', '$vigencia', $iduser, '{$date->format('Y-m-d H:i:s')}')");
+        }
     } else {
         $sql = "DELETE FROM `ctt_fact_noobligado_det` WHERE `id_fno` = ?";
         $sql = $cmd->prepare($sql);
@@ -122,6 +130,9 @@ try {
         $sql->bindParam(13, $observaciones, PDO::PARAM_STR);
         $sql->bindParam(14, $id_fno, PDO::PARAM_INT);
         $sql->execute();
+        if ($sql->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `ctt_fact_noobligado` SET `fec_compra` = '$fec_compra', `fec_vence` = '$fec_vence', `met_pago` = '$met_pago', `forma_pago` = '$forma_pago', `val_retefuente` = '$valprtefte', `porc_retefuente` = '$prteftel', `val_reteiva` = '$valpretiva', `porc_reteiva` = '$pretiva', `val_iva` = '$valivag', `porc_iva` = '$pivag', `val_dcto` = '$valdctog', `porc_dcto` = '$pdctog', `observaciones` = '$observaciones' WHERE `id_facturano` = $id_fno");
+        }
     }
     if ($id_fno > 0) {
         $cmd = \Config\Clases\Conexion::getConexion();
@@ -152,6 +163,7 @@ try {
             $val_dcto = $array_vpdcto[$key] != '' ? $array_vpdcto[$key] : 0;
             $query->execute();
             if ($cmd->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO `ctt_fact_noobligado_det` (`id_fno`, `codigo`, `detalle`, `val_unitario`, `cantidad`, `p_iva`, `val_iva`, `p_dcto`, `val_dcto`, `id_user_reg`, `fec_reg`) VALUES ($id_fno, '$codigo', '$detalle', '$val_unitario', '$cantidad', '$p_iva', '$val_iva', '$p_dcto', '$val_dcto', $iduser, '{$date->format('Y-m-d H:i:s')}')");
                 $inserta++;
             } else {
                 echo $query->errorInfo()[2];

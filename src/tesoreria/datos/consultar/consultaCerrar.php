@@ -1,6 +1,7 @@
 <?php
 
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $data = file_get_contents("php://input");
 $data = str_replace("|", ",", $data);
 $data = str_replace("'", "", $data);
@@ -51,6 +52,9 @@ try {
             $query->bindParam(1, $estado, PDO::PARAM_INT);
             $query->bindParam(2, $id_ctb_doc, PDO::PARAM_INT);
             $query->execute();
+            if ($query->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `ctb_doc` SET `estado`= $estado WHERE `id_ctb_doc` = $id_ctb_doc");
+            }
             $cerrados++;
         } else {
             $errores .= $sumaMov['id_manu'] . " ";
@@ -62,6 +66,9 @@ try {
         $query = $cmd->prepare($query);
         $query->bindParam(1, $estado, PDO::PARAM_INT);
         $query->execute();
+        if ($query->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `ctb_doc` SET `estado`= $estado WHERE `id_ctb_doc` IN ($data)");
+        }
     }
     $cmd = null;
 } catch (Exception $e) {

@@ -1,6 +1,7 @@
 <?php
 
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $data = file_get_contents("php://input");
 $data = json_decode($data, true);
 // Realizo conexion con la base de datos
@@ -16,6 +17,7 @@ try {
     if ($query->rowCount() > 0) {
         $response['value'] = 'ok';
         $response['msg'] = 'Estado de documento fuente modificado correctamente';
+        Logs::guardaLog("UPDATE `ctb_fuente` SET `estado` = $estado WHERE `id_doc_fuente`= $id");
     } else {
         $response['msg'] = $query->errorInfo()[2];
     }

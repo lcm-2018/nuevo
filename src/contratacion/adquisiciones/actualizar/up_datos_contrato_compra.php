@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_cc = isset($_POST['id_cc']) ? $_POST['id_cc'] : exit('Acción no permitida');
 $fec_ini =  date('Y-m-d', strtotime($_POST['datFecIniEjec']));
@@ -27,6 +28,9 @@ try {
         echo $sql->errorInfo()[2];
         exit();
     } else {
+        if ($sql->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `id_tercero` = $id_tercero WHERE `id_adquisicion` = $id_compra");
+        }
         $change = 1;
     }
 } catch (PDOException $e) {
@@ -73,6 +77,7 @@ try {
                     $id_pol = $p;
                     $sql->execute();
                     if ($cmd->lastInsertId() > 0) {
+                        Logs::guardaLog("INSERT INTO `ctt_garantias_compra`(`id_contrato_compra`,`id_poliza`,`id_user_reg`,`fec_reg`) VALUES ($id_cc, $id_pol, $iduser, '{$date->format('Y-m-d H:i:s')}')");
                         $cant++;
                         $cambio = 1;
                     } else {
@@ -85,7 +90,9 @@ try {
             }
         }
         if ($sql1->rowCount() > 0 || $cant > 0) {
-
+            if ($sql1->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `ctt_contratos` SET `fec_ini` = '$fec_ini', `fec_fin` = '$fec_fin', `id_forma_pago` = $forma_pago, `id_supervisor` = $supervisor WHERE `id_contrato_compra` = $id_cc");
+            }
             $sql = "UPDATE  `ctt_contratos` SET  `id_user_act` = ? , `fec_act` = ? WHERE `id_contrato_compra` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -93,6 +100,7 @@ try {
             $sql->bindParam(3, $id_cc, PDO::PARAM_INT);
             $sql->execute();
             if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `ctt_contratos` SET `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_contrato_compra` = $id_cc");
                 $change = 1;
             } else {
                 echo $sql->errorInfo()[2];

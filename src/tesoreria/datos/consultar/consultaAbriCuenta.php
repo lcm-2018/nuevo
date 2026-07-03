@@ -1,6 +1,7 @@
 <?php
 
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $data = file_get_contents("php://input");
 // Realizo conexion con la base de datos
 try {
@@ -21,10 +22,16 @@ try {
     $query = $cmd->prepare("UPDATE tes_cuentas SET estado=0 WHERE id_tes_cuenta=?");
     $query->bindParam(1, $data, PDO::PARAM_INT);
     $query->execute();
+    if ($query->rowCount() > 0) {
+        Logs::guardaLog("UPDATE tes_cuentas SET estado=0 WHERE id_tes_cuenta=$data");
+    }
     // Actualizo el campo estado de la tabla pto_documento_detalles
     $query = $cmd->prepare("UPDATE ctb_pgcp SET estado=0 WHERE id_pgcp=?");
     $query->bindParam(1, $id_pgcp, PDO::PARAM_INT);
     $query->execute();
+    if ($query->rowCount() > 0) {
+        Logs::guardaLog("UPDATE ctb_pgcp SET estado=0 WHERE id_pgcp=$id_pgcp");
+    }
     $response[] = array("value" => "ok");
     $cmd->commit();
 } catch (Exception $e) {

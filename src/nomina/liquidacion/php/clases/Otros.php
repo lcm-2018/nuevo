@@ -48,12 +48,16 @@ class Otros
             $stmt->bindParam(6, $a['tipo'], PDO::PARAM_STR);
             $stmt->bindParam(7, $a['id'], PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_liq_dlab_auxt` SET `dias_liq` = {$a['dias']}, `val_liq_dias` = {$a['laborado']}, `val_liq_auxt` = {$a['auxtrans']}, `aux_alim` = {$a['auxalim']}, `g_representa` = {$a['grepre']}, `tipo` = '{$a['tipo']}' WHERE `id_liq_dlab_auxt` = {$a['id']}");
                 $consulta = "UPDATE `nom_liq_dlab_auxt` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_dlab_auxt` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $a['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_liq_dlab_auxt` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_liq_dlab_auxt` = {$a['id']}");
                 return 'si';
             } else {
                 return 'no';

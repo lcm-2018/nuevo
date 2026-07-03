@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $nombrePresupuesto = $_POST['nomPto'];
 $tipoPto = $_POST['tipoPto'];
 $id = $_POST['id'];
@@ -24,6 +25,8 @@ try {
     $sql->bindParam(6, $id, PDO::PARAM_INT);
     $sql->execute();
     if ($sql->rowCount() > 0) {
+        $fecha = $date->format('Y-m-d H:i:s');
+        Logs::guardaLog("UPDATE pto_presupuestos SET  id_pto_tipo= $tipoPto,  nombre= '$nombrePresupuesto', descripcion= '$objeto', id_usuer_act= $iduser, fec_act= '$fecha' WHERE id_pto_presupuestos= $id");
         echo '1';
     } else {
         echo $sql->errorInfo()[2];

@@ -35,6 +35,7 @@ class Novedades
             $stmt->bindParam(2, $novedad, PDO::PARAM_INT);
             $stmt->execute();
             if ($stmt->rowCount() > 0) {
+                Logs::guardaLog("DELETE FROM `nom_calendar_novedad` WHERE `id_tipo` = $tipo AND `id_novedad` = $novedad");
                 return 'si';
             } else {
                 return 'No se eliminó el registro.';
@@ -72,8 +73,12 @@ class Novedades
                         return 'Existe cruce de fecha: ' . $fecha_inicio->format('Y-m-d');
                     }
                 }
-                $stmt->bindValue(4, $fecha_inicio->format('Y-m-d'), PDO::PARAM_STR);
+                $fecha_f = $fecha_inicio->format('Y-m-d');
+                $stmt->bindValue(4, $fecha_f, PDO::PARAM_STR);
                 $stmt->execute();
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("INSERT INTO `nom_calendar_novedad` (`id_empleado`, `id_tipo`, `id_novedad`, `fecha`, `id_user_reg`, `fec_reg`) VALUES ({$array['id_empleado']}, {$array['tipo']}, {$array['novedad']}, '$fecha_f', $idUser, '$hoy')");
                 $fecha_inicio->modify('+1 day');
             }
 

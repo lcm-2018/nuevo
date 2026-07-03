@@ -193,6 +193,10 @@ class Incrementos
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $vigencia = Sesion::Vigencia();
+                $hoy = Sesion::_Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_incremento_salario` (`porcentaje`,`vigencia`,`fecha`,`estado`,`fec_reg`,`id_user_reg`) VALUES ({$array['numPorcIncSal']}, '$vigencia', '{$array['datFechaInSal']}', 1, '$hoy', $idUser)");
                 $empledos = new Empleados();
                 $lista = $empledos->getEmpleados();
                 foreach ($lista as $e) {
@@ -237,12 +241,16 @@ class Incrementos
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {
                 if ($stmt->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `nom_incremento_salario` SET `porcentaje` = {$array['numPorcIncSal']}, `fecha` = '{$array['datFechaInSal']}' WHERE `id_inc` = {$array['id']}");
                     $consulta = "UPDATE `nom_incremento_salario` SET `id_user_act` =  ? , `fec_act` = ? WHERE `id_inc` = ?";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::IdUser(), PDO::PARAM_INT);
-                    $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
+                    $idUser = Sesion::IdUser();
+                    $hoy = Sesion::Hoy();
+                    $stmt2->bindValue(1, $idUser, PDO::PARAM_INT);
+                    $stmt2->bindValue(2, $hoy, PDO::PARAM_STR);
                     $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                     $stmt2->execute();
+                    Logs::guardaLog("UPDATE `nom_incremento_salario` SET `id_user_act` =  $idUser , `fec_act` = '$hoy' WHERE `id_inc` = {$array['id']}");
                     return 'si';
                 } else {
                     return 'No se realizó ningún cambio.';

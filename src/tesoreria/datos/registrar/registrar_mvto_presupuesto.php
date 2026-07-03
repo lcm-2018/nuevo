@@ -1,8 +1,9 @@
-﻿<?php
+<?php
 session_start();
 
 include '../../../../config/autoloader.php';
 use Src\Common\Php\Clases\Permisos;
+use Config\Clases\Logs;
 
 if (isset($_POST)) {
     //Recibir variables por POST
@@ -59,6 +60,7 @@ if (isset($_POST)) {
             $query->execute();
             if ($cmd->lastInsertId() > 0) {
                 $id_pto_doc = $cmd->lastInsertId();
+                Logs::guardaLog("INSERT INTO pto_documento (id_pto_presupuestos,id_sede, tipo_doc, id_manu, fecha, objeto,num_solicitud, id_user_reg, fec_reg) VALUES ($id_pto, $sede, '$tipo_mov', '$id_manu', '$fecha', '$objeto', '$num_solicitud', $iduser, '$fecha2')");
             } else {
                 print_r($query->errorInfo()[2]);
             }
@@ -75,6 +77,7 @@ if (isset($_POST)) {
             $query->execute();
             if ($cmd->lastInsertId() > 0) {
                 $id_mvt = $cmd->lastInsertId();
+                Logs::guardaLog("INSERT INTO pto_documento_detalles (id_pto_doc,id_ctb_doc,id_auto_dep,tipo_mov, rubro, valor,estado) VALUES ($id_pto_doc, $id_ctb_doc, $id_auto_cdp, '$tipo_mov', '$rubro', '$valor', $estado)");
                 // Realizo consulta para ingresar una fila html
                 try {
                     $sql = "SELECT

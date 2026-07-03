@@ -14,6 +14,7 @@ $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $response['status'] = 'error';
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -32,6 +33,7 @@ try {
         $query->bindParam(7, $fecha2);
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `tes_conciliacion` (`id_cuenta`,`vigencia`,`mes`,`saldo_extracto`,`estado`,`id_user_reg`,`fec_reg`) VALUES ($id_cuenta, '$vigencia', '$mes', '$saldo', $estado, $iduser, '$fecha2')");
             $response['status'] = 'ok';
             $response['id_conciliacion'] = $cmd->lastInsertId();
         } else {
@@ -45,6 +47,9 @@ try {
         $query->bindParam(1, $saldo, PDO::PARAM_STR);
         $query->bindParam(2, $id_conciliacion, PDO::PARAM_INT);
         if ($query->execute()) {
+            if ($query->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `tes_conciliacion` SET `saldo_extracto` = '$saldo' WHERE `id_conciliacion` = $id_conciliacion");
+            }
             $response['status'] = 'ok';
             $response['id_conciliacion'] = $id_conciliacion;
         } else {

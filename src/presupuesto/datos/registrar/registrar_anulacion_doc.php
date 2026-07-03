@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id = isset($_POST['id_pto_doc']) ? $_POST['id_pto_doc'] : exit('Acceso no disponible');
 $tipo = $_POST['tipo'];
@@ -27,11 +28,15 @@ try {
     $sql->bindParam(5, $id, PDO::PARAM_INT);
     $sql->execute();
     if ($sql->rowCount() > 0) {
+        Logs::guardaLog("UPDATE $table SET `estado`= $estado, `id_user_anula` = $id_user, `fecha_anula` = '$fecha', `concepto_anula` = '$motivo' WHERE `id_pto_$tipo` = $id");
         if ($tipo == 'cdp') {
             $sql = "UPDATE `ctt_adquisiciones` SET `id_cdp` = NULL WHERE `id_cdp` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $id, PDO::PARAM_INT);
             $sql->execute();
+            if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `id_cdp` = NULL WHERE `id_cdp` = $id");
+            }
         }
         if ($tipo == 'crp') {
             $sql = "SELECT
@@ -65,6 +70,9 @@ try {
                 $sql->bindParam(1, $estado, PDO::PARAM_INT);
                 $sql->bindParam(2, $id, PDO::PARAM_INT);
                 $sql->execute();
+                if ($sql->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `ctb_doc` SET `estado` = $estado WHERE `id_crp` = $id");
+                }
             }
         }
         $cmd->commit();

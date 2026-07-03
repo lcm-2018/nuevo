@@ -9,6 +9,7 @@ include_once '../../../../config/autoloader.php';
 
 use Src\Common\Php\Clases\Permisos;
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 
 $formato = isset($_POST['slcTipoFormato']) ? $_POST['slcTipoFormato'] : exit('Acceso denegado');
 $tipo_bn_sv = $_POST['slcTipoBnSv'];
@@ -44,6 +45,7 @@ try {
     $sql->execute();
     if ($cmd->lastInsertId() > 0) {
         $id = $cmd->lastInsertId();
+        Logs::guardaLog("INSERT INTO `ctt_formatos_doc_rel` (`id_formato`,`id_tipo_bn_sv`,`id_user_reg`,`fec_reg`) VALUES ($formato, $tipo_bn_sv, $id_user, '{$date->format('Y-m-d H:i:s')}')");
         $file_tmp = $_FILES['fileContratacion']['tmp_name'];
         $file_dest = '../../adquisiciones/soportes/' . $id . '.docx';
         if (!move_uploaded_file($file_tmp, $file_dest)) {

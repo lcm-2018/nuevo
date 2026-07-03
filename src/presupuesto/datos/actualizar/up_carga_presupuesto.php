@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_cargue = $_POST['id_cargue'];
 $nomCod = $_POST['nomCod'];
 $tipoDato = $_POST['tipoDato'];
@@ -35,13 +36,16 @@ try {
         exit();
     } else {
         if ($sql->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `pto_cargue` SET `cod_pptal` = '$nomCod', `nom_rubro` = '$nomRubro', `tipo_dato` = '$tipoDato', `valor_aprobado` = $valorAprob, `id_tipo_recurso` = $tipoRecurso, `tipo_pto` = $tipoPto WHERE `id_cargue` = $id_cargue");
             $sql = "UPDATE `pto_cargue` SET `id_user_act` = ?, `fec_act` = ? WHERE `id_cargue` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $iduser, PDO::PARAM_INT);
-            $sql->bindValue(2, $date->format('Y-m-d H:i:s'));
+            $fecha = $date->format('Y-m-d H:i:s');
+            $sql->bindValue(2, $fecha);
             $sql->bindParam(3, $id_cargue, PDO::PARAM_INT);
             $sql->execute();
             if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `pto_cargue` SET `id_user_act` = $iduser, `fec_act` = '$fecha' WHERE `id_cargue` = $id_cargue");
                 echo 'ok';
             } else {
                 echo $sql->errorInfo()[2];

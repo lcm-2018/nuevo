@@ -8,6 +8,7 @@ include_once '../../../../config/autoloader.php';
 
 use Src\Common\Php\Clases\Permisos;
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 
 $modalidad = isset($_POST['datos']) ? mb_strtoupper($_POST['datos']) : exit('Acción no permitida');
 $iduser = $_SESSION['id_user'];
@@ -26,6 +27,7 @@ try {
     $sql->bindValue(3, $date->format('Y-m-d H:i:s'));
     $sql->execute();
     if ($cmd->lastInsertId() > 0) {
+        Logs::guardaLog("INSERT INTO ctt_modalidad (modalidad,id_user_reg,fec_reg) VALUES ('$modalidad', $iduser, '{$date->format('Y-m-d H:i:s')}')");
         echo '1';
     } else {
         echo $sql->errorInfo()[2];

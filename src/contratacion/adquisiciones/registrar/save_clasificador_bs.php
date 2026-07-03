@@ -37,21 +37,7 @@ try {
 
         $id_clas = $cmd->lastInsertId();
 
-        // Log de inserción
-        $logs = new Logs();
-        $datos_log = [
-            'id_clas' => $id_clas,
-            'id_adq' => $id_adq,
-            'id_unspsc' => $id_unspsc,
-            'id_user_reg' => $id_user
-        ];
-        $logs->guardaLog(
-            $id_user,
-            'ctt_clasificador_bs',
-            $id_clas,
-            'insert',
-            json_encode($datos_log)
-        );
+        Logs::guardaLog("INSERT INTO `ctt_clasificador_bs` (`id_adq`, `id_unspsc`, `id_user_reg`, `fec_reg`) VALUES ($id_adq, $id_unspsc, $id_user, NOW())");
 
         $mensaje = 'Clasificador registrado exitosamente';
     } else {
@@ -75,24 +61,7 @@ try {
         $stmt->bindParam(3, $id_clas, PDO::PARAM_INT);
         $stmt->execute();
 
-        // Log de actualización
-        $logs = new Logs();
-        $datos_log = [
-            'datos_anteriores' => $datosAnteriores,
-            'datos_nuevos' => [
-                'id_clas' => $id_clas,
-                'id_adq' => $id_adq,
-                'id_unspsc' => $id_unspsc,
-                'id_user_act' => $id_user
-            ]
-        ];
-        $logs->guardaLog(
-            $id_user,
-            'ctt_clasificador_bs',
-            $id_clas,
-            'update',
-            json_encode($datos_log)
-        );
+        Logs::guardaLog("UPDATE `ctt_clasificador_bs` SET `id_unspsc` = $id_unspsc, `id_user_act` = $id_user, `fec_act` = NOW() WHERE `id_clas` = $id_clas");
 
         $mensaje = 'Clasificador actualizado exitosamente';
     }

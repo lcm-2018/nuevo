@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 session_start();
 if (!isset($_SESSION['user'])) {
@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_crp = isset($_POST['id']) ? $_POST['id'] : exit('Acceso no disponible');
 $id_user = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
@@ -24,12 +25,17 @@ try {
         exit();
     } else {
         if ($sql->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `pto_crp` SET `estado` = $estado WHERE `id_pto_crp` = $id_crp");
             $sql = "UPDATE `pto_crp` SET `id_user_act` = ?, `fecha_act` = ? WHERE `id_pto_crp` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $id_user, PDO::PARAM_STR);
-            $sql->bindValue(2, $date->format('Y-m-d H:i:s'));
+            $fecha = $date->format('Y-m-d H:i:s');
+            $sql->bindValue(2, $fecha);
             $sql->bindParam(3, $id_crp, PDO::PARAM_INT);
             $sql->execute();
+            if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `pto_crp` SET `id_user_act` = $id_user, `fecha_act` = '$fecha' WHERE `id_pto_crp` = $id_crp");
+            }
             echo 'ok';
         } else {
             echo 'No se registró ningún nuevo dato';

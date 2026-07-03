@@ -250,6 +250,9 @@ class Ccostos
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("INSERT INTO `nom_ccosto_empleado` (`id_empleado`,`id_ccosto`,`id_user_reg`,`fec_reg`) VALUES ({$array['id_empleado']}, {$array['slcCcosto']}, $idUser, '$hoy')");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -275,12 +278,16 @@ class Ccostos
             $stmt->bindValue(2, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_ccosto_empleado` SET `id_ccosto` = {$array['slcCcosto']} WHERE `id_cc_emp` = {$array['id']}");
                 $consulta = "UPDATE `nom_ccosto_empleado` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_cc_emp` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_ccosto_empleado` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_cc_emp` = {$array['id']}");
                 return 'si';
             } else {
                 return 'No se actualizó el registro.';

@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $user = isset($_POST['id_user']) ? $_POST['id_user'] : exit('Acción no permitida');
 $id_area = $_POST['slcAreaUser'];
@@ -28,6 +29,7 @@ try {
         $sql->bindValue(5, $date->format('Y-m-d H:i:s'));
         $sql->execute();
         if ($sql->rowCount() > 0) {
+            Logs::guardaLog("INSERT INTO `ctt_area_user` (`id_resp`, `id_user`, `id_area`, `id_user_reg`, `fec_reg`) VALUES ($id_resp, $user, $id_area, $iduser, '{$date->format('Y-m-d H:i:s')}')");
             echo 'ok';
         } else {
             echo $sql->errorInfo()[2];
@@ -39,6 +41,7 @@ try {
         $sql->bindParam(2, $id_resp, PDO::PARAM_INT);
         $sql->execute();
         if ($sql->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `ctt_area_user` SET `id_area` = $id_area WHERE `id_resp` = $id_resp");
             $sql = "UPDATE `ctt_area_user` SET  `id_user_act` = ?, `fec_act` = ? WHERE `id_resp` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -46,6 +49,7 @@ try {
             $sql->bindParam(3, $id_resp, PDO::PARAM_INT);
             $sql->execute();
             if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `ctt_area_user` SET  `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_resp` = $id_resp");
                 echo 'ok';
             } else {
                 echo $sql->errorInfo()[2];

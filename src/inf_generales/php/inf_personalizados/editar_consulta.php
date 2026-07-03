@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 //Permisos: 1-Consultar,2-Crear,3-Editar,4-Eliminar,5-Anular,6-Imprimir
 
 $oper = isset($_POST['txt_id_con']) ? $_POST['txt_id_con'] : exit('Acción no permitida');
@@ -68,6 +69,7 @@ try {
             $sql->bindValue(':id_con', $_POST['txt_id_con']);
             $rs = $sql->execute();
             if ($rs) {
+                Logs::guardaLog("UPDATE tb_consultas_sql SET nom_consulta = '{$_POST['txt_nom_con']}', id_opcion = {$_POST['sl_opcion']}, des_consulta = '{$_POST['txt_des_con']}', consulta = '{$_POST['txt_con_sql']}', parametros = '{$_POST['txt_par_con']}' WHERE id_consulta = {$_POST['txt_id_con']}");
                 $res['mensaje'] = 'ok';
                 $res['nom_consulta'] = $_POST['txt_nom_con'];
                 $res['des_consulta'] = $_POST['txt_des_con'];

@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include_once '../../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
 $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
 $permisos = new \Src\Common\Php\Clases\Permisos();
@@ -26,6 +27,7 @@ try {
     $query->bindParam(5, $id_adq, PDO::PARAM_INT);
     $query->execute();
     if ($query->rowCount() > 0) {
+        Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `estado` = $estado, `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}', `val_contrato` = $valor WHERE `id_adquisicion` = $id_adq");
         echo 'ok';
     } else {
         echo 'Error al cerrar la orden A' . $sql->errorInfo()[2];

@@ -292,7 +292,19 @@ class Contratos
                 $stmt->bindValue(4, Valores::WordToNumber($array['txtSalarioBasico']), PDO::PARAM_STR);
                 $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
                 $stmt->execute();
-                return $this->conexion->lastInsertId() > 0 ? 'si' : 'No se insertó el registro';
+                $idSalario = $this->conexion->lastInsertId();
+                if ($idSalario > 0) {
+                    $salario = Valores::WordToNumber($array['txtSalarioBasico']);
+                    $fecFin = $array['datFecFin'] != '' ? "'{$array['datFecFin']}'" : 'NULL';
+                    $vigencia = Sesion::Vigencia();
+                    $idUser = Sesion::IdUser();
+                    $hoy = Sesion::Hoy();
+                    Logs::guardaLog("INSERT INTO `nom_contratos_empleados` (`id_empleado`,`fec_inicio`,`fec_fin`,`vigencia`,`id_cargo`,`estado`,`id_user_reg`,`fec_reg`) VALUES ({$array['id_empleado']}, '{$array['datFecInicia']}', $fecFin, $vigencia, {$array['slcCargo']}, 1, $idUser, '$hoy')");
+                    Logs::guardaLog("INSERT INTO `nom_salarios_basico` (`id_empleado`,`id_contrato`,`vigencia`,`salario_basico`,`fec_reg`) VALUES ({$array['id_empleado']}, $id, $vigencia, $salario, '$hoy')");
+                    return 'si';
+                } else {
+                    return 'No se insertó el registro';
+                }
             } else {
                 return 'No se insertó el registro';
             }
@@ -322,12 +334,17 @@ class Contratos
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {
                 if ($stmt->rowCount() > 0) {
+                    $fecFin = $array['datFecFin'] != '' ? "'{$array['datFecFin']}'" : 'NULL';
+                    Logs::guardaLog("UPDATE `nom_contratos_empleados` SET `fec_inicio` = '{$array['datFecInicia']}', `fec_fin` = $fecFin, `id_cargo` = {$array['slcCargo']} WHERE (`id_contrato_emp` = {$array['id_contrato_emp']})");
                     $consulta = "UPDATE `nom_contratos_empleados` SET `id_user_act` = ?, `fec_act` = ? WHERE (`id_contrato_emp` = ?)";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::IdUser(), PDO::PARAM_INT);
-                    $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
+                    $idUser = Sesion::IdUser();
+                    $hoy = Sesion::Hoy();
+                    $stmt2->bindValue(1, $idUser, PDO::PARAM_INT);
+                    $stmt2->bindValue(2, $hoy, PDO::PARAM_STR);
                     $stmt2->bindValue(3, $array['id_contrato_emp'], PDO::PARAM_INT);
                     $stmt2->execute();
+                    Logs::guardaLog("UPDATE `nom_contratos_empleados` SET `id_user_act` = $idUser, `fec_act` = '$hoy' WHERE (`id_contrato_emp` = {$array['id_contrato_emp']})");
                     $cambio++;
                 }
             }
@@ -341,11 +358,15 @@ class Contratos
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {
                 if ($stmt->rowCount() > 0) {
+                    $salario = Valores::WordToNumber($array['txtSalarioBasico']);
+                    Logs::guardaLog("UPDATE `nom_salarios_basico` SET `salario_basico` = $salario WHERE (`id_salario` = {$array['id']})");
                     $consulta = "UPDATE `nom_salarios_basico` SET `fec_act` = ? WHERE (`id_salario` = ?)";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                    $hoy = Sesion::Hoy();
+                    $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
                     $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                     $stmt2->execute();
+                    Logs::guardaLog("UPDATE `nom_salarios_basico` SET `fec_act` = '$hoy' WHERE (`id_salario` = {$array['id']})");
                     $cambio++;
                 }
             }
@@ -368,6 +389,7 @@ class Contratos
             $stmt->bindValue(2, $id, PDO::PARAM_INT);
             $stmt->execute();
             if ($stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_contratos_empleados` SET `estado` = $estado WHERE (`id_contrato_emp` = $id)");
                 return 'si';
             } else {
                 return 'No se anuló el registro.';

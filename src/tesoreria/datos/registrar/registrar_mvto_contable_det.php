@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 //Array ( [numDoc] => 2 [tipodato] => 18 [id_crpp] => 0 [fecha] => 2024-04-04 [tercero] => GOMEZ BARRERA EDWIN LEONARDO [id_tercero] => 2097 [objeto] => [detalle] => ooooo [id_ctb_doc] => 21 [tableMvtoContableDetalle_length] => 10 [codigoCta] => 11050201 - CAJA MENOR [id_codigoCta] => 7 [tipoDato] => D [bTercero] => GOMEZ BARRERA EDWIN LEONARDO || 1057608892 [idTercero] => 2097 [valorDebito] => 2,000,000.00 [valorCredito] => 0 );
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_doc = isset($_POST['id_ctb_doc']) ? $_POST['id_ctb_doc'] : exit('Acceso no disponible');
 $id_tercero = $_POST['idTercero'];
 $id_crp = $_POST['id_crpp'];
@@ -34,6 +35,7 @@ try {
         $query->bindParam(7, $fecha2);
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_doc, '$id_tercero', '$id_codigoCta', '$valorDebito', '$valorCredito', $iduser, '$fecha2')");
             echo 'ok';
         } else {
             echo $query->errorInfo()[2];
@@ -61,6 +63,7 @@ try {
                 $query->bindParam(2, $fecha2);
                 $query->bindParam(3, $opcion, PDO::PARAM_INT);
                 $query->execute();
+                Logs::guardaLog("UPDATE `ctb_libaux` SET `id_tercero_api` = '$id_tercero',`id_cuenta` = '$id_codigoCta',`debito` = '$valorDebito',`credito` = '$valorCredito', `id_user_act` = $iduser, `fecha_act` = '$fecha2' WHERE `id_ctb_libaux` = $opcion");
                 echo 'ok';
             } else {
                 echo 'No se realizó ningún cambio';

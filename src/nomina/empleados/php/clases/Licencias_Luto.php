@@ -305,6 +305,9 @@ class Licencias_Luto
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_licencia_luto` (`id_empleado`,`fec_inicio`,`fec_fin`,`dias_inactivo`,`dias_habiles`,`fec_reg`,`id_user_reg`) VALUES ({$array['id_empleado']}, '{$array['datFecInicia']}', '{$array['datFecFin']}', {$array['diasInactivo']}, {$array['diasHabiles']}, '$hoy', $idUser)");
                 $array['novedad'] = $id;
                 $array['tipo'] = 5;
                 $Novedad = new Novedades($this->conexion);
@@ -341,6 +344,9 @@ class Licencias_Luto
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_licluto` (`id_licluto`,`dias_licluto`,`val_liq`,`id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$array['id_licluto']}, {$array['dias']}, {$array['valor']}, $idUser, '$hoy', {$array['id_nomina']})");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -370,11 +376,14 @@ class Licencias_Luto
             $stmt->bindValue(5, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_licencia_luto` SET `fec_inicio` = '{$array['datFecInicia']}', `fec_fin` = '{$array['datFecFin']}', `dias_inactivo` = {$array['diasInactivo']}, `dias_habiles` = {$array['diasHabiles']} WHERE `id_licluto` = {$array['id']}");
                 $consulta = "UPDATE `nom_licencia_luto` SET `fec_act` = ? WHERE `id_licluto` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $hoy = Sesion::Hoy();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
                 $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_licencia_luto` SET `fec_act` = '$hoy' WHERE `id_licluto` = {$array['id']}");
                 $Novedad = new Novedades($this->conexion);
                 $Novedad->delRegistro(5, $array['id']);
                 $array['novedad'] = $array['id'];

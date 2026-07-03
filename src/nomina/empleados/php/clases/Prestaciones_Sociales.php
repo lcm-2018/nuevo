@@ -650,6 +650,9 @@ class Prestaciones_Sociales
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_prestaciones_sociales` (`id_empleado`,`val_vacacion`,`val_cesantia`,`val_interes_cesantia`,`val_prima`,`val_prima_vac`,`val_prima_nav`,`val_bonifica_recrea`,`id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$array['id_empleado']}, {$array['val_vacacion']}, {$array['val_cesantia']}, {$array['val_interes_cesantia']}, {$array['val_prima']}, {$array['val_prima_vac']}, {$array['val_prima_nav']}, {$array['val_bonifica_recrea']}, $idUser, '$hoy', {$array['id_nomina']})");
                 return 'si';
             } else {
                 return 'No se insertó el registro';

@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_user = $_SESSION['id_user'];
 $vigencia = $_SESSION['id_vigencia'];
@@ -54,6 +55,9 @@ try {
             $rsUp->bindValue(4, $fecha, PDO::PARAM_STR);
             $rsUp->bindValue(5, $existe['id_hom'], PDO::PARAM_INT);
             $rsUp->execute();
+            if ($rsUp->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `ctb_homologacion` SET `id_cuenta_otros`=$val_otros,`id_cuenta_1009`=$val_1009,`id_user_act`=$id_user WHERE `id_hom`={$existe['id_hom']}");
+            }
         } else {
             // Insert
             $sqlIn = "INSERT INTO `ctb_homologacion` (`id_vigencia`, `id_cuenta`, `id_cuenta_otros`, `id_cuenta_1009`, `id_user_reg`, `fec_reg`) 
@@ -66,6 +70,7 @@ try {
             $rsIn->bindValue(5, $id_user, PDO::PARAM_INT);
             $rsIn->bindValue(6, $fecha, PDO::PARAM_STR);
             $rsIn->execute();
+            Logs::guardaLog("INSERT INTO `ctb_homologacion`(`id_vigencia`,`id_cuenta`,`id_cuenta_otros`,`id_cuenta_1009`,`id_user_reg`) VALUES($vigencia,$id_pgcp,$val_otros,$val_1009,$id_user)");
         }
     }
 

@@ -7,6 +7,7 @@ if (!isset($_SESSION['user'])) {
 include_once '../../../../config/autoloader.php';
 
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 
 $tipo = isset($_POST['tipo']) ? $_POST['tipo'] : exit('Acceso denegado');
 $id_vigencia = $_SESSION['id_vigencia'];
@@ -108,6 +109,7 @@ if (file_exists($file_dest)) {
                         $sql->bindParam(7, $vigencia, PDO::PARAM_INT);
                         $sql->execute();
                         if ($cmd->lastInsertId() > 0) {
+                            Logs::guardaLog("INSERT INTO `ctt_clasificacion_bn_sv` (`id_b_s`, `honorarios`, `horas`, `cod_unspsc`, `cod_cuipo`, `cod_siho`, `vigencia`) VALUES ($id_servicio, '$honorarios', '$horas', '$cod_unspsc', '$cod_cuipo', '$cod_siho', '$vigencia')");
                             $t++;
                         } else {
                             echo $sql->errorInfo()[2];
@@ -122,6 +124,7 @@ if (file_exists($file_dest)) {
                         $query->bindParam(6, $id_clas, PDO::PARAM_INT);
                         $query->execute();
                         if ($query->rowCount() > 0) {
+                            Logs::guardaLog("UPDATE `ctt_clasificacion_bn_sv` SET `honorarios`= '$honorarios', `horas` = '$horas', `cod_unspsc` = '$cod_unspsc', `cod_cuipo` = '$cod_cuipo', `cod_siho` = '$cod_siho' WHERE `id_clasificaicion` = $id_clas");
                             $t++;
                         } else {
                             echo $query->errorInfo()[2];
@@ -152,6 +155,7 @@ if (file_exists($file_dest)) {
                         $sql->bindParam(3, $vigencia, PDO::PARAM_STR);
                         $sql->execute();
                         if ($cmd->lastInsertId() > 0) {
+                            Logs::guardaLog("INSERT INTO `ctt_escala_honorarios` (`id_tipo_b_s`,`cod_pptal`,`vigencia`) VALUES ($id_tipo_s, '$cod_pptal', '$vigencia')");
                             $t++;
                         } else {
                             echo $sql->errorInfo()[2];
@@ -162,6 +166,7 @@ if (file_exists($file_dest)) {
                         $query->bindParam(3, $id_escala, PDO::PARAM_INT);
                         $query->execute();
                         if ($query->rowCount() > 0) {
+                            Logs::guardaLog("UPDATE `ctt_escala_honorarios` SET `cod_pptal` = '$cod_pptal', `vigencia` = '$vigencia' WHERE `id_escala` = $id_escala");
                             $t++;
                         } else {
                             echo $query->errorInfo()[2];

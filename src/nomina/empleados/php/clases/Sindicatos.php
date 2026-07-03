@@ -364,6 +364,10 @@ class Sindicatos
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $fecFin = $array['datFecFin'] == '' ? 'NULL' : "'{$array['datFecFin']}'";
+                Logs::guardaLog("INSERT INTO `nom_cuota_sindical` (`id_sindicato`,`id_empleado`,`porcentaje_cuota`,`val_fijo`,`fec_inicio`,`fec_fin`,`val_sidicalizacion`,`estado`,`fec_reg`) VALUES ({$array['slcSindicato']}, {$array['id_empleado']}, {$array['numPorcentaje']}, $valor, '{$array['datFecInicia']}', $fecFin, {$array['numValSind']}, 1, '$hoy')");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -388,6 +392,9 @@ class Sindicatos
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_sindicato_aportes` (`id_cuota_sindical`,`val_aporte`,`id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$array['id_sindicato']}, {$array['valor_fijo']}, $idUser, '$hoy', {$array['id_nomina']})");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -408,12 +415,16 @@ class Sindicatos
             $stmt->bindValue(2, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_liq_sindicato_aportes` SET `val_aporte` = {$array['valor_sindicato']} WHERE `id_aporte` = {$array['id']}");
                 $consulta = "UPDATE `nom_liq_sindicato_aportes` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_aporte` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_liq_sindicato_aportes` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_aporte` = {$array['id']}");
                 return 'si';
             } else {
                 return 'no';
@@ -445,11 +456,15 @@ class Sindicatos
             $stmt->bindValue(7, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $fecFin = $array['datFecFin'] == '' ? 'NULL' : "'{$array['datFecFin']}'";
+                Logs::guardaLog("UPDATE `nom_cuota_sindical` SET `id_sindicato` = {$array['slcSindicato']}, `porcentaje_cuota` = {$array['numPorcentaje']}, `val_fijo` = $valor, `fec_inicio` = '{$array['datFecInicia']}', `fec_fin` = $fecFin, `val_sidicalizacion` = {$array['numValSind']} WHERE `id_cuota_sindical` = {$array['id']}");
                 $consulta = "UPDATE `nom_cuota_sindical` SET `fec_act` = ? WHERE `id_cuota_sindical` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $hoy = Sesion::Hoy();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
                 $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_cuota_sindical` SET `fec_act` = '$hoy' WHERE `id_cuota_sindical` = {$array['id']}");
                 return 'si';
             } else {
                 return 'No se actualizó el registro.';
@@ -469,6 +484,7 @@ class Sindicatos
             $stmt->bindValue(1, $array['estado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['id'], PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_cuota_sindical` SET `estado` = {$array['estado']} WHERE `id_cuota_sindical` = {$array['id']}");
                 return 'si';
             } else {
                 return 'No se hizo el cambio de estado.' . $stmt->errorInfo()[2];

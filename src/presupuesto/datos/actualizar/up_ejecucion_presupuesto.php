@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_cdp = isset($_POST['id_cdp']) ? $_POST['id_cdp'] : exit('Acceso no disponible');
 $id_pto = $_POST['id_pto'];
 $fecha = $_POST['dateFecha'];
@@ -46,12 +47,17 @@ try {
         exit();
     } else {
         if ($sql->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `pto_cdp` SET `fecha` = '$fecha', `objeto` = '$objeto', `num_solicitud` = '$num_solicitud', `id_manu` = $id_manu WHERE `id_pto_cdp` = $id_cdp");
             $sql = "UPDATE `pto_cdp` SET `id_user_act` = ?, `fecha_act` = ? WHERE `id_pto_cdp` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $id_user, PDO::PARAM_STR);
-            $sql->bindValue(2, $date->format('Y-m-d H:i:s'));
+            $f_act = $date->format('Y-m-d H:i:s');
+            $sql->bindValue(2, $f_act);
             $sql->bindParam(3, $id_cdp, PDO::PARAM_INT);
             $sql->execute();
+            if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `pto_cdp` SET `id_user_act` = $id_user, `fecha_act` = '$f_act' WHERE `id_pto_cdp` = $id_cdp");
+            }
             $response['status'] = 'ok';
         } else {
             $response['msg'] = 'No se registró ningún nuevo dato';

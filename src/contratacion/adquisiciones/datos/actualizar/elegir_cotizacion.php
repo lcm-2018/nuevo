@@ -5,6 +5,8 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../conexion.php';
+include_once '../../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $data = isset($_POST['datos']) ? explode('|', $_POST['datos']) : exit('Acción no permitida');
 $id_cot = $data[0];
@@ -31,6 +33,7 @@ try {
             if (!($sql->rowCount() > 0)) {
                 echo $sql->errorInfo()[2];
             } else {
+                Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `id_tercero`= $id_ter, `estado`= $estado, `id_user_act` = $id_user, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_adquisicion` = $id_cot");
                 echo 1;
             }
             $cmd = null;

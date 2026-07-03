@@ -4,6 +4,7 @@ namespace Src\Nomina\Electronica\Php\Clases;
 
 use PDO;
 use Exception;
+use Config\Clases\Logs;
 
 /**
  * Repository para manejar datos de nómina electrónica
@@ -83,6 +84,10 @@ class NominaRepository
             $sqlUp = "UPDATE `nom_valxvigencia` SET `valor` = :valor WHERE `id_valxvig` = :id";
             $stmt = $this->conexion->prepare($sqlUp);
             $stmt->execute([':valor' => $iNonce + 1, ':id' => $idiNonce]);
+            if ($stmt->rowCount() > 0) {
+                $newNonce = $iNonce + 1;
+                Logs::guardaLog("UPDATE `nom_valxvigencia` SET `valor` = $newNonce WHERE `id_valxvig` = $idiNonce");
+            }
 
             return ['valor' => $iNonce, 'id' => $idiNonce];
         } catch (\PDOException $e) {
@@ -479,6 +484,10 @@ class NominaRepository
             ]);
 
             $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                $fec = date('Y-m-d H:i:s');
+                Logs::guardaLog("INSERT INTO `nom_soporte_ne` (`id_empleado`, `shash`, `referencia`, `mes`, `anio`, `id_user_reg`, `fec_reg`) VALUES ($idEmpleado, '$hash', '$referencia', '$mes', '$anio', $idUser, '$fec')");
+            }
             if (!$id) {
                 throw new Exception("No se pudo registrar el soporte de nómina electrónica");
             }
@@ -500,7 +509,11 @@ class NominaRepository
         try {
             $sql = "UPDATE `nom_consecutivo_viaticos` SET `consecutivo` = :consecutivo";
             $stmt = $this->conexion->prepare($sql);
-            return $stmt->execute([':consecutivo' => $nuevoConsecutivo]);
+            $res = $stmt->execute([':consecutivo' => $nuevoConsecutivo]);
+            if ($res && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_consecutivo_viaticos` SET `consecutivo` = $nuevoConsecutivo");
+            }
+            return $res;
         } catch (\PDOException $e) {
             throw new Exception("Error al actualizar consecutivo: " . $e->getMessage());
         }

@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_pto = $_POST['id_pto'];
 $fecha = $_POST['dateFecha'];
@@ -53,6 +54,7 @@ try {
     $sql->execute();
     $id_new = $cmd->lastInsertId();
     if ($id_new > 0) {
+        Logs::guardaLog("INSERT INTO `pto_cdp` (`id_pto`,`fecha`,`id_manu`,`objeto`,`num_solicitud`,`estado`,`id_user_reg`,`fecha_reg`) VALUES($id_pto, '$fecha', $id_manu, '$objeto', '$num_solicitud', $estado, $id_user, '" . $date->format('Y-m-d H:i:s') . "')");
         if ($id_adq > 0) {
             if ($id_otro > 0) {
                 //es un otrosi 
@@ -63,6 +65,9 @@ try {
                 $sql->bindParam(1, $id_new, PDO::PARAM_INT);
                 $sql->bindParam(2, $id_otro, PDO::PARAM_INT);
                 $sql->execute();
+                if ($sql->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `ctt_novedad_adicion_prorroga` SET `id_cdp` = $id_new WHERE (`id_nov_con` = $id_otro)");
+                }
             } else if ($id_otro == 0) {
                 //es una contratacion
                 $sql = "UPDATE `ctt_adquisiciones`
@@ -72,6 +77,9 @@ try {
                 $sql->bindParam(1, $id_new, PDO::PARAM_INT);
                 $sql->bindParam(2, $id_adq, PDO::PARAM_INT);
                 $sql->execute();
+                if ($sql->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `id_cdp` = $id_new WHERE (`id_adquisicion` = $id_adq)");
+                }
             }
         }
         $response['status'] = 'ok';

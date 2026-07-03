@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_deduccion = isset($_POST['idt']) ? $_POST['idt'] : 0;
 $estado = isset($_POST['e']) ? $_POST['e'] : -1;
@@ -16,6 +17,9 @@ if ($id_deduccion > 0 && $estado != -1) {
         $stmt = $cmd->prepare($sql);
         $stmt->execute([$estado, $id_deduccion]);
         if ($stmt->rowCount() > 0 || $stmt->errorCode() == '00000') {
+            if ($stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE tb_terceros_deducciones SET estado = $estado WHERE id_deduccion = $id_deduccion");
+            }
             echo $estado;
         } else {
             echo 'No se actualizó el estado.';

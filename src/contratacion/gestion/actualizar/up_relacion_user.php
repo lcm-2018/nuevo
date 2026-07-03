@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $user = isset($_POST['id_user']) ? $_POST['id_user'] : exit('Acción no permitida');
 $id_usuario = $_POST['id_usuario'];
@@ -27,6 +28,7 @@ try {
         $sql->bindValue(4, $date->format('Y-m-d H:i:s'));
         $sql->execute();
         if ($sql->rowCount() > 0) {
+            Logs::guardaLog("INSERT INTO `ctt_relacion_user` (`user1`,`user_rel`,`id_user_reg`,`fec_reg`) VALUES ($user, $id_usuario, $iduser, '{$date->format('Y-m-d H:i:s')}')");
             echo 'ok';
         } else {
             echo $sql->errorInfo()[2];
@@ -38,6 +40,7 @@ try {
         $sql->bindParam(2, $id_relacion, PDO::PARAM_INT);
         $sql->execute();
         if ($sql->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `ctt_relacion_user` SET `user_rel` = $id_usuario WHERE `id_relacion` = $id_relacion");
             $sql = "UPDATE `ctt_relacion_user` SET  `id_user_act` = ?, `fec_act` = ? WHERE `id_relacion` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $iduser, PDO::PARAM_INT);
@@ -45,6 +48,7 @@ try {
             $sql->bindParam(3, $id_relacion, PDO::PARAM_INT);
             $sql->execute();
             if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `ctt_relacion_user` SET  `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_relacion` = $id_relacion");
                 echo 'ok';
             } else {
                 echo $sql->errorInfo()[2];

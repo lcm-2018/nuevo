@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $cmd = \Config\Clases\Conexion::getConexion();
 $id_orden = isset($_POST['id_orden']) ? $_POST['id_orden'] : exit('Accion no permitida');
@@ -19,6 +20,9 @@ try {
     $sql->bindParam(1, $estado, PDO::PARAM_INT);
     $sql->bindParam(2, $id_orden, PDO::PARAM_INT);
     $sql->execute();
+    if ($sql->rowCount() > 0) {
+        Logs::guardaLog("UPDATE `far_alm_pedido` SET `estado` = $estado WHERE `id_pedido` = $id_orden");
+    }
     $estado = 5;
     $query = "UPDATE `ctt_adquisiciones` SET `estado` = ?, `val_contrato` = ? WHERE `id_adquisicion` = ?";
     $query = $cmd->prepare($query);
@@ -27,6 +31,7 @@ try {
     $query->bindParam(3, $id_adq, PDO::PARAM_INT);
     $query->execute();
     if ($query->rowCount() > 0) {
+        Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `estado` = $estado, `val_contrato` = $valor WHERE `id_adquisicion` = $id_adq");
         echo 'ok';
     } else {
         echo 'Error al cerrar la orden A';

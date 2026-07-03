@@ -10,6 +10,7 @@ include_once '../../../../config/autoloader.php';
 
 use Src\Common\Php\Clases\Permisos;
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($_SESSION['id_user']);
@@ -54,6 +55,7 @@ try {
         $sql->bindParam(14, $id_tercero, PDO::PARAM_INT);
         $sql->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `ctt_adquisiciones` (`id_modalidad`, `id_empresa`, `id_sede`, `id_area`, `fecha_adquisicion`, `val_contrato`, `vigencia`, `id_tipo_bn_sv`, `obligaciones`, `objeto`, `estado`, `id_user_reg`, `fec_reg`, `id_tercero`) VALUES ($modalidad, $id_empresa, $id_sede, $area, '$fec_adq', '$val_cont', '$vig', $tbnsv, '$obligaciones', '$objeto', '$estado', $iduser, '{$date->format('Y-m-d H:i:s')}', NULL)");
             echo '1';
         } else {
             echo $sql->errorInfo()[2];
@@ -85,6 +87,8 @@ try {
                 $sql->bindParam(3, $id_Adq, PDO::PARAM_INT);
                 $sql->execute();
                 if ($sql->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `id_modalidad` = $modalidad, `id_area` = $area, `fecha_adquisicion` = '$fec_adq', `val_contrato` = '$val_cont', `id_tipo_bn_sv` = $tbnsv, `objeto` = '$objeto', `id_tercero` = NULL WHERE `id_adquisicion` = $id_Adq");
+                    Logs::guardaLog("UPDATE `ctt_adquisiciones` SET  `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_adquisicion` = $id_Adq");
                     echo '1';
                 } else {
                     echo $sql->errorInfo()[2];

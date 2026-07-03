@@ -223,6 +223,9 @@ class Valores_Liquidacion
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_valores_liquidacion` (`id_empleado`,`smmlv`,`aux_trans`,`aux_alim`,`uvt`,`base_bsp`,`base_alim`,`min_vital`,`salario`,`tiene_grep`,`prom_horas`,`bsp_ant`,`pri_ser_ant`,`pri_vac_ant`,`pri_nav_ant`,`id_user_reg`,`fec_reg`,`id_nomina`,`grep`) VALUES ({$l['id_empleado']}, {$l['smmlv']}, {$l['aux_trans']}, {$l['aux_alim']}, {$l['uvt']}, {$l['base_bsp']}, {$l['base_alim']}, {$l['min_vital']}, {$l['salario']}, {$l['tiene_grep']}, {$l['prom_horas']}, {$l['bsp_ant']}, {$l['pri_ser_ant']}, {$l['pri_vac_ant']}, {$l['pri_nav_ant']}, $idUser, '$hoy', {$l['id_nomina']}, {$l['grep']})");
                 $stmt->closeCursor();
                 unset($stmt);
                 return 'si';
@@ -280,13 +283,19 @@ class Valores_Liquidacion
             $stmt->bindValue(16, $l['id_empleado'], PDO::PARAM_INT);
             $stmt->bindValue(17, $l['id_nomina'], PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $minVital = $l['min_vital'] ?? 0;
+                $tieneGrep = $l['tiene_grep'] ?? 0;
+                Logs::guardaLog("UPDATE `nom_valores_liquidacion` SET `smmlv` = {$l['smmlv']}, `aux_trans` = {$l['aux_trans']}, `aux_alim` = {$l['aux_alim']}, `uvt` = {$l['uvt']}, `base_bsp` = {$l['base_bsp']}, `base_alim` = {$l['base_alim']}, `min_vital` = $minVital, `salario` = {$l['salario']}, `tiene_grep` = $tieneGrep, `prom_horas` = {$l['prom_horas']}, `bsp_ant` = {$l['bsp_ant']}, `pri_ser_ant` = {$l['pri_ser_ant']}, `pri_vac_ant` = {$l['pri_vac_ant']}, `pri_nav_ant` = {$l['pri_nav_ant']}, `grep` = {$l['grep']} WHERE `id_empleado` = {$l['id_empleado']} AND `id_nomina` = {$l['id_nomina']} AND `estado` = 1");
                 $consulta = "UPDATE `nom_valores_liquidacion` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $l['id_empleado'], PDO::PARAM_INT);
                 $stmt2->bindValue(4, $l['id_nomina'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_valores_liquidacion` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_empleado` = {$l['id_empleado']} AND `id_nomina` = {$l['id_nomina']} AND `estado` = 1");
                 return 'si';
             } else {
                 return 'no';
@@ -316,12 +325,17 @@ class Valores_Liquidacion
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {
                 if ($stmt->rowCount() > 0) {
+                    $fecFin = $array['datFecFin'] != '' ? "'{$array['datFecFin']}'" : 'NULL';
+                    Logs::guardaLog("UPDATE `nom_contratos_empleados` SET `fec_inicio` = '{$array['datFecInicia']}', `fec_fin` = $fecFin WHERE `id_contrato_emp` = {$array['id_contrato_emp']}");
                     $consulta = "UPDATE `nom_contratos_empleados` SET `id_user_act` = ?, `fec_act` = ? WHERE (`id_contrato_emp` = ?)";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::IdUser(), PDO::PARAM_INT);
-                    $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
+                    $idUser = Sesion::IdUser();
+                    $hoy = Sesion::Hoy();
+                    $stmt2->bindValue(1, $idUser, PDO::PARAM_INT);
+                    $stmt2->bindValue(2, $hoy, PDO::PARAM_STR);
                     $stmt2->bindValue(3, $array['id_contrato_emp'], PDO::PARAM_INT);
                     $stmt2->execute();
+                    Logs::guardaLog("UPDATE `nom_contratos_empleados` SET `id_user_act` = $idUser, `fec_act` = '$hoy' WHERE (`id_contrato_emp` = {$array['id_contrato_emp']})");
                     $cambio++;
                 }
             }
@@ -335,11 +349,15 @@ class Valores_Liquidacion
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {
                 if ($stmt->rowCount() > 0) {
+                    $basico = Valores::WordToNumber($array['txtSalarioBasico']);
+                    Logs::guardaLog("UPDATE `nom_salarios_basico` SET `salario_basico` = $basico WHERE `id_salario` = {$array['id']}");
                     $consulta = "UPDATE `nom_salarios_basico` SET `fec_act` = ? WHERE (`id_salario` = ?)";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                    $hoy = Sesion::Hoy();
+                    $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
                     $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                     $stmt2->execute();
+                    Logs::guardaLog("UPDATE `nom_salarios_basico` SET `fec_act` = '$hoy' WHERE (`id_salario` = {$array['id']})");
                     $cambio++;
                 }
             }

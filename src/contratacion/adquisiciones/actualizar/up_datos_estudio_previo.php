@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_est_prev = isset($_POST['id_est_prev']) ? $_POST['id_est_prev'] : exit('Acción no permitida');
 $id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
@@ -55,6 +56,9 @@ try {
         exit();
     } else {
         $cambio = $sql->rowCount();
+        if ($cambio > 0) {
+             Logs::guardaLog("UPDATE `ctt_estudios_previos` SET `fec_ini_ejec` = '$fec_ini', `fec_fin_ejec` = '$fec_fin', `val_contrata` = $val_contrata, `id_forma_pago` = $forma_pago, `id_supervisor` = $supervisor, `necesidad` = '$DescNec', `act_especificas` = '$ActEspecificas', `prod_entrega` = '$ProdEntrega', `obligaciones` = '$ObligContratista', `forma_pago` = '$FormPago', `num_ds` = '$numDS', `requisitos` = '$requisitos', `garantia` = '$garantia', `describe_valor` = '$describe_valor' WHERE `id_est_prev` = $id_est_prev");
+        }
         try {
             $cmd = \Config\Clases\Conexion::getConexion();
 
@@ -83,6 +87,7 @@ try {
                     $id_pol = $p;
                     $sql->execute();
                     if ($cmd->lastInsertId() > 0) {
+                        Logs::guardaLog("INSERT INTO `seg_garantias_compra`(`id_est_prev`,`id_poliza`,`id_user_reg`,`fec_reg`) VALUES ($id_est_prev, $id_pol, $iduser, '{$date->format('Y-m-d H:i:s')}')");
                         $cant++;
                         $cambio = 1;
                     } else {
@@ -104,6 +109,7 @@ try {
             $sql->bindParam(3, $id_est_prev, PDO::PARAM_INT);
             $sql->execute();
             if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `ctt_estudios_previos` SET `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_est_prev` = $id_est_prev");
                 echo 'ok';
             } else {
                 echo $sql->errorInfo()[2];

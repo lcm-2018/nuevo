@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $idt = $_POST['idTercero'];
 $ruta = '../../../../uploads/terceros/docs/' . $idt . '/';
@@ -53,8 +54,9 @@ if (isset($_FILES['fileDoc'])) {
         $sql->bindParam(10, $cargo, PDO::PARAM_STR);
         $sql->execute();
         if ($cmd->lastInsertId() > 0) {
-            // 23 Certificación Bancaria
             $id_doc = $cmd->lastInsertId();
+            Logs::guardaLog("INSERT INTO `ctt_documentos` (`id_tercero`,`id_soporte`,`fec_inicio`,`fec_vig`,`ruta_doc`,`nombre_doc`,`id_user_reg`,`fec_reg`,`perfil`,`cargo`) VALUES ($idt, $idsoporte, '$fini', '$fvig', '$ruta', '$nom_archivo', $iduser, '" . $date->format('Y-m-d H:i:s') . "', " . ($perfil ? "'$perfil'" : 'NULL') . ", " . ($cargo ? "'$cargo'" : 'NULL') . ")");
+            // 23 Certificación Bancaria
             if ($idsoporte == 23) {
                 $sql = "INSERT INTO `ctt_cuenta_bancaria`
                             (`id_tercero`,`id_banco`,`tipo_cuenta`,`num_cuenta`,`id_user_reg`,`fec_reg`)
@@ -72,6 +74,7 @@ if (isset($_FILES['fileDoc'])) {
                     echo $sql->errorInfo()[2];
                     exit();
                 }
+                Logs::guardaLog("INSERT INTO `ctt_cuenta_bancaria` (`id_tercero`,`id_banco`,`tipo_cuenta`,`num_cuenta`,`id_user_reg`,`fec_reg`) VALUES ($idt, $id_banco, '$tp_cta', '$num_cta', $iduser, '" . $date->format('Y-m-d H:i:s') . "')");
             }
             $cmd->commit();
             echo 'ok';

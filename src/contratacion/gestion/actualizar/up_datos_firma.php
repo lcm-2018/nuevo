@@ -9,6 +9,7 @@ include_once '../../../../config/autoloader.php';
 
 use Config\Clases\Conexion;
 use Config\Clases\Plantilla;
+use Config\Clases\Logs;
 
 $idFirma = isset($_POST['idFirma']) ? $_POST['idFirma'] : exit('Acción no permitida');
 $idVariable = isset($_POST['idVariable']) ? $_POST['idVariable'] : exit('Variable es requerida');
@@ -92,6 +93,8 @@ try {
     }
 
     $cmd->commit();
+    Logs::guardaLog("UPDATE `ctt_variables_forms` SET `variable` = '$nomVariable' WHERE `id_var` = $idVariable");
+    Logs::guardaLog("UPDATE `ctt_firmas` SET `id_tercero_api` = $idTercero, `cargo` = '$cargoUpper', `nom_imagen` = '$nombreArchivo', `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id` = $idFirma");
     echo '1';
 } catch (Exception $e) {
     if ($cmd->inTransaction()) {

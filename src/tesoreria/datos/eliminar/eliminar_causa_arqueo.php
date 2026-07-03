@@ -23,6 +23,9 @@ try {
         foreach ($result as $row) {
             $id_arqueo = $row['id_arqueo'];
             $up->execute();
+            if ($up->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `fac_arqueo` SET `estado` = 2 WHERE `id_arqueo` = $id_arqueo");
+            }
         }
         $consulta = "DELETE FROM tes_causa_arqueo WHERE id_causa_arqueo = $id";
         Logs::guardaLog($consulta);

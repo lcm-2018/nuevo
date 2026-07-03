@@ -5,6 +5,8 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../conexion.php';
+include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_compra = isset($_POST['idAdqCompra']) ? $_POST['idAdqCompra'] : exit('Acción no permitida');
 $fec_orden = $_POST['datUpFecAdqCompra'];
 $mod_cont = $_POST['slcModalidad'];
@@ -64,6 +66,8 @@ function upCompra()
                 $sql->bindParam(3, $GLOBALS['id_compra'], PDO::PARAM_INT);
                 $sql->execute();
                 if ($sql->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `id_modalidad` = {$GLOBALS['mod_cont']}, `fecha_adquisicion` = '{$GLOBALS['fec_orden']}', `val_contrato` = {$GLOBALS['valor_c']}, `id_tipo_bn_sv` = {$GLOBALS['id_posttbnsv']}, `objeto` = '{$GLOBALS['objeto']}' WHERE `id_adquisicion` = {$GLOBALS['id_compra']}");
+                    Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `id_user_act` = {$GLOBALS['iduser']}, `fec_act` = '{$GLOBALS['date']->format('Y-m-d H:i:s')}' WHERE `id_adquisicion` = {$GLOBALS['id_compra']}");
                     echo '1';
                 } else {
                     echo $sql->errorInfo()[2];

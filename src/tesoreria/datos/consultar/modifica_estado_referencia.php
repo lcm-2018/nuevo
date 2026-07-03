@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id = $_POST['id'];
 $estado = $_POST['estado'];
@@ -33,6 +34,7 @@ try {
                 $stmt2->bindParam(2, $id_user, PDO::PARAM_INT);
                 $stmt2->bindParam(3, $id, PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `tes_referencia` SET `estado` = $estado, `fec_act` = '$fecha2', `id_user_act` = $id_user WHERE `id_referencia` = $id");
                 $response['status'] = 'ok';
             } else {
                 $response['msg'] = 'No se realizaron cambios en el número de referencia';

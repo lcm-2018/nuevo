@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_dependiente = isset($_POST['idt']) ? $_POST['idt'] : 0;
 $estado = isset($_POST['e']) ? $_POST['e'] : -1;
@@ -16,6 +17,9 @@ if ($id_dependiente > 0 && $estado != -1) {
         $stmt = $cmd->prepare($sql);
         $stmt->execute([$estado, $id_dependiente]);
         if ($stmt->rowCount() > 0 || $stmt->errorCode() == '00000') {
+            if ($stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE tb_terceros_dependientes SET estado = $estado WHERE id_dependiente = $id_dependiente");
+            }
             echo $estado;
         } else {
             echo 'No se actualizó el estado.';

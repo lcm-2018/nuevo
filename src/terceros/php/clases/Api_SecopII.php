@@ -442,6 +442,7 @@ class Api_SecopII
             $stmt->execute();
 
             if ($stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE tb_contratos_secop SET estado_contrato = '{$contrato['estado_contrato']}' WHERE id_contrato = '{$idContrato}'");
                 return 'si';
             } else {
                 return 'No se realizó ningún cambio';

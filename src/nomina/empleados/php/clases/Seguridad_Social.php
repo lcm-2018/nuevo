@@ -402,6 +402,11 @@ class Seguridad_Social
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $fecFin = $array['datFecFin'] != '' ? "'{$array['datFecFin']}'" : 'NULL';
+                $riesgo = $array['slcRiesgoLaboral'] == '0' ? 'NULL' : $array['slcRiesgoLaboral'];
+                Logs::guardaLog("INSERT INTO `nom_terceros_novedad` (`id_empleado`,`id_tercero`,`fec_inicia`,`fec_fin`,`id_riesgo`,`id_user_reg`,`fec_reg`) VALUES ({$array['id_empleado']}, {$array['slcTercero']}, '{$array['datFecInicia']}', $fecFin, $riesgo, $idUser, '$hoy')");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -435,6 +440,9 @@ class Seguridad_Social
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_segsocial_empdo` (`id_empleado`,`id_eps`,`id_arl`,`id_afp`,`aporte_salud_emp`,`aporte_pension_emp`,`aporte_solidaridad_pensional`,`porcentaje_ps`,`aporte_salud_empresa`,`aporte_pension_empresa`,`aporte_rieslab`,`id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$array['id_empleado']}, {$array['id_eps']}, {$array['id_arl']}, {$array['id_afp']}, {$array['aporte_salud_emp']}, {$array['aporte_pension_emp']}, {$array['aporte_solidaridad_pensional']}, {$array['porcentaje_ps']}, {$array['aporte_salud_empresa']}, {$array['aporte_pension_empresa']}, {$array['aporte_rieslab']}, $idUser, '$hoy', {$array['id_nomina']})");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -460,12 +468,16 @@ class Seguridad_Social
             $stmt->bindValue(7, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_liq_segsocial_empdo` SET `aporte_salud_emp` = {$array['valor_salud']}, `aporte_pension_emp` = {$array['valor_pension']}, `aporte_solidaridad_pensional` = {$array['val_pension_solidaria']}, `aporte_salud_empresa` = {$array['val_salud_empresa']}, `aporte_pension_empresa` = {$array['val_pension_empresa']}, `aporte_rieslab` = {$array['val_riesgo_laboral']} WHERE `id_liq_empdo` = {$array['id']}");
                 $consulta = "UPDATE `nom_liq_segsocial_empdo` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_empdo` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_liq_segsocial_empdo` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_liq_empdo` = {$array['id']}");
                 return 'si';
             } else {
                 return 'no';
@@ -488,12 +500,16 @@ class Seguridad_Social
             $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_liq_parafiscales` SET `val_sena` = {$array['val_sena']}, `val_icbf` = {$array['val_icbf']}, `val_comfam` = {$array['val_caja_compensacion']} WHERE `id_liq_pfis` = {$array['id']}");
                 $consulta = "UPDATE `nom_liq_parafiscales` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_pfis` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_liq_parafiscales` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_liq_pfis` = {$array['id']}");
                 return 'si';
             } else {
                 return 'no';
@@ -520,6 +536,9 @@ class Seguridad_Social
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_parafiscales` (`id_empleado`,`val_sena`,`val_icbf`,`val_comfam`,`fec_reg`,`id_user_reg`,`id_nomina`) VALUES ({$array['id_empleado']}, {$array['val_sena']}, {$array['val_icbf']}, {$array['val_comfam']}, '$hoy', $idUser, {$array['id_nomina']})");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -548,14 +567,20 @@ class Seguridad_Social
             $stmt->bindValue(4, $array['slcRiesgoLaboral'] == '0' ? NULL : $array['slcRiesgoLaboral'], PDO::PARAM_INT);
             $stmt->bindValue(5, $array['id'], PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $fecFin = $array['datFecFin'] != '' ? "'{$array['datFecFin']}'" : 'NULL';
+                $riesgo = $array['slcRiesgoLaboral'] == '0' ? 'NULL' : $array['slcRiesgoLaboral'];
+                Logs::guardaLog("UPDATE `nom_terceros_novedad` SET `id_tercero` = {$array['slcTercero']}, `fec_inicia` = '{$array['datFecInicia']}', `fec_fin` = $fecFin, `id_riesgo` = $riesgo WHERE `id_novedad` = {$array['id']}");
                 $consulta = "UPDATE `nom_terceros_novedad`
                             SET `fec_act` = ?, `id_user_act` = ?
                         WHERE `id_novedad` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_terceros_novedad` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_novedad` = {$array['id']}");
                 return 'si';
             } else {
                 return 'No se actualizó el registro.';

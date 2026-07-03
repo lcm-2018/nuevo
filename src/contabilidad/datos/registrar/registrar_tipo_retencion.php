@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $tipo = isset($_POST['txtTipoRte']) ? $_POST['txtTipoRte'] : exit('Acceso no autorizado');
 $id_ret = $_POST['tipo_retencion'];
@@ -28,6 +29,7 @@ try {
         $query->execute();
         $id = $cmd->lastInsertId();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `ctb_retencion_tipo`(`tipo`,`id_tercero`,`estado`,`id_user_reg`) VALUES('$tipo',$id_tercero,1,$iduser)");
             echo 'ok';
         } else {
             echo $query->errorInfo()[2];
@@ -50,6 +52,7 @@ try {
                 $query->bindParam(2, $iduser, PDO::PARAM_INT);
                 $query->bindParam(3, $id_ret, PDO::PARAM_INT);
                 $query->execute();
+                Logs::guardaLog("UPDATE `ctb_retencion_tipo` SET `tipo`='$tipo',`id_tercero`=$id_tercero WHERE `id_retencion_tipo`=$id_ret");
                 echo 'ok';
             } else {
                 echo 'No se realizó ningún cambio';

@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $nombrePresupuesto = $_POST['nomPto'];
 $id_empresa = '2';
 $id_sede = '1';
@@ -36,6 +37,7 @@ try {
     $sql->bindValue(6, $date->format('Y-m-d H:i:s'));
     $sql->execute();
     if ($cmd->lastInsertId() > 0) {
+        Logs::guardaLog("INSERT INTO pto_presupuestos (id_tipo, id_vigencia, nombre, descripcion, id_user_reg, fec_reg) VALUES ($tipoPto, $vig, '$nombrePresupuesto', '$objeto', $iduser, '" . $date->format('Y-m-d H:i:s') . "')");
         echo '1';
     } else {
         echo $sql->errorInfo()[2];

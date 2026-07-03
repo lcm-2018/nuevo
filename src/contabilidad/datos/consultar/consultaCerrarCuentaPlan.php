@@ -1,6 +1,7 @@
 <?php
 
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $data = file_get_contents("php://input");
 // Realizo conexion con la base de datos
 $response['value'] = 'error';
@@ -12,6 +13,7 @@ try {
     if ($query->rowCount() > 0) {
         $response['value'] = 'ok';
         $response['msg'] = 'Cuenta cerrada correctamente';
+        Logs::guardaLog("UPDATE `ctb_pgcp` SET `estado` = 0 WHERE `id_pgcp`=$data");
     } else {
         $response['msg'] = $query->errorInfo()[2];
     }

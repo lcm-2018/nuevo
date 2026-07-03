@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: ../../../../index.php');
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id = isset($_POST['id_pto_mod']) ? $_POST['id_pto_mod'] : exit('Acceso no disponible');
 
@@ -25,6 +26,7 @@ try {
     $sql->bindParam(5, $id, PDO::PARAM_INT);
     $sql->execute();
     if ($sql->rowCount() > 0) {
+        Logs::guardaLog("UPDATE `pto_mod` SET `estado`= $estado, `id_user_anula` = $id_user, `fecha_anula` = '$fecha', `concepto_anula` = '$motivo' WHERE `id_pto_mod` = $id");
         echo 'ok';
     } else {
         echo $sql->errorInfo()[2];

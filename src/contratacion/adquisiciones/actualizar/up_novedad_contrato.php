@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $novedad = isset($_POST['slcTipoNovedad']) ? $_POST['slcTipoNovedad'] : exit('Accion no permitida');
 $id_novedad = $_POST['id_novendad'];
@@ -46,6 +47,8 @@ switch ($novedad) {
                     $sql->bindParam(3, $id_novedad, PDO::PARAM_INT);
                     $sql->execute();
                     if ($sql->rowCount() > 0) {
+                        Logs::guardaLog("UPDATE `ctt_novedad_adicion_prorroga` SET `id_tip_nov` = $novedad, `val_adicion` = $val_adicion, `fec_adcion` = '$fec_adicion', `fec_ini_prorroga` = '$fini_pro', `fec_fin_prorroga` = '$ffin_pro', `observacion` = '$observacion' WHERE `id_nov_con` = $id_novedad");
+                        Logs::guardaLog("UPDATE `ctt_novedad_adicion_prorroga` SET  `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_nov_con` = $id_novedad");
                         echo '1';
                     } else {
                         echo $sql->errorInfo()[2];
@@ -90,6 +93,8 @@ switch ($novedad) {
                     $sql->bindParam(3, $id_novedad, PDO::PARAM_INT);
                     $sql->execute();
                     if ($sql->rowCount() > 0) {
+                        Logs::guardaLog("UPDATE `ctt_novedad_adicion_prorroga` SET `id_tip_nov` = $novedad, `val_adicion` = $val_adicion, `fec_adcion` = '$fec_adicion', `fec_ini_prorroga` = '$fini_pro', `fec_fin_prorroga` = '$ffin_pro', `observacion` = '$observacion' WHERE `id_nov_con` = $id_novedad");
+                        Logs::guardaLog("UPDATE `ctt_novedad_adicion_prorroga` SET  `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_nov_con` = $id_novedad");
                         echo '1';
                     } else {
                         echo $sql->errorInfo()[2];
@@ -134,6 +139,8 @@ switch ($novedad) {
                     $sql->bindParam(3, $id_novedad, PDO::PARAM_INT);
                     $sql->execute();
                     if ($sql->rowCount() > 0) {
+                        Logs::guardaLog("UPDATE `ctt_novedad_adicion_prorroga` SET `id_tip_nov` = $novedad, `val_adicion` = $val_adicion, `fec_adcion` = '$fec_adicion', `fec_ini_prorroga` = '$fini_pro', `fec_fin_prorroga` = '$ffin_pro', `observacion` = '$observacion' WHERE `id_nov_con` = $id_novedad");
+                        Logs::guardaLog("UPDATE `ctt_novedad_adicion_prorroga` SET  `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_nov_con` = $id_novedad");
                         echo '1';
                     } else {
                         echo $sql->errorInfo()[2];
@@ -173,6 +180,8 @@ switch ($novedad) {
                     $sql->bindParam(3, $id_novedad, PDO::PARAM_INT);
                     $sql->execute();
                     if ($sql->rowCount() > 0) {
+                        Logs::guardaLog("UPDATE `ctt_novedad_cesion` SET `id_tercero` = $id_tercero, `fec_cesion` = '$fec_cesion', `observacion` = '$observacion' WHERE `id_cesion` = $id_novedad");
+                        Logs::guardaLog("UPDATE `ctt_novedad_cesion` SET  `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_cesion` = $id_novedad");
                         echo '1';
                     } else {
                         echo $sql->errorInfo()[2];
@@ -212,6 +221,8 @@ switch ($novedad) {
                     $sql->bindParam(3, $id_novedad, PDO::PARAM_INT);
                     $sql->execute();
                     if ($sql->rowCount() > 0) {
+                        Logs::guardaLog("UPDATE `ctt_novedad_suspension` SET `fec_inicia` = '$fini_susp', `fec_fin` = '$ffin_susp', `observacion` = '$observacion' WHERE `id_suspension` = $id_novedad");
+                        Logs::guardaLog("UPDATE `ctt_novedad_suspension` SET  `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_suspension` = $id_novedad");
                         echo '1';
                     } else {
                         echo $sql->errorInfo()[2];
@@ -249,6 +260,8 @@ switch ($novedad) {
                     $sql->bindParam(3, $id_novedad, PDO::PARAM_INT);
                     $sql->execute();
                     if ($sql->rowCount() > 0) {
+                        Logs::guardaLog("UPDATE `ctt_novedad_reinicio` SET `fec_reinicia` = '$frein', `observacion` = '$observacion' WHERE `id_reinicio` = $id_novedad");
+                        Logs::guardaLog("UPDATE `ctt_novedad_reinicio` SET  `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_reinicio` = $id_novedad");
                         echo '1';
                     } else {
                         echo $sql->errorInfo()[2];
@@ -286,6 +299,8 @@ switch ($novedad) {
                     $sql->bindParam(3, $id_novedad, PDO::PARAM_INT);
                     $sql->execute();
                     if ($sql->rowCount() > 0) {
+                        Logs::guardaLog("UPDATE `ctt_novedad_terminacion` SET `id_t_terminacion` = $id_tt, `observacion` = '$observacion' WHERE `id_terminacion` = $id_novedad");
+                        Logs::guardaLog("UPDATE `ctt_novedad_terminacion` SET  `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_terminacion` = $id_novedad");
                         echo '1';
                     } else {
                         echo $sql->errorInfo()[2];
@@ -329,6 +344,8 @@ switch ($novedad) {
                     $sql->bindParam(3, $id_novedad, PDO::PARAM_INT);
                     $sql->execute();
                     if ($sql->rowCount() > 0) {
+                        Logs::guardaLog("UPDATE `ctt_novedad_liquidacion` SET `id_t_liq` = $tip_liq, `fec_liq` = '$fec_liq', `val_cte` = '$val_ctte', `val_cta` = '$val_ctta', `observacion` = '$observacion' WHERE `id_liquidacion` = $id_novedad");
+                        Logs::guardaLog("UPDATE `ctt_novedad_liquidacion` SET  `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_liquidacion` = $id_novedad");
                         echo '1';
                     } else {
                         echo $sql->errorInfo()[2];

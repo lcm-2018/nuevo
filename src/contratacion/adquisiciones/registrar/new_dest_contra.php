@@ -8,6 +8,7 @@ if (!isset($_SESSION['user'])) {
 include_once '../../../../config/autoloader.php';
 
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 
 $cmd = Conexion::getConexion();
 $id_compra = isset($_POST['id_adq']) ? $_POST['id_adq'] : exit('Acción no permitida');
@@ -36,6 +37,7 @@ try {
         $sql->execute();
         $id = $cmd->lastInsertId();
         if ($id > 0) {
+            Logs::guardaLog("INSERT INTO `ctt_destino_contrato` (`id_adquisicion`, `id_area_cc`, `horas_mes`, `id_user_reg`, `fec_reg`) VALUES ($id_compra, $id_cc, $numhoras, $id_user, '{$date->format('Y-m-d H:i:s')}')");
             $added++;
         } else {
             echo $cmd->errorInfo()[2];

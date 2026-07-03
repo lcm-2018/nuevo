@@ -225,7 +225,12 @@ class Parametros
             $stmt->bindParam(3, $array['id_vigencia'], PDO::PARAM_INT);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
-            return $id > 0 ? 'si' : 'No se insertó';
+            if ($id > 0) {
+                Logs::guardaLog("INSERT INTO `nom_valxvigencia` (`id_concepto`, `valor`, `id_vigencia`) VALUES ({$array['concepto']}, {$array['valor']}, {$array['id_vigencia']})");
+                return 'si';
+            } else {
+                return 'No se insertó';
+            }
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
@@ -241,7 +246,12 @@ class Parametros
         if (!($stmt->execute())) {
             return 'Errado: ' . $stmt->errorInfo()[2];
         } else {
-            return $stmt->rowCount() > 0 ? 'si' : 'No se realizó ningún cambio.';
+            if ($stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_valxvigencia` SET `valor` = {$array['valor']} WHERE `id_valxvig` = {$array['id']}");
+                return 'si';
+            } else {
+                return 'No se realizó ningún cambio.';
+            }
         }
     }
 

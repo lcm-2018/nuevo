@@ -658,6 +658,9 @@ class Vacaciones
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_vacaciones` (`id_empleado`,`anticipo`,`fec_inicial`,`fec_fin`,`dias_inactivo`,`dias_habiles`,`corte`,`dias_liquidar`,`estado`,`fec_reg`) VALUES ({$array['id_empleado']}, {$array['slcAnticipada']}, '{$array['datFecInicia']}', '{$array['datFecFin']}', {$array['diasInactivo']}, {$array['diasHabiles']}, '{$array['datFecCorte']}', {$array['diasLiquidar']}, 1, '$hoy')");
                 $array['novedad'] = $id;
                 $array['tipo'] = 2;
                 $Novedad = new Novedades($this->conexion);
@@ -705,6 +708,9 @@ class Vacaciones
 
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_vac` (`id_vac`,`sal_base`,`g_rep`,`aux_tra`,`aux_alim`,`bsp_ant`,`psv_ant`,`dias_liqs`,`val_liq`,`val_prima_vac`,`val_bon_recrea`,`id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$d['idvac']}, {$d['salbas']}, {$d['grepre']}, {$d['auxtra']}, {$d['auxali']}, {$d['bspant']}, {$d['psvant']}, {$d['dhabiles']}, {$d['vacacion']}, {$d['prima_vac']}, {$d['bonrecrea']}, $idUser, '$hoy', {$d['id_nomina']})");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -728,12 +734,17 @@ class Vacaciones
             $stmt->bindValue(5, $d['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $tipo = $d['tipo'];
+                Logs::guardaLog("UPDATE `nom_liq_vac` SET `val_liq` = {$d['val_vac']}, `val_prima_vac` = {$d['prima_vac']}, `val_bon_recrea` = {$d['bon_recrea']}, `tipo` = '$tipo' WHERE `id_liq_vac` = {$d['id']}");
                 $consulta = "UPDATE `nom_liq_vac` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_vac` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $d['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_liq_vac` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_liq_vac` = {$d['id']}");
                 return 'si';
             } else {
                 return 'No se actualizó el registro.';
@@ -772,11 +783,14 @@ class Vacaciones
             $stmt->bindValue(8, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_vacaciones` SET `anticipo` = {$array['slcAnticipada']}, `fec_inicial` = '{$array['datFecInicia']}', `fec_fin` = '{$array['datFecFin']}', `dias_inactivo` = {$array['diasInactivo']}, `dias_habiles` = {$array['diasHabiles']}, `corte` = '{$array['datFecCorte']}', `dias_liquidar` = {$array['diasLiquidar']} WHERE `id_vac` = {$array['id']}");
                 $consulta = "UPDATE `nom_vacaciones` SET `fec_act` = ? WHERE `id_vac` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $hoy = Sesion::Hoy();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
                 $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_vacaciones` SET `fec_act` = '$hoy' WHERE `id_vac` = {$array['id']}");
                 $Novedad = new Novedades($this->conexion);
                 $Novedad->delRegistro(2, $array['id']);
                 $array['novedad'] = $array['id'];

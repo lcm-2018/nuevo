@@ -9,6 +9,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $vigencia = $_SESSION['vigencia'];
 $id_vigencia = $_SESSION['id_vigencia'];
@@ -238,6 +239,7 @@ try {
     if (!($id_ctb_doc_ceva1 > 0)) {
         throw new Exception("No se pudo insertar el primer documento CEVA.");
     }
+    Logs::guardaLog("INSERT INTO `ctb_doc` (`id_vigencia`, `id_tipo_doc`, `id_manu`,`id_tercero`, `fecha`, `detalle`, `id_user_reg`, `fecha_reg`, `estado`) VALUES ($id_vigencia, $tipo_doc, $id_manu, $id_ter_api, '$fecha', '$objeto', $iduser, '$fecha2', 2)");
 
     // Insertar en pto_pag_detalle para aportes patronales
     $sql_pag = "INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`)
@@ -257,12 +259,14 @@ try {
                 $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
                 if ($valor > 0 && $id_det) {
                     $stmt_pag->execute([$id_ctb_doc_ceva1, $id_det, $valor, $liberado, $id_tercero]);
+                    Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva1, $id_det, '$valor', '$liberado', $id_tercero)");
                 }
                 $rubro = $rb['r_operativo'];
                 $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
                 $valor = $operativo['caja'] ?? 0;
                 if ($valor > 0 && $id_det) {
                     $stmt_pag->execute([$id_ctb_doc_ceva1, $id_det, $valor, $liberado, $id_tercero]);
+                    Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva1, $id_det, '$valor', '$liberado', $id_tercero)");
                 }
                 break;
             case 12: // EPS
@@ -274,6 +278,7 @@ try {
                             $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
                             if ($id_det) {
                                 $stmt_pag->execute([$id_ctb_doc_ceva1, $id_det, $value, $liberado, $id_tercero]);
+                                Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva1, $id_det, '$value', '$liberado', $id_tercero)");
                             }
                         }
                     }
@@ -286,6 +291,7 @@ try {
                             $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
                             if ($id_det) {
                                 $stmt_pag->execute([$id_ctb_doc_ceva1, $id_det, $value, $liberado, $id_tercero]);
+                                Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva1, $id_det, '$value', '$liberado', $id_tercero)");
                             }
                         }
                     }
@@ -300,6 +306,7 @@ try {
                             $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
                             if ($id_det) {
                                 $stmt_pag->execute([$id_ctb_doc_ceva1, $id_det, $value, $liberado, $id_tercero]);
+                                Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva1, $id_det, '$value', '$liberado', $id_tercero)");
                             }
                         }
                     }
@@ -312,6 +319,7 @@ try {
                             $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
                             if ($id_det) {
                                 $stmt_pag->execute([$id_ctb_doc_ceva1, $id_det, $value, $liberado, $id_tercero]);
+                                Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva1, $id_det, '$value', '$liberado', $id_tercero)");
                             }
                         }
                     }
@@ -326,6 +334,7 @@ try {
                             $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
                             if ($id_det) {
                                 $stmt_pag->execute([$id_ctb_doc_ceva1, $id_det, $value, $liberado, $id_tercero]);
+                                Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva1, $id_det, '$value', '$liberado', $id_tercero)");
                             }
                         }
                     }
@@ -338,6 +347,7 @@ try {
                             $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
                             if ($id_det) {
                                 $stmt_pag->execute([$id_ctb_doc_ceva1, $id_det, $value, $liberado, $id_tercero]);
+                                Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva1, $id_det, '$value', '$liberado', $id_tercero)");
                             }
                         }
                     }
@@ -350,12 +360,14 @@ try {
                 $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
                 if ($valor > 0 && $id_det) {
                     $stmt_pag->execute([$id_ctb_doc_ceva1, $id_det, $valor, $liberado, $id_tercero]);
+                    Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva1, $id_det, '$valor', '$liberado', $id_tercero)");
                 }
                 $rubro = $rb['r_operativo'];
                 $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
                 $valor = $operativo['icbf'] ?? 0;
                 if ($valor > 0 && $id_det) {
                     $stmt_pag->execute([$id_ctb_doc_ceva1, $id_det, $valor, $liberado, $id_tercero]);
+                    Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva1, $id_det, '$valor', '$liberado', $id_tercero)");
                 }
                 break;
             case 16: // SENA
@@ -365,12 +377,14 @@ try {
                 $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
                 if ($valor > 0 && $id_det) {
                     $stmt_pag->execute([$id_ctb_doc_ceva1, $id_det, $valor, $liberado, $id_tercero]);
+                    Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva1, $id_det, '$valor', '$liberado', $id_tercero)");
                 }
                 $rubro = $rb['r_operativo'];
                 $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
                 $valor = $operativo['sena'] ?? 0;
                 if ($valor > 0 && $id_det) {
                     $stmt_pag->execute([$id_ctb_doc_ceva1, $id_det, $valor, $liberado, $id_tercero]);
+                    Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva1, $id_det, '$valor', '$liberado', $id_tercero)");
                 }
                 break;
         }
@@ -393,6 +407,7 @@ try {
                 $id_tercero = $id_api_comfam;
                 if ($valor > 0) {
                     $stmt_libaux->execute([$id_ctb_doc_ceva1, $id_tercero, $cuenta, $valor, $credito, $iduser, $fecha2]);
+                    Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva1, $id_tercero, $cuenta, '$valor', '$credito', $iduser, '$fecha2')");
                 }
                 break;
             case 12: // EPS
@@ -401,6 +416,7 @@ try {
                         $id_tercero = $idsTercero['eps'][$key] ?? null;
                         if ($id_tercero && $value > 0) {
                             $stmt_libaux->execute([$id_ctb_doc_ceva1, $id_tercero, $cuenta, $value, $credito, $iduser, $fecha2]);
+                            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva1, $id_tercero, $cuenta, '$value', '$credito', $iduser, '$fecha2')");
                         }
                     }
                 }
@@ -411,6 +427,7 @@ try {
                         $id_tercero = $idsTercero['arl'][$key] ?? null;
                         if ($id_tercero && $value > 0) {
                             $stmt_libaux->execute([$id_ctb_doc_ceva1, $id_tercero, $cuenta, $value, $credito, $iduser, $fecha2]);
+                            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva1, $id_tercero, $cuenta, '$value', '$credito', $iduser, '$fecha2')");
                         }
                     }
                 }
@@ -421,6 +438,7 @@ try {
                         $id_tercero = $idsTercero['afp'][$key] ?? null;
                         if ($id_tercero && $value > 0) {
                             $stmt_libaux->execute([$id_ctb_doc_ceva1, $id_tercero, $cuenta, $value, $credito, $iduser, $fecha2]);
+                            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva1, $id_tercero, $cuenta, '$value', '$credito', $iduser, '$fecha2')");
                         }
                     }
                 }
@@ -430,6 +448,7 @@ try {
                 $id_tercero = $id_api_icbf;
                 if ($valor > 0) {
                     $stmt_libaux->execute([$id_ctb_doc_ceva1, $id_tercero, $cuenta, $valor, $credito, $iduser, $fecha2]);
+                    Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva1, $id_tercero, $cuenta, '$valor', '$credito', $iduser, '$fecha2')");
                 }
                 break;
             case 16: // SENA
@@ -437,6 +456,7 @@ try {
                 $id_tercero = $id_api_sena;
                 if ($valor > 0) {
                     $stmt_libaux->execute([$id_ctb_doc_ceva1, $id_tercero, $cuenta, $valor, $credito, $iduser, $fecha2]);
+                    Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva1, $id_tercero, $cuenta, '$valor', '$credito', $iduser, '$fecha2')");
                 }
                 break;
         }
@@ -450,6 +470,7 @@ try {
     $id_tercero = $id_api_comfam;
     if ($credito > 0) {
         $stmt_libaux->execute([$id_ctb_doc_ceva1, $id_tercero, $cuenta, $valor, $credito, $iduser, $fecha2]);
+        Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva1, $id_tercero, $cuenta, '$valor', '$credito', $iduser, '$fecha2')");
     }
 
     if (!empty($totales['eps'])) {
@@ -457,6 +478,7 @@ try {
             $id_tercero = $idsTercero['eps'][$key] ?? null;
             if ($id_tercero && $value > 0) {
                 $stmt_libaux->execute([$id_ctb_doc_ceva1, $id_tercero, $cuenta, $valor, $value, $iduser, $fecha2]);
+                Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva1, $id_tercero, $cuenta, '$valor', '$value', $iduser, '$fecha2')");
             }
         }
     }
@@ -466,6 +488,7 @@ try {
             $id_tercero = $idsTercero['arl'][$key] ?? null;
             if ($id_tercero && $value > 0) {
                 $stmt_libaux->execute([$id_ctb_doc_ceva1, $id_tercero, $cuenta, $valor, $value, $iduser, $fecha2]);
+                Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva1, $id_tercero, $cuenta, '$valor', '$value', $iduser, '$fecha2')");
             }
         }
     }
@@ -475,6 +498,7 @@ try {
             $id_tercero = $idsTercero['afp'][$key] ?? null;
             if ($id_tercero && $value > 0) {
                 $stmt_libaux->execute([$id_ctb_doc_ceva1, $id_tercero, $cuenta, $valor, $value, $iduser, $fecha2]);
+                Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva1, $id_tercero, $cuenta, '$valor', '$value', $iduser, '$fecha2')");
             }
         }
     }
@@ -483,12 +507,14 @@ try {
     $id_tercero = $id_api_icbf;
     if ($credito > 0) {
         $stmt_libaux->execute([$id_ctb_doc_ceva1, $id_tercero, $cuenta, $valor, $credito, $iduser, $fecha2]);
+        Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva1, $id_tercero, $cuenta, '$valor', '$credito', $iduser, '$fecha2')");
     }
 
     $credito = $totales['sena'] > 0 ? $totales['sena'] : 0;
     $id_tercero = $id_api_sena;
     if ($credito > 0) {
         $stmt_libaux->execute([$id_ctb_doc_ceva1, $id_tercero, $cuenta, $valor, $credito, $iduser, $fecha2]);
+        Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva1, $id_tercero, $cuenta, '$valor', '$credito', $iduser, '$fecha2')");
     }
 
     // ========================================
@@ -511,6 +537,7 @@ try {
     if (!($id_ctb_doc_ceva2 > 0)) {
         throw new Exception("No se pudo insertar el segundo documento CEVA.");
     }
+    Logs::guardaLog("INSERT INTO `ctb_doc` (`id_vigencia`, `id_tipo_doc`, `id_manu`,`id_tercero`, `fecha`, `detalle`, `id_user_reg`, `fecha_reg`, `estado`) VALUES ($id_vigencia, $tipo_doc, $id_manu, $id_ter_api, '$fecha', '$objeto', $iduser, '$fecha2', 2)");
 
     // Insertar en ctb_libaux para descuentos empleado (DÉBITOS - cases 24 y 25)
     foreach ($cPasivo as $cp) {
@@ -526,6 +553,7 @@ try {
                         $id_tercero = $idsTercero['eps'][$key] ?? null;
                         if ($id_tercero && $value > 0) {
                             $stmt_libaux->execute([$id_ctb_doc_ceva2, $id_tercero, $cuenta, $value, $credito, $iduser, $fecha2]);
+                            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva2, $id_tercero, $cuenta, '$value', '$credito', $iduser, '$fecha2')");
                         }
                     }
                 }
@@ -536,6 +564,7 @@ try {
                         $id_tercero = $idsTercero['afp'][$key] ?? null;
                         if ($id_tercero && $value > 0) {
                             $stmt_libaux->execute([$id_ctb_doc_ceva2, $id_tercero, $cuenta, $value, $credito, $iduser, $fecha2]);
+                            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva2, $id_tercero, $cuenta, '$value', '$credito', $iduser, '$fecha2')");
                         }
                     }
                 }
@@ -552,6 +581,7 @@ try {
             $id_tercero = $idsTercero['eps'][$key] ?? null;
             if ($id_tercero && $value > 0) {
                 $stmt_libaux->execute([$id_ctb_doc_ceva2, $id_tercero, $cuenta, $valor, $value, $iduser, $fecha2]);
+                Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva2, $id_tercero, $cuenta, '$valor', '$value', $iduser, '$fecha2')");
             }
         }
     }
@@ -561,6 +591,7 @@ try {
             $id_tercero = $idsTercero['afp'][$key] ?? null;
             if ($id_tercero && $value > 0) {
                 $stmt_libaux->execute([$id_ctb_doc_ceva2, $id_tercero, $cuenta, $valor, $value, $iduser, $fecha2]);
+                Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva2, $id_tercero, $cuenta, '$valor', '$value', $iduser, '$fecha2')");
             }
         }
     }
@@ -573,11 +604,13 @@ try {
     $sql = "UPDATE `nom_nominas` SET `planilla` = ? WHERE `id_nomina` = ?";
     $stmt = $cmd->prepare($sql);
     $stmt->execute([5, $id_nomina]); // 5 = Pagada
+    Logs::guardaLog("UPDATE `nom_nominas` SET `planilla` = 5 WHERE `id_nomina` = $id_nomina");
 
     // Actualizar relación con el segundo CEVA (descuentos empleado)
     $sql = "UPDATE `nom_nomina_pto_ctb_tes` SET `ceva` = ? WHERE `id_nomina` = ? AND `crp` = ?";
     $stmt = $cmd->prepare($sql);
     $stmt->execute([$id_ctb_doc_ceva2, $id_nomina, $id_doc_crp]);
+    Logs::guardaLog("UPDATE `nom_nomina_pto_ctb_tes` SET `ceva` = $id_ctb_doc_ceva2 WHERE `id_nomina` = $id_nomina AND `crp` = $id_doc_crp");
 
     $cmd->commit();
     echo 'ok';

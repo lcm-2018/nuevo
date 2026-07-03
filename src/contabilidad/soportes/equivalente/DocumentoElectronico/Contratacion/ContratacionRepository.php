@@ -5,6 +5,7 @@ namespace App\DocumentoElectronico\Contratacion;
 use App\DocumentoElectronico\DocumentRepository;
 use PDO;
 use Exception;
+use Config\Clases\Logs;
 
 /**
  * Repository extendido para documentos de contratación (no obligados)
@@ -138,13 +139,16 @@ class ContratacionRepository extends DocumentRepository
                     VALUES (:id_doc, :referencia, :fecha, :id_user, :fec_reg, 1)";
 
             $stmt = $this->conexion->prepare($sql);
+            $fec_reg = date('Y-m-d H:i:s');
             $stmt->execute([
                 ':id_doc' => $idDoc,
                 ':referencia' => $referencia,
                 ':fecha' => $fecha,
                 ':id_user' => $idUser,
-                ':fec_reg' => date('Y-m-d H:i:s')
+                ':fec_reg' => $fec_reg
             ]);
+            
+            Logs::guardaLog("INSERT INTO `seg_soporte_fno`(`id_factura_no`,`referencia`,`fecha`,`id_user_reg`,`tipo`) VALUES($idDoc,'$referencia','$fecha',$idUser,1)");
 
             $id = $this->conexion->lastInsertId();
 

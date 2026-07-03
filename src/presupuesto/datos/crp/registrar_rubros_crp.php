@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (isset($_POST)) {
     //Recibir variables por POST
@@ -10,6 +10,7 @@ if (isset($_POST)) {
     $iduser = $_SESSION['id_user'];
     $date = new DateTime('now', new DateTimeZone('America/Bogota'));
     include '../../../../config/autoloader.php';
+    use Config\Clases\Logs;
 
     try {
         $cmd = \Config\Clases\Conexion::getConexion();
@@ -33,6 +34,7 @@ if (isset($_POST)) {
                 $query->execute();
                 if ($cmd->lastInsertId() > 0) {
                     $id = $cmd->lastInsertId();
+                    Logs::guardaLog("INSERT INTO pto_documento_detalles (id_pto_doc, tipo_mov, rubro, valor,id_auto_dep) VALUES ($id_crpp, '$tipo_mov', '$rubro', $valore, $id_auto)");
                     $response[] = array("value" => 'ok', "id" => $id);
                 } else {
                     print_r($query_rubro->errorInfo()[2]);
@@ -49,6 +51,7 @@ if (isset($_POST)) {
             $query->bindParam(":fec_act", $date);
             $query->bindParam(":id_pto_doc", $id);
             $query->execute();
+            if ($query->rowCount() > 0) Logs::guardaLog("UPDATE pto_documento SET id_manu = " . ($id_manu ?? 'NULL') . ", fecha = " . ($fecha ?? 'NULL') . ", objeto ='" . ($objeto ?? '') . "', id_usuer_act=$iduser,fec_act='" . $date->format('Y-m-d H:i:s') . "' WHERE id_pto_doc = $id");
             $cmd = null;
             $response[] = array("value" => 'modificado', "id" => $id);
         }

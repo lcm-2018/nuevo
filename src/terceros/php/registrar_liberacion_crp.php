@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $res = array();
@@ -42,6 +43,7 @@ try {
             $valor_liberado = $array_valores_liberacion[$key];
             $query->execute();
             if ($cmd->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO pto_crp_detalle (id_pto_crp, id_pto_cdp_det, valor, valor_liberado, fecha_libera, concepto_libera, id_user_reg, fecha_reg, id_user_act, fecha_act) VALUES ($id_crp, $id_rubro, $valor, $valor_liberado, '$fec_lib', '$concepto_lib', $iduser, '" . $date->format('Y-m-d H:i:s') . "', $iduser, '" . $date->format('Y-m-d H:i:s') . "')");
                 $inserta++;
             } else {
                 echo $query->errorInfo()[2];
@@ -57,6 +59,8 @@ try {
         $sql = "DELETE FROM pto_crp_detalle WHERE id_pto_crp_det=" . $id;
         $rs = $cmd->query($sql);
         if ($rs) {
+            $consulta = "DELETE FROM pto_crp_detalle WHERE id_pto_crp_det=$id";
+            Logs::guardaLog($consulta);
             $res['mensaje'] = 'ok';
         } else {
             $res['mensaje'] = $cmd->errorInfo()[2];

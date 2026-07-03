@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 $opcion = isset($_POST['opcion']) ? $_POST['opcion'] : exit('Accion no permitida');
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
 $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
 $permisos = new \Src\Common\Php\Clases\Permisos();
@@ -39,7 +40,7 @@ switch ($opcion) {
                 break;
         }
         try {
-
+            $log_sql = "INSERT INTO `ctt_novedad_adicion_prorroga`(`id_tip_nov`,`id_adq`,`val_adicion`,`fec_adcion`,`fec_ini_prorroga`,`fec_fin_prorroga`,`observacion`,`id_user_reg`,`fec_reg`) VALUES($tip_nov, $id_contrato, '$val_adicion', '$fec_adicion', '$fini_pro', '$ffin_pro', '$observacion', $iduser, '{$date->format('Y-m-d H:i:s')}')";
             $sql = "INSERT INTO `ctt_novedad_adicion_prorroga`(`id_tip_nov`,`id_adq`,`val_adicion`,`fec_adcion`,`fec_ini_prorroga`,`fec_fin_prorroga`,`observacion`,`id_user_reg`,`fec_reg`)
                     VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $sql = $cmd->prepare($sql);
@@ -60,7 +61,7 @@ switch ($opcion) {
         $fec_cesion = $_POST['datFecCesion'];
         $id_tercero = $_POST['id_tercero'];
         try {
-
+            $log_sql = "INSERT INTO `ctt_novedad_cesion`(`id_adq`,`id_tipo_nov`,`id_tercero`,`fec_cesion`,`observacion`,`id_user_reg`,`fec_reg`) VALUES($id_contrato, $tip_nov, $id_tercero, '$fec_cesion', '$observacion', $iduser, '{$date->format('Y-m-d H:i:s')}')";
             $sql = "INSERT INTO `ctt_novedad_cesion`(`id_adq`,`id_tipo_nov`,`id_tercero`,`fec_cesion`,`observacion`,`id_user_reg`,`fec_reg`)
                     VALUES(?, ?, ?, ?, ?, ?, ?)";
             $sql = $cmd->prepare($sql);
@@ -80,7 +81,7 @@ switch ($opcion) {
         $ffin_susp = $_POST['datFecFinSuspencion'];
         try {
             $cmd = \Config\Clases\Conexion::getConexion();
-
+            $log_sql = "INSERT INTO `ctt_novedad_suspension`(`id_adq`,`id_tipo_nov`,`fec_inicia`,`fec_fin`,`observacion`,`id_user_reg`,`fec_reg`) VALUES($id_contrato, $tip_nov, '$fini_susp', '$ffin_susp', '$observacion', $iduser, '{$date->format('Y-m-d H:i:s')}')";
             $sql = "INSERT INTO `ctt_novedad_suspension`(`id_adq`,`id_tipo_nov`,`fec_inicia`,`fec_fin`,`observacion`,`id_user_reg`,`fec_reg`)
                     VALUES(?, ?, ?, ?, ?, ?, ?)";
             $sql = $cmd->prepare($sql);
@@ -100,7 +101,7 @@ switch ($opcion) {
         $id_suspension = isset($_POST['id_suspension']) ? $_POST['id_suspension'] : NULL;
         try {
             $cmd = \Config\Clases\Conexion::getConexion();
-
+            $log_sql = "INSERT INTO `ctt_novedad_reinicio`(`id_tipo_nov`,`id_suspension`,`fec_reinicia`,`observacion`,`id_user_reg`,`fec_reg`) VALUES($tip_nov, '$id_suspension', '$frein', '$observacion', $iduser, '{$date->format('Y-m-d H:i:s')}')";
             $sql = "INSERT INTO `ctt_novedad_reinicio`(`id_tipo_nov`,`id_suspension`,`fec_reinicia`,`observacion`,`id_user_reg`,`fec_reg`)
                     VALUES(?, ?, ?, ?, ?, ?)";
             $sql = $cmd->prepare($sql);
@@ -117,7 +118,7 @@ switch ($opcion) {
     case '5':
         $id_tt = $_POST['slcTipTerminacion'];
         try {
-
+            $log_sql = "INSERT INTO `ctt_novedad_terminacion`(`id_tipo_nov`,`id_t_terminacion`,`id_adq`,`observacion`,`id_user_reg`,`fec_reg`) VALUES($tip_nov, $id_tt, $id_contrato, '$observacion', $iduser, '{$date->format('Y-m-d H:i:s')}')";
             $sql = "INSERT INTO `ctt_novedad_terminacion`(`id_tipo_nov`,`id_t_terminacion`,`id_adq`,`observacion`,`id_user_reg`,`fec_reg`)
                     VALUES(?, ?, ?, ?, ?, ?)";
             $sql = $cmd->prepare($sql);
@@ -138,7 +139,7 @@ switch ($opcion) {
         $val_ctta = $_POST['numValFavorCtrista'];
         try {
             $cmd = \Config\Clases\Conexion::getConexion();
-
+            $log_sql = "INSERT INTO `ctt_novedad_liquidacion`(`id_tipo_nov`,`id_t_liq`,`id_adq`,`fec_liq`,`val_cte`,`val_cta`,`observacion`,`id_user_reg`,`fec_reg`) VALUES($tip_nov, $tip_liq, $id_contrato, '$fec_liq', '$val_ctte', '$val_ctta', '$observacion', $iduser, '{$date->format('Y-m-d H:i:s')}')";
             $sql = "INSERT INTO `ctt_novedad_liquidacion`(`id_tipo_nov`,`id_t_liq`,`id_adq`,`fec_liq`,`val_cte`,`val_cta`,`observacion`,`id_user_reg`,`fec_reg`)
                     VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $sql = $cmd->prepare($sql);
@@ -158,6 +159,7 @@ switch ($opcion) {
 }
 $sql->execute();
 if ($cmd->lastInsertId() > 0) {
+    Logs::guardaLog($log_sql);
     echo 1;
 } else {
     echo $sql->errorInfo()[2];

@@ -76,6 +76,7 @@ try {
 
                 if ($rs) {
                     $res['mensaje'] = 'ok';
+                    Logs::guardaLog("INSERT INTO tb_homologacion(id_regimen,id_cobertura,id_modalidad,id_cta_presupuesto,id_cta_debito,id_cta_credito,estado,id_usr_crea) VALUES($id_regimen,$id_cobertura,$id_modalidad,$id_cta_pre,$id_cta_deb,$id_cta_cre,$estado,$id_usr_ope)");
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
                     $obj = $rs->fetch();
@@ -107,6 +108,7 @@ try {
 
                 if ($rs) {
                     $res['mensaje'] = 'ok';
+                    Logs::guardaLog("UPDATE tb_homologacion SET id_regimen=$id_regimen,id_cobertura=$id_cobertura,id_modalidad=$id_modalidad,id_cta_presupuesto=$id_cta_pre,id_cta_debito=$id_cta_deb,id_cta_credito=$id_cta_cre,estado=$estado WHERE id_homo=$id");
                     $res['id'] = $id;
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];

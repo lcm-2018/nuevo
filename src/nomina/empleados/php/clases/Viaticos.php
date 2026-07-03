@@ -314,6 +314,7 @@ class Viaticos
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                Logs::guardaLog("INSERT INTO `nom_viaticos` (`id_empleado`, `no_resolucion`, `fec_inicia`, `val_total`, `objetivo`, `destino`, `tipo`) VALUES ({$array['id_empleado']}, '{$array['txtNoResolucion']}', '{$array['datFecInicia']}', {$array['numValTotal']}, '{$array['txtObjetivo']}', '{$array['txtDestino']}', '{$array['slcTipo']}')");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -350,6 +351,7 @@ class Viaticos
             $stmt->bindValue(7, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_viaticos` SET `no_resolucion` = '{$array['txtNoResolucion']}', `fec_inicia` = '{$array['datFecInicia']}', `val_total` = {$array['numValTotal']}, `objetivo` = '{$array['txtObjetivo']}', `destino` = '{$array['txtDestino']}', `tipo` = '{$array['slcTipo']}' WHERE `id_viatico` = {$array['id']}");
                 return 'si';
             } else {
                 return 'No se actualizó el registro.';

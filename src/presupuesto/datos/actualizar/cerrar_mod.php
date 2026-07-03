@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 session_start();
 if (!isset($_SESSION['user'])) {
@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $cmd = \Config\Clases\Conexion::getConexion();
 
 $id_mod = file_get_contents("php://input");
@@ -24,12 +25,17 @@ try {
         exit();
     } else {
         if ($sql->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `pto_mod` SET `estado` = $estado WHERE `id_pto_mod` = $id_mod");
             $sql = "UPDATE `pto_mod` SET `id_user_act` = ?, `fecha_act` = ? WHERE `id_pto_mod` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $id_user, PDO::PARAM_STR);
-            $sql->bindValue(2, $date->format('Y-m-d H:i:s'));
+            $fecha = $date->format('Y-m-d H:i:s');
+            $sql->bindValue(2, $fecha);
             $sql->bindParam(3, $id_mod, PDO::PARAM_INT);
             $sql->execute();
+            if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `pto_mod` SET `id_user_act` = $id_user, `fecha_act` = '$fecha' WHERE `id_pto_mod` = $id_mod");
+            }
             $response['status'] = 'ok';
         } else {
             $response['status'] = 'ok';

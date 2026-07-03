@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 //Recibir variables por POST
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $_post = json_decode(file_get_contents('php://input'), true);
 $id_doc = $_post['id'];
 $id_crp = $_post['id_crp'];
@@ -23,6 +24,9 @@ try {
     $query = $cmd->prepare($query);
     $query->bindParam(1, $id_doc, PDO::PARAM_INT);
     $query->execute();
+    if ($query->rowCount() > 0) {
+        Logs::guardaLog("DELETE FROM `ctb_libaux` WHERE `id_ctb_doc` = $id_doc");
+    }
     $query = "SELECT 
                 `ctb_doc`.`id_tercero`, `ctb_referencia`.`id_cuenta`
             FROM `ctb_doc`
@@ -62,11 +66,13 @@ try {
     $debito = $formapago['valor'];
     $sql->execute();
     if ($cmd->lastInsertId() > 0) {
+        Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_doc, $id_tercero, $id_cuenta, '$debito', '$credito', $iduser, '$fecha2')");
         $debito = 0;
         $id_cuenta = $id_cta_credito;
         $credito = $formapago['valor'];
         $sql->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_doc, $id_tercero, $id_cuenta, '$debito', '$credito', $iduser, '$fecha2')");
             $registros++;
         } else {
             $response['msg'] += $sql->errorInfo()[2];

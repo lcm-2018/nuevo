@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_pto = isset($_POST['idPto']) ? $_POST['idPto'] : exit('Acción no permitida');
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
@@ -20,6 +21,8 @@ try {
     $sql->bindParam(4, $id_pto, PDO::PARAM_INT);
     $sql->execute();
     if ($sql->rowCount() > 0) {
+        $fecha = $date->format('Y-m-d H:i:s');
+        Logs::guardaLog("UPDATE `pto_presupuestos` SET `estado` = $estado, `id_user_act` = $iduser, `fec_act` = '$fecha' WHERE `id_pto` = $id_pto");
         echo 'ok';
     } else {
         echo $sql->errorInfo()[2];

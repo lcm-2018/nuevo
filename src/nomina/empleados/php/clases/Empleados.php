@@ -933,6 +933,10 @@ class Empleados
         $stmt->bindValue(33, Sesion::Hoy(), PDO::PARAM_STR);
         $stmt->bindValue(34, isset($array['checkBsp']) ? 1 : 0, PDO::PARAM_INT);
         $stmt->execute();
+        $hoy = Sesion::Hoy();
+        $dependientes = isset($array['checkDependientes']) ? 1 : 0;
+        $bsp = isset($array['checkBsp']) ? 1 : 0;
+        Logs::guardaLog("INSERT INTO `nom_empleado` (`sede_emp`,`tipo_empleado`,`subtipo_empleado`,`alto_riesgo_pension`,`tipo_contrato`,`tipo_doc`,`no_documento`,`pais_exp`,`dpto_exp`,`city_exp`,`fec_exp`,`pais_nac`,`dpto_nac`,`city_nac`,`fec_nac`,`genero`,`apellido1`,`apellido2`,`nombre1`,`nombre2`,`salario_integral`,`correo`,`telefono`,`pais`,`departamento`,`municipio`,`direccion`,`id_banco`,`tipo_cta`,`cuenta_bancaria`,`estado`,`dependientes`,`fec_reg`,`bsp`) VALUES ({$array['slcSedeEmp']}, {$array['slcTipoEmp']}, {$array['slcSubTipoEmp']}, {$array['slcAltoRiesgo']}, {$array['slcTipoContratoEmp']}, {$array['slcTipoDocEmp']}, '{$array['txtCCempleado']}', {$array['slcPaisExp']}, {$array['slcDptoExp']}, {$array['slcMunicipioExp']}, '{$array['datFecExp']}', {$array['slcPaisNac']}, {$array['slcDptoNac']}, {$array['slcMunicipioNac']}, '{$array['datFecNac']}', '{$array['slcGenero']}', '{$array['txtApe1Emp']}', '{$array['txtApe2Emp']}', '{$array['txtNomb1Emp']}', '{$array['txtNomb2Emp']}', {$array['slcSalIntegral']}, '{$array['mailEmp']}', '{$array['txtTelEmp']}', {$array['slcPaisEmp']}, {$array['slcDptoEmp']}, {$array['slcMunicipioEmp']}, '{$array['txtDireccion']}', {$array['slcBancoEmp']}, {$array['selTipoCta']}, '{$array['txtCuentaBanc']}', 1, $dependientes, '$hoy', $bsp)");
     }
 
     public function editEmpleado($array)
@@ -984,11 +988,16 @@ class Empleados
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {
                 if ($stmt->rowCount() > 0) {
+                    $dependientes = isset($array['checkDependientes']) ? 1 : 0;
+                    $bsp = isset($array['checkBsp']) ? 1 : 0;
+                    Logs::guardaLog("UPDATE `nom_empleado` SET `sede_emp` = {$array['slcSedeEmp']}, `tipo_empleado` = {$array['slcTipoEmp']}, `subtipo_empleado` = {$array['slcSubTipoEmp']}, `alto_riesgo_pension` = {$array['slcAltoRiesgo']}, `tipo_contrato` = {$array['slcTipoContratoEmp']}, `tipo_doc` = {$array['slcTipoDocEmp']}, `no_documento` = '{$array['txtCCempleado']}', `pais_exp` = {$array['slcPaisExp']}, `dpto_exp` = {$array['slcDptoExp']}, `city_exp` = {$array['slcMunicipioExp']}, `fec_exp` = '{$array['datFecExp']}', `pais_nac` = {$array['slcPaisNac']}, `dpto_nac` = {$array['slcDptoNac']}, `city_nac` = {$array['slcMunicipioNac']}, `fec_nac` = '{$array['datFecNac']}', `genero` = '{$array['slcGenero']}', `apellido1` = '{$array['txtApe1Emp']}', `apellido2` = '{$array['txtApe2Emp']}', `nombre1` = '{$array['txtNomb1Emp']}', `nombre2` = '{$array['txtNomb2Emp']}', `salario_integral` = {$array['slcSalIntegral']}, `correo` = '{$array['mailEmp']}', `telefono` = '{$array['txtTelEmp']}', `pais` = {$array['slcPaisEmp']}, `departamento` = {$array['slcDptoEmp']}, `municipio` = {$array['slcMunicipioEmp']}, `direccion` = '{$array['txtDireccion']}', `id_banco` = {$array['slcBancoEmp']}, `tipo_cta` = {$array['selTipoCta']}, `cuenta_bancaria` = '{$array['txtCuentaBanc']}', `dependientes` = $dependientes, `bsp`= $bsp WHERE (`id_empleado` = {$array['id']})");
                     $consulta = "UPDATE `nom_empleado` SET `fec_actu` = ? WHERE (`id_empleado` = ?)";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                    $hoy = Sesion::Hoy();
+                    $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
                     $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                     $stmt2->execute();
+                    Logs::guardaLog("UPDATE `nom_empleado` SET `fec_actu` = '$hoy' WHERE (`id_empleado` = {$array['id']})");
                     return 'si';
                 } else {
                     return 'No se realizó ningún cambio.';
@@ -1010,6 +1019,10 @@ class Empleados
             $stmt->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->bindValue(3, $array['id'], PDO::PARAM_INT);
             $stmt->execute();
+            if ($stmt->rowCount() > 0) {
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("UPDATE `nom_empleado` SET `estado` = {$array['estado']}, `fec_actu` = '$hoy' WHERE (`id_empleado` = {$array['id']})");
+            }
             return 'si';
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
@@ -1031,6 +1044,15 @@ class Empleados
             $stmt->bindValue(7, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                $slcCodigo = $array['slcCodigo'] ?? 'NULL';
+                $numGrado = $array['numGrado'] ?? 'NULL';
+                $txtPerfilSiho = isset($array['txtPerfilSiho']) ? "'{$array['txtPerfilSiho']}'" : 'NULL';
+                $slcNombramiento = $array['slcNombramiento'] ?? 'NULL';
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("INSERT INTO `nom_cargo_empleado` (`codigo`,`descripcion_carg`,`grado`,`perfil_siho`,`id_nombramiento`,`id_user_reg`,`fec_reg`) VALUES ($slcCodigo, '{$array['txtNomCargo']}', $numGrado, $txtPerfilSiho, $slcNombramiento, $idUser, '$hoy')");
+            }
             return $id > 0 ? 'si' : 'No se insertó';
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
@@ -1131,6 +1153,10 @@ class Empleados
             $stmt->bindValue(6, $array['id_inc'], PDO::PARAM_INT);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
+            if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("INSERT INTO `nom_salarios_basico` (`id_empleado`,`id_contrato`,`vigencia`,`salario_basico`,`fec_reg`,`id_inc`) VALUES ({$array['id_empleado']}, {$array['id_contrato']}, {$array['vigencia']}, {$array['salario_basico']}, '$hoy', {$array['id_inc']})");
+            }
             return $id > 0 ? 'si' : 'No se insertó';
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
@@ -1153,12 +1179,20 @@ class Empleados
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {
                 if ($stmt->rowCount() > 0) {
+                    $slcCodigo = $array['slcCodigo'] ?? 'NULL';
+                    $numGrado = $array['numGrado'] ?? 'NULL';
+                    $txtPerfilSiho = isset($array['txtPerfilSiho']) ? "'{$array['txtPerfilSiho']}'" : 'NULL';
+                    $slcNombramiento = $array['slcNombramiento'] ?? 'NULL';
+                    Logs::guardaLog("UPDATE `nom_cargo_empleado` SET `codigo` = $slcCodigo, `descripcion_carg` = '{$array['txtNomCargo']}', `grado` = $numGrado, `perfil_siho` = $txtPerfilSiho, `id_nombramiento` = $slcNombramiento WHERE (`id_cargo` = {$array['id']})");
                     $consulta = "UPDATE `nom_cargo_empleado` SET `id_user_act` = ?, `fec_act` = ? WHERE (`id_cargo` = ?)";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::IdUser(), PDO::PARAM_INT);
-                    $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
+                    $idUser = Sesion::IdUser();
+                    $hoy = Sesion::Hoy();
+                    $stmt2->bindValue(1, $idUser, PDO::PARAM_INT);
+                    $stmt2->bindValue(2, $hoy, PDO::PARAM_STR);
                     $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                     $stmt2->execute();
+                    Logs::guardaLog("UPDATE `nom_cargo_empleado` SET `id_user_act` = $idUser, `fec_act` = '$hoy' WHERE (`id_cargo` = {$array['id']})");
                     return 'si';
                 } else {
                     return 'No se realizó ningún cambio.';
@@ -1185,6 +1219,9 @@ class Empleados
         $stmt->bindValue(3, Sesion::IdUser(), PDO::PARAM_INT);
         $stmt->bindValue(4, Sesion::Hoy(), PDO::PARAM_STR);
         $stmt->execute();
+        $idUser = Sesion::IdUser();
+        $hoy = Sesion::Hoy();
+        Logs::guardaLog("INSERT INTO `nom_ccosto_empleado` (`id_empleado`,`id_ccosto`,`id_user_reg`,`fec_reg`) VALUES ({$array['id_empleado']}, {$array['slcCCostoEmp']}, $idUser, '$hoy')");
     }
 
     public function addNovedad($array)
@@ -1201,6 +1238,10 @@ class Empleados
         $stmt->bindValue(6, Sesion::IdUser(), PDO::PARAM_INT);
         $stmt->bindValue(7, Sesion::Hoy(), PDO::PARAM_STR);
         $stmt->execute();
+        $idUser = Sesion::IdUser();
+        $hoy = Sesion::Hoy();
+        $idRiesgo = $array[5] ?? 'NULL';
+        Logs::guardaLog("INSERT INTO `nom_terceros_novedad` (`id_empleado`,`id_tercero`,`fec_inicia`,`fec_fin`,`id_riesgo`,`id_user_reg`,`fec_reg`) VALUES ({$array[1]}, {$array[2]}, '{$array[3]}', '{$array[4]}', $idRiesgo, $idUser, '$hoy')");
     }
 
     public static function getSalarioBasico($id)

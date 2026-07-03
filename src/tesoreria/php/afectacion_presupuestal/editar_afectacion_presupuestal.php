@@ -7,6 +7,7 @@ if (!isset($_SESSION['user'])) {
 include '../../../../config/autoloader.php';
 
 use Src\Common\Php\Clases\Permisos;
+use Config\Clases\Logs;
 
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Accion no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
@@ -61,6 +62,7 @@ try {
             ':id_ctb_doc' => $id_ctb_doc,
         ]);
         $id_pto_rad = (int) $cmd->lastInsertId();
+        Logs::guardaLog("INSERT INTO pto_rad (fecha, id_manu, id_tercero_api, objeto, num_factura, estado, id_user_reg, fecha_reg, tipo_movimiento, id_ctb_doc) VALUES ('$fecha', $id_manu, $id_tercero_api, '$objeto', $num_factura, $estado, $id_usr_crea, '$fecha_crea', $tipo_movimiento, $id_ctb_doc)");
 
         $sql = "INSERT INTO pto_rec (fecha, id_manu, id_tercero_api, objeto, num_factura, estado, id_user_reg, fecha_reg, tipo_movimiento, id_ctb_doc)
                 VALUES (:fecha, :id_manu, :id_tercero_api, :objeto, :num_factura, :estado, :id_user_reg, :fecha_reg, :tipo_movimiento, :id_ctb_doc)";
@@ -78,6 +80,7 @@ try {
             ':id_ctb_doc' => $id_ctb_doc,
         ]);
         $id_pto_rec = (int) $cmd->lastInsertId();
+        Logs::guardaLog("INSERT INTO pto_rec (fecha, id_manu, id_tercero_api, objeto, num_factura, estado, id_user_reg, fecha_reg, tipo_movimiento, id_ctb_doc) VALUES ('$fecha', $id_manu, $id_tercero_api, '$objeto', $num_factura, $estado, $id_usr_crea, '$fecha_crea', $tipo_movimiento, $id_ctb_doc)");
 
         $cmd->commit();
         $res['mensaje'] = 'ok';
@@ -127,6 +130,9 @@ try {
             ':id_ctb_doc' => $id_ctb_doc,
             ':id_pto_rad' => $id_pto_rad,
         ]);
+        if ($stmt->rowCount() > 0) {
+            Logs::guardaLog("UPDATE pto_rad SET fecha = '$fecha', id_manu = $id_manu, id_tercero_api = $id_tercero_api, objeto = '$objeto', num_factura = $num_factura, estado = $estado, id_user_act = $id_usr_crea, fecha_act = '$fecha_crea', tipo_movimiento = $tipo_movimiento, id_ctb_doc = $id_ctb_doc WHERE id_pto_rad = $id_pto_rad");
+        }
 
         $sql = "UPDATE pto_rec
                 SET fecha = :fecha,
@@ -154,6 +160,9 @@ try {
             ':id_ctb_doc' => $id_ctb_doc,
             ':id_pto_rec' => $id_pto_rec,
         ]);
+        if ($stmt->rowCount() > 0) {
+            Logs::guardaLog("UPDATE pto_rec SET fecha = '$fecha', id_manu = $id_manu, id_tercero_api = $id_tercero_api, objeto = '$objeto', num_factura = $num_factura, estado = $estado, id_user_act = $id_usr_crea, fecha_act = '$fecha_crea', tipo_movimiento = $tipo_movimiento, id_ctb_doc = $id_ctb_doc WHERE id_pto_rec = $id_pto_rec");
+        }
 
         $cmd->commit();
         $res['mensaje'] = 'ok';

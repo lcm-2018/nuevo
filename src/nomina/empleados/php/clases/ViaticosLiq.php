@@ -42,6 +42,9 @@ class ViaticosLiq
             $stmt->execute();
 
             if ($this->conexion->lastInsertId() > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_viaticos` (`id_viatico`,`valor`,`id_nomina`,`id_user_reg`,`fec_reg`) VALUES ({$array['id_viatico']}, {$array['valor']}, {$array['id_nomina']}, $idUser, '$hoy')");
                 return 'si';
             } else {
                 return 'No se insertó el registro de viático liquidado';
@@ -62,6 +65,9 @@ class ViaticosLiq
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $id_nomina, PDO::PARAM_INT);
             $stmt->execute();
+            if ($stmt->rowCount() > 0) {
+                Logs::guardaLog("DELETE FROM `nom_liq_viaticos` WHERE `id_nomina` = $id_nomina");
+            }
             return 'si';
         } catch (PDOException $e) {
             return 'Error SQL en ViaticosLiq: ' . $e->getMessage();

@@ -9,6 +9,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $vigencia = $_SESSION['vigencia'];
 $id_vigencia = $_SESSION['id_vigencia'];
@@ -551,6 +552,9 @@ try {
     $query->execute();
 
     $cmd->commit();
+    Logs::guardaLog("INSERT INTO `ctb_doc`(`id_vigencia`,`id_tipo_doc`,`id_manu`,`id_tercero`,`fecha`,`estado`) VALUES($id_vigencia,$cnom,$id_manu,$id_ter_api,'$fecha',2)");
+    Logs::guardaLog("UPDATE `nom_nominas` SET `planilla` = 4 WHERE `id_nomina` = $id_nomina");
+    Logs::guardaLog("UPDATE `nom_nomina_pto_ctb_tes` SET `cnom` = $id_doc_nom WHERE `id_nomina` = $id_nomina AND `tipo` = '$tipo_nomina' AND `crp` = $crp");
     $cmd = null;
     echo 'ok';
 } catch (Exception $e) {

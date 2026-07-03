@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_ctb_doc = isset($_POST['id_pag_doc']) ? $_POST['id_pag_doc'] : exit('Accion no permitida');
 $id_manu = $_POST['id_pto_rp'];
 $ids_cops = $_POST['detalle'];
@@ -54,6 +55,7 @@ try {
     $sql->execute();
     if ($cmd->lastInsertId() > 0) {
         $id_rec = $cmd->lastInsertId();
+        Logs::guardaLog("INSERT INTO `pto_rec` (`id_pto`,`fecha`,`id_manu`,`id_tercero_api`,`objeto`,`num_factura`,`estado`,`id_user_reg`, `fecha_reg`,`id_ctb_doc`) VALUES ($id_pto, '$fecha', $id_manu, $tercero, '$objeto', '$factura', 1, $iduser, '$fecha2', $id_ctb_doc)");
         $query = "INSERT INTO `pto_rec_detalle`
                     (`id_pto_rac`,`id_pto_rad_detalle`,`id_tercero_api`,`valor`,`valor_liberado`,`id_user_reg`,`fecha_reg`)
                 VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -70,6 +72,7 @@ try {
             $val_rec = str_replace(",", "", $value);
             if ($val_rec > 0) {
                 if ($query->execute()) {
+                    Logs::guardaLog("INSERT INTO `pto_rec_detalle` (`id_pto_rac`,`id_pto_rad_detalle`,`id_tercero_api`,`valor`,`valor_liberado`,`id_user_reg`,`fecha_reg`) VALUES ($id_rec, $id_detalle, $tercero, '$val_rec', '$liberado', $iduser, '$fecha2')");
                     $registros++;
                 } else {
                     $response['msg'] .= 'Error al insertar detalle: ' . implode(', ', $cmd->errorInfo()) . '<br>';

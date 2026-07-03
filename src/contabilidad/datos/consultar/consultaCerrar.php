@@ -1,6 +1,7 @@
 <?php
 
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $data = file_get_contents("php://input");
 $data = str_replace('|', ',', $data);
 $data = str_replace("'", "", $data);
@@ -13,6 +14,7 @@ try {
     $query = $cmd->prepare($query);
     $query->bindParam(1, $estado, PDO::PARAM_INT);
     $query->execute();
+    Logs::guardaLog("UPDATE `ctb_doc` SET `estado`=2 WHERE `id_ctb_doc` IN ($data)");
     $response['status'] = 'ok';
     $cmd = null;
 } catch (Exception $e) {

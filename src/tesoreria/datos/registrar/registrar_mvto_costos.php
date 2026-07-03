@@ -1,7 +1,8 @@
-﻿<?php
+<?php
 include '../../../../config/autoloader.php';
 
 use Src\Common\Php\Clases\Permisos;
+use Config\Clases\Logs;
 
 session_start();
 if (isset($_POST)) {
@@ -34,6 +35,7 @@ if (isset($_POST)) {
             $query->execute();
             if ($cmd->lastInsertId() > 0) {
                 $id = $cmd->lastInsertId();
+                Logs::guardaLog("INSERT INTO ctb_causa_costos (id_ctb_doc, id_sede, id_cc,valor,id_user_reg,fecha_reg) VALUES ($id_doc, $id_sede, $id_cc, $valor_cc, $iduser, '$fecha2')");
                 // consultar y cargar el cuerpo de la tabla
                 $sql = "SELECT
                 `ctb_causa_costos`.`id`
@@ -92,9 +94,12 @@ if (isset($_POST)) {
             $query->bindParam(":fecha", $fecha);
             $query->bindParam(":objeto", $objeto);
             $query->bindParam(":id_usuer_act", $iduser);
-            $query->bindParam(":fec_act", $date);
+            $query->bindParam(":fec_act", $fecha2);
             $query->bindParam(":id_pto_doc", $id);
             $query->execute();
+            if ($query->rowCount() > 0) {
+                Logs::guardaLog("UPDATE pto_documento SET id_manu = $id_manu, fecha = '$fecha', objeto = '$objeto', id_usuer_act=$iduser, fec_act='$fecha2' WHERE id_pto_doc = $id");
+            }
             $cmd = null;
             // $response[] = array("value" => 'modificado', "id" => $id);
         }

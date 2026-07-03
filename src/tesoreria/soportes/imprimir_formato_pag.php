@@ -16,6 +16,7 @@ include '../../../config/autoloader.php';
 
 
 use Src\Common\Php\Clases\Permisos;
+use Config\Clases\Logs;
 
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
@@ -390,6 +391,9 @@ foreach ($documentos_tes as $documento) {
                 $sql->bindParam(4, $id_user, PDO::PARAM_INT);
                 $sql->bindValue(5, $date->format('Y-m-d H:i:s'));
                 $sql->execute();
+                if ($cmd->lastInsertId() > 0) {
+                    Logs::guardaLog("INSERT INTO `tes_resolucion_pago` (`consecutivo`,`id_ctb_doc`,`id_vigencia`,`id_user_reg`,`fec_reg`) VALUES ($num_resolucion, $id_doc, $id_vigencia, $id_user, '" . $date->format('Y-m-d H:i:s') . "')");
+                }
                 if (!($cmd->lastInsertId() > 0)) {
                     echo $sql->errorInfo()[2];
                 }

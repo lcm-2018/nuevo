@@ -8,6 +8,7 @@ include_once '../../../../config/autoloader.php';
 
 use Src\Common\Php\Clases\Permisos;
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 
 $tbnsv = isset($_POST['slcTipoBnSv']) ? $_POST['slcTipoBnSv'] : exit('Acción no permitida');
 $iduser = $_SESSION['id_user'];
@@ -32,6 +33,7 @@ foreach ($bnsvs as $bs) {
             $sql->bindValue(4, $date->format('Y-m-d H:i:s'));
             $sql->execute();
             if ($cmd->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO ctt_bien_servicio (id_tipo_bn_sv, bien_servicio, id_user_reg, fec_reg) VALUES ($tbnsv, '$bnsv', $iduser, '{$date->format('Y-m-d H:i:s')}')");
                 $tot_reg++;
             } else {
                 echo $sql->errorInfo()[2];

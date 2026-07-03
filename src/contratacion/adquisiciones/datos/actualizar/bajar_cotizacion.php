@@ -6,6 +6,8 @@ if (!isset($_SESSION['user'])) {
 }
 include '../../../../conexion.php';
 include '../../../../permisos.php';
+include_once '../../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_c = isset($_POST['id']) ? $_POST['id'] : exit('Acción no permitida');
 $id_cot_emp = $id_c . '|' . $_SESSION['nit_emp'];
 //API
@@ -36,6 +38,8 @@ if ($res == 1) {
         $sql->execute();
         if (!($sql->rowCount() > 0)) {
             echo $sql->errorInfo()[2];
+        } else {
+            Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `estado`= $estado, `id_user_act` = $id_user, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_adquisicion` = $id_c");
         }
         $cmd = null;
     } catch (PDOException $e) {

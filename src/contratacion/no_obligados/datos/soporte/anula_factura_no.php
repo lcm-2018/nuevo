@@ -17,6 +17,7 @@ $id_empresa = 1;
 $response['status'] = 'error';
 
 include_once '../../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -36,6 +37,9 @@ try {
     $idiNonce = $concec['id_valxvig'];
     $sql = "UPDATE `nom_valxvigencia` SET `valor` = '$iNonce'+1 WHERE `id_valxvig` = '$idiNonce'";
     $rs = $cmd->query($sql);
+    if ($rs) {
+        Logs::guardaLog($sql);
+    }
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -592,9 +596,15 @@ try {
     $sql->execute();
     if ($new) {
         $validacion = $cmd->lastInsertId();
+        if ($validacion > 0) {
+            Logs::guardaLog("INSERT INTO `seg_soporte_fno` (`id_factura_no`, `shash`, `referencia`, `fecha`, `id_user_reg`, `fec_reg`,`tipo`) VALUES ($id_facno, '$shash', '$sreference', '$hoy', $iduser, '{$date->format('Y-m-d H:i:s')}', $tipo)");
+        }
     } else {
         if ($shash != NULL) {
             $validacion = $sql->rowCount();
+            if ($validacion > 0) {
+                Logs::guardaLog("UPDATE `seg_soporte_fno` SET `id_factura_no` = $id_facno,`shash` = '$shash', `referencia` = '$sreference', `fecha` = '$hoy', `id_user_reg` = $iduser, `fec_reg` = '{$date->format('Y-m-d H:i:s')}', `tipo` = $tipo WHERE `id_soporte` = $id_soporte");
+            }
         } else {
             $validacion = 0;
         }
@@ -620,6 +630,8 @@ if ($new) {
         $query->execute();
         if (!($query->rowCount() > 0)) {
             $err .= $query->errorInfo()[2];
+        } else {
+            Logs::guardaLog("UPDATE `nom_resoluciones` SET `consecutivo` = $sigue WHERE `id_resol` = $id_sec");
         }
     } catch (PDOException $e) {
         $err .= ($e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage());

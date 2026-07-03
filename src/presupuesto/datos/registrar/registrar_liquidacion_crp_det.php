@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 if (isset($_POST)) {
     $id_pto_doc = $_POST['id_cdp_doc'];
     $id_doc_neo = $_POST['id_doc_neo'];
     $tipo_mov = 'LRP';
     $estado = 0;
     include '../../../../config/autoloader.php';
+    use Config\Clases\Logs;
     $cmd = \Config\Clases\Conexion::getConexion();
     // Consultar rubro de acuerdo a la id recibida
     $partes = explode("_", $_POST['dato']);
@@ -41,6 +42,7 @@ if (isset($_POST)) {
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
             $id = $cmd->lastInsertId();
+            Logs::guardaLog("INSERT INTO pto_documento_detalles (id_pto_doc, tipo_mov, rubro, valor,id_auto_dep,id_auto_crp,estado) VALUES ($id_doc_neo, '$tipo_mov', '$rubro_afec', $valorCdp, $id_pto_cdp, $id_pto_doc, $estado)");
 
             // Consultar el saldo disponible del rubro
             try {
@@ -81,6 +83,9 @@ if (isset($_POST)) {
         $query->bindParam(2, $valorCdp);
         $query->bindParam(3, $id);
         $query->execute();
+        if ($query->rowCount() > 0) {
+            Logs::guardaLog("UPDATE pto_documento_detalles SET rubro ='$rubro', valor = $valorCdp WHERE id_pto_mvto = $id");
+        }
         $cmd = null;
         $response[] = array("value" => 'modificado', "id" => $id);
     }

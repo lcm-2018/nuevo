@@ -14,6 +14,7 @@ $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $response['status'] = 'error';
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -31,6 +32,7 @@ try {
         $query->bindParam(7, $fecha2, PDO::PARAM_STR);
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `tes_caja_respon` (`id_caja_const`,`id_terceros_api`,`fecha_ini`,`fecha_fin`,`estado`,`id_user_reg`,`fec_reg`) VALUES ($id_caja, $id_tercero, '$fec_ini', '$fec_fin', $estado, $iduser, '$fecha2')");
             $response['status'] = 'ok';
         } else {
             $response['msg'] = $query->errorInfo()[2];
@@ -54,6 +56,7 @@ try {
                 $query->bindParam(2, $fecha2, PDO::PARAM_STR);
                 $query->bindParam(3, $id_detalle, PDO::PARAM_INT);
                 $query->execute();
+                Logs::guardaLog("UPDATE `tes_caja_respon` SET `id_terceros_api` = $id_tercero, `fecha_ini` = '$fec_ini', `fecha_fin` = '$fec_fin', `id_user_act` = $iduser, `fecha_act` = '$fecha2' WHERE `id_caja_respon` = $id_detalle");
                 $response['status'] = 'ok';
             } else {
                 $response['msg'] = 'No se realizó ningún cambio';

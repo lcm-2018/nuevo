@@ -7,6 +7,7 @@ if (!isset($_SESSION['user'])) {
 include_once '../../../config/autoloader.php';
 
 use Config\Clases\Plantilla;
+use Config\Clases\Logs;
 use Src\Common\Php\Clases\Combos;
 use Src\Common\Php\Clases\Permisos;
 use Src\Terceros\Php\Clases\Api_SecopII;
@@ -269,6 +270,7 @@ if (!empty($contrato) && isset($contrato['id_secop']) && $contrato['url_secop'] 
     $sql = "UPDATE `ctt_contratos` SET `url_secop` = '{$urlProceso}' WHERE `id_secop` = '{$contrato['id_secop']}'";
     $cmd = \Config\Clases\Conexion::getConexion();
     $cmd->query($sql);
+    Logs::guardaLog($sql);
     $cmd = null;
 } else {
     $urlProceso = $contrato['url_secop'] ?? '';

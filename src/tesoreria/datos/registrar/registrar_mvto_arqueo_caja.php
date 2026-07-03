@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_doc = isset($_POST['id']) ? $_POST['id'] : exit('Acceso no disponible');
 $id_detalle = $_POST['op'];
 $val_fact = str_replace(",", "", $_POST['valor_fact']);
@@ -38,6 +39,7 @@ try {
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
             $id = $cmd->lastInsertId();
+            Logs::guardaLog("INSERT INTO `tes_causa_arqueo` (`id_ctb_doc`,`fecha_ini`,`fecha_fin`,`id_tercero`,`valor_fac`,`valor_arq`,`observaciones`,`id_user_reg`,`fecha_reg`) VALUES($id_doc, '$fecha_ini', '$fecha_fin', $id_tercero_api, '$val_fact', '$val_arq', '$observaciones', $iduser, '$fecha2')");
             $sq = "INSERT INTO `tes_ids_arqueo` (`id_causa`, `id_arqueo`, `id_user_reg`,`fec_reg`)
                     VALUES (?, ?, ?, ?)";
             $sq = $cmd->prepare($sq);
@@ -54,7 +56,11 @@ try {
             foreach ($arqueos as $key => $value) {
                 $id_arqueo = $key;
                 $sq->execute();
+                Logs::guardaLog("INSERT INTO `tes_ids_arqueo` (`id_causa`, `id_arqueo`, `id_user_reg`,`fec_reg`) VALUES ($id, $id_arqueo, $iduser, '$fecha2')");
                 $up->execute();
+                if ($up->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `fac_arqueo` SET `estado` = 3 WHERE `id_arqueo` = $id_arqueo");
+                }
             }
             $query = "SELECT SUM(`valor_arq`) AS `valor` FROM `tes_causa_arqueo` WHERE `id_ctb_doc` = $id_doc";
             $rs = $cmd->query($query);
@@ -91,6 +97,7 @@ try {
                 $query->bindParam(2, $fecha2, PDO::PARAM_STR);
                 $query->bindParam(3, $id_detalle, PDO::PARAM_INT);
                 $query->execute();
+                Logs::guardaLog("UPDATE `tes_causa_arqueo` SET `fecha_ini` = '$fecha_ini', `fecha_fin` = '$fecha_fin', `id_tercero` = $id_tercero_api, `valor_fac` = '$val_fact', `valor_arq` = '$val_arq', `observaciones` = '$observaciones', `id_user_act` = $iduser, `fecha_act` = '$fecha2' WHERE `id_causa_arqueo` = $id_detalle");
                 $query = "SELECT SUM(`valor_arq`) AS `valor` FROM `tes_causa_arqueo` WHERE `id_ctb_doc` = $id_doc";
                 $rs = $cmd->query($query);
                 $valor = $rs->fetch();

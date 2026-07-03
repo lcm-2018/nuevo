@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_facno = isset($_POST['id_factura']) ? $_POST['id_factura'] : exit('Acción no permitida');
 $valfac = isset($_POST['valfac']) ? $_POST['valfac'] : exit('Acción no permitida');
@@ -76,6 +77,9 @@ try {
         $sql->bindValue(15, $date->format('Y-m-d H:i:s'));
         $sql->execute();
         $id_tercero = $cmd->lastInsertId();
+        if ($id_tercero > 0) {
+            Logs::guardaLog("INSERT INTO `seg_terceros_noblig` (`id_tdoc`, `no_doc`, `nombre`, `procedencia`, `tipo_org`, `reg_fiscal`, `resp_fiscal`, `correo`, `telefono`, `id_pais`, `id_dpto`, `id_municipio`, `direccion`, `id_user_reg`, `fec_reg`) VALUES ($tipo_doc, '$no_doc', '$nombre', '$procede', '$tipo_org', '$reg_fiscal', '$resp_fiscal', '$correo', '$telefono', $pais, $dpto, $ciudad, '$direccion', $iduser, '{$date->format('Y-m-d H:i:s')}')");
+        }
     } else {
         $id_tercero = $tercero['id_tercero'];
         $sql = "UPDATE `seg_terceros_noblig` SET `id_tdoc` = ?, `no_doc` = ?, `nombre` = ?, `procedencia` = ?, `tipo_org` = ?, `reg_fiscal` = ?, `resp_fiscal` = ?, `correo` = ?, `telefono` = ?, `id_pais` = ?, `id_dpto` = ?, `id_municipio` = ?, `direccion` = ? WHERE `id_tercero` = ?";
@@ -99,6 +103,7 @@ try {
             exit();
         } else {
             if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `seg_terceros_noblig` SET `id_tdoc` = $tipo_doc, `no_doc` = '$no_doc', `nombre` = '$nombre', `procedencia` = '$procede', `tipo_org` = '$tipo_org', `reg_fiscal` = '$reg_fiscal', `resp_fiscal` = '$resp_fiscal', `correo` = '$correo', `telefono` = '$telefono', `id_pais` = $pais, `id_dpto` = $dpto, `id_municipio` = $ciudad, `direccion` = '$direccion' WHERE `id_tercero` = $id_tercero");
                 $inserta++;
                 $sql = null;
                 $cmd = \Config\Clases\Conexion::getConexion();
@@ -109,6 +114,9 @@ try {
                 $sql->bindValue(2, $date->format('Y-m-d H:i:s'));
                 $sql->bindParam(3, $id_tercero, PDO::PARAM_STR);
                 $sql->execute();
+                if ($sql->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `seg_terceros_noblig` SET  `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}'  WHERE `id_tercero` = $id_tercero");
+                }
             }
         }
     }
@@ -144,6 +152,7 @@ try {
         exit();
     } else {
         if ($sql->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `ctt_fact_noobligado` SET `id_tercero_no` = $id_tercero, `fec_compra`= '$fec_compra', `fec_vence`= '$fec_vence', `met_pago`= '$met_pago', `forma_pago`= '$forma_pago', `val_retefuente`= '$valprtefte', `porc_retefuente`= '$prteftel', `val_reteiva`= '$valpretiva', `porc_reteiva`= '$pretiva', `val_iva`= '$valivag', `porc_iva`= '$pivag', `val_dcto`= '$valdctog', `porc_dcto`= '$pdctog', `observaciones` = '$observacion' WHERE `id_facturano` = $id_facno");
             $inserta++;
             $sql = null;
             $cmd = \Config\Clases\Conexion::getConexion();
@@ -154,6 +163,9 @@ try {
             $sql->bindValue(2, $date->format('Y-m-d H:i:s'));
             $sql->bindParam(3, $id_facno, PDO::PARAM_STR);
             $sql->execute();
+            if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `ctt_fact_noobligado` SET  `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}'  WHERE `id_facturano` = $id_facno");
+            }
         }
     }
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -194,6 +206,7 @@ try {
         }
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `ctt_fact_noobligado_det` (`id_fno`, `codigo`, `detalle`, `val_unitario`, `cantidad`, `p_iva`, `val_iva`, `p_dcto`, `val_dcto`, `id_user_reg`, `fec_reg`) VALUES ($id_facno, '$codigo', '$detalle', '$val_unitario', '$cantidad', '$p_iva', '$val_iva', '$p_dcto', '$val_dcto', $iduser, '{$date->format('Y-m-d H:i:s')}')");
             $inserta++;
         } else {
             echo $query->errorInfo()[2];

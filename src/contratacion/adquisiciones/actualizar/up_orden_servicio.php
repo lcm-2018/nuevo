@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_adq = isset($_POST['idAdq']) ? $_POST['idAdq'] : exit('Accion no permitida');
 $aprobados = $_POST['check'];
@@ -36,6 +37,7 @@ try {
     $sql->execute();
     $id_orden = $cmd->lastInsertId();
     if ($id_orden > 0) {
+        Logs::guardaLog("INSERT INTO `ctt_orden_compra` (`id_adq`,`estado`,`id_user_reg`,`fec_reg`) VALUES ($id_adq, $estado, $iduser, '{$date->format('Y-m-d H:i:s')}')");
         $sql = "INSERT INTO `ctt_orden_compra_detalle`
                     (`id_oc`,`id_servicio`,`cantidad`,`val_unid`,`id_user_reg`,`fec_reg`)
                 VALUES (?, ?, ?, ?, ?, ?)";
@@ -52,6 +54,7 @@ try {
             $val_unitario = $val_unitarios[$key];
             $sql->execute();
             if ($cmd->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO `ctt_orden_compra_detalle` (`id_oc`,`id_servicio`,`cantidad`,`val_unid`,`id_user_reg`,`fec_reg`) VALUES ($id_orden, $id_bnsv, $cantidad, $val_unitario, $iduser, '{$date->format('Y-m-d H:i:s')}')");
                 $c++;
                 $total += $totales[$key];
             } else {
@@ -66,6 +69,7 @@ try {
         $sql->bindParam(1, $total, PDO::PARAM_STR);
         $sql->bindParam(2, $id_adq, PDO::PARAM_INT);
         $sql->execute();
+        Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `val_contrato` = $total WHERE `id_adquisicion` = $id_adq");
         echo 'ok';
     } else {
         echo 'Error al guardar la orden de compra';

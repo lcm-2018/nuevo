@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_ctb_doc = isset($_POST['id_pag_doc']) ? $_POST['id_pag_doc'] : exit('Accion no permitida');
 $ids_cops = $_POST['detalle'];
 $tercero = $_POST['id_tercero'];
@@ -33,6 +34,7 @@ try {
         $val_pag = str_replace(",", "", $value);
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc, $id_detalle, '$val_pag', '$liberado', $tercero, $iduser, '$fecha2')");
             $registros++;
         } else {
             $response['msg'] += $query->errorInfo()[2] . '<br>';

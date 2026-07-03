@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 include '../../../financiero/consultas.php';
 $op = isset($_POST['opcion']) ? $_POST['opcion'] : exit('Acceso no disponible');
 $id_rubroCod = $_POST['id_rubroCod'];
@@ -72,6 +73,7 @@ try {
         $sql->bindValue(6, $date->format('Y-m-d H:i:s'));
         $sql->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `pto_mod_detalle` (`id_pto_mod`,`id_cargue`,`valor_deb`,`valor_cred`,`id_user_reg`,`fecha_reg`) VALUES ($id_pto_mod, $id_rubroCod, $valorDeb, $valorCred, $iduser, '" . $date->format('Y-m-d H:i:s') . "')");
             echo "ok";
         } else {
             echo $sql->errorInfo()[2];
@@ -90,14 +92,19 @@ try {
             exit();
         } else {
             if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `pto_mod_detalle` SET `id_cargue` = $id_rubroCod, `valor_deb` = $valorDeb, `valor_cred` = $valorCred WHERE `id_pto_mod_det` = $op");
                 $sql = "UPDATE `pto_mod_detalle`
                             SET `id_user_act` = ?, `fec_act` = ?
                         WHERE `id_pto_mod_det` = ?";
                 $sql = $cmd->prepare($sql);
                 $sql->bindParam(1, $iduser, PDO::PARAM_INT);
-                $sql->bindValue(2, $date->format('Y-m-d H:i:s'));
+                $fec_act = $date->format('Y-m-d H:i:s');
+                $sql->bindValue(2, $fec_act);
                 $sql->bindParam(3, $op, PDO::PARAM_INT);
                 $sql->execute();
+                if ($sql->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `pto_mod_detalle` SET `id_user_act` = $iduser, `fec_act` = '$fec_act' WHERE `id_pto_mod_det` = $op");
+                }
                 echo 'ok';
             } else {
                 echo 'No se registró ningún nuevo dato';

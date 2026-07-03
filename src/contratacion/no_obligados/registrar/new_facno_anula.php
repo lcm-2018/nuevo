@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_fno = $_POST['id'] ? $_POST['id'] : exit('Acción no permitida');
 $iduser = $_SESSION['id_user'];
@@ -32,6 +33,7 @@ try {
     $sql->execute();
     $idF = $cmd->lastInsertId();
     if ($idF > 0) {
+        Logs::guardaLog("INSERT INTO `ctt_fact_noobligado` (`id_tercero_no`, `fec_compra`, `fec_vence`, `met_pago`, `forma_pago`, `val_retefuente` , `porc_retefuente`, `val_reteiva`, `porc_reteiva`, `val_iva`, `porc_iva`, `val_dcto` , `porc_dcto`, `observaciones`, `vigencia`,`tipo_doc`, `id_user_reg`, `fec_reg`) SELECT `id_tercero_no`, '$hoy' AS  `fec_compra`, `fec_vence`, `met_pago`, `forma_pago`, `val_retefuente` , `porc_retefuente`, `val_reteiva`, `porc_reteiva`, `val_iva`, `porc_iva`, `val_dcto` , `porc_dcto`, `observaciones`, `vigencia`, 1 AS `tipo_doc`, $iduser AS `id_user_reg` , '$fecha' AS `fec_reg` FROM `ctt_fact_noobligado` WHERE (`id_facturano` = $id_fno)");
         $cmd = null;
         $cmd = \Config\Clases\Conexion::getConexion();
 
@@ -47,6 +49,7 @@ try {
         $sql->execute();
         $ids = $cmd->lastInsertId();
         if ($ids > 0) {
+            Logs::guardaLog("INSERT INTO `ctt_fact_noobligado_det` (`id_fno`,`codigo`,`detalle`,`val_unitario`,`cantidad`, `p_iva`,`val_iva`,`p_dcto`,`val_dcto`,`id_user_reg`,`fec_reg`) SELECT $idF AS `id_fno`,`codigo`,`detalle`,`val_unitario`,`cantidad`, `p_iva`,`val_iva`,`p_dcto`,`val_dcto`,$iduser AS `id_user_reg`,'$fecha' AS `fec_reg` FROM  `ctt_fact_noobligado_det` WHERE (`id_fno` = $id_fno)");
             $cmd = null;
             $cmd = \Config\Clases\Conexion::getConexion();
 
@@ -58,6 +61,7 @@ try {
             $sql->bindParam(2, $id_fno);
             $sql->execute();
             if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `ctt_fact_noobligado` SET `id_doc_anula` = $idF WHERE `id_facturano` = $id_fno");
                 echo 'ok';
             } else {
                 echo $cmd->errorInfo()[2];

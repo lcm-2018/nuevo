@@ -3,6 +3,7 @@
 namespace Src\Nomina\Empleados\Php\Clases;
 
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 
 use PDO;
 use PDOException;
@@ -41,6 +42,11 @@ class Compesatorios
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $idEmpleado = isset($array['id_empleado']) ? $array['id_empleado'] : 'NULL';
+                $val = isset($array['val_compensa']) ? $array['val_compensa'] : 'NULL';
+                $dias = isset($array['dias']) ? $array['dias'] : 'NULL';
+                $idNomina = isset($array['id_nomina']) ? $array['id_nomina'] : 'NULL';
+                Logs::guardaLog("INSERT INTO `nom_liq_compesatorio` (`id_empleado`, `val_compensa`, `dias`, `id_nomina`) VALUES ($idEmpleado, $val, $dias, $idNomina)");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -71,6 +77,12 @@ class Compesatorios
             $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute()) {
+                if ($stmt->rowCount() > 0) {
+                    $val = isset($array['val_compensa']) ? $array['val_compensa'] : 'NULL';
+                    $dias = isset($array['dias']) ? $array['dias'] : 'NULL';
+                    $idNomina = isset($array['id_nomina']) ? $array['id_nomina'] : 'NULL';
+                    Logs::guardaLog("UPDATE `nom_liq_compesatorio` SET `val_compensa` = $val, `dias` = $dias, `id_nomina` = $idNomina WHERE `id_compensa` = {$array['id']}");
+                }
                 return 'si';
             } else {
                 return 'No se actualizó el registro.';

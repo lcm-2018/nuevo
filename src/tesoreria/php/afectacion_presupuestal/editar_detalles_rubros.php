@@ -7,6 +7,7 @@ if (!isset($_SESSION['user'])) {
 include '../../../../config/autoloader.php';
 
 use Src\Common\Php\Clases\Permisos;
+use Config\Clases\Logs;
 
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Accion no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
@@ -75,6 +76,7 @@ try {
             ':fecha_reg' => $fecha_crea,
         ]);
         $id_pto_rad_det = (int) $cmd->lastInsertId();
+        Logs::guardaLog("INSERT INTO pto_rad_detalle (id_pto_rad, id_tercero_api, id_rubro, valor, valor_liberado, id_user_reg, fecha_reg) VALUES ($id_pto_rad, $id_tercero_api, $id_rubro, '$valor', '$valor_liberado', $id_usr_crea, '$fecha_crea')");
 
         $sql = "INSERT INTO pto_rec_detalle (id_pto_rac, id_pto_rad_detalle, id_tercero_api, valor, valor_liberado, id_user_reg, fecha_reg)
                 VALUES (:id_pto_rec, :id_pto_rad_detalle, :id_tercero_api, :valor, :valor_liberado, :id_user_reg, :fecha_reg)";
@@ -88,6 +90,7 @@ try {
             ':id_user_reg' => $id_usr_crea,
             ':fecha_reg' => $fecha_crea,
         ]);
+        Logs::guardaLog("INSERT INTO pto_rec_detalle (id_pto_rac, id_pto_rad_detalle, id_tercero_api, valor, valor_liberado, id_user_reg, fecha_reg) VALUES ($id_pto_rec, $id_pto_rad_det, $id_tercero_api, '$valor', '$valor_liberado', $id_usr_crea, '$fecha_crea')");
 
         $stmt = $cmd->prepare("SELECT prd.id_pto_rad_det
                                FROM pto_rad_detalle prd

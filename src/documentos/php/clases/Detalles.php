@@ -240,6 +240,7 @@ class Detalles
      */
     public function addRegistro($array)
     {
+        $idTercero = $array['id_tercero'] > 0 ? $array['id_tercero'] : 'NULL';
         $array['id_tercero'] = $array['id_tercero'] > 0 ? $array['id_tercero'] : NULL;
         try {
             $sql = "INSERT INTO `fin_respon_doc`
@@ -257,6 +258,9 @@ class Detalles
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("INSERT INTO `fin_respon_doc` (`id_maestro_doc`,`id_tercero`,`cargo`,`tipo_control`,`fecha_ini`,`fecha_fin`,`id_user_reg`,`fec_reg`) VALUES ({$array['id']}, {$idTercero}, '{$array['txtCargo']}', {$array['slcTipoControl']}, '{$array['datFechaIni']}', '{$array['datFechaFin']}', $idUser, '$hoy')");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -274,14 +278,18 @@ class Detalles
             $stmt->bindValue(1, $estado, PDO::PARAM_INT);
             $stmt->bindValue(2, $id, PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `fin_respon_doc` SET `estado` = $estado WHERE `id_respon_doc` = $id");
                 $consulta = "UPDATE `fin_respon_doc` 
                                 SET `id_user_act` = ?, `fec_act` = ?
                              WHERE `id_respon_doc` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::IdUser(), PDO::PARAM_INT);
-                $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                $stmt2->bindValue(1, $idUser, PDO::PARAM_INT);
+                $stmt2->bindValue(2, $hoy, PDO::PARAM_STR);
                 $stmt2->bindValue(3, $id, PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `fin_respon_doc` SET `id_user_act` = $idUser, `fec_act` = '$hoy' WHERE `id_respon_doc` = $id");
                 return 'si';
             } else {
                 return 'No se actualizó el estado.';
@@ -299,6 +307,7 @@ class Detalles
      */
     public function editRegistro($array)
     {
+        $idTercero = $array['id_tercero'] > 0 ? $array['id_tercero'] : 'NULL';
         $array['id_tercero'] = $array['id_tercero'] > 0 ? $array['id_tercero'] : NULL;
         try {
             $sql = "UPDATE `fin_respon_doc`
@@ -313,14 +322,18 @@ class Detalles
             $stmt->bindValue(6, $array['detalle'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `fin_respon_doc` SET `id_tercero` = $idTercero, `cargo` = '{$array['txtCargo']}', `tipo_control` = {$array['slcTipoControl']}, `fecha_ini` = '{$array['datFechaIni']}', `fecha_fin` = '{$array['datFechaFin']}' WHERE `id_respon_doc` = {$array['detalle']}");
                 $consulta = "UPDATE `fin_respon_doc` 
                                 SET `id_user_act` = ?, `fec_act` = ?
                              WHERE `id_respon_doc` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::IdUser(), PDO::PARAM_INT);
-                $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                $stmt2->bindValue(1, $idUser, PDO::PARAM_INT);
+                $stmt2->bindValue(2, $hoy, PDO::PARAM_STR);
                 $stmt2->bindValue(3, $array['detalle'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `fin_respon_doc` SET `id_user_act` = $idUser, `fec_act` = '$hoy' WHERE `id_respon_doc` = {$array['detalle']}");
                 return 'si';
             } else {
                 return 'No se actualizó el registro';

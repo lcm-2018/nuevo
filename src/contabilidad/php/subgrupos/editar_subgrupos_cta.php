@@ -49,6 +49,7 @@ try {
 
                         if ($rs) {
                             $res['mensaje'] = 'ok';
+                            Logs::guardaLog("INSERT INTO far_subgrupos_cta(id_subgrupo,id_cuenta,fecha_vigencia,estado,id_usr_crea) VALUES($id_subgrupo,$id_cta,$fec_vig,$estado,$id_usr_crea)");
                             $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                             $rs = $cmd->query($sql_i);
                             $obj = $rs->fetch();
@@ -64,6 +65,7 @@ try {
 
                         if ($rs) {
                             $res['mensaje'] = 'ok';
+                            Logs::guardaLog("UPDATE far_subgrupos_cta SET id_cuenta=$id_cta,fecha_vigencia=$fec_vig,estado=$estado WHERE id_subgrupo_cta=$id");
                             $res['id'] = $id;
                         } else {
                             $res['mensaje'] = $cmd->errorInfo()[2];

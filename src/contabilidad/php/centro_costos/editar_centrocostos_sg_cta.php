@@ -43,6 +43,7 @@ try {
 
                     if ($rs) {
                         $res['mensaje'] = 'ok';
+                        Logs::guardaLog("INSERT INTO tb_centrocostos_subgr_cta_detalle(id_cecsubgrp,id_subgrupo,id_cuenta) VALUES($id_cec_sg,$id_subgrupo,$id_cta)");
                         $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                         $rs = $cmd->query($sql_i);
                         $obj = $rs->fetch();
@@ -58,6 +59,7 @@ try {
 
                     if ($rs) {
                         $res['mensaje'] = 'ok';
+                        Logs::guardaLog("UPDATE tb_centrocostos_subgr_cta_detalle SET id_cuenta=$id_cta WHERE id_cecsubgrp_det=$id");
                         $res['id'] = $id;
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];

@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include_once '../../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id = isset($_POST['id']) ? $_POST['id'] : exit('Acción no permitida');
 
@@ -22,6 +23,9 @@ try {
         $stmt = $cmd->prepare($sq2);
         $stmt->bindParam(1, $res['id_orden'], PDO::PARAM_INT);
         $stmt->execute();
+        if ($stmt->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `far_alm_pedido` SET `estado` = 2 WHERE `id_pedido` = {$res['id_orden']}");
+        }
     }
     $sql = "UPDATE `ctt_adquisiciones` SET `estado`= ?, `id_user_act` = ?, `fec_act` = ? WHERE `id_adquisicion` = ?";
     $stmt = $cmd->prepare($sql);
@@ -33,6 +37,7 @@ try {
     if (!($stmt->rowCount() > 0)) {
         echo $stmt->errorInfo()[2];
     } else {
+        Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `estado`= $estado, `id_user_act` = $id_user, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_adquisicion` = $id");
         echo 'ok';
     }
 } catch (PDOException $e) {

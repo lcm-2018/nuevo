@@ -370,6 +370,15 @@ class Rubros
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                $vigencia = Sesion::IdVigencia();
+                $rubroOp = $array['idRubroOpera'] ?: 'NULL';
+                if ($esPtoCaracter) {
+                    Logs::guardaLog("INSERT `nom_rel_rubro` (`id_tipo`,`r_admin`,`r_operativo`,`id_ccosto`,`id_vigencia`,`fec_reg`,`id_user_reg`) VALUES ({$array['slcTipo']}, {$array['idRubroAdmin']}, $rubroOp, {$array['slcCcosto']}, $vigencia, '$hoy', $idUser)");
+                } else {
+                    Logs::guardaLog("INSERT `nom_rel_rubro` (`id_tipo`,`r_admin`,`r_operativo`,`id_vigencia`,`fec_reg`,`id_user_reg`) VALUES ({$array['slcTipo']}, {$array['idRubroAdmin']}, {$array['idRubroOpera']}, $vigencia, '$hoy', $idUser)");
+                }
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -409,12 +418,21 @@ class Rubros
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {
                 if ($stmt->rowCount() > 0) {
+                    $rubroOp = $array['idRubroOpera'] ?: 'NULL';
+                    if ($esPtoCaracter) {
+                        Logs::guardaLog("UPDATE `nom_rel_rubro` SET `id_tipo` = {$array['slcTipo']}, `r_admin` = {$array['idRubroAdmin']}, `r_operativo` = $rubroOp, `id_ccosto` = {$array['slcCcosto']} WHERE `id_relacion` = {$array['id']}");
+                    } else {
+                        Logs::guardaLog("UPDATE `nom_rel_rubro` SET `id_tipo` = {$array['slcTipo']}, `r_admin` = {$array['idRubroAdmin']}, `r_operativo` = {$array['idRubroOpera']} WHERE `id_relacion` = {$array['id']}");
+                    }
                     $consulta = "UPDATE `nom_rel_rubro` SET `id_user_act` = ?, `fec_act` = ? WHERE `id_relacion` = ?";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::IdUser(), PDO::PARAM_INT);
-                    $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
+                    $idUser = Sesion::IdUser();
+                    $hoy = Sesion::Hoy();
+                    $stmt2->bindValue(1, $idUser, PDO::PARAM_INT);
+                    $stmt2->bindValue(2, $hoy, PDO::PARAM_STR);
                     $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                     $stmt2->execute();
+                    Logs::guardaLog("UPDATE `nom_rel_rubro` SET `id_user_act` = $idUser, `fec_act` = '$hoy' WHERE `id_relacion` = {$array['id']}");
                     return 'si';
                 } else {
                     return 'No se realizó ningún cambio.';

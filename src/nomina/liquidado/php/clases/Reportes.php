@@ -40,7 +40,7 @@ class Reportes
                 $error = $stmt->errorInfo();
                 return "Error SQL: " . $error[2];
             }
-
+            Logs::guardaLog("INSERT INTO `nom_cdp_empleados` (`rubro`, `valor`, `id_nomina`, `tipo`) VALUES ({$a['rubro']}, {$a['valor']}, {$a['id_nomina']}, '{$a['tipo']}')");
             return 'si';
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();

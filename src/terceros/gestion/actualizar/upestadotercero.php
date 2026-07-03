@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $estado = $_POST['e'];
 $idter = isset($_POST['idt']) ? $_POST['idt'] : exit('Acción no permitida');
 try {
@@ -16,6 +17,7 @@ try {
     $sql->bindParam(2, $idter);
     $sql->execute();
     if ($sql->rowCount() > 0) {
+        Logs::guardaLog("UPDATE `tb_terceros` SET estado = $estado WHERE `id_tercero_api` = $idter");
         echo $estado;
     } else {
         echo $sql->errorInfo()[2];

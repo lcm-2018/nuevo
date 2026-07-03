@@ -459,6 +459,12 @@ class Cesantias
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $corte = $array['corte'];
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                $idNomina = $array['id_nomina'];
+                $tipo = $array['tipo'] ?? 'S';
+                Logs::guardaLog("INSERT INTO `nom_liq_cesantias` (`id_empleado`,`cant_dias`,`val_cesantias`,`val_icesantias`,`porcentaje_interes`,`corte`,`id_user_reg`,`fec_reg`,`id_nomina`,`tipo`) VALUES ({$array['id_empleado']}, {$array['cant_dias']}, {$array['val_cesantias']}, {$array['val_icesantias']}, 12, '$corte', $idUser, '$hoy', $idNomina, '$tipo')");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -488,12 +494,17 @@ class Cesantias
             $stmt->bindValue(5, $array['tipo'] ?? 'S', PDO::PARAM_STR);
             $stmt->bindValue(6, $array['id'], PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $tipo = $array['tipo'] ?? 'S';
+                Logs::guardaLog("UPDATE `nom_liq_cesantias` SET `cant_dias` = {$array['cant_dias']}, `val_cesantias` = {$array['val_cesantias']},`val_icesantias` = {$array['val_icesantias']}, `corte` = '{$array['corte']}', `tipo` = '$tipo' WHERE `id_liq_cesan` = {$array['id']}");
                 $consulta = "UPDATE `nom_liq_cesantias` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_cesan` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_liq_cesantias` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_liq_cesan` = {$array['id']}");
                 return 'si';
             } else {
                 return 'no';

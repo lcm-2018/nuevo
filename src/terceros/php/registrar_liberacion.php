@@ -42,6 +42,7 @@ try {
             $valor_liberado = $array_valores_liberacion[$key];
             $query->execute();
             if ($cmd->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO pto_cdp_detalle (id_pto_cdp, id_rubro, valor, valor_liberado, fecha_libera, concepto_libera, id_user_reg, fecha_reg, id_user_act, fecha_act) VALUES ($id_cdp, $id_rubro, $valor, $valor_liberado, '$fec_lib', '$concepto_lib', $iduser, '" . $date->format('Y-m-d H:i:s') . "', $iduser, '" . $date->format('Y-m-d H:i:s') . "')");
                 $inserta++;
             } else {
                 echo $query->errorInfo()[2];

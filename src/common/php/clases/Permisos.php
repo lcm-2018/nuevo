@@ -158,6 +158,7 @@ class Permisos
             $stmt->bindValue(8, $d['per_imprimir'], PDO::PARAM_INT);
             $stmt->execute();
             if ($stmt->rowCount() > 0) {
+                Logs::guardaLog("INSERT INTO `seg_rol_usuario`(`id_usuario`,`id_opcion`,`per_consultar`,`per_adicionar`,`per_modificar`,`per_eliminar`,`per_anular`,`per_imprimir`) VALUES({$d['id_usuario']},{$d['id_opcion']},{$d['per_consultar']},{$d['per_adicionar']},{$d['per_modificar']},{$d['per_eliminar']},{$d['per_anular']},{$d['per_imprimir']})");
                 return 'si';
             } else {
                 return 'Sin insertar';

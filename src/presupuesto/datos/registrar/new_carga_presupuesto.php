@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $nomCod = $_POST['nomCod'];
 $tipoDato = $_POST['tipoDato'];
 $vigencia = $_SESSION['vigencia'];
@@ -54,6 +55,7 @@ try {
     $sql->bindValue(9, $date->format('Y-m-d H:i:s'));
     $sql->execute();
     if ($cmd->lastInsertId() > 0) {
+        Logs::guardaLog("INSERT INTO `pto_cargue` (`id_pto`, `cod_pptal`, `nom_rubro`, `tipo_dato`, `valor_aprobado`, `id_tipo_recurso`, `tipo_pto`, `id_user_reg`, `fec_reg`) VALUES ($id_pto, '$nomCod', '$nomRubro', $tipoDato, $valorAprob, '$tipoRecurso', $tipoPto, $iduser, '" . $date->format('Y-m-d H:i:s') . "')");
         echo 'ok';
     } else {
         echo $sql->errorInfo()[2];

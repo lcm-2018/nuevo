@@ -3,6 +3,7 @@
 namespace Src\Analytics\Conf_Consultas\Php\Clases;
 
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 use PDO;
 
 class ConsultasModel
@@ -114,7 +115,11 @@ class ConsultasModel
         if ($ok) {
             $rs = $this->conexion->query('SELECT LAST_INSERT_ID() AS id');
             $obj = $rs->fetch(PDO::FETCH_ASSOC);
-            return $obj['id'] ?? null;
+            $newId = $obj['id'] ?? null;
+            if ($newId) {
+                Logs::guardaLog("INSERT INTO dash_consultas(titulo_consulta,tipo_bdatos,tipo_informe,tipo_consulta,estado) VALUES('{$d['titulo_consulta']}','{$d['tipo_bdatos']}','{$d['tipo_informe']}','{$d['tipo_consulta']}','{$d['estado']}')");
+            }
+            return $newId;
         }
         return false;
     }
@@ -139,7 +144,11 @@ class ConsultasModel
         $stmt->bindParam(':tipo_acceso', $d['tipo_acceso']);
         $stmt->bindParam(':estado', $d['estado']);
         $stmt->bindParam(':id_consulta', $id, PDO::PARAM_INT);
-        return $stmt->execute();
+        $ok = $stmt->execute();
+        if ($ok && $stmt->rowCount() > 0) {
+            Logs::guardaLog("UPDATE dash_consultas SET titulo_consulta='{$d['titulo_consulta']}',tipo_bdatos='{$d['tipo_bdatos']}',estado='{$d['estado']}' WHERE id_consulta=$id");
+        }
+        return $ok;
     }
 
     public function delete(int $id)

@@ -15,6 +15,7 @@ $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $response['status'] = 'error';
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -32,6 +33,7 @@ try {
         $query->bindParam(7, $fecha2);
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `fin_chequeras` (`id_cuenta`,`numero`,`fecha`,`inicial`,`maximo`,`id_user_reg`,`fec_reg`) VALUES ($cuentas, '$num_chequera', '$fecha', $inicial, '$maximo', $iduser, '$fecha2')");
             $response['status'] = 'ok';
         } else {
             $response['msg'] = $query->errorInfo()[2];
@@ -59,6 +61,7 @@ try {
                 $query->bindParam(2, $iduser, PDO::PARAM_INT);
                 $query->bindParam(3, $id_chequera, PDO::PARAM_INT);
                 $query->execute();
+                Logs::guardaLog("UPDATE `fin_chequeras` SET `id_cuenta` = $cuentas, `numero` = '$num_chequera', `fecha` = '$fecha', `inicial` = $inicial, `maximo` = '$maximo', `fec_act` = '$fecha2', `id_user_act` = $iduser WHERE `id_chequera` = $id_chequera");
                 $response['status'] = 'ok';
             } else {
                 $response['msg'] = 'No se realizaron cambios';

@@ -217,11 +217,15 @@ class Roles
             if ($exists) {
                 $sql = "UPDATE `seg_rol_permisos` SET `$col_name` = ? WHERE `id_rol` = ? AND `id_opcion` = ?";
                 $stmt = $this->conexion->prepare($sql);
-                $stmt->execute([$nuevo_estado, $id_rol, $id_opcion]);
+                if ($stmt->execute([$nuevo_estado, $id_rol, $id_opcion]) && $stmt->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `seg_rol_permisos` SET `$col_name` = $nuevo_estado WHERE `id_rol` = $id_rol AND `id_opcion` = '$id_opcion'");
+                }
             } else {
                 $sql = "INSERT INTO `seg_rol_permisos` (`id_rol`, `id_opcion`, `$col_name`) VALUES (?, ?, ?)";
                 $stmt = $this->conexion->prepare($sql);
-                $stmt->execute([$id_rol, $id_opcion, $nuevo_estado]);
+                if ($stmt->execute([$id_rol, $id_opcion, $nuevo_estado]) && $this->conexion->lastInsertId() > 0) {
+                    Logs::guardaLog("INSERT INTO `seg_rol_permisos` (`id_rol`, `id_opcion`, `$col_name`) VALUES ($id_rol, '$id_opcion', $nuevo_estado)");
+                }
             }
             return 'si';
         } catch (PDOException $e) {
@@ -238,6 +242,7 @@ class Roles
             $stmt->bindValue(2, $d['id_rol'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `seg_rol` SET `nom_rol` = '{$d['txtNombreRol']}' WHERE `id_rol` = {$d['id_rol']}");
                 return 'si';
             } else {
                 return 'No se pudo actualizar el registro.';
@@ -255,6 +260,7 @@ class Roles
             $stmt->bindValue(1, $a['txtNombreRol'], PDO::PARAM_STR);
             $stmt->execute();
             if ($this->conexion->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO `seg_rol` (`nom_rol`) VALUES ('{$a['txtNombreRol']}')");
                 return 'si';
             } else {
                 return 'No se agregó el registro.';
@@ -273,13 +279,16 @@ class Roles
             $stmt->bindValue(1, $estado, PDO::PARAM_INT);
             $stmt->bindValue(2, $id, PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `seg_rol` SET `estado` = $estado WHERE `id_rol` = $id");
                 $consulta = "UPDATE `seg_rol` 
                                 SET `fec_inactivacion` = ?
                              WHERE `id_rol` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
                 $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
                 $stmt2->bindValue(2, $id, PDO::PARAM_INT);
-                $stmt2->execute();
+                if ($stmt2->execute() && $stmt2->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `seg_rol` SET `fec_inactivacion` = '" . Sesion::Hoy() . "' WHERE `id_rol` = $id");
+                }
                 return 'si';
             } else {
                 return 'No se actualizó el estado.';

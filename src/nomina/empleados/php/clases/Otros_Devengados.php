@@ -384,6 +384,10 @@ class Otros_Devengados
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $fecFin = $array['datFecFin'] == '' ? 'NULL' : "'{$array['datFecFin']}'";
+                Logs::guardaLog("INSERT INTO `nom_otros_devengados` (`id_empleado`,`id_tipo`,`fec_inicia`,`fec_fin`,`concepto`,`valor`,`estado`,`id_user_reg`,`fec_reg`) VALUES ({$array['id_empleado']}, {$array['slcTipoDev']}, '{$array['datFecInicia']}', $fecFin, '{$array['txtDescribeDev']}', {$array['numValor']}, 1, $idUser, '$hoy')");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -408,6 +412,9 @@ class Otros_Devengados
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_devengado` (`id_devengado`,`valor`,`id_nomina`,`id_user_reg`,`fec_reg`) VALUES ({$array['id_devengado']}, {$array['valor']}, {$array['id_nomina']}, $idUser, '$hoy')");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -435,12 +442,17 @@ class Otros_Devengados
             $stmt->bindValue(6, $array['id'],                                           PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $fecFin = $array['datFecFin'] == '' ? 'NULL' : "'{$array['datFecFin']}'";
+                Logs::guardaLog("UPDATE `nom_otros_devengados` SET `id_tipo` = {$array['slcTipoDev']}, `fec_inicia` = '{$array['datFecInicia']}', `fec_fin` = $fecFin, `concepto` = '{$array['txtDescribeDev']}', `valor` = {$array['numValor']} WHERE `id_devengado` = {$array['id']}");
                 $consulta = "UPDATE `nom_otros_devengados` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_devengado` = ?";
                 $stmt2    = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(),    PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy,    PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $array['id'],     PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_otros_devengados` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_devengado` = {$array['id']}");
                 return 'si';
             } else {
                 return 'No se actualizó el registro.';
@@ -461,6 +473,7 @@ class Otros_Devengados
             $stmt->bindValue(1, $array['estado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['id'],     PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_otros_devengados` SET `estado` = {$array['estado']} WHERE `id_devengado` = {$array['id']}");
                 return 'si';
             } else {
                 return 'No se hizo el cambio de estado.' . $stmt->errorInfo()[2];

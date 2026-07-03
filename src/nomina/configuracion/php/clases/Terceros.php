@@ -4,6 +4,7 @@ namespace Src\Nomina\Configuracion\Php\Clases;
 
 use Config\Clases\Conexion;
 use Config\Clases\Sesion;
+use Config\Clases\Logs;
 use PDO;
 use PDOException;
 
@@ -164,7 +165,15 @@ class Terceros
             $stmt->bindValue(4, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
-            return $id > 0 ? 'si' : 'No se insertó';
+            if ($id > 0) {
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                $idTercero = $array['id_tercero'] ?? 'NULL';
+                Logs::guardaLog("INSERT INTO `nom_terceros` (`id_tercero_api`,`id_tipo`,`id_user_reg`,`fec_reg`) VALUES ($idTercero, $id_tipo, $idUser, '$hoy')");
+                return 'si';
+            } else {
+                return 'No se insertó';
+            }
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }

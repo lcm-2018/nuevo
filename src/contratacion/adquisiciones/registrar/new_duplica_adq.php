@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 $id_compra = isset($_POST['id_compra']) ? $_POST['id_compra'] : exit('Acción no permitida');
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
 $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
@@ -89,6 +90,7 @@ try {
     $sql->bindParam(14, $tercero_api, PDO::PARAM_INT);
     $sql->execute();
     if ($cmd->lastInsertId() > 0) {
+        Logs::guardaLog("INSERT INTO `ctt_adquisiciones` (`id_modalidad`, `id_empresa`, `id_sede`, `id_area`, `fecha_adquisicion`, `val_contrato`, `vigencia`, `id_tipo_bn_sv`, `obligaciones`, `objeto`, `estado`, `id_user_reg`, `fec_reg`, `id_tercero`) VALUES ($modalidad, $id_empresa, $id_sede, $area, '$fec_adq', '$val_cont', '$vig', $tbnsv, '$obligaciones', '$objeto', '$estado', $iduser, '{$date->format('Y-m-d H:i:s')}', NULL)");
         $cant++;
         $id_adquisicion = $cmd->lastInsertId();
         // INSERTAR ORDEN
@@ -106,6 +108,7 @@ try {
                 $sql->execute();
                 if ($cmd->lastInsertId() > 0) {
                     $id_orden = $cmd->lastInsertId();
+                    Logs::guardaLog("INSERT INTO `ctt_orden_compra` (`id_adq`,`id_user_reg`,`fec_reg`) VALUES ($id_adquisicion, $iduser, '{$date->format('Y-m-d H:i:s')}')");
                     $cant++;
                     try {
                         $cmd = \Config\Clases\Conexion::getConexion();
@@ -126,6 +129,7 @@ try {
                             $valEs = $dt['val_estimado_unid'];
                             $sql->execute();
                             if ($cmd->lastInsertId() > 0) {
+                                Logs::guardaLog("INSERT INTO `ctt_orden_compra_detalle` (`id_oc`,`id_servicio`,`cantidad`,`val_unid`,`id_user_reg`,`fec_reg`) VALUES ($id_orden, $idBS, $cantidad, $valEs, $iduser, '{$date->format('Y-m-d H:i:s')}')");
                                 $cont++;
                             } else {
                                 echo $sql->errorInfo()[2];
@@ -147,6 +151,8 @@ try {
                                 $sql->execute();
                                 if (!($cmd->lastInsertId() > 0)) {
                                     echo $cmd->errorInfo()[2];
+                                } else {
+                                    Logs::guardaLog("INSERT INTO `ctt_destino_contrato` (`id_adquisicion`, `id_area_cc`, `horas_mes`, `id_user_reg`, `fec_reg`) VALUES ($id_adquisicion, $id_cc, $numhoras, $id_user, '{$date->format('Y-m-d H:i:s')}')");
                                 }
                             }
                             try {
@@ -175,6 +181,7 @@ try {
                                 $sql->execute();
                                 $id_estudio = $cmd->lastInsertId();
                                 if ($id_estudio > 0) {
+                                    Logs::guardaLog("INSERT INTO `ctt_estudios_previos`(`id_compra`,`fec_ini_ejec`,`fec_fin_ejec`, `val_contrata`,`id_forma_pago`,`id_supervisor`,`necesidad`,`act_especificas`,`prod_entrega`,`obligaciones`,`forma_pago`, `num_ds`,`requisitos`,`garantia`, `describe_valor`,`id_user_reg`,`fec_reg`) VALUES ($id_adquisicion, '$fec_ini', '$fec_fin', '$val_contrato', $forma_pago, $supervisor, '$DescNec', '$ActEspecificas', '$ProdEntrega', '$ObligContratista', '$FormPago', '$numDS', '$requisitos', '$garantia', '$describe_valor', $iduser, '{$date->format('Y-m-d H:i:s')}')");
                                     $polizas = isset($_POST['check']) ? $_POST['check'] : '';
                                     if ($polizas == '') {
                                         $cant = 1;
@@ -192,6 +199,7 @@ try {
                                                 $id_pol = $p;
                                                 $sql->execute();
                                                 if ($cmd->lastInsertId() > 0) {
+                                                    Logs::guardaLog("INSERT INTO `seg_garantias_compra`(`id_est_prev`,`id_poliza`,`id_user_reg`,`fec_reg`) VALUES ($id_estudio, $id_pol, $iduser, '{$date->format('Y-m-d H:i:s')}')");
                                                     $cant++;
                                                 } else {
                                                     echo $sql->errorInfo()[2];

@@ -46,6 +46,7 @@ try {
 
                 if ($rs) {
                     $res['mensaje'] = 'ok';
+                    Logs::guardaLog("INSERT INTO far_orden_ingreso_tipo(nom_tipo_ingreso,es_int_ext,orden_compra,fianza,farmacia,almacen,activofijo,id_usr_crea) VALUES('$nom_tipo_ingreso',$es_int_ext,$orden_compra,$fianza,$farmacia,$almacen,$activofijo,$id_usr_ope)");
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
                     $obj = $rs->fetch();
@@ -63,6 +64,7 @@ try {
 
                 if ($rs) {
                     $res['mensaje'] = 'ok';
+                    Logs::guardaLog("UPDATE far_orden_ingreso_tipo SET nom_tipo_ingreso='$nom_tipo_ingreso',es_int_ext=$es_int_ext,orden_compra=$orden_compra,fianza=$fianza,farmacia=$farmacia,almacen=$almacen,activofijo=$activofijo WHERE id_tipo_ingreso=$id");
                     $res['id'] = $id;
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];

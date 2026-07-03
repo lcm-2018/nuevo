@@ -261,6 +261,10 @@ class Primas
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $tipo = $array['tipo'] ?? 'S';
+                Logs::guardaLog("INSERT INTO `nom_liq_prima` (`id_empleado`,`cant_dias`,`val_liq_ps`,`val_liq_pns`,`periodo`,`corte`,`id_user_reg`,`fec_reg`,`id_nomina`,`tipo`) VALUES ({$array['id_empleado']}, {$array['cant_dias']}, {$array['val_liq_ps']}, {$array['val_liq_pns']}, '{$array['periodo']}', '{$array['corte']}', $idUser, '$hoy', {$array['id_nomina']}, '$tipo')");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -289,6 +293,10 @@ class Primas
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $tipo = $array['tipo'] ?? 'S';
+                Logs::guardaLog("INSERT INTO `nom_liq_prima_nav` (`id_empleado`,`cant_dias`,`val_liq_pv`,`val_liq_pnv`,`periodo`,`corte`,`id_user_reg`,`fec_reg`,`id_nomina`,`tipo`) VALUES ({$array['id_empleado']}, {$array['cant_dias']}, {$array['val_liq_pv']}, {$array['val_liq_pnv']}, '{$array['periodo']}', '{$array['corte']}', $idUser, '$hoy', {$array['id_nomina']}, '$tipo')");
                 return 'si';
             } else {
                 return 'no';
@@ -318,12 +326,17 @@ class Primas
             $stmt->bindValue(5, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $tipo = $array['tipo'] ?? 'S';
+                Logs::guardaLog("UPDATE `nom_liq_prima` SET `cant_dias` = {$array['cant_dias']}, `val_liq_ps` = {$array['val_liq_ps']}, `corte` = '{$array['corte']}', `tipo` = '$tipo' WHERE `id_liq_prima` = {$array['id']}");
                 $consulta = "UPDATE `nom_liq_prima` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_prima` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_liq_prima` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_liq_prima` = {$array['id']}");
                 return 'si';
             } else {
                 return 'no';
@@ -347,12 +360,17 @@ class Primas
             $stmt->bindValue(5, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                $tipo = $array['tipo'] ?? 'S';
+                Logs::guardaLog("UPDATE `nom_liq_prima_nav` SET `cant_dias` = {$array['cant_dias']}, `val_liq_pv` = {$array['val_liq_pv']}, `corte` = '{$array['corte']}', `tipo` = '$tipo' WHERE `id_liq_privac` = {$array['id']}");
                 $consulta = "UPDATE `nom_liq_prima_nav` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_privac` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_liq_prima_nav` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_liq_privac` = {$array['id']}");
                 return 'si';
             } else {
                 return 'no';

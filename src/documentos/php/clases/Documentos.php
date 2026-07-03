@@ -341,6 +341,9 @@ class Documentos
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("INSERT INTO `fin_maestro_doc` (`id_modulo`,`id_doc_fte`,`version_doc`,`fecha_doc`,`control_doc`,`acumula`,`costos`,`line_table`,`line_firma`,`ver_head`,`id_user_reg`,`fecha_reg`) VALUES ({$array['slcModulo']}, {$array['slcDocFte']}, '{$array['txtVersion']}', '{$array['datFecha']}', {$array['slcControl']}, {$array['acum']}, {$array['costos']}, {$array['lineTable']}, {$array['lineFirma']}, {$array['verHead']}, $idUser, '$hoy')");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -358,14 +361,18 @@ class Documentos
             $stmt->bindValue(1, $estado, PDO::PARAM_INT);
             $stmt->bindValue(2, $id, PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `fin_maestro_doc` SET `estado` = $estado WHERE `id_maestro` = $id");
                 $consulta = "UPDATE `fin_maestro_doc` 
                                 SET `id_user_act` = ?, `fecha_act` = ?
                              WHERE `id_maestro` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::IdUser(), PDO::PARAM_INT);
-                $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                $stmt2->bindValue(1, $idUser, PDO::PARAM_INT);
+                $stmt2->bindValue(2, $hoy, PDO::PARAM_STR);
                 $stmt2->bindValue(3, $id, PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `fin_maestro_doc` SET `id_user_act` = $idUser, `fecha_act` = '$hoy' WHERE `id_maestro` = $id");
                 return 'si';
             } else {
                 return 'No se actualizó el estado.';
@@ -401,14 +408,18 @@ class Documentos
             $stmt->bindValue(11, $array['id'],         PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `fin_maestro_doc` SET `id_modulo` = {$array['slcModulo']}, `id_doc_fte` = {$array['slcDocFte']}, `version_doc` = '{$array['txtVersion']}', `fecha_doc` = '{$array['datFecha']}', `control_doc` = {$array['slcControl']}, `acumula` = {$array['acum']}, `costos` = {$array['costos']}, `line_table` = {$array['lineTable']}, `line_firma` = {$array['lineFirma']}, `ver_head` = {$array['verHead']} WHERE `id_maestro` = {$array['id']}");
                 $consulta = "UPDATE `fin_maestro_doc` 
                                 SET `id_user_act` = ?, `fecha_act` = ?
                              WHERE `id_maestro` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::IdUser(), PDO::PARAM_INT);
-                $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                $stmt2->bindValue(1, $idUser, PDO::PARAM_INT);
+                $stmt2->bindValue(2, $hoy, PDO::PARAM_STR);
                 $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `fin_maestro_doc` SET `id_user_act` = $idUser, `fecha_act` = '$hoy' WHERE `id_maestro` = {$array['id']}");
                 return 'si';
             } else {
                 return 'No se actualizó el registro';

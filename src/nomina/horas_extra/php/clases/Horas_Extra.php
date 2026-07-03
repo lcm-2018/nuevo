@@ -450,6 +450,12 @@ class Horas_Extra
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $fecInicia = $inicia->format('Y-m-d');
+                $fecFin = $fin->format('Y-m-d');
+                $horaInicia = $inicia->format('H:i:s');
+                $horaFin = $fin->format('H:i:s');
+                Logs::guardaLog("INSERT INTO `nom_horas_ex_trab` (`id_empleado`,`id_he`,`fec_inicio`,`fec_fin`,`hora_inicio`,`hora_fin`,`cantidad_he`,`tipo`,`fec_reg`,`estado`) VALUES ({$array['id_empleado']}, {$array['slcTipoHora']}, '$fecInicia', '$fecFin', '$horaInicia', '$horaFin', {$array['numCantidad']}, {$array['slcTipoLiq']}, '$hoy', 1)");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -474,6 +480,9 @@ class Horas_Extra
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_horex` (`id_he_lab`, `val_liq`, `id_user_reg`,`fec_reg`, `id_nomina`) VALUES ({$array['id']}, {$array['valor']}, $idUser, '$hoy', {$array['id_nomina']})");
                 //$this->setEstado($array['id'], 2);
                 return 'si';
             } else {
@@ -522,13 +531,16 @@ class Horas_Extra
                 $stmt->bindValue(2, $id, PDO::PARAM_INT);
 
                 if ($stmt->execute() && $stmt->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `nom_horas_ex_trab` SET `cantidad_he` = {$array['valor']} WHERE `id_he_trab` = $id");
                     $consulta = "UPDATE `nom_horas_ex_trab` 
                                 SET `fec_actu` = ? 
                             WHERE `id_he_trab` = ?";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                    $hoy = Sesion::Hoy();
+                    $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
                     $stmt2->bindValue(2, $id, PDO::PARAM_INT);
                     $stmt2->execute();
+                    Logs::guardaLog("UPDATE `nom_horas_ex_trab` SET `fec_actu` = '$hoy' WHERE `id_he_trab` = $id");
                     return 'si';
                 } else {
                     return 'No se actualizó el registro.';

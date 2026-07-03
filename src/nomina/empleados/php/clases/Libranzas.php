@@ -353,6 +353,8 @@ class Libranzas
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("INSERT INTO `nom_libranzas` (`id_banco`,`id_empleado`,`estado`,`descripcion_lib`,`valor_total`,`cuotas`,`val_mes`,`porcentaje`,`fecha_inicio`,`fecha_fin`,`fec_reg`) VALUES ({$array['slcEntFinanciera']}, {$array['id_empleado']}, 1, '{$array['txtDescripcion']}', {$array['numTotLib']}, {$array['numCuotasLib']}, {$array['numValMes']}, {$array['numPorcentaje']}, '{$array['datFecInicia']}', '{$array['datFecFin']}', '$hoy')");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -399,6 +401,9 @@ class Libranzas
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_libranza` (`id_libranza`,`val_mes_lib`,`id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$array['id_libranza']}, {$array['val_mes']}, $idUser, '$hoy', {$array['id_nomina']})");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -419,12 +424,16 @@ class Libranzas
             $stmt->bindValue(2, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_liq_libranza` SET `val_mes_lib` = {$array['valor_libranza']} WHERE `id_lid_lib` = {$array['id']}");
                 $consulta = "UPDATE `nom_liq_libranza` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_lid_lib` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_liq_libranza` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_lid_lib` = {$array['id']}");
                 return 'si';
             } else {
                 return 'no';
@@ -458,11 +467,14 @@ class Libranzas
             $stmt->bindValue(9, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_libranzas` SET `id_banco` = {$array['slcEntFinanciera']}, `descripcion_lib` = '{$array['txtDescripcion']}', `valor_total` = {$array['numTotLib']}, `cuotas` = {$array['numCuotasLib']}, `val_mes` = {$array['numValMes']}, `porcentaje` = {$array['numPorcentaje']}, `fecha_inicio` = '{$array['datFecInicia']}', `fecha_fin` = '{$array['datFecFin']}' WHERE `id_libranza` = {$array['id']}");
                 $consulta = "UPDATE `nom_libranzas` SET `fec_act` = ? WHERE `id_libranza` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $hoy = Sesion::Hoy();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
                 $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_libranzas` SET `fec_act` = '$hoy' WHERE `id_libranza` = {$array['id']}");
                 return 'si';
             } else {
                 return 'No se actualizó el registro.';
@@ -482,6 +494,7 @@ class Libranzas
             $stmt->bindValue(1, $array['estado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['id'], PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_libranzas` SET `estado` = {$array['estado']} WHERE `id_libranza` = {$array['id']}");
                 return 'si';
             } else {
                 return 'No se hizo el cambio de estado.' . $stmt->errorInfo()[2];

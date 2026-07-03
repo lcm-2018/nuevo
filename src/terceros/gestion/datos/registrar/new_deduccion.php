@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_deduccion = isset($_POST['idDeduccion']) ? $_POST['idDeduccion'] : 0;
 $id_tercero = isset($_POST['idTercero']) ? $_POST['idTercero'] : 0;
@@ -63,6 +64,9 @@ try {
         ]);
 
         if ($stmt->rowCount() > 0 || $stmt->errorCode() == '00000') {
+            if ($stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE tb_terceros_deducciones SET id_vigencia = $id_vigencia, intereses_vivienda = $intereses, medicina_prepagada = $medicina, polizas_salud = $polizas, ahorros_afc = $afc, aportes_pension = $pension, id_user_act = $id_user, fec_act = '$fecha' WHERE id_deduccion = $id_deduccion");
+            }
             echo 'ok';
         } else {
             echo 'No se actualizó ningún registro.';
@@ -94,6 +98,7 @@ try {
         ]);
 
         if ($stmt->rowCount() > 0) {
+            Logs::guardaLog("INSERT INTO tb_terceros_deducciones (id_tercero_api, id_vigencia, intereses_vivienda, medicina_prepagada, polizas_salud, ahorros_afc, aportes_pension, estado, id_user_reg, fec_reg) VALUES ($id_tercero, $id_vigencia, $intereses, $medicina, $polizas, $afc, $pension, 1, $id_user, '$fecha')");
             echo 'ok';
         } else {
             echo 'No se guardó el registro.';

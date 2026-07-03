@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_pgcp = isset($_POST['id_pgcp']) ? $_POST['id_pgcp'] : exit('Acceso no autorizado');
 $cuentas = $_POST['cuentas'];
 $nombre = $_POST['nombre'];
@@ -31,6 +32,7 @@ try {
         $query->execute();
         $id = $cmd->lastInsertId();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `ctb_pgcp`(`cuenta`,`nombre`,`tipo_dato`,`estado`,`id_user_reg`) VALUES('$cuentas','$nombre','$tipo',1,$iduser)");
             $response['value'] = 'ok';
             $response['msg'] = 'Correcto';
         } else {
@@ -53,6 +55,7 @@ try {
                 $query->bindParam(2, $iduser, PDO::PARAM_INT);
                 $query->bindParam(3, $id_pgcp, PDO::PARAM_INT);
                 $query->execute();
+                Logs::guardaLog("UPDATE `ctb_pgcp` SET `cuenta`='$cuentas',`nombre`='$nombre',`tipo_dato`='$tipo' WHERE `id_pgcp`=$id_pgcp");
                 $response['value'] = 'ok';
             } else {
                 $response['msg'] = 'No se realizó ningún cambio';

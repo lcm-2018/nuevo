@@ -119,7 +119,9 @@ class Cierre
                 $stmt->bindValue(4, Sesion::Hoy(), PDO::PARAM_STR);
                 $stmt->bindValue(5, Sesion::IdUser(), PDO::PARAM_INT);
                 $stmt->bindValue(6, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt->execute();
+                if ($stmt->execute() && $stmt->rowCount() > 0) {
+                    Logs::guardaLog("INSERT IGNORE INTO `tb_fin_periodos` (`id_modulo`, `mes`, `vigencia`,`fecha_cierre`,`id_user_reg`, `fec_reg`) VALUES ($id_modulo, '$mes', '$vigencia', '" . Sesion::Hoy() . "', " . Sesion::IdUser() . ", '" . Sesion::Hoy() . "')");
+                }
             } else {
                 // Open period: Delete
                 $sql = "DELETE FROM `tb_fin_periodos` WHERE `id_modulo` = ? AND `mes` = ? AND `vigencia` = ?";
@@ -172,7 +174,9 @@ class Cierre
             $stmt->bindValue(1, $vigencia, PDO::PARAM_STR);
             $stmt->bindValue(2, $id_usuario, PDO::PARAM_INT);
             $stmt->bindValue(3, $fecha, PDO::PARAM_STR);
-            $stmt->execute();
+            if ($stmt->execute() && $this->conexion->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO `tb_fin_fecha` (`vigencia`, `id_usuario`, `fecha`) VALUES ('$vigencia', $id_usuario, '$fecha')");
+            }
             return 'si';
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
@@ -238,7 +242,9 @@ class Cierre
             $stmt->bindValue(3, $ven_fecha, PDO::PARAM_STR);
             $stmt->bindValue(4, $estado, PDO::PARAM_INT);
             $stmt->bindValue(5, $id_empresa, PDO::PARAM_INT);
-            $stmt->execute();
+            if ($stmt->execute() && $this->conexion->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO `tb_vigencias` (`anio`, `registros`, `ven_fecha`, `estado`, `id_empresa`) VALUES ('$anio', $registros, '$ven_fecha', $estado, $id_empresa)");
+            }
             return 'si';
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();

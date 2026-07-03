@@ -13,6 +13,7 @@ if (!isset($_SESSION['user'])) {
 }
 include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
+use Config\Clases\Logs;
 
 function indexarRubrosNomina($rubros)
 {
@@ -328,6 +329,7 @@ try {
     if (!($id_ctb_doc_ceva > 0)) {
         throw new Exception("No se pudo insertar el documento CEVA.");
     }
+    Logs::guardaLog("INSERT INTO `ctb_doc` (`id_vigencia`, `id_tipo_doc`, `id_manu`,`id_tercero`, `fecha`, `detalle`, `id_user_reg`, `fecha_reg`, `estado`) VALUES ($id_vigencia, $tipo_doc_ceva, $id_manu, $id_ter_doc, '$fecha', '$objeto', $iduser, '$fecha2', $estado_doc)");
 
     // Preparar inserciones en libaux
     $sql_libaux = "INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) 
@@ -476,6 +478,7 @@ try {
 
                 if ($valor_pto > 0 && $rubro > 0 && $id_det !== null) {
                     $stmt_pto_pag->execute([$id_ctb_doc_ceva, $id_det, $valor_pto, $liberado, $id_ter_api]);
+                    Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva, $id_det, '$valor_pto', '$liberado', $id_ter_api)");
                 }
             }
 
@@ -502,6 +505,7 @@ try {
 
                     if ($valor_pto > 0) {
                         $stmt_pto_pag->execute([$id_ctb_doc_ceva, $id_det, $valor_pto, $liberado, $id_ter_api]);
+                        Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`) VALUES ($id_ctb_doc_ceva, $id_det, '$valor_pto', '$liberado', $id_ter_api)");
                     }
                 }
             }
@@ -522,6 +526,7 @@ try {
                         $valor = $ces['val_cesantias'];
                         if ($valor > 0) {
                             $stmt_libaux->execute([$id_ctb_doc_ceva, $id_ter_ces, $cuenta, $valor, 0, $iduser, $fecha2]);
+                            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva, $id_ter_ces, $cuenta, '$valor', 0, $iduser, '$fecha2')");
                             $total_pago_empleado += $valor;
                         }
                     }
@@ -532,6 +537,7 @@ try {
                         $valor = $ces['val_icesantias'];
                         if ($valor > 0) {
                             $stmt_libaux->execute([$id_ctb_doc_ceva, $id_ter_ces, $cuenta, $valor, 0, $iduser, $fecha2]);
+                            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva, $id_ter_ces, $cuenta, '$valor', 0, $iduser, '$fecha2')");
                             $total_pago_empleado += $valor;
                         }
                     }
@@ -644,6 +650,7 @@ try {
                         );
                     }
                     $stmt_libaux->execute([$id_ctb_doc_ceva, $id_ter_api, $cuenta, $valor, 0, $iduser, $fecha2]);
+                    Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva, $id_ter_api, $cuenta, '$valor', 0, $iduser, '$fecha2')");
                     $total_pago_empleado += $valor;
                 }
             }
@@ -651,6 +658,7 @@ try {
         // Crédito a la cuenta del banco por el total pagado al empleado
         if ($total_pago_empleado > 0) {
             $stmt_libaux->execute([$id_ctb_doc_ceva, $id_ter_api, $banco['cta_contable'], 0, $total_pago_empleado, $iduser, $fecha2]);
+            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_ctb_doc_ceva, $id_ter_api, " . $banco['cta_contable'] . ", 0, '$total_pago_empleado', $iduser, '$fecha2')");
         }
     }
 
@@ -659,11 +667,13 @@ try {
     $sql = "UPDATE `nom_nominas` SET `estado` = ? WHERE `id_nomina` = ?";
     $stmt = $cmd->prepare($sql);
     $stmt->execute([$estado_nomina, $id_nomina]);
+    Logs::guardaLog("UPDATE `nom_nominas` SET `estado` = $estado_nomina WHERE `id_nomina` = $id_nomina");
 
     // Registrar el documento de egreso en la tabla de trazabilidad
     $query = "UPDATE `nom_nomina_pto_ctb_tes` SET `ceva` = ? WHERE `id_nomina` = ? AND `crp` = ?";
     $query = $cmd->prepare($query);
     $query->execute([$id_ctb_doc_ceva, $id_nomina, $crp]);
+    Logs::guardaLog("UPDATE `nom_nomina_pto_ctb_tes` SET `ceva` = $id_ctb_doc_ceva WHERE `id_nomina` = $id_nomina AND `crp` = $crp");
 
     $cmd->commit();
     echo 'ok';

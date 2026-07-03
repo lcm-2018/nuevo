@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 include '../../../../config/autoloader.php';
 include '../../../financiero/consultas.php';
+use Config\Clases\Logs;
 $ids = isset($_POST['check']) ? $_POST['check'] : exit('Accion no permitida');
 $ids_cops = implode(',', $ids);
 $id_tipo = $_POST['id_tipo'];
@@ -111,6 +112,9 @@ try {
         $stmt->bindParam(11, $cs['id_ctb_doc'], PDO::PARAM_INT);
         if (!$stmt->execute()) {
             throw new Exception("Error al insertar en `ctb_doc`: " . implode(" | ", $stmt->errorInfo()));
+        } else {
+            $id_pag = $cmd->lastInsertId();
+            Logs::guardaLog("INSERT INTO `ctb_doc` (`id_vigencia`,`id_tipo_doc`,`id_manu`,`id_tercero`,`fecha`,`detalle`,`estado`,`id_user_reg`,`fecha_reg`,`id_ref`,`id_ctb_doc_tipo3`) VALUES ($id_vigencia, $id_tipo, $id_manu, {$cs['id_tercero']}, '$fec_doc', '{$cs['detalle']}', $estado, $iduser, '$fecha2', {$cs['id_ref']}, {$cs['id_ctb_doc']})");
         }
         // Insertar en `tes_rel_pag_cop`
         $id_pag = $cmd->lastInsertId();
@@ -120,6 +124,8 @@ try {
         $stmt2->bindParam(2, $id_pag, PDO::PARAM_INT);
         if (!$stmt2->execute()) {
             throw new Exception("Error al insertar en `tes_rel_pag_cop`: " . implode(" | ", $stmt2->errorInfo()));
+        } else {
+            Logs::guardaLog("INSERT INTO `tes_rel_pag_cop` (`id_doc_cop`,`id_doc_pag`) VALUES ({$cs['id_ctb_doc']}, $id_pag)");
         }
         // Insertar en `pto_pag_detalle`
         $ids_det = explode(',', $cs['ids_det']);
@@ -142,6 +148,8 @@ try {
                 $stmt3->bindParam(7, $fecha2);
                 if (!$stmt3->execute()) {
                     throw new Exception("Error al insertar en `pto_pag_detalle`: " . implode(" | ", $stmt3->errorInfo()));
+                } else {
+                    Logs::guardaLog("INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`,`id_user_reg`,`fecha_reg`) VALUES ($id_pag, $id_det, {$valores[$key]}, $liberado, {$cs['id_tercero']}, $iduser, '$fecha2')");
                 }
             }
         }
@@ -160,6 +168,8 @@ try {
         $stmt4->bindParam(7, $fecha2);
         if (!$stmt4->execute()) {
             throw new Exception("Error al insertar en `tes_detalle_pago`: " . implode(" | ", $stmt4->errorInfo()));
+        } else {
+            Logs::guardaLog("INSERT INTO `tes_detalle_pago` (`id_ctb_doc`,`id_tes_cuenta`,`id_forma_pago`,`documento`,`valor`,`id_user_reg`,`fecha_reg`) VALUES ($id_pag, {$cs['banco']}, {$cs['forma_pago']}, '$documento', {$cs['valor_referencia']}, $iduser, '$fecha2')");
         }
         //Insertar en `ctb_libaux`
         $debito = 0;
@@ -178,12 +188,16 @@ try {
         $stmt5->bindParam(7, $fecha2);
         if (!$stmt5->execute()) {
             throw new Exception("Error al insertar en `ctb_libaux`: " . implode(" | ", $stmt5->errorInfo()));
+        } else {
+            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_pag, {$cs['id_tercero']}, $cuenta, $debito, $credito, $iduser, '$fecha2')");
         }
         $credito = 0;
         $debito = $cs['valor_referencia'];
         $cuenta = $cs['id_cuenta'];
         if (!$stmt5->execute()) {
             throw new Exception("Error al insertar en `ctb_libaux`: " . implode(" | ", $stmt5->errorInfo()));
+        } else {
+            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_pag, {$cs['id_tercero']}, $cuenta, $debito, $credito, $iduser, '$fecha2')");
         }
     }
     $cmd->commit();

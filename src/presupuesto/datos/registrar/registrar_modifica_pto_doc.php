@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (isset($_POST)) {
     $fecha = $_POST['fecha'];
@@ -13,6 +13,7 @@ if (isset($_POST)) {
     $fecha2 = $date->format('Y-m-d H:i:s');
     $estado = 1;
     include '../../../../config/autoloader.php';
+    use Config\Clases\Logs;
     try {
         $cmd = \Config\Clases\Conexion::getConexion();
 
@@ -43,6 +44,7 @@ if (isset($_POST)) {
             $query->bindParam(10, $fecha2);
             $query->execute();
             if ($cmd->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO `pto_mod` (`id_pto`, `id_tipo_mod`,`id_tipo_acto`, `numero_acto`, `fecha`,`id_manu`,`objeto`,`estado`,`id_user_reg`,`fecha_reg`) VALUES ($id_pto, $tipo_doc, $tipo_acto, $numMod, '$fecha', $id_manu, '$objeto', $estado, $iduser, '$fecha2')");
                 echo 'ok';
             } else {
                 echo $query->errorInfo()[2];
@@ -59,6 +61,7 @@ if (isset($_POST)) {
             $query->bindParam(5, $id, PDO::PARAM_INT);
             $query->execute();
             if ($query->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `pto_mod` SET  `id_tipo_acto` = $tipo_acto, `numero_acto` = $numMod, `fecha` = '$fecha', `objeto` = '$objeto' WHERE `id_pto_mod` = $id");
                 echo 'ok';
             } else {
                 echo $query->errorInfo()[2] . 'No se actualizó ningún registro';
@@ -75,6 +78,7 @@ if (isset($_POST)) {
         $query->bindParam("id", $id);
         $query->execute();
         if ($query->rowCount() > 0) {
+            Logs::guardaLog("UPDATE pto_documento_detalles SET id_pto_doc = $id_pto_cdp, tipo_mov = $tipo_mov, rubro = $rubro, valor = $valorCdp WHERE id_pto_mvto = $id");
             echo 'ok';
         } else {
             echo $query->errorInfo()[2];

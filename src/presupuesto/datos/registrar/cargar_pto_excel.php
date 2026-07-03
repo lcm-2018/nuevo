@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 include '../../../../config/autoloader.php';
 include '../../../../vendor/SimpleXLSX/simpleXLSX.php';
+use Config\Clases\Logs;
 
 $id_pto = isset($_POST['idPto']) ? $_POST['idPto'] : exit('Acción no permitida');
 $file_tmp = $_FILES['file']['tmp_name'];
@@ -21,6 +22,9 @@ if (file_exists('file.xlsx')) {
         $sql = $cmd->prepare($sql);
         $sql->bindParam(1, $id_pto, PDO::PARAM_INT);
         $sql->execute();
+        if ($sql->rowCount() > 0) {
+            Logs::guardaLog("DELETE FROM `pto_cargue` WHERE `id_pto` = $id_pto");
+        }
         $cmd = null;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -62,6 +66,7 @@ if (file_exists('file.xlsx')) {
             if (!($cmd->lastInsertId() > 0)) {
                 echo $sql->errorInfo()[2];
             } else {
+                Logs::guardaLog("INSERT INTO `pto_cargue` (`id_pto`,`id_tipo_recurso`,`cod_pptal`,`nom_rubro`,`tipo_dato`,`valor_aprobado`,`tipo_pto`,`id_user_reg`,`fec_reg`) VALUES ($id_pto, $id_tipo_recurso, '$cod_pptal', '$nom_rubro', $tipo_dato, $valor_aprobado, $tipo_pto, $id_user, '" . $date->format('Y-m-d H:i:s') . "')");
                 $t++;
             }
         }

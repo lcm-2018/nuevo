@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $acto = $_POST['slcTipActo'];
 $num_acto = $_POST['numActo'];
 $nom_caja = $_POST['txtNomCaja'];
@@ -40,6 +41,7 @@ try {
         $query->bindParam(12, $fecha2);
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `tes_caja_const` (`id_tipo_acto`,`num_acto`,`nombre_caja`,`fecha_ini`,`fecha_acto`,`valor_total`,`valor_minimo`,`num_poliza`,`porcentaje`,`estado`,`id_user_reg`,`fec_reg`) VALUES ($acto, '$num_acto', '$nom_caja', '$fec_inicia', '$fec_acto', '$val_total', '$val_minimo', '$poliza', '$porcentajeCs', $estado, $iduser, '$fecha2')");
             echo 'ok';
         } else {
             echo $query->errorInfo()[2];
@@ -69,6 +71,7 @@ try {
                 $query->bindParam(2, $fecha2, PDO::PARAM_STR);
                 $query->bindParam(3, $id, PDO::PARAM_INT);
                 $query->execute();
+                Logs::guardaLog("UPDATE `tes_caja_const` SET `id_tipo_acto` = $acto, `num_acto` = '$num_acto', `nombre_caja` = '$nom_caja', `fecha_ini` = '$fec_inicia', `fecha_acto` = '$fec_acto', `valor_total` = '$val_total', `valor_minimo` = '$val_minimo', `num_poliza` = '$poliza', `porcentaje` = '$porcentajeCs', `id_user_act` = $iduser, `fec_act` = '$fecha2' WHERE `id_caja_const` = $id");
                 echo 'ok';
             } else {
                 echo 'No se realizó ningún cambio';

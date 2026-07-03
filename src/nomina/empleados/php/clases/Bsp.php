@@ -288,6 +288,11 @@ class Bsp
             $stmt->closeCursor();
             unset($stmt);
             if ($id > 0) {
+                $tipo = $array['tipo'] ?? 'S';
+                $idNomina = $array['id_nomina'] ?? 'NULL';
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("INSERT INTO `nom_liq_bsp` (`id_empleado`,`val_bsp`,`fec_corte`, `tipo`, `id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$array['id_empleado']}, {$array['valor']}, '{$array['corte']}', '$tipo', $idUser, '$hoy', $idNomina)");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -316,14 +321,18 @@ class Bsp
             $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
             if ($stmt->execute() && $stmt->rowCount() > 0) {
                 $stmt->closeCursor();
+                Logs::guardaLog("UPDATE `nom_liq_bsp` SET `val_bsp` = {$array['numValor']}, `fec_corte` = '{$array['datFecCorte']}', `tipo` = '{$array['tipo']}' WHERE `id_bonificaciones` = {$array['id']}");
                 $consulta = "UPDATE `nom_liq_bsp` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_bonificaciones` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
                 $stmt2->closeCursor();
                 unset($stmt2);
+                Logs::guardaLog("UPDATE `nom_liq_bsp` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_bonificaciones` = {$array['id']}");
                 return 'si';
             } else {
                 return 'no';

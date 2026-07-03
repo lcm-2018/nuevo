@@ -9,6 +9,7 @@ error_reporting(E_ALL);
 }*/
 include '../../../../config/autoloader.php';
 include '../../../../vendor/autoload.php';
+use Config\Clases\Logs;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -156,6 +157,7 @@ if ($res > 1 || $regAtTerc == 'SI') {
         $sql->bindParam(15, $genero, PDO::PARAM_STR);
         $sql->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `tb_terceros` (`tipo_doc`,`nom_tercero`,`nit_tercero`,`dir_tercero`,`tel_tercero`,`id_municipio`,`email`,`id_usr_crea`,`id_tercero_api`,`estado`,`fec_inicio`,`es_clinico`,`planilla`, `id_riesgo`, `genero`) VALUES ('$tipodoc', '$nombre', '$cc_nit', '$dir', '$tel', $municip, '$mail_persona', $iduser, " . ($id_ter_api ?? 'NULL') . ", $estado, '$fecInicio', $es_clinic, $planilla, " . ($riesgo ?? 'NULL') . ", '$genero')");
             $cmd = NULL;
             $cmd = \Config\Clases\Conexion::getConexion();
 
@@ -169,6 +171,7 @@ if ($res > 1 || $regAtTerc == 'SI') {
             $query->bindValue(4, $date->format('Y-m-d H:i:s'));
             $query->execute();
             if ($cmd->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO `tb_rel_tercero` (`id_tercero_api`,`id_tipo_tercero`,`id_user_reg`,`fec_reg`) VALUES(" . ($id_ter_api ?? 'NULL') . ", $tipotercero, $iduser, '" . $date->format('Y-m-d H:i:s') . "')");
                 echo 'ok';
             } else {
                 echo $query->errorInfo()[2] . '-.-';

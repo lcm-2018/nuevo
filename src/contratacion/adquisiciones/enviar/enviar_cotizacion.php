@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include_once '../../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
 $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
 $permisos = new \Src\Common\Php\Clases\Permisos();
@@ -106,6 +107,8 @@ unset($rs);
                             $sql->bindParam(3, $id_cotiza, PDO::PARAM_INT);
                             $sql->execute();
                             if ($sql->rowCount() > 0) {
+                                Logs::guardaLog("UPDATE ctt_adquisiciones SET estado = $est WHERE id_adquisicion = $id_cotiza");
+                                Logs::guardaLog("UPDATE ctt_adquisiciones SET  id_user_act = $iduser ,fec_act = '{$date->format('Y-m-d H:i:s')}' WHERE id_adquisicion = $id_cotiza");
                                 echo  1;
                             } else {
                                 echo $sql->errorInfo()[2];

@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 include_once '../../../financiero/consultas.php';
 function pesos($valor)
 {
@@ -24,6 +25,9 @@ try {
     $sql = $cmd->prepare($sql);
     $sql->bindParam(1, $id_doc, PDO::PARAM_INT);
     $sql->execute();
+    if ($sql->rowCount() > 0) {
+        Logs::guardaLog("DELETE FROM `tes_caja_mvto` WHERE `id_ctb_doc` = $id_doc");
+    }
 
     $sql = "INSERT INTO `tes_caja_mvto`
                 (`id_caja_rubros`,`id_ctb_doc`,`valor`,`id_user_reg`,`fec_reg`)
@@ -40,6 +44,7 @@ try {
         if ($valor > 0) {
             $sql->execute();
             if ($sql->rowCount() > 0) {
+                Logs::guardaLog("INSERT INTO `tes_caja_mvto` (`id_caja_rubros`,`id_ctb_doc`,`valor`,`id_user_reg`,`fec_reg`) VALUES ($id_rubro, $id_doc, '$valor', $id_user, '$fecha2')");
                 $cambios++;
             } else {
                 echo $sql->errorInfo()[2];

@@ -12,6 +12,7 @@ $item = $_POST['item'] ?? 1;
 
 include_once '../../../../../config/autoloader.php';
 
+use Config\Clases\Logs;
 use Config\Clases\Conexion;
 use Src\Nomina\Empleados\Php\Clases\Bsp;
 use Src\Nomina\Empleados\Php\Clases\Cesantias;
@@ -445,28 +446,40 @@ switch ($action) {
                 if (isset($_POST['libranza']) && is_array($_POST['libranza'])) {
                     foreach ($_POST['libranza'] as $id => $val) {
                         $stmt = $conexion->prepare("UPDATE `nom_liq_libranza` SET `val_mes_lib` = ? WHERE `id_lid_lib` = ?");
-                        if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) $suma++;
+                        if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) {
+                            $suma++;
+                            Logs::guardaLog("UPDATE `nom_liq_libranza` SET `val_mes_lib` = $val WHERE `id_lid_lib` = $id");
+                        }
                     }
                 }
                 // Embargos
                 if (isset($_POST['embargo']) && is_array($_POST['embargo'])) {
                     foreach ($_POST['embargo'] as $id => $val) {
                         $stmt = $conexion->prepare("UPDATE `nom_liq_embargo` SET `val_mes_embargo` = ? WHERE `id_liq_embargo` = ?");
-                        if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) $suma++;
+                        if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) {
+                            $suma++;
+                            Logs::guardaLog("UPDATE `nom_liq_embargo` SET `val_mes_embargo` = $val WHERE `id_liq_embargo` = $id");
+                        }
                     }
                 }
                 // Sindicatos
                 if (isset($_POST['sindicato']) && is_array($_POST['sindicato'])) {
                     foreach ($_POST['sindicato'] as $id => $val) {
                         $stmt = $conexion->prepare("UPDATE `nom_liq_sindicato_aportes` SET `val_aporte` = ? WHERE `id_aporte` = ?");
-                        if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) $suma++;
+                        if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) {
+                            $suma++;
+                            Logs::guardaLog("UPDATE `nom_liq_sindicato_aportes` SET `val_aporte` = $val WHERE `id_aporte` = $id");
+                        }
                     }
                 }
                 // Otros Descuentos
                 if (isset($_POST['otro_dcto']) && is_array($_POST['otro_dcto'])) {
                     foreach ($_POST['otro_dcto'] as $id => $val) {
                         $stmt = $conexion->prepare("UPDATE `nom_liq_descuento` SET `valor` = ? WHERE `id_liq` = ?");
-                        if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) $suma++;
+                        if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) {
+                            $suma++;
+                            Logs::guardaLog("UPDATE `nom_liq_descuento` SET `valor` = $val WHERE `id_liq` = $id");
+                        }
                     }
                 }
 
@@ -552,6 +565,9 @@ switch ($action) {
                     $stmtAnul->bindValue(':concepto_anul', $concepto_anul, \PDO::PARAM_STR);
                     $stmtAnul->bindValue(':id_nomina', $id, \PDO::PARAM_INT);
                     $stmtAnul->execute();
+                    if ($stmtAnul->rowCount() > 0) {
+                        Logs::guardaLog("UPDATE `nom_nominas` SET `id_user_anul` = $id_user_anul, `fec_anull` = '$fec_anull', `concepto_anul` = '$concepto_anul' WHERE `id_nomina` = $id");
+                    }
                 } catch (\PDOException $e) {
                     // No bloquear si falla el guardado de datos adicionales
                 }

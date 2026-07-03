@@ -300,6 +300,104 @@ class Cuentas
         if (!empty($valida)) {
             return 'La cuenta ya existe.';
         }
+        $sql = "SELECT
+                    `nom_causacion`.`id_causacion`
+                    , `ctb_pgcp`.`id_pgcp` AS `id_cuenta`
+                    , CONCAT_wS(' -> ', `ctb_pgcp`.`cuenta`
+                    , `ctb_pgcp`.`nombre`) AS `nom_cta`
+                    , `ctb_pgcp`.`tipo_dato` AS `tp`
+                    , `nom_causacion`.`centro_costo` AS `id_cc`
+                    , `nom_causacion`.`centro_costo`
+                    , `nom_causacion`.`id_tipo`
+                    , `nom_tipo_rubro`.`nombre`
+                FROM
+                    `nom_causacion`
+                    LEFT JOIN `nom_tipo_rubro` 
+                        ON (`nom_causacion`.`id_tipo` = `nom_tipo_rubro`.`id_rubro`)
+                    LEFT JOIN `ctb_pgcp` 
+                        ON (`nom_causacion`.`cuenta` = `ctb_pgcp`.`id_pgcp`)
+                WHERE (`nom_causacion`.`id_causacion` = ?)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        if (empty($data)) {
+            $data =
+                [
+                    'id_causacion' => '0',
+                    'id_cuenta' => '0',
+                    'nom_cta' => '',
+                    'tp' => 'M',
+                    'id_cc' => '0',
+                    'centro_costo' => '',
+                    'id_tipo' => '0',
+                    'nombre' => ''
+                ];
+        }
+        return $data;
+    }
+    private function getValidaInsert($ccosto, $id_tipo)
+    {
+        try {
+            $sql = "SELECT `id_causacion` FROM `nom_causacion` WHERE `centro_costo` = ? AND `id_tipo` = ?";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $ccosto, PDO::PARAM_INT);
+            $stmt->bindValue(2, $id_tipo, PDO::PARAM_INT);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+            $stmt->closeCursor();
+            unset($stmt);
+            return $result;
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+    public function getConcepto($caracter)
+    {
+        if ($caracter == 2) {
+            $where = 'IN (1,2)';
+        } else {
+            $where = 'IN (1)';
+        }
+        $sql = "SELECT
+                    `id_rubro`,`nombre`
+                FROM `nom_tipo_rubro` WHERE `tipo` $where 
+                ORDER BY `nombre` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $caracter, PDO::PARAM_STR);
+        $stmt->execute();
+        $registros = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $registros;
+    }
+
+    public function delCuenta($id)
+    {
+        try {
+            $sql = "DELETE FROM `nom_causacion` WHERE `id_causacion` = ?";
+            $consulta  = "DELETE FROM `nom_causacion` WHERE `id_causacion` = $id";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindParam(1, $id, PDO::PARAM_INT);
+            $stmt->execute();
+            if ($stmt->rowCount() > 0) {
+                Logs::guardaLog($consulta);
+                return 'si';
+            } else {
+                return 'No se eliminó el registro';
+            }
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+    public function addCuenta($array)
+    {
+        $valida = $this->getValidaInsert($array['slcCcosto'], $array['slcTipo']);
+        if (!empty($valida)) {
+            return 'La cuenta ya existe.';
+        }
         try {
             $sql = "INSERT INTO `nom_causacion`
                         (`centro_costo`,`id_tipo`,`cuenta`,`fec_reg`,`id_user_reg`)
@@ -313,6 +411,9 @@ class Cuentas
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("INSERT INTO `nom_causacion` (`centro_costo`,`id_tipo`,`cuenta`,`fec_reg`,`id_user_reg`) VALUES ({$array['slcCcosto']}, {$array['slcTipo']}, {$array['idCtaCtb']}, '$hoy', $idUser)");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -336,12 +437,16 @@ class Cuentas
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {
                 if ($stmt->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `nom_causacion` SET `cuenta` = {$array['idCtaCtb']} WHERE `id_causacion` = {$array['id']}");
                     $consulta = "UPDATE `nom_causacion` SET `id_user_act` =  ? , `fec_act` = ? WHERE `id_causacion` = ?";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::IdUser(), PDO::PARAM_INT);
-                    $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
+                    $idUser = Sesion::IdUser();
+                    $hoy = Sesion::Hoy();
+                    $stmt2->bindValue(1, $idUser, PDO::PARAM_INT);
+                    $stmt2->bindValue(2, $hoy, PDO::PARAM_STR);
                     $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                     $stmt2->execute();
+                    Logs::guardaLog("UPDATE `nom_causacion` SET `id_user_act` =  $idUser , `fec_act` = '$hoy' WHERE `id_causacion` = {$array['id']}");
                     return 'si';
                 } else {
                     return 'No se realizó ningún cambio.';

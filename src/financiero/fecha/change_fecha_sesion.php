@@ -8,6 +8,7 @@ if (isset($_POST)) {
     $date = new DateTime('now', new DateTimeZone('America/Bogota'));
     $fecha2 = $date->format('Y-m-d H:i:s');
     include '../../../config/autoloader.php';
+    use Config\Clases\Logs;
     $cmd = \Config\Clases\Conexion::getConexion();
     if ($_POST['id'] != 0) {
         $query = $cmd->prepare("INSERT INTO tb_fin_fecha (vigencia,id_usuario,fecha) VALUES (?, ?, ?)");
@@ -17,6 +18,7 @@ if (isset($_POST)) {
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
             $id = $cmd->lastInsertId();
+            Logs::guardaLog("INSERT INTO tb_fin_fecha (vigencia,id_usuario,fecha) VALUES ($vigencia, $usuario, '$fecha')");
             $response[] = array("value" => 'ok');
         } else {
             print_r($query->errorInfo()[2]);
@@ -31,6 +33,7 @@ if (isset($_POST)) {
         $query->bindParam(4, $id, PDO::PARAM_INT);
         $query->execute();
         if ($query->rowCount() > 0) {
+            Logs::guardaLog("UPDATE tb_fin_fecha SET vigencia = $vigencia, id_usuario = $usuario, fecha ='$fecha' WHERE id = $id");
             $response[] = array("value" => 'modificado');
         } else {
             print_r($query->errorInfo()[2]);

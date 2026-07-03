@@ -12,6 +12,7 @@ $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $response['status'] = 'error';
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -41,6 +42,7 @@ try {
         $query->bindParam(5, $fecha2);
         $query->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `tes_conciliacion_detalle` (`id_concilia`,`id_ctb_libaux`,`fecha_marca`,`id_user_reg`,`fec_reg`) VALUES ($id_conciliacion, $id_libaux, '$fecha_marca', $iduser, '$fecha2')");
             $response['status'] = 'ok';
         } else {
             $response['msg'] = $query->errorInfo()[2];

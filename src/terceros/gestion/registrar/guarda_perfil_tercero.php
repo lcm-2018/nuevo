@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id = isset($_POST['id_perfil']) ? $_POST['id_perfil'] : exit('Acción no permitida');
 $descripcion = $_POST['txtPerfilTercero'];
 $id_user = $_SESSION['id_user'];
@@ -22,6 +23,7 @@ try {
         $sql->bindValue(3, $date->format('Y-m-d H:i:s'));
         $sql->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `ctt_perfil_tercero` (`descripcion`,`id_user_reg`,`fec_reg`) VALUES ('$descripcion', $id_user, '" . $date->format('Y-m-d H:i:s') . "')");
             echo 'ok';
         } else {
             echo $sql->errorInfo()[2];
@@ -33,6 +35,7 @@ try {
         $sql->bindParam(2, $id, PDO::PARAM_INT);
         $sql->execute();
         if ($sql->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `ctt_perfil_tercero` SET `descripcion` = '$descripcion' WHERE `id_perfil` = $id");
             echo 'ok';
         } else {
             echo 'No se actualizó ningún registro';

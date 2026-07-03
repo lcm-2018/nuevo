@@ -9,6 +9,7 @@ include_once '../../../../config/autoloader.php';
 
 use Src\Common\Php\Clases\Permisos;
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 $idbs = isset($_POST['idBnSv']) ? $_POST['idBnSv'] : exit('Acción no permitida');
 $idtbnsv = $_POST['slcTipoBnSv'];
 $tbnsv = mb_strtoupper($_POST['txtBnSv']);
@@ -32,6 +33,7 @@ try {
         exit();
     } else {
         if ($cambio > 0) {
+            Logs::guardaLog("UPDATE ctt_bien_servicio SET id_tipo_bn_sv = $idtbnsv, bien_servicio = '$tbnsv' WHERE id_b_s = $idbs");
             $cmd = \Config\Clases\Conexion::getConexion();
             
             $sql = "UPDATE ctt_bien_servicio SET  id_user_act = ? ,fec_act = ? WHERE id_b_s = ?";
@@ -41,6 +43,7 @@ try {
             $sql->bindParam(3, $idbs, PDO::PARAM_INT);
             $sql->execute();
             if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE ctt_bien_servicio SET  id_user_act = $iduser ,fec_act = '{$date->format('Y-m-d H:i:s')}' WHERE id_b_s = $idbs");
                 echo '1';
             } else {
                 echo $sql->errorInfo()[2];

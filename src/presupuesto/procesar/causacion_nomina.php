@@ -5,6 +5,7 @@ use Src\Common\Php\Clases\Terceros;
 use Src\Nomina\Configuracion\Php\Clases\Rubros;
 use Src\Nomina\Liquidacion\Php\Clases\Nomina;
 use Src\Nomina\Liquidado\Php\Clases\Detalles;
+use Config\Clases\Logs;
 
 session_start();
 if (!isset($_SESSION['user'])) {
@@ -312,6 +313,7 @@ try {
     if (!($id_cdp > 0)) {
         throw new Exception($sql->errorInfo()[2]);
     }
+    Logs::guardaLog("INSERT INTO `pto_cdp` (`id_pto`, `id_manu`, `fecha`, `objeto`, `id_user_reg`, `fecha_reg`, `estado`) VALUES ($id_pto, $id_manu, '$fec_doc', '$objeto', $iduser, '$fecha2', $cerrado)");
 
     $sql = "SELECT `id_tercero_api` FROM `tb_terceros` WHERE `nit_tercero` = ?";
     $rs = $cmd->prepare($sql);
@@ -369,6 +371,7 @@ try {
     if (!($id_crp > 0)) {
         throw new Exception($sql->errorInfo()[2]);
     }
+    Logs::guardaLog("INSERT INTO `pto_crp` (`id_pto`, `id_cdp`, `id_manu`, `fecha`, `objeto`, `id_user_reg`, `fecha_reg`, `estado`, `id_tercero_api`) VALUES ($id_pto, $id_cdp, $id_manu, '$fec_doc', '$objeto', $iduser, '$fecha2', $cerrado, " . ($id_ter_api ?? 'NULL') . ")");
 
     $liberado = 0;
     $query = "INSERT INTO `pto_cdp_detalle` 
@@ -428,11 +431,13 @@ try {
                 $query->execute();
                 $id_detalle_cdp = $cmd->lastInsertId();
                 if ($id_detalle_cdp > 0) {
+                    Logs::guardaLog("INSERT INTO `pto_cdp_detalle` (`id_pto_cdp`, `id_rubro`, `valor`, `valor_liberado`) VALUES ($id_cdp, $rubro, $valor, $liberado)");
                     $sqly->execute();
                     $id_detalle_crp = $cmd->lastInsertId();
                     if (!($id_detalle_crp > 0)) {
                         throw new Exception($sqly->errorInfo()[2]);
                     }
+                    Logs::guardaLog("INSERT INTO `pto_crp_detalle` (`id_pto_crp`, `id_pto_cdp_det`, `id_tercero_api`, `valor`, `valor_liberado`) VALUES ($id_crp, $id_detalle_cdp, $id_tercero, $valor, $liberado)");
                 } else {
                     throw new Exception($query->errorInfo()[2]);
                 }
@@ -458,11 +463,13 @@ try {
                 $query->execute();
                 $id_detalle_cdp = $cmd->lastInsertId();
                 if ($id_detalle_cdp > 0) {
+                    Logs::guardaLog("INSERT INTO `pto_cdp_detalle` (`id_pto_cdp`, `id_rubro`, `valor`, `valor_liberado`) VALUES ($id_cdp, $rubro, $valor, $liberado)");
                     $sqly->execute();
                     $id_detalle_crp = $cmd->lastInsertId();
                     if (!($id_detalle_crp > 0)) {
                         throw new Exception($sqly->errorInfo()[2]);
                     }
+                    Logs::guardaLog("INSERT INTO `pto_crp_detalle` (`id_pto_crp`, `id_pto_cdp_det`, `id_tercero_api`, `valor`, `valor_liberado`) VALUES ($id_crp, $id_detalle_cdp, $id_tercero, $valor, $liberado)");
                 } else {
                     throw new Exception($query->errorInfo()[2]);
                 }
@@ -477,6 +484,7 @@ try {
     $sql->bindParam(1, $estado, PDO::PARAM_INT);
     $sql->bindParam(2, $idNomina, PDO::PARAM_INT);
     $sql->execute();
+    if ($sql->rowCount() > 0) Logs::guardaLog("UPDATE `nom_nominas` SET `estado` = $estado WHERE `id_nomina` = $idNomina");
 
     $query = "INSERT INTO `nom_nomina_pto_ctb_tes` 
                 (`id_nomina`, `cdp`, `crp`, `tipo`) 
@@ -490,6 +498,7 @@ try {
     if (!($cmd->lastInsertId() > 0)) {
         throw new Exception($query->errorInfo()[2]);
     }
+    Logs::guardaLog("INSERT INTO `nom_nomina_pto_ctb_tes` (`id_nomina`, `cdp`, `crp`, `tipo`) VALUES ($idNomina, $id_cdp, $id_crp, '$tipo_nomina')");
     $cmd->commit();
     $cmd = null;
     echo 'ok';

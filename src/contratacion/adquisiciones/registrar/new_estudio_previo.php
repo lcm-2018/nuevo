@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 $id_compra = isset($_POST['id_compra']) ? $_POST['id_compra'] : exit('Acción no permitida');
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
 $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
 $permisos = new \Src\Common\Php\Clases\Permisos();
@@ -53,6 +54,7 @@ try {
     $sql->execute();
     $id_estudio = $cmd->lastInsertId();
     if ($id_estudio > 0) {
+        Logs::guardaLog("INSERT INTO `ctt_estudios_previos`(`id_compra`,`fec_ini_ejec`,`fec_fin_ejec`, `val_contrata`,`id_forma_pago`,`id_supervisor`,`necesidad`,`act_especificas`,`prod_entrega`,`obligaciones`,`forma_pago`, `num_ds`,`requisitos`,`garantia`, `describe_valor`,`id_user_reg`,`fec_reg`) VALUES ($id_compra, '$fec_ini', '$fec_fin', '$val_contrato', $forma_pago, $supervisor, '$DescNec', '$ActEspecificas', '$ProdEntrega', '$ObligContratista', '$FormPago', '$numDS', '$requisitos', '$garantia', '$describe_valor', $id_user, '{$date->format('Y-m-d H:i:s')}')");
         $polizas = isset($_POST['check']) ? $_POST['check'] : '';
         $cant = 0;
         if ($polizas == '') {
@@ -70,6 +72,7 @@ try {
                     $id_pol = $p;
                     $sql->execute();
                     if ($cmd->lastInsertId() > 0) {
+                        Logs::guardaLog("INSERT INTO `seg_garantias_compra`(`id_est_prev`,`id_poliza`,`id_user_reg`,`fec_reg`) VALUES ($id_estudio, $id_pol, $id_user, '{$date->format('Y-m-d H:i:s')}')");
                         $cant++;
                     } else {
                         echo $sql->errorInfo()[2];
@@ -94,6 +97,7 @@ try {
                 if (!($sql->rowCount() > 0)) {
                     echo $sql->errorInfo()[2];
                 } else {
+                    Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `estado`= $estado, `id_user_act` = $id_user, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_adquisicion` = $id_compra");
                     echo 'ok';
                 }
                 $cmd = null;

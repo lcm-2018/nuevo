@@ -5,6 +5,8 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../conexion.php';
+include_once '../../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 if (isset($_FILES['fileContrato'])) {
     $id_contrato = $_POST['id_contrato_s'];
@@ -61,6 +63,7 @@ if (isset($_FILES['fileContrato'])) {
             if (!($sql->rowCount() > 0)) {
                 echo $sql->errorInfo()[2];
             } else {
+                Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `estado`= $estado, `id_cont_api` = $id_con_api, `id_user_act` = $iduser, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_adquisicion` = $id_compra");
                 echo 1;
             }
             $cmd = null;

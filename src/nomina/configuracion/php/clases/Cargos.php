@@ -341,7 +341,19 @@ class Cargos
             $stmt->bindValue(8, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
-            return $id > 0 ? 'si' : 'No se insertó';
+            if ($id > 0) {
+                $codigo = $array['slcCodigo'] ?? 'NULL';
+                $grado = $array['numGrado'] ?? 'NULL';
+                $perfil = $array['txtPerfilSiho'] ?? '';
+                $nombramiento = $array['slcNombramiento'] ?? 'NULL';
+                $tipo = $array['slcTipoCargo'] ?? 1;
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("INSERT INTO `nom_cargo_empleado` (`codigo`,`descripcion_carg`,`grado`,`perfil_siho`,`id_nombramiento`, `tipo_cargo`,`id_user_reg`,`fec_reg`) VALUES ($codigo, '{$array['txtNomCargo']}', $grado, '$perfil', $nombramiento, $tipo, $idUser, '$hoy')");
+                return 'si';
+            } else {
+                return 'No se insertó';
+            }
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
@@ -365,12 +377,21 @@ class Cargos
                 return 'Error: ' . $stmt->errorInfo()[2];
             } else {
                 if ($stmt->rowCount() > 0) {
+                    $codigo = $array['slcCodigo'] ?? 'NULL';
+                    $grado = $array['numGrado'] ?? 'NULL';
+                    $perfil = $array['txtPerfilSiho'] ?? '';
+                    $nombramiento = $array['slcNombramiento'] ?? 'NULL';
+                    $tipo = $array['slcTipoCargo'] ?? 1;
+                    Logs::guardaLog("UPDATE `nom_cargo_empleado` SET `codigo` = $codigo, `descripcion_carg` = '{$array['txtNomCargo']}', `grado` = $grado, `perfil_siho` = '$perfil', `id_nombramiento` = $nombramiento, `tipo_cargo` = $tipo WHERE (`id_cargo` = {$array['id']})");
                     $consulta = "UPDATE `nom_cargo_empleado` SET `id_user_act` = ?, `fec_act` = ? WHERE (`id_cargo` = ?)";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::IdUser(), PDO::PARAM_INT);
-                    $stmt2->bindValue(2, Sesion::Hoy(), PDO::PARAM_STR);
+                    $idUser = Sesion::IdUser();
+                    $hoy = Sesion::Hoy();
+                    $stmt2->bindValue(1, $idUser, PDO::PARAM_INT);
+                    $stmt2->bindValue(2, $hoy, PDO::PARAM_STR);
                     $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                     $stmt2->execute();
+                    Logs::guardaLog("UPDATE `nom_cargo_empleado` SET `id_user_act` = $idUser, `fec_act` = '$hoy' WHERE (`id_cargo` = {$array['id']})");
                     return 'si';
                 } else {
                     return 'No se realizó ningún cambio.';

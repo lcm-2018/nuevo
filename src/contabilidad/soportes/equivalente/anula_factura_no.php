@@ -11,6 +11,7 @@ $id_facno = isset($_POST['id']) ? $_POST['id'] : exit('Acción no permitida');
 $vigencia = $_SESSION['vigencia'];
 $id_empresa = $_SESSION['id_empresa'];
 include '../../../../config/../config/autoloader.php';
+use Config\Clases\Logs;
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_valxvig`, `id_concepto`, `valor`,`concepto`
@@ -27,6 +28,7 @@ try {
     $idiNonce = $concec['id_valxvig'];
     $sql = "UPDATE `nom_valxvigencia` SET `valor` = '$iNonce'+1 WHERE `id_valxvig` = '$idiNonce'";
     $rs = $cmd->query($sql);
+    Logs::guardaLog("UPDATE `nom_valxvigencia` SET `valor` = " . ($iNonce+1) . " WHERE `id_valxvig` = $idiNonce");
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -536,15 +538,18 @@ if ($resnom['rerror'] == 0) {
         $sql->execute();
         if ($cmd->lastInsertId() > 0) {
             $id_soporte_f = $cmd->lastInsertId();
+            Logs::guardaLog("INSERT INTO `tb_soporte_factura`(`shash`,`referencia`,`fecha`,`id_user_reg`) VALUES('$shash','$sreference','$hoy',$iduser)");
             $estado = 3;
             $sql = "UPDATE `tb_facturas` SET `estado` = ? WHERE `id_facturano` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $estado, PDO::PARAM_INT);
             $sql->bindParam(2, $id_facno, PDO::PARAM_INT);
             $sql->execute();
+            Logs::guardaLog("UPDATE `tb_facturas` SET `estado` = 3 WHERE `id_facturano` = $id_facno");
             $id_sec = $resolucion['id_resol'];
             $query = "UPDATE `tb_resoluciones` SET `consecutivo` = '$secuenciaf'+1 WHERE `id_resol` = '$id_sec'";
             $rs = $cmd->query($query);
+            Logs::guardaLog("UPDATE `tb_resoluciones` SET `consecutivo` = " . ($secuenciaf+1) . " WHERE `id_resol` = $id_sec");
             try {
                 $sql = null;
                 $id_tercero_no = $dataFac['id_tercero'];
@@ -575,8 +580,10 @@ if ($resnom['rerror'] == 0) {
                 $sql->execute();
                 if ($cmd->lastInsertId() > 0) {
                     $id_factno = $cmd->lastInsertId();
+                    Logs::guardaLog("INSERT INTO `tb_facturas`(`id_tercero_no`,`fec_compra`,`vigencia`,`id_user_reg`,`id_empresa`,`id_fac_ndc`,`estado`) VALUES($id_tercero_no,'$fec_compra','$vigencia',$id_user_reg,$id_empresa,$id_facno,2)");
                     $query = "UPDATE `tb_soporte_factura` SET `id_factura` = '$id_factno' WHERE `id_soporte` = '$id_soporte_f'";
                     $rs = $cmd->query($query);
+                    Logs::guardaLog("UPDATE `tb_soporte_factura` SET `id_factura` = $id_factno WHERE `id_soporte` = $id_soporte_f");
                     $procesado++;
                 } else {
                     echo json_encode($sql->errorInfo()[2]);

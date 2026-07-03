@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $idsHomolgacion = $_POST['idHomol'];
 $codCgrs = $_POST['codCgr'];
 $codCpc = $_POST['cpc'];
@@ -57,6 +58,7 @@ if ($presupuesto == 1) {
                 if ($idHom == 0) {
                     $insert->execute($params);
                     if ($insert->rowCount() > 0) {
+                        Logs::guardaLog("INSERT INTO `pto_homologa_ingresos` (`id_cargue`, `id_cgr`, `id_cpc`, `id_fuente`, `id_tercero`, `id_politica`, `id_siho`, `id_sia`, `id_situacion`, `id_vigencia`, `id_user_reg`, `fec_reg`) VALUES (" . $params[0] . ", '" . $params[1] . "', '" . $params[2] . "', '" . $params[3] . "', '" . $params[4] . "', '" . $params[5] . "', '" . $params[6] . "', '" . $params[7] . "', '" . $params[8] . "', " . $params[9] . ", " . $params[10] . ", '" . $params[11] . "')");
                         $suma++;
                     } else {
                         $error .= $insert->errorInfo()[2];
@@ -66,6 +68,7 @@ if ($presupuesto == 1) {
                     $paramsUpdate[] = (int) $idHom;
                     $update->execute($paramsUpdate);
                     if ($update->rowCount() > 0) {
+                        Logs::guardaLog("UPDATE `pto_homologa_ingresos` SET `id_cargue` = {$paramsUpdate[0]}, `id_cgr` = '{$paramsUpdate[1]}', `id_cpc` = '{$paramsUpdate[2]}', `id_fuente` = '{$paramsUpdate[3]}', `id_tercero` = '{$paramsUpdate[4]}', `id_politica` = '{$paramsUpdate[5]}', `id_siho` = '{$paramsUpdate[6]}', `id_sia` = '{$paramsUpdate[7]}', `id_situacion` = '{$paramsUpdate[8]}', `id_vigencia` = {$paramsUpdate[9]} WHERE `id_homologacion` = {$paramsUpdate[10]}");
                         $suma++;
                         $con = \Config\Clases\Conexion::getConexion();
                         $query = "UPDATE `pto_homologa_ingresos` SET `id_user_act` = ?, `fec_act` = ? WHERE `id_homologacion` = ?";
@@ -74,6 +77,9 @@ if ($presupuesto == 1) {
                         $query->bindValue(2, $date->format('Y-m-d H:i:s'));
                         $query->bindParam(3, $idHom, PDO::PARAM_INT);
                         $query->execute();
+                        if ($query->rowCount() > 0) {
+                            Logs::guardaLog("UPDATE `pto_homologa_ingresos` SET `id_user_act` = $iduser, `fec_act` = '" . $date->format('Y-m-d H:i:s') . "' WHERE `id_homologacion` = $idHom");
+                        }
                         $con = null;
                     } else {
                         $error .= $insert->errorInfo()[2];
@@ -129,6 +135,7 @@ if ($presupuesto == 1) {
                 if ($idHom == 0) {
                     $insert->execute($params);
                     if ($insert->rowCount() > 0) {
+                        Logs::guardaLog("INSERT INTO `pto_homologa_gastos` (`id_cargue`, `id_cgr`, `id_cpc`, `id_fuente`, `id_tercero`, `id_politica`, `id_siho`, `id_sia`, `id_situacion`, `id_vigencia`, `id_seccion`, `id_sector`, `id_csia`, `id_user_reg`, `fec_reg`,`id_mh`,`id_ps`) VALUES ({$params[0]}, '{$params[1]}', '{$params[2]}', '{$params[3]}', '{$params[4]}', '{$params[5]}', '{$params[6]}', '{$params[7]}', '{$params[8]}', {$params[9]}, '{$params[10]}', '{$params[11]}', '{$params[12]}', {$params[13]}, '{$params[14]}', {$params[15]}, {$params[16]})");
                         $suma++;
                     } else {
                         $error .= $insert->errorInfo()[2];
@@ -140,6 +147,7 @@ if ($presupuesto == 1) {
                     $paramsUpdate[] = (int) $idHom;
                     $update->execute($paramsUpdate);
                     if ($update->rowCount() > 0) {
+                        Logs::guardaLog("UPDATE `pto_homologa_gastos` SET `id_cargue` = {$paramsUpdate[0]}, `id_cgr` = '{$paramsUpdate[1]}', `id_cpc` = '{$paramsUpdate[2]}', `id_fuente` = '{$paramsUpdate[3]}', `id_tercero` = '{$paramsUpdate[4]}', `id_politica` = '{$paramsUpdate[5]}', `id_siho` = '{$paramsUpdate[6]}', `id_sia` = '{$paramsUpdate[7]}', `id_situacion` = '{$paramsUpdate[8]}', `id_vigencia` = {$paramsUpdate[9]}, `id_seccion` = '{$paramsUpdate[10]}', `id_sector` = '{$paramsUpdate[11]}', `id_csia` = '{$paramsUpdate[12]}', `id_mh` = {$paramsUpdate[13]}, `id_ps` = {$paramsUpdate[14]} WHERE `id_homologacion` = {$paramsUpdate[15]}");
                         $suma++;
                         $con = \Config\Clases\Conexion::getConexion();
                         $query = "UPDATE `pto_homologa_gastos` SET `id_user_act` = ?, `fec_act` = ? WHERE `id_homologacion` = ?";
@@ -148,6 +156,9 @@ if ($presupuesto == 1) {
                         $query->bindValue(2, $date->format('Y-m-d H:i:s'));
                         $query->bindParam(3, $idHom, PDO::PARAM_INT);
                         $query->execute();
+                        if ($query->rowCount() > 0) {
+                            Logs::guardaLog("UPDATE `pto_homologa_gastos` SET `id_user_act` = $iduser, `fec_act` = '" . $date->format('Y-m-d H:i:s') . "' WHERE `id_homologacion` = $idHom");
+                        }
                         $con = null;
                     } else {
                         $error .= $insert->errorInfo()[2];

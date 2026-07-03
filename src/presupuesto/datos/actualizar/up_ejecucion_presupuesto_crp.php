@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 $id_crp = isset($_POST['id_crp']) ? $_POST['id_crp'] : exit('Acceso no disponible');
 $id_pto = $_POST['id_pto'];
 $fecha = $_POST['dateFecha'];
@@ -78,6 +79,7 @@ try {
             $query->bindParam(1, $causacion['id_ctb_doc'], PDO::PARAM_INT);
             $query->execute();
             if ($query->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `ctb_doc` SET `estado` = 0 WHERE `id_ctb_doc` = {$causacion['id_ctb_doc']}");
                 $tescon++;
             }
         }
@@ -130,6 +132,10 @@ if ($tesoreria == 1) {
         $sql2->bindParam(10, $id_crp, PDO::PARAM_INT);
         $sql2->execute();
         $id_docts = $cmd->lastInsertId();
+        if ($id_docts > 0) {
+            $f_reg = $date->format('Y-m-d H:i:s');
+            Logs::guardaLog("INSERT INTO `ctb_doc` (`id_vigencia`,`id_tipo_doc`,`id_manu`,`id_tercero`,`fecha`,`detalle`,`estado`,`id_user_reg`,`fecha_reg`,`id_crp`) VALUES ($id_vigencia, $id_doc_fuente, $id_consec, $id_tercero, '$fecha', '$objeto', $cerrado, $id_user, '$f_reg', $id_crp)");
+        }
         if (!($id_docts > 0)) {
             $response['msg'] = $sql2->errorInfo()[2];
             echo json_encode($response);
@@ -153,6 +159,8 @@ if ($tesoreria == 1) {
             $valor = $dato['valor'];
             $query2->execute();
             if ($query2->rowCount() > 0) {
+                $f_reg = $date->format('Y-m-d H:i:s');
+                Logs::guardaLog("INSERT INTO `pto_cop_detalle` (`id_ctb_doc`, `id_pto_crp_det`, `id_tercero_api`, `valor`, `valor_liberado`, `id_user_reg`, `fecha_reg`) VALUES ($id_docts, $id_crp_det, $tercero, $valor, $liberado, $id_user, '$f_reg')");
                 $tescon++;
             } else {
                 $response['msg'] = $query2->errorInfo()[2];
@@ -183,6 +191,9 @@ try {
         exit();
     } else {
         $primer = $sql->rowCount();
+        if ($primer > 0) {
+            Logs::guardaLog("UPDATE `pto_crp` SET `fecha` = '$fecha', `objeto` = '$objeto', `num_contrato` = '$num_solicitud', `id_manu` = $id_manu, `tesoreria` = $tesoreria, `id_tercero_api` = $id_tercero WHERE `id_pto_crp` = $id_crp");
+        }
         $segundo = 0;
         $tercer = 0;
         if ($id_tercero != $id_teractual && $id_adq > 0) {
@@ -192,6 +203,9 @@ try {
             $sql->bindParam(2, $id_adq, PDO::PARAM_INT);
             $sql->execute();
             $segundo = $sql->rowCount();
+            if ($segundo > 0) {
+                Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `id_tercero` = $id_tercero WHERE `id_adquisicion` = $id_adq");
+            }
         }
         if ($id_tercero != $id_teractual) {
             $sql = "UPDATE `pto_crp_detalle` SET `id_tercero_api` = ? WHERE `id_pto_crp` = ?";
@@ -200,14 +214,21 @@ try {
             $sql->bindParam(2, $id_crp, PDO::PARAM_INT);
             $sql->execute();
             $tercer = $sql->rowCount();
+            if ($tercer > 0) {
+                Logs::guardaLog("UPDATE `pto_crp_detalle` SET `id_tercero_api` = $id_tercero WHERE `id_pto_crp` = $id_crp");
+            }
         }
         if ($primer > 0 || $segundo > 0 || $tercer > 0) {
             $sql = "UPDATE `pto_crp` SET `id_user_act` = ?, `fecha_act` = ? WHERE `id_pto_crp` = ?";
             $sql = $cmd->prepare($sql);
             $sql->bindParam(1, $id_user, PDO::PARAM_STR);
-            $sql->bindValue(2, $date->format('Y-m-d H:i:s'));
+            $f_act = $date->format('Y-m-d H:i:s');
+            $sql->bindValue(2, $f_act);
             $sql->bindParam(3, $id_crp, PDO::PARAM_INT);
             $sql->execute();
+            if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `pto_crp` SET `id_user_act` = $id_user, `fecha_act` = '$f_act' WHERE `id_pto_crp` = $id_crp");
+            }
             $response['status'] = 'ok';
         } else {
             $response['msg'] = 'No se registró ningún nuevo dato';

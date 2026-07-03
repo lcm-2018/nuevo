@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_ctb_doc = isset($_POST['id_doc'])  ? $_POST['id_doc'] : exit('Acceso no disponible');
 $id_detalle = isset($_POST['id_detalle'])  ? $_POST['id_detalle'] : 0;
@@ -34,6 +35,7 @@ try {
     $query->bindParam(7, $fecha2, PDO::PARAM_STR);
     $query->execute();
     if ($cmd->lastInsertId() > 0) {
+        Logs::guardaLog("INSERT INTO `tes_detalle_pago` (`id_ctb_doc`,`id_tes_cuenta`,`id_forma_pago`,`documento`,`valor`,`id_user_reg`,`fecha_reg`) VALUES($id_ctb_doc, $cuenta_banco, '$forma_pago', $documento, '$valor_pag', $iduser, '$fecha2')");
         /*
         $sql = "SELECT
                     `id_chequera`

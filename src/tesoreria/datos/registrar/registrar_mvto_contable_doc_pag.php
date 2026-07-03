@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $fecha = $_POST['fecha'];
 $id_tipo_doc = $_POST['id_ctb_doc'];
@@ -69,6 +70,7 @@ try {
         $query->execute();
         $id_pag = $cmd->lastInsertId();
         if ($id_pag > 0) {
+            Logs::guardaLog("INSERT INTO `ctb_doc` (`id_vigencia`,`id_tipo_doc`,`id_manu`,`id_tercero`,`fecha`,`detalle`,`estado`,`id_user_reg`,`fecha_reg`,`id_ref`,`id_ref_ctb`,`doc_soporte`,id_ctb_doc_tipo3) VALUES ($id_vigencia, $tipodato, $id_manu, $id_tercero, '$fecha', '$detalle', $estado, $iduser, '$fecha2', '$referencia', '$id_ref_ctb', $doc_soporte, '$id_cop')");
             $sql = "INSERT INTO `tes_rel_pag_cop`
                         (`id_doc_cop`,`id_doc_pag`)
                     VALUES (?, ?)";
@@ -76,6 +78,7 @@ try {
             $sql->bindParam(1, $id_cop, PDO::PARAM_INT);
             $sql->bindParam(2, $id_pag, PDO::PARAM_INT);
             $sql->execute();
+            Logs::guardaLog("INSERT INTO `tes_rel_pag_cop` (`id_doc_cop`,`id_doc_pag`) VALUES ('$id_cop', $id_pag)");
             if (isset($_POST['id_caja'])) {
                 $id_caja = $_POST['id_caja'];
                 $query = "INSERT INTO `tes_caja_doc` (`id_ctb_doc`, `id_caja`) VALUES (?, ?)";
@@ -83,6 +86,7 @@ try {
                 $query->bindParam(1, $id_pag, PDO::PARAM_INT);
                 $query->bindParam(2, $id_caja, PDO::PARAM_INT);
                 $query->execute();
+                Logs::guardaLog("INSERT INTO `tes_caja_doc` (`id_ctb_doc`, `id_caja`) VALUES ($id_pag, $id_caja)");
             }
             $response['status'] = 'ok';
             $response['id'] = $id_pag;
@@ -116,6 +120,7 @@ try {
                 $sql->bindParam(2, $id_caja_post, PDO::PARAM_INT);
                 $sql->execute();
                 if ($sql->rowCount() > 0) {
+                    Logs::guardaLog("INSERT INTO `tes_caja_doc` (`id_ctb_doc`, `id_caja`) VALUES ($id_reg, $id_caja_post) ON DUPLICATE KEY UPDATE `id_caja` = VALUES(`id_caja`)");
                     $up = true;
                 }
             }
@@ -127,6 +132,7 @@ try {
                 $query->bindParam(2, $fecha2, PDO::PARAM_STR);
                 $query->bindParam(3, $id_reg, PDO::PARAM_INT);
                 $query->execute();
+                Logs::guardaLog("UPDATE `ctb_doc` SET `id_tercero` = $id_tercero, `fecha` = '$fecha', `detalle` = '$detalle', `id_ref`= '$referencia',`id_ref_ctb` = '$id_ref_ctb', `doc_soporte` = $doc_soporte, `id_manu` = $id_manu, `id_user_act` = $iduser, `fecha_act` = '$fecha2' WHERE `id_ctb_doc` = $id_reg");
                 $response['status'] = 'ok';
                 $response['id'] = $id_reg;
             } else {

@@ -190,12 +190,16 @@ class Licencias_MoP
             $stmt->bindParam(3, $a['id'], PDO::PARAM_STR);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_liq_licmp` SET `val_liq` = {$a['valor']}, `tipo` = '{$a['tipo']}' WHERE `id_liqlicmp` = {$a['id']}");
                 $consulta = "UPDATE `nom_liq_licmp` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liqlicmp` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $a['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_liq_licmp` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_liqlicmp` = {$a['id']}");
                 return 'si';
             } else {
                 return 'no';
@@ -369,6 +373,8 @@ class Licencias_MoP
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("INSERT INTO `nom_licenciasmp` (`id_empleado`,`fec_inicio`,`fec_fin`,`tipo`,`dias_inactivo`,`dias_habiles`,`fec_reg`) VALUES ({$array['id_empleado']}, '{$array['datFecInicia']}', '{$array['datFecFin']}', $tipo, {$array['diasInactivo']}, {$array['diasHabiles']}, '$hoy')");
                 $array['novedad'] = $id;
                 $array['tipo'] = 3;
                 $Novedad = new Novedades($this->conexion);
@@ -410,6 +416,9 @@ class Licencias_MoP
             $id = $this->conexion->lastInsertId();
 
             if ($id > 0) {
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
+                Logs::guardaLog("INSERT INTO `nom_liq_licmp` (`id_licmp`,`id_eps`,`dias_liqs`,`val_liq`,`val_dialc`,`id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$array['id_licmp']}, {$array['id_eps']}, {$array['dias_liqs']}, {$array['val_liq']}, {$array['val_dialc']}, $idUser, '$hoy', {$array['id_nomina']})");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -439,11 +448,14 @@ class Licencias_MoP
             $stmt->bindValue(5, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_licenciasmp` SET `fec_inicio` = '{$array['datFecInicia']}', `fec_fin` = '{$array['datFecFin']}', `dias_inactivo` = {$array['diasInactivo']}, `dias_habiles` = {$array['diasHabiles']} WHERE `id_licmp` = {$array['id']}");
                 $consulta = "UPDATE `nom_licenciasmp` SET `fec_act` = ? WHERE `id_licmp` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                $hoy = Sesion::Hoy();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
                 $stmt2->bindValue(2, $array['id'], PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_licenciasmp` SET `fec_act` = '$hoy' WHERE `id_licmp` = {$array['id']}");
                 $Novedad = new Novedades($this->conexion);
                 $Novedad->delRegistro(3, $array['id']);
                 $array['novedad'] = $array['id'];

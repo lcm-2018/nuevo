@@ -184,6 +184,10 @@ class Anulacion
                 }
                 $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
                 $stmt->execute();
+                if ($stmt->rowCount() > 0) {
+                    $logSql = str_replace([':id_empleado', ':id_nomina'], [$filtroEmpleado ? $id_empleado : "''", $id_nomina], $sql);
+                    \Config\Clases\Logs::guardaLog($logSql);
+                }
             }
 
             $this->conexion->commit();

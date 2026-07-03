@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $response = ['status' => 'error', 'msg' => ''];
 
@@ -112,6 +113,9 @@ try {
             $stmt->bindParam(':id_ctb_doc',  $id_ctb_doc,   PDO::PARAM_INT);
             $stmt->bindParam(':id_cta_debito', $id_cta_debito, PDO::PARAM_INT);
             $stmt->execute();
+            if ($stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `ctb_libaux` SET `debito` = `debito` + $valor, `id_user_reg` = $iduser, `fecha_reg` = '$fecha2' WHERE `id_ctb_doc` = $id_ctb_doc AND `id_cuenta` = $id_cta_debito AND `debito` > 0");
+            }
         } else {
             // Primera vez → INSERT
             $stmt = $cmd->prepare("INSERT INTO `ctb_libaux`
@@ -124,6 +128,9 @@ try {
             $stmt->bindParam(':iduser',     $iduser,       PDO::PARAM_INT);
             $stmt->bindParam(':fecha',      $fecha2);
             $stmt->execute();
+            if ($cmd->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`, `id_tercero_api`, `id_cuenta`, `debito`, `credito`, `id_user_reg`, `fecha_reg`) VALUES ($id_ctb_doc, $id_tercero, $id_cta_debito, '$valor', 0, $iduser, '$fecha2')");
+            }
         }
 
         // ── CRÉDITO: una fila nueva por cada arqueo ───────────────────────────
@@ -137,12 +144,18 @@ try {
         $stmt->bindParam(':iduser',     $iduser,        PDO::PARAM_INT);
         $stmt->bindParam(':fecha',      $fecha2);
         $stmt->execute();
+        if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`, `id_tercero_api`, `id_cuenta`, `debito`, `credito`, `id_user_reg`, `fecha_reg`) VALUES ($id_ctb_doc, $id_tercero, $id_cta_credito, 0, '$valor', $iduser, '$fecha2')");
+        }
 
         // ── Vincular el arqueo al CTCB ─────────────────────────────────────────
         $stmt = $cmd->prepare("UPDATE `ctb_doc` SET `id_ctb_doc_tipo3` = :id_ctb_doc WHERE `id_ctb_doc` = :id_arqueo");
         $stmt->bindParam(':id_ctb_doc', $id_ctb_doc, PDO::PARAM_INT);
         $stmt->bindParam(':id_arqueo',  $id_arqueo,  PDO::PARAM_INT);
         $stmt->execute();
+        if ($stmt->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `ctb_doc` SET `id_ctb_doc_tipo3` = $id_ctb_doc WHERE `id_ctb_doc` = $id_arqueo");
+        }
 
         $cmd->commit();
         $response['status'] = 'ok';
@@ -168,6 +181,9 @@ try {
         $stmt->bindParam(':id_ctb_doc',   $id_ctb_doc,   PDO::PARAM_INT);
         $stmt->bindParam(':id_cta_debito', $id_cta_debito, PDO::PARAM_INT);
         $stmt->execute();
+        if ($stmt->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `ctb_libaux` SET `debito` = `debito` - $valor, `id_user_reg` = $iduser, `fecha_reg` = '$fecha2' WHERE `id_ctb_doc` = $id_ctb_doc AND `id_cuenta` = $id_cta_debito AND `debito` > 0");
+        }
 
         // ── CRÉDITO: eliminar la fila del arqueo (por cuenta + tercero + valor) ──
         $stmt = $cmd->prepare("DELETE FROM `ctb_libaux`
@@ -181,11 +197,17 @@ try {
         $stmt->bindParam(':id_tercero',    $id_tercero,    PDO::PARAM_INT);
         $stmt->bindParam(':credito',       $valor);
         $stmt->execute();
+        if ($stmt->rowCount() > 0) {
+            Logs::guardaLog("DELETE FROM `ctb_libaux` WHERE `id_ctb_doc` = $id_ctb_doc AND `id_cuenta` = $id_cta_credito AND `id_tercero_api` = $id_tercero AND `credito` = $valor LIMIT 1");
+        }
 
         // ── Liberar el arqueo ─────────────────────────────────────────────────
         $stmt = $cmd->prepare("UPDATE `ctb_doc` SET `id_ctb_doc_tipo3` = NULL WHERE `id_ctb_doc` = :id_arqueo");
         $stmt->bindParam(':id_arqueo', $id_arqueo, PDO::PARAM_INT);
         $stmt->execute();
+        if ($stmt->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `ctb_doc` SET `id_ctb_doc_tipo3` = NULL WHERE `id_ctb_doc` = $id_arqueo");
+        }
 
         $cmd->commit();
         $response['status'] = 'ok';

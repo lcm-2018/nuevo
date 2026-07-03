@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 include '../../../financiero/consultas.php';
 
 $op = isset($_POST['opcion']) ? $_POST['opcion'] : exit('Acceso no disponible');
@@ -36,6 +37,7 @@ try {
         $sql->bindParam(7, $id_tercero, PDO::PARAM_INT);
         $sql->execute();
         if ($cmd->lastInsertId() > 0) {
+            Logs::guardaLog("INSERT INTO `pto_rad_detalle` (`id_pto_rad`,`id_rubro`,`valor`,`valor_liberado`,`id_user_reg`,`fecha_reg`,`id_tercero_api`) VALUES ($id_rad, $id_rubroCod, $valorDeb, $valorCred, $iduser, '" . $date->format('Y-m-d H:i:s') . "', $id_tercero)");
             $response['status'] = "ok";
         } else {
             $response['msg'] = $sql->errorInfo()[2];
@@ -54,14 +56,19 @@ try {
             exit();
         } else {
             if ($sql->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `pto_rad_detalle` SET `id_rubro` = $id_rubroCod, `valor` = $valorDeb, `valor_liberado` = $valorCred WHERE `id_pto_rad_det` = $op");
                 $sql = "UPDATE `pto_rad_detalle`
                             SET `id_user_act` = ?, `fecha_act` = ?
                         WHERE `id_pto_rad_det` = ?";
                 $sql = $cmd->prepare($sql);
                 $sql->bindParam(1, $iduser, PDO::PARAM_INT);
-                $sql->bindValue(2, $date->format('Y-m-d H:i:s'));
+                $fecha_act = $date->format('Y-m-d H:i:s');
+                $sql->bindValue(2, $fecha_act);
                 $sql->bindParam(3, $op, PDO::PARAM_INT);
                 $sql->execute();
+                if ($sql->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `pto_rad_detalle` SET `id_user_act` = $iduser, `fecha_act` = '$fecha_act' WHERE `id_pto_rad_det` = $op");
+                }
                 $response['status'] = 'ok';
             } else {
                 $response['msg'] = 'No se registró ningún nuevo dato';

@@ -8,6 +8,7 @@ include_once '../../../../config/autoloader.php';
 
 use Config\Clases\Conexion;
 use Config\Clases\Plantilla;
+use Config\Clases\Logs;
 
 $nomVariable = isset($_POST['txtNomVariable']) ? trim($_POST['txtNomVariable']) : exit('Nombre de variable es requerido');
 $idTercero = isset($_POST['id_tercero']) ? $_POST['id_tercero'] : exit('Tercero es requerido');
@@ -92,6 +93,8 @@ try {
     }
 
     $cmd->commit();
+    Logs::guardaLog("INSERT INTO `ctt_variables_forms` (`variable`, `tipo`, `contexto`) VALUES ('$variable', $tipo, '$contexto')");
+    Logs::guardaLog("INSERT INTO ctt_firmas (id_variable, id_tercero_api, cargo, nom_imagen, id_user_reg, fec_reg) VALUES ($idVariable, $idTercero, '$cargoUpper', '$nombreArchivo', $iduser, '{$date->format('Y-m-d H:i:s')}')");
     echo '1';
 } catch (Exception $e) {
     if ($cmd->inTransaction()) {

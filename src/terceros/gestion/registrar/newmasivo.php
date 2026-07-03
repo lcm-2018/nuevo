@@ -2,6 +2,7 @@
 session_start();
 
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -130,8 +131,10 @@ try {
         $nit = $r['nit_tercero'];
         $sql->execute();
         if ($sql->rowCount() > 0) {
+            Logs::guardaLog("UPDATE `tb_terceros` SET `id_tercero_api` = $id WHERE `nit_tercero` = '$nit'");
             $query->execute();
             if ($cmd->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO `tb_rel_tercero` (`id_tercero_api`,`id_tipo_tercero`,`id_user_reg`,`fec_reg`) VALUES($id, $tipotercero, $iduser, '" . $date->format('Y-m-d H:i:s') . "')");
                 $reg++;
             } else {
                 echo $query->errorInfo()[2];

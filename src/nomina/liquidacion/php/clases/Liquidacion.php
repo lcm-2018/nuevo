@@ -703,6 +703,11 @@ class Liquidacion
         $stmt->bindValue(6, $id_nomina, PDO::PARAM_INT);
         $stmt->execute();
         $id = $this->conexion->lastInsertId();
+        if ($id > 0) {
+            $hoy = Sesion::Hoy();
+            $idUser = Sesion::IdUser();
+            Logs::guardaLog("INSERT INTO `nom_retencion_fte` (`id_empleado`,`base`,`val_ret`,`id_user_reg`,`fec_reg`,`id_nomina`) VALUES ($id_empleado, $base, $retencion, $idUser, '$hoy', $id_nomina)");
+        }
         return $id > 0 ? 'si' : 'No se insertó la retención en la fuente.';
     }
 
@@ -1527,13 +1532,16 @@ class Liquidacion
                 $stmt->bindValue(2, $id, PDO::PARAM_INT);
 
                 if ($stmt->execute() && $stmt->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `nom_horas_ex_trab` SET `cantidad_he` = {$array['valor']} WHERE `id_he_trab` = $id");
                     $consulta = "UPDATE `nom_horas_ex_trab` 
                                 SET `fec_actu` = ? 
                             WHERE `id_he_trab` = ?";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
+                    $hoy = Sesion::Hoy();
+                    $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
                     $stmt2->bindValue(2, $id, PDO::PARAM_INT);
                     $stmt2->execute();
+                    Logs::guardaLog("UPDATE `nom_horas_ex_trab` SET `fec_actu` = '$hoy' WHERE `id_he_trab` = $id");
                     return 'si';
                 } else {
                     return 'No se actualizó el registro.';
@@ -1958,6 +1966,9 @@ class Liquidacion
                     $rtChk['id_liq_vac']
                 ]);
                 $stmtUpd->closeCursor();
+                if ($stmtUpd->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `nom_liq_vac` SET `val_liq` = $vacacion, `val_prima_vac` = $prima_vac, `val_bon_recrea` = $bonrecrea, `sal_base` = $salbas, `g_rep` = $grepre, `aux_tra` = $auxtra, `aux_alim` = $auxali, `bsp_ant` = $bspant, `psv_ant` = $psvant, `dias_liqs` = $dhabiles WHERE `id_liq_vac` = {$rtChk['id_liq_vac']}");
+                }
             } else {
                 // No existe registro previo: insertar uno nuevo
                 $data = compact('idvac', 'corte', 'vacacion', 'prima_vac', 'bonrecrea', 'id_nomina', 'salbas', 'grepre', 'auxtra', 'auxali', 'bspant', 'psvant', 'dhabiles');
@@ -2654,6 +2665,9 @@ class Liquidacion
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_retencion_fte` (`id_empleado`,`base`,`val_ret`,`id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$array['id_empleado']}, {$array['base']}, $retencion, $idUser, '$hoy', {$array['id_nomina']})");
                 $response['insert'] = true;
                 $response['msg'] = 'si';
                 $response['valor'] = $retencion;
@@ -2691,6 +2705,9 @@ class Liquidacion
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_salario` (`id_empleado`,`sal_base`, `id_contrato`,`forma_pago`,`metodo_pago`,`val_liq`,`fec_reg`,`id_user_reg`,`id_nomina`) VALUES ({$array['id_empleado']}, {$array['sal_base']}, {$array['id_contrato']}, {$array['forma_pago']}, {$array['metodo_pago']}, {$array['val_liq']}, '$hoy', $idUser, {$array['id_nomina']})");
                 $response['insert'] = true;
                 $response['msg'] = 'si';
                 $response['valor'] = $array['val_liq'];
@@ -2728,6 +2745,9 @@ class Liquidacion
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                Logs::guardaLog("INSERT INTO `nom_liq_dlab_auxt` (`id_empleado`,`dias_liq`,`val_liq_dias`,`val_liq_auxt`,`aux_alim`,`g_representa`,`horas_ext`,`id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$array['id_empleado']}, {$array['dias_laborados']}, {$array['val_laborado']}, {$array['val_aux_trans']}, {$array['val_aux_alim']}, {$array['val_grep']}, {$array['val_horas_ex']}, $idUser, '$hoy', {$array['id_nomina']})");
                 $response['insert'] = true;
                 $response['msg'] = 'Correcto';
             } else {

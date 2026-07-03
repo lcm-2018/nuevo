@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $ingreso = isset($_POST['ingreso']) ? $_POST['ingreso'] : exit('Acción no permitida');
 $id_doc = $_POST['id_doc'] == '0' ? NULL : $_POST['id_doc'];
@@ -16,6 +17,7 @@ try {
     $sql->bindParam(1, $id_doc);
     $sql->bindParam(2, $ingreso);
     $sql->execute();
+    Logs::guardaLog("UPDATE `far_orden_ingreso` SET `id_ctb_doc` = $id_doc WHERE `id_ingreso` = $ingreso");
     echo 'ok';
     $cmd = null;
 } catch (PDOException $e) {

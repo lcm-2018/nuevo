@@ -39,6 +39,7 @@ try {
                 echo $sql->errorInfo()[2];
             } else {
                 Logs::guardaLog($consulta);
+                Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `estado`= $estado, `id_user_act` = $id_user, `fec_act` = '{$date->format('Y-m-d H:i:s')}' WHERE `id_adquisicion` = $id_compra");
                 echo 'ok';
             }
             $cmd = null;

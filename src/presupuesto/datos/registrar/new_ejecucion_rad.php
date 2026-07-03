@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
 include '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_pto = $_POST['id_pto'];
 $fecha = $_POST['dateFecha'];
@@ -54,6 +55,7 @@ try {
     $sql->execute();
     $id_new = $cmd->lastInsertId();
     if ($id_new > 0) {
+        Logs::guardaLog("INSERT INTO `pto_rad` (`id_pto`,`fecha`,`id_manu`,`objeto`,`num_factura`,`estado`,`id_user_reg`,`fecha_reg`,`id_tercero_api`) VALUES($id_pto, '$fecha', $id_manu, '$objeto', '$num_solicitud', $estado, $id_user, '" . $date->format('Y-m-d H:i:s') . "', $id_tercero)");
         $response['status'] = 'ok';
         $response['msg'] = $id_new;
     } else {

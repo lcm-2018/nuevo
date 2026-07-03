@@ -386,6 +386,11 @@ class Nomina
             $stmt->execute();
             $id = Conexion::getConexion()->lastInsertId();
             if ($id > 0) {
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $vigencia = Sesion::Vigencia();
+                $incLog = $incremento === null ? 'NULL' : $incremento;
+                Logs::guardaLog("INSERT INTO `nom_nominas` (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`id_incremento`,`fec_reg`,`id_user_reg`) VALUES ('LIQUIDACIÓN {$data['descripcion']}', '$mes', '$vigencia', '{$data['codigo']}', $estado, $estado, $incLog, '$hoy', $idUser)");
                 $res['status'] = 'si';
                 $res['id'] = $id;
                 $mes = mb_strtoupper(Valores::nombreMes($mes));
@@ -417,6 +422,7 @@ class Nomina
             $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_nominas` SET `descripcion` = '{$array['descripcion']}' WHERE `id_nomina` = {$array['id_nomina']}");
                 return 'si';
             } else {
                 return 'No se actualizó el registro.';
@@ -582,12 +588,16 @@ class Nomina
             $stmt->bindParam(3, $id_nomina, PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
+                Logs::guardaLog("UPDATE `nom_nominas` SET `estado` = $estado, `planilla` = $estado WHERE `id_nomina` = $id_nomina");
                 $consulta = "UPDATE `nom_nominas` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_nomina` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
-                $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
-                $stmt2->bindValue(2, Sesion::IdUser(), PDO::PARAM_INT);
+                $hoy = Sesion::Hoy();
+                $idUser = Sesion::IdUser();
+                $stmt2->bindValue(1, $hoy, PDO::PARAM_STR);
+                $stmt2->bindValue(2, $idUser, PDO::PARAM_INT);
                 $stmt2->bindValue(3, $id_nomina, PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `nom_nominas` SET `fec_act` = '$hoy', `id_user_act` = $idUser WHERE `id_nomina` = $id_nomina");
 
                 // Si se anula la nómina (estado=0), anular también todos los registros internos de liquidación
                 if (intval($estado) === 0) {

@@ -6,6 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 include '../../../../config/autoloader.php';
 include '../../../financiero/consultas.php';
+use Config\Clases\Logs;
 
 $id = $_POST['id_referencia'];
 $referencia = $_POST['numRef'];
@@ -48,6 +49,7 @@ try {
                 $stmt2->bindParam(2, $id_user, PDO::PARAM_INT);
                 $stmt2->bindParam(3, $id, PDO::PARAM_INT);
                 $stmt2->execute();
+                Logs::guardaLog("UPDATE `tes_referencia` SET `numero` = '$referencia', `id_tes_cuenta` = $banco, `fecha` = '$fech_doc', `fec_act` = '$fecha2', `id_user_act` = $id_user WHERE `id_referencia` = $id");
                 $response['status'] = 'ok';
             } else {
                 $response['msg'] = 'No se realizaron cambios en el número de referencia';
@@ -67,6 +69,7 @@ try {
         if (!($stmt->execute())) {
             $response['msg'] = 'Error al crear el número de referencia ' . $stmt->errorInfo()[2];
         } else {
+            Logs::guardaLog("INSERT INTO `tes_referencia` (`numero`, `fec_reg`, `id_user_reg`,`estado`, `id_tes_cuenta`, `fecha`) VALUES ('$referencia', '$fecha2', $id_user, $estado, $banco, '$fech_doc')");
             $response['status'] = 'ok';
         }
     }

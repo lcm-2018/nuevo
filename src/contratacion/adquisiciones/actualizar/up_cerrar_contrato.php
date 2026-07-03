@@ -5,6 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include_once '../../../../config/autoloader.php';
+use Config\Clases\Logs;
 
 $id_adq = isset($_POST['id_adq']) ? $_POST['id_adq'] : exit('Accion no permitida');
 $iduser = $_SESSION['id_user'];
@@ -20,6 +21,7 @@ try {
     $query->bindParam(2, $id_adq, PDO::PARAM_INT);
     $query->execute();
     if ($query->rowCount() > 0) {
+        Logs::guardaLog("UPDATE `ctt_adquisiciones` SET `estado` = $estado WHERE `id_adquisicion` = $id_adq");
         echo 'ok';
     } else {
         echo 'Error al cerrar contrato' . $query->errorInfo()[2];

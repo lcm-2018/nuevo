@@ -5,6 +5,7 @@ namespace App\DocumentoElectronico;
 use PDO;
 use Exception;
 use Src\Common\Php\Clases\Valores;
+use Config\Clases\Logs;
 
 /**
  * Repository para manejar datos relacionados con documentos electrónicos
@@ -58,6 +59,7 @@ class DocumentRepository
                 ':valor' => $iNonce + 1,
                 ':id' => $idiNonce
             ]);
+            Logs::guardaLog("UPDATE `nom_valxvigencia` SET `valor` = " . ($iNonce + 1) . " WHERE `id_valxvig` = $idiNonce");
 
             return ['valor' => $iNonce, 'id' => $idiNonce];
         } catch (\PDOException $e) {
@@ -334,13 +336,16 @@ class DocumentRepository
                     VALUES (:id_doc, :referencia, :fecha, :id_user, :fec_reg, 0)";
 
             $stmt = $this->conexion->prepare($sql);
+            $fec_reg = date('Y-m-d H:i:s');
             $stmt->execute([
                 ':id_doc' => $idDoc,
                 ':referencia' => $referencia,
                 ':fecha' => $fecha,
                 ':id_user' => $idUser,
-                ':fec_reg' => date('Y-m-d H:i:s')
+                ':fec_reg' => $fec_reg
             ]);
+            
+            Logs::guardaLog("INSERT INTO `seg_soporte_fno`(`id_factura_no`,`referencia`,`fecha`,`id_user_reg`,`tipo`) VALUES($idDoc,'$referencia','$fecha',$idUser,0)");
 
             $id = $this->conexion->lastInsertId();
 
@@ -384,7 +389,9 @@ class DocumentRepository
             $stmt->bindValue(':id_user', $idUser, \PDO::PARAM_INT);
             $stmt->bindValue(':fec_reg', date('Y-m-d H:i:s'), \PDO::PARAM_STR);
             $stmt->bindValue(':id_soporte', $idSoporte, \PDO::PARAM_INT);
-            return $stmt->execute();
+            $result = $stmt->execute();
+            Logs::guardaLog("UPDATE `seg_soporte_fno` SET `id_factura_no` = $idDoc, `referencia` = '$referencia' WHERE `id_soporte` = $idSoporte");
+            return $result;
         } catch (\PDOException $e) {
             throw new Exception("Error al actualizar soporte: " . $e->getMessage());
         }
@@ -410,7 +417,13 @@ class DocumentRepository
             }
 
             $stmt = $this->conexion->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($isVenta) {
+                Logs::guardaLog("UPDATE `tb_datos_ips` SET `num_efacturactual` = $nuevoConsecutivo");
+            } else {
+                Logs::guardaLog("UPDATE `nom_resoluciones` SET `consecutivo` = $nuevoConsecutivo WHERE `id_resol` = $idResolucion");
+            }
+            return $result;
         } catch (\PDOException $e) {
             throw new Exception("Error al actualizar consecutivo: " . $e->getMessage());
         }
@@ -428,7 +441,9 @@ class DocumentRepository
         try {
             $sql = "UPDATE `ctb_factura` SET `num_doc` = :numero WHERE `id_ctb_doc` = :id";
             $stmt = $this->conexion->prepare($sql);
-            return $stmt->execute([':numero' => $numero, ':id' => $idDoc]);
+            $result = $stmt->execute([':numero' => $numero, ':id' => $idDoc]);
+            Logs::guardaLog("UPDATE `ctb_factura` SET `num_doc` = '$numero' WHERE `id_ctb_doc` = $idDoc");
+            return $result;
         } catch (\PDOException $e) {
             throw new Exception("Error al actualizar número de factura: " . $e->getMessage());
         }
