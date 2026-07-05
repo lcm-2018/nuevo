@@ -1,5 +1,7 @@
 <?php
 session_start();
+use Config\Clases\Logs;
+
 if (isset($_POST)) {
     $fecha = $_POST['fecha'];
     $id_pto = $_POST['id_pto'];
@@ -13,7 +15,6 @@ if (isset($_POST)) {
     $fecha2 = $date->format('Y-m-d H:i:s');
     $estado = 1;
     include '../../../../config/autoloader.php';
-    use Config\Clases\Logs;
     try {
         $cmd = \Config\Clases\Conexion::getConexion();
 

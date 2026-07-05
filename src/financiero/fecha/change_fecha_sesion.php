@@ -1,5 +1,7 @@
 <?php
 session_start();
+use Config\Clases\Logs;
+
 if (isset($_POST)) {
     $fecha = $_POST['fecha'];
     $vigencia = $_POST['vigencia'];
@@ -8,7 +10,6 @@ if (isset($_POST)) {
     $date = new DateTime('now', new DateTimeZone('America/Bogota'));
     $fecha2 = $date->format('Y-m-d H:i:s');
     include '../../../config/autoloader.php';
-    use Config\Clases\Logs;
     $cmd = \Config\Clases\Conexion::getConexion();
     if ($_POST['id'] != 0) {
         $query = $cmd->prepare("INSERT INTO tb_fin_fecha (vigencia,id_usuario,fecha) VALUES (?, ?, ?)");

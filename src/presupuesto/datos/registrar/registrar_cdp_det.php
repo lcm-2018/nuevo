@@ -1,4 +1,6 @@
 <?php
+use Config\Clases\Logs;
+
 if (isset($_POST)) {
     $id_pto_cdp = $_POST['id_pto_cdp'];
     $rubro = $_POST['id_rubroCdp'];
@@ -6,7 +8,6 @@ if (isset($_POST)) {
     $tipo_mov = 'CDP';
     $estado = 0;
     include '../../../../config/autoloader.php';
-    use Config\Clases\Logs;
     $cmd = \Config\Clases\Conexion::getConexion();
     if (empty($_POST['editarRubro'])) {
         $query = $cmd->prepare("INSERT INTO pto_documento_detalles (id_pto_doc, tipo_mov, rubro, valor,estado) VALUES (?, ?, ?, ?,?)");

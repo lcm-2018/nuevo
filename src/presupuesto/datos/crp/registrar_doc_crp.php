@@ -1,5 +1,7 @@
 <?php
 session_start();
+use Config\Clases\Logs;
+
 if (isset($_POST)) {
     //Recibir variables por POST
     $id_pto = $_POST['id_pto'];
@@ -16,7 +18,6 @@ if (isset($_POST)) {
     $fecha2 = $date->format('Y-m-d H:i:s');
     //
     include '../../../../config/autoloader.php';
-    use Config\Clases\Logs;
     try {
         $cmd = \Config\Clases\Conexion::getConexion();
 
@@ -50,7 +51,8 @@ if (isset($_POST)) {
             $query->bindParam(":fec_act", $date);
             $query->bindParam(":id_pto_doc", $id);
             $query->execute();
-            if ($query->rowCount() > 0) Logs::guardaLog("UPDATE pto_documento SET id_manu = " . ($id_manu ?? 'NULL') . ", fecha = " . ($fecha ?? 'NULL') . ", objeto ='" . ($objeto ?? '') . "', id_usuer_act=$iduser,fec_act='" . $date->format('Y-m-d H:i:s') . "' WHERE id_pto_doc = $id");
+            if ($query->rowCount() > 0)
+                Logs::guardaLog("UPDATE pto_documento SET id_manu = " . ($id_manu ?? 'NULL') . ", fecha = " . ($fecha ?? 'NULL') . ", objeto ='" . ($objeto ?? '') . "', id_usuer_act=$iduser,fec_act='" . $date->format('Y-m-d H:i:s') . "' WHERE id_pto_doc = $id");
             $cmd = null;
             $response[] = array("value" => 'modificado', "id" => $id);
         }

@@ -1,5 +1,7 @@
 <?php
 session_start();
+use Config\Clases\Logs;
+
 if (isset($_POST)) {
     $id_manu = $_POST['numCdp'] ?? 0;
     $fecha = $_POST['fecha'];
@@ -12,7 +14,6 @@ if (isset($_POST)) {
     $date = new DateTime('now', new DateTimeZone('America/Bogota'));
     $fecha2 = $date->format('Y-m-d H:i:s');
     include '../../../../config/autoloader.php';
-    use Config\Clases\Logs;
     $cmd = \Config\Clases\Conexion::getConexion();
     // consultar id_pto_documento de la tabla pto_documento
     $query = $cmd->prepare("SELECT `id_pto_presupuestos` FROM `pto_presupuestos` WHERE `id_pto_tipo` =2;");

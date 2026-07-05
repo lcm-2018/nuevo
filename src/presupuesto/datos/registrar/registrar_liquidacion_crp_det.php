@@ -1,11 +1,12 @@
 <?php
+use Config\Clases\Logs;
+
 if (isset($_POST)) {
     $id_pto_doc = $_POST['id_cdp_doc'];
     $id_doc_neo = $_POST['id_doc_neo'];
     $tipo_mov = 'LRP';
     $estado = 0;
     include '../../../../config/autoloader.php';
-    use Config\Clases\Logs;
     $cmd = \Config\Clases\Conexion::getConexion();
     // Consultar rubro de acuerdo a la id recibida
     $partes = explode("_", $_POST['dato']);

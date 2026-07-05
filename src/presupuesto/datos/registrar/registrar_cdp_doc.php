@@ -1,5 +1,7 @@
 <?php
 session_start();
+use Config\Clases\Logs;
+
 if (isset($_POST)) {
     $id_manu = $_POST['numCdp'];
     $fecha = $_POST['fecha'];
@@ -14,7 +16,6 @@ if (isset($_POST)) {
     $date = new DateTime('now', new DateTimeZone('America/Bogota'));
     $fecha2 = $date->format('Y-m-d H:i:s');
     include '../../../../config/autoloader.php';
-    use Config\Clases\Logs;
     $cmd = \Config\Clases\Conexion::getConexion();
     if (empty($_POST['id_pto_mvto'])) {
         $query = $cmd->prepare("INSERT INTO pto_documento (id_pto_presupuestos,id_sede, tipo_doc, id_manu, fecha, objeto,num_solicitud, id_user_reg, fec_reg) VALUES (?, ?, ?, ?, ?, ?,?,?,?)");
@@ -38,7 +39,8 @@ if (isset($_POST)) {
                 $query->bindParam(1, $id, PDO::PARAM_INT);
                 $query->bindParam(2, $id_adq, PDO::PARAM_INT);
                 $query->execute();
-                if ($query->rowCount() > 0) Logs::guardaLog("UPDATE ctt_adquisiciones SET id_cdp = $id WHERE id_adquisicion = $id_adq");
+                if ($query->rowCount() > 0)
+                    Logs::guardaLog("UPDATE ctt_adquisiciones SET id_cdp = $id WHERE id_adquisicion = $id_adq");
             }
             // Actualizo el id_cdp en la tabla ctt_novedad_adicion_prorroga
             if (isset($_POST['id_otro'])) {
@@ -46,7 +48,8 @@ if (isset($_POST)) {
                 $query->bindParam(1, $id, PDO::PARAM_INT);
                 $query->bindParam(2, $id_otro, PDO::PARAM_INT);
                 $query->execute();
-                if ($query->rowCount() > 0) Logs::guardaLog("UPDATE ctt_novedad_adicion_prorroga SET cdp = $id WHERE id_nov_con = $id_otro");
+                if ($query->rowCount() > 0)
+                    Logs::guardaLog("UPDATE ctt_novedad_adicion_prorroga SET cdp = $id WHERE id_nov_con = $id_otro");
             }
         } else {
             print_r($query->errorInfo()[2]);

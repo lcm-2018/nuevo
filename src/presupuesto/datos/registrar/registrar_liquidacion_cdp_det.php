@@ -1,11 +1,12 @@
 <?php
+use Config\Clases\Logs;
+
 if (isset($_POST)) {
     $id_pto_cdp = $_POST['id_cdp_doc'];
     $id_pto_doc = $_POST['id_doc_neo'];
     $tipo_mov = 'LCD';
     $estado = 0;
     include '../../../../config/autoloader.php';
-    use Config\Clases\Logs;
     $cmd = \Config\Clases\Conexion::getConexion();
     // Consultar rubro de acuerdo a la Id recibida
     // dividir una variable que biene separada por _
