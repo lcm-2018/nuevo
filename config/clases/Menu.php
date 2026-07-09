@@ -51,6 +51,7 @@ class Menu
                     {$this->getMenuNomina()}
                     {$this->getMenuTerceros()}
                     {$this->getMenuContratacion()}
+                    {$this->getMenuContratos()}
                     {$this->getMenuPresupuesto()}
                     {$this->getMenuContabilidad()}
                     {$this->getMenuTesoreria()}
@@ -289,6 +290,64 @@ class Menu
                             {$cont_compras}
                             {$cont_no_obligados}
                             {$cont_personalizados}
+                        </ul>
+                    </div>
+                </li>
+            HTML;
+    }
+
+    /**
+     * MODULO CONTRATOS PÚBLICOS (58)
+     * Opciones: 5801 Configuración, 5802 Procesos, 5803 Contratos, 5899 Inf. Personalizados
+     */
+    private function getMenuContratos(): string
+    {
+        // 1. Verificación global del módulo 58
+        if (!($this->modulos[58] > 0 || $this->id_rol == 1)) {
+            return '';
+        }
+
+        // 2. Verificación de que al menos una opción esté habilitada
+        if (!(
+            $this->permisos->PermisosUsuario($this->opciones, 5801, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5802, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5803, 0) ||
+            $this->permisos->PermisosUsuario($this->opciones, 5899, 0) ||
+            $this->id_rol == 1
+        )) {
+            return '';
+        }
+
+        // --- OPCIONES PRINCIPALES ---
+        $ctt_configuracion = $this->renderSubOption(5801, 'fas fa-cogs',           'Configuración', 'contratos/configuracion', 'text-primary');
+        $ctt_procesos      = $this->renderSubOption(5802, 'fas fa-project-diagram', 'Procesos',       'contratos/procesos',       'text-success');
+        $ctt_contratos     = $this->renderSubOption(5803, 'fas fa-file-contract',   'Contratos',      'contratos/contratos',      'text-info');
+
+        // --- OPCIÓN PERSONALIZADOS ---
+        $ctt_personalizados = '';
+        if ($this->permisos->PermisosUsuario($this->opciones, 5899, 0) || $this->id_rol == 1) {
+            $ctt_personalizados = '<li><a href="javascript:void(0)" class="nav-link text-muted px-1 py-2 sombra opcion_personalizado" txt_id_opcion="5899"><i class="fas fa-cogs me-2 fa-fw"></i> Inf. Personalizados</a></li>';
+        }
+
+        // 3. Retorno de la estructura HTML
+        return
+            <<<HTML
+                <li>
+                    <a href="#contratos-collapse" class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                        <span class="d-flex align-items-center">
+                            <div class="menu-icon-wrapper gradient-contratacion">
+                                <i class="fas fa-gavel"></i>
+                            </div>
+                            <span class="menu-text">Contratos Públicos</span>
+                        </span>
+                        <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i> 
+                    </a>
+                    <div class="collapse shadow rounded-3" id="contratos-collapse">
+                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 pt-2 small ps-4 pe-3">
+                            {$ctt_configuracion}
+                            {$ctt_procesos}
+                            {$ctt_contratos}
+                            {$ctt_personalizados}
                         </ul>
                     </div>
                 </li>
