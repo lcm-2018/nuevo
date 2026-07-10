@@ -19,6 +19,7 @@ $dir = $_POST['order'][0]['dir'];
 /*Listar los Articulos Activos y que tengan lotes activos de una Bodega específica
   Totalizado la cantidad por articuoo
   Utilizado en: Pedidos de Bodega, Pedidos de Dependencia, Pedidos SPSR
+  proceso: pspsr, pceco, pbode
 */
 $con_lotes = $_POST['con_lotes'];
 $id_bodega = $_POST['id_bodega'];

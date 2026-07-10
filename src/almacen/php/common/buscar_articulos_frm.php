@@ -19,6 +19,9 @@ $sql = "SELECT nombre FROM far_bodegas WHERE id_bodega=$id_bodega";
 $rs = $cmd->query($sql);
 $obj = $rs->fetch();
 $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
+
+$checked = ($proceso == 'pceco') ? 'checked' : '';
+
 ?>
 
 <div class="px-0">
@@ -74,7 +77,7 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
                     </div>
                     <div class="col-md-2">
                         <div class="form-control form-control-sm bg-input">
-                            <input class="filtro_art form-check-input" type="checkbox" id="chk_conexistencia_lot_fil" checked>
+                            <input class="filtro_art form-check-input" type="checkbox" id="chk_conexistencia_lot_fil" <?php echo $checked ?>>
                             <label class="filtro_art form-check-label small" for="chk_conexistencia_lot_fil">Con Existencias</label>
                         </div>
                     </div>

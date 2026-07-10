@@ -14,10 +14,11 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     
     $sql = "SELECT id_consulta,titulo_consulta,detalle_consulta
-                ,CASE tipo_bdatos WHEN  1 THEN 'Base de Datos Local' WHEN 2 THEN 'Múltiples Bases de Datos' ELSE '' END tipo_bdatos
-                ,CASE tipo_informe WHEN  1 THEN 'Un Informe' WHEN 2 THEN 'Múltiples Informes' ELSE '' END tipo_informe
-                ,CASE tipo_consulta WHEN  1 THEN 'Bases de Datos Locales' WHEN 2 THEN 'Bases de Datos Remotas' ELSE '' END tipo_consulta
-                ,CASE tipo_acceso WHEN  1 THEN 'Público' WHEN 2 THEN 'Usuarios Autorizados' ELSE '' END tipo_acceso
+                ,tipo_bdatos,tipo_informe,tipo_consulta,tipo_acceso
+                ,CASE tipo_bdatos WHEN  1 THEN 'Base de Datos Local' WHEN 2 THEN 'Múltiples Bases de Datos' ELSE '' END nom_tipo_bdatos
+                ,CASE tipo_informe WHEN  1 THEN 'Un Informe' WHEN 2 THEN 'Múltiples Informes' ELSE '' END nom_tipo_informe
+                ,CASE tipo_consulta WHEN  1 THEN 'Bases de Datos Locales' WHEN 2 THEN 'Bases de Datos Remotas' ELSE '' END nom_tipo_consulta
+                ,CASE tipo_acceso WHEN  1 THEN 'Público' WHEN 2 THEN 'Usuarios Autorizados' ELSE '' END nom_tipo_acceso
             FROM dash_consultas WHERE id_consulta=$id";
     $rs = $cmd->query($sql);
     $obj_consulta = $rs->fetch();
@@ -27,6 +28,13 @@ try {
             WHERE id_consulta=$id";
     $rs = $cmd->query($sql);
     $obj_parametros = $rs->fetchAll();
+
+    $sql = "SELECT dash_consulta_bd.id_bdatos,dash_bdatos.nombre_entidad
+    FROM dash_consulta_bd
+    INNER JOIN dash_bdatos ON (dash_bdatos.id_bdatos = dash_consulta_bd.id_bdatos)
+    WHERE dash_consulta_bd.id_consulta=$id";
+    $rs = $cmd->query($sql);
+    $obj_bdatos = $rs->fetchAll();
 
     $cmd = null;
 } catch (PDOException $e) {
@@ -41,7 +49,12 @@ if ($obj_consulta){
     $data['tipo_informe'] = $obj_consulta['tipo_informe'];
     $data['tipo_consulta'] = $obj_consulta['tipo_consulta'];
     $data['tipo_acceso'] = $obj_consulta['tipo_acceso'];
+    $data['nom_tipo_bdatos'] = $obj_consulta['nom_tipo_bdatos'];
+    $data['nom_tipo_informe'] = $obj_consulta['nom_tipo_informe'];
+    $data['nom_tipo_consulta'] = $obj_consulta['nom_tipo_consulta'];
+    $data['nom_tipo_acceso'] = $obj_consulta['nom_tipo_acceso'];
     $data['parametros'] = $obj_parametros;
+    $data['bdatos'] = $obj_bdatos;
 }
 
 echo json_encode($data);

@@ -149,6 +149,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
         <button type="button" class="btn btn-primary btn-sm" id="btn_finalizar" <?php echo $finalizar ?>>Finalizar</button>
         <button type="button" class="btn btn-primary btn-sm" id="btn_anular" <?php echo $anular ?>>Anular</button>
         <button type="button" class="btn btn-primary btn-sm" id="btn_imprimir" <?php echo $imprimir ?>>Imprimir</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn_imprimir_dsr" <?php echo $imprimir ?>>Imprimir DSR</button>
         <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>

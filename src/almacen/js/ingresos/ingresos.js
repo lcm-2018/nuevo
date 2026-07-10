@@ -499,8 +499,8 @@
 
         if (error >= 1) {
             mjeError('Los datos resaltados son obligatorios');
-        } else if (verifica_valmin($('#txt_can_ing'), 1)) {
-            mjeError('La cantidad debe ser mayor igual a 1');
+        } else if (parseFloat($('#txt_can_ing').val()) <= 0) {
+            mjeError('La cantidad debe ser mayor a 0');
         } else if (tam_mue > can_ing) {
             mjeError('El tamaño de la muestra no puede ser mayor a la cantidad ingresada');
             $('#txt_tam_muestra').addClass('is-invalid');    
@@ -631,8 +631,8 @@
         error += verifica_vacio($('#sl_estado_lot'));
 
         if (error >= 1) {
-            mjeError('Los datos resaltados son obligatorios');
-        } else if (!verifica_valmin($('#txt_can_lote'), 1, "El valor de la Cantidad en la Unidad debe ser mayor a 1")) {
+            mjeError('Los datos resaltados son obligatorioss');
+        } else {
             var data = $('#frm_reg_articulos_lotes').serialize();
             $.ajax({
                 url: '../articulos/editar_articulos_lotes.php',

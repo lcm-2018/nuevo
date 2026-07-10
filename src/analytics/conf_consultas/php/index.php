@@ -57,7 +57,7 @@ $content = <<<HTML
                     <tr>
                         <th class="bg-sofia">Id</th>                                        
                         <th class="bg-sofia">Título</th>                        
-                        <th class="bg-sofia">Tipo Base Datos</th>
+                        <th class="bg-sofia">Tipo Fuente Datos</th>
                         <th class="bg-sofia">Tipo Informe</th>
                         <th class="bg-sofia">Tipo Servidor</th>
                         <th class="bg-sofia">Tipo Acceso</th>

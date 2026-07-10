@@ -57,7 +57,7 @@ class Menu
                     {$this->getMenuAlmacen()}
                     {$this->getMenuActivosFijos()}
                     {$this->getMenuFinanciero()}
-                    <!-- {$this->getMenuAnalytics()} -->
+                    <!-- {$this->getMenuAnalytics()}  -->
                 </ul>
             </div>
         </div>
@@ -730,7 +730,7 @@ class Menu
         // 5017: [Movimientos][Traslado SPSR]
         /*if ($this->permisos->PermisosUsuario($this->opciones, 5017, 0) || $this->id_rol == 1) {
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/trasladose_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados Egreso SPSR</a></li>';
-        } */
+        }*/
         // 5009: [Movimientos][Recalcular]
         if ($this->permisos->PermisosUsuario($this->opciones, 5009, 0) || $this->id_rol == 1) {
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/recalcular_kardex/index.php" class="nav-link text-danger px-1 py-2 sombra"><i class="fa fa-cogs me-2 fa-fw"></i> Recalcula Mtos.</a></li>';
@@ -987,9 +987,9 @@ class Menu
         // --- SECCIÓN: CONFIGURACIÓN ---   
         $conf_items = '';
 
-        // 3002: [Configuracion][Sedes-DB]
+        // 3002: [Configuracion][Entidad-Fuente de Datos]
         if ($this->permisos->PermisosUsuario($this->opciones, 3002, 0) || $this->id_rol == 1) {
-            $conf_items .= '<li><a href="' . $this->host . '/src/analytics/conf_bdatos/php/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-project-diagram me-2 fa-fw"></i> Entidades-Base Datos</a></li>';
+            $conf_items .= '<li><a href="' . $this->host . '/src/analytics/conf_bdatos/php/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-project-diagram me-2 fa-fw"></i> Entidades-Fuente de Datos</a></li>';
         }
         
         // 3001: [Configuracion][Consultas Analíticas]
@@ -1014,7 +1014,7 @@ class Menu
         }
 
         if ($this->permisos->PermisosUsuario($this->opciones, 3005, 0) || $this->id_rol == 1) {
-            $vis_items .= '<li><a href="' . $this->host . '/src/analytics/visu_tablero/php/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-tv me-2 fa-fw"></i> Tablero Analítico</a></li>';
+            $vis_items .= '<li><a href="' . $this->host . '/src/analytics/visu_tableros/php/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-tv me-2 fa-fw"></i> Tablero Analítico</a></li>';
         }
 
         $analytics_visualizacion = '';

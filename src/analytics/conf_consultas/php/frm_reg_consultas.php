@@ -50,7 +50,7 @@ $tipo_acceso = ($obj['tipo_acceso'] == 1) ? 'disabled="disabled"' : '';
                         <textarea class="form-control form-control-sm bg-input" id="txt_detalle_consulta" name="txt_detalle_consulta" rows="5"><?php echo $obj['detalle_consulta'] ?></textarea>
                     </div>
                     <div class="col-md-2">
-                        <label for="sl_tipo_bdatos" class="small">Tipo Base Datos</label>
+                        <label for="sl_tipo_bdatos" class="small">Tipo Fuente de Datos</label>
                         <select class="form-select form-select-sm bg-input" id="sl_tipo_bdatos" name="sl_tipo_bdatos">
                             <?= tipo_bdatos('', $obj['tipo_bdatos']) ?>
                         </select>

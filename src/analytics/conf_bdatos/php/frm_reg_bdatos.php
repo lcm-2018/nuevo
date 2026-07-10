@@ -22,7 +22,7 @@ if ($id == -1) {
 <div class="px-0">
     <div class="shadow">
         <div class="card-header py-2 text-center" style="background-color: #16a085 !important;">
-            <h5 class="text-white mb-0">REGISTRAR ENTIDAD-BD</h5>
+            <h5 class="text-white mb-0">REGISTRAR ENTIDAD-FUENTE DE DATOS</h5>
         </div>
         <div class="p-3">
             <form id="frm_reg_bdatos">

@@ -62,7 +62,7 @@ $data = [];
 if (!empty($objs)) {
     foreach ($objs as $obj) {
         $id = $obj['id_consulta'];     
-        $acceder =  '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_acceder" title="Acceder"><span class="fas fa-images"></span></a>';   
+        $acceder =  '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_acceder" title="Ir a Consulta"><span class="fas fa-indent"></span></a>';   
         $data[] = [
             "id_consulta" => $id,
             "titulo_consulta" => mb_strtoupper($obj['titulo_consulta']),
