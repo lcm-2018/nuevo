@@ -64,16 +64,18 @@ if ($id_cta_factura == 0) {
                 $stmtMax->bindParam(2, $id_tipo_doc, PDO::PARAM_INT);
                 $stmtMax->execute();
                 $datosMax = $stmtMax->fetch();
-    
+
                 // Calcular el nuevo consecutivo
                 $maxActual = !empty($datosMax['max_num']) ? intval($datosMax['max_num']) : 0;
                 $nuevoConsecutivo = $maxActual + 1;
-    
+
                 // Si hay resolución, tomar el mayor entre el consecutivo de resolución y el calculado
-                if ($siguienteResol >= $nuevoConsecutivo) {
+                if ($id_tipo_doc == '3' && $siguienteResol > 0) {
+                    $nuevoConsecutivo = $siguienteResol;
+                } else if ($siguienteResol >= $nuevoConsecutivo) {
                     $nuevoConsecutivo = $siguienteResol;
                 }
-    
+
                 // Generar el número de documento final con prefijo
                 $num_doc_final = $pref . $nuevoConsecutivo;
             }

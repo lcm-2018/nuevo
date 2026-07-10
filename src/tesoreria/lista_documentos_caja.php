@@ -20,12 +20,12 @@ include '../financiero/consultas.php';
 $host = Plantilla::getHost();
 
 // Parámetros de entrada
-$id_doc_pag = isset($_POST['id_doc'])    ? $_POST['id_doc']    : exit('Acceso no disponible');
-$id_cop     = isset($_POST['id_cop'])    ? $_POST['id_cop']    : 0;
-$tipo_dato  = isset($_POST['tipo_dato']) ? $_POST['tipo_dato'] : 0;
-$tipo_mov   = isset($_POST['tipo_movi']) ? $_POST['tipo_movi'] : 0;
-$tipo_var   = isset($_POST['tipo_var'])  ? $_POST['tipo_var']  : 0;
-$id_arq     = isset($_POST['id_arq'])    ? $_POST['id_arq']    : 0;
+$id_doc_pag = isset($_POST['id_doc']) ? $_POST['id_doc'] : exit('Acceso no disponible');
+$id_cop = isset($_POST['id_cop']) ? $_POST['id_cop'] : 0;
+$tipo_dato = isset($_POST['tipo_dato']) ? $_POST['tipo_dato'] : 0;
+$tipo_mov = isset($_POST['tipo_movi']) ? $_POST['tipo_movi'] : 0;
+$tipo_var = isset($_POST['tipo_var']) ? $_POST['tipo_var'] : 0;
+$id_arq = isset($_POST['id_arq']) ? $_POST['id_arq'] : 0;
 $id_vigencia = $_SESSION['id_vigencia'];
 
 $cmd = \Config\Clases\Conexion::getConexion();
@@ -65,7 +65,7 @@ $id_manu = $datosDoc['id_manu'] ?? 0;
 // Consulta nombre del tercero
 try {
     $sql = "SELECT `nom_tercero` FROM `tb_terceros` WHERE `id_tercero_api` = {$datosDoc['id_tercero']}";
-    $rs  = $cmd->query($sql);
+    $rs = $cmd->query($sql);
     $dat_ter = $rs->fetch();
     $tercero = !empty($dat_ter) ? $dat_ter['nom_tercero'] : '---';
 } catch (PDOException $e) {
@@ -119,14 +119,14 @@ try {
 $peReg = ($permisos->PermisosUsuario($opciones, 5601, 2) || $id_rol == 1) ? '1' : '0';
 
 // Variables para el formulario
-$fecha      = !empty($datosDoc['fecha'])    ? date('Y-m-d', strtotime($datosDoc['fecha'])) : date('Y-m-d');
-$fuente     = $datosDoc['fuente']           ?? 'DOCUMENTO';
-$estado     = $datosDoc['estado']           ?? 1;
-$id_tercero = $datosDoc['id_tercero']       ?? 0;
-$detalle    = $datosDoc['detalle']          ?? '';
+$fecha = !empty($datosDoc['fecha']) ? date('Y-m-d', strtotime($datosDoc['fecha'])) : date('Y-m-d');
+$fuente = $datosDoc['fuente'] ?? 'DOCUMENTO';
+$estado = $datosDoc['estado'] ?? 1;
+$id_tercero = $datosDoc['id_tercero'] ?? 0;
+$detalle = $datosDoc['detalle'] ?? '';
 $id_caja_const = $datosDoc['id_caja_const'] ?? 0;
-$nombre_caja   = $datosDoc['nombre_caja']   ?? '';
-$fecha_ini_c   = $datosDoc['fecha_ini']     ?? '';
+$nombre_caja = $datosDoc['nombre_caja'] ?? '';
+$fecha_ini_c = $datosDoc['fecha_ini'] ?? '';
 
 // Sección Imputación de Caja Menor
 $btnImputacion = ($estado == 1) ? '<button class="btn btn-outline-success" onclick="ImputacionCtasCajas(' . $id_caja_const . ')"><span class="fas fa-plus fa-lg"></span></button>' : '';
@@ -157,6 +157,24 @@ $seccionFormaPago = <<<HTML
             <div class="input-group input-group-sm">
                 <input type="text" name="forma_pago" id="forma_pago" value="{$valor_pago}" class="form-control bg-input" style="text-align: right;" readonly>
                 {$btnFormaPago}
+            </div>
+        </div>
+    </div>
+HTML;
+
+$valDescuentos = $valDescuentos ?? 0;
+$btnDescuentos = ($estado == 1 && $id_doc_pag > 0)
+    ? '<button class="btn btn-outline-info" type="button" onclick="DesctosCtasPorPagar(' . $id_doc_pag . ')"><span class="fas fa-donate fa-lg"></span></button>'
+    : '';
+$seccionDescuentos = <<<HTML
+    <div class="row mb-1">
+        <div class="col-md-2">
+            <label class="small fw-bold">DESCUENTOS :</label>
+        </div>
+        <div class="col-4">
+            <div class="input-group input-group-sm">
+                <input type="text" name="valDescuentos" id="valDescuentos" value="{$valDescuentos}" class="form-control bg-input" style="text-align: right;" readonly>
+                {$btnDescuentos}
             </div>
         </div>
     </div>
@@ -270,8 +288,8 @@ $content = <<<HTML
 
             {$seccionImputacion}
             {$seccionFormaPago}
+            {$seccionDescuentos}
             {$seccionGenerarMov}
-
             <input type="hidden" id="id_ctb_doc" name="id_ctb_doc" value="{$id_doc_pag}">
 
             <div class="table-responsive mt-4">

@@ -24,7 +24,7 @@ try {
         $prefijo = $rs->fetch();
         if (!empty($prefijo)) {
             $siguiente = $prefijo['consecutivo'];
-            $pref =  $prefijo['prefijo'];
+            $pref = $prefijo['prefijo'];
         }
     }
 
@@ -38,7 +38,11 @@ try {
     $datos = $stmt->fetch();
 
     $consecutivo = !empty($datos['max_num']) ? intval($datos['max_num']) + 1 : 1;
-    $consecutivo = $siguiente >= $consecutivo ? $siguiente : $consecutivo;
+    if ($tipo == '3' && $siguiente > 0) {
+        $consecutivo = $siguiente;
+    } else {
+        $consecutivo = $siguiente >= $consecutivo ? $siguiente : $consecutivo;
+    }
     $response['status'] = 'ok';
     $response['consecutivo'] = $pref . $consecutivo;
     $response['msg'] = 'Consecutivo generado';
