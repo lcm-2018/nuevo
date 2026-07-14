@@ -35,7 +35,7 @@ try {
 
         if ($id_traslado > 0) {
 
-            $sql = "SELECT estado,id_bodega_origen FROM far_traslado_r WHERE id_traslado=" . $id_traslado;
+            $sql = "SELECT estado,fec_traslado,detalle,id_bodega_origen FROM far_traslado_r WHERE id_traslado=" . $id_traslado;
             $rs = $cmd->query($sql);
             $obj_traslado = $rs->fetch();
 
@@ -112,7 +112,6 @@ try {
                     }
 
                     if ($rs) {
-                        Logs::guardaLog($sql);
                         $res['mensaje'] = 'ok';
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
@@ -125,8 +124,11 @@ try {
 
                     $sql = "SELECT val_total FROM far_traslado_r WHERE id_traslado=" . $id_traslado;
                     $rs = $cmd->query($sql);
-                    $obj_traslado = $rs->fetch();
-                    $res['val_total'] = formato_valor($obj_traslado['val_total']);
+                    $obj_total = $rs->fetch();
+                    $res['val_total'] = formato_valor($obj_total['val_total']);
+
+                    $proceso = "Se Modificó detalles de Traslado SPSR Id: " . $id_traslado . ", Fecha: " . $obj_traslado['fec_traslado'] . ", Detalle: " . $obj_traslado['detalle'];
+                    Logs::guardaLog($proceso);
                 }
             } else {
                 $res['mensaje'] = 'Solo puede Modificar Traslados en estado Pendiente';

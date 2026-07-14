@@ -65,6 +65,9 @@ try {
                     $id = $cmd->lastInsertId();
                     $res['mensaje'] = 'ok';
                     $res['id'] = $id;
+
+                    $proceso = "Se Registró Mantenimiento Id: " . $id . ", Fecha: " . $_POST['txt_fec_mant'] . ", Observaciones: " . $_POST['txt_observaciones_mant'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $sql->errorInfo()[2];
                 }
@@ -96,6 +99,9 @@ try {
                     if ($updated) {
                         $res['mensaje'] = 'ok';
                         $res['id'] = $id;
+
+                        $proceso = "Se Modificó Mantenimiento Id: " . $id . ", Fecha: " . $_POST['txt_fec_mant'] . ", Observaciones: " . $_POST['txt_observaciones_mant'];
+                        Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = $sql->errorInfo()[2];
                     }
@@ -108,16 +114,18 @@ try {
         if ($oper == 'del') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado FROM acf_mantenimiento WHERE id_mantenimiento=" . $id;
+            $sql = "SELECT estado,fec_mantenimiento,observaciones FROM acf_mantenimiento WHERE id_mantenimiento=" . $id;
             $rs = $cmd->query($sql);
             $obj_mant = $rs->fetch();
 
             if ($obj_mant['estado'] == 1) {
                 $sql = "DELETE FROM acf_mantenimiento WHERE id_mantenimiento=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {
-                    Logs::guardaLog($sql);
+                if ($rs) {                    
                     $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Eliminó Mantenimiento Id: " . $id . ", Fecha: " . $obj_mant['fec_mantenimiento'] . ", Observaciones: " . $obj_mant['observaciones'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -129,15 +137,15 @@ try {
         if ($oper == 'aprob') {
             $id = $_POST['id'];
 
-            $sql = 'SELECT estado FROM acf_mantenimiento WHERE id_mantenimiento=' . $id . ' LIMIT 1';
+            $sql = 'SELECT estado,fec_mantenimiento,observaciones FROM acf_mantenimiento WHERE id_mantenimiento=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
             $obj_mant = $rs->fetch();
             $estado = isset($obj_mant['estado']) ? $obj_mant['estado'] : -1;
 
             $sql = "SELECT COUNT(*) AS total FROM acf_mantenimiento_detalle WHERE id_mantenimiento=" . $id;
             $rs = $cmd->query($sql);
-            $obj_mant = $rs->fetch();
-            $num_detalles = $obj_mant['total'];
+            $obj_detalles = $rs->fetch();
+            $num_detalles = $obj_detalles['total'];
 
             if ($estado == 1 && $num_detalles > 0) {
                 $sql = "SELECT GROUP_CONCAT(acf_hojavida.placa) as placas 
@@ -145,8 +153,8 @@ try {
                         INNER JOIN acf_hojavida ON (acf_hojavida.id_activo_fijo = acf_mantenimiento_detalle.id_activo_fijo)
                         WHERE acf_mantenimiento_detalle.id_mantenimiento=$id AND acf_hojavida.estado IN (4,5)";
                 $rs = $cmd->query($sql);
-                $obj_mant = $rs->fetch();
-                $placas = isset($obj_mant['placas']) ? $obj_mant['placas'] : '';
+                $obj_mant_pla = $rs->fetch();
+                $placas = isset($obj_mant_pla['placas']) ? $obj_mant_pla['placas'] : '';
 
                 if (!$placas) {
                     $error = 0;
@@ -161,6 +169,9 @@ try {
                     if ($error == 0) {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
+
+                        $proceso = "Se Aprobó Mantenimiento Id: " . $id . ", Fecha: " . $obj_mant['fec_mantenimiento'] . ", Observaciones: " . $obj_mant['observaciones'];
+                        Logs::guardaLog($proceso);
                     } else {
                         $cmd->rollBack();
                         $res['mensaje'] = $cmd->errorInfo()[2];
@@ -180,7 +191,7 @@ try {
         if ($oper == 'ejecu') {
             $id = $_POST['id'];
 
-            $sql = 'SELECT estado FROM acf_mantenimiento WHERE id_mantenimiento=' . $id . ' LIMIT 1';
+            $sql = 'SELECT estado,fec_mantenimiento,observaciones FROM acf_mantenimiento WHERE id_mantenimiento=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
             $obj_mant = $rs->fetch();
             $estado = isset($obj_mant['estado']) ? $obj_mant['estado'] : -1;
@@ -191,8 +202,8 @@ try {
                         INNER JOIN acf_hojavida ON (acf_hojavida.id_activo_fijo = acf_mantenimiento_detalle.id_activo_fijo)
                         WHERE acf_mantenimiento_detalle.id_mantenimiento=$id AND acf_hojavida.estado IN (4,5)";
                 $rs = $cmd->query($sql);
-                $obj_mant = $rs->fetch();
-                $placas = isset($obj_mant['placas']) ? $obj_mant['placas'] : '';
+                $obj_mant_pla = $rs->fetch();
+                $placas = isset($obj_mant_pla['placas']) ? $obj_mant_pla['placas'] : '';
 
                 if (!$placas) {
                     $error = 0;
@@ -207,6 +218,9 @@ try {
                     if ($error == 0) {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
+
+                        $proceso = "Se Puso en Ejecución Mantenimiento Id: " . $id . ", Fecha: " . $obj_mant['fec_mantenimiento'] . ", Observaciones: " . $obj_mant['observaciones'];
+                        Logs::guardaLog($proceso);
                     } else {
                         $cmd->rollBack();
                         $res['mensaje'] = $cmd->errorInfo()[2];
@@ -222,7 +236,7 @@ try {
         if ($oper == 'close') {
             $id = $_POST['id'];
 
-            $sql = 'SELECT estado FROM acf_mantenimiento WHERE id_mantenimiento=' . $id . ' LIMIT 1';
+            $sql = 'SELECT estado,fec_mantenimiento,observaciones FROM acf_mantenimiento WHERE id_mantenimiento=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
             $obj_mant = $rs->fetch();
             $estado = isset($obj_mant['estado']) ? $obj_mant['estado'] : -1;
@@ -240,6 +254,9 @@ try {
                 if ($error == 0) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Cerró Mantenimiento Id: " . $id . ", Fecha: " . $obj_mant['fec_mantenimiento'] . ", Observaciones: " . $obj_mant['observaciones'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $cmd->rollBack();
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -252,7 +269,7 @@ try {
         if ($oper == 'annul') {
             $id = $_POST['id'];
 
-            $sql = 'SELECT estado FROM acf_mantenimiento WHERE id_mantenimiento=' . $id . ' LIMIT 1';
+            $sql = 'SELECT estado,fec_mantenimiento,observaciones FROM acf_mantenimiento WHERE id_mantenimiento=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
             $obj_mant = $rs->fetch();
             $estado = isset($obj_mant['estado']) ? $obj_mant['estado'] : -1;
@@ -270,8 +287,9 @@ try {
                 if ($error == 0) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
-                    $consulta = "Anula Orden de Mantenimiento de Activos Fijos Id: " . $id;
-                    Logs::guardaLog($consulta); 
+                    
+                    $proceso = "Se Anuló Mantenimiento Id: " . $id . ", Fecha: " . $obj_mant['fec_mantenimiento'] . ", Observaciones: " . $obj_mant['observaciones'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $cmd->rollBack();
                     $res['mensaje'] = $cmd->errorInfo()[2];

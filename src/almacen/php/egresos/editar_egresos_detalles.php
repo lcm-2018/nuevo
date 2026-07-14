@@ -35,7 +35,7 @@ try {
 
         if ($id_egreso > 0) {
 
-            $sql = "SELECT estado,id_bodega FROM far_orden_egreso WHERE id_egreso=" . $id_egreso;
+            $sql = "SELECT estado,fec_egreso,detalle,id_bodega FROM far_orden_egreso WHERE id_egreso=" . $id_egreso;
             $rs = $cmd->query($sql);
             $obj_egreso = $rs->fetch();
 
@@ -111,7 +111,6 @@ try {
                     }
 
                     if ($rs) {
-                        Logs::guardaLog($sql);
                         $res['mensaje'] = 'ok';
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
@@ -124,8 +123,11 @@ try {
 
                     $sql = "SELECT val_total FROM far_orden_egreso WHERE id_egreso=" . $id_egreso;
                     $rs = $cmd->query($sql);
-                    $obj_egreso = $rs->fetch();
-                    $res['val_total'] = formato_valor($obj_egreso['val_total']);
+                    $obj_total = $rs->fetch();
+                    $res['val_total'] = formato_valor($obj_total['val_total']);
+
+                    $proceso = "Se Modificó detalles de Órden de Egreso Id: " . $id_egreso . ", Fecha: " . $obj_egreso['fec_egreso'] . ", Detalle: " . $obj_egreso['detalle'];
+                    Logs::guardaLog($proceso);
                 }
             } else {
                 $res['mensaje'] = 'Solo puede Modificar Ordenes de Egreso en estado Pendiente';

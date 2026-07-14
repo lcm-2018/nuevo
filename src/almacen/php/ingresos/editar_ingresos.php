@@ -65,6 +65,9 @@ try {
                     $rs = $cmd->query($sql_i);
                     $obj = $rs->fetch();
                     $res['id'] = $obj['id'];
+
+                    $proceso = "Se Registró Órden de Ingreso Id: " . $obj['id'] . ", Fecha: " . $fec_ing . ", Detalle: " . $detalle;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -82,6 +85,9 @@ try {
                     if ($rs) {
                         $res['mensaje'] = 'ok';
                         $res['id'] = $id;
+
+                        $proceso = "Se Modificó Órden de Ingreso Id: " . $id . ", Fecha: " . $fec_ing . ", Detalle: " . $detalle;
+                        Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
                     }
@@ -94,7 +100,7 @@ try {
         if ($oper == 'del') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado FROM far_orden_ingreso WHERE id_ingreso=" . $id;
+            $sql = "SELECT estado,fec_ingreso,detalle FROM far_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
             $obj_ingreso = $rs->fetch();
 
@@ -102,8 +108,10 @@ try {
                 $sql = "DELETE FROM far_orden_ingreso WHERE id_ingreso=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
-                    Logs::guardaLog($sql);
                     $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Eliminó Órden de Ingreso Id: " . $id . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -115,20 +123,20 @@ try {
         if ($oper == 'close') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado FROM far_orden_ingreso WHERE id_ingreso=" . $id;
+            $sql = "SELECT estado,fec_ingreso,detalle FROM far_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
             $obj_ingreso = $rs->fetch();
             $estado = isset($obj_ingreso['estado']) ? $obj_ingreso['estado'] : -1;
 
             $sql = "SELECT COUNT(*) AS total FROM far_orden_ingreso_detalle WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_ingreso = $rs->fetch();
-            $num_detalles = $obj_ingreso['total'];
+            $obj_detalles = $rs->fetch();
+            $num_detalles = $obj_detalles['total'];
 
             $sql = "SELECT COUNT(*) AS total FROM far_kardex WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_ingreso = $rs->fetch();
-            $num_reg_kardex = $obj_ingreso['total'];
+            $obj_kardex = $rs->fetch();
+            $num_reg_kardex = $obj_kardex['total'];
 
             if ($estado == 1 && $num_detalles > 0 && $num_reg_kardex == 0) {
                 $error = 0;
@@ -221,6 +229,9 @@ try {
                 if ($error == 0) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Cerró Órden de Ingreso Id: " . $id . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
                     $cmd->rollBack();
@@ -239,7 +250,7 @@ try {
         if ($oper == 'annul') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado FROM far_orden_ingreso WHERE id_ingreso=" . $id;
+            $sql = "SELECT estado,fec_ingreso,detalle FROM far_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
             $obj_ingreso = $rs->fetch();
             $estado = $obj_ingreso['estado'];
@@ -269,8 +280,9 @@ try {
                     if ($rs) {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
-                        $consulta = "Anula Orden de Ingreso Id: " . $id . ", Anula los movimientos del kardex";
-                        Logs::guardaLog($consulta);
+
+                        $proceso = "Se Anuló Órden de Ingreso Id: " . $id . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
+                        Logs::guardaLog($proceso);
                     } else {
                         $cmd->rollBack();
                         $res['mensaje'] = $cmd->errorInfo()[2];

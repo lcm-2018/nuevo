@@ -1,7 +1,7 @@
 <?php
 
-$ruta_firmas = "/cronhis/img/firmas/";
 $ruta_firmas = "/proyecto/hc/img/firmas/";
+$ruta_firmas = "/cronhis/img/firmas/";
 
 //FUNCION QUE RETORNAR FECHA Y HORA DEL SERVIDOR
 function fecha_hora_servidor(){

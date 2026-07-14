@@ -34,7 +34,7 @@ try {
 
         if ($id_mantenimiento > 0) {
 
-            $sql = "SELECT estado FROM acf_mantenimiento WHERE id_mantenimiento=" . $id_mantenimiento;
+            $sql = "SELECT estado,fec_mantenimiento,observaciones FROM acf_mantenimiento WHERE id_mantenimiento=" . $id_mantenimiento;
             $rs = $cmd->query($sql);
             $obj_mantenimiento = $rs->fetch();
 
@@ -84,12 +84,14 @@ try {
                     $sql = "DELETE FROM acf_mantenimiento_detalle WHERE id_mant_detalle=" . $id;
                     $rs = $cmd->query($sql);
                     if ($rs) {
-                        Logs::guardaLog($sql);
                         $res['mensaje'] = 'ok';
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
                     }
                 }
+
+                $proceso = "Se Modificó detalles de Mantenimiento Id: " . $id . ", Fecha: " . $obj_mantenimiento['fec_mantenimiento'] . ", Observaciones: " . $obj_mantenimiento['observaciones'];
+                Logs::guardaLog($proceso);
             } else {
                 $res['mensaje'] = 'Solo puede Modificar Ordenes de Mantenimiento en estado Pendiente';
             }

@@ -35,7 +35,7 @@ try {
 
         if ($id_traslado > 0) {
 
-            $sql = "SELECT estado,id_area_origen FROM acf_traslado WHERE id_traslado=" . $id_traslado;
+            $sql = "SELECT estado,fec_traslado,observaciones,id_area_origen FROM acf_traslado WHERE id_traslado=" . $id_traslado;
             $rs = $cmd->query($sql);
             $obj_traslado = $rs->fetch();
 
@@ -103,12 +103,14 @@ try {
                     $sql = "DELETE FROM acf_traslado_detalle WHERE id_traslado_detalle=" . $id;
                     $rs = $cmd->query($sql);
                     if ($rs) {
-                        Logs::guardaLog($sql);
                         $res['mensaje'] = 'ok';
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
                     }
                 }
+
+                $proceso = "Se Modificó detalles de Traslado de Activos Fijos Id: " . $id_traslado . ", Fecha: " . $obj_traslado['fec_traslado'] . ", Observaciones: " . $obj_traslado['observaciones'];
+                Logs::guardaLog($proceso);
             } else {
                 $res['mensaje'] = 'Solo puede Modificar traslados en estado Pendiente';
             }

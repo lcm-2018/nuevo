@@ -6,7 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 include '../../../../config/autoloader.php';
 
-
+use Config\Clases\Logs;
 use Src\Common\Php\Clases\Permisos;
 
 $id_rol = $_SESSION['rol'];
@@ -31,7 +31,12 @@ try {
 
         $id = isset($_POST['id_mant_detalle']) ? $_POST['id_mant_detalle'] : -1;
 
-        $sql = "SELECT id_mantenimiento,estado,id_activo_fijo FROM acf_mantenimiento_detalle WHERE id_mant_detalle=" . $id;
+        $sql = "SELECT acf_mantenimiento_detalle.id_mantenimiento,acf_mantenimiento_detalle.estado,acf_mantenimiento_detalle.id_activo_fijo,
+                    acf_mantenimiento.fec_mantenimiento,acf_hojavida.placa
+                FROM acf_mantenimiento_detalle 
+                INNER JOIN acf_mantenimiento ON (acf_mantenimiento.id_mantenimiento = acf_mantenimiento_detalle.id_mantenimiento)
+                INNER JOIN acf_hojavida ON (acf_hojavida.id_activo_fijo = acf_mantenimiento_detalle.id_activo_fijo)
+                WHERE acf_mantenimiento_detalle.id_mant_detalle=" . $id;
         $rs = $cmd->query($sql);
         $obj_man = $rs->fetch();
 
@@ -52,6 +57,9 @@ try {
                 if ($updated) {
                     $res['mensaje'] = 'ok';
                     $res['id'] = $id;
+
+                    $proceso = "Se Modificó Progreso de Mantenimiento Id: " . $obj_man['id_mantenimiento'] . ", Fecha: " . $obj_man['fec_mantenimiento'] . ", Equipo Placa: " . $obj_man['placa'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $sql->errorInfo()[2];
                 }
@@ -116,10 +124,15 @@ try {
                 if ($updated) {
                     $res['mensaje'] = 'ok';
                     $res['id'] = $id;
+
+                    $proceso = "Se Cerró Progreso de Mantenimiento Id: " . $obj_man['id_mantenimiento'] . ", Fecha: " . $obj_man['fec_mantenimiento'] . ", Equipo Placa: " . $obj_man['placa'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $sql->errorInfo()[2];
                 }
             }
+
+
         } else {
             $res['mensaje'] = 'El Procesos de Mantenimiento ya esta Finalizado';
         }

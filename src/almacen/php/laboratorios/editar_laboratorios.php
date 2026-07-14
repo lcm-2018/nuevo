@@ -44,6 +44,9 @@ try {
                     $rs = $cmd->query($sql_i);
                     $obj = $rs->fetch();
                     $res['id'] = $obj['id'];
+
+                    $proceso = "Se Registró Laboratorio Id: " . $obj['id'] . ", Nombre: " . $nom_laboratorio;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -54,6 +57,9 @@ try {
                 if ($rs) {
                     $res['mensaje'] = 'ok';
                     $res['id'] = $id;
+
+                    $proceso = "Se Modificó Laboratorio Id: " . $id . ", Nombre: " . $nom_laboratorio;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -62,11 +68,17 @@ try {
 
         if ($oper == 'del') {
             $id = $_POST['id'];
+            $sql = "SELECT id_lab,nom_laboratorio FROM far_laboratorios WHERE id_lab=" . $id;
+            $rs = $cmd->query($sql);
+            $obj = $rs->fetch();            
+
             $sql = "DELETE FROM far_laboratorios WHERE id_lab=" . $id;
             $rs = $cmd->query($sql);
             if ($rs) {
-                Logs::guardaLog($sql);
                 $res['mensaje'] = 'ok';
+
+                $proceso = "Se Eliminó Laboratorio Id: " . $obj['id_lab'] . ", Nombre: " . $obj['nom_laboratorio'];
+                Logs::guardaLog($proceso);                
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];
             }

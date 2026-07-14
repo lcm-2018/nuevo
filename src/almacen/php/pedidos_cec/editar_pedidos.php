@@ -65,6 +65,9 @@ try {
                     $rs = $cmd->query($sql_i);
                     $obj = $rs->fetch();
                     $res['id'] = $obj['id'];
+
+                    $proceso = "Se Registró Pedido de Dependencia Id: " . $obj['id'] . ", Fecha: " . $fec_pedido . ", Detalle: " . $detalle;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -80,6 +83,9 @@ try {
                     if ($rs) {
                         $res['mensaje'] = 'ok';
                         $res['id'] = $id;
+
+                        $proceso = "Se Modificó Pedido de Dependencia Id: " . $id . ", Fecha: " . $fec_pedido . ", Detalle: " . $detalle;
+                        Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
                     }
@@ -92,16 +98,18 @@ try {
         if ($oper == 'del') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado FROM far_cec_pedido WHERE id_pedido=" . $id;
+            $sql = "SELECT estado,fec_pedido,detalle FROM far_cec_pedido WHERE id_pedido=" . $id;
             $rs = $cmd->query($sql);
             $obj_pedido = $rs->fetch();
 
             if ($obj_pedido['estado'] == 1) {
                 $sql = "DELETE FROM far_cec_pedido WHERE id_pedido=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {
-                    Logs::guardaLog($sql);
+                if ($rs) {                    
                     $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Eliminó Pedido de Dependencia Id: " . $id . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -113,15 +121,15 @@ try {
         if ($oper == 'conf') {
             $id = $_POST['id'];
 
-            $sql = 'SELECT estado FROM far_cec_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
+            $sql = 'SELECT estado,fec_pedido,detalle FROM far_cec_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
             $obj_pedido = $rs->fetch();
             $estado = isset($obj_pedido['estado']) ? $obj_pedido['estado'] : -1;
 
             $sql = "SELECT COUNT(*) AS total FROM far_cec_pedido_detalle WHERE id_pedido=" . $id;
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
-            $num_detalles = $obj_pedido['total'];
+            $obj_detalles = $rs->fetch();
+            $num_detalles = $obj_detalles['total'];
 
             if ($estado == 1 && $num_detalles > 0) {
                 $error = 0;
@@ -144,6 +152,9 @@ try {
                 if ($error == 0) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Confirmó Pedido de Dependencia Id: " . $id . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
                     $cmd->rollBack();
@@ -169,11 +180,11 @@ try {
             if ($obj_pedido['estado'] == 2) {
                 $sql = "UPDATE far_cec_pedido SET id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope',estado=3 WHERE id_pedido=$id";
                 $rs = $cmd->query($sql);
-                if ($rs == false) {
+                if ($rs) {
+                    $res['mensaje'] = 'ok';
+                } else {
                     $error = $cmd->errorInfo();
                     $res['mensaje'] = 'Error en base de datos-far_cec_pedido:' . $error[2];
-                } else {
-                    $res['mensaje'] = 'ok';
                 }
             } else {
                 $res['mensaje'] = 'Solo se puede Finalizar Pedidos en estado Confirmado.<br/>';
@@ -185,7 +196,7 @@ try {
         if ($oper == 'annul') {
             $id = $_POST['id'];
 
-            $sql = 'SELECT estado FROM far_cec_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
+            $sql = 'SELECT estado,fec_pedido,detalle FROM far_cec_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
             $obj_pedido = $rs->fetch();
             $estado = $obj_pedido['estado'];
@@ -195,17 +206,20 @@ try {
                     INNER JOIN far_orden_egreso ON (far_orden_egreso.id_egreso = far_orden_egreso_detalle.id_egreso)
                     WHERE far_cec_pedido_detalle.id_pedido=' . $id . ' AND far_orden_egreso.estado>=1';
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
-            $det_traslado = $obj_pedido['total'];
+            $obj_detalles = $rs->fetch();
+            $det_traslado = $obj_detalles['total'];
 
             if ($estado == 2 && $det_traslado == 0) {
                 $sql = "UPDATE far_cec_pedido SET id_usr_anula=$id_usr_ope,fec_anulacion='$fecha_ope',estado=0 WHERE id_pedido=$id";
                 $rs = $cmd->query($sql);
-                if ($rs == false) {
+                if ($rs) {
+                    $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Anuló Pedido de Dependencia Id: " . $id . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];
+                    Logs::guardaLog($proceso);
+                } else {
                     $error = $cmd->errorInfo();
                     $res['mensaje'] = 'Error en base de datos-far_cec_pedido:' . $error[2];
-                } else {
-                    $res['mensaje'] = 'ok';
                 }
             } else {
                 if ($estado != 2) {

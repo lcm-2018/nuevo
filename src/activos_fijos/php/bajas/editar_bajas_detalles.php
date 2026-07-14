@@ -34,7 +34,7 @@ try {
 
         if ($id_baja > 0) {
 
-            $sql = "SELECT estado FROM acf_baja WHERE id_baja=" . $id_baja;
+            $sql = "SELECT estado,fec_orden,observaciones FROM acf_baja WHERE id_baja=" . $id_baja;
             $rs = $cmd->query($sql);
             $obj_baja = $rs->fetch();
 
@@ -83,12 +83,14 @@ try {
                     $sql = "DELETE FROM acf_baja_detalle WHERE id_baja_detalle=" . $id;
                     $rs = $cmd->query($sql);
                     if ($rs) {
-                        Logs::guardaLog($sql);
                         $res['mensaje'] = 'ok';
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
                     }
                 }
+
+                $proceso = "Se Modificó detalles de Bajas de Activos Fijos Id: " . $id_baja . ", Fecha: " . $obj_baja['fec_orden'] . ", Observaciones: " . $obj_baja['observaciones'];
+                Logs::guardaLog($proceso);
             } else {
                 $res['mensaje'] = 'Solo puede Modificar Ordenes de Baja en estado Pendiente';
             }

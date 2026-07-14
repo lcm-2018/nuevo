@@ -63,6 +63,9 @@ try {
                         $rs = $cmd->query($sql_i);
                         $obj = $rs->fetch();
                         $res['id'] = $obj['id'];
+
+                        $proceso = "Se Registró Traslado SPSR Id: " . $obj['id'] . ", Fecha: " . $fec_traslado . ", Detalle: " . $detalle;
+                        Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
                     }
@@ -81,6 +84,9 @@ try {
                         if ($rs) {
                             $res['mensaje'] = 'ok';
                             $res['id'] = $id;
+
+                            $proceso = "Se Modificó Traslado SPSR Id: " . $id . ", Fecha: " . $fec_traslado . ", Detalle: " . $detalle;
+                            Logs::guardaLog($proceso);
                         } else {
                             $res['mensaje'] = $cmd->errorInfo()[2];
                         }
@@ -247,16 +253,18 @@ try {
         if ($oper == 'del') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado FROM far_traslado_r WHERE id_traslado=" . $id;
+            $sql = "SELECT estado,fec_traslado,detalle FROM far_traslado_r WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
             $obj_tra = $rs->fetch();
 
             if ($obj_tra['estado'] == 1) {
                 $sql = "DELETE FROM far_traslado_r WHERE id_traslado=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {
-                    Logs::guardaLog($sql);
+                if ($rs) {                    
                     $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Eliminó Traslado SPSR Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -267,20 +275,20 @@ try {
 
         if ($oper == 'close') { // Egreso de la Bodega principal
             $id = $_POST['id'];
-            $sql = "SELECT estado FROM far_traslado_r WHERE id_traslado=" . $id;
+            $sql = "SELECT estado,fec_traslado,detalle FROM far_traslado_r WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
             $obj_tra = $rs->fetch();
             $estado = isset($obj_tra['estado']) ? $obj_tra['estado'] : -1;
 
             $sql = "SELECT COUNT(*) AS total FROM far_traslado_r_detalle WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
-            $obj_tra = $rs->fetch();
-            $num_detalles = $obj_tra['total'];
+            $obj_detalles = $rs->fetch();
+            $num_detalles = $obj_detalles['total'];
 
             $sql = "SELECT COUNT(*) AS total FROM far_kardex WHERE id_egreso_tra_r=" . $id;
             $rs = $cmd->query($sql);
-            $obj_tra = $rs->fetch();
-            $num_reg_kardex = $obj_tra['total'];
+            $obj_kardex = $rs->fetch();
+            $num_reg_kardex = $obj_kardex['total'];
 
             if ($estado == 1 && $num_detalles > 0 && $num_reg_kardex == 0) {
                 $respuesta = verificar_existencias($cmd, $id, "TR");
@@ -366,6 +374,9 @@ try {
                     if ($error == 0) {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
+
+                        $proceso = "Se Cerró Traslado SPSR Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
+                        Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = 'Error de Ejecución de Proceso';
                         $cmd->rollBack();
@@ -507,8 +518,9 @@ try {
                         if ($rs) {
                             $cmd1->commit();
                             $res['mensaje'] = 'ok';
-                            $consulta = "Enviar el Traslado SPSR Id: " . $id . " de la sede principal a la sede remota: " . $id_sede_destino;
-                            Logs::guardaLog($consulta);
+
+                            $proceso = "Se Envió Traslado SPSR Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
+                            Logs::guardaLog($proceso);
                         } else {
                             $cmd1->rollBack();
                             $res['mensaje'] = $cmd->errorInfo()[2];
@@ -523,7 +535,7 @@ try {
         if ($oper == 'annul') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado, estado2 FROM far_traslado_r WHERE id_traslado=" . $id;
+            $sql = "SELECT estado,estado2,fec_traslado,detalle FROM far_traslado_r WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
             $obj_tra = $rs->fetch();
             $estado = $obj_tra['estado'];
@@ -551,8 +563,9 @@ try {
                 if ($rs) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
-                    $consulta = "Anula el Traslado SPSR Id: " . $id . ", Anula los movimientos del kardex";
-                    Logs::guardaLog($consulta);
+
+                    $proceso = "Se Anuló Traslado SPSR Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $cmd->rollBack();
                     $res['mensaje'] = $cmd->errorInfo()[2];

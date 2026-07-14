@@ -34,7 +34,7 @@ try {
     ) {
 
         $id_articulo = $_POST['id_articulo'];
-
+        
         if ($id_articulo > 0) {
 
             if ($oper == 'add') {
@@ -115,16 +115,22 @@ try {
             }
 
             if ($oper == 'del') {
-                $id = $_POST['id'];
+                $id = $_POST['id'];                
                 $sql = "DELETE FROM far_medicamento_lote WHERE id_lote=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
-                    Logs::guardaLog($sql);
                     $res['mensaje'] = 'ok';
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
             }
+
+            $sql = "SELECT cod_medicamento,nom_medicamento FROM far_medicamentos WHERE id_med=" . $id_articulo;
+            $rs = $cmd->query($sql);
+            $obj_articulo = $rs->fetch();
+
+            $proceso = "Se Modificó LOTES de Articulo Código: " . $obj_articulo['cod_medicamento'] . ", Nombre: " . $obj_articulo['nom_medicamento'];
+            Logs::guardaLog($proceso);                    
         } else {
             $res['mensaje'] = 'Primero debe guardar el Articulo';
         }

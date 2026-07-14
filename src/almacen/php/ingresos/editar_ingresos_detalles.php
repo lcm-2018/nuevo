@@ -34,7 +34,8 @@ try {
 
         if ($id_ingreso > 0) {
 
-            $sql = "SELECT far_orden_ingreso.estado,far_orden_ingreso.id_pedido,far_orden_ingreso_tipo.id_tipo_ingreso,far_orden_ingreso_tipo.orden_compra
+            $sql = "SELECT far_orden_ingreso.estado,far_orden_ingreso.id_pedido,far_orden_ingreso_tipo.id_tipo_ingreso,far_orden_ingreso_tipo.orden_compra,
+                        far_orden_ingreso.fec_ingreso,far_orden_ingreso.detalle
                     FROM far_orden_ingreso 
                     INNER JOIN far_orden_ingreso_tipo ON (far_orden_ingreso_tipo.id_tipo_ingreso = far_orden_ingreso.id_tipo_ingreso)
                     WHERE far_orden_ingreso.id_ingreso=" . $id_ingreso;
@@ -149,7 +150,6 @@ try {
                     $sql = "DELETE FROM far_orden_ingreso_detalle WHERE id_ing_detalle=" . $id;
                     $rs = $cmd->query($sql);
                     if ($rs) {
-                        Logs::guardaLog($sql);
                         $res['mensaje'] = 'ok';
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
@@ -162,8 +162,11 @@ try {
 
                     $sql = "SELECT val_total FROM far_orden_ingreso WHERE id_ingreso=" . $id_ingreso;
                     $rs = $cmd->query($sql);
-                    $obj_ingreso = $rs->fetch();
-                    $res['val_total'] = $obj_ingreso['val_total'];
+                    $obj_total = $rs->fetch();
+                    $res['val_total'] = $obj_total['val_total'];
+
+                    $proceso = "Se Modificó detalles de Órden de Ingreso Id: " . $id_ingreso . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
+                    Logs::guardaLog($proceso);
                 }
             } else {
                 $res['mensaje'] = 'Solo puede Modificar Ordenes de Ingreso en estado Pendiente';

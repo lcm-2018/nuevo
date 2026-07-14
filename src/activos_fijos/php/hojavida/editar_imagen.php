@@ -6,7 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 include '../../../../config/autoloader.php';
 
-
+use Config\Clases\Logs;
 use Src\Common\Php\Clases\Permisos;
 
 $id_rol = $_SESSION['rol'];
@@ -82,6 +82,13 @@ try {
                     $res['mensaje'] = 'Error al Adjuntar el Archivo';
                 }
             }
+
+            $sql = "SELECT placa,des_activo FROM acf_hojavida WHERE id_activo_fijo=" . $id_hv;
+            $rs = $cmd->query($sql);
+            $obj = $rs->fetch(); 
+
+            $proceso = "Se Modificó Imagen de Activo Fijo Id: " . $id_hv . ", Placa: " . $obj['placa'] . ", Nombre: " . $obj['des_activo'];
+            Logs::guardaLog($proceso);
         } else {
             $res['mensaje'] = 'Primero debe guardar la Hoja de Vida del Activo Fijo';
         }
