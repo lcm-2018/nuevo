@@ -11,16 +11,16 @@ include '../../../../config/autoloader.php';
 use Config\Clases\Logs;
 $_post = json_decode(file_get_contents('php://input'), true);
 
-$id_doc         = $_post['id'];
-$id_crp         = $_post['id_crp'];
-$id_cop         = $_post['id_cop'];
-$tipo           = $_post['tipo'];
-$fecIni         = $_post['fecIniTraslado'];
-$fecFin         = $_post['fecFinTraslado'];
-$id_caja_const  = $_post['caja_menor'];
-$iduser         = $_SESSION['id_user'];
+$id_doc = $_post['id'];
+$id_crp = $_post['id_crp'];
+$id_cop = $_post['id_cop'];
+$tipo = $_post['tipo'];
+$fecIni = $_post['fecIniTraslado'] . ' 00:00:00';
+$fecFin = $_post['fecFinTraslado'] . ' 23:59:59';
+$id_caja_const = $_post['caja_menor'];
+$iduser = $_SESSION['id_user'];
 
-$date   = new DateTime('now', new DateTimeZone('America/Bogota'));
+$date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 
 $response['status'] = 'error';
@@ -59,6 +59,11 @@ try {
     $rs->bindParam(3, $id_caja_const, PDO::PARAM_INT);
     $rs->execute();
     $cuentasDebito = $rs->fetchAll(PDO::FETCH_ASSOC);
+    if (empty($cuentasDebito)) {
+        $response['msg'] = 'No se encontraron movimientos contables para el periodo solicitado';
+        echo json_encode($response);
+        exit();
+    }
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -77,7 +82,7 @@ $id_tercero = null;
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT id_tercero FROM ctb_doc WHERE id_ctb_doc = ?";
-    $rs  = $cmd->prepare($sql);
+    $rs = $cmd->prepare($sql);
     $rs->bindParam(1, $id_doc, PDO::PARAM_INT);
     $rs->execute();
     $row = $rs->fetch(PDO::FETCH_ASSOC);
@@ -111,7 +116,7 @@ try {
 // 4. Limpiar movimientos previos del documento
 // -------------------------------------------------------
 try {
-    $cmd   = \Config\Clases\Conexion::getConexion();
+    $cmd = \Config\Clases\Conexion::getConexion();
     $query = "DELETE FROM `ctb_libaux` WHERE `id_ctb_doc` = ?";
     $query = $cmd->prepare($query);
     $query->bindParam(1, $id_doc, PDO::PARAM_INT);
@@ -137,12 +142,12 @@ try {
                 (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`)
             VALUES (?, ?, ?, ?, ?, ?, ?)";
     $sql = $cmd->prepare($sql);
-    $sql->bindParam(1, $id_doc,         PDO::PARAM_INT);
+    $sql->bindParam(1, $id_doc, PDO::PARAM_INT);
     $sql->bindParam(2, $id_tercero_ins, PDO::PARAM_INT);
-    $sql->bindParam(3, $id_cuenta,      PDO::PARAM_INT);
-    $sql->bindParam(4, $debito,         PDO::PARAM_STR);
-    $sql->bindParam(5, $credito,        PDO::PARAM_STR);
-    $sql->bindParam(6, $iduser,         PDO::PARAM_INT);
+    $sql->bindParam(3, $id_cuenta, PDO::PARAM_INT);
+    $sql->bindParam(4, $debito, PDO::PARAM_STR);
+    $sql->bindParam(5, $credito, PDO::PARAM_STR);
+    $sql->bindParam(6, $iduser, PDO::PARAM_INT);
     $sql->bindParam(7, $fecha2);
 
     $totalDebito = 0;
@@ -150,9 +155,9 @@ try {
     // 5a. Insertar cada linea de debito (por cuenta contable y tercero)
     foreach ($cuentasDebito as $c) {
         $id_tercero_ins = $c['id_tercero_api'];
-        $id_cuenta      = $c['id_cta_contable'];
-        $debito         = $c['valor'];
-        $credito        = 0;
+        $id_cuenta = $c['id_cta_contable'];
+        $debito = $c['valor'];
+        $credito = 0;
         $sql->execute();
         if ($sql->rowCount() > 0) {
             Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_doc, $id_tercero_ins, $id_cuenta, '$debito', '$credito', $iduser, '$fecha2')");
@@ -166,9 +171,9 @@ try {
     // 5b. Insertar linea de credito (TODO: confirmar cuenta de credito)
     if ($id_cta_credito && $totalDebito > 0) {
         $id_tercero_ins = $id_tercero;
-        $id_cuenta      = $id_cta_credito;
-        $debito         = 0;
-        $credito        = $totalDebito;
+        $id_cuenta = $id_cta_credito;
+        $debito = 0;
+        $credito = $totalDebito;
         $sql->execute();
         if ($sql->rowCount() > 0) {
             Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_doc, $id_tercero_ins, $id_cuenta, '$debito', '$credito', $iduser, '$fecha2')");
@@ -185,7 +190,7 @@ try {
 
 if ($registros > 0) {
     $response['status'] = 'ok';
-    $response['msg']    = 'Se han registrado los movimientos contables';
+    $response['msg'] = 'Se han registrado los movimientos contables';
 }
 echo json_encode($response);
 
