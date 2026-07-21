@@ -109,6 +109,29 @@ if (empty($obj)) {
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_observacion" name="txt_observacion" value="<?php echo $obj['observacion'] ?>">
                     </div>
                 </div>
+                <div class="bg-warning text-dark px-1 py-1 mt-3">Recepción Técnica</div>
+                <div class=" row">
+                    <div class="col-md-3">
+                        <label for="txt_tam_muestra" class="small">Tamaño Muestra</label>
+                        <input type="text" class="form-control form-control-sm bg-input number" id="txt_tam_muestra" name="txt_tam_muestra" required value="<?php echo $obj['tam_muestra'] ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="txt_def_menores" class="small">Defectosos Menores</label>
+                        <input type="text" class="form-control form-control-sm bg-input number" id="txt_def_menores" name="txt_def_menores" required value="<?php echo $obj['def_menores'] ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="txt_def_mayores" class="small">Defectosos Mayores</label>
+                        <input type="text" class="form-control form-control-sm bg-input number" id="txt_def_mayores" name="txt_def_mayores" required value="<?php echo $obj['def_mayores'] ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="txt_def_criticos" class="small">Defectosos Críticos</label>
+                        <input type="text" class="form-control form-control-sm bg-input number" id="txt_def_criticos" name="txt_def_criticos" required value="<?php echo $obj['def_criticos'] ?>">
+                    </div>
+                    <div class="col-md-12">
+                        <label for="txt_obs_recepcion" class="small">Observación</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_obs_recepcion" name="txt_obs_recepcion" value="<?php echo $obj['obs_recepcion'] ?>">
+                    </div>
+                </div>
             </form>
         </div>
     </div>

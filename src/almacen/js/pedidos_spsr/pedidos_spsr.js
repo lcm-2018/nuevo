@@ -490,4 +490,19 @@
         });
     });
 
+    //Imprimit un Pedido con datos de Sede Remota
+    $('#divForms').on("click", "#btn_imprimir_dsr", function () {
+        mostrarOverlay();
+        $.post("imp_pedido_dsr.php", {
+            id: $('#id_pedido').val()
+        }, function (he) {
+            $('#divTamModalImp').removeClass('modal-sm');
+            $('#divTamModalImp').removeClass('modal-lg');
+            $('#divTamModalImp').addClass('modal-xl');
+            $('#divModalImp').modal('show');
+            $("#divImp").html(he);
+            ocultarOverlay();   
+        });
+    });
+
 })(jQuery);

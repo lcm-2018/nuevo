@@ -44,6 +44,9 @@ try {
                     $rs = $cmd->query($sql_i);
                     $obj = $rs->fetch();
                     $res['id'] = $obj['id'];
+
+                    $proceso = "Se Registró Marca Id: " . $obj['id'] . ", Nombre: " . $nom_marca;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -54,6 +57,9 @@ try {
                 if ($rs) {
                     $res['mensaje'] = 'ok';
                     $res['id'] = $id;
+
+                    $proceso = "Se Modificó Marca Id: " . $id . ", Nombre: " . $nom_marca;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -62,11 +68,17 @@ try {
 
         if ($oper == 'del') {
             $id = $_POST['id'];
+            $sql = "SELECT descripcion FROM acf_marca WHERE id=" . $id;
+            $rs = $cmd->query($sql);
+            $obj = $rs->fetch();  
+
             $sql = "DELETE FROM acf_marca WHERE id=" . $id;
             $rs = $cmd->query($sql);
             if ($rs) {
-                Logs::guardaLog($sql);
                 $res['mensaje'] = 'ok';
+                
+                $proceso = "Se Eliminó Marca Id: " . $id . ", Nombre: " . $obj['descripcion'];
+                Logs::guardaLog($proceso);                
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];
             }

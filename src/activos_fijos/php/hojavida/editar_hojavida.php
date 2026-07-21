@@ -113,6 +113,9 @@ try {
                     $id_hv = $cmd->lastInsertId();
                     $res['mensaje'] = 'ok';
                     $res['id_hv'] = $id_hv;
+
+                    $proceso = "Se Registró Activo Fijo Id: " . $id_hv . ", Placa: " . $_POST['placa'] . ", Nombre: " . $_POST['des_activo'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $sql->errorInfo()[2];
                 }
@@ -233,6 +236,9 @@ try {
                 if ($updated) {
                     $res['mensaje'] = 'ok';
                     $res['id_hv'] = $id_hv;
+
+                    $proceso = "Se Modificó Activo Fijo Id: " . $id_hv . ", Placa: " . $_POST['placa'] . ", Nombre: " . $_POST['des_activo'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $sql->errorInfo()[2];
                 }
@@ -241,11 +247,18 @@ try {
 
         if ($oper == 'del') {
             $id = $_POST['id'];
+
+            $sql = "SELECT placa,des_activo FROM acf_hojavida WHERE id_activo_fijo=" . $id;
+            $rs = $cmd->query($sql);
+            $obj = $rs->fetch(); 
+
             $sql = "DELETE FROM acf_hojavida WHERE id_activo_fijo=" . $id;
             $rs = $cmd->query($sql);
             if ($rs) {
-                Logs::guardaLog($sql);
                 $res['mensaje'] = 'ok';
+
+                $proceso = "Se Eliminó Activo Fijo Id: " . $id . ", Placa: " . $obj['placa'] . ", Nombre: " . $obj['des_activo'];
+                Logs::guardaLog($proceso);
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];
             }

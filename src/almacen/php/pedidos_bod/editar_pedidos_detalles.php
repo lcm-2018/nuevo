@@ -35,7 +35,7 @@ try {
 
         if ($id_pedido > 0) {
 
-            $sql = "SELECT estado,id_bodega_origen FROM far_pedido WHERE id_pedido=" . $id_pedido;
+            $sql = "SELECT estado,fec_pedido,detalle,id_bodega_origen FROM far_pedido WHERE id_pedido=" . $id_pedido;
             $rs = $cmd->query($sql);
             $obj_pedido = $rs->fetch();
 
@@ -88,7 +88,6 @@ try {
                     $sql = "DELETE FROM far_pedido_detalle WHERE id_ped_detalle=" . $id;
                     $rs = $cmd->query($sql);
                     if ($rs) {
-                        Logs::guardaLog($sql);
                         $res['mensaje'] = 'ok';
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
@@ -101,8 +100,11 @@ try {
 
                     $sql = "SELECT val_total FROM far_pedido WHERE id_pedido=" . $id_pedido;
                     $rs = $cmd->query($sql);
-                    $obj_pedido = $rs->fetch();
-                    $res['val_total'] = formato_valor($obj_pedido['val_total']);
+                    $obj_total = $rs->fetch();
+                    $res['val_total'] = formato_valor($obj_total['val_total']);
+
+                    $proceso = "Se Modificó detalles de Pedido de Bodega Id: " . $id_pedido . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];
+                    Logs::guardaLog($proceso);
                 }
             } else {
                 $res['mensaje'] = 'Solo puede Modificar Pedidos en estado Pendiente';

@@ -83,7 +83,7 @@ if (!empty($objs)) {
             $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
         }
         if ($permisos->PermisosUsuario($opciones, 5703, 3) || $id_rol == 1) {
-            $editaractivofijo = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_activofijo" title="Activo Fijo"><span class="fas fa-laptop "></span></a>';
+            $editaractivofijo = '<a value="' . $id . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow btn_activofijo" title="Activo Fijo"><span class="fas fa-laptop "></span></a>';
         }
         if ($permisos->PermisosUsuario($opciones, 5703, 4) || $id_rol == 1) {
             $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';

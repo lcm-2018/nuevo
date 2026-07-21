@@ -34,7 +34,8 @@ try {
 
         if ($id_ingreso > 0) {
 
-            $sql = "SELECT far_orden_ingreso.estado,far_orden_ingreso.id_pedido,far_orden_ingreso_tipo.id_tipo_ingreso,far_orden_ingreso_tipo.orden_compra
+            $sql = "SELECT far_orden_ingreso.estado,far_orden_ingreso.id_pedido,far_orden_ingreso_tipo.id_tipo_ingreso,far_orden_ingreso_tipo.orden_compra,
+                        far_orden_ingreso.fec_ingreso,far_orden_ingreso.detalle
                     FROM far_orden_ingreso 
                     INNER JOIN far_orden_ingreso_tipo ON (far_orden_ingreso_tipo.id_tipo_ingreso = far_orden_ingreso.id_tipo_ingreso)
                     WHERE far_orden_ingreso.id_ingreso=" . $id_ingreso;
@@ -63,6 +64,12 @@ try {
                         $vr_costo = $_POST['txt_val_cos'];
                         $observacion = $_POST['txt_observacion'];
 
+                        $tam_muestra = $_POST['txt_tam_muestra'] ? $_POST['txt_tam_muestra']: 0;
+                        $def_menores = $_POST['txt_def_menores'] ? $_POST['txt_def_menores'] : 0;
+                        $def_mayores = $_POST['txt_def_mayores'] ? $_POST['txt_def_mayores'] : 0;
+                        $def_criticos = $_POST['txt_def_criticos'] ? $_POST['txt_def_criticos'] : 0;
+                        $obs_recepcion = $_POST['txt_obs_recepcion'] ? $_POST['txt_obs_recepcion'] : '';
+                        
                         //Verificar si es una Orden de compra que la entrada no supere lo aprobado
                         $can_aprobado = 0;
                         $can_ingresada = 0;
@@ -98,8 +105,10 @@ try {
 
                             if ($obj['existe'] == 0) {
                                 if ($id == -1) {
-                                    $sql = "INSERT INTO far_orden_ingreso_detalle(id_ingreso,id_lote,id_presentacion,cantidad,valor_sin_iva,iva,valor,observacion)
-                                            VALUES($id_ingreso,$id_lote,$id_pre_lot,$cantidad,$vr_unidad,$iva,$vr_costo,'$observacion')";
+                                    $sql = "INSERT INTO far_orden_ingreso_detalle(id_ingreso,id_lote,id_presentacion,cantidad,valor_sin_iva,iva,valor,observacion,
+                                                        tam_muestra,def_menores,def_mayores,def_criticos,obs_recepcion)
+                                            VALUES($id_ingreso,$id_lote,$id_pre_lot,$cantidad,$vr_unidad,$iva,$vr_costo,'$observacion',
+                                                        $tam_muestra,$def_menores,$def_mayores,$def_criticos,'$obs_recepcion')";
                                     $rs = $cmd->query($sql);
 
                                     if ($rs) {
@@ -113,7 +122,8 @@ try {
                                     }
                                 } else {
                                     $sql = "UPDATE far_orden_ingreso_detalle 
-                                        SET id_lote=$id_lote,id_presentacion=$id_pre_lot,cantidad=$cantidad,valor_sin_iva=$vr_unidad,iva=$iva,valor=$vr_costo,observacion='$observacion'
+                                        SET id_lote=$id_lote,id_presentacion=$id_pre_lot,cantidad=$cantidad,valor_sin_iva=$vr_unidad,iva=$iva,valor=$vr_costo,observacion='$observacion',
+                                            tam_muestra=$tam_muestra,def_menores=$def_menores,def_mayores=$def_mayores,def_criticos=$def_criticos,obs_recepcion='$obs_recepcion'
                                         WHERE id_ing_detalle=" . $id;
 
                                     $rs = $cmd->query($sql);
@@ -140,7 +150,6 @@ try {
                     $sql = "DELETE FROM far_orden_ingreso_detalle WHERE id_ing_detalle=" . $id;
                     $rs = $cmd->query($sql);
                     if ($rs) {
-                        Logs::guardaLog($sql);
                         $res['mensaje'] = 'ok';
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
@@ -153,8 +162,11 @@ try {
 
                     $sql = "SELECT val_total FROM far_orden_ingreso WHERE id_ingreso=" . $id_ingreso;
                     $rs = $cmd->query($sql);
-                    $obj_ingreso = $rs->fetch();
-                    $res['val_total'] = $obj_ingreso['val_total'];
+                    $obj_total = $rs->fetch();
+                    $res['val_total'] = $obj_total['val_total'];
+
+                    $proceso = "Se Modificó detalles de Órden de Ingreso Id: " . $id_ingreso . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
+                    Logs::guardaLog($proceso);
                 }
             } else {
                 $res['mensaje'] = 'Solo puede Modificar Ordenes de Ingreso en estado Pendiente';

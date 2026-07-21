@@ -49,6 +49,9 @@ try {
                     $rs = $cmd->query($sql_i);
                     $obj = $rs->fetch();
                     $res['id'] = $obj['id'];
+
+                    $proceso = "Se Registró Baja de Activos Fijos Id: " . $obj['id'] . ", Fecha: " . $fec_orden . ", Observaciones: " . $observaciones;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -65,6 +68,9 @@ try {
                     if ($rs) {
                         $res['mensaje'] = 'ok';
                         $res['id'] = $id;
+
+                        $proceso = "Se Modificó Baja de Activos Fijos Id: " . $id . ", Fecha: " . $fec_orden . ", Observaciones: " . $observaciones;
+                        Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
                     }
@@ -77,7 +83,7 @@ try {
         if ($oper == 'del') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado FROM acf_baja WHERE id_baja=" . $id;
+            $sql = "SELECT estado,fec_orden,observaciones FROM acf_baja WHERE id_baja=" . $id;
             $rs = $cmd->query($sql);
             $obj_baja = $rs->fetch();
 
@@ -85,8 +91,10 @@ try {
                 $sql = "DELETE FROM acf_baja WHERE id_baja=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
-                    Logs::guardaLog($sql);
                     $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Eliminó Baja de Activos Fijos Id: " . $id . ", Fecha: " . $obj_baja['fec_orden'] . ", Observaciones: " . $obj_baja['observaciones'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -98,15 +106,15 @@ try {
         if ($oper == 'close') {
             $id = $_POST['id'];
 
-            $sql = 'SELECT estado FROM acf_baja WHERE id_baja=' . $id . ' LIMIT 1';
+            $sql = 'SELECT estado,fec_orden,observaciones FROM acf_baja WHERE id_baja=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
             $obj_baja = $rs->fetch();
             $estado = isset($obj_baja['estado']) ? $obj_baja['estado'] : -1;
 
             $sql = "SELECT COUNT(*) AS total FROM acf_baja_detalle WHERE id_baja=" . $id;
             $rs = $cmd->query($sql);
-            $obj_baja = $rs->fetch();
-            $num_detalles = $obj_baja['total'];
+            $obj_detalles = $rs->fetch();
+            $num_detalles = $obj_detalles['total'];
 
             if ($estado == 1 && $num_detalles > 0) {
                 $error = 0;
@@ -125,6 +133,9 @@ try {
                 if ($error == 0) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Cerró Baja de Activos Fijos Id: " . $id. ", Fecha: " . $obj_baja['fec_orden'] . ", Observaciones: " . $obj_baja['observaciones'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
                     $cmd->rollBack();
@@ -141,10 +152,10 @@ try {
         if ($oper == 'annul') {
             $id = $_POST['id'];
 
-            $sql = 'SELECT estado FROM acf_baja WHERE id_baja=' . $id . ' LIMIT 1';
+            $sql = 'SELECT estado,fec_orden,observaciones FROM acf_baja WHERE id_baja=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
             $obj_baja = $rs->fetch();
-            $estado = $obj_baja['estado'];
+            $estado = isset($obj_baja['estado']) ? $obj_baja['estado'] : -1;
 
             if ($estado == 2) {
                 $error = 0;
@@ -163,8 +174,9 @@ try {
                 if ($error == 0) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
-                    $consulta = "Anula Orden de Baja de Activos Fijos Id: " . $id;
-                    Logs::guardaLog($consulta); 
+                    
+                    $proceso = "Se Anuló Baja de Activos Fijos Id: " . $id. ", Fecha: " . $obj_baja['fec_orden'] . ", Observaciones: " . $obj_baja['observaciones'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
                     $cmd->rollBack();

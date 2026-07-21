@@ -83,12 +83,18 @@ try {
                 $sql = "DELETE FROM acf_hojavida_componentes WHERE id_componente=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
-                    Logs::guardaLog($sql);
                     $res['mensaje'] = 'ok';
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
             }
+
+            $sql = "SELECT placa,des_activo FROM acf_hojavida WHERE id_activo_fijo=" . $id_hv;
+            $rs = $cmd->query($sql);
+            $obj = $rs->fetch(); 
+
+            $proceso = "Se Modificó Componente de Activo Fijo Id: " . $id_hv . ", Placa: " . $obj['placa'] . ", Nombre: " . $obj['des_activo'];
+            Logs::guardaLog($proceso);
         } else {
             $res['mensaje'] = 'Primero debe guardar la Hoja de Vida';
         }

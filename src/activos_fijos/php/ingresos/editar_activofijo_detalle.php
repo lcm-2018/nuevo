@@ -32,7 +32,7 @@ try {
 
         $id_ingreso = $_POST['id_ingreso'];
 
-        $sql = "SELECT estado FROM acf_orden_ingreso WHERE id_ingreso=" . $id_ingreso;
+        $sql = "SELECT estado,fec_ingreso,detalle FROM acf_orden_ingreso WHERE id_ingreso=" . $id_ingreso;
         $rs = $cmd->query($sql);
         $obj_ingreso = $rs->fetch();
 
@@ -93,12 +93,14 @@ try {
                 $sql = "DELETE FROM acf_orden_ingreso_acfs WHERE id_act_fij=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
-                    Logs::guardaLog($sql);
                     $res['mensaje'] = 'ok';
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
             }
+
+            $proceso = "Se Modificó Equipos de Órden de Ingreso de Activos Fijos Id: " . $id_ingreso . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
+            Logs::guardaLog($proceso);
         } else {
             $res['mensaje'] = 'Solo puede Modificar Ordenes de Ingreso en estado Pendiente';
         }

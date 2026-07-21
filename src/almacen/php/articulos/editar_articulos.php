@@ -56,6 +56,9 @@ try {
                     $rs = $cmd->query($sql_i);
                     $obj = $rs->fetch();
                     $res['id'] = $obj['id'];
+
+                    $proceso = "Se Registró Artículo Id: " . $obj['id'] . ", Código: " . $cod_art . ", Nombre: " . $nom_art;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -69,6 +72,9 @@ try {
                 if ($rs) {
                     $res['mensaje'] = 'ok';
                     $res['id'] = $id;
+
+                    $proceso = "Se Modificó Artículo Id: " . $id . ", Código: " . $cod_art . ", Nombre: " . $nom_art;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -99,11 +105,18 @@ try {
 
         if ($oper == 'del') {
             $id = $_POST['id'];
+
+            $sql = "SELECT cod_medicamento,nom_medicamento FROM far_medicamentos WHERE id_med=" . $id;
+            $rs = $cmd->query($sql);
+            $obj = $rs->fetch();            
+
             $sql = "DELETE FROM far_medicamentos WHERE id_med=" . $id;
             $rs = $cmd->query($sql);
-            if ($rs) {
-                Logs::guardaLog($sql);
+            if ($rs) {                
                 $res['mensaje'] = 'ok';
+                
+                $proceso = "Se Eliminó Artículo Id: " . $id . ", Código: " . $obj['cod_medicamento'] . ", Nombre: " . $obj['nom_medicamento'];
+                Logs::guardaLog($proceso);
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];
             }

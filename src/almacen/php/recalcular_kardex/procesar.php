@@ -48,8 +48,9 @@ if (isset($_POST['tipo'])) {
                 if (!$errores) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
-                    $consulta = "Recalcula el Kardex desde la fecha : " . $fecini . " hasta la fecha : " . date('Y-m-d H:i:s');
-                    Logs::guardaLog($consulta);
+
+                    $proceso = "Se Recalculó Kardex desde la fecha : " . $fecini . " hasta la fecha : " . date('Y-m-d H:i:s');
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
                     $cmd->rollBack();

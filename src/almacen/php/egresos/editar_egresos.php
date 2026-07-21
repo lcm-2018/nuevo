@@ -61,6 +61,9 @@ try {
                     $rs = $cmd->query($sql_i);
                     $obj = $rs->fetch();
                     $res['id'] = $obj['id'];
+
+                    $proceso = "Se Registró Órden de Egreso Id: " . $obj['id'] . ", Fecha: " . $fec_egr . ", Detalle: " . $detalle;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -79,6 +82,9 @@ try {
                     if ($rs) {
                         $res['mensaje'] = 'ok';
                         $res['id'] = $id;
+
+                        $proceso = "Se Modificó Órden de Egreso Id: " . $id . ", Fecha: " . $fec_egr . ", Detalle: " . $detalle;
+                        Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
                     }
@@ -228,16 +234,18 @@ try {
         if ($oper == 'del') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado FROM far_orden_egreso WHERE id_egreso=" . $id;
+            $sql = "SELECT estado,fec_egreso,detalle FROM far_orden_egreso WHERE id_egreso=" . $id;
             $rs = $cmd->query($sql);
             $obj_egreso = $rs->fetch();
 
             if ($obj_egreso['estado'] == 1) {
                 $sql = "DELETE FROM far_orden_egreso WHERE id_egreso=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {
-                    Logs::guardaLog($sql);
+                if ($rs) {                    
                     $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Eliminó Órden de Egreso Id: " . $id . ", Fecha: " . $obj_egreso['fec_egreso'] . ", Detalle: " . $obj_egreso['detalle'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -249,20 +257,20 @@ try {
         if ($oper == 'close') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado FROM far_orden_egreso WHERE id_egreso=" . $id;
+            $sql = "SELECT estado,fec_egreso,detalle FROM far_orden_egreso WHERE id_egreso=" . $id;
             $rs = $cmd->query($sql);
             $obj_egreso = $rs->fetch();
             $estado = isset($obj_egreso['estado']) ? $obj_egreso['estado'] : -1;
 
             $sql = "SELECT COUNT(*) AS total FROM far_orden_egreso_detalle WHERE id_egreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_egreso = $rs->fetch();
-            $num_detalles = $obj_egreso['total'];
+            $obj_detalles = $rs->fetch();
+            $num_detalles = $obj_detalles['total'];
 
             $sql = "SELECT COUNT(*) AS total FROM far_kardex WHERE id_egreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_egreso = $rs->fetch();
-            $num_reg_kardex = $obj_egreso['total'];
+            $obj_kardex = $rs->fetch();
+            $num_reg_kardex = $obj_kardex['total'];
 
             if ($estado == 1 && $num_detalles > 0 && $num_reg_kardex == 0) {
                 $respuesta = verificar_existencias($cmd, $id, "E");
@@ -348,6 +356,9 @@ try {
                     if ($error == 0) {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
+
+                        $proceso = "Se Cerró Órden de Egreso Id: " . $id . ", Fecha: " . $obj_egreso['fec_egreso'] . ", Detalle: " . $obj_egreso['detalle'];
+                        Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = 'Error de Ejecución de Proceso';
                         $cmd->rollBack();
@@ -369,7 +380,7 @@ try {
         if ($oper == 'annul') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado FROM far_orden_egreso WHERE id_egreso=" . $id;
+            $sql = "SELECT estado,fec_egreso,detalle FROM far_orden_egreso WHERE id_egreso=" . $id;
             $rs = $cmd->query($sql);
             $obj_egreso = $rs->fetch();
             $estado = $obj_egreso['estado'];
@@ -395,9 +406,10 @@ try {
                 }
                 if ($rs) {
                     $cmd->commit();
-                    $res['mensaje'] = 'ok';                    
-                    $consulta = "Anula Orden de Egreso Id: " . $id . ", Anula los movimientos del kardex";
-                    Logs::guardaLog($consulta);
+                    $res['mensaje'] = 'ok';    
+                    
+                    $proceso = "Se Anuló Órden de Egreso Id: " . $id . ", Fecha: " . $obj_egreso['fec_egreso'] . ", Detalle: " . $obj_egreso['detalle'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $cmd->rollBack();
                     $res['mensaje'] = $cmd->errorInfo()[2];

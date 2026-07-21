@@ -50,6 +50,9 @@ try {
                     $rs = $cmd->query($sql_i);
                     $obj = $rs->fetch();
                     $res['id'] = $obj['id'];
+
+                    $proceso = "Se Registró Área Id: " . $obj['id'] . ", Nombre: " . $nom_area;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -71,6 +74,9 @@ try {
                     $res['mensaje'] = 'ok';
                     $res['es_almacen'] = $obj_alm['es_almacen'] == 1 ? 'El nombre del Área no se modifico: ' . $obj_alm['nom_area'] : '';   
                     $res['id'] = $id;
+
+                    $proceso = "Se Modificó Área Id: " . $id . ", Nombre: " . $nom_area;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -82,20 +88,22 @@ try {
             
             $sql = "SELECT es_almacen,nom_area FROM far_centrocosto_area WHERE id_area=" . $id;
             $rs = $cmd->query($sql);
-            $obj_alm = $rs->fetch();
+            $obj = $rs->fetch();
 
-            if ($obj_alm['es_almacen'] == 0) {                
+            if ($obj['es_almacen'] == 0) {                
                 $sql = "DELETE FROM far_centrocosto_area WHERE id_area=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
-                    Logs::guardaLog($sql);
                     $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Eliminó Área Id: " . $id . ", Nombre: " . $obj['nom_area'];
+                    Logs::guardaLog($proceso);                    
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
             } else {
-                $res['mensaje'] = 'No se puede eliminar el Área: ' . $obj_alm['nom_area'];      
-            }        
+                $res['mensaje'] = 'No se puede eliminar el Área: ' . $obj['nom_area'];      
+            }
         }
     } else {
         $res['mensaje'] = 'El Usuario del Sistema no tiene Permisos para esta Acción';

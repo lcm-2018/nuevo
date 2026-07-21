@@ -144,7 +144,6 @@
             mjeError('No hay registros para reclacular kardex');
         } else {
 
-
             var data = $('#frm_lotes').serialize();
             var tipo = $("input[name='rdo_opcion']:checked").val(),
                 id_ing = $("#txt_id_ing_filtro").val(),

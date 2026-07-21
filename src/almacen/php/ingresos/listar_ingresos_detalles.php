@@ -59,17 +59,18 @@ try {
 	            far_orden_ingreso_detalle.cantidad,far_orden_ingreso_detalle.valor_sin_iva,
 	            far_orden_ingreso_detalle.iva,far_orden_ingreso_detalle.valor,
 	            (far_orden_ingreso_detalle.valor*far_orden_ingreso_detalle.cantidad) AS val_total,
-	            far_orden_ingreso_detalle.observacion
+	            far_orden_ingreso_detalle.observacion,
+                IF(ISNULL(far_orden_ingreso_detalle.tam_muestra) OR far_orden_ingreso_detalle.tam_muestra=0,'NO','SI') AS recepcion
             FROM far_orden_ingreso_detalle
             INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_lote = far_orden_ingreso_detalle.id_lote)
             INNER JOIN far_medicamentos ON (far_medicamentos.id_med = far_medicamento_lote.id_med)
             INNER JOIN acf_marca ON (acf_marca.id=far_medicamento_lote.id_marca)
             INNER JOIN far_presentacion_comercial ON (far_presentacion_comercial.id_prescom = far_orden_ingreso_detalle.id_presentacion)
             WHERE far_orden_ingreso_detalle.id_ingreso=" . $_POST['id_ingreso'] . $where . " ORDER BY $col $dir $limit";
-
     $rs = $cmd->query($sql);
     $objs = $rs->fetchAll();
     $rs->closeCursor();
+
     unset($rs);
     $cmd = null;
 } catch (PDOException $e) {
@@ -103,6 +104,7 @@ if (!empty($objs)) {
             "val_total" => formato_valor($obj['val_total']),
             "observacion" => $obj['observacion'],
             "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
+            "recepcion" => $obj['recepcion']
         ];
     }
 }

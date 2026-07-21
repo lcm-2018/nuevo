@@ -126,13 +126,13 @@ if (!empty($objs)) {
             $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
         }
         if ($permisos->PermisosUsuario($opciones, 5704, 3) || $id_rol == 1) {
-            $imagen =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_imagen" title="Imagen"><span class="fas fa-image "></span></a>';
+            $imagen =  '<a value="' . $id . '" class="btn btn-outline-dark btn-xs rounded-circle me-1 shadow btn_imagen" title="Imagen"><span class="fas fa-image "></span></a>';
         }
         if ($permisos->PermisosUsuario($opciones, 5704, 3) || $id_rol == 1) {
-            $componente =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_componente" title="Componentes"><span class="fas fa-laptop "></span></a>';
+            $componente =  '<a value="' . $id . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow btn_componente" title="Componentes"><span class="fas fa-laptop "></span></a>';
         }
         if ($permisos->PermisosUsuario($opciones, 5704, 3) || $id_rol == 1) {
-            $archivos =  '<a value="' . $id . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow btn_archivos" title="Archivos Anexos"><span class="fas fa-paperclip "></span></a>';
+            $archivos =  '<a value="' . $id . '" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow btn_archivos" title="Archivos Anexos"><span class="fas fa-paperclip "></span></a>';
         }
         if ($permisos->PermisosUsuario($opciones, 5704, 4) || $id_rol == 1) {
             $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';

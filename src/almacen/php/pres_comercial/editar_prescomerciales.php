@@ -46,6 +46,9 @@ try {
                     $rs = $cmd->query($sql_i);
                     $obj = $rs->fetch();
                     $res['id'] = $obj['id'];
+
+                    $proceso = "Se Registró Presentación Comercial Id: " . $obj['id'] . ", Nombre: " . $nom_presentacion;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -58,6 +61,9 @@ try {
                 if ($rs) {
                     $res['mensaje'] = 'ok';
                     $res['id'] = $id;
+
+                    $proceso = "Se Modificó Presentación Comercial Id: " . $id . ", Nombre: " . $nom_presentacion;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -66,11 +72,17 @@ try {
 
         if ($oper == 'del') {
             $id = $_POST['id'];
+            $sql = "SELECT id_prescom,nom_presentacion FROM far_presentacion_comercial WHERE id_prescom=" . $id;
+            $rs = $cmd->query($sql);
+            $obj = $rs->fetch();
+
             $sql = "DELETE FROM far_presentacion_comercial WHERE id_prescom=" . $id;
             $rs = $cmd->query($sql);
             if ($rs) {
-                Logs::guardaLog($sql);
                 $res['mensaje'] = 'ok';
+
+                $proceso = "Se Eliminó Presentación Comercial Id: " . $obj['id_prescom'] . ", Nombre: " . $obj['nom_presentacion'];
+                Logs::guardaLog($proceso);                
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];
             }

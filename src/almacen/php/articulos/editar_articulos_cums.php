@@ -77,12 +77,18 @@ try {
                 $sql = "DELETE FROM far_medicamento_cum WHERE id_cum=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
-                    Logs::guardaLog($sql);
-                    $res['mensaje'] = 'ok';
+                    $res['mensaje'] = 'ok';                    
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
-                }
+                }                
             }
+
+            $sql = "SELECT cod_medicamento,nom_medicamento FROM far_medicamentos WHERE id_med=" . $id_articulo;
+            $rs = $cmd->query($sql);
+            $obj_articulo = $rs->fetch();
+
+            $proceso = "Se Modificó CUMS de Articulo Código: " . $obj_articulo['cod_medicamento'] . ", Nombre: " . $obj_articulo['nom_medicamento'];
+            Logs::guardaLog($proceso); 
         } else {
             $res['mensaje'] = 'Primero debe guardar el Articulo';
         }

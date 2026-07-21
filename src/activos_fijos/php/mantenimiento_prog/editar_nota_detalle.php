@@ -138,12 +138,22 @@ try {
                     if ($archivo && file_exists($ruta . $archivo)) {
                         unlink($ruta . $archivo);
                     }
-                    Logs::guardaLog($sql);
                     $res['mensaje'] = 'ok';
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
             }
+
+            $sql = "SELECT acf_mantenimiento_detalle.id_mantenimiento,acf_mantenimiento.fec_mantenimiento,acf_hojavida.placa
+                FROM acf_mantenimiento_detalle 
+                INNER JOIN acf_mantenimiento ON (acf_mantenimiento.id_mantenimiento = acf_mantenimiento_detalle.id_mantenimiento)
+                INNER JOIN acf_hojavida ON (acf_hojavida.id_activo_fijo = acf_mantenimiento_detalle.id_activo_fijo)
+                WHERE acf_mantenimiento_detalle.id_mant_detalle=" . $id_md;
+            $rs = $cmd->query($sql);
+            $obj_man = $rs->fetch();
+
+            $proceso = "Se Modificó notas de Progreso de Mantenimiento Id: " . $obj_man['id_mantenimiento'] . ", Fecha: " . $obj_man['fec_mantenimiento'] . ", Equipo Placa: " . $obj_man['placa'];
+            Logs::guardaLog($proceso);
         } else {
             $res['mensaje'] = 'Primero debe guardar El registro de Orden de mantenimiento';
         }

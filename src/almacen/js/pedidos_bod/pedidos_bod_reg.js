@@ -69,7 +69,6 @@
             }
         });
 
-
         $('#tb_pedidos_detalles').wrap('<div class="overflow"/>');
     });
 })(jQuery);

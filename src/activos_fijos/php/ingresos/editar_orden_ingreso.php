@@ -56,6 +56,9 @@ try {
                     $rs = $cmd->query($sql_i);
                     $obj = $rs->fetch();
                     $res['id'] = $obj['id'];
+
+                    $proceso = "Se Registró Órden de Ingreso de Activos Fijos Id: " . $obj['id'] . ", Fecha: " . $fec_ing . ", Detalle: " . $detalle;
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -73,6 +76,9 @@ try {
                     if ($rs) {
                         $res['mensaje'] = 'ok';
                         $res['id'] = $id;
+
+                        $proceso = "Se Modificó Órden de Ingreso de Activos Fijos Id: " . $id . ", Fecha: " . $fec_ing . ", Detalle: " . $detalle;
+                        Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
                     }
@@ -85,16 +91,18 @@ try {
         if ($oper == 'del') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado FROM acf_orden_ingreso WHERE id_ingreso=" . $id;
+            $sql = "SELECT estado,fec_ingreso,detalle FROM acf_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
             $obj_ingreso = $rs->fetch();
 
             if ($obj_ingreso['estado'] == 1) {
                 $sql = "DELETE FROM acf_orden_ingreso WHERE id_ingreso=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {
-                    Logs::guardaLog($sql);
+                if ($rs) {                    
                     $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Eliminó Órden de Ingreso de Activos Fijos Id: " . $id . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
+                    Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
@@ -106,15 +114,15 @@ try {
         if ($oper == 'close') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado FROM acf_orden_ingreso WHERE id_ingreso=" . $id;
+            $sql = "SELECT estado,fec_ingreso,detalle FROM acf_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
             $obj_ingreso = $rs->fetch();
             $estado = isset($obj_ingreso['estado']) ? $obj_ingreso['estado'] : -1;
 
             $sql = "SELECT COUNT(*) AS total FROM acf_orden_ingreso_detalle WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_ingreso = $rs->fetch();
-            $num_detalles = $obj_ingreso['total'];
+            $obj_detalles = $rs->fetch();
+            $num_detalles = $obj_detalles['total'];
 
             if ($estado == 1 && $num_detalles > 0) {
 
@@ -130,8 +138,8 @@ try {
                                 GROUP BY acf_orden_ingreso_detalle.id_ing_detalle) AS c
                         WHERE cantidad>registros";
                 $rs = $cmd->query($sql);
-                $obj_ingreso = $rs->fetch();
-                $articulos_pen = $obj_ingreso['articulos'] ? $obj_ingreso['articulos'] : "";
+                $obj_ingreso_det = $rs->fetch();
+                $articulos_pen = $obj_ingreso_det['articulos'] ? $obj_ingreso_det['articulos'] : "";
 
                 if (!$articulos_pen) {
                     $error = 0;
@@ -174,6 +182,9 @@ try {
                     if ($error == 0) {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
+
+                        $proceso = "Se Cerró Órden de Ingreso de Activos Fijos Id: " . $id . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
+                        Logs::guardaLog($proceso);
                     } else {
                         $cmd->rollBack();
                         $res['mensaje'] = 'Error de Ejecución de Proceso';
@@ -193,7 +204,7 @@ try {
         if ($oper == 'annul') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado FROM acf_orden_ingreso WHERE id_ingreso=" . $id;
+            $sql = "SELECT estado,fec_ingreso,detalle FROM acf_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
             $obj_ingreso = $rs->fetch();
             $estado = $obj_ingreso['estado'];
@@ -221,8 +232,9 @@ try {
                     if ($error == 0) {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
-                        $consulta = "Anula Orden de Ingreso de Activos Fijos Id: " . $id . ", Elimina las hojas de vida de los Activos Fijos";
-                        Logs::guardaLog($consulta);                        
+                        
+                        $proceso = "Se Anuló Órden de Ingreso de Activos Fijos Id: " . $id . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
+                        Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = 'Error de Ejecución de Proceso';
                         $cmd->rollBack();

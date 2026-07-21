@@ -58,7 +58,6 @@ class Menu
                     {$this->getMenuAlmacen()}
                     {$this->getMenuActivosFijos()}
                     {$this->getMenuFinanciero()}
-                    <!-- {$this->getMenuAnalytics()} -->
                 </ul>
             </div>
         </div>
@@ -789,7 +788,7 @@ class Menu
         // 5017: [Movimientos][Traslado SPSR]
         /*if ($this->permisos->PermisosUsuario($this->opciones, 5017, 0) || $this->id_rol == 1) {
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/trasladose_spsr/index.php" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-dolly-flatbed me-2 fa-fw"></i> Traslados Egreso SPSR</a></li>';
-        } */
+        }*/
         // 5009: [Movimientos][Recalcular]
         if ($this->permisos->PermisosUsuario($this->opciones, 5009, 0) || $this->id_rol == 1) {
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/recalcular_kardex/index.php" class="nav-link text-danger px-1 py-2 sombra"><i class="fa fa-cogs me-2 fa-fw"></i> Recalcula Mtos.</a></li>';
@@ -1013,96 +1012,5 @@ class Menu
                     </div>
                 </li>
             HTML;
-    }
-
-    /**
-     * MODULO ANALITYCS (30)
-     * IDs según tabla:
-     * 3001: [Configuracion][Consultas Analíticas]
-     * 3002: [Configuracion][Sedes-Base de Datos]
-     * 3003: [Configuracion][Tablero Analítico]
-     * 3004: [Visualizacion][Consultas Analíticas]
-     * 3005: [Visualizacion][Tablero Analítico]     
-     */
-    private function getMenuAnalytics(): string
-    {
-        // 1️ Verificación global del módulo 30
-        if (!($this->modulos[30] > 0 || $this->id_rol == 1)) {
-            return '';
-        }
-
-        // 2 Verificación de permisos del contenedor
-        if (!(
-            $this->permisos->PermisosUsuario($this->opciones, 3001, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 3002, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 3003, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 3004, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 3005, 0) ||
-            $this->id_rol == 1
-        )) {
-            return '';
-        }
-
-        // --- SECCIÓN: CONFIGURACIÓN ---   
-        $conf_items = '';
-
-        // 3002: [Configuracion][Sedes-DB]
-        if ($this->permisos->PermisosUsuario($this->opciones, 3002, 0) || $this->id_rol == 1) {
-            $conf_items .= '<li><a href="' . $this->host . '/src/analytics/conf_bdatos/php/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-project-diagram me-2 fa-fw"></i> Entidades-Base Datos</a></li>';
-        }
-        
-        // 3001: [Configuracion][Consultas Analíticas]
-        if ($this->permisos->PermisosUsuario($this->opciones, 3001, 0) || $this->id_rol == 1) {
-            $conf_items .= '<li><a href="' . $this->host . '/src/analytics/conf_consultas/php/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-edit me-2 fa-fw"></i> Consultas Analíticas</a></li>';
-        }
-
-        // 3003: [Configuracion][Tablero Analítico]
-        if ($this->permisos->PermisosUsuario($this->opciones, 3003, 0) || $this->id_rol == 1) {
-            $conf_items .= '<li><a href="' . $this->host . '/src/analytics/conf_tablero/php/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-columns me-2 fa-fw"></i> Tablero Analítico</a></li>';
-        }
-
-        $analytics_config = '';
-        if (!empty($conf_items)) {
-            $analytics_config = $this->wrapCollapse('analytics-config-collapse','fas fa-cogs','Configuración',$conf_items,'text-primary');
-        }
-
-        // --- SECCIÓN: VISUALIZACIÓN ---
-        $vis_items = '';
-        if ($this->permisos->PermisosUsuario($this->opciones, 3004, 0) || $this->id_rol == 1) {
-            $vis_items .= '<li><a href="' . $this->host . '/src/analytics/php/consultas/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-poll me-2 fa-fw"></i> Consultas Analíticas</a></li>';
-        }
-
-        if ($this->permisos->PermisosUsuario($this->opciones, 3005, 0) || $this->id_rol == 1) {
-            $vis_items .= '<li><a href="' . $this->host . '/src/analytics/php/tablero/index.php" class="nav-link text-success px-1 py-2 sombra"><i class="fas fa-tv me-2 fa-fw"></i> Tablero Analítico</a></li>';
-        }
-
-        $analytics_visualizacion = '';
-        if (!empty($vis_items)) {
-            $analytics_visualizacion = $this->wrapCollapse('analytics-visual-collapse','fas fa-eye','Visualización',$vis_items,'text-success');
-        }
-        
-        //3 Retorno del bloque completo
-        return <<<HTML
-            <li>
-                <a href="#analytics-collapse"
-                class="nav-link d-flex justify-content-between align-items-center px-2 py-2 sombra"
-                data-bs-toggle="collapse"
-                aria-expanded="false">
-                    <span class="d-flex align-items-center">
-                        <div class="menu-icon-wrapper gradient-activos">
-                            <i class="fa fa fa-dashboard"></i>
-                        </div>
-                        <span class="menu-text">Analytics</span>
-                    </span>
-                    <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i>
-                </a>
-                <div class="collapse shadow rounded-3" id="analytics-collapse">
-                    <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 pt-2 small ps-4 pe-3">
-                        {$analytics_config}
-                        {$analytics_visualizacion}
-                    </ul>
-                </div>
-            </li>
-        HTML;
-    }
+    }   
 }
