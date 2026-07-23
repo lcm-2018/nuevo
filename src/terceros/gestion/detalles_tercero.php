@@ -19,7 +19,7 @@ $permisos = new Permisos();
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 $opciones = $permisos->PermisoOpciones($id_user);
-$peReg =  $permisos->PermisosUsuario($opciones, 5202, 2) || $id_rol == 1 ? 1 : 0;
+$peReg = $permisos->PermisosUsuario($opciones, 5202, 2) || $id_rol == 1 ? 1 : 0;
 
 $estados = Combos::getEstadoAdq();
 $modalidades = Combos::getModalidad();
@@ -141,7 +141,7 @@ $content = <<<HTML
                 </h2>
                 <div id="collapsemodContrata" class="accordion-collapse collapse" data-bs-parent="#accDetalles">
                     <div class="accordion-body bg-wiev">
-                        <table id="tableResponsabilidades" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
+                        <table id="tableRespEcon" class="table table-striped table-bordered table-sm nowrap table-hover shadow" style="width:100%">
                             <thead class="text-center">
                                 <tr>
                                     <th class="bg-sofia">ID</th>

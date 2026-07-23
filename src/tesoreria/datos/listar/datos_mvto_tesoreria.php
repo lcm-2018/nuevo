@@ -27,8 +27,10 @@ $limit = "";
 if ($length != -1) {
     $limit = "LIMIT $start, $length";
 }
-$col = $_POST['order'][0]['column'] + 1;
-$dir = $_POST['order'][0]['dir'];
+$col_idx = $_POST['order'][0]['column'];
+$dir = in_array(strtolower($_POST['order'][0]['dir']), ['asc', 'desc']) ? $_POST['order'][0]['dir'] : 'DESC';
+// Si DataTables no ha aplicado orden explícito (columna 0 por defecto), ordenar por fecha e id_manu
+$col = $col_idx == 0 ? '`ctb_doc`.`fecha` DESC, `ctb_doc`.`id_manu`' : ($col_idx + 1);
 $dato = null;
 $data = [];
 $totalRecords = 0;
@@ -128,7 +130,7 @@ try {
                     GROUP BY `pto_pag_detalle`.`id_ctb_doc`) AS `causaciones`
                     ON (`ctb_doc`.`id_ctb_doc` = `causaciones`.`pag`)
             WHERE (`ctb_doc`.`id_tipo_doc` = $id_ctb_doc AND `ctb_doc`.`id_vigencia` = $id_vigencia $where) $andwhere  
-             ORDER BY $col $dir $limit";
+            ORDER BY $col $dir, `ctb_doc`.`fecha` DESC, `ctb_doc`.`id_manu` DESC $limit";
     $rs = $cmd->query($sql);
     $listappto = $rs->fetchAll();
     $rs->closeCursor();

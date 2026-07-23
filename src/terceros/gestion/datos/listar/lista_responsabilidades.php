@@ -15,7 +15,7 @@ $id_user = $_SESSION['id_user'];
 $opciones = $permisos->PermisoOpciones($id_user);
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
                 `id_responsabilidad`, `codigo`, `descripcion`
             FROM

@@ -151,7 +151,7 @@ function FormResponsabilidad(id) {
                 dataType: 'json',
             },
             "columns": [
-
+                { 'data': 'id' },
                 { 'data': 'codigo' },
                 { 'data': 'descripcion' },
                 { 'data': 'estado' },
@@ -1099,6 +1099,30 @@ function FormResponsabilidad(id) {
             success: function (r) {
                 if (r === '0' || r === '1') {
                     $('#tableDeducciones').DataTable().ajax.reload(null, false);
+                } else {
+                    $('#divModalError').modal('show');
+                    $('#divMsgError').html(r);
+                }
+            },
+            complete: function () {
+                ocultarOverlay();
+            }
+        });
+        return false;
+    });
+    //cambiar estado responsabilidad economica
+    $('#modificaRespEcon').on('click', '.estadoresp', function (e) {
+        e.preventDefault();
+        let estado = $(this).find('span').hasClass('activo') ? '0' : '1';
+        let idt = $(this).attr('value');
+        mostrarOverlay();
+        $.ajax({
+            type: 'POST',
+            url: 'datos/actualizar/upestadoresp_econ.php',
+            data: { e: estado, idt: idt },
+            success: function (r) {
+                if (r === '0' || r === '1') {
+                    $('#tableRespEcon').DataTable().ajax.reload(null, false);
                 } else {
                     $('#divModalError').modal('show');
                     $('#divMsgError').html(r);

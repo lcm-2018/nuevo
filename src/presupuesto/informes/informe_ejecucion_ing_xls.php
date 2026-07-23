@@ -16,7 +16,7 @@ $fecha_ini_mes = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-' . $mes . '-
 // Último día del mes anterior a la fecha de corte
 $fecha_fin_mes_ant = date("Y-m-d", strtotime($fecha_ini_mes . ' -1 day'));
 $id_vigencia = $_SESSION['id_vigencia'];
-$total_cols = $detalle_mes == '1' ? 20 : 14;
+$total_cols = $detalle_mes == '1' ? 21 : 15;
 function pesos($valor)
 {
     return number_format($valor, 2, ".", ",");
@@ -233,6 +233,7 @@ try {
             <?php endif; ?>
             <td rowspan="2">% Ejec</td>
             <td rowspan="2">Por Ejecutar</td>
+            <td rowspan="2">Saldo por Ejecutar</td>
             <td rowspan="2">Ctas por Cobrar</td>
         </tr>
         <!-- Fila 2: Sub-encabezados -->
@@ -292,9 +293,11 @@ try {
             echo '<td style="text-align:right">' . pesos($value['recaudo_ant']) . '</td>';
             echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['recaudo_mes']) . '</td>' : '';
             echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['recaudo_liberado_mes']) . '</td>' : '';
+            $saldo_por_ejecutar = $definitivo - $recaudo_acumulado;
             echo '<td style="text-align:right">' . pesos($recaudo_acumulado) . '</td>
              <td style="text-align:right">' .  $porc_ejec . '</td>
                     <td style="text-align:right">' .  pesos($presupuesto_por_ejecutar) . '</td>
+                    <td style="text-align:right">' .  pesos($saldo_por_ejecutar) . '</td>
                     <td style="text-align:right">' .  pesos($cuentas_por_cobrar) . '</td>
                 </tr>';
         }

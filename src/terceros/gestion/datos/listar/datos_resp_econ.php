@@ -17,9 +17,9 @@ $id_t = isset($_POST['id_t']) ? $_POST['id_t'] : exit('Acción no permitida');
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
     $sql = "SELECT
-                `codigo`,`descripcion`,`estado`
+                `id_respxtercero`,`codigo`,`descripcion`,`estado`
             FROM `ctt_resposabilidad_terceros`
                 INNER JOIN `tb_responsabilidades_tributarias`
                     ON(`ctt_resposabilidad_terceros`.`id_responsabilidad` = `tb_responsabilidades_tributarias`.`id_responsabilidad`)
@@ -33,11 +33,13 @@ try {
 }
 if (!empty($responsabilidades)) {
     foreach ($responsabilidades as $r) {
-        $estado = $r['estado'] == '1' ? '<span class="fas fa-toggle-on fa-lg activo"></span>' : '<span class="fas fa-toggle-off fa-lg inactivo"></span>';
+        $icono = $r['estado'] == '1' ? '<span class="fas fa-toggle-on fa-lg activo text-success"></span>' : '<span class="fas fa-toggle-off fa-lg inactivo text-secondary"></span>';
+        $estado = '<div class="text-center"><a href="#" class="estadoresp" value="' . $r['id_respxtercero'] . '" title="' . ($r['estado'] == '1' ? 'Activo - Click para desactivar' : 'Inactivo - Click para activar') . '">' . $icono . '</a></div>';
         $data[] = [
+            'id' => '<div class="text-center">' . $r['id_respxtercero'] . '</div>',
             'codigo' => '<div class="text-center">' . $r['codigo'] . '</div>',
             'descripcion' => mb_strtoupper($r['descripcion']),
-            'estado' => '<div class="text-center">' . $estado . '</div>'
+            'estado' => $estado
         ];
     }
 } else {
