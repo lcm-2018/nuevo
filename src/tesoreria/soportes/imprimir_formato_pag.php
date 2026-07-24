@@ -91,17 +91,19 @@ try {
 }
 ?>
 <div class="text-end py-3">
-    <?php if ($permisos->PermisosUsuario($opciones, 5601, 6)  || $id_rol == 1) {
+    <?php if ($permisos->PermisosUsuario($opciones, 5601, 6) || $id_rol == 1) {
         if ($tipo == '4') {
             if (strpos($ids, ',') === false) {
                 echo '<a type="button" class="btn btn-warning btn-sm" onclick="CambiaNumResol(' . $ids . ')" title="Cambiar consecutivo de resolución"># Resolución</a>';
             }
-    ?>
-            <a type="button" class="btn btn-info btn-sm" onclick="imprSelecTes('imprimeResolucion','<?= str_replace(',', '|', $ids); ?>');"> Resolución</a>
-        <?php
+            ?>
+            <a type="button" class="btn btn-info btn-sm"
+                onclick="imprSelecTes('imprimeResolucion','<?= str_replace(',', '|', $ids); ?>');"> Resolución</a>
+            <?php
         }
         ?>
-        <a type="button" class="btn btn-primary btn-sm" onclick="imprSelecTes('areaImprimir','<?= str_replace(',', '|', $ids); ?>');"> Imprimir</a>
+        <a type="button" class="btn btn-primary btn-sm"
+            onclick="imprSelecTes('areaImprimir','<?= str_replace(',', '|', $ids); ?>');"> Imprimir</a>
     <?php } ?>
     <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
 </div>
@@ -216,24 +218,34 @@ foreach ($documentos_tes as $documento) {
     // Movimiento contable
     try {
         $sql = "SELECT
-                `ctb_libaux`.`id_cuenta`
-                , `ctb_pgcp`.`cuenta`
-                , `ctb_pgcp`.`nombre`
-                , `ctb_libaux`.`debito`
-                , `ctb_libaux`.`credito`
-                , `ctb_libaux`.`id_tercero_api` AS `id_tercero`
-                , `tb_terceros`.`nom_tercero`
-                , `tb_terceros`.`nit_tercero`
-            FROM
-                `ctb_libaux`
-                INNER JOIN `ctb_pgcp` 
-                    ON (`ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
-                LEFT JOIN `tb_terceros` 
-                    ON (`ctb_libaux`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
-            WHERE (`ctb_libaux`.`id_ctb_doc` = $id_doc)
-            ORDER BY `ctb_pgcp`.`cuenta` DESC";
+                    `ctb_libaux`.`id_cuenta`
+                    , `ctb_pgcp`.`cuenta`
+                    , `ctb_pgcp`.`nombre`
+                    , `ctb_libaux`.`debito`
+                    , `ctb_libaux`.`credito`
+                    , `ctb_libaux`.`id_tercero_api` AS `id_tercero`
+                    , `tb_terceros`.`nom_tercero`
+                    , `tb_terceros`.`nit_tercero`
+                FROM
+                    `ctb_libaux`
+                    INNER JOIN `ctb_pgcp` 
+                        ON (`ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
+                    LEFT JOIN `tb_terceros` 
+                        ON (`ctb_libaux`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
+                WHERE (`ctb_libaux`.`id_ctb_doc` = $id_doc)
+                ORDER BY `ctb_pgcp`.`cuenta` DESC";
         $res = $cmd->query($sql);
         $movimiento = $res->fetchAll();
+        $res->closeCursor();
+        unset($res);
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    }
+    try {
+        $sql = "SELECT `ceva` FROM `nom_nomina_pto_ctb_tes` WHERE `ceva` = $id_doc LIMIT 1";
+        $res = $cmd->query($sql);
+        $esNomina = $res->fetch();
+        $esNomina = !empty($esNomina) ? true : false;
         $res->closeCursor();
         unset($res);
     } catch (PDOException $e) {
@@ -421,13 +433,14 @@ foreach ($documentos_tes as $documento) {
         '12' => 'diciembre'
     ];
     ob_start();
-?>
+    ?>
     <div class="px-2 " style="width:90% !important;margin: 0 auto;">
 
         </br>
         <table class="table-bordered bg-light" style="width:100% !important;">
             <tr>
-                <td class='text-center' style="width:18%"><label class="small"><img src="../../assets/images/logo.png" width="100"></label></td>
+                <td class='text-center' style="width:18%"><label class="small"><img src="../../assets/images/logo.png"
+                            width="100"></label></td>
                 <td style="text-align:center">
                     <strong><?php echo $ips['nombre']; ?> </strong>
                     <div>NIT <?php echo $ips['nit'] . '-' . $ips['dig_ver']; ?></div>
@@ -440,7 +453,8 @@ foreach ($documentos_tes as $documento) {
 
         <div class="row px-2" style="text-align: center">
             <div class="col-12">
-                <div class="col lead"><label><strong> <?php echo $nom_doc . ' No: ' . $documento['id_manu']; ?></strong></label></div>
+                <div class="col lead"><label><strong>
+                            <?php echo $nom_doc . ' No: ' . $documento['id_manu']; ?></strong></label></div>
             </div>
         </div>
         <div class="watermark">
@@ -472,13 +486,14 @@ foreach ($documentos_tes as $documento) {
             </tr>
             <tr>
                 <td class='text-start'>VALOR:</td>
-                <td class='text-start'><label><?php echo $enletras . "  $" . number_format($total, 2, ",", "."); ?></label></td>
+                <td class='text-start'><label><?php echo $enletras . "  $" . number_format($total, 2, ",", "."); ?></label>
+                </td>
             </tr>
         </table>
         </br>
         <?php
         if ($id_crpp > 0) {
-        ?>
+            ?>
             <div class="row">
                 <div class="col-12">
                     <div style="text-align: left">
@@ -497,14 +512,16 @@ foreach ($documentos_tes as $documento) {
                 $total_pto = 0;
                 foreach ($rubros as $rp) {
                     if ($rp['valor'] > 0) {
-                ?>
+                        ?>
                         <tr>
                             <td class='text-start' style='border: 1px solid black '><?= $rp['id_rp']; ?></td>
                             <td class='text-start' style='border: 1px solid black '><?= $rp['rubro']; ?></td>
                             <td class='text-start' style='border: 1px solid black '><?= $rp['nom_rubro']; ?></td>
-                            <td class='text-end' style='border: 1px solid black; text-align: right'><?= number_format($rp['valor'], 2, ",", "."); ?></td>
+                            <td class='text-end' style='border: 1px solid black; text-align: right'>
+                                <?= number_format($rp['valor'], 2, ",", "."); ?>
+                            </td>
                         </tr>
-                <?php
+                        <?php
                         $total_pto += $rp['valor'];
                     }
                 }
@@ -517,7 +534,7 @@ foreach ($documentos_tes as $documento) {
             </br>
             <?php
             if (!empty($data)) {
-            ?>
+                ?>
                 <div style="text-align: left; width: 100%">
                     <div><strong>Datos de la factura: </strong></div>
                 </div>
@@ -547,14 +564,17 @@ foreach ($documentos_tes as $documento) {
                     </tr>
                     <tr>
                         <td style="border: 1px solid black"><?php echo number_format($data['valor_pago'], 2, ',', '.'); ?></td>
-                        <td style="border: 1px solid black"><?php echo  number_format($data['valor_iva'], 2, ',', '.');; ?></td>
+                        <td style="border: 1px solid black"><?php echo number_format($data['valor_iva'], 2, ',', '.');
+                        ; ?></td>
                         <td style="border: 1px solid black"><?php echo number_format($data['valor_base'], 2, ',', '.'); ?></td>
                         <td style="border: 1px solid black"><?php echo number_format($descuentos['dcto'], 2, ',', '.'); ?></td>
-                        <td style="border: 1px solid black"><?php echo number_format(($data['valor_pago'] - $descuentos['dcto']), 2, ',', '.'); ?></td>
+                        <td style="border: 1px solid black">
+                            <?php echo number_format(($data['valor_pago'] - $descuentos['dcto']), 2, ',', '.'); ?>
+                        </td>
                     </tr>
                 </table>
                 </br>
-        <?php
+                <?php
             }
         }
         ?>
@@ -630,7 +650,7 @@ foreach ($documentos_tes as $documento) {
         <table class="table-bordered bg-light" style="width:100% !important; border-collapse: collapse;">
             <?php
             if (true) {
-            ?>
+                ?>
                 <tr>
                     <td style="text-align: left;border: 1px solid black">Cuenta</td>
                     <td style='border: 1px solid black'>Nombre</td>
@@ -643,12 +663,13 @@ foreach ($documentos_tes as $documento) {
                 $tot_cre = 0;
                 foreach ($movimiento as $mv) {
                     $ccnit = $mv['nit_tercero'];
+                    $name = $esNomina && $mv['debito'] > 0 ? $mv['nom_tercero'] : "";
                     echo "<tr style='border: 1px solid black'>
                     <td class='text-start' style='border: 1px solid black'>" . $mv['cuenta'] . "</td>
-                    <td class='text-start' style='border: 1px solid black'>" . $mv['nombre'] . "</td>
-                    <td class='text-start' style='border: 1px solid black'>" .  $ccnit . "</td>
-                    <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['debito'], 2, ",", ".")  . "</td>
-                    <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['credito'], 2, ",", ".")  . "</td>
+                    <td class='text-start' style='border: 1px solid black'>" . $mv['nombre'] . " <span style='color: #808080; font-size: 70%; font-style: italic;'>" . $name . "</span></td>
+                    <td class='text-start' style='border: 1px solid black'>" . $ccnit . "</td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['debito'], 2, ",", ".") . "</td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['credito'], 2, ",", ".") . "</td>
                     </tr>";
                     $tot_deb += $mv['debito'];
                     $tot_cre += $mv['credito'];
@@ -656,12 +677,16 @@ foreach ($documentos_tes as $documento) {
                 ?>
                 <tr>
                     <td style="text-align: left;border: 1px solid black" colspan="3">Sumas iguales</td>
-                    <td class='text-end' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_deb, 2, ",", "."); ?></td>
-                    <td class='text-end' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_cre, 2, ",", "."); ?> </td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'>
+                        <?php echo number_format($tot_deb, 2, ",", "."); ?>
+                    </td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'>
+                        <?php echo number_format($tot_cre, 2, ",", "."); ?>
+                    </td>
                 </tr>
-            <?php
+                <?php
             } else {
-            ?>
+                ?>
                 <tr>
                     <td style="text-align: left;border: 1px solid black">Cuenta</td>
                     <td style='border: 1px solid black'>Nombre</td>
@@ -673,12 +698,12 @@ foreach ($documentos_tes as $documento) {
                 $tot_cre = 0;
 
                 foreach ($movimiento as $mv) {
-
+                    $name = $esNomina ? "" : $mv['nom_tercero'];
                     echo "<tr style='border: 1px solid black'>
                 <td class='text-start' style='border: 1px solid black'>" . $mv['cuenta'] . "</td>
-                <td class='text-start' style='border: 1px solid black'>" . $mv['nombre'] . "</td>
-                <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['debito'], 2, ",", ".")  . "</td>
-                <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['credito'], 2, ",", ".")  . "</td>
+                <td class='text-start' style='border: 1px solid black'>" . $mv['nombre'] . " <span style='color: gray'>" . $name . "</span></td>
+                <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['debito'], 2, ",", ".") . "</td>
+                <td class='text-end' style='border: 1px solid black;text-align: right'>" . number_format($mv['credito'], 2, ",", ".") . "</td>
                 </tr>";
                     $tot_deb += $mv['debito'];
                     $tot_cre += $mv['credito'];
@@ -686,10 +711,14 @@ foreach ($documentos_tes as $documento) {
                 ?>
                 <tr>
                     <td style="text-align: left;border: 1px solid black" colspan="2">Sumas iguales</td>
-                    <td class='text-end' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_deb, 2, ",", "."); ?></td>
-                    <td class='text-end' style='border: 1px solid black;text-align: right'><?php echo number_format($tot_cre, 2, ",", "."); ?> </td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'>
+                        <?php echo number_format($tot_deb, 2, ",", "."); ?>
+                    </td>
+                    <td class='text-end' style='border: 1px solid black;text-align: right'>
+                        <?php echo number_format($tot_cre, 2, ",", "."); ?>
+                    </td>
                 </tr>
-            <?php
+                <?php
             }
             ?>
 
@@ -746,7 +775,7 @@ foreach ($documentos_tes as $documento) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
     if (!empty($pendientes) && $tipo == '9') {
-    ?>
+        ?>
         <div class="px-2 " style="width:90% !important;margin: 0 auto;">
             <table style="width: 100%; border-collapse: collapse;" class="page_break_avoid table-bordered bg-light" border="1">
                 <tr>
@@ -779,7 +808,7 @@ foreach ($documentos_tes as $documento) {
             </table>
         </div>
         <div class="page-break"></div>
-    <?php
+        <?php
     }
     $html_doc .= ob_get_clean();
     ob_start();
@@ -795,7 +824,7 @@ foreach ($documentos_tes as $documento) {
         $cadena = implode(',', $cadena);
         $cad_rubros = implode(',', $cad_rubros);
         $firmas = $reportes->getFormFirmas($elabora, $id_modulo, $fecha, 'REVA', $tercero_nombre);
-    ?>
+        ?>
         <div class="px-2 " style="width:90% !important;margin: 0 auto;">
             <table style="width: 100%;" class="page_break_avoid">
                 <thead>
@@ -803,7 +832,8 @@ foreach ($documentos_tes as $documento) {
                         <td>
                             <table class="table-bordered bg-light" style="width:100% !important;">
                                 <tr>
-                                    <td class='text-center' style="width:25%"><label class="small"><img src="../../assets/images/logo.png" width="150"></label></td>
+                                    <td class='text-center' style="width:25%"><label class="small"><img
+                                                src="../../assets/images/logo.png" width="150"></label></td>
                                     <td style="text-align:center">
                                         <strong><?php echo $ips['nombre']; ?> </strong>
                                         <div>NIT <?php echo $ips['nit'] . '-' . $ips['dig_ver']; ?></div>
@@ -818,18 +848,33 @@ foreach ($documentos_tes as $documento) {
                         <td style="text-align:justify">
                             <br>
                             <p style="text-align:center;"><b>RESOLUCIÓN No.: <?php echo $num_resolucion; ?></b></p>
-                            <p style="text-align:center;"><b><?= $f_exp[2] . '-' . $meses[$f_exp[1]] . '-' . $f_exp[0] ?></b></p>
+                            <p style="text-align:center;"><b><?= $f_exp[2] . '-' . $meses[$f_exp[1]] . '-' . $f_exp[0] ?></b>
+                            </p>
                             <p style="text-align:center;">Por medio de la cual se ordena un pago</p>
-                            <p>EL(LA) <?= $aprobo_cargo; ?> DE EL(LA) <?= $ips['nombre'] ?> EN USO DE SUS FACULTADES CONSTITUCIONALES, LEGALES Y ESTATUTARIAS Y CONSIDERANDO</p>
-                            <p>Que, dentro del presupuesto de gastos de el(la) <?= $ips['nombre'] ?>, para la vigencia fiscal del año <?= $vigencia ?>, se encuentra previsto un(os) rubro(s) radicado bajo código(s): <?= $cadena ?>.</p>
-                            <p>Que durante la presente vigencia se generaron obligaciones por concepto de: <?= mb_strtoupper($documento['detalle']); ?>, para lo cual se expidieron los respectivos actos administrativos.</p>
+                            <p>EL(LA) <?= $aprobo_cargo; ?> DE EL(LA) <?= $ips['nombre'] ?> EN USO DE SUS FACULTADES
+                                CONSTITUCIONALES, LEGALES Y ESTATUTARIAS Y CONSIDERANDO</p>
+                            <p>Que, dentro del presupuesto de gastos de el(la) <?= $ips['nombre'] ?>, para la vigencia fiscal
+                                del año <?= $vigencia ?>, se encuentra previsto un(os) rubro(s) radicado bajo código(s):
+                                <?= $cadena ?>.
+                            </p>
+                            <p>Que durante la presente vigencia se generaron obligaciones por concepto de:
+                                <?= mb_strtoupper($documento['detalle']); ?>, para lo cual se expidieron los respectivos actos
+                                administrativos.
+                            </p>
                             <p>Por lo anteriormente expuesto:</p>
                             <p style="text-align:center;"><b>RESUELVE</b></p>
-                            <p>ARTICULO PRIMERO: Reconocer y ordenar el pago al TESORERO GENERAL, a favor de I<?= $tercero; ?> por la suma de <?php echo $enletras . "  ($" . number_format($total, 2, ",", ".") . ')'; ?> por concepto de <?= mb_strtoupper($documento['detalle']); ?>.</p>
-                            <p>ARTICULO SEGUNDO: El valor reconocido en el artículo primero se imputará al (los) rubro(s) <?= $cad_rubros; ?>.</p>
-                            <p>ARTICULO TERCERO: Entréguese copia de la presente resolución con sus respectivos anexos para su correspondiente pago a la oficina de Tesorería de el(la) <?= $ips['nombre'] ?> para lo de su competencia.</p>
+                            <p>ARTICULO PRIMERO: Reconocer y ordenar el pago al TESORERO GENERAL, a favor de I<?= $tercero; ?>
+                                por la suma de <?php echo $enletras . "  ($" . number_format($total, 2, ",", ".") . ')'; ?> por
+                                concepto de <?= mb_strtoupper($documento['detalle']); ?>.</p>
+                            <p>ARTICULO SEGUNDO: El valor reconocido en el artículo primero se imputará al (los) rubro(s)
+                                <?= $cad_rubros; ?>.
+                            </p>
+                            <p>ARTICULO TERCERO: Entréguese copia de la presente resolución con sus respectivos anexos para su
+                                correspondiente pago a la oficina de Tesorería de el(la) <?= $ips['nombre'] ?> para lo de su
+                                competencia.</p>
                             <p style="text-align:center; padding-bottom:30px;"><b>COMUNÍQUESE Y CÚMPLASE.</b></p>
-                            <p style="padding-bottom:30px;">Dada en <?= $ips['nom_municipio'] ?>, a los <?= $f_exp[2] ?> días del mes de <?= $meses[$f_exp[1]] ?> del año <?= $f_exp[0] ?>.</p>
+                            <p style="padding-bottom:30px;">Dada en <?= $ips['nom_municipio'] ?>, a los <?= $f_exp[2] ?> días
+                                del mes de <?= $meses[$f_exp[1]] ?> del año <?= $f_exp[0] ?>.</p>
                             <div class="row">
                                 <div class="col-12">
                                     <div style="text-align: center;">
@@ -846,7 +891,7 @@ foreach ($documentos_tes as $documento) {
                         <td>
                             <?php
                             if ($_SESSION['nit_emp'] == '900190473') {
-                            ?>
+                                ?>
                                 <?= $ips['nombre'] ?><br>
                                 Sede Administrativa calle 26 No 8-114<br>
                                 Sede Asistencial carrera 1 con calle 18 esquina vía Pupiales<br>
@@ -859,7 +904,7 @@ foreach ($documentos_tes as $documento) {
                 </tfoot>
             </table>
         </div>
-<?php
+        <?php
     }
     $html_res .= ob_get_clean();
 }
