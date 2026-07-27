@@ -8,20 +8,19 @@ if (!isset($_SESSION['user'])) {
 include '../../../../config/autoloader.php';
 include '../common/funciones_generales.php';
 
-$cmd = \Config\Clases\Conexion::getConexion();
-
-
-$id = $_POST['id'];
-$parametros = json_decode($_POST['parametros']);
-
-$limite = ' LIMIT 100';
-if ($_POST['limite']) {
-    if ($_POST['limite'] < 100) {
-        $limite = " LIMIT " . $_POST['limite'];
-    }
-}
-
 try {
+    $cmd = \Config\Clases\Conexion::getConexion();
+    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+
+    $id = $_POST['id'];
+    $parametros = json_decode($_POST['parametros']);
+
+    $limite = ' LIMIT 100';
+    if ($_POST['limite']) {
+        if ($_POST['limite'] < 100) {
+            $limite = " LIMIT " . $_POST['limite'];
+        }
+    }
 
     $sql = 'SELECT consulta,nom_consulta FROM tb_consultas_sql WHERE id_consulta=' . $id . ' LIMIT 1';
     $rs = $cmd->query($sql);
@@ -39,8 +38,9 @@ try {
     $total = $obj['count'];
 
     $rs1 = $cmd->query($cnsql . $limite, PDO::FETCH_BOTH);
-    $objs = $rs1->fetchAll(PDO::FETCH_ASSOC);
+    $objs = $rs1->fetchAll(PDO::FETCH_NUM);
     $n = $rs1->columnCount();
+    
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -80,14 +80,16 @@ try {
     <div class="table-responsive">
         <table style="width:100% !important">
             <thead style="font-size:60%">
+
                 <tr style="background-color:#CED3D3; color:#000000; text-align:center">
                     <?php
                     for ($i = 0; $i < $n; $i++):
                         $col = $rs1->getColumnMeta($i);
-                    ?>
-                        <th><?php echo $col['name'] ?></th>
+                        ?>
+                        <th><?= $col['name'] ?></th>
                     <?php endfor; ?>
                 </tr>
+                
             </thead>
             <tbody style="font-size: 60%;">
                 <?php

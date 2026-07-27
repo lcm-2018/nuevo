@@ -35,7 +35,7 @@ try {
     $total = $obj['count'];
 
     $rs = $cmd->query($cnsql . $limite, PDO::FETCH_BOTH);
-    $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $objs = $rs->fetchAll(PDO::FETCH_NUM);
     $n = $rs->columnCount();
 ?>
 
@@ -44,24 +44,24 @@ try {
             <thead>
                 <tr id="encabezado">
                     <?php
-                    for ($i = 0; $i < $n; $i++) {
+                    for ($i = 0; $i < $n; $i++):
                         $col = $rs->getColumnMeta($i);
-                    ?>
+                        ?>
                         <th class="bg-sofia"><?= $col['name'] ?></th>
-                    <?php } ?>
+                    <?php endfor; ?>
                 </tr>
             </thead>
             <tbody>
                 <?php
                 $j = 0;
-                foreach ($objs as $obj) { ?>
+                foreach ($objs as $obj) : ?>
                     <tr>
-                        <?php foreach ($obj as $valor) { ?>
+                        <?php foreach ($obj as $valor) : ?>
                             <td><?= $valor ?></td>
-                        <?php } ?>
+                        <?php endforeach; ?>
                     </tr>
                 <?php $j++;
-                } ?>
+                endforeach; ?>
             </tbody>
         </table>
     </div>
