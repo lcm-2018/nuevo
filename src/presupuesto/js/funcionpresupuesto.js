@@ -3111,6 +3111,10 @@ $('#registrarMovDetalle').on('click', function () {
         $("#fecha").focus();
         $("#fecha").addClass('is-invalid');
         mjeError("Fecha debe ser mayor a la fecha de cierre del presupuesto:<br> <b>" + $('#fec_cierre').val()) + "</b>";
+    } else if ($("#fecha").val() < $("#fecha_cdp").val()) {
+        $("#fecha").focus();
+        $("#fecha").addClass('is-invalid');
+        mjeError("La fecha del CRP no puede ser anterior a la fecha del CDP: <br><b>" + $("#fecha_cdp").val() + "</b>", '');
     } else if ($('#id_tercero').val() == '0') {
         $('#tercero').focus();
         $('#tercero').addClass('is-invalid');

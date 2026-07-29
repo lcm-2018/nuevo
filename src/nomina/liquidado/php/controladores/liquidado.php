@@ -358,6 +358,26 @@ switch ($action) {
 
                 //Anular
                 if ($valida) {
+                    // Capturar valores de libranzas ajustados manualmente antes de anular,
+                    // para preservarlos luego de la reliquidación (solo aplica a nóminas tipo N).
+                    $libranzasAjustadas = [];
+                    if ($codigoNomina === 'N') {
+                        $stmtLib = $conexion->prepare(
+                            "SELECT `nll`.`id_libranza`, `nll`.`val_mes_lib`
+                             FROM `nom_liq_libranza` `nll`
+                             INNER JOIN `nom_libranzas` `nl` ON `nll`.`id_libranza` = `nl`.`id_libranza`
+                             WHERE `nl`.`id_empleado` = :id_empleado
+                               AND `nll`.`id_nomina` = :id_nomina
+                               AND `nll`.`estado` = 1
+                               AND `nll`.`val_mes_lib` <> `nl`.`val_mes`"
+                        );
+                        $stmtLib->bindValue(':id_empleado', $id_empleado, \PDO::PARAM_INT);
+                        $stmtLib->bindValue(':id_nomina', $_POST['id_nomina'], \PDO::PARAM_INT);
+                        $stmtLib->execute();
+                        $libranzasAjustadas = $stmtLib->fetchAll(\PDO::FETCH_KEY_PAIR); // [id_libranza => val_mes_lib]
+                        $stmtLib->closeCursor();
+                    }
+
                     $Anular = new Anulacion($conexion);
                     $resul = $Anular->anulaRegistros($id_empleado, $_POST['id_nomina']);
                     if ($resul == 'si') {
@@ -412,6 +432,24 @@ switch ($action) {
                         if ($rstd == 'si') {
                             $suma++;
                             //echo 'Recalculada liquidación.';
+
+                            // Restaurar valores de libranzas ajustados manualmente
+                            // que existían antes de la reliquidación (solo nómina tipo N).
+                            if (!empty($libranzasAjustadas)) {
+                                foreach ($libranzasAjustadas as $idLib => $valAjustado) {
+                                    $stmtRestLib = $conexion->prepare(
+                                        "UPDATE `nom_liq_libranza`
+                                         SET `val_mes_lib` = :val
+                                         WHERE `id_libranza` = :id_libranza
+                                           AND `id_nomina` = :id_nomina
+                                           AND `estado` = 1"
+                                    );
+                                    $stmtRestLib->bindValue(':val', $valAjustado);
+                                    $stmtRestLib->bindValue(':id_libranza', $idLib, \PDO::PARAM_INT);
+                                    $stmtRestLib->bindValue(':id_nomina', $_POST['id_nomina'], \PDO::PARAM_INT);
+                                    $stmtRestLib->execute();
+                                }
+                            }
                         } else {
                             $conexion->rollBack();
                             exit(json_encode($rstd));

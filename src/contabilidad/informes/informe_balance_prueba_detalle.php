@@ -25,6 +25,19 @@ $datos_sedes = obtenerSedesActivas($cmd);
 $sedes = $datos_sedes['sedes'];
 $sede_principal = $datos_sedes['sede_principal'];
 
+// Obtener el catálogo de cuentas ANTES de iterar sedes,
+// porque conectarSede() modifica $cmd (singleton) con USE <bd_sede>
+// y al terminar el foreach $cmd apuntaría a la última sede no-principal.
+try {
+    $sql_cuentas = "SELECT `cuenta`,`nombre`, `id_pgcp`,`tipo_dato` FROM `ctb_pgcp` WHERE (`estado` = 1)";
+    $res_cuentas = $cmd->query($sql_cuentas);
+    $cuentas = $res_cuentas->fetchAll();
+    $res_cuentas->closeCursor();
+    unset($res_cuentas);
+} catch (Exception $e) {
+    echo $e->getMessage();
+}
+
 // Array para consolidar datos contables de todas las sedes
 $datos = [];
 
@@ -133,15 +146,6 @@ foreach ($sedes as $sede) {
 
 // Convertir el array asociativo a indexado para mantener compatibilidad con el código existente
 $datos = array_values($datos);
-try {
-    $sql = "SELECT `cuenta`,`nombre`, `id_pgcp`,`tipo_dato` FROM `ctb_pgcp` WHERE (`estado` = 1)";
-    $res = $cmd->query($sql);
-    $cuentas = $res->fetchAll();
-    $res->closeCursor();
-    unset($res);
-} catch (Exception $e) {
-    echo $e->getMessage();
-}
 $acum = [];
 foreach ($datos as $dato) {
     $cuenta = $dato['cuenta'];
@@ -225,18 +229,18 @@ include_once '../../financiero/encabezado_empresa.php';
                     $naturaleza = "C";
                 }
                 if ($naturaleza == "D") {
-                    $saldo_ini = $tp['debitoi'] - $tp['creditoi'];
-                    $saldo = $saldo_ini + $tp['debito'] - $tp['credito'];
+                    $saldo_ini = round($tp['debitoi'] - $tp['creditoi'], 2);
+                    $saldo = round($saldo_ini + $tp['debito'] - $tp['credito'], 2);
                 } else {
                     if ($nat2 == '99') {
-                        $saldo_ini = $tp['debitoi'] - $tp['creditoi'];
-                        $saldo = $saldo_ini + $tp['credito'] - $tp['debito'];
+                        $saldo_ini = round($tp['debitoi'] - $tp['creditoi'], 2);
+                        $saldo = round($saldo_ini + $tp['credito'] - $tp['debito'], 2);
                     } elseif ($nat2 == '91' || $nat2 == '92'  || $nat2 == '93') {
-                        $saldo_ini = $tp['debitoi'] - $tp['creditoi'];
-                        $saldo = $saldo_ini + $tp['credito'] - $tp['debito'];
+                        $saldo_ini = round($tp['debitoi'] - $tp['creditoi'], 2);
+                        $saldo = round($saldo_ini + $tp['credito'] - $tp['debito'], 2);
                     } else {
-                        $saldo_ini = $tp['creditoi'] - $tp['debitoi'];
-                        $saldo = $saldo_ini + $tp['credito'] - $tp['debito'];
+                        $saldo_ini = round($tp['creditoi'] - $tp['debitoi'], 2);
+                        $saldo = round($saldo_ini + $tp['credito'] - $tp['debito'], 2);
                     }
                 }
 
@@ -252,10 +256,10 @@ include_once '../../financiero/encabezado_empresa.php';
                     <td class='text'>" . $tp['cuenta'] . "</td>
                     <td class='text'>" . mb_convert_encoding($tp['nombre'], 'UTF-8') . "</td>
                     <td class='text-center'>" . $tp['tipo'] . "</td>" . $dter . "
-                    <td class='text-end'>" . $saldo_ini . "</td>
-                    <td class='text-end'>" . $tp['debito'] . "</td>
-                    <td class='text-end'>" . $tp['credito'] . "</td>
-                    <td class='text-end'>" . $saldo . "</td>
+                    <td class='text-end'>" . number_format($saldo_ini, 2, '.', ',') . "</td>
+                    <td class='text-end'>" . number_format($tp['debito'], 2, '.', ',') . "</td>
+                    <td class='text-end'>" . number_format($tp['credito'], 2, '.', ',') . "</td>
+                    <td class='text-end'>" . number_format($saldo, 2, '.', ',') . "</td>
                     </tr>";
                 $saldo_ini = 0;
                 $saldo = 0;

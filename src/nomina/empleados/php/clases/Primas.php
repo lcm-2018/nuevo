@@ -3,6 +3,7 @@
 namespace Src\Nomina\Empleados\Php\Clases;
 
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 use Config\Clases\Sesion;
 use Exception;
 use PDO;

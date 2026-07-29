@@ -3,6 +3,7 @@
 namespace Src\Nomina\Liquidacion\Php\Clases;
 
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 
 use PDO;
 use PDOException;

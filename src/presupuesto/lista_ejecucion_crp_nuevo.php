@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: ../../index.php');
@@ -168,6 +168,7 @@ $content =
         <div class="card-body p-3 bg-wiev">
             <form id="formGestionaCrp">
                 <input type="hidden" name="fec_cierre" id="fec_cierre" value="{$fec_cierre_periodo}">
+                <input type="hidden" id="fecha_cdp" value="{$fecha_cdp}">
                 <input type="hidden" id="id_pto_ppto" name="id_pto_presupuestos" value="{$id_pto}">
                 <input type="hidden" name="id_cdp" id="id_cdp" value="{$id_cdp}">
                 <input type="hidden" name="id_crp" id="id_crp" value="{$id_crp}">
