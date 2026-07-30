@@ -225,7 +225,7 @@ include_once '../../financiero/encabezado_empresa.php';
                 if ($nat1 == '1' || $nat1 == '5' || $nat1 == '6' || $nat1 == '7' || $nat2 == '81' || $nat2 == '83') {
                     $naturaleza = "D";
                 }
-                if ($nat1 == '2' || $nat1 == '3' || $nat1 == '4' || $nat2 == '91' || $nat2 == '92'  || $nat2 == '93') {
+                if ($nat1 == '2' || $nat1 == '3' || $nat1 == '4' || $nat2 == '91' || $nat2 == '92' || $nat2 == '93') {
                     $naturaleza = "C";
                 }
                 if ($naturaleza == "D") {
@@ -233,10 +233,10 @@ include_once '../../financiero/encabezado_empresa.php';
                     $saldo = round($saldo_ini + $tp['debito'] - $tp['credito'], 2);
                 } else {
                     if ($nat2 == '99') {
-                        $saldo_ini = round($tp['debitoi'] - $tp['creditoi'], 2);
+                        $saldo_ini = round($tp['creditoi'] - $tp['debitoi'], 2);
                         $saldo = round($saldo_ini + $tp['credito'] - $tp['debito'], 2);
-                    } elseif ($nat2 == '91' || $nat2 == '92'  || $nat2 == '93') {
-                        $saldo_ini = round($tp['debitoi'] - $tp['creditoi'], 2);
+                    } elseif ($nat2 == '91' || $nat2 == '92' || $nat2 == '93') {
+                        $saldo_ini = round($tp['creditoi'] - $tp['debitoi'], 2);
                         $saldo = round($saldo_ini + $tp['credito'] - $tp['debito'], 2);
                     } else {
                         $saldo_ini = round($tp['creditoi'] - $tp['debitoi'], 2);

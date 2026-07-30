@@ -2161,7 +2161,7 @@ class Liquidacion
             'valor' => 0
         ];
         $tipo = $filtro['tipo'];
-        $dias = $filtro['mes'] == '02' && $filtro['dias'] >= 28 ? 30 : $filtro['dias'];
+        $dias = $filtro['dias'] >= 31 ? 30 : ($filtro['mes'] == '02' && $filtro['dias'] >= 28 ? 30 : $filtro['dias']);
         $valdialc = ($tipo == '1' && $filtro['dias_cot'] < 270) ? ($filtro['dias_cot'] * $param['salario']) / (30 * 270) : $param['salario'] / 30;
         $valor = Valores::Redondear($valdialc * $dias);
         $data = [
