@@ -57,7 +57,7 @@ try {
                             INNER JOIN `pto_rec` ON (`pto_rec_detalle`.`id_pto_rac` = `pto_rec`.`id_pto_rec`)
                             LEFT JOIN `pto_rad_detalle` ON (`pto_rec_detalle`.`id_pto_rad_detalle` = `pto_rad_detalle`.`id_pto_rad_det`)
                         WHERE (DATE_FORMAT(`pto_rec`.`fecha`,'%Y-%m-%d') BETWEEN  '$vigencia-01-01' AND '$vigencia-12-31' AND `pto_rec`.`estado` = 2)
-                        GROUP BY `pto_rec_detalle`.`id_rubro`, DATE_FORMAT(`pto_rec`.`fecha`,'%m')) AS `vals`
+                        GROUP BY IFNULL(`pto_rec_detalle`.`id_rubro`, `pto_rad_detalle`.`id_rubro`), DATE_FORMAT(`pto_rec`.`fecha`,'%m')) AS `vals`
                         INNER JOIN `homologa`
                             ON (`homologa`.`id_cargue` = `vals`.`id_rubro`)
                     GROUP BY `homologa`.`id_siho`, `vals`.`mes`)

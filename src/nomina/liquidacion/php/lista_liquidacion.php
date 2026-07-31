@@ -58,6 +58,7 @@ if (!empty($obj)) {
         }
 
         $laborado = $o['dias_mes'] - $o['inc'] - $o['lic'] - $o['vac'] + $o['ivac'];
+        $laborado = max(0, min(30, $laborado)); // Convención 30 días: nunca negativo ni mayor a 30
         $input = '<input type="number" style="height: auto !important;" class="no-focus text-end border-0 rounded p-0 w-100" name="lab[' . $id . ']" value="' . $laborado . '" min="0" max="' . $laborado . '" step="1">';
         $metodo = '<select style="height:auto !important; max-width: 110px;" class="no-focus border-0 rounded p-0 w-100" name="metodo[' . $id . ']">' . $mp . '</select>';
         $datos[] = [

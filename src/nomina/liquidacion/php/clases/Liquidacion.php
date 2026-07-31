@@ -127,7 +127,9 @@ class Liquidacion
                         FROM 
                             `nom_calendar_novedad`
                         WHERE 
-                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3, 4, 5, 6)
+                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin'
+                            AND DAY(`fecha`) <= 30
+                            AND `id_tipo` IN (1, 2, 3, 4, 5, 6)
                         GROUP BY `id_empleado`) AS `tt`
                         ON (`taux`.`id_empleado` = `tt`.`id_empleado`) 
                     LEFT JOIN
@@ -212,7 +214,9 @@ class Liquidacion
                         FROM 
                             `nom_calendar_novedad`
                         WHERE 
-                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3, 4, 5)
+                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin'
+                            AND DAY(`fecha`) <= 30
+                            AND `id_tipo` IN (1, 2, 3, 4, 5, 6)
                         GROUP BY `id_empleado`) AS `tt`
                         ON (`taux`.`id_empleado` = `tt`.`id_empleado`) 
                     LEFT JOIN
@@ -287,7 +291,9 @@ class Liquidacion
                         FROM 
                             `nom_calendar_novedad`
                         WHERE 
-                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3, 4, 5)
+                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin'
+                            AND DAY(`fecha`) <= 30
+                            AND `id_tipo` IN (1, 2, 3, 4, 5, 6)
                         GROUP BY `id_empleado`) AS `tt`
                         ON (`taux`.`id_empleado` = `tt`.`id_empleado`) 
                     LEFT JOIN
