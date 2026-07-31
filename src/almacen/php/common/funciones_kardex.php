@@ -146,6 +146,7 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
 
                 $sql = "UPDATE far_orden_egreso SET val_total=" . $obj_egrtot['total'] . " WHERE id_egreso=" . $kar['id_egreso'];
                 $rs = $cmd->query($sql);
+
             } elseif ($kar['id_egreso_tra']) {      //Si el movimiento es un traslado Egreso
                 $sql = "SELECT cantidad FROM far_traslado_detalle WHERE id_traslado=" . $kar['id_egreso_tra'] . " AND id_lote_origen=" . $kar['id_lote'];
                 $rs = $cmd->query($sql);
@@ -175,6 +176,7 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
 
                 $sql = "UPDATE far_traslado SET val_total=" . $obj_egrtratot['total'] . " WHERE id_traslado=" . $kar['id_egreso_tra'];
                 $rs = $cmd->query($sql);
+
             } elseif ($kar['id_ingreso_tra']) {     //Si el movimiento es un traslado Ingreso
                 $sql = "SELECT cantidad,valor FROM far_traslado_detalle WHERE id_traslado=" . $kar['id_ingreso_tra'] . " AND id_lote_destino=" . $kar['id_lote'];
                 $rs = $cmd->query($sql);
@@ -206,6 +208,7 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
 
                 $sql = "UPDATE far_traslado SET val_total=" . $obj_ingtratot['total'] . " WHERE id_traslado=" . $kar['id_ingreso_tra'];
                 $rs = $cmd->query($sql);
+
             } elseif ($kar['id_egreso_tra_r']) {      //Si el movimiento es un traslado Egreso remoto
                 $sql = "SELECT cantidad FROM far_traslado_r_detalle WHERE id_traslado=" . $kar['id_egreso_tra_r'] . " AND id_lote_origen=" . $kar['id_lote'];
                 $rs = $cmd->query($sql);
@@ -235,6 +238,7 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
 
                 $sql = "UPDATE far_traslado_r SET val_total=" . $obj_egrremtot['total'] . " WHERE id_traslado=" . $kar['id_egreso_tra_r'];
                 $rs = $cmd->query($sql);
+                
             } elseif ($kar['id_ingreso_tra_r']) {     //Si el movimiento es un traslado Ingreso Remoto
                 $sql = "SELECT cantidad,valor FROM far_traslado_r_detalle WHERE id_traslado=" . $kar['id_ingreso_tra_r'] . " AND id_lote_destino=" . $kar['id_lote'];
                 $rs = $cmd->query($sql);

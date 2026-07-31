@@ -113,12 +113,18 @@
         let id = $(this).val();
         let cobertura = $('#sl_cobertura').find('option:selected').val();
         let modalidad = $('#sl_modalidad').find('option:selected').val();
-        if (id == 1 || id == 2) {
-            $('#sl_cobertura').find('option[value=""],option[value="1"]').prop('disabled', false).show();
-            if (!(cobertura == "1")) {
+        if (id == 1) {
+            $('#sl_cobertura').find('option[value=""],option[value="16"]').prop('disabled', false).show();
+            if (!(cobertura == "16")) {
                 $('#sl_cobertura').val('')
             }
             $('#sl_modalidad').find('option').prop('disabled', false).show();
+        } else if (id == 2) {
+            $('#sl_cobertura').find('option[value=""],option[value="17"]').prop('disabled', false).show();
+            if (!(cobertura == "17")) {
+                $('#sl_cobertura').val('')
+            }
+            $('#sl_modalidad').find('option').prop('disabled', false).show();                    
         } else if (id == 3) {
             $('#sl_cobertura').find('option[value=""],option[value="8"],option[value="9"]').prop('disabled', false).show();
             if (!(cobertura == "8" || cobertura == "9")) {
