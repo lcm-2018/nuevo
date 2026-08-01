@@ -184,13 +184,13 @@ try {
                 $band = true;
                 $contar = count($listado);
                 foreach ($listado as $l) {
-                    $max = $l['valor_crp'] - $l['valor_cop'];
+                    $max = round($l['valor_crp'] - $l['valor_cop'], 2);
                     $key = array_search($l['id_pto_crp_det'], array_column($detalles, 'id_pto_crp_det'));
                     $bg_color = $key !== false ? 'border-success' : 'border-secondary';
                     $id_detalle = $key !== false ? $detalles[$key]['id_pto_cop_det'] . '-' . $l['id_pto_crp_det'] : '0-' . $l['id_pto_crp_det'];
                     $id_detalle = $id_detalle . '-' . $l['id_tercero_api'];
                     $value = $key !== false ? $detalles[$key]['valor'] : $max;
-                    $max = $key !== false ? $max + $detalles[$key]['valor'] : $max;
+                    $max = $key !== false ? round($max + $detalles[$key]['valor'], 2) : $max;
                     $val_sugerido = $contar == 1 ? $val_sugerido : $max;
                 ?>
                     <div class="row mb-2">

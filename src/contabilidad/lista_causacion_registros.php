@@ -219,7 +219,8 @@ if ($id_r == 3) {
             <h5 class="mb-0" style="color: white;">LISTA DE REGISTROS PRESUPUESTALES PARA OBLIGACION </h5>
         </div>
         <div class="p-3">
-            <table id="tableContrtacionRp" class="table table-striped table-bordered nowrap table-sm table-hover shadow w-100 align-middle">
+            <table id="tableContrtacionRp"
+                class="table table-striped table-bordered nowrap table-sm table-hover shadow w-100 align-middle">
                 <thead>
                     <tr>
                         <th class="bg-sofia">Num</th>
@@ -262,10 +263,10 @@ if ($id_r == 3) {
                             $valor_liquidado = $key !== false ? $liquidados[$key]['valor'] : 0;
                             $key = array_search($id_crp, array_column($causados, 'id_pto_crp'));
                             $valor_causado = $key !== false ? $causados[$key]['valor'] : 0;
-                            $saldo_rp = $valor_liquidado - $valor_causado;
+                            $saldo_rp = round($valor_liquidado - $valor_causado, 2);
                             if ($ce['num_contrato'] != '') {
                                 $numeroc = $ce['num_contrato'];
-                                if ($permisos->PermisosUsuario($opciones, 5501, 3)  || $id_rol == 1) {
+                                if ($permisos->PermisosUsuario($opciones, 5501, 3) || $id_rol == 1) {
                                     $editar = '<a value="' . $id_crp . '" onclick="cargarListaDetalleCont(' . $id_crp . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-plus-square "></span></a>';
                                     $acciones = '<button  class="btn btn-outline-pry btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">
                                                 ...
@@ -280,17 +281,17 @@ if ($id_r == 3) {
                                 $acciones = null;
                                 $fecha = date('Y-m-d', strtotime($ce['fecha']));
                                 if ($saldo_rp > 0) {
-                    ?>
+                                    ?>
                                     <tr>
                                         <td class="text-center"><input type="checkbox" value="" id="defaultCheck1"></td>
                                         <td class="text-start"><?= $ce['id_manu']; ?></td>
-                                        <td class="text-start"><?= $numeroc  ?></td>
+                                        <td class="text-start"><?= $numeroc ?></td>
                                         <td class="text-start"><?= $fecha; ?></td>
                                         <td class="text-start"><?= $tercero; ?></td>
-                                        <td class="text-end"> <?= $saldo_rp; ?></td>
-                                        <td class="text-center"> <?= $editar .  $acciones; ?></td>
+                                        <td class="text-end"> <?= pesos($saldo_rp); ?></td>
+                                        <td class="text-center"> <?= $editar . $acciones; ?></td>
                                     </tr>
-                                <?php
+                                    <?php
                                 }
                             }
                         }
@@ -302,16 +303,18 @@ if ($id_r == 3) {
                                 if ($key !== false && $nominas[$key]['estado'] == 3) {
                                     $id_nomina = $nominas[$key]['id_nomina'] . '|' . $nominas[$key]['crp'] . '|' . $nominas[$key]['tipo'];
                                     $causar = '<button value="' . $id_nomina . '" onclick="CausaNomina(this)" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-plus-square "></span></button>';
-                                ?>
-                                    <tr>
-                                        <td class="text-center"><?= $nominas[$key]['id_nomina'] ?></td>
+                                    ?>
+                                        <tr>
+                                            <td class="text-center"><?= $nominas[$key]['id_nomina'] ?></td>
                                         <?= $_SESSION['pto'] == '1' ? '<td class="text-start">' . $vl['id_manu'] . '</td><td class="text-start">-</td>' : ''; ?>
-                                        <td class="text-start"><?= '<input type="date" class="form-control form-control-sm bg-input" name="fec_doc[]" value="' . date('Y-m-d', strtotime($vl['fecha'])) . '" min="' . date('Y-m-d', strtotime($vl['fecha'])) . '" max="' . $_SESSION['vigencia'] . '-12-31">'; ?></td>
-                                        <td class="text-start"><?= $vl['objeto']; ?></td>
+                                            <td class="text-start">
+                                            <?= '<input type="date" class="form-control form-control-sm bg-input" name="fec_doc[]" value="' . date('Y-m-d', strtotime($vl['fecha'])) . '" min="' . date('Y-m-d', strtotime($vl['fecha'])) . '" max="' . $_SESSION['vigencia'] . '-12-31">'; ?>
+                                            </td>
+                                            <td class="text-start"><?= $vl['objeto']; ?></td>
                                         <?= $_SESSION['pto'] == '1' ? '<td class="text-end">' . pesos($vl['valor']) . '</td>' : ''; ?>
-                                        <td class="text-center"> <?= $causar ?></td>
-                                    </tr>
-                    <?php
+                                            <td class="text-center"> <?= $causar ?></td>
+                                        </tr>
+                                    <?php
                                 } else {
                                     $id_nomina = 0;
                                 }
