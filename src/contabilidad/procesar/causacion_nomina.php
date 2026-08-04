@@ -777,11 +777,11 @@ try {
                         $credito = $dd['valor_viatico'];
                         break;
                     case 24:
-                        $sgs = $dd['valor_pension'] + $dd['val_psolidaria'];
-                        $credito = $sgs;
+                        $credito = $dd['valor_salud'];
                         break;
                     case 25:
-                        $credito = $dd['valor_salud'];
+                        $sgs = $dd['valor_pension'] + $dd['val_psolidaria'];
+                        $credito = $sgs;
                         break;
                     case 26:
                         $credito = $dd['valor_sind'];

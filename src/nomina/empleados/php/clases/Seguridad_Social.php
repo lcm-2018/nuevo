@@ -339,11 +339,12 @@ class Seguridad_Social
     public function getRegistroLiq($array)
     {
         try {
-            $sql = "SELECT
-                        `id_liq_empdo` AS `id`
-                    FROM
-                        `nom_liq_segsocial_empdo`
-                    WHERE (`id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1)";
+            // Primero busca el registro activo (estado = 1)
+            $sql = "SELECT `id_liq_empdo` AS `id`
+                    FROM `nom_liq_segsocial_empdo`
+                    WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1
+                    ORDER BY `id_liq_empdo` DESC
+                    LIMIT 1";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
@@ -351,7 +352,24 @@ class Seguridad_Social
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
             unset($stmt);
-            return !empty($data) ? $data['id'] : 0;
+            if (!empty($data)) {
+                return $data['id'];
+            }
+            // Si no hay registro activo, busca el más reciente sin importar el estado
+            // para poder reactivarlo con editRegistroLiq
+            $sql2 = "SELECT `id_liq_empdo` AS `id`
+                     FROM `nom_liq_segsocial_empdo`
+                     WHERE `id_empleado` = ? AND `id_nomina` = ?
+                     ORDER BY `id_liq_empdo` DESC
+                     LIMIT 1";
+            $stmt2 = $this->conexion->prepare($sql2);
+            $stmt2->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt2->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt2->execute();
+            $data2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+            $stmt2->closeCursor();
+            unset($stmt2);
+            return !empty($data2) ? $data2['id'] : 0;
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
@@ -456,7 +474,7 @@ class Seguridad_Social
     {
         try {
             $sql = "UPDATE `nom_liq_segsocial_empdo`
-                    SET `aporte_salud_emp` = ?, `aporte_pension_emp` = ?, `aporte_solidaridad_pensional` = ?, `aporte_salud_empresa` = ?, `aporte_pension_empresa` = ?, `aporte_rieslab` = ?
+                    SET `aporte_salud_emp` = ?, `aporte_pension_emp` = ?, `aporte_solidaridad_pensional` = ?, `aporte_salud_empresa` = ?, `aporte_pension_empresa` = ?, `aporte_rieslab` = ?, `estado` = 1
                     WHERE `id_liq_empdo` = ?";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['valor_salud'], PDO::PARAM_STR);
@@ -468,7 +486,7 @@ class Seguridad_Social
             $stmt->bindValue(7, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
-                Logs::guardaLog("UPDATE `nom_liq_segsocial_empdo` SET `aporte_salud_emp` = {$array['valor_salud']}, `aporte_pension_emp` = {$array['valor_pension']}, `aporte_solidaridad_pensional` = {$array['val_pension_solidaria']}, `aporte_salud_empresa` = {$array['val_salud_empresa']}, `aporte_pension_empresa` = {$array['val_pension_empresa']}, `aporte_rieslab` = {$array['val_riesgo_laboral']} WHERE `id_liq_empdo` = {$array['id']}");
+                Logs::guardaLog("UPDATE `nom_liq_segsocial_empdo` SET `aporte_salud_emp` = {$array['valor_salud']}, `aporte_pension_emp` = {$array['valor_pension']}, `aporte_solidaridad_pensional` = {$array['val_pension_solidaria']}, `aporte_salud_empresa` = {$array['val_salud_empresa']}, `aporte_pension_empresa` = {$array['val_pension_empresa']}, `aporte_rieslab` = {$array['val_riesgo_laboral']}, `estado` = 1 WHERE `id_liq_empdo` = {$array['id']}");
                 $consulta = "UPDATE `nom_liq_segsocial_empdo` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_liq_empdo` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
                 $hoy = Sesion::Hoy();
