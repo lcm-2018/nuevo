@@ -8,11 +8,11 @@ include '../../config/autoloader.php';
 
 use Src\Common\Php\Clases\Permisos;
 
-$id_rol  = $_SESSION['rol'];
+$id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 
 $permisos = new Permisos();
-$opciones  = $permisos->PermisoOpciones($id_user);
+$opciones = $permisos->PermisoOpciones($id_user);
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -21,12 +21,12 @@ try {
 }
 
 // ─── Parámetros de filtro ────────────────────────────────────────────────────
-$fechaIni  = isset($_POST['fecha_ini'])  && $_POST['fecha_ini']  !== '' ? $_POST['fecha_ini']  : null;
-$fechaFin  = isset($_POST['fecha_fin'])  && $_POST['fecha_fin']  !== '' ? $_POST['fecha_fin']  : null;
-$idTercero = isset($_POST['id_tercero']) && $_POST['id_tercero'] !== '' ? (int)$_POST['id_tercero'] : null;
+$fechaIni = isset($_POST['fecha_ini']) && $_POST['fecha_ini'] !== '' ? $_POST['fecha_ini'] : null;
+$fechaFin = isset($_POST['fecha_fin']) && $_POST['fecha_fin'] !== '' ? $_POST['fecha_fin'] : null;
+$idTercero = isset($_POST['id_tercero']) && $_POST['id_tercero'] !== '' ? (int) $_POST['id_tercero'] : null;
 
 // ─── Consulta con filtros opcionales ─────────────────────────────────────────
-$where  = "WHERE (`ctb_doc`.`id_tipo_doc` = 9 AND `ctb_doc`.`id_ctb_doc_tipo3` IS NULL)";
+$where = "WHERE (`ctb_doc`.`id_tipo_doc` = 9 AND `ctb_doc`.`id_ctb_doc_tipo3` IS NULL)";
 $params = [];
 
 if ($fechaIni !== null) {
@@ -104,21 +104,21 @@ try {
         mostrarOverlay();
         $.post(
             'lista_consignacion_arqueo_caja.php', {
-                fecha_ini: fechaIni,
-                fecha_fin: fechaFin,
-                id_tercero: idTercero
-            },
-            function(he) {
+            fecha_ini: fechaIni,
+            fecha_fin: fechaFin,
+            id_tercero: idTercero
+        },
+            function (he) {
                 $('#divForms').html(he);
                 // Restaurar los valores en los filtros tras recargar
-                setTimeout(function() {
+                setTimeout(function () {
                     if (fechaIni) document.getElementById('fecha_ini').value = fechaIni;
                     if (fechaFin) document.getElementById('fecha_fin').value = fechaFin;
                     if (idTercero) document.getElementById('id_tercero_filtro').value = idTercero;
                     if (nomTercero) document.getElementById('buscaTerceroFiltro').value = nomTercero;
                 }, 50);
             }
-        ).always(function() {
+        ).always(function () {
             ocultarOverlay();
         });
     }
@@ -126,9 +126,9 @@ try {
     // ── Limpiar filtros ──────────────────────────────────────────────────────
     function limpiarFiltroArqueo() {
         mostrarOverlay();
-        $.post('lista_consignacion_arqueo_caja.php', {}, function(he) {
+        $.post('lista_consignacion_arqueo_caja.php', {}, function (he) {
             $('#divForms').html(he);
-        }).always(function() {
+        }).always(function () {
             ocultarOverlay();
         });
     }
@@ -141,7 +141,7 @@ try {
 
     // ── Evento: asignar / desasignar arqueo al documento CTCB ────────────────
     // El id_ctb_doc del documento destino vive en la página padre
-    $(document).on('change', '.chk-doc', function() {
+    $(document).on('change', '.chk-doc', function () {
         const chk = this;
         const idArqueo = chk.value;
         // Buscar el id_ctb_doc en la página padre (lista_documentos_pag.php)
@@ -168,7 +168,7 @@ try {
             cancelButtonColor: '#6c757d',
             confirmButtonText: 'Sí, continuar',
             cancelButtonText: 'Cancelar'
-        }).then(function(result) {
+        }).then(function (result) {
             if (!result.isConfirmed) {
                 chk.checked = !chk.checked; // revertir si cancela
                 return;
@@ -177,19 +177,19 @@ try {
             mostrarOverlay();
             $.post(
                 ValueInput('host') + '/src/tesoreria/procesar/asignar_arqueo_consignacion.php', {
-                    id_ctb_doc: idCtbDoc,
-                    id_arqueo: idArqueo,
-                    accion: accion
-                },
-                function(res) {
+                id_ctb_doc: idCtbDoc,
+                id_arqueo: idArqueo,
+                accion: accion
+            },
+                function (res) {
                     if (res.status === 'ok') {
                         mje(res.msg);
                         // Refrescar movimientos contables en la página padre (con tfoot)
                         if ($.fn.DataTable.isDataTable('#tableMvtoContableDetallePag')) {
-                            $('#tableMvtoContableDetallePag').DataTable().ajax.reload(function(json) {
+                            $('#tableMvtoContableDetallePag').DataTable().ajax.reload(function (json) {
                                 var tfootData = json.tfoot;
                                 var tfootHtml = '<tfoot><tr>';
-                                $.each(tfootData, function(index, value) {
+                                $.each(tfootData, function (index, value) {
                                     tfootHtml += '<th>' + value + '</th>';
                                 });
                                 tfootHtml += '</tr></tfoot>';
@@ -198,7 +198,7 @@ try {
                             });
                         }
                         // Recargar el listado de pendientes
-                        setTimeout(function() {
+                        setTimeout(function () {
                             buscarArqueoCaja();
                         }, 1200);
                     } else {
@@ -207,7 +207,7 @@ try {
                     }
                 },
                 'json'
-            ).always(function() {
+            ).always(function () {
                 ocultarOverlay();
             });
         });
@@ -227,35 +227,27 @@ try {
                 <!-- Fecha inicial -->
                 <div class="col-md-3 col-sm-6">
                     <label for="fecha_ini" class="form-label small fw-semibold mb-1">Fecha inicial</label>
-                    <input type="date"
-                        id="fecha_ini"
-                        class="form-control form-control-sm bg-input"
+                    <input type="date" id="fecha_ini" class="form-control form-control-sm bg-input"
                         value="<?= htmlspecialchars($fechaIni ?? '') ?>">
                 </div>
 
                 <!-- Fecha final -->
                 <div class="col-md-3 col-sm-6">
                     <label for="fecha_fin" class="form-label small fw-semibold mb-1">Fecha final</label>
-                    <input type="date"
-                        id="fecha_fin"
-                        class="form-control form-control-sm bg-input"
+                    <input type="date" id="fecha_fin" class="form-control form-control-sm bg-input"
                         value="<?= htmlspecialchars($fechaFin ?? '') ?>">
                 </div>
 
                 <!-- Tercero (Awesomplete) -->
                 <div class="col-md-4 col-sm-9">
-                    <label for="buscaTerceroFiltro" class="form-label small fw-semibold mb-1">Tercero (nombre o NIT)</label>
+                    <label for="buscaTerceroFiltro" class="form-label small fw-semibold mb-1">Tercero (nombre o
+                        NIT)</label>
                     <div style="position: relative;">
-                        <input type="text"
-                            id="buscaTerceroFiltro"
-                            class="form-control form-control-sm bg-input awesomplete"
-                            placeholder="Escriba para buscar…"
-                            autocomplete="off"
-                            style="padding-right: 2rem;">
+                        <input type="text" id="buscaTerceroFiltro"
+                            class="form-control form-control-sm bg-input awesomplete" placeholder="Escriba para buscar…"
+                            autocomplete="off" style="padding-right: 2rem;">
                         <input type="hidden" id="id_tercero_filtro" value="">
-                        <button type="button"
-                            onclick="limpiarTercero()"
-                            title="Limpiar tercero"
+                        <button type="button" onclick="limpiarTercero()" title="Limpiar tercero"
                             style="position:absolute; right:4px; top:50%; transform:translateY(-50%); background:none; border:none; padding:0 4px; cursor:pointer; color:#6c757d; z-index:10; line-height:1;">
                             <i class="fas fa-times fa-xs"></i>
                         </button>
@@ -264,15 +256,11 @@ try {
 
                 <!-- Botones -->
                 <div class="col-md-2 col-sm-3 d-flex gap-2">
-                    <button type="button"
-                        class="btn btn-primary btn-sm w-50"
-                        onclick="buscarArqueoCaja()"
+                    <button type="button" class="btn btn-primary btn-sm w-50" onclick="buscarArqueoCaja()"
                         title="Buscar">
                         <i class="fas fa-search"></i>
                     </button>
-                    <button type="button"
-                        class="btn btn-secondary btn-sm w-50"
-                        onclick="limpiarFiltroArqueo()"
+                    <button type="button" class="btn btn-secondary btn-sm w-50" onclick="limpiarFiltroArqueo()"
                         title="Limpiar filtros">
                         <i class="fas fa-eraser"></i>
                     </button>
@@ -283,8 +271,7 @@ try {
         <!-- ══════════════════════════════════════════════════════════════════ -->
 
         <div class="px-3 pb-3">
-            <table id="tableArqueoCaja"
-                class="table table-striped table-bordered nowrap table-sm table-hover shadow"
+            <table id="tableArqueoCaja" class="table table-striped table-bordered nowrap table-sm table-hover shadow"
                 style="width: 100%;">
                 <thead>
                     <tr>
@@ -299,10 +286,10 @@ try {
                 <tbody>
                     <?php foreach ($listado as $ce): ?>
                         <?php
-                        $id_doc  = $ce['id_ctb_doc'];
-                        $fecha   = $ce['fecha'] ?? '---';
+                        $id_doc = $ce['id_ctb_doc'];
+                        $fecha = $ce['fecha'] ?? '---';
                         $tercero = $ce['nom_tercero'] ?? '---';
-                        $ccnit   = $ce['nit_tercero'] ?? '---';
+                        $ccnit = $ce['nit_tercero'] ?? '---';
                         ?>
                         <tr>
                             <td class="text-start"><?= htmlspecialchars($id_doc) ?></td>

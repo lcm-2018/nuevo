@@ -39,9 +39,12 @@ class Retenciones
     public function getRegistroLiq($array)
     {
         try {
+            // Primero busca el registro activo (estado = 1)
             $sql = "SELECT `id_rte_fte` AS `id`
                     FROM `nom_retencion_fte`
-                    WHERE `id_empleado` = ?  AND `id_nomina` = ? AND `estado` = 1";
+                    WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1
+                    ORDER BY `id_rte_fte` DESC
+                    LIMIT 1";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
             $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
@@ -49,7 +52,24 @@ class Retenciones
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
             unset($stmt);
-            return !empty($data) ? $data['id'] : 0;
+            if (!empty($data)) {
+                return $data['id'];
+            }
+            // Si no hay registro activo, busca el más reciente sin importar el estado
+            // para poder reactivarlo con editRegistroLiq
+            $sql2 = "SELECT `id_rte_fte` AS `id`
+                     FROM `nom_retencion_fte`
+                     WHERE `id_empleado` = ? AND `id_nomina` = ?
+                     ORDER BY `id_rte_fte` DESC
+                     LIMIT 1";
+            $stmt2 = $this->conexion->prepare($sql2);
+            $stmt2->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
+            $stmt2->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+            $stmt2->execute();
+            $data2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+            $stmt2->closeCursor();
+            unset($stmt2);
+            return !empty($data2) ? $data2['id'] : 0;
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }
@@ -93,7 +113,7 @@ class Retenciones
     {
         try {
             $sql = "UPDATE `nom_retencion_fte`
-                        SET `base` =  ?,`val_ret` =  ?
+                        SET `base` = ?, `val_ret` = ?, `estado` = 1
                     WHERE `id_rte_fte` = ?";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['base_retencion'], PDO::PARAM_STR);
@@ -101,7 +121,7 @@ class Retenciones
             $stmt->bindValue(3, $array['id'], PDO::PARAM_INT);
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
-                Logs::guardaLog("UPDATE `nom_retencion_fte` SET `base` = {$array['base_retencion']}, `val_ret` = {$array['valor_retencion']} WHERE `id_rte_fte` = {$array['id']}");
+                Logs::guardaLog("UPDATE `nom_retencion_fte` SET `base` = {$array['base_retencion']}, `val_ret` = {$array['valor_retencion']}, `estado` = 1 WHERE `id_rte_fte` = {$array['id']}");
                 $consulta = "UPDATE `nom_retencion_fte` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_rte_fte` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
                 $hoy = Sesion::Hoy();

@@ -1,3 +1,164 @@
+<?php
+
+namespace Src\Nomina\Certificaciones\Php\Clases;
+
+use Config\Clases\Conexion;
+use Config\Clases\Sesion;
+
+use PDO;
+use PDOException;
+
+class Certificados
+{
+    private $conexion;
+
+    public function __construct()
+    {
+        $this->conexion = Conexion::getConexion();
+    }
+
+    /**
+     * Obtiene los tipos de certificado disponibles.
+     * @return array Lista de tipos de certificado
+     */
+    public function getTiposCertificado()
+    {
+        $sql = "SELECT `id_cert`, `descripcion`
+                FROM `nom_tipo_certificado`
+                ORDER BY `id_cert` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        $registros = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $registros;
+    }
+
+    /**
+     * Obtiene los empleados activos para selección.
+     * @param string $busca Texto de búsqueda
+     * @return array Lista de empleados
+     */
+    public function getEmpleados($busca = '')
+    {
+        $where = '';
+        if ($busca !== '') {
+            $busca = trim($busca);
+            $where = "AND (e.`primer_nombre` LIKE '%$busca%'
+                      OR e.`segundo_nombre` LIKE '%$busca%'
+                      OR e.`primer_apellido` LIKE '%$busca%'
+                      OR e.`segundo_apellido` LIKE '%$busca%'
+                      OR e.`cedula` LIKE '%$busca%')";
+        }
+
+        $sql = "SELECT
+                    e.`id_empleado`,
+                    e.`cedula`,
+                    CONCAT_WS(' ', e.`primer_nombre`, e.`segundo_nombre`, e.`primer_apellido`, e.`segundo_apellido`) AS `nombre_completo`,
+                    c.`descripcion_carg` AS `cargo`,
+                    ce.`fecha_inicio`,
+                    ce.`salario`
+                FROM `nom_empleados` e
+                INNER JOIN `nom_contratos_empleados` ce
+                    ON (ce.`id_contrato_emp` = (
+                        SELECT MAX(`id_contrato_emp`)
+                        FROM `nom_contratos_empleados`
+                        WHERE `id_empleado` = e.`id_empleado` AND `estado` = 1
+                    ))
+                INNER JOIN `nom_cargo_empleado` c
+                    ON (ce.`id_cargo` = c.`id_cargo`)
+                WHERE e.`estado` = 1 $where
+                ORDER BY e.`primer_apellido`, e.`primer_nombre` ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $datos;
+    }
+
+    /**
+     * Obtiene los datos completos de un empleado para la certificación.
+     * @param int $id_empleado ID del empleado
+     * @return array Datos del empleado
+     */
+    public function getDatosEmpleado($id_empleado)
+    {
+        $sql = "SELECT
+                    e.`id_empleado`,
+                    e.`cedula`,
+                    CONCAT_WS(' ', e.`primer_nombre`, e.`segundo_nombre`, e.`primer_apellido`, e.`segundo_apellido`) AS `nombre_completo`,
+                    e.`ciudad_exp_cedula`,
+                    e.`fecha_nac`,
+                    c.`descripcion_carg` AS `cargo`,
+                    c.`grado`,
+                    ce.`fecha_inicio`,
+                    ce.`salario`,
+                    ce.`id_contrato_emp`,
+                    DATEDIFF(CURDATE(), ce.`fecha_inicio`) AS `dias_servicio`
+                FROM `nom_empleados` e
+                INNER JOIN `nom_contratos_empleados` ce
+                    ON (ce.`id_contrato_emp` = (
+                        SELECT MAX(`id_contrato_emp`)
+                        FROM `nom_contratos_empleados`
+                        WHERE `id_empleado` = e.`id_empleado` AND `estado` = 1
+                    ))
+                INNER JOIN `nom_cargo_empleado` c
+                    ON (ce.`id_cargo` = c.`id_cargo`)
+                WHERE e.`id_empleado` = ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $id_empleado, PDO::PARAM_INT);
+        $stmt->execute();
+        $dato = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $dato;
+    }
+
+    /**
+     * Obtiene la información de la entidad empleadora (empresa/entidad).
+     * @return array Datos de la entidad
+     */
+    public function getEntidad()
+    {
+        $sql = "SELECT `nombre`, `nit`, `representante_legal`, `cargo_rep`
+                FROM `nom_entidad`
+                LIMIT 1";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        $dato = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        $stmt->closeCursor();
+        unset($stmt);
+        return $dato;
+    }
+
+    /**
+     * Registra la emisión de una certificación en el log (si existe tabla de control).
+     * @param int    $id_empleado  ID del empleado
+     * @param int    $id_cert      ID del tipo de certificado
+     * @param string $dirigido_a   A quién va dirigida la certificación
+     * @return string 'si' si se registró correctamente, mensaje de error en caso contrario
+     */
+    public function registrarCertificacion($id_empleado, $id_cert, $dirigido_a = '')
+    {
+        try {
+            $sql = "INSERT INTO `nom_certificaciones`
+                        (`id_empleado`, `id_cert`, `dirigido_a`, `id_user_reg`, `fec_reg`)
+                    VALUES (?, ?, ?, ?, ?)";
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bindValue(1, $id_empleado, PDO::PARAM_INT);
+            $stmt->bindValue(2, $id_cert, PDO::PARAM_INT);
+            $stmt->bindValue(3, $dirigido_a, PDO::PARAM_STR);
+            $stmt->bindValue(4, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(5, Sesion::Hoy(), PDO::PARAM_STR);
+            $stmt->execute();
+            $id = $this->conexion->lastInsertId();
+            return $id > 0 ? 'si' : 'No se registró la certificación.';
+        } catch (PDOException $e) {
+            return 'Error SQL: ' . $e->getMessage();
+        }
+    }
+
     /**
      * Genera el formulario HTML para seleccionar empleado y dirigido a.
      * @param int $id_cert ID del tipo de certificado
@@ -95,7 +256,8 @@
      */
     public function getEmpleadosConNomina(array $ids_nomina): array
     {
-        if (empty($ids_nomina)) return [];
+        if (empty($ids_nomina))
+            return [];
         $ids_in = implode(',', array_map('intval', $ids_nomina));
         $sql = "SELECT DISTINCT e.`id_empleado`, e.`no_documento`, e.`nombre1`, e.`nombre2`, e.`apellido1`, e.`apellido2`,
                        CONCAT_WS(' ', e.`apellido1`, e.`apellido2`, e.`nombre1`, e.`nombre2`) AS `nombre_completo`
@@ -162,7 +324,8 @@
      */
     public function getResumenAnual(int $id_empleado, array $ids_nomina): array
     {
-        if (empty($ids_nomina)) return [];
+        if (empty($ids_nomina))
+            return [];
         $ids_in = implode(',', array_map('intval', $ids_nomina));
 
         $sql = "SELECT

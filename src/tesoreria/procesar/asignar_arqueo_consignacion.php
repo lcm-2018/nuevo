@@ -12,9 +12,9 @@ $response = ['status' => 'error', 'msg' => ''];
 // ── Parámetros ────────────────────────────────────────────────────────────────
 // id_ctb_doc → documento CTCB destino
 // id_arqueo  → documento arqueo (id_tipo_doc=9) a asignar/desasignar
-$id_ctb_doc = isset($_POST['id_ctb_doc']) ? (int)$_POST['id_ctb_doc'] : 0;
-$id_arqueo  = isset($_POST['id_arqueo'])  ? (int)$_POST['id_arqueo']  : 0;
-$accion     = isset($_POST['accion'])     ? trim($_POST['accion'])     : 'asignar';
+$id_ctb_doc = isset($_POST['id_ctb_doc']) ? (int) $_POST['id_ctb_doc'] : 0;
+$id_arqueo = isset($_POST['id_arqueo']) ? (int) $_POST['id_arqueo'] : 0;
+$accion = isset($_POST['accion']) ? trim($_POST['accion']) : 'asignar';
 
 if ($id_ctb_doc <= 0 || $id_arqueo <= 0) {
     $response['msg'] = 'Parámetros inválidos.';
@@ -23,7 +23,8 @@ if ($id_ctb_doc <= 0 || $id_arqueo <= 0) {
 }
 
 $iduser = $_SESSION['id_user'];
-$date   = new DateTime('now', new DateTimeZone('America/Bogota'));
+$nit_emp = $_SESSION['nit_emp'] ?? '';
+$date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 
 try {
@@ -47,7 +48,7 @@ try {
     if (!$cuentas) {
         throw new Exception('No hay cuentas contables configuradas para CTCB en ctb_referencia.');
     }
-    $id_cta_debito  = (int) $cuentas['id_cuenta'];
+    $id_cta_debito = (int) $cuentas['id_cuenta'];
     $id_cta_credito = (int) $cuentas['id_cta_credito'];
 
     // ── Obtener valor y tercero del arqueo ────────────────────────────────────
@@ -66,8 +67,21 @@ try {
     if (!$datosArqueo || $datosArqueo['valor'] <= 0) {
         throw new Exception('El documento arqueo no tiene movimientos o su valor es cero.');
     }
-    $valor      = (float) $datosArqueo['valor'];
-    $id_tercero = (int)   $datosArqueo['id_tercero'];
+    $valor = (float) $datosArqueo['valor'];
+    $id_tercero = (int) $datosArqueo['id_tercero']; // tercero del arqueo → crédito
+
+    // ── Obtener tercero de la institución (para el débito) ────────────────────
+    $stmt = $cmd->prepare("SELECT `id_tercero_api` FROM `tb_terceros`
+        WHERE `nit_tercero` = :nit
+        LIMIT 1");
+    $stmt->bindParam(':nit', $nit_emp);
+    $stmt->execute();
+    $rowInstitucion = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$rowInstitucion) {
+        throw new Exception('No se encontró el tercero de la institución (NIT: ' . $nit_emp . ') en tb_terceros.');
+    }
+    $id_tercero_inst = (int) $rowInstitucion['id_tercero_api']; // tercero institución → débito
 
     // =========================================================================
     // ASIGNAR
@@ -93,7 +107,7 @@ try {
               AND `id_cuenta`   = :id_cta_debito
               AND `debito`      > 0
             LIMIT 1");
-        $stmt->bindParam(':id_ctb_doc',   $id_ctb_doc,   PDO::PARAM_INT);
+        $stmt->bindParam(':id_ctb_doc', $id_ctb_doc, PDO::PARAM_INT);
         $stmt->bindParam(':id_cta_debito', $id_cta_debito, PDO::PARAM_INT);
         $stmt->execute();
         $filaDebito = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -107,29 +121,29 @@ try {
                 WHERE `id_ctb_doc` = :id_ctb_doc
                   AND `id_cuenta`  = :id_cta_debito
                   AND `debito`     > 0");
-            $stmt->bindParam(':valor',       $valor,        PDO::PARAM_STR);
-            $stmt->bindParam(':iduser',      $iduser,       PDO::PARAM_INT);
-            $stmt->bindParam(':fecha',       $fecha2);
-            $stmt->bindParam(':id_ctb_doc',  $id_ctb_doc,   PDO::PARAM_INT);
+            $stmt->bindParam(':valor', $valor, PDO::PARAM_STR);
+            $stmt->bindParam(':iduser', $iduser, PDO::PARAM_INT);
+            $stmt->bindParam(':fecha', $fecha2);
+            $stmt->bindParam(':id_ctb_doc', $id_ctb_doc, PDO::PARAM_INT);
             $stmt->bindParam(':id_cta_debito', $id_cta_debito, PDO::PARAM_INT);
             $stmt->execute();
             if ($stmt->rowCount() > 0) {
                 Logs::guardaLog("UPDATE `ctb_libaux` SET `debito` = `debito` + $valor, `id_user_reg` = $iduser, `fecha_reg` = '$fecha2' WHERE `id_ctb_doc` = $id_ctb_doc AND `id_cuenta` = $id_cta_debito AND `debito` > 0");
             }
         } else {
-            // Primera vez → INSERT
+            // Primera vez → INSERT (tercero = institución)
             $stmt = $cmd->prepare("INSERT INTO `ctb_libaux`
                 (`id_ctb_doc`, `id_tercero_api`, `id_cuenta`, `debito`, `credito`, `id_user_reg`, `fecha_reg`)
                 VALUES (:id_ctb_doc, :id_tercero, :id_cuenta, :debito, 0, :iduser, :fecha)");
-            $stmt->bindParam(':id_ctb_doc', $id_ctb_doc,   PDO::PARAM_INT);
-            $stmt->bindParam(':id_tercero', $id_tercero,   PDO::PARAM_INT);
-            $stmt->bindParam(':id_cuenta',  $id_cta_debito, PDO::PARAM_INT);
-            $stmt->bindParam(':debito',     $valor);
-            $stmt->bindParam(':iduser',     $iduser,       PDO::PARAM_INT);
-            $stmt->bindParam(':fecha',      $fecha2);
+            $stmt->bindParam(':id_ctb_doc', $id_ctb_doc, PDO::PARAM_INT);
+            $stmt->bindParam(':id_tercero', $id_tercero_inst, PDO::PARAM_INT);
+            $stmt->bindParam(':id_cuenta', $id_cta_debito, PDO::PARAM_INT);
+            $stmt->bindParam(':debito', $valor);
+            $stmt->bindParam(':iduser', $iduser, PDO::PARAM_INT);
+            $stmt->bindParam(':fecha', $fecha2);
             $stmt->execute();
             if ($cmd->lastInsertId() > 0) {
-                Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`, `id_tercero_api`, `id_cuenta`, `debito`, `credito`, `id_user_reg`, `fecha_reg`) VALUES ($id_ctb_doc, $id_tercero, $id_cta_debito, '$valor', 0, $iduser, '$fecha2')");
+                Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`, `id_tercero_api`, `id_cuenta`, `debito`, `credito`, `id_user_reg`, `fecha_reg`) VALUES ($id_ctb_doc, $id_tercero_inst, $id_cta_debito, '$valor', 0, $iduser, '$fecha2')");
             }
         }
 
@@ -137,12 +151,12 @@ try {
         $stmt = $cmd->prepare("INSERT INTO `ctb_libaux`
             (`id_ctb_doc`, `id_tercero_api`, `id_cuenta`, `debito`, `credito`, `id_user_reg`, `fecha_reg`)
             VALUES (:id_ctb_doc, :id_tercero, :id_cuenta, 0, :credito, :iduser, :fecha)");
-        $stmt->bindParam(':id_ctb_doc', $id_ctb_doc,    PDO::PARAM_INT);
-        $stmt->bindParam(':id_tercero', $id_tercero,    PDO::PARAM_INT);
-        $stmt->bindParam(':id_cuenta',  $id_cta_credito, PDO::PARAM_INT);
-        $stmt->bindParam(':credito',    $valor);
-        $stmt->bindParam(':iduser',     $iduser,        PDO::PARAM_INT);
-        $stmt->bindParam(':fecha',      $fecha2);
+        $stmt->bindParam(':id_ctb_doc', $id_ctb_doc, PDO::PARAM_INT);
+        $stmt->bindParam(':id_tercero', $id_tercero, PDO::PARAM_INT);
+        $stmt->bindParam(':id_cuenta', $id_cta_credito, PDO::PARAM_INT);
+        $stmt->bindParam(':credito', $valor);
+        $stmt->bindParam(':iduser', $iduser, PDO::PARAM_INT);
+        $stmt->bindParam(':fecha', $fecha2);
         $stmt->execute();
         if ($cmd->lastInsertId() > 0) {
             Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`, `id_tercero_api`, `id_cuenta`, `debito`, `credito`, `id_user_reg`, `fecha_reg`) VALUES ($id_ctb_doc, $id_tercero, $id_cta_credito, 0, '$valor', $iduser, '$fecha2')");
@@ -151,7 +165,7 @@ try {
         // ── Vincular el arqueo al CTCB ─────────────────────────────────────────
         $stmt = $cmd->prepare("UPDATE `ctb_doc` SET `id_ctb_doc_tipo3` = :id_ctb_doc WHERE `id_ctb_doc` = :id_arqueo");
         $stmt->bindParam(':id_ctb_doc', $id_ctb_doc, PDO::PARAM_INT);
-        $stmt->bindParam(':id_arqueo',  $id_arqueo,  PDO::PARAM_INT);
+        $stmt->bindParam(':id_arqueo', $id_arqueo, PDO::PARAM_INT);
         $stmt->execute();
         if ($stmt->rowCount() > 0) {
             Logs::guardaLog("UPDATE `ctb_doc` SET `id_ctb_doc_tipo3` = $id_ctb_doc WHERE `id_ctb_doc` = $id_arqueo");
@@ -159,12 +173,12 @@ try {
 
         $cmd->commit();
         $response['status'] = 'ok';
-        $response['msg']    = 'Consignación asignada correctamente.';
-        $response['valor']  = number_format($valor, 2, ',', '.');
+        $response['msg'] = 'Consignación asignada correctamente.';
+        $response['valor'] = number_format($valor, 2, ',', '.');
 
-    // =========================================================================
-    // DESASIGNAR
-    // =========================================================================
+        // =========================================================================
+        // DESASIGNAR
+        // =========================================================================
     } elseif ($accion === 'desasignar') {
 
         // ── DÉBITO: restar el valor del arqueo quitado ────────────────────────
@@ -175,10 +189,10 @@ try {
             WHERE `id_ctb_doc` = :id_ctb_doc
               AND `id_cuenta`  = :id_cta_debito
               AND `debito`     > 0");
-        $stmt->bindParam(':valor',        $valor,        PDO::PARAM_STR);
-        $stmt->bindParam(':iduser',       $iduser,       PDO::PARAM_INT);
-        $stmt->bindParam(':fecha',        $fecha2);
-        $stmt->bindParam(':id_ctb_doc',   $id_ctb_doc,   PDO::PARAM_INT);
+        $stmt->bindParam(':valor', $valor, PDO::PARAM_STR);
+        $stmt->bindParam(':iduser', $iduser, PDO::PARAM_INT);
+        $stmt->bindParam(':fecha', $fecha2);
+        $stmt->bindParam(':id_ctb_doc', $id_ctb_doc, PDO::PARAM_INT);
         $stmt->bindParam(':id_cta_debito', $id_cta_debito, PDO::PARAM_INT);
         $stmt->execute();
         if ($stmt->rowCount() > 0) {
@@ -192,10 +206,10 @@ try {
               AND `id_tercero_api`= :id_tercero
               AND `credito`       = :credito
             LIMIT 1");
-        $stmt->bindParam(':id_ctb_doc',    $id_ctb_doc,    PDO::PARAM_INT);
+        $stmt->bindParam(':id_ctb_doc', $id_ctb_doc, PDO::PARAM_INT);
         $stmt->bindParam(':id_cta_credito', $id_cta_credito, PDO::PARAM_INT);
-        $stmt->bindParam(':id_tercero',    $id_tercero,    PDO::PARAM_INT);
-        $stmt->bindParam(':credito',       $valor);
+        $stmt->bindParam(':id_tercero', $id_tercero, PDO::PARAM_INT);
+        $stmt->bindParam(':credito', $valor);
         $stmt->execute();
         if ($stmt->rowCount() > 0) {
             Logs::guardaLog("DELETE FROM `ctb_libaux` WHERE `id_ctb_doc` = $id_ctb_doc AND `id_cuenta` = $id_cta_credito AND `id_tercero_api` = $id_tercero AND `credito` = $valor LIMIT 1");
@@ -211,7 +225,7 @@ try {
 
         $cmd->commit();
         $response['status'] = 'ok';
-        $response['msg']    = 'Documento desasignado correctamente.';
+        $response['msg'] = 'Documento desasignado correctamente.';
 
     } else {
         throw new Exception('Acción no reconocida.');

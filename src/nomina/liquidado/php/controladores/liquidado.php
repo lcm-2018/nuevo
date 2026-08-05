@@ -483,40 +483,40 @@ switch ($action) {
                 // Libranzas
                 if (isset($_POST['libranza']) && is_array($_POST['libranza'])) {
                     foreach ($_POST['libranza'] as $id => $val) {
-                        $stmt = $conexion->prepare("UPDATE `nom_liq_libranza` SET `val_mes_lib` = ? WHERE `id_lid_lib` = ?");
+                        $stmt = $conexion->prepare("UPDATE `nom_liq_libranza` SET `val_mes_lib` = ?, `estado` = 1 WHERE `id_lid_lib` = ?");
                         if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) {
                             $suma++;
-                            Logs::guardaLog("UPDATE `nom_liq_libranza` SET `val_mes_lib` = $val WHERE `id_lid_lib` = $id");
+                            Logs::guardaLog("UPDATE `nom_liq_libranza` SET `val_mes_lib` = $val, `estado` = 1 WHERE `id_lid_lib` = $id");
                         }
                     }
                 }
                 // Embargos
                 if (isset($_POST['embargo']) && is_array($_POST['embargo'])) {
                     foreach ($_POST['embargo'] as $id => $val) {
-                        $stmt = $conexion->prepare("UPDATE `nom_liq_embargo` SET `val_mes_embargo` = ? WHERE `id_liq_embargo` = ?");
+                        $stmt = $conexion->prepare("UPDATE `nom_liq_embargo` SET `val_mes_embargo` = ?, `estado` = 1 WHERE `id_liq_embargo` = ?");
                         if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) {
                             $suma++;
-                            Logs::guardaLog("UPDATE `nom_liq_embargo` SET `val_mes_embargo` = $val WHERE `id_liq_embargo` = $id");
+                            Logs::guardaLog("UPDATE `nom_liq_embargo` SET `val_mes_embargo` = $val, `estado` = 1 WHERE `id_liq_embargo` = $id");
                         }
                     }
                 }
                 // Sindicatos
                 if (isset($_POST['sindicato']) && is_array($_POST['sindicato'])) {
                     foreach ($_POST['sindicato'] as $id => $val) {
-                        $stmt = $conexion->prepare("UPDATE `nom_liq_sindicato_aportes` SET `val_aporte` = ? WHERE `id_aporte` = ?");
+                        $stmt = $conexion->prepare("UPDATE `nom_liq_sindicato_aportes` SET `val_aporte` = ?, `estado` = 1 WHERE `id_aporte` = ?");
                         if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) {
                             $suma++;
-                            Logs::guardaLog("UPDATE `nom_liq_sindicato_aportes` SET `val_aporte` = $val WHERE `id_aporte` = $id");
+                            Logs::guardaLog("UPDATE `nom_liq_sindicato_aportes` SET `val_aporte` = $val, `estado` = 1 WHERE `id_aporte` = $id");
                         }
                     }
                 }
                 // Otros Descuentos
                 if (isset($_POST['otro_dcto']) && is_array($_POST['otro_dcto'])) {
                     foreach ($_POST['otro_dcto'] as $id => $val) {
-                        $stmt = $conexion->prepare("UPDATE `nom_liq_descuento` SET `valor` = ? WHERE `id_liq` = ?");
+                        $stmt = $conexion->prepare("UPDATE `nom_liq_descuento` SET `valor` = ?, `estado` = 1 WHERE `id_liq` = ?");
                         if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) {
                             $suma++;
-                            Logs::guardaLog("UPDATE `nom_liq_descuento` SET `valor` = $val WHERE `id_liq` = $id");
+                            Logs::guardaLog("UPDATE `nom_liq_descuento` SET `valor` = $val, `estado` = 1 WHERE `id_liq` = $id");
                         }
                     }
                 }
