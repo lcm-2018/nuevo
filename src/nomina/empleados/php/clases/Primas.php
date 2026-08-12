@@ -39,20 +39,24 @@ class Primas
         $tipo = $array['tipo'];
         $mes = $array['mes'];
         $incremento = isset($array['incremento']) ? $array['incremento'] : NULL;
-        $nomina = Nomina::getIDNomina($mes, $tipo);
 
-        // Verificar si necesitamos crear la nómina de cesantías
-        $crearNominaCes = ($nomina['id_nomina'] > 0 && $nomina['estado'] >= 2) || $nomina['id_nomina'] == 0;
-
-        if ($crearNominaCes) {
-            $res = Nomina::addRegistro($mes, $tipo, $incremento);
-            if ($res['status'] == 'si') {
-                $id_nomina = $res['id'];
-            } else {
-                return $res['msg'];
-            }
+        // Si se pasa id_nomina_fija, usar directamente ese id (reliquidación desde el editor)
+        // para evitar que se cree una nueva nómina cuando la existente tiene estado >= 2
+        if (!empty($array['id_nomina_fija'])) {
+            $id_nomina = $array['id_nomina_fija'];
         } else {
-            $id_nomina = $nomina['id_nomina'];
+            $nomina = Nomina::getIDNomina($mes, $tipo);
+            $crearNominaCes = ($nomina['id_nomina'] > 0 && $nomina['estado'] >= 2) || $nomina['id_nomina'] == 0;
+            if ($crearNominaCes) {
+                $res = Nomina::addRegistro($mes, $tipo, $incremento);
+                if ($res['status'] == 'si') {
+                    $id_nomina = $res['id'];
+                } else {
+                    return $res['msg'];
+                }
+            } else {
+                $id_nomina = $nomina['id_nomina'];
+            }
         }
 
         if ($opcion == 0) {

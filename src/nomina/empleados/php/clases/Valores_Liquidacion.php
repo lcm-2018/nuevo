@@ -15,9 +15,9 @@ class Valores_Liquidacion
 {
     private $conexion;
 
-    public function __construct()
+    public function __construct($conexion = null)
     {
-        $this->conexion = Conexion::getConexion(); // Método estático que retorna el objeto PDO
+        $this->conexion = $conexion ?: Conexion::getConexion(); // Acepta conexión externa (para transacciones compartidas)
     }
 
     /**
@@ -150,6 +150,48 @@ class Valores_Liquidacion
         ];
     }
 
+    /**
+     * Obtiene el último registro de valores de liquidación para un empleado.
+     * Útil cuando el id_nomina de nom_liq_salario no coincide con ningún
+     * registro en nom_valores_liquidacion (nóminas en distintos rangos).
+     *
+     * @param int $id_empleado ID del empleado
+     * @return array Datos del último registro o array vacío con id_nomina=0
+     */
+    public function getUltimoRegistro($id_empleado)
+    {
+        $sql = "SELECT
+                    `id_empleado`,`smmlv`,`aux_trans`,`aux_alim`,`uvt`,`base_bsp`,`base_alim`,`min_vital`,`salario`,`tiene_grep`,`grep`,`prom_horas`,`bsp_ant`,`pri_ser_ant`,`pri_vac_ant`,`pri_nav_ant`,`id_nomina`
+                FROM `nom_valores_liquidacion`
+                WHERE `id_empleado` = ? AND `estado` = 1
+                ORDER BY `id_valor` DESC
+                LIMIT 1";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(1, $id_empleado, PDO::PARAM_INT);
+        $stmt->execute();
+        $valores = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($valores) ? $valores : [
+            'id_empleado' => $id_empleado,
+            'smmlv'       => 0,
+            'aux_trans'   => 0,
+            'aux_alim'    => 0,
+            'uvt'         => 0,
+            'base_bsp'    => 0,
+            'base_alim'   => 0,
+            'min_vital'   => 0,
+            'salario'     => 0,
+            'tiene_grep'  => 0,
+            'grep'        => 0,
+            'prom_horas'  => 0,
+            'bsp_ant'     => 0,
+            'pri_ser_ant' => 0,
+            'pri_vac_ant' => 0,
+            'pri_nav_ant' => 0,
+            'id_nomina'   => 0
+        ];
+    }
 
     /**
      * Obtiene el formulario para agregar o editar un contrato.

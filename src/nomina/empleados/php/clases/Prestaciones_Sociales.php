@@ -306,6 +306,12 @@ class Prestaciones_Sociales
                             $param = (new Valores_Liquidacion())->getRegistro($uSalario[$id_empleado], $id_empleado);
                         }
 
+                        // Fallback: si no se encontró por id_nomina (rangos distintos entre
+                        // nom_liq_salario y nom_valores_liquidacion), buscar el último disponible
+                        if ($param['id_nomina'] == 0) {
+                            $param = (new Valores_Liquidacion())->getUltimoRegistro($id_empleado);
+                        }
+
                         if ($param['id_nomina'] == 0) {
                             throw new Exception("No se encontró registro de valores de liquidación");
                         }

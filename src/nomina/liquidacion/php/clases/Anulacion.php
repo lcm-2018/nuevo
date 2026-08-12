@@ -172,9 +172,9 @@ class Anulacion
         }
 
         try {
-            // Inicio de transacción
-            // verificar si hay transacción activa
-            if (!$this->conexion->inTransaction()) {
+            // Verificar si ya había una transacción activa ANTES de empezar
+            $transaccionExterna = $this->conexion->inTransaction();
+            if (!$transaccionExterna) {
                 $this->conexion->beginTransaction();
             }
 
@@ -191,7 +191,10 @@ class Anulacion
                 }
             }
 
-            $this->conexion->commit();
+            // Solo hacer commit si esta función inició la transacción
+            if (!$transaccionExterna) {
+                $this->conexion->commit();
+            }
             return 'si';
         } catch (PDOException $e) {
             try {

@@ -396,11 +396,12 @@ switch ($action) {
 
                         $array = [
                             'chk_liquidacion' => [0 => $id_empleado],
-                            'id_contrato' => [$id_empleado => $_POST['id_contrato']],
-                            'lab' => [$id_empleado => $_POST['dias_lab']],
-                            'metodo' => [$id_empleado => $_POST['metodo_pago']],
-                            'tipo' => $id_tipo_nomina,
-                            'mes' => $_POST['mes'],
+                            'id_contrato'     => [$id_empleado => $_POST['id_contrato']],
+                            'lab'             => [$id_empleado => $_POST['dias_lab']],
+                            'metodo'          => [$id_empleado => $_POST['metodo_pago']],
+                            'tipo'            => $id_tipo_nomina,
+                            'mes'             => $_POST['mes'],
+                            'id_nomina_fija'  => $_POST['id_nomina'], // Fija el id_nomina para no crear uno nuevo
                         ];
 
                         switch ($codigoNomina) {

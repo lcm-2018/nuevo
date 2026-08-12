@@ -451,17 +451,23 @@ class Vacaciones
         $tipo = $array['tipo'];
         $mes = $array['mes'];
         $incremento = isset($array['incremento']) ? $array['incremento'] : NULL;
-        $nomina = Nomina::getIDNomina($mes, $tipo);
 
-        if (($nomina['id_nomina'] > 0 && $nomina['estado'] >= 2) || $nomina['id_nomina'] == 0) {
-            $res = Nomina::addRegistro($mes, $tipo, $incremento);
-            if ($res['status'] == 'si') {
-                $id_nomina = $res['id'];
-            } else {
-                return $res['msg'];
-            }
+        // Si se pasa id_nomina_fija, usar directamente ese id (reliquidación desde el editor)
+        // para evitar que se cree una nueva nómina cuando la existente tiene estado >= 2
+        if (!empty($array['id_nomina_fija'])) {
+            $id_nomina = $array['id_nomina_fija'];
         } else {
-            $id_nomina = $nomina['id_nomina'];
+            $nomina = Nomina::getIDNomina($mes, $tipo);
+            if (($nomina['id_nomina'] > 0 && $nomina['estado'] >= 2) || $nomina['id_nomina'] == 0) {
+                $res = Nomina::addRegistro($mes, $tipo, $incremento);
+                if ($res['status'] == 'si') {
+                    $id_nomina = $res['id'];
+                } else {
+                    return $res['msg'];
+                }
+            } else {
+                $id_nomina = $nomina['id_nomina'];
+            }
         }
 
         $data = Nomina::getParamLiq();
@@ -487,6 +493,36 @@ class Vacaciones
         //Devengados
         $vacaciones = (new Vacaciones())->getRegistroPorEmpleado($inicia, $fin);
 
+        // Recuperar registros manuales ('M') que no fueron anulados para incluirlos en la reliquidación
+        if ($opcion == 1) {
+            $idsStr = implode(',', $ids);
+            if (!empty($idsStr)) {
+                $sqlManuales = "SELECT nv.* 
+                                FROM nom_vacaciones nv
+                                INNER JOIN nom_liq_vac nlv ON nv.id_vac = nlv.id_vac
+                                WHERE nlv.id_nomina = ? AND nlv.estado = 1 AND nv.id_empleado IN ($idsStr)";
+                $stmtM = $this->conexion->prepare($sqlManuales);
+                $stmtM->execute([$id_nomina]);
+                $manuales = $stmtM->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($manuales as $row) {
+                    if (!isset($vacaciones[$row['id_empleado']])) {
+                        $vacaciones[$row['id_empleado']] = [];
+                    }
+                    // Validar que no se duplique si ya existe en el arreglo
+                    $exists = false;
+                    foreach ($vacaciones[$row['id_empleado']] as $v) {
+                        if ($v['id_vac'] == $row['id_vac']) {
+                            $exists = true;
+                            break;
+                        }
+                    }
+                    if (!$exists) {
+                        $vacaciones[$row['id_empleado']][] = $row;
+                    }
+                }
+            }
+        }
+
         $cortes = array_column((new Liquidacion)->getCortes($ids, $fin), null, 'id_empleado');
         $liquidados = (new Liquidacion)->getEmpleadosLiq($id_nomina, $ids);
         $liquidados = array_column($liquidados, 'id_sal_liq', 'id_empleado');
@@ -504,7 +540,10 @@ class Vacaciones
 
         $inserts = 0;
         foreach ($ids as $id_empleado) {
-            if (!(isset($liquidados[$id_empleado]) && isset($salarios[$id_empleado]))) {
+            // En opcion=1 (reliquidación), $salarios puede estar vacío para contratos
+            // en estado=0 (VC, PS). Solo verificar $liquidados para evitar duplicados.
+            $yaLiquidado = isset($liquidados[$id_empleado]) && ($opcion == 0 ? isset($salarios[$id_empleado]) : true);
+            if (!$yaLiquidado) {
                 try {
                     $filtro = [];
                     $filtro = array_filter($terceros_ss, function ($terceros_ss) use ($id_empleado) {
@@ -590,13 +629,17 @@ class Vacaciones
                     $baseDctos = $valTotVac + $valTotPrimVac + $valBonRec;
 
                     $neto = $baseDctos;
+                    // En opcion=1 (reliquidación) el contrato puede estar en estado=0,
+                    // getSalarioMasivo no lo devuelve. Usar el salario del $param que
+                    // viene de nom_valores_liquidacion (ya tiene el salario base correcto).
+                    $salBase = $opcion == 1 ? ($param['salario'] ?? ($salarios[$id_empleado] ?? 0)) : $salarios[$id_empleado];
                     $data = [
                         'id_empleado' => $id_empleado,
                         'id_nomina' => $id_nomina,
                         'metodo_pago' => $mpago[$id_empleado],
                         'val_liq' => $neto,
                         'forma_pago' => 1,
-                        'sal_base' => $salarios[$id_empleado],
+                        'sal_base' => $salBase,
                         'id_contrato' => $contratos[$id_empleado],
                     ];
                     $response = (new Liquidacion($this->conexion))->LiquidaSalarioNeto($data);
