@@ -18,15 +18,15 @@ class Menu
     {
         $this->conexion = $conexion ?: Conexion::getConexion();
 
-        $this->id_rol   = $_SESSION['rol'] ?? null;
-        $this->id_user  = $_SESSION['id_user'] ?? null;
+        $this->id_rol = $_SESSION['rol'] ?? null;
+        $this->id_user = $_SESSION['id_user'] ?? null;
         $this->permisos = new Permisos();
-        $this->host     = Plantilla::getHost();
+        $this->host = Plantilla::getHost();
 
         // Cargamos los datos una sola vez para todos los métodos
         $this->opciones = $this->permisos->PermisoOpciones($this->id_user);
-        $modulosData    = $this->permisos->getPermisosModulos($this->id_user);
-        $this->modulos  = array_column($modulosData, 'estado', 'id_modulo');
+        $modulosData = $this->permisos->getPermisosModulos($this->id_user);
+        $this->modulos = array_column($modulosData, 'estado', 'id_modulo');
     }
 
     /**
@@ -34,7 +34,7 @@ class Menu
      */
     public function render()
     {
-        
+
         return <<<HTML
         <div style="background-color: #eafaf1;" class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" data-bs-scroll="true">
             <div class="offcanvas-header text-white d-flex justify-content-between w-100" style="border-bottom: 5px solid #16a085 !important;">
@@ -76,8 +76,8 @@ class Menu
 
         // --- SECCIÓN: GENERAL ---
         $nom_configuracion = $this->renderSubOption(5101, 'fas fa-cogs', 'Configuración', 'nomina/configuracion', 'text-primary');
-        $nom_empleados     = $this->renderSubOption(5102, 'fas fa-users', 'Empleados', 'nomina/empleados', 'text-success');
-        $nom_horas_extra   = $this->renderSubOption(5103, 'fas fa-user-clock', 'Horas Extra', 'nomina/horas_extra', 'text-info');
+        $nom_empleados = $this->renderSubOption(5102, 'fas fa-users', 'Empleados', 'nomina/empleados', 'text-success');
+        $nom_horas_extra = $this->renderSubOption(5103, 'fas fa-user-clock', 'Horas Extra', 'nomina/horas_extra', 'text-info');
 
         $nom_general = '';
         if ($nom_configuracion || $nom_empleados || $nom_horas_extra) {
@@ -85,7 +85,7 @@ class Menu
         }
 
         // --- SECCIÓN: LIQUIDACIÓN ---
-        $nom_liquidar  = $this->renderSubOption(5104, 'far fa-calendar-alt', 'Liquidar', 'nomina/liquidacion', 'text-primary');
+        $nom_liquidar = $this->renderSubOption(5104, 'far fa-calendar-alt', 'Liquidar', 'nomina/liquidacion', 'text-primary');
         $nom_liquidado = $this->renderSubOption(5105, 'fas fa-check-double', 'Liquidado', 'nomina/liquidado', 'text-success');
 
         $nom_liquidacion = '';
@@ -184,10 +184,12 @@ class Menu
         }
 
         // 2. Verificación de permisos para mostrar el contenedor principal
-        if (!($this->permisos->PermisosUsuario($this->opciones, 5201, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5202, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5299, 0) ||
-            $this->id_rol == 1)) {
+        if (
+            !($this->permisos->PermisosUsuario($this->opciones, 5201, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5202, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5299, 0) ||
+                $this->id_rol == 1)
+        ) {
             return '';
         }
 
@@ -245,18 +247,20 @@ class Menu
         }
 
         // 2. Verificación de permisos para el contenedor principal
-        if (!($this->permisos->PermisosUsuario($this->opciones, 5301, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5302, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5303, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5399, 0) ||
-            $this->id_rol == 1)) {
+        if (
+            !($this->permisos->PermisosUsuario($this->opciones, 5301, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5302, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5303, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5399, 0) ||
+                $this->id_rol == 1)
+        ) {
             return '';
         }
 
         // --- OPCIONES USANDO EL HELPER ---
         $cont_configuracion = $this->renderSubOption(5301, 'fas fa-cogs', 'Configuración', 'contratacion/gestion/lista_tipos.php', 'text-primary');
-        $cont_compras       = $this->renderSubOption(5302, 'fas fa-shopping-bag', 'Compras', 'contratacion/adquisiciones/lista_adquisiciones.php', 'text-success');
-        $cont_no_obligados  = $this->renderSubOption(5303, 'fas fa-ticket-alt', 'No obligados', 'contratacion/no_obligados/listar_facturas.php', 'text-info');
+        $cont_compras = $this->renderSubOption(5302, 'fas fa-shopping-bag', 'Compras', 'contratacion/adquisiciones/lista_adquisiciones.php', 'text-success');
+        $cont_no_obligados = $this->renderSubOption(5303, 'fas fa-ticket-alt', 'No obligados', 'contratacion/no_obligados/listar_facturas.php', 'text-info');
 
         // --- OPCIÓN ESPECIAL JAVASCRIPT ---
         $cont_personalizados = '';
@@ -301,26 +305,29 @@ class Menu
      */
     private function getMenuContratos(): string
     {
+        return '';
         // 1. Verificación global del módulo 58
         if (!($this->modulos[58] > 0 || $this->id_rol == 1)) {
             return '';
         }
 
         // 2. Verificación de que al menos una opción esté habilitada
-        if (!(
-            $this->permisos->PermisosUsuario($this->opciones, 5801, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5802, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5803, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5899, 0) ||
-            $this->id_rol == 1
-        )) {
+        if (
+            !(
+                $this->permisos->PermisosUsuario($this->opciones, 5801, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5802, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5803, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5899, 0) ||
+                $this->id_rol == 1
+            )
+        ) {
             return '';
         }
 
         // --- OPCIONES PRINCIPALES ---
-        $ctt_configuracion = $this->renderSubOption(5801, 'fas fa-cogs',           'Configuración', 'contratos/configuracion', 'text-primary');
-        $ctt_procesos      = $this->renderSubOption(5802, 'fas fa-project-diagram', 'Procesos',       'contratos/procesos',       'text-success');
-        $ctt_contratos     = $this->renderSubOption(5803, 'fas fa-file-contract',   'Contratos',      'contratos/contratos',      'text-info');
+        $ctt_configuracion = $this->renderSubOption(5801, 'fas fa-cogs', 'Configuración', 'contratos/configuracion', 'text-primary');
+        $ctt_procesos = $this->renderSubOption(5802, 'fas fa-project-diagram', 'Procesos', 'contratos/procesos', 'text-success');
+        $ctt_contratos = $this->renderSubOption(5803, 'fas fa-file-contract', 'Contratos', 'contratos/contratos', 'text-info');
 
         // --- OPCIÓN PERSONALIZADOS ---
         $ctt_personalizados = '';
@@ -363,16 +370,18 @@ class Menu
         }
 
         // 2. Verificación de permisos para el contenedor principal
-        if (!($this->permisos->PermisosUsuario($this->opciones, 5401, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5402, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5499, 0) ||
-            $this->id_rol == 1)) {
+        if (
+            !($this->permisos->PermisosUsuario($this->opciones, 5401, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5402, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5499, 0) ||
+                $this->id_rol == 1)
+        ) {
             return '';
         }
 
         // --- OPCIONES USANDO EL HELPER ---
         // El helper detectará el ".php" y construirá la ruta: host/src/presupuesto/lista_presupuestos.php
-        $ppto_gestion  = $this->renderSubOption(5401, 'fas fa-cogs', 'Gestión', 'presupuesto/lista_presupuestos.php', 'text-primary');
+        $ppto_gestion = $this->renderSubOption(5401, 'fas fa-cogs', 'Gestión', 'presupuesto/lista_presupuestos.php', 'text-primary');
         $ppto_informes = $this->renderSubOption(5402, 'fas fa-shopping-bag', 'Informes', 'presupuesto/lista_informes_presupuesto.php', 'text-success');
 
         // --- OPCIÓN ESPECIAL JAVASCRIPT ---
@@ -452,20 +461,22 @@ class Menu
         }
 
         // 2. Verificación de permisos para el contenedor principal
-        if (!(
-            $this->permisos->PermisosUsuario($this->opciones, 5501, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5502, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5503, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5599, 0) ||
-            $this->id_rol == 1
-        )) {
+        if (
+            !(
+                $this->permisos->PermisosUsuario($this->opciones, 5501, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5502, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5503, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5599, 0) ||
+                $this->id_rol == 1
+            )
+        ) {
             return '';
         }
 
         // --- OPCIONES PRINCIPALES ---
-        $movimientos    = $this->renderSubOption(5501, 'fas fa-copy', 'Movimientos', 'contabilidad/lista_documentos_mov.php', 'text-primary');
-        $facturacion    = $this->renderSubOption(5502, 'fas fa-file-invoice', 'Facturación', 'contabilidad/lista_documentos_invoice.php', 'text-success');
-        $informes       = $this->renderSubOption(5503, 'far fa-file', 'Informes', 'contabilidad/informes/lista_informes_contabilidad.php', 'text-muted');
+        $movimientos = $this->renderSubOption(5501, 'fas fa-copy', 'Movimientos', 'contabilidad/lista_documentos_mov.php', 'text-primary');
+        $facturacion = $this->renderSubOption(5502, 'fas fa-file-invoice', 'Facturación', 'contabilidad/lista_documentos_invoice.php', 'text-success');
+        $informes = $this->renderSubOption(5503, 'far fa-file', 'Informes', 'contabilidad/informes/lista_informes_contabilidad.php', 'text-muted');
 
         // Opción especial con JS
         $personalizados = '';
@@ -564,15 +575,17 @@ class Menu
         }
 
         // 2. Verificación de permisos para el contenedor principal
-        if (!(
-            $this->permisos->PermisosUsuario($this->opciones, 5601, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5602, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5603, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5604, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5605, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5699, 0) ||
-            $this->id_rol == 1
-        )) {
+        if (
+            !(
+                $this->permisos->PermisosUsuario($this->opciones, 5601, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5602, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5603, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5604, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5605, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5699, 0) ||
+                $this->id_rol == 1
+            )
+        ) {
             return '';
         }
 
@@ -688,28 +701,30 @@ class Menu
         }
 
         // 2. Verificación de permisos para el contenedor principal
-        if (!(
-            $this->permisos->PermisosUsuario($this->opciones, 5001, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5002, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5003, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5004, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5005, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5006, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5007, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5008, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5009, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5010, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5011, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5012, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5013, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5014, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5015, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5016, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5017, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5018, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5099, 0) ||
-            $this->id_rol == 1
-        )) {
+        if (
+            !(
+                $this->permisos->PermisosUsuario($this->opciones, 5001, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5002, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5003, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5004, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5005, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5006, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5007, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5008, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5009, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5010, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5011, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5012, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5013, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5014, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5015, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5016, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5017, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5018, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5099, 0) ||
+                $this->id_rol == 1
+            )
+        ) {
             return '';
         }
 
@@ -736,7 +751,7 @@ class Menu
         // 5001: [General][Laboratorios]
         if ($this->permisos->PermisosUsuario($this->opciones, 5001, 0) || $this->id_rol == 1) {
             $gen_items .= '<li><a href="' . $this->host . '/src/almacen/php/laboratorios/index.php?var=3" class="nav-link text-warning px-1 py-2 sombra"><i class="fas fa-bong me-2 fa-fw"></i> Laboratorios</a></li>';
-        }        
+        }
 
         $alm_general = '';
         if (!empty($gen_items)) {
@@ -776,7 +791,7 @@ class Menu
         // 5006: [Movimientos][Ingresos]
         if ($this->permisos->PermisosUsuario($this->opciones, 5006, 0) || $this->id_rol == 1) {
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/ingresos/index.php" class="nav-link text-primary px-1 py-2 sombra"><i class="fas fa-door-open me-2 fa-fw"></i> Ingresos</a></li>';
-        }        
+        }
         // 5008: [Movimientos][Traslados]
         if ($this->permisos->PermisosUsuario($this->opciones, 5008, 0) || $this->id_rol == 1) {
             $mov_items .= '<li><a href="' . $this->host . '/src/almacen/php/traslados/index.php" class="nav-link text-info px-1 py-2 sombra"><i class="fas fa-exchange-alt me-2 fa-fw"></i> Traslados</a></li>';
@@ -877,20 +892,22 @@ class Menu
         }
 
         // 2. Verificación de permisos para el contenedor principal
-        if (!(
-            $this->permisos->PermisosUsuario($this->opciones, 5701, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5702, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5703, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5704, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5705, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5706, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5707, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5708, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5709, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5710, 0) ||
-            $this->permisos->PermisosUsuario($this->opciones, 5799, 0) ||
-            $this->id_rol == 1
-        )) {
+        if (
+            !(
+                $this->permisos->PermisosUsuario($this->opciones, 5701, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5702, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5703, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5704, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5705, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5706, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5707, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5708, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5709, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5710, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5799, 0) ||
+                $this->id_rol == 1
+            )
+        ) {
             return '';
         }
 
@@ -1012,5 +1029,5 @@ class Menu
                     </div>
                 </li>
             HTML;
-    }   
+    }
 }

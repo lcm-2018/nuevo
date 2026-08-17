@@ -126,6 +126,21 @@ switch ($action) {
                 }
                 break;
             case 2:
+                // Sanitizar campos numéricos: si vienen vacíos ('') o null, se colocan en 0
+                $camposNumericos = [
+                    'salario', 'smmlv', 'aux_trans', 'aux_alim', 'uvt', 'base_bsp',
+                    'base_alim', 'grep', 'prom_horas', 'bsp_ant', 'pri_ser_ant',
+                    'pri_vac_ant', 'pri_nav_ant', 'valor_ps', 'dias_ps', 'valor_pv',
+                    'dias_pn', 'val_cesantias', 'val_icesantias', 'dias_ces',
+                    'valor_bsp', 'valor_vacacion', 'val_prima_vac', 'val_bon_recrea',
+                    'dias_lab'
+                ];
+                foreach ($camposNumericos as $campo) {
+                    if (!isset($_POST[$campo]) || $_POST[$campo] === '' || $_POST[$campo] === null) {
+                        $_POST[$campo] = 0;
+                    }
+                }
+
                 $nominaActual = (new Nomina())->getRegistro($_POST['id_nomina']);
                 $codigoNomina = $nominaActual['tipo'] ?? '';
                 $liquidaTodos = in_array($codigoNomina, ['N', 'PS', 'RA', 'IN']);

@@ -1929,6 +1929,12 @@ class Liquidacion
         $vacacion = Valores::Redondear($vac_dia * $dliq);
         $dias_rec = isset($config['dias_recreacion']) ? $config['dias_recreacion'] : 2;
         $bonrecrea = Valores::Redondear(($salbas / 30) * ($dias_rec * $dliq / 360));
+
+        // Para caracter 1, la prima de vacaciones y la bonificación de recreación no aplican
+        if (Sesion::Caracter() == 1) {
+            $prima_vac = 0;
+            $bonrecrea = 0;
+        }
         if ($opcion == 1) {
             // Si ya existe un registro editado manualmente (tipo='M'), respetarlo sin recalcular
             $stmtChk = $this->conexion->prepare(

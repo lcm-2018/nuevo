@@ -48,7 +48,7 @@
 	$(document).ready(function () {
 		//dataTable de movimientos contables
 		let id_doc = $("#id_ctb_doc").val();
-		var btns = opCaracterJS == '1' ? [] : [
+		var btns = (opCaracterJS == '1' && id_doc != '3') ? [] : [
 			{
 				text: '<span class="fa-solid fa-plus "></span>',
 				className: 'btn btn-success btn-sm shadow',
