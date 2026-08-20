@@ -2116,6 +2116,7 @@ class Liquidacion
 
         $salbas = $param['salario'];
         $id_empleado = $param['id_empleado'];
+        $dliq = $dliq > 0 ? $dliq : 0;
         $cant_dias = $dliq;
         $grepre = $param['tiene_grep'] == 1 ? $param['grep'] : 0;
         $auxtra = $param['aux_trans'];

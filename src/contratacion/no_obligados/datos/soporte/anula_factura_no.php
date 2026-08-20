@@ -583,12 +583,21 @@ try {
     } else {
         $shash = NULL;
         $sreference = $pref . '-' . $secuenciaf;
-        $filas = count($resnom['smessage']);
-        if ($filas == 1) {
-            $err .= '<tr><td>' . $resnom['smessage']['string'] . '</td></tr>';
-        } else {
-            foreach ($resnom['smessage']['string'] as $data) {
-                $err .= '<tr><td>' . $data . '</td></tr>';
+        $smessage = $resnom['smessage'] ?? '';
+        if (is_string($smessage)) {
+            // smessage es un string simple
+            if (!empty($smessage)) {
+                $err .= '<tr><td>' . htmlspecialchars($smessage) . '</td></tr>';
+            }
+        } elseif (is_array($smessage)) {
+            // smessage es un array, puede tener clave 'string'
+            $strings = $smessage['string'] ?? $smessage;
+            if (is_array($strings)) {
+                foreach ($strings as $data) {
+                    $err .= '<tr><td>' . htmlspecialchars((string)$data) . '</td></tr>';
+                }
+            } else {
+                $err .= '<tr><td>' . htmlspecialchars((string)$strings) . '</td></tr>';
             }
         }
         $err .= '</table>';
