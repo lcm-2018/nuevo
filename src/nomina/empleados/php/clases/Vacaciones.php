@@ -255,10 +255,14 @@ class Vacaciones
                         WHERE (`id_tipo` = 2 AND `fecha` BETWEEN ? AND ?)
                         GROUP BY `id_novedad`, `id_empleado`) AS `calendario`
                         ON (`nom_vacaciones`.`id_vac` = `calendario`.`id_novedad`) 
-                WHERE `estado` = 1 AND IFNULL(`liquidado`.`dias_liqs`,0) = 0";
+                WHERE `estado` = 1
+                    AND IFNULL(`liquidado`.`dias_liqs`,0) = 0
+                    AND `nom_vacaciones`.`fec_inicial` BETWEEN ? AND ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
         $stmt->bindParam(2, $fin, PDO::PARAM_STR);
+        $stmt->bindParam(3, $inicia, PDO::PARAM_STR);
+        $stmt->bindParam(4, $fin, PDO::PARAM_STR);
         $stmt->execute();
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

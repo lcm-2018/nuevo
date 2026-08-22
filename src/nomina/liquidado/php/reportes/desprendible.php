@@ -346,7 +346,7 @@ foreach ($empleados as $empleado) {
     }
 }
 
-$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['vigencia'] . '-' . $nomina['mes'] . '-01', 'CNOM');
+$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['vigencia'] . '-' . $nomina['mes'] . '-01', 'DSNN');
 
 $Imprimir = new Imprimir($documento, "letter");
 $Imprimir->addEncabezado($documento, $otro);

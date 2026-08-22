@@ -601,6 +601,51 @@ class Nomina
 
                 // Si se anula la nómina (estado=0), anular también todos los registros internos de liquidación
                 if (intval($estado) === 0) {
+                    // Si la nómina es tipo PS, restaurar estado=1 en todos los contratos
+                    // de los empleados liquidados (al liquidar PS el contrato queda en estado=0).
+                    // Solo se restaura si el empleado NO tiene ya otro contrato activo más reciente,
+                    // para evitar dejar dos contratos activos simultáneamente.
+                    $nominaData = $this->getRegistro($id_nomina);
+                    if (($nominaData['tipo'] ?? '') === 'PS') {
+                        $stmtContratos = $this->conexion->prepare(
+                            "SELECT DISTINCT `nls`.`id_contrato`, `nce`.`id_empleado`
+                             FROM `nom_liq_salario` `nls`
+                             INNER JOIN `nom_contratos_empleados` `nce`
+                                 ON `nce`.`id_contrato_emp` = `nls`.`id_contrato`
+                             WHERE `nls`.`id_nomina` = :id_nomina AND `nls`.`estado` = 1"
+                        );
+                        $stmtContratos->bindValue(':id_nomina', $id_nomina, \PDO::PARAM_INT);
+                        $stmtContratos->execute();
+                        $contratosLiquidados = $stmtContratos->fetchAll(\PDO::FETCH_ASSOC);
+                        $stmtContratos->closeCursor();
+
+                        if (!empty($contratosLiquidados)) {
+                            $Contratos = new \Src\Nomina\Empleados\Php\Clases\Contratos();
+                            foreach ($contratosLiquidados as $row) {
+                                $id_contrato   = $row['id_contrato'];
+                                $id_empleado   = $row['id_empleado'];
+
+                                // Verificar si el empleado ya tiene otro contrato activo distinto al liquidado
+                                $stmtActivo = $this->conexion->prepare(
+                                    "SELECT COUNT(*) FROM `nom_contratos_empleados`
+                                     WHERE `id_empleado` = :id_empleado
+                                       AND `estado` = 1
+                                       AND `id_contrato_emp` <> :id_contrato"
+                                );
+                                $stmtActivo->bindValue(':id_empleado', $id_empleado, \PDO::PARAM_INT);
+                                $stmtActivo->bindValue(':id_contrato', $id_contrato, \PDO::PARAM_INT);
+                                $stmtActivo->execute();
+                                $tieneContratoNuevo = (int)$stmtActivo->fetchColumn() > 0;
+                                $stmtActivo->closeCursor();
+
+                                // Solo restaurar si no existe un contrato activo más reciente
+                                if (!$tieneContratoNuevo) {
+                                    $Contratos->editEstadoContrato($id_contrato, 1);
+                                }
+                            }
+                        }
+                    }
+
                     $Anulacion = new Anulacion($this->conexion);
                     $resAnula = $Anulacion->anulaRegistros(0, $id_nomina, 2);
                     if ($resAnula != 'si') {
