@@ -110,7 +110,6 @@ class Liquidacion
                         WHERE `id_contrato_emp` IN (
                             SELECT MAX(`id_contrato_emp`) 
                             FROM `nom_contratos_empleados` 
-                            WHERE `estado` = 1 
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
@@ -199,7 +198,6 @@ class Liquidacion
                         WHERE `id_contrato_emp` IN (
                             SELECT MAX(`id_contrato_emp`) 
                             FROM `nom_contratos_empleados` 
-                            WHERE `estado` = 1 
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
@@ -276,7 +274,6 @@ class Liquidacion
                         WHERE `id_contrato_emp` IN (
                             SELECT MAX(`id_contrato_emp`) 
                             FROM `nom_contratos_empleados` 
-                            WHERE `estado` = 1 
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
@@ -1257,7 +1254,7 @@ class Liquidacion
                             //verificar si hay 360 día para la bonificiacion sacandolo los dias entre fecha_corte y fecha_fin
                             $tiene_bsp = (strtotime($fin) - strtotime($fecha_corte)) / (60 * 60 * 24) >= 360;
                             if ($tiene_bsp) {
-                                $param['corte'] = $fecha_corte;
+                                $param['corte'] = date('Y-m-d', strtotime($fecha_corte . ' +1 year'));
                                 $response = $this->LiquidaBSP($param);
                                 $valTotalBSP = $response['valor'];
                                 if (!$response['insert']) {

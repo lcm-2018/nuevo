@@ -515,7 +515,7 @@ class Detalles
             $cuatro = '';
         }
         $boton1 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarSalarios">Guardar y Reliquidar</button>' : '';
-        $boton2 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarPretaciones">Guardar y Reliquidar</button>' : '';
+        $boton2 = ($estado == 1 && $codigo != 'BS') ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarPretaciones">Guardar y Reliquidar</button>' : '';
         $boton3 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarParafiscales">Guardar</button>' : '';
         $boton4 = $estado == 1 ? '<button type="button" class="btn btn-primary btn-sm" id="btnGuardarDctos">Guardar</button>' : '';
         $dataid = base64_encode($id_empleado . '|' . $id_nomina);

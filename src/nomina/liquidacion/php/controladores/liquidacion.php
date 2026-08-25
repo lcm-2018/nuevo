@@ -17,6 +17,7 @@ use Src\Nomina\Empleados\Php\Clases\Primas;
 use Src\Nomina\Empleados\Php\Clases\Vacaciones;
 use Src\Nomina\Empleados\Php\Clases\Prestaciones_Sociales;
 use Src\Nomina\Liquidacion\Php\Clases\Nomina;
+use Src\Nomina\Empleados\Php\Clases\Bsp;
 
 $Liquidacion = new Liquidacion();
 $Cesantias = new Cesantias();
@@ -24,6 +25,7 @@ $Primas = new Primas();
 $Vacaciones = new Vacaciones();
 $Prestaciones_Sociales = new Prestaciones_Sociales();
 $Nomina = new Nomina();
+$BSP = new Bsp();
 
 $res['status'] = 'error';
 $res['msg'] = 'Acción no válida.';
@@ -53,6 +55,9 @@ switch ($action) {
             case 8:
             case 9:
                 $data = $Cesantias->addRegistroN($_POST);
+                break;
+            case 10:
+                $data = $BSP->addRegistroN($_POST);
                 break;
         }
         if ($data == 'si') {
@@ -92,8 +97,8 @@ switch ($action) {
             foreach ($data as $row) {
                 $nombre = trim($row['nombre1'] . ' ' . $row['nombre2'] . ' ' . $row['apellido1'] . ' ' . $row['apellido2'] . ' - ' . $row['no_documento']);
                 $resultado[] = [
-                    'label'  => $nombre,
-                    'id'     => $row['id_empleado']
+                    'label' => $nombre,
+                    'id' => $row['id_empleado']
                 ];
             }
         }

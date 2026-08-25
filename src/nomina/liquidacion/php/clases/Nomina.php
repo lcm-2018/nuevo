@@ -84,7 +84,6 @@ class Nomina
                         WHERE `id_contrato_emp` IN (
                             SELECT MAX(`id_contrato_emp`) 
                             FROM `nom_contratos_empleados` 
-                            WHERE `estado` = 1 
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
@@ -169,7 +168,6 @@ class Nomina
                         WHERE `id_contrato_emp` IN (
                             SELECT MAX(`id_contrato_emp`) 
                             FROM `nom_contratos_empleados` 
-                            WHERE `estado` = 1 
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
@@ -244,7 +242,6 @@ class Nomina
                         WHERE `id_contrato_emp` IN (
                             SELECT MAX(`id_contrato_emp`) 
                             FROM `nom_contratos_empleados` 
-                            WHERE `estado` = 1 
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
@@ -343,7 +340,7 @@ class Nomina
     {
         try {
             $sql = "DELETE FROM `nom_nominas` WHERE `id_nomina` = ?";
-            $consulta  = "DELETE FROM `nom_nominas` WHERE `id_nomina` = $id";
+            $consulta = "DELETE FROM `nom_nominas` WHERE `id_nomina` = $id";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->execute();
@@ -622,8 +619,8 @@ class Nomina
                         if (!empty($contratosLiquidados)) {
                             $Contratos = new \Src\Nomina\Empleados\Php\Clases\Contratos();
                             foreach ($contratosLiquidados as $row) {
-                                $id_contrato   = $row['id_contrato'];
-                                $id_empleado   = $row['id_empleado'];
+                                $id_contrato = $row['id_contrato'];
+                                $id_empleado = $row['id_empleado'];
 
                                 // Verificar si el empleado ya tiene otro contrato activo distinto al liquidado
                                 $stmtActivo = $this->conexion->prepare(
@@ -635,7 +632,7 @@ class Nomina
                                 $stmtActivo->bindValue(':id_empleado', $id_empleado, \PDO::PARAM_INT);
                                 $stmtActivo->bindValue(':id_contrato', $id_contrato, \PDO::PARAM_INT);
                                 $stmtActivo->execute();
-                                $tieneContratoNuevo = (int)$stmtActivo->fetchColumn() > 0;
+                                $tieneContratoNuevo = (int) $stmtActivo->fetchColumn() > 0;
                                 $stmtActivo->closeCursor();
 
                                 // Solo restaurar si no existe un contrato activo más reciente
