@@ -1049,6 +1049,7 @@ class Liquidacion
         $indemVacaciones = (new Indemniza_Vacacion())->getRegistroPorEmpleado($inicia, $fin);
         $indemVacaciones = (new Indemniza_Vacacion())->getRegistroPorEmpleado($inicia, $fin);
         $bonificaciones = (new Bsp())->getRegistroPorEmpleado();
+        $bspPagadas = (new Bsp())->getRegistroPago(Sesion::Vigencia(), $mes);
         $viaticosNomina = (new Viaticos())->getViaticosNomina($inicia, $fin); // Obtener viáticos del mes
         $otrosDevengados = (new Otros_Devengados())->getRegistroPorEmpleado($inicia, $fin);
 
@@ -1066,12 +1067,16 @@ class Liquidacion
         $liquidados = array_column($liquidados, 'id_sal_liq', 'id_empleado');
         $error = '';
 
+        // Consultar configuración bsp_ibc
+        $ownerConfig = Valores::getOwnerConfig();
+        $incluirBspEnIbc = (isset($ownerConfig['bsp_ibc']) && $ownerConfig['bsp_ibc'] == '1');
+
         if ($opcion == 0) {
             $param['smmlv'] = $parametro[1];
             $param['uvt'] = $parametro[6];
             $param['base_bsp'] = $parametro[7];
-            $param['grep'] = $parametro[8];
-            $param['base_alim'] = $parametro[9];
+            $param['grep'] = $parametro[8] ?? 0;
+            $param['base_alim'] = $parametro[9] ?? 0;
             $param['min_vital'] = $parametro[10] ?? 0;
             $param['id_nomina'] = $id_nomina;
         }
@@ -1263,6 +1268,8 @@ class Liquidacion
                             }
                         }
                     }
+                    $bspToIBC = $bspPagadas[$id_empleado] ?? 0;
+                    $bspToSSParafiscales = $incluirBspEnIbc ? $bspToIBC : 0;
 
                     // Liquidar Viáticos
                     // Verificar si tiene viáticos en el mes
@@ -1335,8 +1342,8 @@ class Liquidacion
                         $ibc = ($valTotalLab * 0.7) + $valTotalOtrosDevSS;
                         $ibcParafiscales = ($valTotalLab * 0.7) + $valTotalOtrosDevParaf;
                     } else {
-                        $ibc = $valTotalLab + $valTotalHe + $valTotIncap + $valTotalBSP + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVacIbc + $valTotalOtrosDevSS;
-                        $ibcParafiscales = $valTotalLab + $valTotalHe + $valTotalBSP + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVacIbc + $valTotalOtrosDevParaf;
+                        $ibc = $valTotalLab + $valTotalHe + $valTotIncap + $valTotalBSP + $bspToSSParafiscales + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVacIbc + $valTotalOtrosDevSS;
+                        $ibcParafiscales = $valTotalLab + $valTotalHe + $valTotalBSP + $bspToSSParafiscales + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVacIbc + $valTotalOtrosDevParaf;
                     }
 
                     $response = $this->LiquidaSeguridadSocial($param, $novedad, $ibc, $tipo_emp, $subtipo_emp, $laborado[$id_empleado]);
@@ -1451,7 +1458,7 @@ class Liquidacion
                         }
                     }
 
-                    $baseDep = $valTotalLab + $valTotalBSP + $valTotalHe + $valTotVac + $valTotPrimVac + $valBonRec + $grepre + $valTotalOtrosDevSal;
+                    $baseDep = $valTotalLab + $valTotalBSP + $bspToIBC + $valTotalHe + $valTotVac + $valTotPrimVac + $valBonRec + $grepre + $valTotalOtrosDevSal;
                     $pagoxdependiente = $empleados[$id_empleado]['dependientes'] == 0 ? 0 : $baseDep * 0.1;
                     $valIntViv = $iVivienda[$id_empleado] ?? 0;
                     $valrf = $baseDep + $valTotIndemVac + $valTotLicLuto - ($valTotSegSoc ?? 0) - $pagoxdependiente - $valIntViv;
@@ -1631,7 +1638,7 @@ class Liquidacion
                                     MAX(`nlb`.`id_bonificaciones`)
                                 FROM `nom_liq_bsp` `nlb`
                                     INNER JOIN `nom_nominas` `nn` ON `nlb`.`id_nomina` = `nn`.`id_nomina`
-                                WHERE `nn`.`vigencia` <= :vigencia AND `nn`.`tipo` = 'N' AND  `nlb`.`estado` = 1 AND `nlb`.`val_bsp` > 0
+                                WHERE `nn`.`vigencia` <= :vigencia AND (`nn`.`tipo` = 'N' OR `nn`.`tipo` = 'BS') AND  `nlb`.`estado` = 1 AND `nlb`.`val_bsp` > 0
                                 AND `nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
                                 GROUP BY `nlb`.`id_empleado`)),
                         `bsp_ra` AS

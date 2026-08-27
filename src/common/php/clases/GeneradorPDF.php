@@ -288,6 +288,7 @@ HTML;
             'Prima de Navidad' => $d['valor_pv'] ?? 0,
             'Cesantías' => $d['val_cesantias'] ?? 0,
             'Intereses Cesantías' => $d['val_icesantias'] ?? 0,
+            'Indemnización' => $d['val_indemniza'] ?? 0,
         ];
 
         // Agregar horas extras con su detalle si existe

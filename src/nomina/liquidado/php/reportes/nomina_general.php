@@ -81,6 +81,7 @@ $columnas = [
     ['key' => 'val_cesantias', 'label' => 'CES.', 'group' => null, 'type' => 'number', 'align' => 'right'],
     ['key' => 'val_icesantias', 'label' => 'I. CES.', 'group' => null, 'type' => 'number', 'align' => 'right'],
     ['key' => 'val_compensa', 'label' => 'COMP.', 'group' => null, 'type' => 'number', 'align' => 'right'],
+    ['key' => 'val_indemniza', 'label' => 'INDEM.', 'group' => null, 'type' => 'number', 'align' => 'right'],
     ['key' => 'valor_viatico', 'label' => 'VIAT.', 'group' => null, 'type' => 'number', 'align' => 'right'],
     ['key' => 'devengado', 'label' => 'T. DEV.', 'group' => null, 'type' => 'number', 'align' => 'right', 'fixed' => true, 'bold' => true],
     // Grupo DEDUCCIONES
@@ -117,7 +118,7 @@ foreach ($datos as &$d) {
         ($d['aux_alim'] ?? 0) + ($d['horas_ext'] ?? 0) + ($d['val_bsp'] ?? 0) +
         ($d['val_prima_vac'] ?? 0) + ($d['g_representa'] ?? 0) + ($d['val_bon_recrea'] ?? 0) +
         ($d['valor_ps'] ?? 0) + ($d['valor_pv'] ?? 0) + ($d['val_cesantias'] ?? 0) +
-        ($d['val_icesantias'] ?? 0) + ($d['valor_viatico'] ?? 0) + ($d['valor_otros'] ?? 0);
+        ($d['val_icesantias'] ?? 0) + ($d['val_indemniza'] ?? 0) + ($d['valor_viatico'] ?? 0) + ($d['valor_otros'] ?? 0);
 
     // Calcular deducciones
     $d['deducciones'] = ($d['valor_salud'] ?? 0) + ($d['valor_pension'] ?? 0) + ($d['val_psolidaria'] ?? 0) +

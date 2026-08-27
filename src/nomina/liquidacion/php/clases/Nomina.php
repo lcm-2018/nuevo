@@ -641,6 +641,11 @@ class Nomina
                                 }
                             }
                         }
+                    } else if (($nominaData['tipo'] ?? '') === 'BS') {
+                        $stmtBS = $this->conexion->prepare("UPDATE `nom_liq_bsp` SET `id_nomina` = NULL, `tipo` = 'M' WHERE `id_nomina` = :id_nomina");
+                        $stmtBS->bindValue(':id_nomina', $id_nomina, \PDO::PARAM_INT);
+                        $stmtBS->execute();
+                        $stmtBS->closeCursor();
                     }
 
                     $Anulacion = new Anulacion($this->conexion);

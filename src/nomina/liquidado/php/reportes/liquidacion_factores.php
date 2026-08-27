@@ -245,6 +245,9 @@ function generarLiquidacion(
             $conceptos_liq[] = ['BONIFICACION RECREACIÓN', 3.0,            $val_bon_recrea, false];
         if ($val_vacacion > 0)
             $conceptos_liq[] = ['VACACIONES',             $total_dias_vac, $val_vacacion,   true];
+        $val_indemniza = (float)($d['val_indemniza'] ?? 0);
+        if ($val_indemniza > 0)
+            $conceptos_liq[] = ['INDEMNIZACIÓN POR VACACIONES', '',        $val_indemniza,  false];
 
     } elseif (mb_strpos($tipo_upper, 'PRIMA') !== false && mb_strpos($tipo_upper, 'SERVICIO') !== false) {
         if ($val_ps > 0)
@@ -264,6 +267,10 @@ function generarLiquidacion(
             $conceptos_liq[] = ['SUBSIDIO DE TRANSPORTE',   '',            $aux_tran_liq,   false];
         if ($aux_alim_liq > 0)
             $conceptos_liq[] = ['SUBSIDIO DE ALIMENTACIÓN', '',            $aux_alim_liq,   true];
+
+        $val_indemniza = (float)($d['val_indemniza'] ?? 0);
+        if ($val_indemniza > 0)
+            $conceptos_liq[] = ['INDEMNIZACIÓN POR VACACIONES', '',        $val_indemniza,  false];
     }
 
     // Total liquidación

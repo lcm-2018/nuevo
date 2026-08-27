@@ -177,6 +177,29 @@ class Bsp
         unset($stmt);
         return !empty($registro) ? array_column($registro, null, 'id_empleado') : [];
     }
+    public function getRegistroPago($vigencia, $mes)
+    {
+        $sql = "SELECT
+                    `nom_liq_bsp`.`id_empleado`
+                    , `nom_liq_bsp`.`val_bsp`
+                FROM
+                    `nom_liq_bsp`
+                    INNER JOIN `nom_nominas` 
+                        ON (`nom_liq_bsp`.`id_nomina` = `nom_nominas`.`id_nomina`)
+                WHERE (`nom_nominas`.`tipo` = 'BS'
+                    AND `nom_nominas`.`mes` = :mes
+                    AND `nom_nominas`.`vigencia` = :vigencia
+                    AND `nom_liq_bsp`.`estado` = 1 AND `nom_nominas`.`estado` > 1)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindParam(':mes', $mes, PDO::PARAM_STR);
+        $stmt->bindParam(':vigencia', $vigencia, PDO::PARAM_STR);
+        $stmt->execute();
+        $registro = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmt->closeCursor();
+        unset($stmt);
+        return !empty($registro) ? array_column($registro, 'val_bsp', 'id_empleado') : [];
+    }
 
 
     public function getRegistroLiq($array)
@@ -368,11 +391,11 @@ class Bsp
      */
     public function addRegistroN($array)
     {
-        $ids       = $array['chk_liquidacion'];
+        $ids = $array['chk_liquidacion'];
         $contratos = $array['id_contrato'];
-        $mpago     = $array['metodo'];
-        $tipo      = $array['tipo'];
-        $mes       = $array['mes'];
+        $mpago = $array['metodo'];
+        $tipo = $array['tipo'];
+        $mes = $array['mes'];
         $incremento = isset($array['incremento']) ? $array['incremento'] : NULL;
 
         // Obtener o crear la nómina tipo 'BS' del periodo
@@ -426,7 +449,7 @@ class Bsp
         $liquidados = (new Liquidacion())->getEmpleadosLiq($id_nomina, $ids);
         $liquidados = array_column($liquidados, 'id_sal_liq', 'id_empleado');
 
-        $error   = '';
+        $error = '';
         $inserts = 0;
 
         foreach ($ids as $id_empleado) {
@@ -466,13 +489,13 @@ class Bsp
                 //    Requerido para que el empleado aparezca en la vista de detalles
                 //    (INNER JOIN sobre nom_liq_salario en Detalles::getRegistrosDT)
                 $data = [
-                    'id_empleado'  => $id_empleado,
-                    'id_nomina'    => $id_nomina,
-                    'metodo_pago'  => $mpago[$id_empleado],
-                    'val_liq'      => 0,
-                    'forma_pago'   => 1,
-                    'sal_base'     => $salarios[$id_empleado],
-                    'id_contrato'  => $contratos[$id_empleado],
+                    'id_empleado' => $id_empleado,
+                    'id_nomina' => $id_nomina,
+                    'metodo_pago' => $mpago[$id_empleado],
+                    'val_liq' => 0,
+                    'forma_pago' => 1,
+                    'sal_base' => $salarios[$id_empleado],
+                    'id_contrato' => $contratos[$id_empleado],
                 ];
                 $response = (new Liquidacion($this->conexion))->LiquidaSalarioNeto($data);
                 if (!$response['insert']) {
