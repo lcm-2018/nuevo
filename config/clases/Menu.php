@@ -305,7 +305,6 @@ class Menu
      */
     private function getMenuContratos(): string
     {
-        return '';
         // 1. Verificación global del módulo 58
         if (!($this->modulos[58] > 0 || $this->id_rol == 1)) {
             return '';
@@ -327,7 +326,7 @@ class Menu
         // --- OPCIONES PRINCIPALES ---
         $ctt_configuracion = $this->renderSubOption(5801, 'fas fa-cogs', 'Configuración', 'contratos/configuracion', 'text-primary');
         $ctt_procesos = $this->renderSubOption(5802, 'fas fa-project-diagram', 'Procesos', 'contratos/procesos', 'text-success');
-        $ctt_contratos = $this->renderSubOption(5803, 'fas fa-file-contract', 'Contratos', 'contratos/contratos', 'text-info');
+        $ctt_contratos = $this->renderSubOption(5803, 'fas fa-file-contract', 'Contratos', 'contrata/index.php', 'text-info');
 
         // --- OPCIÓN PERSONALIZADOS ---
         $ctt_personalizados = '';

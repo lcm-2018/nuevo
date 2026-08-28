@@ -36,7 +36,11 @@ $usuario = new Usuario();
 $empresa = $usuario->getEmpresa();
 
 // Obtener nombre del concepto
-$nombreConcepto = Detalles::getNombreConcepto($id_concepto);
+if ($id_concepto == 90) {
+    $nombreConcepto = 'CONSOLIDADO';
+} else {
+    $nombreConcepto = Detalles::getNombreConcepto($id_concepto);
+}
 
 // Obtener datos del reporte según el concepto
 $detallesObj = new Detalles();
