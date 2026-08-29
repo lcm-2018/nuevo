@@ -1122,6 +1122,7 @@ DEDUCCIONES;
                         IFNULL(`vac`.`val_liq`, 0) +
                         IFNULL(`vac`.`val_prima_vac`, 0) +
                         IFNULL(`vac`.`val_bon_recrea`, 0) +
+                        IFNULL(`indem`.`valor`, 0) +
                         IFNULL(`pris`.`val_liq_ps`, 0) +
                         IFNULL(`prin`.`val_liq_pv`, 0) +
                         IFNULL(`ces`.`val_cesantias`, 0) +
@@ -1202,6 +1203,13 @@ DEDUCCIONES;
                         WHERE `nom_liq_vac`.`estado` = 1 AND `nom_liq_vac`.`id_nomina` = :id_nomina
                         GROUP BY `nom_vacaciones`.`id_empleado`
                     ) AS `vac` ON (`sal`.`id_empleado` = `vac`.`id_empleado`)
+                    LEFT JOIN (
+                        SELECT `iv`.`id_empleado`, SUM(`li`.`val_liq`) AS `valor`
+                        FROM `nom_liq_indemniza_vac` AS `li`
+                        INNER JOIN `nom_indemniza_vac` AS `iv` ON (`li`.`id_indemnizacion` = `iv`.`id_indemniza`)
+                        WHERE `li`.`estado` = 1 AND `li`.`id_nomina` = :id_nomina
+                        GROUP BY `iv`.`id_empleado`
+                    ) AS `indem` ON (`sal`.`id_empleado` = `indem`.`id_empleado`)
                     LEFT JOIN (
                         SELECT `id_empleado`, `val_liq_ps` FROM `nom_liq_prima` WHERE `estado` = 1 AND `id_nomina` = :id_nomina
                     ) AS `pris` ON (`sal`.`id_empleado` = `pris`.`id_empleado`)

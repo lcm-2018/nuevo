@@ -733,6 +733,13 @@ try {
                         break;
                     case 9:
                         $credito = $dd['val_indemniza'];
+                        $credito -= $restar;
+                        if ($credito < 0) {
+                            $restar = $credito * -1;
+                            $credito = 0;
+                        } else {
+                            $restar = 0;
+                        }
                         break;
                     case 10:
                         $credito = ($dd['valor_luto'] + $dd['valor_mp']) - $restar;
