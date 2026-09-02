@@ -89,9 +89,12 @@ $content = <<<HTML
                 </a>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="javascript:void(0)" onclick="cargarReporteContable(26);">
-                        <i class="fas fa-chain me-2"></i> Movimientos Integración
-                    </a></li>
-                </ul>   
+                            <i class="fas fa-chain me-2"></i> Movimientos Integración
+                        </a></li>
+                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="cargarReporteContable(27);">
+                            <i class="fas fa-sitemap me-2"></i> Informe por centro de costos
+                        </a></li>
+                </ul>
             </li>
         </ul>
         

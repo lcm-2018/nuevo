@@ -13,8 +13,8 @@ include 'funciones_generales.php';
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
-$id_cuenta_ini = isset($_POST['id_cuenta_ini']) ? (int)$_POST['id_cuenta_ini'] : 0;
-$id_cuenta_fin = isset($_POST['id_cuenta_fin']) ? (int)$_POST['id_cuenta_fin'] : 0;
+$id_cuenta_ini = isset($_POST['id_cuenta_ini']) ? (int) $_POST['id_cuenta_ini'] : 0;
+$id_cuenta_fin = isset($_POST['id_cuenta_fin']) ? (int) $_POST['id_cuenta_fin'] : 0;
 $fec_ini = isset($_POST['fec_ini']) && strlen($_POST['fec_ini']) > 0 ? $_POST['fec_ini'] : '2020-01-01';
 $fec_fin = isset($_POST['fec_fin']) && strlen($_POST['fec_fin']) > 0 ? $_POST['fec_fin'] : '2050-12-31';
 $id_tipo_doc = isset($_POST['id_tipo_doc']) ? $_POST['id_tipo_doc'] : 0;
