@@ -17,13 +17,13 @@ if (!isset($_SESSION['user'])) {
 }
 
 include_once '../../../../../config/autoloader.php';
-$id_nomina  = isset($_POST['id']) ? intval($_POST['id']) : exit('Acceso Denegado');
-$documento  = "REPORTE DE LIQUIDACIÓN DE EMPLEADOS";
-$nomina     = Nomina::getRegistro($id_nomina);
-$mes        = mb_strtoupper(Valores::NombreMes($nomina['mes']));
+$id_nomina = isset($_POST['id']) ? intval($_POST['id']) : exit('Acceso Denegado');
+$documento = "REPORTE DE LIQUIDACIÓN DE EMPLEADOS";
+$nomina = Nomina::getRegistro($id_nomina);
+$mes = mb_strtoupper(Valores::NombreMes($nomina['mes']));
 
-$conexion   = Conexion::getConexion();
-$datos      = (new Detalles())->getRegistrosDT(1, -1, ['id_nomina' => $id_nomina], 1, 'ASC');
+$conexion = Conexion::getConexion();
+$datos = (new Detalles())->getRegistrosDT(1, -1, ['id_nomina' => $id_nomina], 1, 'ASC');
 
 // Ordenar datos primero por sede y luego por nombre
 usort($datos, function ($a, $b) {
@@ -36,10 +36,10 @@ usort($datos, function ($a, $b) {
     return strcasecmp($a['nombre'] ?? '', $b['nombre'] ?? '');
 });
 
-$usuario    = new Usuario();
-$empresa    = $usuario->getEmpresa();
-$rubros     = (new Rubros)->getRubros2();
-$count      = count($datos);
+$usuario = new Usuario();
+$empresa = $usuario->getEmpresa();
+$rubros = (new Rubros)->getRubros2();
+$count = count($datos);
 
 // Definición de columnas con su configuración
 // 'key' => nombre del campo en datos
@@ -275,7 +275,7 @@ $html = <<<HTML
     </table>
     HTML;
 
-$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['vigencia'] . '-' . $nomina['mes'] . '-01', 'CNOM');
+$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['fecha'], 'CNOM');
 
 $Imprimir = new Imprimir($documento, "legal", "L");
 $Imprimir->addEncabezado($documento);

@@ -341,6 +341,7 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
         event.preventDefault();
         var data = new FormData();
         data.append('id_nomina', ValueInput('id_nomina'));
+        data.append('fecha', ValueInput('fecha'));
         data.append('descripcion', ValueInput('descripcion'));
         data.append('action', 'edit2');
         mostrarOverlay();

@@ -15,24 +15,24 @@ if (!isset($_SESSION['user'])) {
 
 include_once '../../../../../config/autoloader.php';
 $datos = isset($_POST['id']) ? explode('|', base64_decode($_POST['id'])) : exit('Acceso denegado');
-$id_empleado = isset($datos[0]) ? (int)$datos[0] : 0;
-$id_nomina   = isset($datos[1]) ? (int)$datos[1] : 0;
+$id_empleado = isset($datos[0]) ? (int) $datos[0] : 0;
+$id_nomina = isset($datos[1]) ? (int) $datos[1] : 0;
 
 // id_sede: 0 = todos, >0 = sede específica (solo aplica cuando id_empleado == 0)
-$id_sede = isset($_POST['id_sede']) ? (int)$_POST['id_sede'] : null;
+$id_sede = isset($_POST['id_sede']) ? (int) $_POST['id_sede'] : null;
 
-$documento  = "Desprendible de Nómina";
-$usuario    = new Usuario();
-$empresa    = $usuario->getEmpresa();
-$nomina     = Nomina::getRegistro($id_nomina);
-$mes        = mb_strtoupper(Valores::NombreMes($nomina['mes']));
-$otro       = "NÓMINA No. {$id_nomina} - MES: {$mes} - VIGENCIA: {$nomina['vigencia']}";
+$documento = "Desprendible de Nómina";
+$usuario = new Usuario();
+$empresa = $usuario->getEmpresa();
+$nomina = Nomina::getRegistro($id_nomina);
+$mes = mb_strtoupper(Valores::NombreMes($nomina['mes']));
+$otro = "NÓMINA No. {$id_nomina} - MES: {$mes} - VIGENCIA: {$nomina['vigencia']}";
 
 $detalles = new Detalles();
 
 if ($id_empleado > 0) {
     // ── Modo individual: un solo empleado ──
-    $empleado  = $detalles->getRegistrosDT(1, -1, ['id_empleado' => $id_empleado, 'id_nomina' => $id_nomina], 1, 'ASC');
+    $empleado = $detalles->getRegistrosDT(1, -1, ['id_empleado' => $id_empleado, 'id_nomina' => $id_nomina], 1, 'ASC');
     $empleados = [$empleado];
 } elseif ($id_sede !== null) {
     // ── Modo masivo por sede (viene desde el botón PDF del formulario de reportes) ──
@@ -347,7 +347,7 @@ foreach ($empleados as $empleado) {
     }
 }
 
-$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['vigencia'] . '-' . $nomina['mes'] . '-01', 'DSNN');
+$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['fecha'], 'DSNN');
 
 $Imprimir = new Imprimir($documento, "letter");
 $Imprimir->addEncabezado($documento, $otro);

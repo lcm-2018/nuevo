@@ -300,7 +300,7 @@ class Nomina
                         <div class="p-3">
                             <input type="hidden" id="id_nomina" name="id_nomina" value="{$id}">
                             <div class="row">
-                                <div class="col-8">
+                                <div class="col-5">
                                     <label for="tipo" class="form-label small">Tipo</label>
                                     <input type="text" class="form-control form-control-sm bg-secondary-subtle" id="tipo" name="tipo" value="{$data['tipo_nomina']}" readonly>
                                 </div>
@@ -311,6 +311,10 @@ class Nomina
                                 <div class="col-2">
                                     <label for="vigencia" class="form-label small">Vigencia</label>
                                     <input type="text" class="form-control form-control-sm bg-secondary-subtle" id="vigencia" name="vigencia" value="{$data['vigencia']}" readonly>
+                                </div>
+                                <div class="col-3">
+                                    <label for="fecha" class="form-label small">Fecha Doc.</label>
+                                    <input type="date" class="form-control form-control-sm bg-input" id="fecha" name="fecha" value="{$data['fecha']}">
                                 </div>
                             </div>
                             <div class="row">
@@ -368,8 +372,8 @@ class Nomina
         $estado = 1;
         try {
             $sql = "INSERT INTO `nom_nominas`
-                        (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`id_incremento`,`fec_reg`,`id_user_reg`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`id_incremento`,`fec_reg`,`id_user_reg`, `fecha`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = Conexion::getConexion()->prepare($sql);
             $stmt->bindValue(1, 'LIQUIDACIÓN ' . $data['descripcion'], PDO::PARAM_STR);
             $stmt->bindValue(2, $mes, PDO::PARAM_STR);
@@ -380,6 +384,7 @@ class Nomina
             $stmt->bindValue(7, $incremento, PDO::PARAM_INT);
             $stmt->bindValue(8, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->bindValue(9, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(10, Sesion::Vigencia() . '-' . $mes . '-01', PDO::PARAM_STR);
             $stmt->execute();
             $id = Conexion::getConexion()->lastInsertId();
             if ($id > 0) {
@@ -387,7 +392,7 @@ class Nomina
                 $idUser = Sesion::IdUser();
                 $vigencia = Sesion::Vigencia();
                 $incLog = $incremento === null ? 'NULL' : $incremento;
-                Logs::guardaLog("INSERT INTO `nom_nominas` (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`id_incremento`,`fec_reg`,`id_user_reg`) VALUES ('LIQUIDACIÓN {$data['descripcion']}', '$mes', '$vigencia', '{$data['codigo']}', $estado, $estado, $incLog, '$hoy', $idUser)");
+                Logs::guardaLog("INSERT INTO `nom_nominas` (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`id_incremento`,`fec_reg`,`id_user_reg`, `fecha`) VALUES ('LIQUIDACIÓN {$data['descripcion']}', '$mes', '$vigencia', '{$data['codigo']}', $estado, $estado, $incLog, '$hoy', $idUser, '$vigencia-$mes-01')");
                 $res['status'] = 'si';
                 $res['id'] = $id;
                 $mes = mb_strtoupper(Valores::nombreMes($mes));
@@ -413,13 +418,20 @@ class Nomina
     public function editRegistro($array)
     {
         try {
-            $sql = "UPDATE `nom_nominas` SET `descripcion` = ? WHERE `id_nomina` = ?";
+            $hasFecha = !empty($array['fecha']);
+            $sql = "UPDATE `nom_nominas` SET `descripcion` = ?" . ($hasFecha ? ", `fecha` = ?" : "") . " WHERE `id_nomina` = ?";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['descripcion'], PDO::PARAM_STR);
-            $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+            if ($hasFecha) {
+                $stmt->bindValue(2, $array['fecha'], PDO::PARAM_STR);
+                $stmt->bindValue(3, $array['id_nomina'], PDO::PARAM_INT);
+            } else {
+                $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+            }
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
-                Logs::guardaLog("UPDATE `nom_nominas` SET `descripcion` = '{$array['descripcion']}' WHERE `id_nomina` = {$array['id_nomina']}");
+                $fechaLog = $hasFecha ? ", `fecha` = '{$array['fecha']}'" : "";
+                Logs::guardaLog("UPDATE `nom_nominas` SET `descripcion` = '{$array['descripcion']}'{$fechaLog} WHERE `id_nomina` = {$array['id_nomina']}");
                 return 'si';
             } else {
                 return 'No se actualizó el registro.';
@@ -440,6 +452,7 @@ class Nomina
                     , `nn`.`planilla`
                     , `nn`.`id_incremento`
                     , `nn`.`id_user_reg`
+                    , `nn`.`fecha`
                     , CONCAT_WS(' ', `sus`.`nombre1`, `sus`.`nombre2`, `sus`.`apellido1`, `sus`.`apellido2`) AS `elabora`
                     , `sus`.`descripcion` AS `cargo`
                     , `nn`.`tipo`

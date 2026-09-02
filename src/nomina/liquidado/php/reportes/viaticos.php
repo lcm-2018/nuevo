@@ -19,7 +19,7 @@ if (!isset($_SESSION['user'])) {
 include_once '../../../../../config/autoloader.php';
 
 $id_viatico = isset($_POST['id']) ? intval($_POST['id']) : exit('Acceso Denegado');
-$documento  = "REPORTE DETALLADO DE VIÁTICOS";
+$documento = "REPORTE DETALLADO DE VIÁTICOS";
 
 // 1. Obtener datos del Viático
 $Viaticos = new Viaticos();
@@ -98,7 +98,7 @@ $fechaSolicitud = strftime('%d de %B de %Y', strtotime($dataViatico['fec_inicia'
 if (!$fechaSolicitud || strpos($fechaSolicitud, '%') !== false) {
     $meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     $f = strtotime($dataViatico['fec_inicia']);
-    $fechaSolicitud = date('d', $f) . ' de ' . $meses[(int)date('m', $f)] . ' de ' . date('Y', $f);
+    $fechaSolicitud = date('d', $f) . ' de ' . $meses[(int) date('m', $f)] . ' de ' . date('Y', $f);
 }
 
 // Estilos

@@ -1007,6 +1007,16 @@
             .appendTo("body")
             .submit();
     });
+    $("#tablePptoRad").on("click", ".liberar", function () {
+        let id_rad = $(this).attr("value");
+        $.post("datos/registrar/frm_liberar_rad.php", { id_rad: id_rad }, function (he) {
+            $("#divTamModalForms").removeClass("modal-xl");
+            $("#divTamModalForms").removeClass("modal-sm");
+            $("#divTamModalForms").addClass("modal-lg");
+            $("#divModalForms").modal("show");
+            $("#divForms").html(he);
+        });
+    });
     //===================================================================================== ELIMINAR
     // Eliminar presupuesto anexa campo a la etiqueta
     $("#modificarPresupuesto").on("click", ".borrar", function () {
@@ -3914,3 +3924,59 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+function RegLiberacionRad() {
+    if ($('#txt_fec_lib').val() < $('#txt_fec_cdp').val()) {
+        mjeError('La fecha de liberación no puede ser menor a la fecha del documento');
+    } else if ($('#txt_concepto_lib').val() == '') {
+        mjeError('El concepto de liberación no puede estar vacío');
+    } else {
+        function validarLiberacionRad() {
+            let valido = true;
+            $('input[name="txt_valor_liberar[]"]').each(function (index) {
+                let liberar = parseFloat($(this).val()) || 0;
+                let rad_saldo = parseFloat($('input[name="txt_valor[]"]').eq(index).val()) || 0;
+
+                if (liberar < 0 && rad_saldo > 0) {
+                    mjeError("El valor a liberar debe ser mayor que cero.");
+                    $(this).focus();
+                    valido = false;
+                    return false;
+                }
+
+                if (liberar > rad_saldo) {
+                    mjeError("El valor a liberar no puede exceder el valor del saldo disponible.");
+                    $(this).focus();
+                    valido = false;
+                    return false;
+                }
+            });
+            return valido;
+        }
+
+        if (!validarLiberacionRad()) {
+            return;
+        }
+
+        let datos = $('#frm_liberarsaldos').serialize();
+        let url = ValueInput('host') + '/src/presupuesto/datos/registrar/registrar_liberacion_rad.php';
+
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: datos + "&oper=add",
+            success: function (r) {
+                if (r == '1') {
+                    $('#divModalForms').modal('hide');
+                    $('#divModalReg').modal('hide');
+                    if ($('#tablePptoRad').length) {
+                        $('#tablePptoRad').DataTable().ajax.reload(null, false);
+                    }
+                    mje('Liberación ejecutada correctamente');
+                } else {
+                    mjeError(r);
+                }
+            }
+        });
+    }
+}

@@ -306,9 +306,11 @@ class Bsp
                         (`id_empleado`,`val_bsp`,`fec_corte`, `tipo`, `id_user_reg`,`fec_reg`,`id_nomina`)
                     VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
+            $val_bsp = $array['numValor'] ?? $array['valor'] ?? 0;
+            $fec_corte = $array['datFecCorte'] ?? $array['corte'] ?? '';
             $stmt->bindValue(1, $array['id_empleado'], PDO::PARAM_INT);
-            $stmt->bindValue(2, $array['numValor'], PDO::PARAM_STR);
-            $stmt->bindValue(3, $array['datFecCorte'], PDO::PARAM_STR);
+            $stmt->bindValue(2, $val_bsp, PDO::PARAM_STR);
+            $stmt->bindValue(3, $fec_corte, PDO::PARAM_STR);
             $stmt->bindValue(4, $array['tipo'] ?? 'S', PDO::PARAM_STR);
             $stmt->bindValue(5, Sesion::IdUser(), PDO::PARAM_INT);
             $stmt->bindValue(6, Sesion::Hoy(), PDO::PARAM_STR);
@@ -322,7 +324,7 @@ class Bsp
                 $idNomina = $array['id_nomina'] ?? 'NULL';
                 $idUser = Sesion::IdUser();
                 $hoy = Sesion::Hoy();
-                Logs::guardaLog("INSERT INTO `nom_liq_bsp` (`id_empleado`,`val_bsp`,`fec_corte`, `tipo`, `id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$array['id_empleado']}, {$array['numValor']}, '{$array['datFecCorte']}', '$tipo', $idUser, '$hoy', $idNomina)");
+                Logs::guardaLog("INSERT INTO `nom_liq_bsp` (`id_empleado`,`val_bsp`,`fec_corte`, `tipo`, `id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$array['id_empleado']}, {$val_bsp}, '{$fec_corte}', '$tipo', $idUser, '$hoy', $idNomina)");
                 return 'si';
             } else {
                 return 'No se insertó el registro';
@@ -345,13 +347,17 @@ class Bsp
                         SET `val_bsp` = ?, `fec_corte` = ?, `tipo` = ?
                     WHERE `id_bonificaciones` = ?";
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['numValor'], PDO::PARAM_STR);
-            $stmt->bindValue(2, $array['datFecCorte'], PDO::PARAM_STR);
+            $val_bsp = $array['numValor'] ?? $array['valor'] ?? 0;
+            $fec_corte = $array['datFecCorte'] ?? $array['corte'] ?? '';
+            $stmt->bindValue(1, $val_bsp, PDO::PARAM_STR);
+            $stmt->bindValue(2, $fec_corte, PDO::PARAM_STR);
             $stmt->bindValue(3, $array['tipo'], PDO::PARAM_STR);
             $stmt->bindValue(4, $array['id'], PDO::PARAM_INT);
-            if ($stmt->execute() && $stmt->rowCount() > 0) {
+            if ($stmt->execute()) {
+                if ($stmt->rowCount() > 0) {
+                    Logs::guardaLog("UPDATE `nom_liq_bsp` SET `val_bsp` = {$val_bsp}, `fec_corte` = '{$fec_corte}', `tipo` = '{$array['tipo']}' WHERE `id_bonificaciones` = {$array['id']}");
+                }
                 $stmt->closeCursor();
-                Logs::guardaLog("UPDATE `nom_liq_bsp` SET `val_bsp` = {$array['numValor']}, `fec_corte` = '{$array['datFecCorte']}', `tipo` = '{$array['tipo']}' WHERE `id_bonificaciones` = {$array['id']}");
                 $consulta = "UPDATE `nom_liq_bsp` SET `fec_act` = ?, `id_user_act` = ? WHERE `id_bonificaciones` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
                 $hoy = Sesion::Hoy();
@@ -411,14 +417,15 @@ class Bsp
                 // Crear nueva nómina tipo 'BS'
                 $vigencia = Sesion::Vigencia();
                 $sqlIns = "INSERT INTO `nom_nominas`
-                               (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`fec_reg`,`id_user_reg`)
-                           VALUES (?, ?, ?, 'BS', 1, 1, ?, ?)";
+                               (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`fec_reg`,`id_user_reg`, `fecha`)
+                           VALUES (?, ?, ?, 'BS', 1, 1, ?, ?, ?)";
                 $stmtIns = $this->conexion->prepare($sqlIns);
                 $stmtIns->bindValue(1, 'LIQUIDACIÓN BSP', PDO::PARAM_STR);
                 $stmtIns->bindValue(2, $mes, PDO::PARAM_STR);
                 $stmtIns->bindValue(3, $vigencia, PDO::PARAM_STR);
                 $stmtIns->bindValue(4, Sesion::Hoy(), PDO::PARAM_STR);
                 $stmtIns->bindValue(5, Sesion::IdUser(), PDO::PARAM_INT);
+                $stmtIns->bindValue(6, $vigencia . '-' . $mes . '-01', PDO::PARAM_STR);
                 $stmtIns->execute();
                 $id_nomina = $this->conexion->lastInsertId();
                 $stmtIns->closeCursor();
@@ -428,7 +435,7 @@ class Bsp
                 }
                 $hoy = Sesion::Hoy();
                 $idUser = Sesion::IdUser();
-                Logs::guardaLog("INSERT INTO `nom_nominas` (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`fec_reg`,`id_user_reg`) VALUES ('LIQUIDACIÓN BSP', '$mes', '$vigencia', 'BS', 1, 1, '$hoy', $idUser)");
+                Logs::guardaLog("INSERT INTO `nom_nominas` (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`fec_reg`,`id_user_reg`, `fecha`) VALUES ('LIQUIDACIÓN BSP', '$mes', '$vigencia', 'BS', 1, 1, '$hoy', $idUser, '$vigencia-$mes-01')");
                 // Actualizar descripción con el formato estándar (igual que Nomina::addRegistro)
                 $mesNombre = mb_strtoupper(Valores::nombreMes($mes));
                 $empresa = (new Usuario())->getEmpresa();

@@ -17,17 +17,17 @@ if (!isset($_SESSION['user'])) {
 }
 
 include_once '../../../../../config/autoloader.php';
-$id_nomina  = isset($_POST['id']) ? intval($_POST['id']) : exit('Acceso Denegado');
-$documento  = "Solicitud de CDP";
-$nomina     = Nomina::getRegistro($id_nomina);
-$mes        = mb_strtoupper(Valores::NombreMes($nomina['mes']));
+$id_nomina = isset($_POST['id']) ? intval($_POST['id']) : exit('Acceso Denegado');
+$documento = "Solicitud de CDP";
+$nomina = Nomina::getRegistro($id_nomina);
+$mes = mb_strtoupper(Valores::NombreMes($nomina['mes']));
 
-$conexion   = Conexion::getConexion();
-$datos      = (new Detalles())->getRegistrosDT(1, -1, ['id_nomina' => $id_nomina], 1, 'ASC');
+$conexion = Conexion::getConexion();
+$datos = (new Detalles())->getRegistrosDT(1, -1, ['id_nomina' => $id_nomina], 1, 'ASC');
 
-$usuario    = new Usuario();
-$empresa    = $usuario->getEmpresa();
-$rubros     = (new Rubros)->getRubros2();
+$usuario = new Usuario();
+$empresa = $usuario->getEmpresa();
+$rubros = (new Rubros)->getRubros2();
 
 try {
     $conexion->beginTransaction();
@@ -42,14 +42,14 @@ try {
     $tiposRubroDinamico = [34];
 
     $tipo_field_map = [
-        1  => ['valor_laborado', 'val_compensa'],
-        2  => 'horas_ext',
-        3  => 'g_representa',
-        4  => 'val_bon_recrea',
-        5  => 'val_bsp',
-        6  => 'aux_tran',
-        7  => 'aux_alim',
-        9  => 'val_indemniza',
+        1 => ['valor_laborado', 'val_compensa'],
+        2 => 'horas_ext',
+        3 => 'g_representa',
+        4 => 'val_bon_recrea',
+        5 => 'val_bsp',
+        6 => 'aux_tran',
+        7 => 'aux_alim',
+        9 => 'val_indemniza',
         10 => 'valor_luto',
         17 => 'valor_vacacion',
         18 => 'val_cesantias',
@@ -64,7 +64,7 @@ try {
 
         foreach ($rubros as $rb) {
             $tipo = $rb['id_tipo'];
-            if (in_array((int)$tipo, $tiposRubroDinamico, true)) {
+            if (in_array((int) $tipo, $tiposRubroDinamico, true)) {
                 continue;
             }
             $rubro = $d['tipo_cargo'] == '1' ? $rb['r_admin'] : $rb['r_operativo'];
@@ -146,7 +146,7 @@ $html =
     HTML;
 
 $mesPad = str_pad($nomina['mes'], 2, '0', STR_PAD_LEFT);
-$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['vigencia'] . '-' . $mesPad . '-01', 'CDP');
+$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['fecha'], 'CDP');
 
 $Imprimir = new Imprimir($documento, "letter");
 $Imprimir->addEncabezado($documento);

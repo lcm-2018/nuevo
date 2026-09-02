@@ -17,14 +17,14 @@ if (!isset($_SESSION['user'])) {
 }
 
 include_once '../../../../../config/autoloader.php';
-$id_nomina  = isset($_POST['id']) ? intval($_POST['id']) : exit('Acceso Denegado');
-$documento  = "Solicitud de CDP Patronal";
-$nomina     = Nomina::getRegistro($id_nomina);
-$mes        = mb_strtoupper(Valores::NombreMes($nomina['mes']));
+$id_nomina = isset($_POST['id']) ? intval($_POST['id']) : exit('Acceso Denegado');
+$documento = "Solicitud de CDP Patronal";
+$nomina = Nomina::getRegistro($id_nomina);
+$mes = mb_strtoupper(Valores::NombreMes($nomina['mes']));
 
 
-$conexion   = Conexion::getConexion();
-$datos      = (new Detalles())->getAporteSocial($id_nomina);
+$conexion = Conexion::getConexion();
+$datos = (new Detalles())->getAporteSocial($id_nomina);
 
 $sumas = [];
 
@@ -33,11 +33,11 @@ foreach ($datos as $row) {
 }
 
 $admin = $sumas['admin'] ?? [];
-$oper  = $sumas['oper'] ?? [];
+$oper = $sumas['oper'] ?? [];
 
-$usuario    = new Usuario();
-$empresa    = $usuario->getEmpresa();
-$rubros     = (new Rubros)->getRubros2();
+$usuario = new Usuario();
+$empresa = $usuario->getEmpresa();
+$rubros = (new Rubros)->getRubros2();
 
 try {
     $conexion->beginTransaction();
@@ -48,7 +48,7 @@ try {
     }
 
     $count = 0;
-    $data  = ['id_nomina' => $id_nomina, 'tipo' => 'PL'];
+    $data = ['id_nomina' => $id_nomina, 'tipo' => 'PL'];
 
     // Mapa entre id_tipo → clave usada en admin/oper
     $map = [
@@ -69,7 +69,7 @@ try {
         }
 
         $valAdmin = $admin[$key] ?? 0;
-        $valOper  = $oper[$key]  ?? 0;
+        $valOper = $oper[$key] ?? 0;
 
         if ($valAdmin > 0) {
             $data['rubro'] = $rb['r_admin'];
@@ -122,7 +122,7 @@ $html =
     </table>
     HTML;
 
-$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['vigencia'] . '-' . $nomina['mes'] . '-01', 'CDP');
+$firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['fecha'], 'CDP');
 
 $Imprimir = new Imprimir($documento, "letter");
 $Imprimir->addEncabezado($documento);
