@@ -26,6 +26,15 @@ if ($id_tipo_doc > 0) {
     $and_where .= " AND ctb_doc.id_tipo_doc = $id_tipo_doc";
 }
 
+// Filtros para la sección de costos (alias del CTE: l = LibauxNumerado, d = ctb_doc)
+$and_where_costos = '';
+if ($id_tercero > 0) {
+    $and_where_costos .= " AND l.id_tercero_api = $id_tercero";
+}
+if ($id_tipo_doc > 0) {
+    $and_where_costos .= " AND d.id_tipo_doc = $id_tipo_doc";
+}
+
 // Obtener sedes activas
 $datos_sedes = obtenerSedesActivas($cmd);
 $sedes = $datos_sedes['sedes'];
@@ -172,6 +181,118 @@ try {
 
     $cmd = null;
 
+    // ── COSTOS (solo sede principal) ──────────────────────────────────────────
+    $data_costos = [];  // [cuenta] = ['nombre'=>..., 'sedes'=>[id_sede=>val], 'total'=>val]
+
+    try {
+        $cmd_principal = \Config\Clases\Conexion::getConexion();
+        if (!empty($bd_principal)) {
+            $cmd_principal->exec("USE `{$bd_principal}`");
+        }
+
+        // Mapa de nombres de cuentas de costos/gastos (5% y 7%)
+        $nombres_cuentas_costos = [];
+        $rs_nc = $cmd_principal->query(
+            "SELECT cuenta, nombre FROM ctb_pgcp
+             WHERE estado = 1 AND (cuenta LIKE '5%' OR cuenta LIKE '7%')"
+        );
+        foreach ($rs_nc->fetchAll(PDO::FETCH_ASSOC) as $nc) {
+            $nombres_cuentas_costos[$nc['cuenta']] = $nc['nombre'];
+        }
+        $rs_nc->closeCursor();
+
+        $sql_costos = "
+            WITH LibauxNumerado AS (
+                SELECT
+                    l.id_ctb_doc,
+                    p.cuenta,
+                    (l.debito - l.credito) AS valor_movimiento,
+                    l.id_tercero_api,
+                    ROW_NUMBER() OVER(
+                        PARTITION BY l.id_ctb_doc, (l.debito - l.credito)
+                        ORDER BY l.id_ctb_libaux
+                    ) AS fila_indice
+                FROM ctb_libaux l
+                INNER JOIN ctb_pgcp p ON l.id_cuenta = p.id_pgcp
+                WHERE (p.cuenta LIKE '5%' OR p.cuenta LIKE '7%')
+            ),
+            CostosNumerado AS (
+                SELECT
+                    id_ctb_doc,
+                    id_area_cc,
+                    valor,
+                    ROW_NUMBER() OVER(
+                        PARTITION BY id_ctb_doc, valor
+                        ORDER BY id
+                    ) AS fila_indice
+                FROM ctb_causa_costos
+            )
+            SELECT
+                l.cuenta,
+                COALESCE(s.id_sede, 'sin_asignar') AS id_sede,
+                SUM(l.valor_movimiento)             AS total_valor
+            FROM LibauxNumerado l
+            LEFT JOIN CostosNumerado c
+                ON  l.id_ctb_doc       = c.id_ctb_doc
+                AND l.valor_movimiento  = c.valor
+                AND l.fila_indice       = c.fila_indice
+            INNER JOIN ctb_doc d
+                ON l.id_ctb_doc = d.id_ctb_doc
+            LEFT JOIN far_centrocosto_area fca
+                ON c.id_area_cc = fca.id_area
+            LEFT JOIN tb_sedes s
+                ON fca.id_sede = s.id_sede
+            WHERE d.estado = 2
+              AND d.fecha BETWEEN :fec_ini AND :fec_fin
+              $and_where_costos
+            GROUP BY
+                l.cuenta,
+                COALESCE(s.id_sede, 'sin_asignar')
+        ";
+
+        $rs_costos = $cmd_principal->prepare($sql_costos);
+        $rs_costos->bindValue(':fec_ini', $fec_ini, PDO::PARAM_STR);
+        $rs_costos->bindValue(':fec_fin', $fec_fin, PDO::PARAM_STR);
+        $rs_costos->execute();
+        $filas_costos = $rs_costos->fetchAll(PDO::FETCH_ASSOC);
+        $rs_costos->closeCursor();
+
+        foreach ($filas_costos as $fila) {
+            $cuenta_c = $fila['cuenta'];
+            // Sin sede asignada → sede principal
+            $id_sede_c = ($fila['id_sede'] === 'sin_asignar')
+                         ? $sede_principal['id_sede']
+                         : $fila['id_sede'];
+            $valor_c = (float) $fila['total_valor'];
+
+            if (!isset($data_costos[$cuenta_c])) {
+                $data_costos[$cuenta_c] = [
+                    'nombre' => isset($nombres_cuentas_costos[$cuenta_c])
+                                ? $nombres_cuentas_costos[$cuenta_c]
+                                : $cuenta_c,
+                    'sedes'  => [],
+                    'total'  => 0
+                ];
+                foreach ($sedes_procesadas as $sp) {
+                    $data_costos[$cuenta_c]['sedes'][$sp['id_sede']] = 0;
+                }
+            }
+            if (!array_key_exists($id_sede_c, $data_costos[$cuenta_c]['sedes'])) {
+                $data_costos[$cuenta_c]['sedes'][$id_sede_c] = 0;
+            }
+            $data_costos[$cuenta_c]['sedes'][$id_sede_c] += $valor_c;
+            $data_costos[$cuenta_c]['total']              += $valor_c;
+        }
+
+        ksort($data_costos);
+
+        $cmd_principal = null;
+
+    } catch (PDOException $e) {
+        error_log("Error costos sede principal: " . $e->getMessage());
+    }
+    // ── FIN COSTOS ───────────────────────────────────────────────────────────
+
     $filename = "reporte_cuentas_43_" . date("Y-m-d_H-i-s") . ".csv";
 
     header("Content-Type: text/csv; charset=UTF-8");
@@ -245,6 +366,44 @@ try {
     }
     $row_totales[] = number_format($gran_total, 2, ".", ",");
     fputcsv($output, $row_totales);
+
+    // ── Sección COSTOS POR UNIDAD FUNCIONAL ──────────────────────────────────
+    fputcsv($output, []);
+    fputcsv($output, ["COSTOS POR UNIDAD FUNCIONAL"]);
+
+    $totales_cc_sedes = [];
+    foreach ($sedes_procesadas as $sp) {
+        $totales_cc_sedes[$sp['id_sede']] = 0;
+    }
+    $gran_total_costos = 0;
+
+    foreach ($data_costos as $cuenta_c => $info_c) {
+        $tiene_val = false;
+        foreach ($info_c['sedes'] as $v) {
+            if (abs($v) > 0.001) { $tiene_val = true; break; }
+        }
+        if (!$tiene_val) continue;
+
+        $row_c = [$cuenta_c, mb_strtoupper($info_c['nombre'])];
+        foreach ($sedes_procesadas as $sp) {
+            $v = isset($info_c['sedes'][$sp['id_sede']]) ? $info_c['sedes'][$sp['id_sede']] : 0;
+            $row_c[] = number_format($v, 2, ".", ",");
+            $totales_cc_sedes[$sp['id_sede']] += $v;
+        }
+        $row_c[] = number_format($info_c['total'], 2, ".", ",");
+        $gran_total_costos += $info_c['total'];
+
+        fputcsv($output, $row_c);
+    }
+
+    // Fila total general de costos
+    $row_total_costos = ["", "TOTAL COSTOS"];
+    foreach ($sedes_procesadas as $sp) {
+        $row_total_costos[] = number_format($totales_cc_sedes[$sp['id_sede']], 2, ".", ",");
+    }
+    $row_total_costos[] = number_format($gran_total_costos, 2, ".", ",");
+    fputcsv($output, $row_total_costos);
+    // ── FIN Sección COSTOS ───────────────────────────────────────────────────
 
     fclose($output);
     exit;
