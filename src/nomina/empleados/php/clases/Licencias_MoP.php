@@ -221,7 +221,21 @@ class Licencias_MoP
                     , `nom_licenciasmp`.`dias_habiles`
                     , IFNULL(`liquidado`.`dias_liqs`,0) AS `liq`
                     , IFNULL(`calendario`.`dias`,0) AS `dias`
-                    , IFNULL(`cotizado`.`dias`,0) AS `dias_cot`
+                    , `contrato`.`fec_inicio` AS `fec_inicio_contrato`
+                    , GREATEST(0, IFNULL(
+                        ((YEAR(`nom_licenciasmp`.`fec_inicio`) - YEAR(`contrato`.`fec_inicio`)) * 360)
+                        + ((MONTH(`nom_licenciasmp`.`fec_inicio`) - MONTH(`contrato`.`fec_inicio`)) * 30)
+                        + (CASE 
+                            WHEN MONTH(`nom_licenciasmp`.`fec_inicio`) = 2 AND DAY(`nom_licenciasmp`.`fec_inicio`) = DAY(LAST_DAY(`nom_licenciasmp`.`fec_inicio`)) THEN 30 
+                            WHEN DAY(`nom_licenciasmp`.`fec_inicio`) = 31 THEN 30 
+                            ELSE DAY(`nom_licenciasmp`.`fec_inicio`) 
+                        END)
+                        - (CASE 
+                            WHEN MONTH(`contrato`.`fec_inicio`) = 2 AND DAY(`contrato`.`fec_inicio`) = DAY(LAST_DAY(`contrato`.`fec_inicio`)) THEN 30 
+                            WHEN DAY(`contrato`.`fec_inicio`) = 31 THEN 30 
+                            ELSE DAY(`contrato`.`fec_inicio`) 
+                        END)
+                    , 0)) AS `dias_cot`
                 FROM `nom_licenciasmp`
                     LEFT JOIN 
                         (SELECT
@@ -241,15 +255,12 @@ class Licencias_MoP
                         ON (`nom_licenciasmp`.`id_licmp` = `calendario`.`id_novedad`)
                     LEFT JOIN 
                         (SELECT
-                            `nom_liq_dias_lab`.`id_empleado`
-                            , SUM(`nom_liq_dias_lab`.`cant_dias`) AS `dias`
+                            `id_empleado`
+                            , MIN(`fec_inicio`) AS `fec_inicio`
                         FROM
-                            `nom_liq_dias_lab`
-                            INNER JOIN `nom_nominas` 
-                            ON (`nom_liq_dias_lab`.`id_nomina` = `nom_nominas`.`id_nomina`)
-                        WHERE (`nom_nominas`.`estado` = 5)
-                        GROUP BY `nom_liq_dias_lab`.`id_empleado`) AS `cotizado`
-                        ON (`nom_licenciasmp`.`id_empleado` = `cotizado`.`id_empleado`)
+                            `nom_contratos_empleados`
+                        GROUP BY `id_empleado`) AS `contrato`
+                        ON (`nom_licenciasmp`.`id_empleado` = `contrato`.`id_empleado`)
                 WHERE  `calendario`.`dias` > 0";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $inicia, PDO::PARAM_STR);
@@ -328,7 +339,7 @@ class Licencias_MoP
     {
         try {
             $sql = "DELETE FROM `nom_licenciasmp` WHERE `id_licmp` = ?";
-            $consulta  = "DELETE FROM `nom_licenciasmp` WHERE `id_licmp` = $id";
+            $consulta = "DELETE FROM `nom_licenciasmp` WHERE `id_licmp` = $id";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->execute();
@@ -421,7 +432,10 @@ class Licencias_MoP
                 Logs::guardaLog("INSERT INTO `nom_liq_licmp` (`id_licmp`,`id_eps`,`dias_liqs`,`val_liq`,`val_dialc`,`id_user_reg`,`fec_reg`,`id_nomina`) VALUES ({$array['id_licmp']}, {$array['id_eps']}, {$array['dias_liqs']}, {$array['val_liq']}, {$array['val_dialc']}, $idUser, '$hoy', {$array['id_nomina']})");
                 return 'si';
             } else {
-                return 'No se insertó el registro';
+                // Capturar error real del driver (e.g. modo STRICT_TRANS_TABLES o FK constraint)
+                $errorInfo = $stmt->errorInfo();
+                $detalle = !empty($errorInfo[2]) ? $errorInfo[2] : 'lastInsertId=0 (revise sql_mode y FK en producción)';
+                return "No se insertó el registro: $detalle";
             }
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();

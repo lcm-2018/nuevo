@@ -54,7 +54,7 @@ $datos = [];
 if (!empty($obj)) {
     foreach ($obj as $o) {
         $detalles = $anular = '';
-        $valorLicencias = $o['valor_luto'] + $o['valor_mp'];
+        $valorLicencias = ($o['valor_luto'] ?? 0) + ($o['valor_mp'] ?? 0);
         $devengado = $o['valor_incap'] + $valorLicencias + $o['valor_vacacion']
             + $o['valor_laborado'] + $o['aux_tran'] + $o['aux_alim']
             + $o['horas_ext'] + $o['val_bsp'] + $o['val_prima_vac']

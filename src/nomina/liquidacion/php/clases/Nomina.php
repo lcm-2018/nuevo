@@ -400,7 +400,9 @@ class Nomina
                 $descripcion = 'NOMINA N° ' . $id . ', ' . $mes . ' VIGENCIA ' . Sesion::Vigencia() . ', ADMINISTRATIVO-ASISTENCIAL, EMPLEADOS ADSCRITOS A ' . $empresa['nombre'];
                 (new self())->editRegistro(['id_nomina' => $id, 'descripcion' => $descripcion]);
             } else {
-                $res['msg'] = 'No se insertó el registro.';
+                $errorInfo = $stmt->errorInfo();
+                $detalle = !empty($errorInfo[2]) ? $errorInfo[2] : 'lastInsertId=0 (revise sql_mode, UNIQUE o FK en nom_nominas)';
+                $res['msg'] = 'No se insertó el registro (nom_nominas): ' . $detalle;
             }
             $stmt->closeCursor();
             unset($stmt);

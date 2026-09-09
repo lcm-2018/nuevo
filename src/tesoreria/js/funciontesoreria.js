@@ -1835,6 +1835,16 @@ let cargaFormaPago = (cop, detalle, boton) => {
 	}
 };
 
+// Imprimir descuentos
+let imprDctosTes = (id_ctb_doc) => {
+	let form = $('<form action="soportes/imprimir_formato_dctos.php" method="post" target="_blank">' +
+		'<input type="hidden" name="id_ctb_doc" value="' + id_ctb_doc + '" />' +
+		'</form>');
+	$('body').append(form);
+	form.submit();
+	form.remove();
+}
+
 // ==========================================================  ARQUEO DE CAJA ============================================*/
 
 // Calcular copagos por cajero
@@ -3030,6 +3040,9 @@ const cargarReporteTesoreria = (id) => {
 	if (id == 6) {
 		url = "informes/form_relacion_causacion.php";
 	}
+	if (id == 7) {
+		url = "informes/informe_estado_tesoreria_form.php";
+	}
 	fetch(url, {
 		method: "POST",
 		body: JSON.stringify({ id: id }),
@@ -3098,6 +3111,29 @@ const generarReporteTerceros = (id) => {
 	};
 	redireccionar5(ruta);
 };
+
+// Funcion para generar el informe de Estado de Situación de Tesorería
+const generarEstadoTesoreria = () => {
+	let fecha_inicial = document.getElementById('fecha_ini').value;
+	let fecha_final = document.getElementById('fecha_fin').value;
+	let incluye_cartera = document.getElementById('incluye_cartera').checked ? 1 : 0;
+	let archivo = ValueInput('host') + "/src/tesoreria/informes/informe_estado_tesoreria_detalle.php";
+	let ruta = {
+		url: archivo,
+		name1: "fecha_inicial",
+		valor1: fecha_inicial,
+		name2: "fecha_final",
+		valor2: fecha_final,
+		name3: "incluye_cartera",
+		valor3: incluye_cartera,
+		name4: "vacio1",
+		valor4: "",
+		name5: "vacio2",
+		valor5: "",
+	};
+	redireccionar5(ruta);
+};
+
 
 // Funcion para generar libros presupuestales
 const generarInfPorTercero = (boton) => {

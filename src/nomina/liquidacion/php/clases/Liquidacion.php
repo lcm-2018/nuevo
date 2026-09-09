@@ -1111,6 +1111,10 @@ class Liquidacion
                         $param['prom_horas'] = $cortes_empleado['prom'] ?? 0;
                     } else if ($opcion == 1) {
                         $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
+                        // Para nómina tipo N, getRegistro puede retornar salario=0 si no existe el registro previo.
+                        // Se toma el salario real del empleado en todo caso.
+                        $param['salario'] = $salarios[$id_empleado];
+                        $param['id_empleado'] = $id_empleado;
                     }
 
                     $param['aux_trans'] = $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
@@ -2178,7 +2182,8 @@ class Liquidacion
             'valor' => 0
         ];
         $tipo = $filtro['tipo'];
-        $dias = $filtro['dias'] >= 31 ? 30 : ($filtro['mes'] == '02' && $filtro['dias'] >= 28 ? 30 : $filtro['dias']);
+        $diasRaw = (int) $filtro['dias'];
+        $dias = $filtro['mes'] == '02' && $diasRaw >= 28 ? 30 : min($diasRaw, 30);
         $valdialc = ($tipo == '1' && $filtro['dias_cot'] < 270) ? ($filtro['dias_cot'] * $param['salario']) / (30 * 270) : $param['salario'] / 30;
         $valor = Valores::Redondear($valdialc * $dias);
         $data = [

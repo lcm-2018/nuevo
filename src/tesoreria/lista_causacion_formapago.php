@@ -77,7 +77,16 @@ try {
 
 // Consultar el valor de los descuentos realizados a la cuenta de ctb_causa_retencion
 try {
-    $sql = "SELECT SUM(`valor_retencion`) AS `valor` FROM `ctb_causa_retencion` WHERE `id_ctb_doc` = $id_cop";
+    $sql = "SELECT SUM(`valor_retencion`) AS `valor` FROM `ctb_causa_retencion` WHERE `id_ctb_doc` IN (SELECT
+                        `pcd`.`id_ctb_doc`
+                    FROM
+                        `pto_pag_detalle` AS `ppd`
+                        INNER JOIN `pto_cop_detalle` AS `pcd` 
+                            ON (`ppd`.`id_pto_cop_det` = `pcd`.`id_pto_cop_det`)
+                        INNER JOIN `ctb_doc` AS `cd`
+                            ON (`pcd`.`id_ctb_doc` = `cd`.`id_ctb_doc`)
+                    WHERE (`ppd`.`id_ctb_doc` = $id_doc
+                        AND `cd`.`estado` > 1))";
     $rs = $cmd->query($sql);
     $descuentos = $rs->fetch();
     $valor_descuento = $valor_descuento + $descuentos['valor'];
@@ -89,7 +98,7 @@ try {
     $sql = "SELECT SUM(`valor`) AS `valor` FROM `tes_detalle_pago` WHERE `id_ctb_doc` = $id_doc";
     $rs = $cmd->query($sql);
     $pagos = $rs->fetch();
-    $valor_programado = $pagos['valor'];
+    $valor_programado = $pagos['valor'] ?? 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -179,7 +188,8 @@ foreach ($rubros as $ce) {
                 <div class="row mb-2">
                     <div class="col-md-3">
                         <label for="banco" class="small fw-bold">BANCO</label>
-                        <select name="banco" id="banco" class="form-select form-select-sm bg-input" required onclick="mostrarCuentas(value);">
+                        <select name="banco" id="banco" class="form-select form-select-sm bg-input" required
+                            onclick="mostrarCuentas(value);">
                             <?= $optionsBancos; ?>
                         </select>
                     </div>
@@ -194,18 +204,23 @@ foreach ($rubros as $ce) {
                     <div class="col-md-2">
                         <label for="forma_pago_det" class="small fw-bold">FORMA DE PAGO</label>
                         <div id="divForma">
-                            <select name="forma_pago_det" id="forma_pago_det" class="form-select form-select-sm bg-input" required onchange="buscarCheque(value);">
+                            <select name="forma_pago_det" id="forma_pago_det"
+                                class="form-select form-select-sm bg-input" required onchange="buscarCheque(value);">
                                 <?= $optionsFormasPago; ?>
                             </select>
                         </div>
                     </div>
                     <div class="col-md-2">
                         <label for="documento" class="small fw-bold">DOCUMENTO</label>
-                        <input type="text" name="documento" id="documento" class="form-control form-control-sm bg-input" value="" required>
+                        <input type="text" name="documento" id="documento" class="form-control form-control-sm bg-input"
+                            value="" required>
                     </div>
                     <div class="col-md-2">
                         <label for="valor_pag" class="small fw-bold">VALOR</label>
-                        <input type="text" name="valor_pag" id="valor_pag" class="form-control form-control-sm bg-input text-end" max="<?= $valor_pagar; ?>" value="<?= $valor_pagar; ?>" required onkeyup="NumberMiles(this)" ondblclick="valorMovTeroreria('');">
+                        <input type="text" name="valor_pag" id="valor_pag"
+                            class="form-control form-control-sm bg-input text-end" max="<?= $valor_pagar; ?>"
+                            value="<?= $valor_pagar; ?>" required onkeyup="NumberMiles(this)"
+                            ondblclick="valorMovTeroreria('');">
                     </div>
                 </div>
                 <div class="row mb-2">
@@ -216,7 +231,8 @@ foreach ($rubros as $ce) {
                     </div>
                 </div>
             </form>
-            <table id="tableCausacionPagos" class="table table-striped table-bordered table-sm table-hover shadow" style="width: 100%;">
+            <table id="tableCausacionPagos" class="table table-striped table-bordered table-sm table-hover shadow"
+                style="width: 100%;">
                 <thead>
                     <tr>
                         <th class="bg-sofia">Banco</th>
