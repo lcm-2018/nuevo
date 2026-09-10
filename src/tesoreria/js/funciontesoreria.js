@@ -1804,6 +1804,10 @@ function cargarRubrosCaja(id_caja, id_detalle) {
 }
 //============================================  FORMA DE PAGO ============================================*/
 
+let editarFormaPago = (id_fp) => {
+    cargaFormaPago(0, id_fp, null);
+};
+
 // Cargar lista de centros de costo para realizar la causación del valor
 let cargaFormaPago = (cop, detalle, boton) => {
 	let valor_pago = 0;

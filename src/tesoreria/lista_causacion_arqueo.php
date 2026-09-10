@@ -123,7 +123,7 @@ if (!empty($facturador)) {
         $id_t[] = $fact['id_tercero_api'];
     }
     $ids = implode(',', $id_t);
-    $Terceros =  new Terceros();
+    $Terceros = new Terceros();
     $terceros = $Terceros->getTerceros($ids);
     //ordenar terceros por nom_tercero
     usort($terceros, function ($a, $b) {
@@ -209,101 +209,118 @@ $valor_pagar = 0;
         <div class="px-3 pt-2">
             <?php
             if ($estado['estado'] == 1) {
-            ?>
+                ?>
                 <form id="formAddFacturador">
-                    <div class="row mb-2">
-                        <div class="col-md-3">
-                            <label for="fecha_arqueo_ini" class="small">FECHA INICIAL</label>
-                            <input type="date" name="fecha_arqueo_ini" id="fecha_arqueo_ini" class="form-control form-control-sm bg-input" max="<?php echo $fecha_max; ?>" value="<?php echo $detalle['fecha_ini']; ?>">
-                            <input type="hidden" name="id_doc" id="id_doc" value="<?php echo $id_doc; ?>">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="fecha_arqueo_fin" class="small">FECHA FINAL</label>
-                            <input type="date" name="fecha_arqueo_fin" id="fecha_arqueo_fin" class="form-control form-control-sm bg-input" max="<?php echo $fecha_max; ?>" value="<?php echo $detalle['fecha_fin']; ?>">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="id_facturador" class="small">FACTURADOR:</label>
-                            <div class="col input-group input-group-sm" id="divBanco">
-                                <select name="id_facturador" id="id_facturador" class="form-select form-select-sm bg-input" required onchange="calcularCopagos2(this)">
-                                    <option value="0">--Seleccione--</option>
-                                    <?php foreach ($terceros as $tc) {
-                                        $slc = $tc['id_tercero_api'] == $detalle['id_tercero'] ? 'selected' : '';
-                                        echo '<option value="' . $tc['id_tercero_api'] . '" ' . $slc . '>' . $tc['nom_tercero'] . ' -> ' . $tc['nit_tercero'] . '</option>';
-                                    }
-                                    ?>
-                                </select>
-                                <button class="btn btn-outline-success" type="button" title="Buscar Arqueos para Facturador" onclick="calcularCopagos2(this)"><i class="fas fa-arrow-right"></i></button>
+                    <?php
+                    if ($id_detalle == 0) {
+                        ?>
+                        <div class="row mb-2">
+                            <div class="col-md-3">
+                                <label for="fecha_arqueo_ini" class="small">FECHA INICIAL</label>
+                                <input type="date" name="fecha_arqueo_ini" id="fecha_arqueo_ini"
+                                    class="form-control form-control-sm bg-input" max="<?php echo $fecha_max; ?>"
+                                    value="<?php echo $detalle['fecha_ini']; ?>">
+                                <input type="hidden" name="id_doc" id="id_doc" value="<?php echo $id_doc; ?>">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="fecha_arqueo_fin" class="small">FECHA FINAL</label>
+                                <input type="date" name="fecha_arqueo_fin" id="fecha_arqueo_fin"
+                                    class="form-control form-control-sm bg-input" max="<?php echo $fecha_max; ?>"
+                                    value="<?php echo $detalle['fecha_fin']; ?>">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_facturador" class="small">FACTURADOR:</label>
+                                <div class="col input-group input-group-sm" id="divBanco">
+                                    <select name="id_facturador" id="id_facturador" class="form-select form-select-sm bg-input"
+                                        required onchange="calcularCopagos2(this)">
+                                        <option value="0">--Seleccione--</option>
+                                        <?php foreach ($terceros as $tc) {
+                                            $slc = $tc['id_tercero_api'] == $detalle['id_tercero'] ? 'selected' : '';
+                                            echo '<option value="' . $tc['id_tercero_api'] . '" ' . $slc . '>' . $tc['nom_tercero'] . ' -> ' . $tc['nit_tercero'] . '</option>';
+                                        }
+                                        ?>
+                                    </select>
+                                    <button class="btn btn-outline-success" type="button" title="Buscar Arqueos para Facturador"
+                                        onclick="calcularCopagos2(this)"><i class="fas fa-arrow-right"></i></button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row mb-2">
+                        <div class="row mb-2">
+                            <?php
+                            if (!empty($tabla)) {
+                                ?>
+                                <table class="table table-striped table-bordered table-sm table-hover shadow w-100"
+                                    id="tableArqueos">
+                                    <thead>
+                                        <tr>
+                                            <th class="bg-sofia">No. Arqueo</th>
+                                            <th class="bg-sofia">Fecha</th>
+                                            <th class="bg-sofia">Valor Total</th>
+                                            <th class="bg-sofia">Descuento</th>
+                                            <th class="bg-sofia">Anulado</th>
+                                            <th class="bg-sofia">Neto</th>
+                                            <th class="bg-sofia">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $vt = $des = $anul = $net = 0;
+                                        foreach ($tabla as $row) {
+                                            $vt += $row['valor'];
+                                            $des += $row['descuento'];
+                                            $anul += $row['anulado'];
+                                            $tot = $row['valor'] - $row['descuento'] - $row['anulado'];
+                                            $net += $tot;
+                                            echo '<tr>';
+                                            echo '<td>' . $row['id_arqueo'] . '</td>';
+                                            echo '<td>' . $row['fecha'] . '</td>';
+                                            echo '<td class="text-end">' . pesos($row['valor']) . '</td>';
+                                            echo '<td class="text-end">' . pesos($row['descuento']) . '</td>';
+                                            echo '<td class="text-end">' . pesos($row['anulado']) . '</td>';
+                                            echo '<td class="text-end">' . pesos($tot) . '</td>';
+                                            echo '<td class="text-center"><input onchange="SumarArqueos()" type="checkbox" name="arqueo[' . $row['id_arqueo'] . ']" value="' . $tot . '" checked></td>';
+                                            echo '</tr>';
+                                        }
+                                        $detalle['valor_fac'] += $net;
+                                        ?>
+                                    </tbody>
+                                </table>
+                                <?php
+                            }
+                            ?>
+                        </div>
                         <?php
-                        if (!empty($tabla)) {
-                        ?>
-                            <table class="table table-striped table-bordered table-sm table-hover shadow w-100" id="tableArqueos">
-                                <thead>
-                                    <tr>
-                                        <th class="bg-sofia">No. Arqueo</th>
-                                        <th class="bg-sofia">Fecha</th>
-                                        <th class="bg-sofia">Valor Total</th>
-                                        <th class="bg-sofia">Descuento</th>
-                                        <th class="bg-sofia">Anulado</th>
-                                        <th class="bg-sofia">Neto</th>
-                                        <th class="bg-sofia">Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    $vt = $des = $anul = $net = 0;
-                                    foreach ($tabla as $row) {
-                                        $vt += $row['valor'];
-                                        $des += $row['descuento'];
-                                        $anul += $row['anulado'];
-                                        $tot = $row['valor'] - $row['descuento'] - $row['anulado'];
-                                        $net += $tot;
-                                        echo '<tr>';
-                                        echo '<td>' . $row['id_arqueo'] . '</td>';
-                                        echo '<td>' . $row['fecha'] . '</td>';
-                                        echo '<td class="text-end">' . pesos($row['valor']) . '</td>';
-                                        echo '<td class="text-end">' . pesos($row['descuento']) . '</td>';
-                                        echo '<td class="text-end">' . pesos($row['anulado']) . '</td>';
-                                        echo '<td class="text-end">' . pesos($tot) . '</td>';
-                                        echo '<td class="text-center"><input onchange="SumarArqueos()" type="checkbox" name="arqueo[' . $row['id_arqueo'] . ']" value="' . $tot . '" checked></td>';
-                                        echo '</tr>';
-                                    }
-                                    $detalle['valor_fac'] += $net;
-                                    ?>
-                                </tbody>
-                            </table>
-                        <?php
-                        }
-                        ?>
-                    </div>
+                    }
+                    ?>
                     <div class="row mb-2">
                         <div class="col-md-2">
                             <label for="valor_fact" class="small">VALOR FACTURADO:</label>
                             <div id="divForma">
-                                <input type="text" name="valor_fact" id="valor_fact" class="form-control form-control-sm bg-input" value="<?php echo $detalle['valor_fac']; ?>" required style="text-align: right;" onkeyup="NumberMiles(this)" readonly>
+                                <input type="text" name="valor_fact" id="valor_fact"
+                                    class="form-control form-control-sm bg-input"
+                                    value="<?php echo $detalle['valor_fac']; ?>" required style="text-align: right;"
+                                    onkeyup="NumberMiles(this)" readonly>
                             </div>
                         </div>
                         <div class="col-md-2">
                             <label for="valor_arq" class="small">VALOR:</label>
-                            <div class="btn-group">
-                                <input type="text" name="valor_arq" id="valor_arq" class="form-control form-control-sm bg-input" value="<?php echo $detalle['valor_arq']; ?>" required style="text-align: right;" onkeyup="NumberMiles(this)" ondblclick="copiarValor()" onchange="validarDiferencia()">
-                                <button type="submit" class="btn btn-primary btn-sm" id="registrarMvtoDetalle">+</button>
-                            </div>
+                            <input type="text" name="valor_arq" id="valor_arq" class="form-control form-control-sm bg-input"
+                                value="<?php echo $detalle['valor_arq']; ?>" required style="text-align: right;"
+                                onkeyup="NumberMiles(this)" ondblclick="copiarValor()" onchange="validarDiferencia()">
                         </div>
                     </div>
                     <div class="row mb-2">
                         <div class="col-md-12">
-                            <textarea class="form-control form-control-sm bg-input" name="observaciones" id="observaciones" rows="3" placeholder="OBSERVACIONES:"><?php echo $detalle['observaciones']; ?></textarea>
+                            <textarea class="form-control form-control-sm bg-input" name="observaciones" id="observaciones"
+                                rows="3" placeholder="OBSERVACIONES:"><?php echo $detalle['observaciones']; ?></textarea>
                         </div>
                     </div>
                 </form>
-            <?php
+                <?php
             }
             ?>
-            <table id="tableCausacionArqueo" class="table table-striped table-bordered table-sm table-hover shadow" style="width: 100%;">
+            <table id="tableCausacionArqueo" class="table table-striped table-bordered table-sm table-hover shadow"
+                style="width: 100%;">
                 <thead>
                     <tr>
                         <th class="bg-sofia">Fecha Inicio</th>
@@ -350,9 +367,10 @@ $valor_pagar = 0;
             <div class="text-end py-3">
                 <?php
                 if ($estado['estado'] == 1) {
-                ?>
-                    <button type="button" class="btn btn-success btn-sm" onclick="GuardaMvtoDetalle(<?php echo $id_doc . ',' . $id_detalle ?>,this)">Guardar</button>
-                <?php
+                    ?>
+                    <button type="button" class="btn btn-success btn-sm"
+                        onclick="GuardaMvtoDetalle(<?php echo $id_doc . ',' . $id_detalle ?>,this)">Guardar</button>
+                    <?php
                 }
                 ?>
                 <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</a>
