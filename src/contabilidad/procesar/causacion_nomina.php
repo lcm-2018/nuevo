@@ -334,24 +334,29 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-try {
-    $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT
-                `pto_crp_detalle`.`id_pto_crp_det`
-                , `pto_cdp_detalle`.`id_rubro`
-                , `pto_crp_detalle`.`id_tercero_api`
-            FROM
-                `pto_crp_detalle`
-                INNER JOIN `pto_cdp_detalle` 
-                    ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
-            WHERE (`pto_crp_detalle`.`id_pto_crp` = $crp)";
-    $rs = $cmd->query($sql);
-    $ids_detalle = $rs->fetchAll();
-    $rs->closeCursor();
-    unset($rs);
-    $cmd = null;
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+$ids_detalle = [];
+if ($_SESSION['pto'] == 1 && !empty($crp)) {
+    try {
+        $cmd = \Config\Clases\Conexion::getConexion();
+        $sql = "SELECT
+                    `pto_crp_detalle`.`id_pto_crp_det`
+                    , `pto_cdp_detalle`.`id_rubro`
+                    , `pto_crp_detalle`.`id_tercero_api`
+                FROM
+                    `pto_crp_detalle`
+                    INNER JOIN `pto_cdp_detalle` 
+                        ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
+                WHERE (`pto_crp_detalle`.`id_pto_crp` = $crp)";
+        $rs = $cmd->query($sql);
+        if ($rs) {
+            $ids_detalle = $rs->fetchAll();
+            $rs->closeCursor();
+            unset($rs);
+        }
+        $cmd = null;
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    }
 }
 $idsDetalleIndexados = indexarDetallesCrpNomina($ids_detalle);
 try {
@@ -475,7 +480,7 @@ try {
             $rubro = 0;
             $id_det = NULL;
 
-            if ($valor > 0) {
+            if ($valor > 0 && $_SESSION['pto'] == 1) {
                 $rubro = resolverRubroNomina($dd, $tipo, $rubrosPorTipo, $rubrosPorTipoCcosto, $esPtoCaracter);
                 $id_det = $idsDetalleIndexados[$rubro][(int) $id_ter_api] ?? NULL;
             }
@@ -485,18 +490,19 @@ try {
 
 
             // Insertar solo si hay valor y rubro válido
-            if ($valor > 0 && $id_det === NULL) {
-                throw new Exception(
-                    'No existe detalle CRP para el rubro ' . $rubro .
-                    ' y tercero ' . $id_ter_api .
-                    ' del empleado ' . $dd['no_documento']
-                );
-            }
+            if ($_SESSION['pto'] == 1) {
+                if ($valor > 0 && $id_det === NULL) {
+                    throw new Exception(
+                        'No existe detalle CRP para el rubro ' . $rubro .
+                        ' y tercero ' . $id_ter_api .
+                        ' del empleado ' . $dd['no_documento']
+                    );
+                }
 
-            if ($valor > 0 && $rubro > 0 && $id_det !== NULL) {
-                $sql0->execute();
-                if (!($cmd->lastInsertId() > 0)) {
-                    throw new Exception($sql0->errorInfo()[2]);
+                if ($valor > 0 && $rubro > 0 && $id_det !== NULL) {
+                    if (!($sql0->execute())) {
+                        throw new Exception($sql0->errorInfo()[2] ? $sql0->errorInfo()[2] : 'Error en inserción');
+                    }
                 }
             }
         }
@@ -505,28 +511,30 @@ try {
         if (!empty($otrosDevengadosEmpleado)) {
             foreach ($otrosDevengadosEmpleado as $otroDevengado) {
                 $valor = $otroDevengado['valor'];
-                $rubro = $otroDevengado['rubro'];
-                $id_det = $idsDetalleIndexados[$rubro][(int) $id_ter_api] ?? NULL;
+                
+                if ($_SESSION['pto'] == 1) {
+                    $rubro = $otroDevengado['rubro'];
+                    $id_det = $idsDetalleIndexados[$rubro][(int) $id_ter_api] ?? NULL;
 
-                if ($valor > 0 && $rubro <= 0) {
-                    throw new Exception(
-                        'No existe rubro presupuestal configurado en el tipo de otros devengados para el empleado ' .
-                        ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
-                    );
-                }
+                    if ($valor > 0 && $rubro <= 0) {
+                        throw new Exception(
+                            'No existe rubro presupuestal configurado en el tipo de otros devengados para el empleado ' .
+                            ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                        );
+                    }
 
-                if ($valor > 0 && $id_det === NULL) {
-                    throw new Exception(
-                        'No existe detalle CRP para el rubro ' . $rubro .
-                        ' y tercero ' . $id_ter_api .
-                        ' del empleado ' . ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
-                    );
-                }
+                    if ($valor > 0 && $id_det === NULL) {
+                        throw new Exception(
+                            'No existe detalle CRP para el rubro ' . $rubro .
+                            ' y tercero ' . $id_ter_api .
+                            ' del empleado ' . ($dd['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                        );
+                    }
 
-                if ($valor > 0) {
-                    $sql0->execute();
-                    if (!($cmd->lastInsertId() > 0)) {
-                        throw new Exception($sql0->errorInfo()[2]);
+                    if ($valor > 0) {
+                        if (!($sql0->execute())) {
+                            throw new Exception($sql0->errorInfo()[2] ? $sql0->errorInfo()[2] : 'Error en inserción');
+                        }
                     }
                 }
             }
@@ -561,9 +569,8 @@ try {
                                     );
                                 }
                                 if ($valor > 0 && $cuenta != '') {
-                                    $sql1->execute();
-                                    if (!($cmd->lastInsertId() > 0)) {
-                                        throw new Exception($sql1->errorInfo()[2]);
+                                    if (!($sql1->execute())) {
+                                        throw new Exception($sql1->errorInfo()[2] ? $sql1->errorInfo()[2] : 'Error en inserción');
                                     }
                                 }
                             }
@@ -631,9 +638,8 @@ try {
                         break;
                 }
                 if ($valor > 0 && $cuenta != '') {
-                    $sql1->execute();
-                    if (!($cmd->lastInsertId() > 0)) {
-                        throw new Exception($sql1->errorInfo()[2]);
+                    if (!($sql1->execute())) {
+                        throw new Exception($sql1->errorInfo()[2] ? $sql1->errorInfo()[2] : 'Error en inserción');
                     }
                 }
             }
@@ -656,9 +662,8 @@ try {
                         $credito = $ces['val_cesantias'];
                         $id_ter_api = $ces['id_tercero_api'];
                         if ($credito > 0 && $cuenta != '') {
-                            $sql1->execute();
-                            if (!($cmd->lastInsertId() > 0)) {
-                                throw new Exception($sql1->errorInfo()[2]);
+                            if (!($sql1->execute())) {
+                                throw new Exception($sql1->errorInfo()[2] ? $sql1->errorInfo()[2] : 'Error en inserción');
                             }
                         }
                     }
@@ -668,9 +673,8 @@ try {
                         $credito = $ces['val_icesantias'];
                         $id_ter_api = $ces['id_tercero_api'];
                         if ($credito > 0 && $cuenta != '') {
-                            $sql1->execute();
-                            if (!($cmd->lastInsertId() > 0)) {
-                                throw new Exception($sql1->errorInfo()[2]);
+                            if (!($sql1->execute())) {
+                                throw new Exception($sql1->errorInfo()[2] ? $sql1->errorInfo()[2] : 'Error en inserción');
                             }
                         }
                     }
@@ -695,9 +699,8 @@ try {
                         if ($valRteFte > 0) {
                             $base = $dd['base_retencion'];
                             $valor_retencion = $dd['val_retencion'];
-                            $sql2->execute();
-                            if (!($cmd->lastInsertId() > 0)) {
-                                throw new Exception($sql2->errorInfo()[2]);
+                            if (!($sql2->execute())) {
+                                throw new Exception($sql2->errorInfo()[2] ? $sql2->errorInfo()[2] : 'Error en inserción');
                             }
                         }
 
@@ -818,9 +821,8 @@ try {
                                 $credito = $dc['valor'];
                                 $cuenta = $dc['id_cuenta'];
                                 if ($credito > 0 && $cuenta != '') {
-                                    $sql1->execute();
-                                    if (!($cmd->lastInsertId() > 0)) {
-                                        throw new Exception($sql1->errorInfo()[2]);
+                                    if (!($sql1->execute())) {
+                                        throw new Exception($sql1->errorInfo()[2] ? $sql1->errorInfo()[2] : 'Error en inserción');
                                     }
                                 }
                             }
@@ -842,9 +844,8 @@ try {
                                             );
                                         }
                                         if ($credito > 0 && $cuenta != '') {
-                                            $sql1->execute();
-                                            if (!($cmd->lastInsertId() > 0)) {
-                                                throw new Exception($sql1->errorInfo()[2]);
+                                            if (!($sql1->execute())) {
+                                                throw new Exception($sql1->errorInfo()[2] ? $sql1->errorInfo()[2] : 'Error en inserción');
                                             }
                                         }
                                     }
@@ -855,9 +856,8 @@ try {
                         break;
                 }
                 if ($credito > 0 && $cuenta != '') {
-                    $sql1->execute();
-                    if (!($cmd->lastInsertId() > 0)) {
-                        throw new Exception($sql1->errorInfo()[2]);
+                    if (!($sql1->execute())) {
+                        throw new Exception($sql1->errorInfo()[2] ? $sql1->errorInfo()[2] : 'Error en inserción');
                     }
                 }
             }
@@ -869,30 +869,33 @@ try {
     $sql = $cmd->prepare($sql);
     $sql->bindParam(1, $estado, PDO::PARAM_INT);
     $sql->bindParam(2, $id_nomina, PDO::PARAM_INT);
-    $sql->execute();
-    if (!($sql->rowCount() > 0)) {
-        throw new Exception($sql->errorInfo()[2]);
+    if (!($sql->execute())) {
+        throw new Exception($sql->errorInfo()[2] ? $sql->errorInfo()[2] : 'Error al actualizar estado de la nómina');
     }
 
-    $query = "UPDATE `nom_nomina_pto_ctb_tes` SET `cnom` = ? WHERE `id_nomina` = ? AND `tipo` = ? AND `crp`  = ?";
-    $query = $cmd->prepare($query);
+    $query_str = "UPDATE `nom_nomina_pto_ctb_tes` SET `cnom` = ? WHERE `id_nomina` = ? AND `tipo` = ?";
+    if ($_SESSION['pto'] == 1 && !empty($crp)) {
+        $query_str .= " AND `crp` = ?";
+    }
+    $query = $cmd->prepare($query_str);
     $query->bindParam(1, $id_doc_nom, PDO::PARAM_INT);
     $query->bindParam(2, $id_nomina, PDO::PARAM_INT);
     $query->bindParam(3, $tipo_nomina, PDO::PARAM_STR);
-    $query->bindParam(4, $crp, PDO::PARAM_INT);
-    $query->execute();
-    if (!($query->rowCount() > 0)) {
-        throw new Exception($query->errorInfo()[2]);
+    if ($_SESSION['pto'] == 1 && !empty($crp)) {
+        $query->bindParam(4, $crp, PDO::PARAM_INT);
+    }
+    if (!($query->execute())) {
+        throw new Exception($query->errorInfo()[2] ? $query->errorInfo()[2] : 'Error al actualizar nom_nomina_pto_ctb_tes');
     }
     $cmd->commit();
     Logs::guardaLog("INSERT INTO `ctb_doc`(`id_vigencia`,`id_tipo_doc`,`id_manu`,`id_tercero`,`fecha`,`estado`) VALUES($id_vigencia,$cnom,$id_manu,$id_ter_doc,'$fecha',2)");
     Logs::guardaLog("UPDATE `nom_nominas` SET `estado` = 4 WHERE `id_nomina` = $id_nomina");
-    Logs::guardaLog("UPDATE `nom_nomina_pto_ctb_tes` SET `cnom` = $id_doc_nom WHERE `id_nomina` = $id_nomina AND `tipo` = '$tipo_nomina' AND `crp` = $crp");
+    Logs::guardaLog("UPDATE `nom_nomina_pto_ctb_tes` SET `cnom` = $id_doc_nom WHERE `id_nomina` = $id_nomina AND `tipo` = '$tipo_nomina'" . ($_SESSION['pto'] == 1 && !empty($crp) ? " AND `crp` = $crp" : ""));
     echo 'ok';
 } catch (Exception $e) {
     if ($cmd instanceof PDO && $cmd->inTransaction()) {
         $cmd->rollBack();
     }
-    throw new Exception('Error: ' . $e->getMessage());
+    echo 'Error: ' . $e->getMessage();
 }
 exit;

@@ -26,6 +26,9 @@ try {
     $sql = "SELECT `id_pto` FROM `pto_presupuestos` WHERE (`id_tipo` = 2 AND `id_vigencia` = $id_vigencia)";
     $rs = $cmd->query($sql);
     $listappto = $rs->fetch();
+    if (empty($listappto['id_pto'])) {
+        $listappto['id_pto'] = 0;
+    }
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -112,7 +115,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$fecha = date('Y-m-d', strtotime($listado[0]['fecha']));
+$fecha = isset($listado[0]) ? date('Y-m-d', strtotime($listado[0]['fecha'])) : date('Y-m-d');
 if ($id_r == 3) {
     try {
         $cmd = \Config\Clases\Conexion::getConexion();
@@ -161,7 +164,7 @@ if ($id_r == 3) {
         }
     }
     $rp = implode(',', $rp);
-    if (!empty($nominas)) {
+    if (!empty($nominas) && $rp != '') {
         try {
             $sql = "SELECT 
                         `pto_crp`.`id_pto_crp`
@@ -208,7 +211,7 @@ if ($id_r == 3) {
         ],
         columnDefs: [{
             class: 'text-wrap',
-            targets: [4]
+            targets: [<?= $_SESSION['pto'] == '1' ? 4 : 2 ?>]
         }],
     });
     $('#tableContrtacionCdp').wrap('<div class="overflow" />');
@@ -310,7 +313,7 @@ if ($id_r == 3) {
                                             <td class="text-start">
                                             <?= '<input type="date" class="form-control form-control-sm bg-input" name="fec_doc[]" value="' . date('Y-m-d', strtotime($vl['fecha'])) . '" min="' . date('Y-m-d', strtotime($vl['fecha'])) . '" max="' . $_SESSION['vigencia'] . '-12-31">'; ?>
                                             </td>
-                                            <td class="text-start"><?= $vl['objeto']; ?></td>
+                                            <td class="text-start text-wrap"><?= $vl['objeto']; ?></td>
                                         <?= $_SESSION['pto'] == '1' ? '<td class="text-end">' . pesos($vl['valor']) . '</td>' : ''; ?>
                                             <td class="text-center"> <?= $causar ?></td>
                                         </tr>

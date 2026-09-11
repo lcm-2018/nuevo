@@ -592,6 +592,16 @@ class Nomina
 
     public function cambiaEstado($id_nomina, $estado)
     {
+        if ($estado == 2 && $_SESSION['pto'] != 1) {
+            $estado = 3;
+            $tipo = self::getRegistro($id_nomina)['tipo'];
+            $sqlInsertPto = "INSERT INTO `nom_nomina_pto_ctb_tes` (`id_nomina`, `tipo`) VALUES (?, ?), (?, 'PL')";
+            $stmtPto = $this->conexion->prepare($sqlInsertPto);
+            $stmtPto->bindParam(1, $id_nomina, PDO::PARAM_INT);
+            $stmtPto->bindParam(2, $tipo, PDO::PARAM_STR);
+            $stmtPto->bindParam(3, $id_nomina, PDO::PARAM_INT);
+            $stmtPto->execute();
+        }
         try {
             $sql = "UPDATE `nom_nominas` SET `estado` = ?, `planilla` = ? WHERE `id_nomina` = ?";
             $stmt = $this->conexion->prepare($sql);
@@ -613,10 +623,6 @@ class Nomina
 
                 // Si se anula la nómina (estado=0), anular también todos los registros internos de liquidación
                 if (intval($estado) === 0) {
-                    // Si la nómina es tipo PS, restaurar estado=1 en todos los contratos
-                    // de los empleados liquidados (al liquidar PS el contrato queda en estado=0).
-                    // Solo se restaura si el empleado NO tiene ya otro contrato activo más reciente,
-                    // para evitar dejar dos contratos activos simultáneamente.
                     $nominaData = $this->getRegistro($id_nomina);
                     if (($nominaData['tipo'] ?? '') === 'PS') {
                         $stmtContratos = $this->conexion->prepare(
