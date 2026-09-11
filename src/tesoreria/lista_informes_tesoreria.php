@@ -55,6 +55,9 @@ $content = <<<HTML
                     <li><a class="dropdown-item" href="javascript:void(0)" onclick="cargarReporteTesoreria(7);">
                         <i class="fas fa-file-invoice me-2"></i>Estado de situación de tesorería
                     </a></li>
+                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="cargarReporteTesoreria(8);">
+                        <i class="fas fa-list me-2"></i>Reporte de descuentos
+                    </a></li>
                 </ul>
             </li>
             <li class="nav-item dropdown">

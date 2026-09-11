@@ -1805,7 +1805,7 @@ function cargarRubrosCaja(id_caja, id_detalle) {
 //============================================  FORMA DE PAGO ============================================*/
 
 let editarFormaPago = (id_fp) => {
-    cargaFormaPago(0, id_fp, null);
+	cargaFormaPago(0, id_fp, null);
 };
 
 // Cargar lista de centros de costo para realizar la causación del valor
@@ -3047,6 +3047,9 @@ const cargarReporteTesoreria = (id) => {
 	if (id == 7) {
 		url = "informes/informe_estado_tesoreria_form.php";
 	}
+	if (id == 8) {
+		url = "informes/informe_descuentos_form.php";
+	}
 	fetch(url, {
 		method: "POST",
 		body: JSON.stringify({ id: id }),
@@ -3133,6 +3136,25 @@ const generarEstadoTesoreria = () => {
 		name4: "vacio1",
 		valor4: "",
 		name5: "vacio2",
+		valor5: "",
+	};
+	redireccionar5(ruta);
+};
+const generarDescuentosTes = () => {
+	let fecha_inicial = document.getElementById('fecha_ini').value;
+	let fecha_final = document.getElementById('fecha_fin').value;
+	let archivo = ValueInput('host') + "/src/tesoreria/informes/informe_descuentos_detalle.php";
+	let ruta = {
+		url: archivo,
+		name1: "fecha_inicial",
+		valor1: fecha_inicial,
+		name2: "fecha_final",
+		valor2: fecha_final,
+		name3: "vacio1",
+		valor3: "",
+		name4: "vacio2",
+		valor4: "",
+		name5: "vacio3",
 		valor5: "",
 	};
 	redireccionar5(ruta);

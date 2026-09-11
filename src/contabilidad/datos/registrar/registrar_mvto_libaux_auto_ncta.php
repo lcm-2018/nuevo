@@ -203,15 +203,42 @@ try {
                 d.grp_tipo_egreso,
                 d.id_centro,
                 d.id_subgrupo";
-    $rs = $cmd->prepare($sq2);
-    $rs->bindValue(':fec_ini_1', $fec_ini, PDO::PARAM_STR);
-    $rs->bindValue(':fec_fin_1', $fec_fin, PDO::PARAM_STR);
-    $rs->bindValue(':fec_ini_2', $fec_ini, PDO::PARAM_STR);
-    $rs->bindValue(':fec_fin_2', $fec_fin, PDO::PARAM_STR);
-    $rs->execute();
-    $objeto = $rs->fetchAll();
-    $rs->closeCursor();
-    unset($rs);
+    $datos_sedes = obtenerSedesActivas($cmd);
+    $sedes = $datos_sedes['sedes'];
+    
+    $objeto = [];
+    
+    foreach ($sedes as $sede) {
+        if ($sede['es_principal'] == 1) {
+            $cmd_sede = $cmd;
+        } else {
+            $cmd_sede = conectarSede($sede['bd_sede']);
+            if ($cmd_sede === null) {
+                error_log("No se pudo conectar a la sede {$sede['nom_sede']} para registrar_mvto_libaux_auto_ncta");
+                continue;
+            }
+        }
+        
+        try {
+            $rs = $cmd_sede->prepare($sq2);
+            $rs->bindValue(':fec_ini_1', $fec_ini, PDO::PARAM_STR);
+            $rs->bindValue(':fec_fin_1', $fec_fin, PDO::PARAM_STR);
+            $rs->bindValue(':fec_ini_2', $fec_ini, PDO::PARAM_STR);
+            $rs->bindValue(':fec_fin_2', $fec_fin, PDO::PARAM_STR);
+            $rs->execute();
+            $objeto_sede = $rs->fetchAll();
+            $rs->closeCursor();
+            unset($rs);
+            
+            $objeto = array_merge($objeto, $objeto_sede);
+        } catch (PDOException $e) {
+            error_log("Error consultando egresos en sede {$sede['nom_sede']}: " . $e->getMessage());
+        }
+        
+        if ($sede['es_principal'] != 1) {
+            $cmd_sede = null;
+        }
+    }
 
     $id_cuenta = null;
     $debito = 0;
