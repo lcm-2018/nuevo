@@ -199,29 +199,29 @@ try {
             </tr>
         </table>
 
-        <table style="width:100% !important">
-            <thead style="font-size:60%">
+        <table style="width:100% !important; border-collapse:collapse; border:1px solid #A9A9A9">
+            <thead style="font-size:50%">
                 <tr style="background-color:#CED3D3; color:#000000; text-align:center">
-                    <th rowspan="2">Item</th>
-                    <th rowspan="2">Código</th>
-                    <th rowspan="2">Descripción</th>
-                    <th rowspan="2">Form. Farmacéutica</th>
-                    <th colspan="7">CANTIDADES</th>
-                    <th rowspan="2">Lote</th>
-                    <th rowspan="2">Fec. Vence</th>
-                    <th rowspan="2">Observaciones</th>
+                    <th rowspan="2" style="border:1px solid #A9A9A9">Item</th>
+                    <th rowspan="2" style="border:1px solid #A9A9A9">Código</th>
+                    <th rowspan="2" style="border:1px solid #A9A9A9">Descripción</th>
+                    <th rowspan="2" style="border:1px solid #A9A9A9">Form. Farmacéutica</th>
+                    <th colspan="7" style="border:1px solid #A9A9A9">CANTIDADES</th>
+                    <th rowspan="2" style="border:1px solid #A9A9A9; width:10%">Lote</th>
+                    <th rowspan="2" style="border:1px solid #A9A9A9; width:10%">Fec. Vence</th>
+                    <th rowspan="2" style="border:1px solid #A9A9A9">Observaciones</th>
                 </tr>
                 <tr style="background-color:#CED3D3; color:#000000; text-align:center">
-                    <th>Stock</th>
-                    <th>Facturado</th>
-                    <th>Egresado</th>
-                    <th>Solicitud</th>
-                    <th>Anticipado</th>
-                    <th>Despachado</th>
-                    <th>Pendiente</th>
+                    <th style="border:1px solid #A9A9A9">Stock</th>
+                    <th style="border:1px solid #A9A9A9">Facturado</th>
+                    <th style="border:1px solid #A9A9A9">Egresado</th>
+                    <th style="border:1px solid #A9A9A9">Solicitud</th>
+                    <th style="border:1px solid #A9A9A9">Anticipado</th>
+                    <th style="border:1px solid #A9A9A9">Despachado</th>
+                    <th style="border:1px solid #A9A9A9">Pendiente</th>
                 </tr>
             </thead>
-            <tbody style="font-size: 60%;">
+            <tbody style="font-size: 50%;">
                 <?php
                 $tabla = '';
                 $item = 1;
@@ -240,20 +240,20 @@ try {
                     }
 
                     $tabla .=  '<tr class="resaltar">'
-                        . '<td>' . $item . '</td>'
-                        . '<td>' . $obj['cod_medicamento'] . '</td>'
-                        . '<td style="text-align:left">' . mb_strtoupper($obj['nom_medicamento']) . '</td>'
-                        . '<td style="text-align:left">' . mb_strtoupper($obj['forma_farmaceutica']) . '</td>'
-                        . '<td style="text-align:center">' . $existencia . '</td>'
-                        . '<td style="text-align:center">' . $facturado . '</td>'
-                        . '<td style="text-align:center">' . $egresado . '</td>'
-                        . '<td style="text-align:center">' . $obj['cantidad'] . '</td>'
-                        . '<td></td>'
-                        . '<td></td>'
-                        . '<td></td>'
-                        . '<td></td>'
-                        . '<td></td>'
-                        . '<td></td>'
+                        . '<td style="border:1px solid #A9A9A9; text-align:center">' . $item . '</td>'
+                        . '<td style="border:1px solid #A9A9A9">' . $obj['cod_medicamento'] . '</td>'
+                        . '<td style="border:1px solid #A9A9A9; text-align:left">' . mb_strtoupper($obj['nom_medicamento']) . '</td>'
+                        . '<td style="border:1px solid #A9A9A9; text-align:left">' . mb_strtoupper($obj['forma_farmaceutica']) . '</td>'
+                        . '<td style="border:1px solid #A9A9A9; text-align:center">' . $existencia . '</td>'
+                        . '<td style="border:1px solid #A9A9A9; text-align:center">' . $facturado . '</td>'
+                        . '<td style="border:1px solid #A9A9A9; text-align:center">' . $egresado . '</td>'
+                        . '<td style="border:1px solid #A9A9A9; text-align:center">' . $obj['cantidad'] . '</td>'
+                        . '<td style="border:1px solid #A9A9A9"></td>'
+                        . '<td style="border:1px solid #A9A9A9"></td>'
+                        . '<td style="border:1px solid #A9A9A9"></td>'
+                        . '<td style="border:1px solid #A9A9A9"></td>'
+                        . '<td style="border:1px solid #A9A9A9"></td>'
+                        . '<td style="border:1px solid #A9A9A9"></td>'
                         . '</tr>';
                     $item++;
                 }
@@ -267,25 +267,14 @@ try {
             </tfoot>
         </table>
 
-        <table style="width:100%; font-size:70%; text-align:center">
+        <table style="width:100%; font-size:60%; text-align:center">            
             <tr>
-                <td style="width:50%">
-                    <?php if ($obj_e['nom_firma']) : ?>
-                        <img src="<?php echo $ruta_firmas . $obj_e['nom_firma'] ?>">
-                    <?php endif; ?>
-                </td>
-                <td style="width:50%">
-                </td>
-            </tr>
-            <tr>
+                </br></br>
                 <td style="vertical-align: top">
-                    <div>-------------------------------------------------</div>
-                    <div><?php echo $obj_e['usr_cierra']; ?></div>
-                    <div><?php echo $obj_e['usr_perfil']; ?></div>
+                    <div>Despachado por:_______________________________ Fecha:_____________</div>
                 </td>
                 <td style="vertical-align: top">
-                    <div>-------------------------------------------------</div>
-                    <div>Aceptado Por</div>
+                    <div>Recibido por:_______________________________ Fecha:_____________</div>
                 </td>
             </tr>
         </table>

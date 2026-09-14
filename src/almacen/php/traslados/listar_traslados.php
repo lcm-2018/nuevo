@@ -82,6 +82,7 @@ try {
                 tb_sd.nom_sede AS nom_sede_destino,tb_bd.nombre AS nom_bodega_destino,
                 far_traslado.val_total,far_traslado.estado,
                 CASE far_traslado.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado,
+                CASE far_traslado.estado WHEN 0 THEN far_traslado.fec_anulacion WHEN 1 THEN far_traslado.fec_creacion WHEN 2 THEN far_traslado.fec_cierre END AS fec_estado,
                 far_traslado.creado_far,
                 PEDIDO.num_pedido
             FROM far_traslado
@@ -136,7 +137,7 @@ if (!empty($objs)) {
             "nom_bodega_destino" => mb_strtoupper($obj['nom_bodega_destino']),
             "val_total" => formato_valor($obj['val_total']),
             "estado" => $obj['estado'],
-            "nom_estado" => $obj['nom_estado'],
+            "nom_estado" => $obj['nom_estado'] . '<br>' . $obj['fec_estado'],
             "num_pedido" => $obj['num_pedido'],
             "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];

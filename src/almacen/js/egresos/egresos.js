@@ -55,6 +55,7 @@
                 { 'data': 'hor_egreso' },
                 { 'data': 'detalle' },
                 { 'data': 'nom_tipo_egreso' },
+                { 'data': 'num_egreso_tipo' },
                 { 'data': 'nom_sede' },
                 { 'data': 'nom_bodega' },
                 { 'data': 'nom_centro' },
@@ -70,8 +71,8 @@
             columnDefs: [
                 { class: 'text-wrap', targets: [4, 5, 6, 7, 8, 9, 10, 11] },
                 { type: "numeric-comma", targets: 12 },
-                { visible: false, targets: 13 },
-                { orderable: false, targets: 16 }
+                { visible: false, targets: 14 },
+                { orderable: false, targets: 17 }
             ],
             rowCallback: function (row, data) {
                 if (data.estado == 1) {
@@ -489,6 +490,7 @@
                         $('#tb_egresos').DataTable().ajax.reload(null, false);
 
                         $('#txt_num_egr').val(r.num_egreso);
+                        $('#txt_num_egr_tipo').val(r.num_egreso_tipo);
                         $('#txt_est_egr').val('CERRADO');
 
                         $('#btn_guardar').prop('disabled', true);

@@ -17,9 +17,8 @@
                 className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     $.post("frm_reg_ingresos.php", function (he) {
-                        $('#divTamModalForms').removeClass('modal-sm');
-                        $('#divTamModalForms').removeClass('modal-lg');
-                        $('#divTamModalForms').addClass('modal-xl');
+                        $('#divTamModalForms').removeClass('modal-sm modal-lg modal-xl');
+                        $('#divTamModalForms').addClass('modal-xxl');
                         $('#divModalForms').modal('show');
                         $("#divForms").html(he);
                     });
@@ -53,6 +52,7 @@
                 { 'data': 'detalle' },
                 { 'data': 'nom_tercero' },
                 { 'data': 'nom_tipo_ingreso' },
+                { 'data': 'num_ingreso_tipo' },
                 { 'data': 'nom_sede' },
                 { 'data': 'val_total' },
                 { 'data': 'estado' },
@@ -62,8 +62,8 @@
             columnDefs: [
                 { class: 'text-wrap', targets: [6, 7] },
                 { type: "numeric-comma", targets: 10 },
-                { visible: false, targets: 11 },
-                { orderable: false, targets: 13 }
+                { visible: false, targets: 12 },
+                { orderable: false, targets: 14 }
             ],
             rowCallback: function (row, data) {
                 if (data.estado == 1) {
@@ -121,7 +121,8 @@
     $('#tb_ingresos').on('click', '.btn_editar', function () {
         let id = $(this).attr('value');
         $.post("frm_reg_ingresos.php", { id: id }, function (he) {
-            $('#divTamModalForms').addClass('modal-xl');
+            $('#divTamModalForms').removeClass('modal-sm modal-lg modal-xl');
+            $('#divTamModalForms').addClass('modal-xxl');
             $('#divModalForms').modal('show');
             $("#divForms").html(he);
         });
@@ -237,6 +238,7 @@
                         $('#tb_ingresos').DataTable().ajax.reload(null, false);
 
                         $('#txt_num_ing').val(r.num_ingreso);
+                        $('#txt_num_ing_tipo').val(r.num_ingreso_tipo);
                         $('#txt_est_ing').val('CERRADO');
 
                         $('#btn_guardar').prop('disabled', true);

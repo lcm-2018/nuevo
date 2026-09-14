@@ -11,7 +11,8 @@ include '../common/funciones_generales.php';
 $cmd = \Config\Clases\Conexion::getConexion();
 
 $id = isset($_POST['id']) ? $_POST['id'] : -1;
-$sql = "SELECT EE.fec_egreso,EE.hor_egreso,EE.num_egreso,EE.id_sede,EE.id_bodega,EE.id_tipo_egreso,
+$sql = "SELECT EE.fec_egreso,EE.hor_egreso,EE.num_egreso,EE.id_sede,EE.id_bodega,
+            EE.id_tipo_egreso,EE.num_egreso_tipo,
             EE.id_centrocosto,IF(FA.id_area=0,0,FA.id_sede) AS id_sede_des,
             EE.id_area,TE.id_tercero,TE.nom_tercero,
             EE.estado,EE.detalle,EE.val_total,
@@ -121,13 +122,17 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                         </select>
                         <input type="hidden" id="id_tip_egr" name="id_tip_egr" value="<?php echo $obj['id_tipo_egreso'] ?>">
                     </div>
+                    <div class="col-md-1">
+                        <label for="txt_num_egr_tipo" class="small">No. Tipo Egr.</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_num_egr_tipo" name="txt_num_egr_tipo" class="small" value="<?php echo $obj['num_egreso_tipo'] ?>" readonly="readonly">
+                    </div>
                     <div class="col-md-3">
                         <label for="sl_centrocosto" class="small">Centro de Costo</label>
                         <select class="form-select form-select-sm bg-input" id="sl_centrocosto" name="sl_centrocosto">
                             <?php centros_costo($cmd, '', $obj['id_centrocosto']) ?>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label for="sl_sede_des" class="small">Sede Destino</label>
                         <select class="form-select form-select-sm bg-input" id="sl_sede_des" name="sl_sede_des">
                             <?php sedes($cmd, '', $obj['id_sede_des']) ?>

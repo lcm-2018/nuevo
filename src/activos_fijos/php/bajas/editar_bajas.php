@@ -120,14 +120,23 @@ try {
                 $error = 0;
                 $cmd->beginTransaction();
 
-                $sql = "UPDATE acf_baja SET estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope' WHERE id_baja=$id";
+                $sql = 'SELECT num_bajaactual_acf FROM tb_datos_ips LIMIT 1';
+                $rs = $cmd->query($sql);
+                $obj = $rs->fetch();
+                $num_baja = $obj['num_bajaactual_acf'];
+                $res['num_baja'] = $num_baja;
+
+                $sql = "UPDATE acf_baja SET num_baja=$num_baja, estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope' WHERE id_baja=$id";
                 $rs1 = $cmd->query($sql);
+
+                $sql = 'UPDATE tb_datos_ips SET num_bajaactual_acf=num_bajaactual_acf+1';
+                $rs2 = $cmd->query($sql);
 
                 $sql = "UPDATE acf_hojavida SET estado=5
                         WHERE id_activo_fijo IN (SELECT id_activo_fijo FROM acf_baja_detalle WHERE id_baja=$id)";
-                $rs2 = $cmd->query($sql);
+                $rs3 = $cmd->query($sql);
 
-                if ($rs1 == false || $rs2 == false || error_get_last()) {
+                if ($rs1 == false || $rs2 == false || $rs3 == false || error_get_last()) {
                     $error = 1;
                 }
                 if ($error == 0) {

@@ -15,6 +15,7 @@ $tipo = isset($_POST['tipo']) ? $_POST['tipo'] : 'todo';
 
 try {
     $sql = "SELECT HV.*,
+                IF(HV.vida_util='' OR HV.vida_util IS NULL, ART.vida_util, HV.vida_util) AS vida_util1,
                 SED.nom_sede,ARE.nom_area,
                 CONCAT_WS(' ',USR.apellido1,USR.apellido2,USR.nombre1,USR.nombre2) AS nom_responsable,
                 ART.nom_medicamento AS nom_articulo,MAR.descripcion AS nom_marca,
@@ -187,7 +188,7 @@ try {
                 <td>Voltaje Mínimo</td>
             </tr>
             <tr>
-                <td><?php echo $obj_e['vida_util']; ?></td>
+                <td><?php echo $obj_e['vida_util1']; ?></td>
                 <td><?php echo $obj_e['calificacion_4725']; ?></td>
                 <td><?php echo $obj_e['calibracion']; ?></td>
                 <td><?php echo $obj_e['vol_min']; ?></td>

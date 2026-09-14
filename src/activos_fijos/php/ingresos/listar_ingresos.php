@@ -64,11 +64,13 @@ try {
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT acf_orden_ingreso.id_ingreso,acf_orden_ingreso.num_ingreso,
                 acf_orden_ingreso.fec_ingreso,acf_orden_ingreso.hor_ingreso,
+                acf_orden_ingreso.num_ingreso_tipo,
                 acf_orden_ingreso.num_factura,acf_orden_ingreso.fec_factura,acf_orden_ingreso.detalle,
                 tb_terceros.nom_tercero,far_orden_ingreso_tipo.nom_tipo_ingreso,
                 acf_orden_ingreso.val_total,
                 tb_sedes.nom_sede,acf_orden_ingreso.estado,
-	        CASE acf_orden_ingreso.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado
+	            CASE acf_orden_ingreso.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado,
+                CASE acf_orden_ingreso.estado WHEN 0 THEN acf_orden_ingreso.fec_anulacion WHEN 1 THEN acf_orden_ingreso.fec_creacion WHEN 2 THEN acf_orden_ingreso.fec_cierre END AS fec_estado
             FROM acf_orden_ingreso
             INNER JOIN far_orden_ingreso_tipo ON (far_orden_ingreso_tipo.id_tipo_ingreso=acf_orden_ingreso.id_tipo_ingreso)
             INNER JOIN tb_terceros ON (tb_terceros.id_tercero=acf_orden_ingreso.id_provedor)
@@ -107,10 +109,11 @@ if (!empty($objs)) {
             "detalle" => $obj['detalle'],
             "nom_tercero" => mb_strtoupper($obj['nom_tercero']),
             "nom_tipo_ingreso" => mb_strtoupper($obj['nom_tipo_ingreso']),
+            "num_ingreso_tipo" => $obj['num_ingreso_tipo'],
             "nom_sede" => mb_strtoupper($obj['nom_sede']),
             "val_total" => formato_valor($obj['val_total']),
             "estado" => $obj['estado'],
-            "nom_estado" => $obj['nom_estado'],
+            "nom_estado" => $obj['nom_estado'] . '<br>' . $obj['fec_estado'],
             "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
         ];
     }

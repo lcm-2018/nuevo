@@ -11,7 +11,8 @@ include '../common/funciones_generales.php';
 $cmd = \Config\Clases\Conexion::getConexion();
 
 $id = isset($_POST['id']) ? $_POST['id'] : -1;
-$sql = "SELECT II.fec_ingreso,II.hor_ingreso,II.num_ingreso,II.id_sede,II.id_bodega,II.id_tipo_ingreso,
+$sql = "SELECT II.fec_ingreso,II.hor_ingreso,II.num_ingreso,II.id_sede,II.id_bodega,
+            II.id_tipo_ingreso,II.num_ingreso_tipo,
             II.num_factura,II.fec_factura,
             TE.id_tercero,TE.nom_tercero,
             II.estado,II.detalle,II.val_total,II.val_aprpeso,
@@ -105,6 +106,10 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                         </select>
                         <input type="hidden" id="id_tip_ing" name="id_tip_ing" value="<?php echo $obj['id_tipo_ingreso'] ?>">
                     </div>
+                    <div class="col-md-1">
+                        <label for="txt_num_ing_tipo" class="small">No. Tipo Ing.</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_num_ing_tipo" name="txt_num_ing_tipo" class="small" value="<?php echo $obj['num_ingreso_tipo'] ?>" readonly="readonly">
+                    </div>
                     <div class="col-md-2">
                         <label for="txt_num_fac" class="small">No. Fact./Acta/Rem.</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_num_fac" name="txt_num_fac" class="small" value="<?php echo $obj['num_factura'] ?>">
@@ -113,7 +118,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                         <label for="txt_fec_fac" class="small">Fecha Fact./Acta/Rem.</label>
                         <input type="date" class="form-control form-control-sm bg-input" id="txt_fec_fac" name="txt_fec_fac" class="small" value="<?php echo $obj['fec_factura'] ?>">
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label for="txt_tercero" class="small">Tercero</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_tercero" value="<?php echo $obj['nom_tercero'] ?>">
                         <input type="hidden" id="id_txt_tercero" name="id_txt_tercero" value="<?php echo $obj['id_tercero'] ?>">

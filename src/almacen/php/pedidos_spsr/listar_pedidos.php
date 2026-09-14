@@ -78,6 +78,7 @@ try {
                 SPRO.nom_sede AS nom_sede_provee,BPRO.nombre AS nom_bodega_provee,                    
                 far_pedido.val_total,far_pedido.estado,
                 CASE far_pedido.estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CONFIRMADO' WHEN 3 THEN 'FINALIZADO' END AS nom_estado,
+                CASE far_pedido.estado WHEN 0 THEN far_pedido.fec_anulacion WHEN 1 THEN far_pedido.fec_creacion ELSE far_pedido.fec_cierre END AS fec_estado,
                 PEDIDO.traslados
             FROM far_pedido             
             INNER JOIN tb_sedes AS SSOL ON (SSOL.id_sede = far_pedido.id_sede_destino)
@@ -131,7 +132,7 @@ if (!empty($objs)) {
             "nom_bodega_provee" => mb_strtoupper($obj['nom_bodega_provee']),
             "val_total" => formato_valor($obj['val_total']),
             "estado" => $obj['estado'],
-            "nom_estado" => $obj['nom_estado'],
+            "nom_estado" => $obj['nom_estado'] . '<br>' . $obj['fec_estado'],
             "traslados" => $obj['traslados'],
             "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];

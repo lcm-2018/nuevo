@@ -13,7 +13,7 @@ $cmd = \Config\Clases\Conexion::getConexion();
 $id = isset($_POST['id']) ? $_POST['id'] : -1;
 
 try {
-    $sql = "SELECT AB.id_baja,AB.fec_orden,AB.hor_orden,AB.observaciones,                    
+    $sql = "SELECT AB.id_baja,AB.num_baja,AB.fec_orden,AB.hor_orden,AB.observaciones,                    
                 CASE AB.estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' END AS estado,
                 CASE AB.estado WHEN 0 THEN AB.fec_anula WHEN 1 THEN AB.fec_crea WHEN 2 THEN AB.fec_cierre END AS fec_estado,
                 CONCAT_WS(' ',usr.nombre1,usr.nombre2,usr.apellido1,usr.apellido2) AS usr_cierra,
@@ -73,17 +73,19 @@ try {
     <table style="width:100%; font-size:60%; text-align:left; border:#A9A9A9 1px solid;">
         <tr style="background-color:#CED3D3; border:#A9A9A9 1px solid">
             <td>Id. Baja</td>
+            <td>No. Baja</td>
             <td>Fecha Baja</td>
             <td>Hora Baja</td>
             <td>Estado</td>
-            <td colspan="2">Fecha Estado</td>
+            <td>Fecha Estado</td>
         </tr>
         <tr>
             <td><?php echo $obj_e['id_baja']; ?></td>
+            <td><?php echo $obj_e['num_baja']; ?></td>
             <td><?php echo $obj_e['fec_orden']; ?></td>
             <td><?php echo $obj_e['hor_orden']; ?></td>
             <td><?php echo $obj_e['estado']; ?></td>
-            <td colspan="2"><?php echo $obj_e['fec_estado']; ?></td>
+            <td><?php echo $obj_e['fec_estado']; ?></td>
         </tr>
         <tr style="background-color:#CED3D3; border:#A9A9A9 1px solid">
             <td colspan="6">Observaciones</td>

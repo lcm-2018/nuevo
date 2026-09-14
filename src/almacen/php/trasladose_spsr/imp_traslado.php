@@ -21,7 +21,7 @@ try {
             CASE far_traslado_r.estado WHEN 0 THEN far_traslado_r.fec_anulacion 
                                        WHEN 1 THEN far_traslado_r.fec_creacion 
                                        WHEN 2 THEN far_traslado_r.fec_cierre 
-                                       WHEN 2 THEN far_traslado_r.fec_envio END AS fec_estado,
+                                       WHEN 3 THEN far_traslado_r.fec_envio END AS fec_estado,
             CONCAT_WS(' ',usr.nombre1,usr.nombre2,usr.apellido1,usr.apellido2) AS usr_cierra,
             usr.descripcion AS usr_perfil,usr.nom_firma,
             PEDIDO.num_pedido

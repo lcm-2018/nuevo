@@ -438,16 +438,16 @@ function subgrupo_articulo($cmd, $titulo = '', $id = 0)
 {   // Id. Subgrupo 1-Consumible, 2-Consumible Control
     try {
         echo '<option value="">' . $titulo . '</option>';
-        $sql = "SELECT id_subgrupo,nom_subgrupo FROM far_subgrupos WHERE id_grupo IN (1,2)";
+        $sql = "SELECT id_subgrupo,cod_subgrupo,nom_subgrupo FROM far_subgrupos WHERE id_grupo IN (1,2)";
         $rs = $cmd->query($sql);
         $objs = $rs->fetchAll();
         $rs->closeCursor();
         unset($rs);
         foreach ($objs as $obj) {
             if ($obj['id_subgrupo']  == $id) {
-                echo '<option value="' . $obj['id_subgrupo'] . '" selected="selected">' . $obj['nom_subgrupo'] . '</option>';
+                echo '<option value="' . $obj['id_subgrupo'] . '" data-cod_subgrupo="' . $obj['cod_subgrupo'] . '" selected="selected">' . $obj['nom_subgrupo'] . '</option>';
             } else {
-                echo '<option value="' . $obj['id_subgrupo'] . '">' . $obj['nom_subgrupo'] . '</option>';
+                echo '<option value="' . $obj['id_subgrupo'] . '" data-cod_subgrupo="' . $obj['cod_subgrupo'] . '">' . $obj['nom_subgrupo'] . '</option>';
             }
         }
         $cmd = null;

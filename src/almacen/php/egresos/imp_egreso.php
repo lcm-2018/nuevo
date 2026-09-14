@@ -14,7 +14,8 @@ $id = isset($_POST['id']) ? $_POST['id'] : -1;
 
 try {
     $sql = "SELECT far_orden_egreso.id_egreso,far_orden_egreso.num_egreso,far_orden_egreso.fec_egreso,
-            far_orden_egreso.hor_egreso,far_orden_egreso.detalle,far_orden_egreso.val_total,
+            far_orden_egreso.hor_egreso,far_orden_egreso.num_egreso_tipo,
+            far_orden_egreso.detalle,far_orden_egreso.val_total,
             tb_sedes.nom_sede,far_bodegas.nombre AS nom_bodega,
             tb_centrocostos.nom_centro,
             IF(far_centrocosto_area.id_area=0,'',tb_sedes_area.nom_sede) AS nom_sede_des,
@@ -116,7 +117,7 @@ try {
         <tr style="background-color:#CED3D3; border:#A9A9A9 1px solid">
             <td>Sede Origen</td>
             <td>Bodega Origen</td>
-            <td>Tipo de Egreso</td>
+            <td>Tipo de Egreso (No. Tipo Egr.)</td>
             <td>Centro de Costo</td>
             <td>Sede Destino</td>
             <td>Área Destino</td>
@@ -125,7 +126,7 @@ try {
         <tr>
             <td><?php echo $obj_e['nom_sede']; ?></td>
             <td><?php echo $obj_e['nom_bodega']; ?></td>
-            <td><?php echo $obj_e['nom_tipo_egreso']; ?></td>
+            <td><?php echo $obj_e['nom_tipo_egreso'] . ' (' . $obj_e['num_egreso_tipo'] . ')'; ?></td>
             <td><?php echo $obj_e['nom_centro']; ?></td>
             <td><?php echo $obj_e['nom_sede_des']; ?></td>
             <td><?php echo $obj_e['nom_area']; ?></td>

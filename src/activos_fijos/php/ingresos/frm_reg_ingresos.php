@@ -102,6 +102,16 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                                 <input type="text" class="form-control form-control-sm bg-input" id="txt_est_ing" name="txt_est_ing" class="small" value="<?php echo $obj['nom_estado'] ?>" readonly="readonly">
                             </div>
                         </div>
+                    </div>                    
+                    <div class="col-md-2">
+                        <label for="sl_tip_ing" class="small" required>Tipo Ingreso</label>
+                        <select class="form-select form-select-sm bg-input" id="sl_tip_ing" name="sl_tip_ing">
+                            <?php tipo_ingreso($cmd, '', $obj['id_tipo_ingreso']) ?>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <label for="txt_num_ing_tipo" class="small">No. Tipo Ing.</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_num_ing_tipo" name="txt_num_ing_tipo" class="small" value="<?php echo $obj['num_ingreso_tipo'] ?>" readonly="readonly">
                     </div>
                     <div class="col-md-2">
                         <label for="txt_num_fac" class="small">No. Fact./Acta/Rem.</label>
@@ -111,13 +121,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                         <label for="txt_fec_fac" class="small">Fecha Fact./Acta/Rem.</label>
                         <input type="date" class="form-control form-control-sm bg-input" id="txt_fec_fac" name="txt_fec_fac" class="small" value="<?php echo $obj['fec_factura'] ?>">
                     </div>
-                    <div class="col-md-2">
-                        <label for="sl_tip_ing" class="small" required>Tipo Ingreso</label>
-                        <select class="form-select form-select-sm bg-input" id="sl_tip_ing" name="sl_tip_ing">
-                            <?php tipo_ingreso($cmd, '', $obj['id_tipo_ingreso']) ?>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label for="txt_tercero" class="small">Tercero</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_tercero" value="<?php echo $obj['nom_tercero'] ?>">
                         <input type="hidden" id="id_txt_tercero" name="id_txt_tercero" value="<?php echo $obj['id_tercero'] ?>">

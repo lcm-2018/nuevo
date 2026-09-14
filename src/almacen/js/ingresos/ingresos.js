@@ -53,6 +53,7 @@
                 { 'data': 'fec_factura' },
                 { 'data': 'detalle' },
                 { 'data': 'nom_tipo_ingreso' },
+                { 'data': 'num_ingreso_tipo' },
                 { 'data': 'nom_tercero' },
                 { 'data': 'nom_sede' },
                 { 'data': 'nom_bodega' },
@@ -65,8 +66,8 @@
             columnDefs: [
                 { class: 'text-wrap', targets: [6, 7, 8, 9, 10] },
                 { type: "numeric-comma", targets: 11 },
-                { visible: false, targets: 12 },
-                { orderable: false, targets: 15 }
+                { visible: false, targets: 13 },
+                { orderable: false, targets: 16 }
             ],
             rowCallback: function (row, data) {
                 if (data.estado == 1) {
@@ -343,6 +344,7 @@
                         $('#tb_ingresos').DataTable().ajax.reload(null, false);
 
                         $('#txt_num_ing').val(r.num_ingreso);
+                        $('#txt_num_ing_tipo').val(r.num_ingreso_tipo);
                         $('#txt_est_ing').val('CERRADO');
 
                         $('#btn_guardar').prop('disabled', true);

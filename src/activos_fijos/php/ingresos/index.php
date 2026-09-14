@@ -97,6 +97,7 @@ $content = <<<HTML
                         <th class="bg-sofia">Detalle</th>
                         <th class="bg-sofia">Tercero</th>
                         <th class="bg-sofia">Tipo Ingreso</th>
+                        <th class="bg-sofia">No. Tipo Ing.</th>
                         <th class="bg-sofia">Sede</th>
                         <th class="bg-sofia">Vr. Total</th>
                         <th class="bg-sofia">Estado</th>

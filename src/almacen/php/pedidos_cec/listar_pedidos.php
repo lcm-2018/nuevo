@@ -86,6 +86,7 @@ try {
                 far_cec_pedido.val_total,far_cec_pedido.detalle,  
                 far_cec_pedido.estado,
                 CASE far_cec_pedido.estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CONFIRMADO' WHEN 3 THEN 'FINALIZADO' END AS nom_estado,
+                CASE far_cec_pedido.estado WHEN 0 THEN far_cec_pedido.fec_anulacion WHEN 1 THEN far_cec_pedido.fec_creacion ELSE far_cec_pedido.fec_cierre END AS fec_estado,
                 PEDIDO.egresos
             FROM far_cec_pedido       
             INNER JOIN tb_centrocostos ON (tb_centrocostos.id_centro = far_cec_pedido.id_cencosto)      
@@ -137,7 +138,7 @@ if (!empty($objs)) {
             "nom_bodega" => mb_strtoupper($obj['nom_bodega']),
             "val_total" => formato_valor($obj['val_total']),
             "estado" => $obj['estado'],
-            "nom_estado" => $obj['nom_estado'],
+            "nom_estado" => $obj['nom_estado'] . '<br>' . $obj['fec_estado'],
             "egresos" => $obj['egresos'],
             "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];

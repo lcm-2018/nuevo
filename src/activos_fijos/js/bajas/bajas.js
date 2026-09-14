@@ -42,6 +42,7 @@
             },
             columns: [
                 { 'data': 'id_baja' }, //Index=0
+                { 'data': 'num_baja' }, 
                 { 'data': 'fec_baja' },
                 { 'data': 'hor_baja' },
                 { 'data': 'observaciones' },
@@ -51,8 +52,8 @@
             ],
             columnDefs: [
                 { class: 'text-wrap', targets: 3 },
-                { visible: false, targets: 4 },
-                { orderable: false, targets: 6 }
+                { visible: false, targets: 5 },
+                { orderable: false, targets: 7 }
             ],
             rowCallback: function (row, data) {
                 if (data.estado == 1) {
@@ -194,6 +195,7 @@
                     if (r.mensaje == 'ok') {
                         $('#tb_bajas').DataTable().ajax.reload(null, false);
 
+                        $('#txt_num_baja').val(r.num_baja);
                         $('#txt_est_baja').val('CERRADO');
 
                         $('#btn_guardar').prop('disabled', true);

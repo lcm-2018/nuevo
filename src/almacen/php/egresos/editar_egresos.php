@@ -257,7 +257,7 @@ try {
         if ($oper == 'close') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado,fec_egreso,detalle FROM far_orden_egreso WHERE id_egreso=" . $id;
+            $sql = "SELECT estado,fec_egreso,detalle,id_tipo_egreso FROM far_orden_egreso WHERE id_egreso=" . $id;
             $rs = $cmd->query($sql);
             $obj_egreso = $rs->fetch();
             $estado = isset($obj_egreso['estado']) ? $obj_egreso['estado'] : -1;
@@ -344,12 +344,21 @@ try {
                         $num_egreso = $obj['num_egresoactual'];
                         $res['num_egreso'] = $num_egreso;
 
-                        $sql = "UPDATE far_orden_egreso SET num_egreso=$num_egreso,estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope',val_total=(SELECT SUM(valor*cantidad) FROM far_orden_egreso_detalle WHERE id_egreso=$id) WHERE id_egreso= $id";
+                        $sql = 'SELECT consecutivo FROM far_orden_egreso_tipo WHERE id_tipo_egreso=' . $obj_egreso['id_tipo_egreso'] . ' LIMIT 1';
+                        $rs = $cmd->query($sql);
+                        $obj = $rs->fetch();
+                        $num_egreso_tipo = $obj['consecutivo'];
+                        $res['num_egreso_tipo'] = $num_egreso_tipo;
+                        
+                        $sql = "UPDATE far_orden_egreso SET num_egreso=$num_egreso,num_egreso_tipo=$num_egreso_tipo,estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope',val_total=(SELECT SUM(valor*cantidad) FROM far_orden_egreso_detalle WHERE id_egreso=$id) WHERE id_egreso= $id";
                         $rs1 = $cmd->query($sql);
+
                         $sql = 'UPDATE tb_datos_ips SET num_egresoactual=num_egresoactual+1';
                         $rs2 = $cmd->query($sql);
+                        $sql = 'UPDATE far_orden_egreso_tipo SET consecutivo=consecutivo+1 WHERE id_tipo_egreso=' . $obj_egreso['id_tipo_egreso'];
+                        $rs3 = $cmd->query($sql);
 
-                        if ($rs1 == false || $rs2 == false || error_get_last()) {
+                        if ($rs1 == false || $rs2 == false || $rs3 == false || error_get_last()) {
                             $error = 1;
                         }
                     }

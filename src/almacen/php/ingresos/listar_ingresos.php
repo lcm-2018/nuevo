@@ -69,10 +69,12 @@ try {
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT far_orden_ingreso.id_ingreso,far_orden_ingreso.num_ingreso,far_orden_ingreso.fec_ingreso,far_orden_ingreso.hor_ingreso,
+                far_orden_ingreso.num_ingreso_tipo,
 	            far_orden_ingreso.num_factura,far_orden_ingreso.fec_factura,far_orden_ingreso.detalle,
                 tb_terceros.nom_tercero,far_orden_ingreso_tipo.nom_tipo_ingreso,far_orden_ingreso.val_total,
                 tb_sedes.nom_sede,far_bodegas.nombre AS nom_bodega,far_orden_ingreso.estado,
 	            CASE far_orden_ingreso.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado,
+                CASE far_orden_ingreso.estado WHEN 0 THEN far_orden_ingreso.fec_anulacion WHEN 1 THEN far_orden_ingreso.fec_creacion WHEN 2 THEN far_orden_ingreso.fec_cierre END AS fec_estado,
                 far_orden_ingreso.creado_far,
                 far_alm_pedido.num_pedido
             FROM far_orden_ingreso
@@ -119,12 +121,14 @@ if (!empty($objs)) {
             "fec_factura" => $obj['fec_factura'],
             "detalle" => $obj['detalle'],
             "nom_tipo_ingreso" => mb_strtoupper($obj['nom_tipo_ingreso']),
+            "num_ingreso_tipo" => $obj['num_ingreso_tipo'],
             "nom_tercero" => mb_strtoupper($obj['nom_tercero']),
             "nom_sede" => mb_strtoupper($obj['nom_sede']),
             "nom_bodega" => mb_strtoupper($obj['nom_bodega']),
             "val_total" => formato_valor($obj['val_total']),
             "estado" => $obj['estado'],
-            "nom_estado" => $obj['nom_estado'],
+            "nom_estado" => $obj['nom_estado'] . '<br>' . $obj['fec_estado'],
+            "fec_estado" => $obj['fec_estado'],
             "num_pedido" => $obj['num_pedido'],
             "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];

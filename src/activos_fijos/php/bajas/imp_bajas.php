@@ -24,7 +24,7 @@ if (isset($_POST['estado']) && strlen($_POST['estado'])) {
     $where .= " AND estado=" . $_POST['estado'];
 }
 try {
-    $sql = "SELECT id_baja,fec_orden,hor_orden,observaciones,                    
+    $sql = "SELECT id_baja,num_baja,fec_orden,hor_orden,observaciones,                    
                 estado,CASE estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' END AS nom_estado 
             FROM acf_baja             
             $where ORDER BY id_baja DESC";
@@ -72,6 +72,7 @@ try {
         <thead style="font-size:80%">
             <tr style="background-color:#CED3D3; color:#000000; text-align:center">
                 <th>Id</th>
+                <th>No. baja</th>
                 <th>Fecha baja</th>
                 <th>Hora baja</th>
                 <th>Observaciones</th>
@@ -84,6 +85,7 @@ try {
             foreach ($objs as $obj) {
                 $tabla .=  '<tr class="resaltar" style="text-align:center"> 
                         <td>' . $obj['id_baja'] . '</td>  
+                        <td>' . $obj['num_baja'] . '</td>  
                         <td>' . $obj['fec_orden'] . '</td>
                         <td>' . $obj['hor_orden'] . '</td>   
                         <td style="text-align:left">' . $obj['observaciones'] . '</td>   
@@ -94,7 +96,7 @@ try {
         </tbody>
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
-                <td colspan="5" style="text-align:left">
+                <td colspan="6" style="text-align:left">
                     No. de Registros: <?php echo count($objs); ?>
                 </td>
             </tr>
