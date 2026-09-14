@@ -54,13 +54,13 @@ $datos = [];
 if (!empty($obj)) {
     foreach ($obj as $o) {
         $detalles = $anular = '';
-        $valorLicencias = $o['valor_luto'] + $o['valor_mp'];
+        $valorLicencias = ($o['valor_luto'] ?? 0) + ($o['valor_mp'] ?? 0);
         $devengado = $o['valor_incap'] + $valorLicencias + $o['valor_vacacion']
             + $o['valor_laborado'] + $o['aux_tran'] + $o['aux_alim']
             + $o['horas_ext'] + $o['val_bsp'] + $o['val_prima_vac']
             + $o['g_representa'] + $o['val_bon_recrea'] + $o['valor_ps']
-            + $o['valor_pv'] + $o['val_cesantias'] + $o['val_icesantias']
-            + $o['val_compensa'] + $o['valor_viatico'] + $o['valor_otros'];
+            + $o['valor_pv']            + $o['val_cesantias'] + $o['val_icesantias'] + $o['val_compensa']
+            + $o['val_indemniza'] + $o['valor_viatico'] + $o['valor_otros'];
 
         $deducciones = $o['valor_salud'] + $o['valor_pension'] + $o['val_psolidaria']
             + $o['valor_libranza'] + $o['valor_embargo'] + $o['valor_sind']
@@ -110,6 +110,7 @@ if (!empty($obj)) {
             'val_cesantias'     => Valores::formatNumber($o['val_cesantias']),
             'val_icesantias'    => Valores::formatNumber($o['val_icesantias']),
             'val_compensa'      => Valores::formatNumber($o['val_compensa']),
+            'val_indemniza'     => Valores::formatNumber($o['val_indemniza']),
             'valor_viatico'     => Valores::formatNumber($o['valor_viatico']),
             'devengado'         => Valores::formatNumber($devengado),
             'valor_salud'       => Valores::formatNumber($o['valor_salud']),

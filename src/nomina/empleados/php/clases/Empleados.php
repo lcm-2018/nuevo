@@ -22,7 +22,7 @@ class Empleados
         $this->conexion = Conexion::getConexion(); // Método estático que retorna el objeto PDO
     }
 
-    public  static function getTiposEmpleado($id)
+    public static function getTiposEmpleado($id)
     {
         $sql = "SELECT `id_tip_empl`, `descripcion`
                 FROM `nom_tipo_empleado`
@@ -33,7 +33,7 @@ class Empleados
         return $Combos->setConsulta($sql, $id);
     }
 
-    public  static function getEmpleadoNull()
+    public static function getEmpleadoNull()
     {
         return [
             'id_empleado' => 0,
@@ -73,7 +73,7 @@ class Empleados
         ];
     }
 
-    public  static function getSubTiposEmpleado($id)
+    public static function getSubTiposEmpleado($id)
     {
         $sql = "SELECT `id_sub_emp`,`descripcion`
                 FROM `nom_subtipo_empl`
@@ -84,7 +84,7 @@ class Empleados
         return $Combos->setConsulta($sql, $id);
     }
 
-    public  static function getTipoContrato($id)
+    public static function getTipoContrato($id)
     {
         $sql = "SELECT `id_tip_contrato`,`descripcion` FROM `nom_tipo_contrato`
                 ORDER BY `descripcion` ASC";
@@ -92,7 +92,7 @@ class Empleados
         return $Combos->setConsulta($sql, $id);
     }
 
-    public  static function getTerceroNomina($cod, $id, $tipo = 0)
+    public static function getTerceroNomina($cod, $id, $tipo = 0)
     {
         if ($tipo > 0) {
             $where = " AND `nom_categoria_tercero`.`id_cat` = $tipo";
@@ -113,7 +113,7 @@ class Empleados
         return $Combos->setConsulta($sql, $id);
     }
 
-    public  static function getRiesgoLaboral($id)
+    public static function getRiesgoLaboral($id)
     {
         $sql = "SELECT `id_rlab`, CONCAT(`clase`,' - ',`riesgo`) AS `clase` FROM `nom_riesgos_laboral`
                 ORDER BY `clase` ASC";
@@ -409,38 +409,38 @@ class Empleados
     public function getFormularioEmpleado($id)
     {
         if ($id > 0) {
-            $res =   $this->getEmpleados($id);
+            $res = $this->getEmpleados($id);
         } else {
             $res = self::getEmpleadoNull();
         }
-        $op_sedes               =   Combos::getSedes($res['sede_emp'] ?? 0);
-        $op_tipo_empleado       =   $this->getTiposEmpleado($res['tipo_empleado'] ?? 0);
-        $op_subtipo_empleado    =   $this->getSubTiposEmpleado($res['subtipo_empleado'] ?? 0);
-        $op_tipo_contrato       =   $this->getTipoContrato($res['tipo_contrato'] ?? 0);
-        $op_tipo_documento      =   Combos::getTiposDocumento($res['tipo_doc'] ?? 0);
-        $op_paises_exp          =   Combos::getPaises($res['pais_exp'] ?? 0);
-        $op_depto_exp           =   Combos::getDepartamentos($res['dpto_exp'] ?? 0);
-        $op_municipio_exp       =   Combos::getMunicipios($res['dpto_exp'] ?? 0, $res['city_exp'] ?? 0);
-        $op_paises_nac          =   Combos::getPaises($res['pais_nac'] ?? 0);
-        $op_depto_nac           =   Combos::getDepartamentos($res['dpto_nac'] ?? 0);
-        $op_municipio_nac       =   Combos::getMunicipios($res['dpto_nac'] ?? 0, $res['city_nac'] ?? 0);
-        $op_paises_res          =   Combos::getPaises($res['pais'] ?? 0);
-        $op_depto_res           =    Combos::getDepartamentos($res['departamento'] ?? 0);
-        $op_municipio_res       =   Combos::getMunicipios($res['departamento'] ?? 0, $res['municipio'] ?? 0);
-        $op_bancos              =   Combos::getBancos($res['id_banco'] ?? 0);
-        $riesgo_si              =   ($res['alto_riesgo_pension'] == 1) ? 'checked' : '';
-        $riesgo_no              =   ($res['alto_riesgo_pension'] == 0) ? 'checked' : '';
-        $genero_m               =   ($res['genero'] == 'M') ? 'checked' : '';
-        $genero_f               =   ($res['genero'] == 'F') ? 'checked' : '';
-        $salario_integral_si    =   ($res['salario_integral'] == 1) ? 'checked' : '';
-        $salario_integral_no    =   ($res['salario_integral'] == 0) ? 'checked' : '';
-        $tipo_cuenta_ahorro     =   ($res['tipo_cta'] == 1) ? 'checked' : '';
-        $tipo_cuenta_corriente  =   ($res['tipo_cta'] == 2) ? 'checked' : '';
-        $dependientes           =   ($res['dependientes'] == 1) ? 'checked' : '';
-        $bsp                    =   ($res['bsp'] == 1) ? 'checked' : '';
-        $row_ccosto             =   '';
+        $op_sedes = Combos::getSedes($res['sede_emp'] ?? 0);
+        $op_tipo_empleado = $this->getTiposEmpleado($res['tipo_empleado'] ?? 0);
+        $op_subtipo_empleado = $this->getSubTiposEmpleado($res['subtipo_empleado'] ?? 0);
+        $op_tipo_contrato = $this->getTipoContrato($res['tipo_contrato'] ?? 0);
+        $op_tipo_documento = Combos::getTiposDocumento($res['tipo_doc'] ?? 0);
+        $op_paises_exp = Combos::getPaises($res['pais_exp'] ?? 0);
+        $op_depto_exp = Combos::getDepartamentos($res['dpto_exp'] ?? 0);
+        $op_municipio_exp = Combos::getMunicipios($res['dpto_exp'] ?? 0, $res['city_exp'] ?? 0);
+        $op_paises_nac = Combos::getPaises($res['pais_nac'] ?? 0);
+        $op_depto_nac = Combos::getDepartamentos($res['dpto_nac'] ?? 0);
+        $op_municipio_nac = Combos::getMunicipios($res['dpto_nac'] ?? 0, $res['city_nac'] ?? 0);
+        $op_paises_res = Combos::getPaises($res['pais'] ?? 0);
+        $op_depto_res = Combos::getDepartamentos($res['departamento'] ?? 0);
+        $op_municipio_res = Combos::getMunicipios($res['departamento'] ?? 0, $res['municipio'] ?? 0);
+        $op_bancos = Combos::getBancos($res['id_banco'] ?? 0);
+        $riesgo_si = ($res['alto_riesgo_pension'] == 1) ? 'checked' : '';
+        $riesgo_no = ($res['alto_riesgo_pension'] == 0) ? 'checked' : '';
+        $genero_m = ($res['genero'] == 'M') ? 'checked' : '';
+        $genero_f = ($res['genero'] == 'F') ? 'checked' : '';
+        $salario_integral_si = ($res['salario_integral'] == 1) ? 'checked' : '';
+        $salario_integral_no = ($res['salario_integral'] == 0) ? 'checked' : '';
+        $tipo_cuenta_ahorro = ($res['tipo_cta'] == 1) ? 'checked' : '';
+        $tipo_cuenta_corriente = ($res['tipo_cta'] == 2) ? 'checked' : '';
+        $dependientes = ($res['dependientes'] == 1) ? 'checked' : '';
+        $bsp = ($res['bsp'] == 1) ? 'checked' : '';
+        $row_ccosto = '';
         if ($id == 0) {
-            $op_ccosto              =   Combos::getCentrosCosto(0);
+            $op_ccosto = Combos::getCentrosCosto(0);
             $row_ccosto =
                 <<<HTML
                     <div class="col-md-2">
@@ -673,7 +673,6 @@ class Empleados
                         </div>
                     </div>
                 </form>
-
             HTML;
         return $html;
     }
@@ -824,7 +823,7 @@ class Empleados
     {
         try {
             $sql = "DELETE FROM `nom_empleado` WHERE `id_empleado` = ?";
-            $consulta  = "DELETE FROM `nom_empleado` WHERE `id_empleado` = $id";
+            $consulta = "DELETE FROM `nom_empleado` WHERE `id_empleado` = $id";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->execute();

@@ -21,10 +21,12 @@ $Cert    = new Certificados();
 $empleado = $Cert->getDatosEmpleadoPorTercero($id_tercero);
 if (empty($empleado)) exit('No se encontró un empleado asociado al tercero seleccionado.');
 
-$anio_fin = date('Y', strtotime($fecha_fin));
-$id_vigencia_cert = isset($_SESSION['id_vigencia']) ? intval($_SESSION['id_vigencia']) : 0;
+$anio_ini = date('Y', strtotime($fecha_ini));
+// La vigencia siempre se resuelve por el AÑO de la fecha de inicio,
+// independientemente de la vigencia activa en sesión.
+$id_vigencia_cert = Nomina::getIdVigenciaPorAnio($anio_ini);
 if ($id_vigencia_cert <= 0) {
-    $id_vigencia_cert = Nomina::getIdVigenciaPorAnio($anio_fin);
+    exit("No se encontró una vigencia configurada para el año {$anio_ini} en tb_vigencias.");
 }
 
 $resumen = $Cert->getResumenForm220Libaux($id_tercero, $fecha_ini, $fecha_fin, $id_vigencia_cert);

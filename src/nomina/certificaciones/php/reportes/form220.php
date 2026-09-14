@@ -36,9 +36,12 @@ $anio_ini = date('Y', strtotime($fecha_ini));
 $anio_fin = date('Y', strtotime($fecha_fin));
 $periodo  = $anio_ini === $anio_fin ? $anio_ini : "$anio_ini - $anio_fin";
 
-$id_vigencia_cert = isset($_SESSION['id_vigencia']) ? intval($_SESSION['id_vigencia']) : 0;
+// La vigencia siempre se resuelve por el AÑO de la fecha de inicio,
+// independientemente de la vigencia activa en sesión, para que la
+// homologación contable corresponda al año gravable del certificado.
+$id_vigencia_cert = Nomina::getIdVigenciaPorAnio($anio_ini);
 if ($id_vigencia_cert <= 0) {
-  $id_vigencia_cert = Nomina::getIdVigenciaPorAnio($anio_fin);
+  exit("No se encontró una vigencia configurada para el año {$anio_ini} en tb_vigencias.");
 }
 $params_liq = [];
 if ($id_vigencia_cert > 0) {

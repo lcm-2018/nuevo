@@ -60,17 +60,17 @@ $suma = 0;
 $resta = 0;
 if (!empty($listappto)) {
     foreach ($listappto as $lp) {
-        $editar =  $borrar = $detalles = $acciones = null;
+        $editar = $borrar = $detalles = $acciones = null;
         $id_detalle = $lp['id_detalle'];
         $id_pto = $lp['id_pto_doc'];
-        $debito = number_format($lp['valor_deb'], 2, ',', '.');
+        $debito = number_format($lp['valor_deb'] - $lp['valor_cred'], 2, ',', '.');
         $suma += $lp['valor_deb'];
         if ($estado < 2) {
             if ($permisos->PermisosUsuario($opciones, 5401, 3) || $id_rol == 1) {
                 $editar = '<a value="' . $id_detalle . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow editar" title="Editar detalle"><span class="fas fa-pencil-alt "></span></a>';
             }
             if ($permisos->PermisosUsuario($opciones, 5401, 4) || $id_rol == 1) {
-                $borrar = '<a value="' .  $id_detalle . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow borrar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
+                $borrar = '<a value="' . $id_detalle . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow borrar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
             }
         }
         $data[] = [

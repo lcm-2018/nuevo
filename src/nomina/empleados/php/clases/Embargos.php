@@ -318,7 +318,7 @@ class Embargos
     {
         try {
             $sql = "DELETE FROM `nom_embargos` WHERE `id_embargo` = ?";
-            $consulta  = "DELETE FROM `nom_embargos` WHERE `id_embargo` = $id";
+            $consulta = "DELETE FROM `nom_embargos` WHERE `id_embargo` = $id";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->execute();

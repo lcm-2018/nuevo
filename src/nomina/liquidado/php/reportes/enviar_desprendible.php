@@ -70,8 +70,8 @@ try {
     $firmas = (new \Src\Common\Php\Clases\Reportes())->getFormFirmas(
         ['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']],
         51,
-        $nomina['vigencia'] . '-' . $nomina['mes'] . '-01',
-        'CNOM'
+        $nomina['fecha'],
+        'DSNN'
     );
 
     $generadorPDF = new GeneradorPDF('letter', 'portrait');

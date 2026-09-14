@@ -168,7 +168,7 @@ $otro = "NÓMINA No. {$id_nomina} - MES: {$mes} - VIGENCIA: {$nomina['vigencia']
 $firmas = (new CReportes())->getFormFirmas(
     ['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']],
     51,
-    $nomina['vigencia'] . '-' . $nomina['mes'] . '-01',
+    $nomina['fecha'],
     'CNOM'
 );
 

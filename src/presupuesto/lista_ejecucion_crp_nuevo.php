@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: ../../index.php');
@@ -13,7 +13,7 @@ use Src\Common\Php\Clases\Permisos;
 
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_user);
-$peReg =  $permisos->PermisosUsuario($opciones, 5401, 2) || $id_rol == 1 ? 1 : 0;
+$peReg = $permisos->PermisosUsuario($opciones, 5401, 2) || $id_rol == 1 ? 1 : 0;
 $host = Plantilla::getHost();
 
 include '../financiero/consultas.php';
@@ -48,7 +48,7 @@ try {
     $rs = $cmd->query($sql);
     $objeto_ = $rs->fetch();
     $objeto = !empty($objeto_) ? $objeto_['objeto'] : '';
-    $fecha_cdp = !empty($objeto_) ? $objeto_['fecha'] : date('Y-m-d');
+    $fecha_cdp = !empty($objeto_) ? date('Y-m-d', strtotime($objeto_['fecha'])) : date('Y-m-d');
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -145,7 +145,7 @@ if ($id_ter == 0) {
     $ccnit = $ctt['nit_tercero'];
     $datosCRP['id_tercero_api'] = $id_ter;
 }
-$fecha_cierre =  date("Y-m-d", strtotime($fecha_cdp));
+$fecha_cierre = date("Y-m-d", strtotime($fecha_cdp));
 $fecha_max = date("Y-m-d", strtotime($vigencia . '-12-31'));
 
 // Preparar botón de acción
@@ -168,6 +168,7 @@ $content =
         <div class="card-body p-3 bg-wiev">
             <form id="formGestionaCrp">
                 <input type="hidden" name="fec_cierre" id="fec_cierre" value="{$fec_cierre_periodo}">
+                <input type="hidden" id="fecha_cdp" value="{$fecha_cdp}">
                 <input type="hidden" id="id_pto_ppto" name="id_pto_presupuestos" value="{$id_pto}">
                 <input type="hidden" name="id_cdp" id="id_cdp" value="{$id_cdp}">
                 <input type="hidden" name="id_crp" id="id_crp" value="{$id_crp}">

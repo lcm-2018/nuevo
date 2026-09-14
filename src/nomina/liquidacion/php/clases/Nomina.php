@@ -84,7 +84,6 @@ class Nomina
                         WHERE `id_contrato_emp` IN (
                             SELECT MAX(`id_contrato_emp`) 
                             FROM `nom_contratos_empleados` 
-                            WHERE `estado` = 1 
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
@@ -169,7 +168,6 @@ class Nomina
                         WHERE `id_contrato_emp` IN (
                             SELECT MAX(`id_contrato_emp`) 
                             FROM `nom_contratos_empleados` 
-                            WHERE `estado` = 1 
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
@@ -244,7 +242,6 @@ class Nomina
                         WHERE `id_contrato_emp` IN (
                             SELECT MAX(`id_contrato_emp`) 
                             FROM `nom_contratos_empleados` 
-                            WHERE `estado` = 1 
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
@@ -303,7 +300,7 @@ class Nomina
                         <div class="p-3">
                             <input type="hidden" id="id_nomina" name="id_nomina" value="{$id}">
                             <div class="row">
-                                <div class="col-8">
+                                <div class="col-5">
                                     <label for="tipo" class="form-label small">Tipo</label>
                                     <input type="text" class="form-control form-control-sm bg-secondary-subtle" id="tipo" name="tipo" value="{$data['tipo_nomina']}" readonly>
                                 </div>
@@ -314,6 +311,10 @@ class Nomina
                                 <div class="col-2">
                                     <label for="vigencia" class="form-label small">Vigencia</label>
                                     <input type="text" class="form-control form-control-sm bg-secondary-subtle" id="vigencia" name="vigencia" value="{$data['vigencia']}" readonly>
+                                </div>
+                                <div class="col-3">
+                                    <label for="fecha" class="form-label small">Fecha Doc.</label>
+                                    <input type="date" class="form-control form-control-sm bg-input" id="fecha" name="fecha" value="{$data['fecha']}">
                                 </div>
                             </div>
                             <div class="row">
@@ -343,7 +344,7 @@ class Nomina
     {
         try {
             $sql = "DELETE FROM `nom_nominas` WHERE `id_nomina` = ?";
-            $consulta  = "DELETE FROM `nom_nominas` WHERE `id_nomina` = $id";
+            $consulta = "DELETE FROM `nom_nominas` WHERE `id_nomina` = $id";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->execute();
@@ -371,8 +372,8 @@ class Nomina
         $estado = 1;
         try {
             $sql = "INSERT INTO `nom_nominas`
-                        (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`id_incremento`,`fec_reg`,`id_user_reg`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`id_incremento`,`fec_reg`,`id_user_reg`, `fecha`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = Conexion::getConexion()->prepare($sql);
             $stmt->bindValue(1, 'LIQUIDACIÓN ' . $data['descripcion'], PDO::PARAM_STR);
             $stmt->bindValue(2, $mes, PDO::PARAM_STR);
@@ -383,6 +384,7 @@ class Nomina
             $stmt->bindValue(7, $incremento, PDO::PARAM_INT);
             $stmt->bindValue(8, Sesion::Hoy(), PDO::PARAM_STR);
             $stmt->bindValue(9, Sesion::IdUser(), PDO::PARAM_INT);
+            $stmt->bindValue(10, Sesion::Vigencia() . '-' . $mes . '-01', PDO::PARAM_STR);
             $stmt->execute();
             $id = Conexion::getConexion()->lastInsertId();
             if ($id > 0) {
@@ -390,7 +392,7 @@ class Nomina
                 $idUser = Sesion::IdUser();
                 $vigencia = Sesion::Vigencia();
                 $incLog = $incremento === null ? 'NULL' : $incremento;
-                Logs::guardaLog("INSERT INTO `nom_nominas` (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`id_incremento`,`fec_reg`,`id_user_reg`) VALUES ('LIQUIDACIÓN {$data['descripcion']}', '$mes', '$vigencia', '{$data['codigo']}', $estado, $estado, $incLog, '$hoy', $idUser)");
+                Logs::guardaLog("INSERT INTO `nom_nominas` (`descripcion`,`mes`,`vigencia`,`tipo`,`estado`,`planilla`,`id_incremento`,`fec_reg`,`id_user_reg`, `fecha`) VALUES ('LIQUIDACIÓN {$data['descripcion']}', '$mes', '$vigencia', '{$data['codigo']}', $estado, $estado, $incLog, '$hoy', $idUser, '$vigencia-$mes-01')");
                 $res['status'] = 'si';
                 $res['id'] = $id;
                 $mes = mb_strtoupper(Valores::nombreMes($mes));
@@ -398,7 +400,9 @@ class Nomina
                 $descripcion = 'NOMINA N° ' . $id . ', ' . $mes . ' VIGENCIA ' . Sesion::Vigencia() . ', ADMINISTRATIVO-ASISTENCIAL, EMPLEADOS ADSCRITOS A ' . $empresa['nombre'];
                 (new self())->editRegistro(['id_nomina' => $id, 'descripcion' => $descripcion]);
             } else {
-                $res['msg'] = 'No se insertó el registro.';
+                $errorInfo = $stmt->errorInfo();
+                $detalle = !empty($errorInfo[2]) ? $errorInfo[2] : 'lastInsertId=0 (revise sql_mode, UNIQUE o FK en nom_nominas)';
+                $res['msg'] = 'No se insertó el registro (nom_nominas): ' . $detalle;
             }
             $stmt->closeCursor();
             unset($stmt);
@@ -416,13 +420,20 @@ class Nomina
     public function editRegistro($array)
     {
         try {
-            $sql = "UPDATE `nom_nominas` SET `descripcion` = ? WHERE `id_nomina` = ?";
+            $hasFecha = !empty($array['fecha']);
+            $sql = "UPDATE `nom_nominas` SET `descripcion` = ?" . ($hasFecha ? ", `fecha` = ?" : "") . " WHERE `id_nomina` = ?";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1, $array['descripcion'], PDO::PARAM_STR);
-            $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+            if ($hasFecha) {
+                $stmt->bindValue(2, $array['fecha'], PDO::PARAM_STR);
+                $stmt->bindValue(3, $array['id_nomina'], PDO::PARAM_INT);
+            } else {
+                $stmt->bindValue(2, $array['id_nomina'], PDO::PARAM_INT);
+            }
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
-                Logs::guardaLog("UPDATE `nom_nominas` SET `descripcion` = '{$array['descripcion']}' WHERE `id_nomina` = {$array['id_nomina']}");
+                $fechaLog = $hasFecha ? ", `fecha` = '{$array['fecha']}'" : "";
+                Logs::guardaLog("UPDATE `nom_nominas` SET `descripcion` = '{$array['descripcion']}'{$fechaLog} WHERE `id_nomina` = {$array['id_nomina']}");
                 return 'si';
             } else {
                 return 'No se actualizó el registro.';
@@ -443,6 +454,7 @@ class Nomina
                     , `nn`.`planilla`
                     , `nn`.`id_incremento`
                     , `nn`.`id_user_reg`
+                    , `nn`.`fecha`
                     , CONCAT_WS(' ', `sus`.`nombre1`, `sus`.`nombre2`, `sus`.`apellido1`, `sus`.`apellido2`) AS `elabora`
                     , `sus`.`descripcion` AS `cargo`
                     , `nn`.`tipo`
@@ -580,6 +592,16 @@ class Nomina
 
     public function cambiaEstado($id_nomina, $estado)
     {
+        if ($estado == 2 && $_SESSION['pto'] != 1) {
+            $estado = 3;
+            $tipo = self::getRegistro($id_nomina)['tipo'];
+            $sqlInsertPto = "INSERT INTO `nom_nomina_pto_ctb_tes` (`id_nomina`, `tipo`) VALUES (?, ?), (?, 'PL')";
+            $stmtPto = $this->conexion->prepare($sqlInsertPto);
+            $stmtPto->bindParam(1, $id_nomina, PDO::PARAM_INT);
+            $stmtPto->bindParam(2, $tipo, PDO::PARAM_STR);
+            $stmtPto->bindParam(3, $id_nomina, PDO::PARAM_INT);
+            $stmtPto->execute();
+        }
         try {
             $sql = "UPDATE `nom_nominas` SET `estado` = ?, `planilla` = ? WHERE `id_nomina` = ?";
             $stmt = $this->conexion->prepare($sql);
@@ -601,6 +623,52 @@ class Nomina
 
                 // Si se anula la nómina (estado=0), anular también todos los registros internos de liquidación
                 if (intval($estado) === 0) {
+                    $nominaData = $this->getRegistro($id_nomina);
+                    if (($nominaData['tipo'] ?? '') === 'PS') {
+                        $stmtContratos = $this->conexion->prepare(
+                            "SELECT DISTINCT `nls`.`id_contrato`, `nce`.`id_empleado`
+                             FROM `nom_liq_salario` `nls`
+                             INNER JOIN `nom_contratos_empleados` `nce`
+                                 ON `nce`.`id_contrato_emp` = `nls`.`id_contrato`
+                             WHERE `nls`.`id_nomina` = :id_nomina AND `nls`.`estado` = 1"
+                        );
+                        $stmtContratos->bindValue(':id_nomina', $id_nomina, \PDO::PARAM_INT);
+                        $stmtContratos->execute();
+                        $contratosLiquidados = $stmtContratos->fetchAll(\PDO::FETCH_ASSOC);
+                        $stmtContratos->closeCursor();
+
+                        if (!empty($contratosLiquidados)) {
+                            $Contratos = new \Src\Nomina\Empleados\Php\Clases\Contratos();
+                            foreach ($contratosLiquidados as $row) {
+                                $id_contrato = $row['id_contrato'];
+                                $id_empleado = $row['id_empleado'];
+
+                                // Verificar si el empleado ya tiene otro contrato activo distinto al liquidado
+                                $stmtActivo = $this->conexion->prepare(
+                                    "SELECT COUNT(*) FROM `nom_contratos_empleados`
+                                     WHERE `id_empleado` = :id_empleado
+                                       AND `estado` = 1
+                                       AND `id_contrato_emp` <> :id_contrato"
+                                );
+                                $stmtActivo->bindValue(':id_empleado', $id_empleado, \PDO::PARAM_INT);
+                                $stmtActivo->bindValue(':id_contrato', $id_contrato, \PDO::PARAM_INT);
+                                $stmtActivo->execute();
+                                $tieneContratoNuevo = (int) $stmtActivo->fetchColumn() > 0;
+                                $stmtActivo->closeCursor();
+
+                                // Solo restaurar si no existe un contrato activo más reciente
+                                if (!$tieneContratoNuevo) {
+                                    $Contratos->editEstadoContrato($id_contrato, 1);
+                                }
+                            }
+                        }
+                    } else if (($nominaData['tipo'] ?? '') === 'BS') {
+                        $stmtBS = $this->conexion->prepare("UPDATE `nom_liq_bsp` SET `id_nomina` = NULL, `tipo` = 'M' WHERE `id_nomina` = :id_nomina");
+                        $stmtBS->bindValue(':id_nomina', $id_nomina, \PDO::PARAM_INT);
+                        $stmtBS->execute();
+                        $stmtBS->closeCursor();
+                    }
+
                     $Anulacion = new Anulacion($this->conexion);
                     $resAnula = $Anulacion->anulaRegistros(0, $id_nomina, 2);
                     if ($resAnula != 'si') {

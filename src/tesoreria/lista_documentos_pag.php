@@ -56,6 +56,7 @@ if ($id_doc_pag == 0) {
                     , `tb_terceros`.`nom_tercero`
                     ,  $id_manu AS `id_manu`
                     , `ctb_fuente`.`nombre` AS `fuente`
+                    , `ctb_fuente`.`cod`
                     , 0 AS `val_pagado`
                     , 1 AS `estado`
                     , 0 AS `id_ref_ctb`
@@ -75,6 +76,7 @@ if ($id_doc_pag == 0) {
                     , `tb_terceros`.`nom_tercero`
                     ,  $id_manu AS `id_manu`
                     , `ctb_fuente`.`nombre` AS `fuente`
+                    , `ctb_fuente`.`cod`
                     , 0 AS `val_pagado`
                     , 1 AS `estado`
                     , `ctb_doc`.`id_ref_ctb`

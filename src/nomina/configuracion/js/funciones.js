@@ -247,22 +247,24 @@ if (document.querySelector('#tableIncSalario')) {
     });
 }
 
-document.querySelector('#tableRubroPto').addEventListener('click', function (event) {
-    const btnActualizar = event.target.closest('.actualizar');
-    const btnEliminar = event.target.closest('.eliminar');
+//validar que tableRubroPto exista primero
+if (document.querySelector('#tableRubroPto')) {
+    document.querySelector('#tableRubroPto').addEventListener('click', function (event) {
+        const btnActualizar = event.target.closest('.actualizar');
+        const btnEliminar = event.target.closest('.eliminar');
 
-    if (btnActualizar) {
-        mostrarOverlay();
-        const id = btnActualizar.dataset.id;
-        VerFormulario('../php/controladores/rubros.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
-    }
+        if (btnActualizar) {
+            mostrarOverlay();
+            const id = btnActualizar.dataset.id;
+            VerFormulario('../php/controladores/rubros.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
+        }
 
-    if (btnEliminar) {
-        const id = btnEliminar.dataset.id;
-        EliminaRegistro('../php/controladores/rubros.php', id, tableRubroPto);
-    }
-});
-
+        if (btnEliminar) {
+            const id = btnEliminar.dataset.id;
+            EliminaRegistro('../php/controladores/rubros.php', id, tableRubroPto);
+        }
+    });
+}
 document.querySelector('#tableCtaCtbNom').addEventListener('click', function (event) {
     const btnActualizar = event.target.closest('.actualizar');
     const btnEliminar = event.target.closest('.eliminar');
@@ -314,13 +316,13 @@ document.getElementById('modalForms').addEventListener('click', function (event)
         case 'btnGuardaCargo':
             if (ValueInput('txtNomCargo') === '') {
                 MuestraError('txtNomCargo', 'Ingrese el nombre del cargo');
-            } else if (ValueInput('slcCodigo') === '0' && Number(opCaracterJS) === 2) {
+            } else if (Number(opCaracterJS) === 2 && ValueInput('slcCodigo') === '0') {
                 MuestraError('slcCodigo', 'Seleccione un código');
-            } else if (Number(ValueInput('numGrado')) <= 0 && Number(opCaracterJS) === 2) {
+            } else if (Number(opCaracterJS) === 2 && Number(ValueInput('numGrado')) <= 0) {
                 MuestraError('numGrado', 'El grado no puede ser menor a 0');
-            } else if (ValueInput('slcNombramiento') === '0' && Number(opCaracterJS) === 2) {
+            } else if (Number(opCaracterJS) === 2 && ValueInput('slcNombramiento') === '0') {
                 MuestraError('slcNombramiento', 'Seleccione un nombramiento');
-            } else if (ValueInput('txtPerfilSiho') === '' && Number(opCaracterJS) === 2) {
+            } else if (Number(opCaracterJS) === 2 && ValueInput('txtPerfilSiho') === '') {
                 MuestraError('txtPerfilSiho', 'Ingrese el perfil SIHO');
             } else {
                 mostrarOverlay();

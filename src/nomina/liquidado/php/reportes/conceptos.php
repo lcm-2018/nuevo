@@ -36,7 +36,11 @@ $usuario = new Usuario();
 $empresa = $usuario->getEmpresa();
 
 // Obtener nombre del concepto
-$nombreConcepto = Detalles::getNombreConcepto($id_concepto);
+if ($id_concepto == 90) {
+    $nombreConcepto = 'CONSOLIDADO';
+} else {
+    $nombreConcepto = Detalles::getNombreConcepto($id_concepto);
+}
 
 // Obtener datos del reporte según el concepto
 $detallesObj = new Detalles();
@@ -60,134 +64,192 @@ if ($esOtrosDevengados) {
     $datos = $detallesObj->getDatosReporteOtrosDevengados($id_nomina);
     $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'TIPO DEVENGADO', 'DESCRIPCIÓN', 'VALOR'];
     $columnaExtra = 'otros_devengados';
-} else switch ($id_concepto) {
-    case 1: // SUELDO BÁSICO
-    case 2: // AUXILIO DE TRANSPORTE
-    case 3: // AUXILIO DE ALIMENTACIÓN
-    case 5: // BONIFICACIÓN POR SERVICIOS PRESTADOS
-    case 11: // GASTOS DE REPRESENTACIÓN
-    case 15: // APORTE A SOLIDARIDAD PENSIONAL
-        // Conceptos generales con DOCUMENTO, NOMBRE, DIAS, VALOR
-        $datos = $detallesObj->getDatosReporteGeneral($id_nomina, getColumnaPorConcepto($id_concepto), getTablaPorConcepto($id_concepto));
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'VALOR'];
-        $columnaExtra = 'general';
-        break;
+} else
+    switch ($id_concepto) {
+        case 1: // SUELDO BÁSICO
+        case 2: // AUXILIO DE TRANSPORTE
+        case 3: // AUXILIO DE ALIMENTACIÓN
+        case 5: // BONIFICACIÓN POR SERVICIOS PRESTADOS
+        case 11: // GASTOS DE REPRESENTACIÓN
+        case 15: // APORTE A SOLIDARIDAD PENSIONAL
+            // Conceptos generales con DOCUMENTO, NOMBRE, DIAS, VALOR
+            $datos = $detallesObj->getDatosReporteGeneral($id_nomina, getColumnaPorConcepto($id_concepto), getTablaPorConcepto($id_concepto));
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'VALOR'];
+            $columnaExtra = 'general';
+            break;
 
-    case 4: // HORAS EXTRA
-        $datos = $detallesObj->getDatosReporteHorasExtras($id_nomina);
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'TIPO HORA', 'CANTIDAD', 'VALOR'];
-        $columnaExtra = 'horas_extras';
-        break;
+        case 4: // HORAS EXTRA
+            $datosOriginales = $detallesObj->getDatosReporteHorasExtras($id_nomina);
+            $empleados = [];
+            $tiposHora = [];
 
-    case 10: // LICENCIA REMUNERADA (Luto, Maternidad, Paternidad)
-        $datos = $detallesObj->getDatosReporteLicenciasRemuneradas($id_nomina);
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'TIPO LICENCIA', 'VALOR'];
-        $columnaExtra = 'licencias';
-        break;
+            foreach ($datosOriginales as $row) {
+                $doc = $row['documento'];
+                $tipoHora = mb_strtoupper(trim($row['tipo_hora']));
 
-    case 6: // VACACIONES
-        $datos = $detallesObj->getDatosReporteVacaciones($id_nomina);
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS INACTIVOS', 'VALOR'];
-        $columnaExtra = 'vacaciones';
-        break;
+                if (!isset($empleados[$doc])) {
+                    $empleados[$doc] = [
+                        'DOCUMENTO' => $row['documento'],
+                        'NOMBRE' => $row['nombre'],
+                        'DIAS' => $row['dias'],
+                        'TOTAL VALOR' => 0
+                    ];
+                }
 
-    case 7: // PRIMA DE VACACIONES
-        $datos = $detallesObj->getDatosReporteVacaciones($id_nomina);
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS HABILES', 'PRIMA VAC.'];
-        $columnaExtra = 'prima_vacaciones';
-        break;
+                if (!in_array($tipoHora, $tiposHora)) {
+                    $tiposHora[] = $tipoHora;
+                }
 
-    case 8: // BONIFICACIÓN DE RECREACIÓN
-        $datos = $detallesObj->getDatosReporteVacaciones($id_nomina);
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS BR', 'BON. RECREACIÓN'];
-        $columnaExtra = 'bon_recreacion';
-        break;
+                $colCant = $tipoHora . ' CANT.';
+                $colVal = $tipoHora . ' VALOR';
 
-    case 9: // INCAPACIDAD
-        $datos = $detallesObj->getDatosReporteIncapacidades($id_nomina);
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'TIPO INCAPACIDAD', 'VALOR'];
-        $columnaExtra = 'incapacidades';
-        break;
+                if (!isset($empleados[$doc][$colCant])) {
+                    $empleados[$doc][$colCant] = 0;
+                    $empleados[$doc][$colVal] = 0;
+                }
 
-    case 12: // INDEMNIZACIÓN POR VACACIONES
-        $datos = $detallesObj->getDatosReporteIndemnizacionVac($id_nomina);
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'VALOR'];
-        $columnaExtra = 'general';
-        break;
+                $empleados[$doc][$colCant] += floatval($row['cantidad']);
+                $empleados[$doc][$colVal] += floatval($row['valor']);
+                $empleados[$doc]['TOTAL VALOR'] += floatval($row['valor']);
+            }
 
-    case 13: // APORTE A SALUD
-        $datos = $detallesObj->getDatosReporteSeguridadSocial($id_nomina, 'salud');
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. EPS', 'NIT EPS', 'DIAS', 'VALOR'];
-        $columnaExtra = 'seg_social';
-        break;
+            sort($tiposHora);
 
-    case 14: // APORTE A PENSIÓN
-        $datos = $detallesObj->getDatosReporteSeguridadSocial($id_nomina, 'pension');
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. AFP', 'NIT AFP', 'DIAS', 'VALOR'];
-        $columnaExtra = 'seg_social';
-        break;
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS'];
+            foreach ($tiposHora as $th) {
+                $columnas[] = $th . ' CANT.';
+                $columnas[] = $th . ' VALOR';
+            }
+            $columnas[] = 'TOTAL VALOR';
 
-    case 16: // LIBRANZA
-        $datos = $detallesObj->getDatosReporteLibranzas($id_nomina);
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'BANCO', 'VALOR'];
-        $columnaExtra = 'libranzas';
-        break;
+            $datos = [];
+            foreach ($empleados as $doc => $emp) {
+                $row = [
+                    'documento' => $emp['DOCUMENTO'],
+                    'nombre' => $emp['NOMBRE'],
+                    'dias' => $emp['DIAS'],
+                    'valor' => $emp['TOTAL VALOR'], // Para que el total general funcione
+                    'TOTAL VALOR' => $emp['TOTAL VALOR'],
+                ];
+                foreach ($tiposHora as $th) {
+                    $row[$th . ' CANT.'] = $emp[$th . ' CANT.'] ?? 0;
+                    $row[$th . ' VALOR'] = $emp[$th . ' VALOR'] ?? 0;
+                }
+                $datos[] = $row;
+            }
 
-    case 17: // EMBARGO
-        $datos = $detallesObj->getDatosReporteEmbargos($id_nomina);
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'JUZGADO', 'VALOR'];
-        $columnaExtra = 'embargos';
-        break;
+            $columnaExtra = 'horas_extras_horizontal';
+            break;
 
-    case 18: // SINDICATO
-        $datos = $detallesObj->getDatosReporteSindicatos($id_nomina);
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'SINDICATO', 'VALOR'];
-        $columnaExtra = 'sindicatos';
-        break;
+        case 10: // LICENCIA REMUNERADA (Luto, Maternidad, Paternidad)
+            $datos = $detallesObj->getDatosReporteLicenciasRemuneradas($id_nomina);
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'TIPO LICENCIA', 'VALOR'];
+            $columnaExtra = 'licencias';
+            break;
 
-    case 19: // RETENCIÓN EN LA FUENTE
-        $datos = $detallesObj->getDatosReporteRetencion($id_nomina);
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'BASE RETENCIÓN', 'VALOR'];
-        $columnaExtra = 'retencion';
-        break;
+        case 6: // VACACIONES
+            $datos = $detallesObj->getDatosReporteVacaciones($id_nomina);
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS INACTIVOS', 'VALOR'];
+            $columnaExtra = 'vacaciones';
+            break;
 
-    case 20: // NETO
-        $datos = $detallesObj->getDatosReporteConcepto($id_nomina, $id_concepto);
-        $columnas = ['DOCUMENTO', 'MUNICIPIO', 'NOMBRE', 'BANCO', 'COD_BANCO', 'TIPO', 'CUENTA', 'DIAS LIQUIDADO', 'VALOR'];
-        $columnaExtra = 'netos';
-        break;
+        case 7: // PRIMA DE VACACIONES
+            $datos = $detallesObj->getDatosReporteVacaciones($id_nomina);
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS HABILES', 'PRIMA VAC.'];
+            $columnaExtra = 'prima_vacaciones';
+            break;
 
-    case 90: // CONSOLIDADO
-        $datos = $detallesObj->getDatosReporteConsolidado($id_nomina);
-        $columnas = ['CONCEPTO', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL'];
-        $columnaExtra = 'consolidado';
-        break;
+        case 8: // BONIFICACIÓN DE RECREACIÓN
+            $datos = $detallesObj->getDatosReporteVacaciones($id_nomina);
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS BR', 'BON. RECREACIÓN'];
+            $columnaExtra = 'bon_recreacion';
+            break;
 
-    case 21: // APORTE ARL (RIESGO LABORAL)
-        $datos = $detallesObj->getDatosReporteSeguridadSocial($id_nomina, 'arl');
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. ARL', 'NIT ARL', 'DIAS', 'VALOR'];
-        $columnaExtra = 'seg_social';
-        break;
+        case 9: // INCAPACIDAD
+            $datos = $detallesObj->getDatosReporteIncapacidades($id_nomina);
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'TIPO INCAPACIDAD', 'VALOR'];
+            $columnaExtra = 'incapacidades';
+            break;
 
-    case 22: // CESANTÍAS
-        $datos = $detallesObj->getDatosReporteCesantias($id_nomina);
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. CESANTIAS', 'NIT CESANTIAS', 'DIAS', 'VALOR'];
-        $columnaExtra = 'cesantias';
-        break;
+        case 12: // INDEMNIZACIÓN POR VACACIONES
+            $datos = $detallesObj->getDatosReporteIndemnizacionVac($id_nomina);
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'VALOR'];
+            $columnaExtra = 'general';
+            break;
 
-    case 23: // INTERESES CESANTÍAS
-        $datos = $detallesObj->getDatosReporteCesantias($id_nomina);
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. CESANTIAS', 'NIT CESANTIAS', 'DIAS', 'INT. CESANTÍAS'];
-        $columnaExtra = 'int_cesantias';
-        break;
+        case 13: // APORTE A SALUD
+            $datos = $detallesObj->getDatosReporteSeguridadSocial($id_nomina, 'salud');
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. EPS', 'NIT EPS', 'DIAS', 'VALOR'];
+            $columnaExtra = 'seg_social';
+            break;
 
-    default:
-        // Conceptos no mapeados - usar estructura básica
-        $datos = [];
-        $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'VALOR'];
-        $columnaExtra = 'general';
-        break;
-}
+        case 14: // APORTE A PENSIÓN
+            $datos = $detallesObj->getDatosReporteSeguridadSocial($id_nomina, 'pension');
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. AFP', 'NIT AFP', 'DIAS', 'VALOR'];
+            $columnaExtra = 'seg_social';
+            break;
+
+        case 16: // LIBRANZA
+            $datos = $detallesObj->getDatosReporteLibranzas($id_nomina);
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'BANCO', 'VALOR'];
+            $columnaExtra = 'libranzas';
+            break;
+
+        case 17: // EMBARGO
+            $datos = $detallesObj->getDatosReporteEmbargos($id_nomina);
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'JUZGADO', 'VALOR'];
+            $columnaExtra = 'embargos';
+            break;
+
+        case 18: // SINDICATO
+            $datos = $detallesObj->getDatosReporteSindicatos($id_nomina);
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'SINDICATO', 'VALOR'];
+            $columnaExtra = 'sindicatos';
+            break;
+
+        case 19: // RETENCIÓN EN LA FUENTE
+            $datos = $detallesObj->getDatosReporteRetencion($id_nomina);
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'BASE RETENCIÓN', 'VALOR'];
+            $columnaExtra = 'retencion';
+            break;
+
+        case 20: // NETO
+            $datos = $detallesObj->getDatosReporteConcepto($id_nomina, $id_concepto);
+            $columnas = ['DOCUMENTO', 'MUNICIPIO', 'NOMBRE', 'BANCO', 'COD_BANCO', 'TIPO', 'CUENTA', 'DIAS LIQUIDADO', 'VALOR'];
+            $columnaExtra = 'netos';
+            break;
+
+        case 90: // CONSOLIDADO
+            $datos = $detallesObj->getDatosReporteConsolidado($id_nomina);
+            $columnas = ['CONCEPTO', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL'];
+            $columnaExtra = 'consolidado';
+            break;
+
+        case 21: // APORTE ARL (RIESGO LABORAL)
+            $datos = $detallesObj->getDatosReporteSeguridadSocial($id_nomina, 'arl');
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. ARL', 'NIT ARL', 'DIAS', 'VALOR'];
+            $columnaExtra = 'seg_social';
+            break;
+
+        case 22: // CESANTÍAS
+            $datos = $detallesObj->getDatosReporteCesantias($id_nomina);
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. CESANTIAS', 'NIT CESANTIAS', 'DIAS', 'VALOR'];
+            $columnaExtra = 'cesantias';
+            break;
+
+        case 23: // INTERESES CESANTÍAS
+            $datos = $detallesObj->getDatosReporteCesantias($id_nomina);
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'NOM. CESANTIAS', 'NIT CESANTIAS', 'DIAS', 'INT. CESANTÍAS'];
+            $columnaExtra = 'int_cesantias';
+            break;
+
+        default:
+            // Conceptos no mapeados - usar estructura básica
+            $datos = [];
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'VALOR'];
+            $columnaExtra = 'general';
+            break;
+    }
 
 // Funciones auxiliares para conceptos generales
 function getColumnaPorConcepto($id)
@@ -311,17 +373,17 @@ function getCeldaValor($d, $campo, $columnaExtra)
         case 'INT. CESANTÍAS':
             return $d['valor_intereses'] ?? 0;
         default:
-            return '';
+            return isset($d[$campo]) ? $d[$campo] : '';
     }
 }
 
 // Función para formatear valor según el tipo de campo
 function formatearCelda($valor, $campo)
 {
-    $camposNumericos = ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'INT. CESANTÍAS'];
+    $camposNumericos = ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'INT. CESANTÍAS', 'TOTAL VALOR'];
     $camposCentrados = ['DIAS LIQUIDADO', 'DIAS', 'DIAS INACTIVOS', 'DIAS HABILES', 'DIAS BR', 'CANTIDAD', 'COD_BANCO', 'TIPO'];
 
-    if (in_array($campo, $camposNumericos)) {
+    if (in_array($campo, $camposNumericos) || strpos($campo, ' VALOR') !== false) {
         return '$ ' . number_format(floatval($valor), 2, ',', '.');
     }
     return $valor;
@@ -366,12 +428,40 @@ if ($tipo == 'E') {
     }
 
     // Encabezados de columnas
-    echo "<tr style='background-color: #e0e0e0; font-weight: bold;'>";
-    foreach ($columnas as $col) {
-        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL']) ? 'right' : 'left';
-        echo "<td style='text-align: {$align};'>{$col}</td>";
+    if ($columnaExtra === 'horas_extras_horizontal') {
+        echo "<tr style='background-color: #e0e0e0; font-weight: bold;'>";
+        echo "<td rowspan='2' style='text-align: center; vertical-align: middle;'>DOCUMENTO</td>";
+        echo "<td rowspan='2' style='text-align: center; vertical-align: middle;'>NOMBRE</td>";
+        echo "<td rowspan='2' style='text-align: center; vertical-align: middle;'>DIAS</td>";
+        $tipos = [];
+        foreach ($columnas as $col) {
+            if (strpos($col, ' CANT.') !== false) {
+                $tipos[] = str_replace(' CANT.', '', $col);
+            }
+        }
+        foreach ($tipos as $th) {
+            echo "<td colspan='2' style='text-align: center;'>{$th}</td>";
+        }
+        echo "<td rowspan='2' style='text-align: center; vertical-align: middle;'>TOTAL VALOR</td>";
+        echo "</tr>";
+        echo "<tr style='background-color: #e0e0e0; font-weight: bold;'>";
+        foreach ($tipos as $th) {
+            echo "<td style='text-align: center;'>CANT.</td>";
+            echo "<td style='text-align: right;'>VALOR</td>";
+        }
+        echo "</tr>";
+    } else {
+        echo "<tr style='background-color: #e0e0e0; font-weight: bold;'>";
+        foreach ($columnas as $col) {
+            $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR']) ? 'right' : 'left';
+            if (strpos($col, ' VALOR') !== false)
+                $align = 'right';
+            if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO']) || strpos($col, ' CANT.') !== false)
+                $align = 'center';
+            echo "<td style='text-align: {$align};'>{$col}</td>";
+        }
+        echo "</tr>";
     }
-    echo "</tr>";
 
     // Datos
     // Columnas que deben forzarse como texto en Excel (evitar conversión numérica)
@@ -385,13 +475,15 @@ if ($tipo == 'E') {
         foreach ($columnas as $col) {
             $valor = getCeldaValor($d, $col, $columnaExtra);
             $valorFormateado = formatearCelda($valor, $col);
-            $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL']) ? 'right' : 'left';
-            if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO'])) {
+            $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR']) ? 'right' : 'left';
+            if (strpos($col, ' VALOR') !== false)
+                $align = 'right';
+            if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO']) || strpos($col, ' CANT.') !== false) {
                 $align = 'center';
             }
             if (in_array($col, $columnasTextoForzado)) {
                 // x:str fuerza a Excel a tratar la celda como texto (preserva ceros iniciales y números largos)
-                $valorEscapado = htmlspecialchars((string)$valorFormateado, ENT_QUOTES, 'UTF-8');
+                $valorEscapado = htmlspecialchars((string) $valorFormateado, ENT_QUOTES, 'UTF-8');
                 echo "<td x:str=\"{$valorEscapado}\" style='text-align: {$align}; mso-number-format:\"@\";'>{$valorEscapado}</td>";
             } else {
                 echo "<td style='text-align: {$align};'>{$valorFormateado}</td>";
@@ -431,15 +523,41 @@ if ($columnaExtra === 'consolidado') {
 $html .= "<table style='width: 100%; border-collapse: collapse;' border='1'>";
 
 // Encabezados
-$html .= "<tr style='background-color: #e0e0e0;'>";
-foreach ($columnas as $col) {
-    $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL']) ? 'right' : 'left';
-    if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO'])) {
-        $align = 'center';
+if ($columnaExtra === 'horas_extras_horizontal') {
+    $html .= "<tr style='background-color: #e0e0e0;'>";
+    $html .= "<th rowspan='2' style='padding: 4px; text-align: center; font-size: 7px; vertical-align: middle;'>DOCUMENTO</th>";
+    $html .= "<th rowspan='2' style='padding: 4px; text-align: center; font-size: 7px; vertical-align: middle;'>NOMBRE</th>";
+    $html .= "<th rowspan='2' style='padding: 4px; text-align: center; font-size: 7px; vertical-align: middle;'>DIAS</th>";
+    $tipos = [];
+    foreach ($columnas as $col) {
+        if (strpos($col, ' CANT.') !== false) {
+            $tipos[] = str_replace(' CANT.', '', $col);
+        }
     }
-    $html .= "<th style='padding: 4px; text-align: {$align}; font-size: 7px;'>{$col}</th>";
+    foreach ($tipos as $th) {
+        $html .= "<th colspan='2' style='padding: 4px; text-align: center; font-size: 7px;'>{$th}</th>";
+    }
+    $html .= "<th rowspan='2' style='padding: 4px; text-align: center; font-size: 7px; vertical-align: middle;'>TOTAL VALOR</th>";
+    $html .= "</tr>";
+    $html .= "<tr style='background-color: #e0e0e0;'>";
+    foreach ($tipos as $th) {
+        $html .= "<th style='padding: 4px; text-align: center; font-size: 7px;'>CANT.</th>";
+        $html .= "<th style='padding: 4px; text-align: right; font-size: 7px;'>VALOR</th>";
+    }
+    $html .= "</tr>";
+} else {
+    $html .= "<tr style='background-color: #e0e0e0;'>";
+    foreach ($columnas as $col) {
+        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR']) ? 'right' : 'left';
+        if (strpos($col, ' VALOR') !== false)
+            $align = 'right';
+        if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO']) || strpos($col, ' CANT.') !== false) {
+            $align = 'center';
+        }
+        $html .= "<th style='padding: 4px; text-align: {$align}; font-size: 7px;'>{$col}</th>";
+    }
+    $html .= "</tr>";
 }
-$html .= "</tr>";
 
 // Datos
 foreach ($datos as $d) {
@@ -450,8 +568,10 @@ foreach ($datos as $d) {
     foreach ($columnas as $col) {
         $valor = getCeldaValor($d, $col, $columnaExtra);
         $valorFormateado = formatearCelda($valor, $col);
-        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL']) ? 'right' : 'left';
-        if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO'])) {
+        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR']) ? 'right' : 'left';
+        if (strpos($col, ' VALOR') !== false)
+            $align = 'right';
+        if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO']) || strpos($col, ' CANT.') !== false) {
             $align = 'center';
         }
         $html .= "<td style='padding: 3px; font-size: 7px; text-align: {$align}; {$fontWeight}'>{$valorFormateado}</td>";
@@ -467,7 +587,7 @@ $otro = "NÓMINA No. {$id_nomina} - MES: {$mes} - VIGENCIA: {$nomina['vigencia']
 $firmas = (new CReportes())->getFormFirmas(
     ['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']],
     51,
-    $nomina['vigencia'] . '-' . $nomina['mes'] . '-01',
+    $nomina['fecha'],
     'CNOM'
 );
 

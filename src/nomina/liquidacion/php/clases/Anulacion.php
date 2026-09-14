@@ -3,6 +3,7 @@
 namespace Src\Nomina\Liquidacion\Php\Clases;
 
 use Config\Clases\Conexion;
+use Config\Clases\Logs;
 
 use PDO;
 use PDOException;
@@ -51,13 +52,18 @@ class Anulacion
             return $filtroEmpleado ? "`{$alias}`.`id_empleado` = :id_empleado AND" : "";
         };
 
+        $nomina = (new Nomina())->getRegistro($id_nomina);
+
         if ($filtroEmpleado) {
-            $nomina = (new Nomina())->getRegistro($id_nomina);
             if ($nomina['tipo'] == 'PS') {
                 $contrato = (new Liquidacion())->getEmpleadosLiq($id_nomina, [$id_empleado]);
                 $response = (new Contratos())->editEstadoContrato($contrato[0]['id_contrato'], 1);
+            } else if ($nomina['tipo'] == 'BS') {
+
             }
         }
+
+        $setBsp = ($nomina['tipo'] == 'BS') ? "`id_nomina` = NULL, `tipo` = 'M'" : "`estado` = 0";
 
         $queries = [
             // horas extra
@@ -67,7 +73,7 @@ class Anulacion
              WHERE {$condEmpleadoAlias('nhet')} `nlhe`.`id_nomina` = :id_nomina",
 
             // bsp
-            "UPDATE `nom_liq_bsp` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina $tipo",
+            "UPDATE `nom_liq_bsp` SET {$setBsp} WHERE {$condEmpleado} `id_nomina` = :id_nomina $tipo",
 
             // cesantias
             "UPDATE `nom_liq_cesantias` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina $tipo",
@@ -171,9 +177,9 @@ class Anulacion
         }
 
         try {
-            // Inicio de transacción
-            // verificar si hay transacción activa
-            if (!$this->conexion->inTransaction()) {
+            // Verificar si ya había una transacción activa ANTES de empezar
+            $transaccionExterna = $this->conexion->inTransaction();
+            if (!$transaccionExterna) {
                 $this->conexion->beginTransaction();
             }
 
@@ -190,7 +196,10 @@ class Anulacion
                 }
             }
 
-            $this->conexion->commit();
+            // Solo hacer commit si esta función inició la transacción
+            if (!$transaccionExterna) {
+                $this->conexion->commit();
+            }
             return 'si';
         } catch (PDOException $e) {
             try {

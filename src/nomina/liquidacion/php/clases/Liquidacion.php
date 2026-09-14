@@ -110,7 +110,6 @@ class Liquidacion
                         WHERE `id_contrato_emp` IN (
                             SELECT MAX(`id_contrato_emp`) 
                             FROM `nom_contratos_empleados` 
-                            WHERE `estado` = 1 
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
@@ -127,7 +126,9 @@ class Liquidacion
                         FROM 
                             `nom_calendar_novedad`
                         WHERE 
-                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3, 4, 5, 6)
+                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin'
+                            AND DAY(`fecha`) <= 30
+                            AND `id_tipo` IN (1, 2, 3, 4, 5, 6)
                         GROUP BY `id_empleado`) AS `tt`
                         ON (`taux`.`id_empleado` = `tt`.`id_empleado`) 
                     LEFT JOIN
@@ -197,7 +198,6 @@ class Liquidacion
                         WHERE `id_contrato_emp` IN (
                             SELECT MAX(`id_contrato_emp`) 
                             FROM `nom_contratos_empleados` 
-                            WHERE `estado` = 1 
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
@@ -212,7 +212,9 @@ class Liquidacion
                         FROM 
                             `nom_calendar_novedad`
                         WHERE 
-                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3, 4, 5)
+                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin'
+                            AND DAY(`fecha`) <= 30
+                            AND `id_tipo` IN (1, 2, 3, 4, 5, 6)
                         GROUP BY `id_empleado`) AS `tt`
                         ON (`taux`.`id_empleado` = `tt`.`id_empleado`) 
                     LEFT JOIN
@@ -272,7 +274,6 @@ class Liquidacion
                         WHERE `id_contrato_emp` IN (
                             SELECT MAX(`id_contrato_emp`) 
                             FROM `nom_contratos_empleados` 
-                            WHERE `estado` = 1 
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
@@ -287,7 +288,9 @@ class Liquidacion
                         FROM 
                             `nom_calendar_novedad`
                         WHERE 
-                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin' AND `id_tipo` IN (1, 2, 3, 4, 5)
+                            `fecha` BETWEEN '$fec_inicio' AND '$fec_fin'
+                            AND DAY(`fecha`) <= 30
+                            AND `id_tipo` IN (1, 2, 3, 4, 5, 6)
                         GROUP BY `id_empleado`) AS `tt`
                         ON (`taux`.`id_empleado` = `tt`.`id_empleado`) 
                     LEFT JOIN
@@ -1046,6 +1049,7 @@ class Liquidacion
         $indemVacaciones = (new Indemniza_Vacacion())->getRegistroPorEmpleado($inicia, $fin);
         $indemVacaciones = (new Indemniza_Vacacion())->getRegistroPorEmpleado($inicia, $fin);
         $bonificaciones = (new Bsp())->getRegistroPorEmpleado();
+        $bspPagadas = (new Bsp())->getRegistroPago(Sesion::Vigencia(), $mes);
         $viaticosNomina = (new Viaticos())->getViaticosNomina($inicia, $fin); // Obtener viáticos del mes
         $otrosDevengados = (new Otros_Devengados())->getRegistroPorEmpleado($inicia, $fin);
 
@@ -1063,12 +1067,16 @@ class Liquidacion
         $liquidados = array_column($liquidados, 'id_sal_liq', 'id_empleado');
         $error = '';
 
+        // Consultar configuración bsp_ibc
+        $ownerConfig = Valores::getOwnerConfig();
+        $incluirBspEnIbc = (isset($ownerConfig['bsp_ibc']) && $ownerConfig['bsp_ibc'] == '1');
+
         if ($opcion == 0) {
             $param['smmlv'] = $parametro[1];
             $param['uvt'] = $parametro[6];
             $param['base_bsp'] = $parametro[7];
-            $param['grep'] = $parametro[8];
-            $param['base_alim'] = $parametro[9];
+            $param['grep'] = $parametro[8] ?? 0;
+            $param['base_alim'] = $parametro[9] ?? 0;
             $param['min_vital'] = $parametro[10] ?? 0;
             $param['id_nomina'] = $id_nomina;
         }
@@ -1103,6 +1111,10 @@ class Liquidacion
                         $param['prom_horas'] = $cortes_empleado['prom'] ?? 0;
                     } else if ($opcion == 1) {
                         $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
+                        // Para nómina tipo N, getRegistro puede retornar salario=0 si no existe el registro previo.
+                        // Se toma el salario real del empleado en todo caso.
+                        $param['salario'] = $salarios[$id_empleado];
+                        $param['id_empleado'] = $id_empleado;
                     }
 
                     $param['aux_trans'] = $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;
@@ -1251,7 +1263,7 @@ class Liquidacion
                             //verificar si hay 360 día para la bonificiacion sacandolo los dias entre fecha_corte y fecha_fin
                             $tiene_bsp = (strtotime($fin) - strtotime($fecha_corte)) / (60 * 60 * 24) >= 360;
                             if ($tiene_bsp) {
-                                $param['corte'] = $fecha_corte;
+                                $param['corte'] = date('Y-m-d', strtotime($fecha_corte . ' +1 year'));
                                 $response = $this->LiquidaBSP($param);
                                 $valTotalBSP = $response['valor'];
                                 if (!$response['insert']) {
@@ -1260,6 +1272,8 @@ class Liquidacion
                             }
                         }
                     }
+                    $bspToIBC = $bspPagadas[$id_empleado] ?? 0;
+                    $bspToSSParafiscales = $incluirBspEnIbc ? $bspToIBC : 0;
 
                     // Liquidar Viáticos
                     // Verificar si tiene viáticos en el mes
@@ -1332,8 +1346,8 @@ class Liquidacion
                         $ibc = ($valTotalLab * 0.7) + $valTotalOtrosDevSS;
                         $ibcParafiscales = ($valTotalLab * 0.7) + $valTotalOtrosDevParaf;
                     } else {
-                        $ibc = $valTotalLab + $valTotalHe + $valTotIncap + $valTotalBSP + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVacIbc + $valTotalOtrosDevSS;
-                        $ibcParafiscales = $valTotalLab + $valTotalHe + $valTotalBSP + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVacIbc + $valTotalOtrosDevParaf;
+                        $ibc = $valTotalLab + $valTotalHe + $valTotIncap + $valTotalBSP + $bspToSSParafiscales + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVacIbc + $valTotalOtrosDevSS;
+                        $ibcParafiscales = $valTotalLab + $valTotalHe + $valTotalBSP + $bspToSSParafiscales + $grepre + $valTotLicLuto + $valTotLicMP + $valTotVacIbc + $valTotalOtrosDevParaf;
                     }
 
                     $response = $this->LiquidaSeguridadSocial($param, $novedad, $ibc, $tipo_emp, $subtipo_emp, $laborado[$id_empleado]);
@@ -1448,7 +1462,7 @@ class Liquidacion
                         }
                     }
 
-                    $baseDep = $valTotalLab + $valTotalBSP + $valTotalHe + $valTotVac + $valTotPrimVac + $valBonRec + $grepre + $valTotalOtrosDevSal;
+                    $baseDep = $valTotalLab + $valTotalBSP + $bspToIBC + $valTotalHe + $valTotVac + $valTotPrimVac + $valBonRec + $grepre + $valTotalOtrosDevSal;
                     $pagoxdependiente = $empleados[$id_empleado]['dependientes'] == 0 ? 0 : $baseDep * 0.1;
                     $valIntViv = $iVivienda[$id_empleado] ?? 0;
                     $valrf = $baseDep + $valTotIndemVac + $valTotLicLuto - ($valTotSegSoc ?? 0) - $pagoxdependiente - $valIntViv;
@@ -1628,7 +1642,7 @@ class Liquidacion
                                     MAX(`nlb`.`id_bonificaciones`)
                                 FROM `nom_liq_bsp` `nlb`
                                     INNER JOIN `nom_nominas` `nn` ON `nlb`.`id_nomina` = `nn`.`id_nomina`
-                                WHERE `nn`.`vigencia` <= :vigencia AND `nn`.`tipo` = 'N' AND  `nlb`.`estado` = 1 AND `nlb`.`val_bsp` > 0
+                                WHERE `nn`.`vigencia` <= :vigencia AND (`nn`.`tipo` = 'N' OR `nn`.`tipo` = 'BS') AND  `nlb`.`estado` = 1 AND `nlb`.`val_bsp` > 0
                                 AND `nn`.`id_nomina` IN (SELECT `id_nomina` FROM `nominas_contrato_activo`)
                                 GROUP BY `nlb`.`id_empleado`)),
                         `bsp_ra` AS
@@ -1923,6 +1937,12 @@ class Liquidacion
         $vacacion = Valores::Redondear($vac_dia * $dliq);
         $dias_rec = isset($config['dias_recreacion']) ? $config['dias_recreacion'] : 2;
         $bonrecrea = Valores::Redondear(($salbas / 30) * ($dias_rec * $dliq / 360));
+
+        // Para caracter 1, la prima de vacaciones y la bonificación de recreación no aplican
+        if (Sesion::Caracter() == 1) {
+            $prima_vac = 0;
+            $bonrecrea = 0;
+        }
         if ($opcion == 1) {
             // Si ya existe un registro editado manualmente (tipo='M'), respetarlo sin recalcular
             $stmtChk = $this->conexion->prepare(
@@ -2104,6 +2124,7 @@ class Liquidacion
 
         $salbas = $param['salario'];
         $id_empleado = $param['id_empleado'];
+        $dliq = $dliq > 0 ? $dliq : 0;
         $cant_dias = $dliq;
         $grepre = $param['tiene_grep'] == 1 ? $param['grep'] : 0;
         $auxtra = $param['aux_trans'];
@@ -2161,7 +2182,8 @@ class Liquidacion
             'valor' => 0
         ];
         $tipo = $filtro['tipo'];
-        $dias = $filtro['mes'] == '02' && $filtro['dias'] >= 28 ? 30 : $filtro['dias'];
+        $diasRaw = (int) $filtro['dias'];
+        $dias = $filtro['mes'] == '02' && $diasRaw >= 28 ? 30 : min($diasRaw, 30);
         $valdialc = ($tipo == '1' && $filtro['dias_cot'] < 270) ? ($filtro['dias_cot'] * $param['salario']) / (30 * 270) : $param['salario'] / 30;
         $valor = Valores::Redondear($valdialc * $dias);
         $data = [

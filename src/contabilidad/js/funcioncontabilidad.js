@@ -48,7 +48,7 @@
 	$(document).ready(function () {
 		//dataTable de movimientos contables
 		let id_doc = $("#id_ctb_doc").val();
-		var btns = opCaracterJS == '1' ? [] : [
+		var btns = (opCaracterJS == '1' && id_doc != '3') ? [] : [
 			{
 				text: '<span class="fa-solid fa-plus "></span>',
 				className: 'btn btn-success btn-sm shadow',
@@ -3499,6 +3499,9 @@ const cargarReporteContable = (id) => {
 	if (id == 26) {
 		url = "informe_movimientos_integracion_form.php";
 	}
+	if (id == 27) {
+		url = "informe_costos_form.php";
+	}
 	fetch(url, {
 		method: "POST",
 		body: JSON.stringify({ id: id }),
@@ -3600,6 +3603,34 @@ const generarInformeCtb = (boton) => {
 		$('body').append(form);
 		form.submit();
 		form.remove();
+		return false;
+	} else if (id == 15) {
+		if ($('#fecha_ini').val() == "" || $('#fecha_fin').val() == "") {
+			mjeError("Debe seleccionar la fecha inicial y la fecha final");
+		} else {
+			mostrarOverlay();
+
+			let iframeName = 'iframe_download_' + new Date().getTime();
+			let iframe = $('<iframe>', {
+				name: iframeName,
+				id: iframeName,
+				style: 'display:none'
+			});
+			$('body').append(iframe);
+
+			let form = $('<form>', {
+				method: 'POST',
+				action: ValueInput('host') + '/src/contabilidad/php/informes_bancos/imp_informe_costos_sedes_excel.php',
+				target: iframeName
+			});
+			form.append($('<input>', { type: 'hidden', name: 'fec_ini', value: $('#fecha_ini').val() }));
+			form.append($('<input>', { type: 'hidden', name: 'fec_fin', value: $('#fecha_fin').val() }));
+			$('body').append(form);
+			form.submit();
+			setTimeout(function () {
+				ocultarOverlay();
+			}, 3000);
+		}
 		return false;
 	}
 	mostrarOverlay();

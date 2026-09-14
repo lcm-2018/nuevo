@@ -231,9 +231,10 @@ if (!empty($listappto)) {
             $borrar = '<a value="' . $id_ctb . '" onclick="eliminarRegistroDoc(' . $id_ctb . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow "  title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         }
         if ($permisos->PermisosUsuario($opciones, 5501, 5) || $id_rol == 1) {
-            if ($fecha < $fecha_cierre) {
+            if ($fecha <= $fecha_cierre) {
                 $anular = null;
                 $cerrar = null;
+                $borrar = null;
             } else if ($lp['pag'] != '') {
                 $anular = null;
                 $cerrar = null;

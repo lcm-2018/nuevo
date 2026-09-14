@@ -10,10 +10,10 @@ $id_doc = isset($_POST['id']) ? $_POST['id'] : exit('Acceso no disponible');
 $id_detalle = $_POST['op'];
 $val_fact = str_replace(",", "", $_POST['valor_fact']);
 $val_arq = str_replace(",", "", $_POST['valor_arq']);
-$fecha_ini = $_POST['fecha_arqueo_ini'];
-$fecha_fin = $_POST['fecha_arqueo_fin'];
-$id_tercero_api = $_POST['id_facturador'];
-$observaciones = $_POST['observaciones'];
+$fecha_ini = $_POST['fecha_arqueo_ini'] ?? NULL;
+$fecha_fin = $_POST['fecha_arqueo_fin'] ?? NULL;
+$id_tercero_api = $_POST['id_facturador'] ?? NULL;
+$observaciones = $_POST['observaciones'] ?? NULL;
 $arqueos = $_POST['arqueo'] ?? [];
 $iduser = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
@@ -72,21 +72,13 @@ try {
         }
     } else {
         $query = "UPDATE `tes_causa_arqueo`
-                    SET `fecha_ini` = ?
-                        , `fecha_fin` = ?
-                        , `id_tercero` = ?
-                        , `valor_fac` = ?
-                        , `valor_arq` = ?
+                    SET  `valor_arq` = ?
                         , `observaciones` = ?
                     WHERE `id_causa_arqueo` = ?";
         $query = $cmd->prepare($query);
-        $query->bindParam(1, $fecha_ini, PDO::PARAM_STR);
-        $query->bindParam(2, $fecha_fin, PDO::PARAM_STR);
-        $query->bindParam(3, $id_tercero_api, PDO::PARAM_INT);
-        $query->bindParam(4, $val_fact, PDO::PARAM_STR);
-        $query->bindParam(5, $val_arq, PDO::PARAM_STR);
-        $query->bindParam(6, $observaciones, PDO::PARAM_STR);
-        $query->bindParam(7, $id_detalle, PDO::PARAM_INT);
+        $query->bindParam(1, $val_arq, PDO::PARAM_STR);
+        $query->bindParam(2, $observaciones, PDO::PARAM_STR);
+        $query->bindParam(3, $id_detalle, PDO::PARAM_INT);
         if (!($query->execute())) {
             $response['msg'] = $query->errorInfo()[2] . $query->queryString;
         } else {

@@ -60,6 +60,7 @@ $content = <<<HTML
                         <th rowspan="2" class="text-center bg-sofia" title="Cesantías">CES.</th>
                         <th rowspan="2" class="text-center bg-sofia" title="Intereses Cesantías">I. CES.</th>
                         <th rowspan="2" class="text-center bg-sofia" title="Compensatorio">COMP.</th>
+                        <th rowspan="2" class="text-center bg-sofia" title="Indemnización">INDEM.</th>
                         <th rowspan="2" class="text-center bg-sofia" title="Viáticos">VIAT.</th>
                         <th rowspan="2" class="text-center bg-sofia" title="Total Devengado">T. DEV.</th>
                         <th colspan="11" class="text-center bg-sofia">DEDUCCIONES</th>

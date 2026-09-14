@@ -126,6 +126,21 @@ switch ($action) {
                 }
                 break;
             case 2:
+                // Sanitizar campos numéricos: si vienen vacíos ('') o null, se colocan en 0
+                $camposNumericos = [
+                    'salario', 'smmlv', 'aux_trans', 'aux_alim', 'uvt', 'base_bsp',
+                    'base_alim', 'grep', 'prom_horas', 'bsp_ant', 'pri_ser_ant',
+                    'pri_vac_ant', 'pri_nav_ant', 'valor_ps', 'dias_ps', 'valor_pv',
+                    'dias_pn', 'val_cesantias', 'val_icesantias', 'dias_ces',
+                    'valor_bsp', 'valor_vacacion', 'val_prima_vac', 'val_bon_recrea',
+                    'dias_lab'
+                ];
+                foreach ($camposNumericos as $campo) {
+                    if (!isset($_POST[$campo]) || $_POST[$campo] === '' || $_POST[$campo] === null) {
+                        $_POST[$campo] = 0;
+                    }
+                }
+
                 $nominaActual = (new Nomina())->getRegistro($_POST['id_nomina']);
                 $codigoNomina = $nominaActual['tipo'] ?? '';
                 $liquidaTodos = in_array($codigoNomina, ['N', 'PS', 'RA', 'IN']);
@@ -358,6 +373,26 @@ switch ($action) {
 
                 //Anular
                 if ($valida) {
+                    // Capturar valores de libranzas ajustados manualmente antes de anular,
+                    // para preservarlos luego de la reliquidación (solo aplica a nóminas tipo N).
+                    $libranzasAjustadas = [];
+                    if ($codigoNomina === 'N') {
+                        $stmtLib = $conexion->prepare(
+                            "SELECT `nll`.`id_libranza`, `nll`.`val_mes_lib`
+                             FROM `nom_liq_libranza` `nll`
+                             INNER JOIN `nom_libranzas` `nl` ON `nll`.`id_libranza` = `nl`.`id_libranza`
+                             WHERE `nl`.`id_empleado` = :id_empleado
+                               AND `nll`.`id_nomina` = :id_nomina
+                               AND `nll`.`estado` = 1
+                               AND `nll`.`val_mes_lib` <> `nl`.`val_mes`"
+                        );
+                        $stmtLib->bindValue(':id_empleado', $id_empleado, \PDO::PARAM_INT);
+                        $stmtLib->bindValue(':id_nomina', $_POST['id_nomina'], \PDO::PARAM_INT);
+                        $stmtLib->execute();
+                        $libranzasAjustadas = $stmtLib->fetchAll(\PDO::FETCH_KEY_PAIR); // [id_libranza => val_mes_lib]
+                        $stmtLib->closeCursor();
+                    }
+
                     $Anular = new Anulacion($conexion);
                     $resul = $Anular->anulaRegistros($id_empleado, $_POST['id_nomina']);
                     if ($resul == 'si') {
@@ -376,11 +411,12 @@ switch ($action) {
 
                         $array = [
                             'chk_liquidacion' => [0 => $id_empleado],
-                            'id_contrato' => [$id_empleado => $_POST['id_contrato']],
-                            'lab' => [$id_empleado => $_POST['dias_lab']],
-                            'metodo' => [$id_empleado => $_POST['metodo_pago']],
-                            'tipo' => $id_tipo_nomina,
-                            'mes' => $_POST['mes'],
+                            'id_contrato'     => [$id_empleado => $_POST['id_contrato']],
+                            'lab'             => [$id_empleado => $_POST['dias_lab']],
+                            'metodo'          => [$id_empleado => $_POST['metodo_pago']],
+                            'tipo'            => $id_tipo_nomina,
+                            'mes'             => $_POST['mes'],
+                            'id_nomina_fija'  => $_POST['id_nomina'], // Fija el id_nomina para no crear uno nuevo
                         ];
 
                         switch ($codigoNomina) {
@@ -412,6 +448,24 @@ switch ($action) {
                         if ($rstd == 'si') {
                             $suma++;
                             //echo 'Recalculada liquidación.';
+
+                            // Restaurar valores de libranzas ajustados manualmente
+                            // que existían antes de la reliquidación (solo nómina tipo N).
+                            if (!empty($libranzasAjustadas)) {
+                                foreach ($libranzasAjustadas as $idLib => $valAjustado) {
+                                    $stmtRestLib = $conexion->prepare(
+                                        "UPDATE `nom_liq_libranza`
+                                         SET `val_mes_lib` = :val
+                                         WHERE `id_libranza` = :id_libranza
+                                           AND `id_nomina` = :id_nomina
+                                           AND `estado` = 1"
+                                    );
+                                    $stmtRestLib->bindValue(':val', $valAjustado);
+                                    $stmtRestLib->bindValue(':id_libranza', $idLib, \PDO::PARAM_INT);
+                                    $stmtRestLib->bindValue(':id_nomina', $_POST['id_nomina'], \PDO::PARAM_INT);
+                                    $stmtRestLib->execute();
+                                }
+                            }
                         } else {
                             $conexion->rollBack();
                             exit(json_encode($rstd));
@@ -445,40 +499,40 @@ switch ($action) {
                 // Libranzas
                 if (isset($_POST['libranza']) && is_array($_POST['libranza'])) {
                     foreach ($_POST['libranza'] as $id => $val) {
-                        $stmt = $conexion->prepare("UPDATE `nom_liq_libranza` SET `val_mes_lib` = ? WHERE `id_lid_lib` = ?");
+                        $stmt = $conexion->prepare("UPDATE `nom_liq_libranza` SET `val_mes_lib` = ?, `estado` = 1 WHERE `id_lid_lib` = ?");
                         if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) {
                             $suma++;
-                            Logs::guardaLog("UPDATE `nom_liq_libranza` SET `val_mes_lib` = $val WHERE `id_lid_lib` = $id");
+                            Logs::guardaLog("UPDATE `nom_liq_libranza` SET `val_mes_lib` = $val, `estado` = 1 WHERE `id_lid_lib` = $id");
                         }
                     }
                 }
                 // Embargos
                 if (isset($_POST['embargo']) && is_array($_POST['embargo'])) {
                     foreach ($_POST['embargo'] as $id => $val) {
-                        $stmt = $conexion->prepare("UPDATE `nom_liq_embargo` SET `val_mes_embargo` = ? WHERE `id_liq_embargo` = ?");
+                        $stmt = $conexion->prepare("UPDATE `nom_liq_embargo` SET `val_mes_embargo` = ?, `estado` = 1 WHERE `id_liq_embargo` = ?");
                         if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) {
                             $suma++;
-                            Logs::guardaLog("UPDATE `nom_liq_embargo` SET `val_mes_embargo` = $val WHERE `id_liq_embargo` = $id");
+                            Logs::guardaLog("UPDATE `nom_liq_embargo` SET `val_mes_embargo` = $val, `estado` = 1 WHERE `id_liq_embargo` = $id");
                         }
                     }
                 }
                 // Sindicatos
                 if (isset($_POST['sindicato']) && is_array($_POST['sindicato'])) {
                     foreach ($_POST['sindicato'] as $id => $val) {
-                        $stmt = $conexion->prepare("UPDATE `nom_liq_sindicato_aportes` SET `val_aporte` = ? WHERE `id_aporte` = ?");
+                        $stmt = $conexion->prepare("UPDATE `nom_liq_sindicato_aportes` SET `val_aporte` = ?, `estado` = 1 WHERE `id_aporte` = ?");
                         if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) {
                             $suma++;
-                            Logs::guardaLog("UPDATE `nom_liq_sindicato_aportes` SET `val_aporte` = $val WHERE `id_aporte` = $id");
+                            Logs::guardaLog("UPDATE `nom_liq_sindicato_aportes` SET `val_aporte` = $val, `estado` = 1 WHERE `id_aporte` = $id");
                         }
                     }
                 }
                 // Otros Descuentos
                 if (isset($_POST['otro_dcto']) && is_array($_POST['otro_dcto'])) {
                     foreach ($_POST['otro_dcto'] as $id => $val) {
-                        $stmt = $conexion->prepare("UPDATE `nom_liq_descuento` SET `valor` = ? WHERE `id_liq` = ?");
+                        $stmt = $conexion->prepare("UPDATE `nom_liq_descuento` SET `valor` = ?, `estado` = 1 WHERE `id_liq` = ?");
                         if ($stmt->execute([$val, $id]) && $stmt->rowCount() > 0) {
                             $suma++;
-                            Logs::guardaLog("UPDATE `nom_liq_descuento` SET `valor` = $val WHERE `id_liq` = $id");
+                            Logs::guardaLog("UPDATE `nom_liq_descuento` SET `valor` = $val, `estado` = 1 WHERE `id_liq` = $id");
                         }
                     }
                 }

@@ -63,7 +63,16 @@ try {
                     , `ref`
                 FROM
                     `ctb_libaux`
-                WHERE (`id_ctb_doc` = $id_cop AND `credito` > 0)";
+                WHERE (`id_ctb_doc` IN (SELECT
+                        `pcd`.`id_ctb_doc`
+                    FROM
+                        `pto_pag_detalle` AS `ppd`
+                        INNER JOIN `pto_cop_detalle` AS `pcd` 
+                            ON (`ppd`.`id_pto_cop_det` = `pcd`.`id_pto_cop_det`)
+                        INNER JOIN `ctb_doc` AS `cd`
+                            ON (`pcd`.`id_ctb_doc` = `cd`.`id_ctb_doc`)
+                    WHERE (`ppd`.`id_ctb_doc` = $id_doc
+                        AND `cd`.`estado` > 1)) AND `credito` > 0)";
         } else {
             $sql = "SELECT
                     `ctb_referencia`.`id_cta_credito` AS `id_cuenta`
@@ -74,13 +83,21 @@ try {
                     `ctb_doc`
                     INNER JOIN `ctb_referencia` 
                         ON (`ctb_doc`.`id_ref_ctb` = `ctb_referencia`.`id_ctb_referencia`)
-                WHERE (`ctb_doc`.`id_ctb_doc` = $id_doc)
-                LIMIT 1";
+                WHERE (`ctb_doc`.`id_ctb_doc` IN 
+                    (SELECT
+                        `pcd`.`id_ctb_doc`
+                    FROM
+                        `pto_pag_detalle` AS `ppd`
+                        INNER JOIN `pto_cop_detalle` AS `pcd` 
+                            ON (`ppd`.`id_pto_cop_det` = `pcd`.`id_pto_cop_det`)
+                        INNER JOIN `ctb_doc` AS `cd`
+                            ON (`pcd`.`id_ctb_doc` = `cd`.`id_ctb_doc`)
+                    WHERE (`ppd`.`id_ctb_doc` = $id_doc
+                        AND `cd`.`estado` > 1)))";
         }
     }
-
     $rs = $cmd->query($sql);
-    $cuenta_ctb = ($tipo != 4) ? $rs->fetch() : $rs->fetchAll();
+    $cuenta_ctb = $rs->fetchAll();
     $rs->closeCursor();
     unset($rs);
 
@@ -101,7 +118,7 @@ try {
         $id_cuenta = $fp['cta_contable'];
         $credito = $fp['valor'];
         $total += $credito;
-        if (isset($cuenta_ctb['accion']) && $cuenta_ctb['accion'] == '1') {
+        if (isset($cuenta_ctb[0]['accion']) && $cuenta_ctb[0]['accion'] == '1') {
             $debito = $credito;
             $credito = 0;
         }
@@ -110,27 +127,38 @@ try {
             Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_doc, $id_tercero, $id_cuenta, '$debito', '$credito', $iduser, '$fecha2')");
             $registros++;
         } else {
-            $response['msg'] += $sql->errorInfo()[2];
+            $response['msg'] .= $sql->errorInfo()[2];
         }
     }
     $credito = 0;
     if ($tipo != 4) {
         if (empty($cuenta_ctb)) {
             $id_cuenta = NULL;
+            $debito = $total;
+            $sql->execute();
+            if ($cmd->lastInsertId() > 0) {
+                Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_doc, $id_tercero, $id_cuenta, '$debito', '$credito', $iduser, '$fecha2')");
+                $registros++;
+            } else {
+                $response['msg'] .= $sql->errorInfo()[2];
+            }
         } else {
-            $id_cuenta = $cuenta_ctb['cuenta'];
-        }
-        $debito = $total;
-        if (isset($cuenta_ctb['accion']) && $cuenta_ctb['accion'] == '1') {
-            $credito = $total;
-            $debito = 0;
-        }
-        $sql->execute();
-        if ($cmd->lastInsertId() > 0) {
-            Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_doc, $id_tercero, $id_cuenta, '$debito', '$credito', $iduser, '$fecha2')");
-            $registros++;
-        } else {
-            $response['msg'] += $sql->errorInfo()[2];
+            foreach ($cuenta_ctb as $cta) {
+                $id_cuenta = $cta['cuenta'] ?? $cta['id_cuenta'] ?? NULL;
+                $debito = $total;
+                $credito = 0;
+                if (isset($cta['accion']) && $cta['accion'] == '1') {
+                    $credito = $total;
+                    $debito = 0;
+                }
+                $sql->execute();
+                if ($cmd->lastInsertId() > 0) {
+                    Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_doc, $id_tercero, $id_cuenta, '$debito', '$credito', $iduser, '$fecha2')");
+                    $registros++;
+                } else {
+                    $response['msg'] .= $sql->errorInfo()[2];
+                }
+            }
         }
     } else {
         foreach ($cuenta_ctb as $cc) {
@@ -148,7 +176,7 @@ try {
         }
     }
 } catch (PDOException $e) {
-    $response['msg'] =  $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    $response['msg'] = $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 if ($registros > 0) {
     $response['status'] = 'ok';

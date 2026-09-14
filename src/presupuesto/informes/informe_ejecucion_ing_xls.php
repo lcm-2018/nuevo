@@ -1,6 +1,7 @@
 <?php
 
 use Config\Clases\Plantilla;
+use Src\Common\Php\Clases\Valores;
 
 session_start();
 if (!isset($_SESSION['user'])) {
@@ -16,7 +17,7 @@ $fecha_ini_mes = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-' . $mes . '-
 // Último día del mes anterior a la fecha de corte
 $fecha_fin_mes_ant = date("Y-m-d", strtotime($fecha_ini_mes . ' -1 day'));
 $id_vigencia = $_SESSION['id_vigencia'];
-$total_cols = $detalle_mes == '1' ? 21 : 15;
+$total_cols = $detalle_mes == '1' ? 21 : 15; // se ajusta abajo según col_ejecucion
 function pesos($valor)
 {
     return number_format($valor, 2, ".", ",");
@@ -24,6 +25,15 @@ function pesos($valor)
 include '../../../config/autoloader.php';
 include '../../financiero/consultas.php';
 $cmd = \Config\Clases\Conexion::getConexion();
+
+// Configuración del propietario: controla visibilidad de columnas
+$ownerConfig = Valores::getOwnerConfig();
+// Mostrar "Por Ejecutar" si col_ejecucion no existe, o si existe y no es 0
+$mostrar_col_ejecucion = !array_key_exists('col_ejecucion', $ownerConfig) || $ownerConfig['col_ejecucion'] != 0;
+// Restar 1 columna si "Por Ejecutar" está oculta
+if (!$mostrar_col_ejecucion) {
+    $total_cols--;
+}
 
 // CONSULTA OPTIMIZADA CON CTEs Y SELF-JOIN PARA ACUMULADOS
 $sql = "WITH 
@@ -232,7 +242,9 @@ try {
                 <td colspan="2">Recaudo</td>
             <?php endif; ?>
             <td rowspan="2">% Ejec</td>
+            <?php if ($mostrar_col_ejecucion): ?>
             <td rowspan="2">Por Ejecutar</td>
+            <?php endif; ?>
             <td rowspan="2">Saldo por Ejecutar</td>
             <td rowspan="2">Ctas por Cobrar</td>
         </tr>
@@ -295,9 +307,11 @@ try {
             echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['recaudo_liberado_mes']) . '</td>' : '';
             $saldo_por_ejecutar = $definitivo - $recaudo_acumulado;
             echo '<td style="text-align:right">' . pesos($recaudo_acumulado) . '</td>
-             <td style="text-align:right">' .  $porc_ejec . '</td>
-                    <td style="text-align:right">' .  pesos($presupuesto_por_ejecutar) . '</td>
-                    <td style="text-align:right">' .  pesos($saldo_por_ejecutar) . '</td>
+             <td style="text-align:right">' .  $porc_ejec . '</td>';
+            if ($mostrar_col_ejecucion) {
+                echo '<td style="text-align:right">' . pesos($presupuesto_por_ejecutar) . '</td>';
+            }
+            echo '<td style="text-align:right">' .  pesos($saldo_por_ejecutar) . '</td>
                     <td style="text-align:right">' .  pesos($cuentas_por_cobrar) . '</td>
                 </tr>';
         }

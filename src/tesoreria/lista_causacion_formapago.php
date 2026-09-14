@@ -77,7 +77,16 @@ try {
 
 // Consultar el valor de los descuentos realizados a la cuenta de ctb_causa_retencion
 try {
-    $sql = "SELECT SUM(`valor_retencion`) AS `valor` FROM `ctb_causa_retencion` WHERE `id_ctb_doc` = $id_cop";
+    $sql = "SELECT SUM(`valor_retencion`) AS `valor` FROM `ctb_causa_retencion` WHERE `id_ctb_doc` IN (SELECT
+                        `pcd`.`id_ctb_doc`
+                    FROM
+                        `pto_pag_detalle` AS `ppd`
+                        INNER JOIN `pto_cop_detalle` AS `pcd` 
+                            ON (`ppd`.`id_pto_cop_det` = `pcd`.`id_pto_cop_det`)
+                        INNER JOIN `ctb_doc` AS `cd`
+                            ON (`pcd`.`id_ctb_doc` = `cd`.`id_ctb_doc`)
+                    WHERE (`ppd`.`id_ctb_doc` = $id_doc
+                        AND `cd`.`estado` > 1))";
     $rs = $cmd->query($sql);
     $descuentos = $rs->fetch();
     $valor_descuento = $valor_descuento + $descuentos['valor'];
@@ -89,7 +98,7 @@ try {
     $sql = "SELECT SUM(`valor`) AS `valor` FROM `tes_detalle_pago` WHERE `id_ctb_doc` = $id_doc";
     $rs = $cmd->query($sql);
     $pagos = $rs->fetch();
-    $valor_programado = $pagos['valor'];
+    $valor_programado = $pagos['valor'] ?? 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -129,24 +138,70 @@ if ($_SESSION['pto'] == '0') {
     $valor_pagar = !empty($pagos) ? $pagos['valor_pagar'] - $pagos['valor_pagado'] : 0;
 }
 
+$forma_pago_edit = [];
+if ($id_fp > 0) {
+    try {
+        $sql = "SELECT
+                    `tes_detalle_pago`.`id_detalle_pago`
+                    , `tb_bancos`.`id_banco`
+                    , `tes_cuentas`.`id_tes_cuenta`
+                    , `tes_detalle_pago`.`id_forma_pago`
+                    , `tes_detalle_pago`.`documento`
+                    , `tes_detalle_pago`.`valor`
+                FROM
+                    `tes_detalle_pago`
+                    INNER JOIN `tes_cuentas` 
+                        ON (`tes_detalle_pago`.`id_tes_cuenta` = `tes_cuentas`.`id_tes_cuenta`)
+                    INNER JOIN `tb_bancos` 
+                        ON (`tes_cuentas`.`id_banco` = `tb_bancos`.`id_banco`)
+                WHERE `tes_detalle_pago`.`id_detalle_pago` = $id_fp;";
+        $rs = $cmd->query($sql);
+        $forma_pago_edit = $rs->fetch();
+        $valor_pagar = $forma_pago_edit['valor'];
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    }
+}
+
 // Construir opciones de select
 $optionsBancos = '<option value="0">--Seleccione--</option>';
 foreach ($bancos as $banco) {
-    $optionsBancos .= '<option value="' . $banco['id_banco'] . '">' . $banco['nom_banco'] . '</option>';
+    $selected = (isset($forma_pago_edit['id_banco']) && $forma_pago_edit['id_banco'] == $banco['id_banco']) ? 'selected' : '';
+    $optionsBancos .= '<option value="' . $banco['id_banco'] . '" ' . $selected . '>' . $banco['nom_banco'] . '</option>';
 }
 
 $optionsFormasPago = '<option value="0">--Seleccione--</option>';
 foreach ($formas_pago as $forma_pago) {
-    $optionsFormasPago .= '<option value="' . $forma_pago['id_forma_pago'] . '">' . $forma_pago['forma_pago'] . '</option>';
+    $selected = (isset($forma_pago_edit['id_forma_pago']) && $forma_pago_edit['id_forma_pago'] == $forma_pago['id_forma_pago']) ? 'selected' : '';
+    $optionsFormasPago .= '<option value="' . $forma_pago['id_forma_pago'] . '" ' . $selected . '>' . $forma_pago['forma_pago'] . '</option>';
+}
+
+$optionsCuentas = '<option value="0">--Seleccione--</option>';
+if ($id_fp > 0 && isset($forma_pago_edit['id_banco'])) {
+    try {
+        $id_banco_edit = $forma_pago_edit['id_banco'];
+        $sql = "SELECT `id_tes_cuenta`, `nombre` FROM `tes_cuentas` WHERE `id_banco` = $id_banco_edit AND `estado` = 1 ORDER BY `nombre` ASC";
+        $rs = $cmd->query($sql);
+        $cuentas_edit = $rs->fetchAll();
+        foreach ($cuentas_edit as $cta) {
+            $selected = ($forma_pago_edit['id_tes_cuenta'] == $cta['id_tes_cuenta']) ? 'selected' : '';
+            $optionsCuentas .= '<option value="' . $cta['id_tes_cuenta'] . '" ' . $selected . '>' . $cta['nombre'] . '</option>';
+        }
+    } catch (PDOException $e) {
+        // Ignorar o registrar error
+    }
 }
 
 // Construir filas de la tabla
 $filasTabla = '';
 foreach ($rubros as $ce) {
     $id = $ce['id_detalle_pago'];
-    $editar = '';
+    $editar = $borrar = '';
     if ($permisos->PermisosUsuario($opciones, 5601, 3) || $id_rol == 1) {
-        $editar = '<a value="' . $id_doc . '" onclick="eliminarFormaPago(' . $id . ')" class="btn btn-outline-danger btn-xs rounded-circle shadow" title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
+        $editar = '<a value="' . $id_doc . '" onclick="editarFormaPago(' . $id . ')" class="btn btn-outline-primary btn-xs rounded-circle shadow" title="Editar"><span class="fas fa-pencil-alt"></span></a>';
+    }
+    if ($permisos->PermisosUsuario($opciones, 5601, 4) || $id_rol == 1) {
+        $borrar = '<a value="' . $id_doc . '" onclick="eliminarFormaPago(' . $id . ')" class="btn btn-outline-danger btn-xs rounded-circle shadow" title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
     }
     $filasTabla .= '<tr id="' . $id . '">
         <td class="text-start">' . $ce['nom_banco'] . '</td>
@@ -154,7 +209,7 @@ foreach ($rubros as $ce) {
         <td class="text-center">' . $ce['forma_pago'] . '</td>
         <td class="text-center">' . $ce['documento'] . '</td>
         <td class="text-end">' . number_format($ce['valor'], 2, '.', ',') . '</td>
-        <td class="text-center">' . $editar . '</td>
+        <td class="text-center">' . $editar . $borrar . '</td>
     </tr>';
 }
 ?>
@@ -176,10 +231,12 @@ foreach ($rubros as $ce) {
             <form id="formAddFormaPago">
                 <input type="hidden" name="id_doc" id="id_doc" value="<?= $id_doc; ?>">
                 <input type="hidden" name="id_pto_cop" id="id_pto_cop" value="<?= $id_cop; ?>">
+                <input type="hidden" name="id_fp" id="id_fp" value="<?= $id_fp; ?>">
                 <div class="row mb-2">
                     <div class="col-md-3">
                         <label for="banco" class="small fw-bold">BANCO</label>
-                        <select name="banco" id="banco" class="form-select form-select-sm bg-input" required onclick="mostrarCuentas(value);">
+                        <select name="banco" id="banco" class="form-select form-select-sm bg-input" required
+                            onchange="mostrarCuentas(value);">
                             <?= $optionsBancos; ?>
                         </select>
                     </div>
@@ -187,25 +244,30 @@ foreach ($rubros as $ce) {
                         <label for="cuentas" class="small fw-bold">CUENTA</label>
                         <div id="divBanco">
                             <select name="cuentas" id="cuentas" class="form-select form-select-sm bg-input">
-                                <option value="0">--Seleccione--</option>
+                                <?= $optionsCuentas ?? '<option value="0">--Seleccione--</option>'; ?>
                             </select>
                         </div>
                     </div>
                     <div class="col-md-2">
                         <label for="forma_pago_det" class="small fw-bold">FORMA DE PAGO</label>
                         <div id="divForma">
-                            <select name="forma_pago_det" id="forma_pago_det" class="form-select form-select-sm bg-input" required onchange="buscarCheque(value);">
+                            <select name="forma_pago_det" id="forma_pago_det"
+                                class="form-select form-select-sm bg-input" required onchange="buscarCheque(value);">
                                 <?= $optionsFormasPago; ?>
                             </select>
                         </div>
                     </div>
                     <div class="col-md-2">
                         <label for="documento" class="small fw-bold">DOCUMENTO</label>
-                        <input type="text" name="documento" id="documento" class="form-control form-control-sm bg-input" value="" required>
+                        <input type="text" name="documento" id="documento" class="form-control form-control-sm bg-input"
+                            value="<?= isset($forma_pago_edit['documento']) ? $forma_pago_edit['documento'] : '' ?>" required>
                     </div>
                     <div class="col-md-2">
                         <label for="valor_pag" class="small fw-bold">VALOR</label>
-                        <input type="text" name="valor_pag" id="valor_pag" class="form-control form-control-sm bg-input text-end" max="<?= $valor_pagar; ?>" value="<?= $valor_pagar; ?>" required onkeyup="NumberMiles(this)" ondblclick="valorMovTeroreria('');">
+                        <input type="text" name="valor_pag" id="valor_pag"
+                            class="form-control form-control-sm bg-input text-end" max="<?= $valor_pagar; ?>"
+                            value="<?= $valor_pagar; ?>" required onkeyup="NumberMiles(this)"
+                            ondblclick="valorMovTeroreria('');">
                     </div>
                 </div>
                 <div class="row mb-2">
@@ -216,7 +278,8 @@ foreach ($rubros as $ce) {
                     </div>
                 </div>
             </form>
-            <table id="tableCausacionPagos" class="table table-striped table-bordered table-sm table-hover shadow" style="width: 100%;">
+            <table id="tableCausacionPagos" class="table table-striped table-bordered table-sm table-hover shadow"
+                style="width: 100%;">
                 <thead>
                     <tr>
                         <th class="bg-sofia">Banco</th>

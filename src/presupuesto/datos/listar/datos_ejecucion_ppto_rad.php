@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -118,10 +118,10 @@ try {
 
 if (!empty($listappto)) {
     foreach ($listappto as $lp) {
-        $anular = $dato = $borrar = $imprimir = $abrir = null;
+        $anular = $dato = $borrar = $imprimir = $abrir = $liberar = null;
         $id_pto = $lp['id_pto_rad'];
         // Sumar el valor del cdp de la tabla id_pto_mtvo
-        $valor_cdp = number_format($lp['val_cdp'], 2, ',', '.');
+        $valor_cdp = number_format($lp['val_cdp'] - $lp['val_lib_cdp'], 2, ',', '.');
         $valor_cdp_lib = number_format($lp['val_lib_cdp'], 2, ',', '.');
         $val_cdp = $lp['val_cdp'] - $lp['val_lib_cdp'];
         $fecha = date('Y-m-d', strtotime($lp['fecha']));
@@ -135,6 +135,12 @@ if (!empty($listappto)) {
             }
             $editar = '<a value="' . $id_pto . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
             $detalles = '<a value="' . $id_pto . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow detalles" title="Detalles"><span class="fas fa-eye "></span></a>';
+
+            if ($lp['estado'] == 2) {
+                $liberar = '<a value="' . $id_pto . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow liberar" title="Liberación de recursos"><span class="fas fa-money-check-alt"></span></a>';
+            } else {
+                $liberar = '';
+            }
         }
         if ($permisos->PermisosUsuario($opciones, 5401, 6) || $id_rol == 1) {
             $imprimir = '<a value="' . $id_pto . '" onclick="imprimirFormatoRad(' . $id_pto . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow" title="Impirmir"><span class="fas fa-print "></span></a>';
@@ -155,6 +161,7 @@ if (!empty($listappto)) {
         }
         if ($fecha <= $fecha_cierre) {
             $abrir = null;
+            $liberar = null;
         }
         if ($lp['estado'] == 0) {
             $borrar = null;
@@ -162,11 +169,21 @@ if (!empty($listappto)) {
             $detalles = null;
             $anular = null;
             $abrir = null;
+            $liberar = null;
             $dato = '<span class="badge rounded-pill text-bg-pill badge-secondary">Anulado</span>';
         }
         if ($lp['estado'] >= 2) {
             $borrar = null;
             $editar = null;
+        }
+        if ($valor_cdp < 0) {
+            $editar = null;
+            $imprimir = null;
+            $anular = null;
+            $abrir = null;
+            $liberar = null;
+            $borrar = null;
+            $dato = null;
         }
         $data[] = [
             'numero' => $lp['id_manu'],
@@ -174,8 +191,8 @@ if (!empty($listappto)) {
             'fecha' => $fecha,
             'tercero' => $lp['tercero'],
             'objeto' => $lp['objeto'],
-            'valor' =>  '<div class="text-end">' . $valor_cdp . '</div>',
-            'botones' => '<div class="text-center">' . $editar . $detalles . $imprimir . $anular . $borrar . $dato . $abrir . '</div>',
+            'valor' => '<div class="text-end">' . $valor_cdp . '</div>',
+            'botones' => '<div class="text-center">' . $editar . $detalles . $imprimir . $anular . $borrar . $dato . $abrir . $liberar . '</div>',
         ];
     }
 } else {

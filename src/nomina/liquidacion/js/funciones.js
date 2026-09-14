@@ -13,6 +13,8 @@ function getUrlListado() {
         return 'lista_cesantias.php';
     } else if (tipo == 4) {
         return 'lista_vacaciones.php';
+    } else if (tipo == 10) {
+        return 'lista_bsp.php';
     }
     return 'lista_liquidacion.php'; // URL por defecto
 }

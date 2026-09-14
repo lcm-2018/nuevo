@@ -99,6 +99,7 @@ try {
             ?>
             <a type="button" class="btn btn-info btn-sm"
                 onclick="imprSelecTes('imprimeResolucion','<?= str_replace(',', '|', $ids); ?>');"> Resolución</a>
+            <a type="button" class="btn btn-success btn-sm" onclick='imprDctosTes(<?= $ids; ?>)'> Descuentos</a>
             <?php
         }
         ?>
@@ -183,7 +184,7 @@ foreach ($documentos_tes as $documento) {
         try {
             $sql = "SELECT
                         `ctb_doc`.`id_ctb_doc`
-                        , `ctb_doc`.`id_manu`
+                        , GROUP_CONCAT(`ctb_doc`.`id_manu` SEPARATOR ', ') AS `id_manu`
                         , `ctb_tipo_doc`.`tipo` AS `tipo_doc`
                         , `ctb_fuente`.`nombre` AS `tipo`
                         , GROUP_CONCAT(`ctb_factura`.`num_doc` SEPARATOR ', ') AS `num_doc`
@@ -198,7 +199,7 @@ foreach ($documentos_tes as $documento) {
                             ON (`ctb_doc`.`id_tipo_doc` = `ctb_fuente`.`id_doc_fuente`)
                         INNER JOIN `ctb_tipo_doc` 
                             ON (`ctb_factura`.`id_tipo_doc` = `ctb_tipo_doc`.`id_ctb_tipodoc`)
-                    WHERE (`ctb_doc`.`id_ctb_doc` = (SELECT
+                    WHERE (`ctb_doc`.`id_ctb_doc` IN (SELECT
                                         `pto_cop_detalle`.`id_ctb_doc`
                                     FROM
                                         `pto_pag_detalle`
@@ -206,7 +207,7 @@ foreach ($documentos_tes as $documento) {
                                         ON (`pto_pag_detalle`.`id_pto_cop_det` = `pto_cop_detalle`.`id_pto_cop_det`)
                                         LEFT JOIN `ctb_causa_retencion` 
                                         ON (`pto_cop_detalle`.`id_ctb_doc` = `ctb_causa_retencion`.`id_ctb_doc`)
-                                    WHERE (`pto_pag_detalle`.`id_ctb_doc` = $id_doc) LIMIT 1))";
+                                    WHERE (`pto_pag_detalle`.`id_ctb_doc` = $id_doc)))";
             $rs = $cmd->query($sql);
             $data = $rs->fetch();
         } catch (PDOException $e) {
@@ -257,7 +258,7 @@ foreach ($documentos_tes as $documento) {
 				    , `id_ctb_doc`
 				FROM
 				    `ctb_causa_retencion`
-				WHERE (`id_ctb_doc` = (SELECT
+				WHERE (`id_ctb_doc` IN (SELECT
 							    `pto_cop_detalle`.`id_ctb_doc`
 							FROM
 							    `pto_pag_detalle`
@@ -265,7 +266,7 @@ foreach ($documentos_tes as $documento) {
 								ON (`pto_pag_detalle`.`id_pto_cop_det` = `pto_cop_detalle`.`id_pto_cop_det`)
 							    INNER JOIN `ctb_causa_retencion` 
 								ON (`pto_cop_detalle`.`id_ctb_doc` = `ctb_causa_retencion`.`id_ctb_doc`)
-							WHERE (`pto_pag_detalle`.`id_ctb_doc` = $id_doc) LIMIT 1))";
+							WHERE (`pto_pag_detalle`.`id_ctb_doc` = $id_doc)))";
         $res = $cmd->query($sql);
         $descuentos = $res->fetch(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
