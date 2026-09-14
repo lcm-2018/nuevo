@@ -10,10 +10,6 @@ class Conexion
     private static $instancia = null;
     private $conexion;
     private $bd_driver = "mysql";
-<<<<<<< HEAD
-    private $bd_servidor = "localhost";
-    private $bd_base = "ybd_redsalud";
-=======
     private $bd_servidor = "localhost:3308";
     private $bd_base = "sm";
     private $bd_usuario = "root";
