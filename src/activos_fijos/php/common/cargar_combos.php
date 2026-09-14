@@ -334,16 +334,16 @@ function subgrupo_articulo($cmd, $titulo = '', $id = -1)
 {
     try {
         echo '<option value="">' . $titulo . '</option>';
-        $sql = "SELECT id_subgrupo,nom_subgrupo FROM far_subgrupos WHERE id_grupo IN (3,4,5) OR far_subgrupos.af_menor_cuantia=1";
+        $sql = "SELECT id_subgrupo,cod_subgrupo,nom_subgrupo FROM far_subgrupos WHERE id_grupo IN (3,4,5) OR far_subgrupos.af_menor_cuantia=1";
         $rs = $cmd->query($sql);
         $objs = $rs->fetchAll();
         $rs->closeCursor();
         unset($rs);
         foreach ($objs as $obj) {
             if ($obj['id_subgrupo']  == $id) {
-                echo '<option value="' . $obj['id_subgrupo'] . '" selected="selected">' . $obj['nom_subgrupo'] . '</option>';
+                echo '<option value="' . $obj['id_subgrupo'] . '" selected="selected" data-cod_subgrupo="' . $obj['cod_subgrupo'] . '">' . $obj['nom_subgrupo'] . '</option>';
             } else {
-                echo '<option value="' . $obj['id_subgrupo'] . '">' . $obj['nom_subgrupo'] . '</option>';
+                echo '<option value="' . $obj['id_subgrupo'] . '" data-cod_subgrupo="' . $obj['cod_subgrupo'] . '">' . $obj['nom_subgrupo'] . '</option>';
             }
         }
         $cmd = null;

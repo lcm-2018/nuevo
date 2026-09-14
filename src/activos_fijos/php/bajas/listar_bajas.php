@@ -52,8 +52,9 @@ try {
     $totalRecordsFilter = $total['total'];
 
     //Consulta los datos para listarlos en la tabla
-    $sql = "SELECT id_baja,fec_orden,hor_orden,observaciones,                    
-                estado,CASE estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' END AS nom_estado 
+    $sql = "SELECT id_baja,num_baja,fec_orden,hor_orden,observaciones,estado,
+                CASE estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' END AS nom_estado,
+                CASE estado WHEN 0 THEN fec_anula WHEN 1 THEN fec_crea WHEN 2 THEN fec_cierre END AS fec_estado
             FROM acf_baja
             $where ORDER BY $col $dir $limit";
 
@@ -81,11 +82,12 @@ if (!empty($objs)) {
         }
         $data[] = [
             "id_baja" => $id,
+            "num_baja" => $obj['num_baja'],
             "fec_baja" => $obj['fec_orden'],
             "hor_baja" => $obj['hor_orden'],
             "observaciones" => $obj['observaciones'],
             "estado" => $obj['estado'],
-            "nom_estado" => $obj['nom_estado'],
+            "nom_estado" => $obj['nom_estado'] . '<br>' . $obj['fec_estado'],
             "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
         ];
     }

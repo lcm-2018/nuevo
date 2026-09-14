@@ -147,6 +147,16 @@ try {
         </tr>
     </table>
 
+    <table style="font-size:70%">
+        <tr style="text-align:center">
+            <th>Tiempo de vencimiento:</th>            
+            <th class="bg-secondary">&nbsp&nbspVencidos&nbsp&nbsp</th>
+            <th class="bg-danger">&nbsp&nbsp<= 180 días (<=6 meses)&nbsp&nbsp</th>
+            <th class="bg-warning">&nbsp&nbsp> 180 días y <= 365 días (>6 meses y <= 12 meses)&nbsp&nbsp</th>
+            <th class="bg-success">&nbsp&nbsp> 365 días (> 12 meses)&nbsp&nbsp</th>
+        </tr>
+    </table>
+    
     <table style="width:100% !important">
         <tbody style="font-size: 60%;">
             <?php
@@ -190,10 +200,12 @@ try {
                         $color = "bg-secondary";
                         if ($obj['dias'] > 365) {
                             $color = "bg-success";
-                        } else if ($obj['dias'] > 91 && $obj['dias'] <= 365) {
+                        } else if ($obj['dias'] > 180 && $obj['dias'] <= 365) {
                             $color = "bg-warning";
-                        } else if ($obj['dias'] > 0 && $obj['dias'] <= 91) {
+                        } else if ($obj['dias'] >= 0 && $obj['dias'] <= 180) {
                             $color = "bg-danger";
+                        } else if ($obj['dias'] < 0) {
+                            $color = "bg-secondary";
                         }
                         $tabla .=  '<tr class="resaltar">
                             <td>' . str_repeat('&nbsp', 20) . $obj['cod_medicamento'] . '</td>

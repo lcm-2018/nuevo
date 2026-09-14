@@ -14,7 +14,8 @@ $id = isset($_POST['id']) ? $_POST['id'] : -1;
 
 try {
     $sql = "SELECT acf_orden_ingreso.id_ingreso,acf_orden_ingreso.num_ingreso,acf_orden_ingreso.fec_ingreso,
-            acf_orden_ingreso.hor_ingreso,acf_orden_ingreso.num_factura,acf_orden_ingreso.fec_factura,
+            acf_orden_ingreso.hor_ingreso,acf_orden_ingreso.num_ingreso_tipo,
+            acf_orden_ingreso.num_factura,acf_orden_ingreso.fec_factura,
             acf_orden_ingreso.detalle,acf_orden_ingreso.val_total,
             tb_sedes.nom_sede,
             tb_terceros.nom_tercero,far_orden_ingreso_tipo.nom_tipo_ingreso,
@@ -97,14 +98,14 @@ try {
         </tr>
         <tr style="background-color:#CED3D3; border:#A9A9A9 1px solid">
             <td>Sede</td>
-            <td>Tipo de Ingreso</td>
+                <td>Tipo de Ingreso (No. Tipo Ing.)</td>
             <td>No. Fact./Acta/Rem.</td>
             <td>Fecha Fact./Acta/Rem.</td>
             <td colspan="2">Proveedor</td>
         </tr>
         <tr>
             <td><?php echo $obj_e['nom_sede']; ?></td>
-            <td><?php echo $obj_e['nom_tipo_ingreso']; ?></td>
+            <td><?php echo $obj_e['nom_tipo_ingreso'] . ' (' . $obj_e['num_ingreso_tipo'] . ')'; ?></td>
             <td><?php echo $obj_e['num_factura']; ?></td>
             <td><?php echo $obj_e['fec_factura']; ?></td>
             <td colspan="2"><?php echo $obj_e['nom_tercero']; ?></td>

@@ -34,6 +34,7 @@ if (isset($_POST['estado']) && strlen($_POST['estado'])) {
 try {
     $sql = "SELECT acf_orden_ingreso.id_ingreso,acf_orden_ingreso.num_ingreso,
                 acf_orden_ingreso.fec_ingreso,acf_orden_ingreso.hor_ingreso,
+                acf_orden_ingreso.num_ingreso_tipo,
                 acf_orden_ingreso.num_factura,acf_orden_ingreso.fec_factura,acf_orden_ingreso.detalle,
                 tb_terceros.nom_tercero,far_orden_ingreso_tipo.nom_tipo_ingreso,
                 acf_orden_ingreso.val_total,
@@ -96,6 +97,7 @@ try {
                 <th>Detalle</th>
                 <th>Tercero</th>
                 <th>Tipo Ingreso</th>
+                <th>No.xTI</th>
                 <th>Sede</th>
                 <th>Vr. Total</th>
                 <th>Estado</th>
@@ -114,9 +116,10 @@ try {
                         <td>' . $obj['fec_factura'] . '</td> 
                         <td style="text-align:left">' . $obj['detalle'] . '</td>   
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_tercero']) . '</td>   
-                        <td>' . mb_strtoupper($obj['nom_tipo_ingreso']) . '</td>                           
-                        <td>' . mb_strtoupper($obj['nom_sede']) . '</td>   
-                        <td>' . formato_valor($obj['val_total']) . '</td>   
+                        <td style="text-align:left">' . mb_strtoupper($obj['nom_tipo_ingreso']) . '</td>   
+                        <td style="text-align:left">' . $obj['num_ingreso_tipo'] . '</td>   
+                        <td style="text-align:left">' . mb_strtoupper($obj['nom_sede']) . '</td>   
+                        <td style="text-align:right">' . formato_valor($obj['val_total']) . '</td>   
                         <td>' . $obj['nom_estado'] . '</td></tr>';
             }
             echo $tabla;
@@ -124,7 +127,7 @@ try {
         </tbody>
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
-                <td colspan="12" style="text-align:left">
+                <td colspan="13" style="text-align:left">
                     No. de Registros: <?php echo count($objs); ?>
                 </td>
             </tr>

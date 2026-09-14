@@ -166,6 +166,7 @@ $content = <<<HTML
                         <th rowspan="2" class="bg-sofia">Hora Egreso</th>
                         <th rowspan="2" class="bg-sofia">Detalle</th>
                         <th rowspan="2" class="bg-sofia">Tipo Egreso</th>
+                        <th rowspan="2" class="bg-sofia">No. Tipo Egr.</th>
                         <th colspan="2" class="bg-sofia">Unidad Origen</th>
                         <th colspan="4" class="bg-sofia">Unidad Destino</th>
                         <th rowspan="2" class="bg-sofia">Vr. Total</th>

@@ -63,6 +63,10 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_hor_orden" name="txt_hor_orden" class="small" value="<?php echo $obj['hor_orden'] ?>" readonly="readonly">
                     </div>
                     <div class="col-md-2">
+                        <label for="txt_num_baja" class="small">No. Baja</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_num_baja" name="txt_num_baja" class="small" value="<?php echo $obj['num_baja'] ?>" readonly="readonly">
+                    </div>
+                    <div class="col-md-2">
                         <label for="txt_est_baja" class="small">Estado baja</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_est_baja" name="txt_est_baja" class="small" value="<?php echo $obj['nom_estado'] ?>" readonly="readonly">
                     </div>

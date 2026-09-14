@@ -94,6 +94,7 @@ try {
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT far_orden_egreso.id_egreso,far_orden_egreso.num_egreso,far_orden_egreso.fec_egreso,far_orden_egreso.hor_egreso,
+	            far_orden_egreso.num_egreso_tipo,
 	            far_orden_egreso.detalle,tb_centrocostos.nom_centro,
                 IF(far_centrocosto_area.id_area=0,'',tb_sedes_area.nom_sede) AS nom_sede_des,
                 far_centrocosto_area.nom_area,
@@ -102,13 +103,14 @@ try {
                 far_orden_egreso.val_total,tb_sedes.nom_sede,far_bodegas.nombre AS nom_bodega,
                 far_orden_egreso.estado,
 	            CASE far_orden_egreso.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado,
+                CASE far_orden_egreso.estado WHEN 0 THEN far_orden_egreso.fec_anulacion WHEN 1 THEN far_orden_egreso.fec_creacion WHEN 2 THEN far_orden_egreso.fec_cierre END AS fec_estado,
                 far_orden_egreso.creado_far,
                 EGRESO.num_pedido
             FROM far_orden_egreso
             INNER JOIN far_orden_egreso_tipo ON (far_orden_egreso_tipo.id_tipo_egreso=far_orden_egreso.id_tipo_egreso)
             INNER JOIN tb_terceros ON (tb_terceros.id_tercero=far_orden_egreso.id_cliente)
             INNER JOIN tb_centrocostos ON (tb_centrocostos.id_centro=far_orden_egreso.id_centrocosto)
-            INNER JOIN far_centrocosto_area ON (far_centrocosto_area.id_area=far_orden_egreso.id_area)
+            LEFT JOIN far_centrocosto_area ON (far_centrocosto_area.id_area=far_orden_egreso.id_area)
             LEFT JOIN tb_sedes AS tb_sedes_area ON (tb_sedes_area.id_sede=far_centrocosto_area.id_sede)
             INNER JOIN tb_sedes ON (tb_sedes.id_sede=far_orden_egreso.id_sede)
             INNER JOIN far_bodegas ON (far_bodegas.id_bodega=far_orden_egreso.id_bodega)
@@ -153,6 +155,7 @@ if (!empty($objs)) {
             "hor_egreso" => $obj['hor_egreso'],
             "detalle" => $obj['detalle'],
             "nom_tipo_egreso" => mb_strtoupper($obj['nom_tipo_egreso']),
+            "num_egreso_tipo" => $obj['num_egreso_tipo'],
             "nom_sede" => mb_strtoupper($obj['nom_sede']),
             "nom_bodega" => mb_strtoupper($obj['nom_bodega']),
             "nom_centro" => mb_strtoupper($obj['nom_centro']),
@@ -161,7 +164,7 @@ if (!empty($objs)) {
             "nom_tercero" => mb_strtoupper($obj['nom_tercero']),
             "val_total" => formato_valor($obj['val_total']),
             "estado" => $obj['estado'],
-            "nom_estado" => $obj['nom_estado'],
+            "nom_estado" => $obj['nom_estado'] . '<br>' . $obj['fec_estado'],
             "num_pedido" => $obj['num_pedido'],
             "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];

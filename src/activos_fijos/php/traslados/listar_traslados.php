@@ -79,7 +79,9 @@ try {
                 CONCAT_WS(' ',UO.apellido1,UO.apellido2,UO.nombre1,UO.nombre2)  AS nom_usuario_origen,                    
                 AD.nom_area AS nom_area_destino,SD.nom_sede AS nom_sede_destino,
                 CONCAT_WS(' ',UD.apellido1,UD.apellido2,UD.nombre1,UD.nombre2)  AS nom_usuario_destino,                
-                AT.estado,CASE AT.estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' END AS nom_estado 
+                AT.estado,
+                CASE AT.estado WHEN 0 THEN 'ANULADO' WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' END AS nom_estado,
+                CASE AT.estado WHEN 0 THEN AT.fec_anula WHEN 1 THEN AT.fec_crea WHEN 2 THEN AT.fec_cierre END AS fec_estado
             FROM acf_traslado AS AT           
             INNER JOIN far_centrocosto_area AS AO ON (AO.id_area = AT.id_area_origen)
             INNER JOIN tb_sedes AS SO ON (SO.id_sede = AO.id_sede)
@@ -123,7 +125,7 @@ if (!empty($objs)) {
             "nom_area_destino" => mb_strtoupper($obj['nom_area_destino']),
             "nom_usuario_destino" => mb_strtoupper($obj['nom_usuario_destino']),
             "estado" => $obj['estado'],
-            "nom_estado" => $obj['nom_estado'],
+            "nom_estado" => $obj['nom_estado'] . '<br>' . $obj['fec_estado'],
             "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
         ];
     }

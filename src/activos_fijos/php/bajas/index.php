@@ -71,8 +71,9 @@ $content = <<<HTML
                 <thead class="text-center">
                     <tr>
                         <th class="bg-sofia">Id</th>
-                        <th class="bg-sofia">Fecha baja</th>
-                        <th class="bg-sofia">Hora baja</th>
+                        <th class="bg-sofia">No. Baja</th>
+                        <th class="bg-sofia">Fecha Baja</th>
+                        <th class="bg-sofia">Hora Baja</th>
                         <th class="bg-sofia">Observaciones</th>
                         <th class="bg-sofia">Id.Estado</th>
                         <th class="bg-sofia">Estado</th>

@@ -39,6 +39,7 @@ if (isset($_POST['modulo']) && strlen($_POST['modulo'])) {
 
 try {
     $sql = "SELECT far_orden_ingreso.id_ingreso,far_orden_ingreso.num_ingreso,far_orden_ingreso.fec_ingreso,far_orden_ingreso.hor_ingreso,
+                far_orden_ingreso.num_ingreso_tipo,
                 far_orden_ingreso.num_factura,far_orden_ingreso.fec_factura,far_orden_ingreso.detalle,tb_terceros.nom_tercero,
                 far_orden_ingreso_tipo.nom_tipo_ingreso,far_orden_ingreso.val_total,tb_sedes.nom_sede,far_bodegas.nombre AS nom_bodega,
                 CASE far_orden_ingreso.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado
@@ -98,6 +99,7 @@ try {
                 <th>Fecha Factura</th>
                 <th>Detalle</th>
                 <th>Tipo Ingreso</th>
+                <th>No.xTI</th>
                 <th>Tercero</th>
                 <th>Sede</th>
                 <th>Bodega</th>
@@ -120,6 +122,7 @@ try {
                         <td>' . $obj['fec_factura'] . '</td> 
                         <td style="text-align:left">' . $obj['detalle'] . '</td>   
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_tipo_ingreso']) . '</td>   
+                        <td style="text-align:left">' . $obj['num_ingreso_tipo'] . '</td>   
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_tercero']) . '</td>                                                   
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_sede']) . '</td>   
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_bodega']) . '</td>   
@@ -132,7 +135,7 @@ try {
         </tbody>
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
-                <th colspan="10" style="text-align:left">
+                <th colspan="11" style="text-align:left">
                     No. de Registros: <?php echo $numreg; ?>
                 </th>
                 <th style="text-align:left">

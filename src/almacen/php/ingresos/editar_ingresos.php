@@ -123,7 +123,7 @@ try {
         if ($oper == 'close') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado,fec_ingreso,detalle FROM far_orden_ingreso WHERE id_ingreso=" . $id;
+            $sql = "SELECT estado,fec_ingreso,detalle,id_tipo_ingreso FROM far_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
             $obj_ingreso = $rs->fetch();
             $estado = isset($obj_ingreso['estado']) ? $obj_ingreso['estado'] : -1;
@@ -217,9 +217,18 @@ try {
                     $num_ingreso = $obj['num_ingresoactual'];
                     $res['num_ingreso'] = $num_ingreso;
 
-                    $sql = "UPDATE far_orden_ingreso SET num_ingreso=$num_ingreso,estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope' WHERE id_ingreso=$id";
+                    $sql = 'SELECT consecutivo FROM far_orden_ingreso_tipo WHERE id_tipo_ingreso=' . $obj_ingreso['id_tipo_ingreso'] . ' LIMIT 1';
+                    $rs = $cmd->query($sql);
+                    $obj = $rs->fetch();
+                    $num_ingreso_tipo = $obj['consecutivo'];
+                    $res['num_ingreso_tipo'] = $num_ingreso_tipo;
+
+                    $sql = "UPDATE far_orden_ingreso SET num_ingreso=$num_ingreso,num_ingreso_tipo=$num_ingreso_tipo,estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope' WHERE id_ingreso=$id";
                     $rs1 = $cmd->query($sql);
+
                     $sql = 'UPDATE tb_datos_ips SET num_ingresoactual=num_ingresoactual+1';
+                    $rs2 = $cmd->query($sql);
+                    $sql = 'UPDATE far_orden_ingreso_tipo SET consecutivo=consecutivo+1 WHERE id_tipo_ingreso=' . $obj_ingreso['id_tipo_ingreso'];
                     $rs2 = $cmd->query($sql);
 
                     if ($rs1 == false || $rs2 == false || error_get_last()) {

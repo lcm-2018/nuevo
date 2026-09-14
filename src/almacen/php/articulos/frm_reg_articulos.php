@@ -49,6 +49,11 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                         <label for="txt_cod_art" class="small">Código</label>
                         <input type="text" class="form-control form-control-sm bg-input valcode" id="txt_cod_art" name="txt_cod_art" required value="<?php echo $obj['cod_medicamento'] ?>">
                     </div>
+                    <div class="col-md-2">                        
+                        <button type="button" id="btn_gen_codigo" class="btn btn-outline-success btn-sm" title="Generar código de artículo" style="margin-top: 20px;">
+                            <span class="fas fa-angle-double-left fa-lg" aria-hidden="true"></span>Generar Código
+                        </button>
+                    </div>    
                     <div class="col-md-6">
                         <label for="txt_nom_art" class="small">Nombre</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_art" name="txt_nom_art" required value="<?php echo $obj['nom_medicamento'] ?>">

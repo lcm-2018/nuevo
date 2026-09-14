@@ -61,6 +61,7 @@ if (isset($_POST['modulo']) && strlen($_POST['modulo'])) {
 
 try {
     $sql = "SELECT far_orden_egreso.id_egreso,far_orden_egreso.num_egreso,far_orden_egreso.fec_egreso,far_orden_egreso.hor_egreso,
+                    far_orden_egreso.num_egreso_tipo,
                     far_orden_egreso.detalle,tb_centrocostos.nom_centro,
                     IF(far_centrocosto_area.id_area=0,'',tb_sedes_area.nom_sede) AS nom_sede_des,
                     far_centrocosto_area.nom_area,
@@ -124,6 +125,7 @@ try {
                 <th rowspan="2">Hora Egreso</th>
                 <th rowspan="2">Detalle</th>
                 <th rowspan="2">Tipo Egreso</th>
+                <th rowspan="2">No.xTE</th>
                 <th colspan="2">Unidad Origen</th>
                 <th colspan="4">Unidad Destino</th>
                 <th rowspan="2">Vr. Total</th>
@@ -150,7 +152,8 @@ try {
                         <td>' . $obj['fec_egreso'] . '</td>
                         <td>' . $obj['hor_egreso'] . '</td>                  
                         <td style="text-align:left">' . $obj['detalle'] . '</td>                      
-                        <td style="text-align:left">' . mb_strtoupper($obj['nom_tipo_egreso']) . '</td>                           
+                        <td style="text-align:left">' . mb_strtoupper($obj['nom_tipo_egreso']) . '</td>     
+                        <td style="text-align:left">' . $obj['num_egreso_tipo'] . '</td>                      
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_sede']) . '</td>   
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_bodega']) . '</td>                           
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_centro']) . '</td>
@@ -166,7 +169,7 @@ try {
         </tbody>
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
-                <th colspan="11" style="text-align:left">
+                <th colspan="12" style="text-align:left">
                     No. de Registros: <?php echo $numreg; ?>
                 </th>
                 <th style="text-align:left">

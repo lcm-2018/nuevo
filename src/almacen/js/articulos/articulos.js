@@ -81,6 +81,28 @@
         }
     });
 
+    // Generar código de artículo
+    $('#divForms').on("click", "#btn_gen_codigo", function () {
+        if ($('#sl_subgrp_art').val() == '') {
+            mjeError('Debe seleccionar un Subgrupo para generar el código');
+            return;
+        } 
+        const id_articulo = $('#id_articulo').val(),
+              cod_subgrupo = $('#sl_subgrp_art option:selected').attr('data-cod_subgrupo');        
+        $.ajax({
+            type: 'POST',
+            url: 'generar_codigo.php',
+            dataType: 'json',
+            data: "id_articulo=" + id_articulo + "&cod_subgrupo=" + cod_subgrupo
+        }).done(function (r) {
+            if (r.mensaje == 'ok') {
+                $('#txt_cod_art').val(r.codigo);
+            } else {
+                mjeError('Error al generar el código');
+            }
+        });
+    });
+
     // Autocompletar Unidad de Medida
     $('#divForms').on("input", "#txt_unimed_art", function () {
         $(this).autocomplete({

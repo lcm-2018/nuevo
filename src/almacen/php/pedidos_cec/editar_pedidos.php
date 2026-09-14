@@ -25,12 +25,12 @@ $res = array();
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5003, 2) && $oper == 'add' && $_POST['id_pedido'] == -1) ||
-        ($permisos->PermisosUsuario($opciones, 5003, 3) && $oper == 'add' && $_POST['id_pedido'] != -1) ||
-        ($permisos->PermisosUsuario($opciones, 5003, 4) && $oper == 'del') ||
-        ($permisos->PermisosUsuario($opciones, 5005, 3) && $oper == 'conf') ||
-        ($permisos->PermisosUsuario($opciones, 5003, 3) && $oper == 'close') ||
-        ($permisos->PermisosUsuario($opciones, 5003, 5) && $oper == 'annul' || $id_rol == 1)
+    if (($permisos->PermisosUsuario($opciones, 5004, 2) && $oper == 'add' && $_POST['id_pedido'] == -1) ||
+        ($permisos->PermisosUsuario($opciones, 5004, 3) && $oper == 'add' && $_POST['id_pedido'] != -1) ||
+        ($permisos->PermisosUsuario($opciones, 5004, 4) && $oper == 'del') ||
+        ($permisos->PermisosUsuario($opciones, 5004, 3) && $oper == 'conf') ||
+        ($permisos->PermisosUsuario($opciones, 5004, 3) && $oper == 'close') ||
+        ($permisos->PermisosUsuario($opciones, 5004, 5) && $oper == 'annul' || $id_rol == 1)
     ) {
 
         if ($oper == 'add') {

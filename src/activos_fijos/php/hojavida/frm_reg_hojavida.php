@@ -11,7 +11,8 @@ include '../common/funciones_generales.php';
 $cmd = \Config\Clases\Conexion::getConexion();
 
 $id = isset($_POST['id_hv']) ? $_POST['id_hv'] : -1;
-$sql = "SELECT HV.*,ART.nom_medicamento AS nom_articulo            
+$sql = "SELECT HV.*,ART.nom_medicamento AS nom_articulo,
+                IF(HV.vida_util='' OR HV.vida_util IS NULL, ART.vida_util, HV.vida_util) AS vida_util1
         FROM acf_hojavida HV
         INNER JOIN far_medicamentos AS ART  ON (ART.id_med=HV.id_articulo)
         WHERE HV.id_activo_fijo=" . $id . " LIMIT 1";
@@ -177,8 +178,8 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                         <input type="text" class="form-control form-control-sm bg-input" id="periodo_garantia" name="periodo_garantia" value="<?php echo $obj['periodo_garantia'] ?>">
                     </div>
                     <div class="col-md-3">
-                        <label for="vida_util" class="small">Vida Útil</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="vida_util" name="vida_util" value="<?php echo $obj['vida_util'] ?>">
+                        <label for="vida_util" class="small">Vida Útil (años)</label>
+                        <input type="text" class="form-control form-control-sm bg-input numberint" id="vida_util" name="vida_util" value="<?php echo $obj['vida_util1'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="sl_calif_4725" class="small">Calificación 4725</label>
