@@ -108,6 +108,55 @@ foreach ($datos as $dato) {
 
 ksort($acum, SORT_STRING);
 
+// ----------------------------------------------------------------------
+// Nuevo bloque: Valores pendientes por pagar por tercero
+// ----------------------------------------------------------------------
+try {
+    $sql_pendientes = "SELECT 
+            `ctb_pgcp`.`cuenta`,
+            `ctb_pgcp`.`nombre` AS `nombre_cuenta`,
+            `tb_terceros`.`nom_tercero` AS `nombre_tercero`,
+            `tb_terceros`.`nit_tercero` AS `nit_tercero`,
+            `ctb_doc`.`id_manu` AS `causacion_numero`,
+            `ctb_doc`.`fecha` AS `fecha_causacion`,
+            SUM(`ctb_libaux`.`credito` - `ctb_libaux`.`debito`) AS `causado`,
+            (
+                SELECT SUM(aux_pag.`debito` - aux_pag.`credito`) 
+                FROM `pto_pag_detalle` pag 
+                INNER JOIN `ctb_doc` doc_pag ON pag.`id_ctb_doc` = doc_pag.`id_ctb_doc` 
+                INNER JOIN `ctb_libaux` aux_pag ON doc_pag.`id_ctb_doc` = aux_pag.`id_ctb_doc` 
+                WHERE pag.`id_pto_cop_det` = `pto_cop_detalle`.`id_pto_cop_det` 
+                  AND doc_pag.`estado` = 2 
+                  AND aux_pag.`id_cuenta` = `ctb_pgcp`.`id_pgcp`
+            ) AS `pagado`
+        FROM `pto_cop_detalle`
+        INNER JOIN `ctb_doc` ON `pto_cop_detalle`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`
+        INNER JOIN `ctb_libaux` ON `ctb_doc`.`id_ctb_doc` = `ctb_libaux`.`id_ctb_doc`
+        INNER JOIN `ctb_pgcp` ON `ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`
+        LEFT JOIN `tb_terceros` ON `ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`
+        WHERE `ctb_doc`.`fecha` BETWEEN '$fecha_inicial' AND '$fecha_corte'
+          AND `ctb_doc`.`estado` = 2
+          AND `ctb_pgcp`.`cuenta` LIKE '2%'
+        GROUP BY 
+            `pto_cop_detalle`.`id_pto_cop_det`, 
+            `ctb_doc`.`id_manu`, 
+            `ctb_pgcp`.`id_pgcp`,
+            `tb_terceros`.`nom_tercero`,
+            `tb_terceros`.`nit_tercero`,
+            `ctb_doc`.`fecha`,
+            `ctb_pgcp`.`cuenta`,
+            `ctb_pgcp`.`nombre`
+        HAVING (`causado` - IFNULL(`pagado`, 0)) > 0
+        ORDER BY `tb_terceros`.`nom_tercero`, `ctb_doc`.`fecha`";
+
+    $res_pendientes = $cmd->query($sql_pendientes);
+    $datos_pendientes = $res_pendientes->fetchAll(PDO::FETCH_ASSOC);
+    $res_pendientes->closeCursor();
+} catch (Exception $e) {
+    echo $e->getMessage();
+    exit;
+}
+
 // Datos de empresa
 try {
     $sql_emp = "SELECT `razon_social_ips` AS `nombre`, `nit_ips` AS `nit`, `dv` AS `dig_ver` FROM `tb_datos_ips`";
@@ -169,6 +218,48 @@ $nom_informe = "ESTADO DE SITUACIÓN DE TESORERÍA" . ($incluye_cartera ? " (Inc
         ?>
             </tbody>
         </table>
+        <br><br>
+        
+        <!-- Tabla de valores pendientes por pagar por tercero -->
+        <table class="table-bordered bg-light" style="width:100% !important; border-collapse: collapse;" border="1">
+            <thead>
+                <tr>
+                    <th colspan="7" class="centrar" style="background-color: #EAECEE; font-weight: bold;">VALORES PENDIENTES POR PAGAR POR TERCERO</th>
+                </tr>
+                <tr class="centrar">
+                    <th>Tercero</th>
+                    <th>CC / NIT</th>
+                    <th>No. Causación</th>
+                    <th>Fecha Causación</th>
+                    <th>Cuenta</th>
+                    <th>Nombre Cuenta</th>
+                    <th>Saldo</th>
+                </tr>
+            </thead>
+            <tbody>
+        <?php
+        if (!empty($datos_pendientes)) {
+            foreach ($datos_pendientes as $dp) {
+                $saldo = round($dp['causado'] - (isset($dp['pagado']) ? $dp['pagado'] : 0), 2);
+                if ($saldo > 0) {
+                    echo "<tr class='resaltar'>
+                        <td class='text'>" . mb_convert_encoding($dp['nombre_tercero'] ?? '', 'UTF-8') . "</td>
+                        <td class='text'>" . ($dp['nit_tercero'] ?? '') . "</td>
+                        <td class='centrar'>" . $dp['causacion_numero'] . "</td>
+                        <td class='centrar'>" . date('Y-m-d', strtotime($dp['fecha_causacion'])) . "</td>
+                        <td class='text'>" . $dp['cuenta'] . "</td>
+                        <td class='text'>" . mb_convert_encoding($dp['nombre_cuenta'], 'UTF-8') . "</td>
+                        <td class='text-end'>" . number_format($saldo, 2, '.', ',') . "</td>
+                        </tr>";
+                }
+            }
+        } else {
+            echo "<tr><td colspan='7' class='centrar'>No hay valores pendientes por pagar</td></tr>";
+        }
+        ?>
+            </tbody>
+        </table>
+        
         <br><br><br>
     </div>
 </div>
