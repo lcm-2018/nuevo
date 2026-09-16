@@ -52,7 +52,8 @@ try {
                     ON (`ctt_adquisiciones`.`id_adquisicion` = `ctt_contratos`.`id_compra`)
                 LEFT JOIN `tb_terceros`
                     ON (`pto_crp`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
-            WHERE (`pto_crp`.`estado` = 2 AND `pto_crp`.`causado` = 0 AND `pto_crp`.`id_pto` = {$listappto['id_pto']})";
+            WHERE (`pto_crp`.`estado` = 2 AND `pto_crp`.`causado` = 0 AND `pto_crp`.`id_pto` = {$listappto['id_pto']})
+            GROUP BY `pto_crp`.`id_pto_crp`";
     $rs = $cmd->query($sql);
     $listado = $rs->fetchAll();
     $rs->closeCursor();
