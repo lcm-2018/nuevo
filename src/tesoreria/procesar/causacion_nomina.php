@@ -89,7 +89,7 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
         if (count($ccostos) !== 1) {
             throw new Exception(
                 'El empleado con documento ' . $detalleEmpleado['no_documento'] .
-                    ' tiene un centro de costo no valido para el pago: ' . ($detalleEmpleado['id_ccosto'] ?? 'sin definir')
+                ' tiene un centro de costo no valido para el pago: ' . ($detalleEmpleado['id_ccosto'] ?? 'sin definir')
             );
         }
 
@@ -97,8 +97,8 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
         if (empty($rubrosPorTipoCcosto[$tipo][$idCcosto])) {
             throw new Exception(
                 'No existe relacion de rubro para el tipo ' . $tipo .
-                    ' y centro de costo ' . $idCcosto .
-                    ' del empleado ' . $detalleEmpleado['no_documento']
+                ' y centro de costo ' . $idCcosto .
+                ' del empleado ' . $detalleEmpleado['no_documento']
             );
         }
 
@@ -116,7 +116,7 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
     if (!($rubro > 0)) {
         throw new Exception(
             'No existe rubro presupuestal configurado para el tipo ' . $tipo .
-                ' y tipo de cargo del empleado ' . $detalleEmpleado['no_documento']
+            ' y tipo de cargo del empleado ' . $detalleEmpleado['no_documento']
         );
     }
 
@@ -286,8 +286,8 @@ try {
     if (empty($tercero_emp) || (int) $id_ter_emp_api <= 0) {
         throw new Exception(
             'No se encontro un tercero valido para la empresa. Verifique el NIT ' .
-                ($_SESSION['nit_emp'] ?? 'sin definir') .
-                ' en la tabla de terceros.'
+            ($_SESSION['nit_emp'] ?? 'sin definir') .
+            ' en la tabla de terceros.'
         );
     }
 
@@ -338,15 +338,15 @@ try {
 
     $con_ces = 0;
     $tipo_field_map = [
-        1  => ['valor_laborado', 'val_compensa'],
-        2  => 'horas_ext',
-        3  => 'g_representa',
-        4  => 'val_bon_recrea',
-        5  => 'val_bsp',
-        6  => 'aux_tran',
-        7  => 'aux_alim',
-        8  => 'valor_incap_presupuesto',
-        9  => 'val_indemniza',
+        1 => ['valor_laborado', 'val_compensa'],
+        2 => 'horas_ext',
+        3 => 'g_representa',
+        4 => 'val_bon_recrea',
+        5 => 'val_bsp',
+        6 => 'aux_tran',
+        7 => 'aux_alim',
+        8 => 'valor_incap_presupuesto',
+        9 => 'val_indemniza',
         10 => 'valor_luto',
         17 => 'valor_vacacion',
         18 => 'val_cesantias',
@@ -402,7 +402,7 @@ try {
                         // Si el empleado tiene días de incapacidad y el COP no tiene
                         // rubro de sueldos para él, significa que el presupuesto se
                         // ejecuta por incapacidades (tipo 8/32). Omitir tipo 1.
-                        if ((int)$d['dias_incapacidad'] > 0 && $id_det === null) {
+                        if ((int) $d['dias_incapacidad'] > 0 && $id_det === null) {
                             $valor_pto = 0;
                             $rubro = 0;
                         }
@@ -470,8 +470,8 @@ try {
                 if ($valor_pto > 0 && $rubro > 0 && $id_det === null) {
                     throw new Exception(
                         'No existe detalle COP para el rubro ' . $rubro .
-                            ' y tercero ' . $id_ter_api .
-                            ' del empleado ' . $d['no_documento']
+                        ' y tercero ' . $id_ter_api .
+                        ' del empleado ' . $d['no_documento']
                     );
                 }
 
@@ -491,15 +491,15 @@ try {
                     if ($valor_pto > 0 && $rubro <= 0) {
                         throw new Exception(
                             'No existe rubro presupuestal configurado en el tipo de otros devengados para el empleado ' .
-                                ($d['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                            ($d['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
                         );
                     }
 
                     if ($valor_pto > 0 && $id_det === null) {
                         throw new Exception(
                             'No existe detalle COP para el rubro ' . $rubro .
-                                ' y tercero ' . $id_ter_api .
-                                ' del empleado ' . ($d['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
+                            ' y tercero ' . $id_ter_api .
+                            ' del empleado ' . ($d['no_documento'] ?? $otroDevengado['documento'] ?? 'sin documento')
                         );
                     }
 
@@ -670,10 +670,10 @@ try {
     Logs::guardaLog("UPDATE `nom_nominas` SET `estado` = $estado_nomina WHERE `id_nomina` = $id_nomina");
 
     // Registrar el documento de egreso en la tabla de trazabilidad
-    $query = "UPDATE `nom_nomina_pto_ctb_tes` SET `ceva` = ? WHERE `id_nomina` = ? AND `crp` = ?";
+    $query = "UPDATE `nom_nomina_pto_ctb_tes` SET `ceva` = ? WHERE `id_nomina` = ? AND `cnom` = ?";
     $query = $cmd->prepare($query);
-    $query->execute([$id_ctb_doc_ceva, $id_nomina, $crp]);
-    Logs::guardaLog("UPDATE `nom_nomina_pto_ctb_tes` SET `ceva` = $id_ctb_doc_ceva WHERE `id_nomina` = $id_nomina AND `crp` = $crp");
+    $query->execute([$id_ctb_doc_ceva, $id_nomina, $id_ctb_doc]);
+    Logs::guardaLog("UPDATE `nom_nomina_pto_ctb_tes` SET `ceva` = $id_ctb_doc_ceva WHERE `id_nomina` = $id_nomina AND `cnom` = $id_ctb_doc");
 
     $cmd->commit();
     echo 'ok';

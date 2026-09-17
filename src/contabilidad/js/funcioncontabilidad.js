@@ -3841,6 +3841,14 @@ function RegDocREfDr(datos, id_doc) {
 
 function GuardarReferenciaDr(boton) {
 	$('.is-invalid').removeClass('is-invalid');
+	
+	if ($('#codigoCta1').val() == '') {
+		$('#id_codigoCta1').val('0');
+	}
+	if ($('#codigoCta2').val() == '') {
+		$('#id_codigoCta2').val('0');
+	}
+
 	if ($('#nombre').val() == '') {
 		$('#nombre').addClass('is-invalid');
 		$('#nombre').focus();

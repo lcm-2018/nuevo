@@ -1538,3 +1538,52 @@ function EditarDeduccion(id) {
         $('#slcVigencia').focus();
     });
 }
+
+function EditarCuentaBancaria(id_t) {
+    $.post("datos/actualizar/form_edit_cuenta.php", { id_t: id_t }, function (he) {
+        $('#divTamModalForms').removeClass('modal-sm');
+        $('#divTamModalForms').removeClass('modal-xl');
+        $('#divTamModalForms').addClass('modal-lg');
+        $('#divModalForms').modal('show');
+        $("#divForms").html(he);
+    });
+}
+
+$(document).on('click', '#btnUpdateCuenta', function () {
+    $('.is-invalid').removeClass('is-invalid');
+    if ($('#slcBancoE').val() == '0') {
+        $('#slcBancoE').addClass('is-invalid');
+        $('#slcBancoE').focus();
+        mjeError('¡Debe seleccionar un Banco!');
+        return false;
+    } else if ($('#slcTipoCtaE').val() == '0') {
+        $('#slcTipoCtaE').addClass('is-invalid');
+        $('#slcTipoCtaE').focus();
+        mjeError('¡Debe seleccionar un tipo de cuenta!');
+        return false;
+    } else if ($('#numCuentaE').val() == '') {
+        $('#numCuentaE').addClass('is-invalid');
+        $('#numCuentaE').focus();
+        mjeError('¡Debe ingresar un número de cuenta!');
+        return false;
+    }
+    
+    let datos = $('#formEditCuenta').serialize();
+    mostrarOverlay();
+    $.ajax({
+        type: 'POST',
+        url: 'datos/actualizar/up_cuenta.php',
+        data: datos,
+        success: function (r) {
+            if (r === 'ok') {
+                $('#divModalForms').modal('hide');
+                mje('Cuenta bancaria actualizada correctamente');
+            } else {
+                mjeError('Error', r);
+            }
+        }
+    }).always(function () {
+        ocultarOverlay();
+    });
+});
+

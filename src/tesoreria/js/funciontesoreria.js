@@ -201,8 +201,10 @@ var tabla;
 						d.option = $('#txt_bandera_filtro').is(':checked') ? 1 : 0;
 						d.fec_ini = $('#txt_fecini_filtro').val();
 						d.fec_fin = $('#txt_fecfin_filtro').val();
+						d.causacion = $('#txt_causacion_filtro').val();
 						d.ccnit = $('#txt_ccnit_filtro').val();
 						d.tercero = $('#txt_tercero_filtro').val();
+						d.valor = $('#txt_valor_filtro').val();
 						d.estado = $('#sl_estado_filtro').val();
 
 						if ($('#sl_estado_filtro').val() == "0") {
@@ -3510,6 +3512,55 @@ function GuardaDetalleConciliacion(check) {
 	}
 
 
+}
+
+function MarcarTodoConciliacion(check_all) {
+	var id_conciliacion = $('#id_conciliacion').val();
+	var mes = $('#cod_mes').val();
+	var id_cuenta = $('#id_cuenta').val();
+	if (id_conciliacion == '0') {
+		mjeError('Debe guardar el saldo del extracto');
+		check_all.checked = false;
+		return false;
+	} else {
+		var opc = check_all.checked ? 1 : 0;
+		var ids_libaux = [];
+		$('input[name="check[]"]:not(:disabled)').each(function() {
+			ids_libaux.push($(this).attr('text'));
+		});
+
+		if (ids_libaux.length === 0) {
+			mje('No hay registros para procesar');
+			check_all.checked = false;
+			return false;
+		}
+
+		mostrarOverlay();
+		$.ajax({
+			type: 'POST',
+			dataType: 'json',
+			url: "datos/registrar/guarda_detalle_conciliacion_masivo.php",
+			data: { id_conciliacion: id_conciliacion, ids_libaux: ids_libaux, opc: opc, mes: mes, id_cuenta: id_cuenta },
+			success: function (r) {
+				if (r.status == 'ok') {
+					let salLib = $('#salLib').val();
+					let salExt = $('#saldoExtracto').val();
+					reloadtableKeepPosition('tableDetConciliacion', function (json) {
+						$('#tot_deb').val(json.tot_deb);
+						$('#tot_cre').val(json.tot_cre);
+						var valor = Number(salLib) + Number(json.tot_deb) - Number(json.tot_cre) - Number(salExt);
+						$('#saldoConcilia').val(valor.toLocaleString('es-MX'));
+					});
+				} else {
+					mjeError('Error:', r.msg);
+					check_all.checked = false;
+				}
+
+			}
+		}).always(() => {
+			ocultarOverlay();
+		});
+	}
 }
 
 function SaldoCuenta(id) {

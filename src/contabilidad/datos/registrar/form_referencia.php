@@ -24,9 +24,9 @@ try {
                 , `ctb_referencia`.`nombre`
                 , `ctb_referencia`.`accion`
                 , `ctb_referencia`.`estado`
-                , IF(`pgcp`.`nombre` IS NULL, `ctb_pgcp`.`cuenta`,CONCAT(`ctb_pgcp`.`cuenta`,' - ', `pgcp`.`cuenta`)) AS `nom_cuenta`
+                , CONCAT_WS(' - ', `ctb_pgcp`.`cuenta`, `pgcp`.`cuenta`) AS `nom_cuenta`
             FROM `ctb_referencia`
-                INNER JOIN `ctb_pgcp` 
+                LEFT JOIN `ctb_pgcp` 
                     ON (`ctb_referencia`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
                 LEFT JOIN `ctb_pgcp` AS `pgcp` 
                     ON (`ctb_referencia`.`id_cta_credito` = `pgcp`.`id_pgcp`)

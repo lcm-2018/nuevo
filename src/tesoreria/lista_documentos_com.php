@@ -213,8 +213,8 @@ $content = <<<HTML
         </div>
 
         <!-- Opciones de filtros -->
-        <div class="row mb-2 py-3">
-            <div class="col-md-1">
+        <div class="row mb-2 pt-3 pb-1">
+            <div class="col-md-2">
                 <div class="input-group">
                     <div class="input-group-text">
                         <input class="form-check-input mt-0" type="checkbox" value="" title="Marcar para filtrar por valor exacto" id="txt_bandera_filtro">
@@ -223,20 +223,28 @@ $content = <<<HTML
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="row mb-2">
+                <div class="row">
                     <div class="col-md-6">
-                        <input type="date" class="form-control form-control-sm bg-input bg-input" id="txt_fecini_filtro" name="txt_fecini_filtro" placeholder="Fecha Inicial">
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fecini_filtro" name="txt_fecini_filtro" title="Fecha Inicial">
                     </div>
                     <div class="col-md-6">
-                        <input type="date" class="form-control form-control-sm bg-input bg-input" id="txt_fecfin_filtro" name="txt_fecfin_filtro" placeholder="Fecha Final">
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fecfin_filtro" name="txt_fecfin_filtro" title="Fecha Final">
                     </div>
                 </div>
             </div>
             <div class="col-md-2">
-                <input type="text" class="filtro form-control form-control-sm bg-input bg-input" id="txt_ccnit_filtro" placeholder="CC / Nit">
+                <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_causacion_filtro" placeholder="No. Causación">
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_ccnit_filtro" placeholder="CC / Nit">
             </div>
             <div class="col-md-3">
-                <input type="text" class="filtro form-control form-control-sm bg-input bg-input" id="txt_tercero_filtro" placeholder="Tercero">
+                <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_tercero_filtro" placeholder="Tercero">
+            </div>
+        </div>
+        <div class="row mb-2 pb-3">
+            <div class="col-md-3">
+                <input type="number" class="filtro form-control form-control-sm bg-input" id="txt_valor_filtro" placeholder="Valor" step="0.01">
             </div>
             <div class="col-md-2">
                 <select class="form-select form-select-sm bg-input" id="sl_estado_filtro">

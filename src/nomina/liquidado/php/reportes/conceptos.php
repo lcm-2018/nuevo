@@ -143,7 +143,7 @@ if ($esOtrosDevengados) {
 
         case 10: // LICENCIA REMUNERADA (Luto, Maternidad, Paternidad)
             $datos = $detallesObj->getDatosReporteLicenciasRemuneradas($id_nomina);
-            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'TIPO LICENCIA', 'VALOR'];
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'TIPO LICENCIA', 'PAGO EMPRESA', 'PAGO EPS', 'NOM. EPS', 'VALOR'];
             $columnaExtra = 'licencias';
             break;
 
@@ -167,7 +167,7 @@ if ($esOtrosDevengados) {
 
         case 9: // INCAPACIDAD
             $datos = $detallesObj->getDatosReporteIncapacidades($id_nomina);
-            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'TIPO INCAPACIDAD', 'VALOR'];
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'TIPO INCAPACIDAD', 'PAGO EMPRESA', 'PAGO EPS', 'NOM. EPS', 'PAGO ARL', 'NOM. ARL', 'VALOR'];
             $columnaExtra = 'incapacidades';
             break;
 
@@ -360,9 +360,17 @@ function getCeldaValor($d, $campo, $columnaExtra)
             return $d['deducido'] ?? 0;
         case 'PATRONAL':
             return $d['patronal'] ?? 0;
+        case 'PAGO EMPRESA':
+            return $d['pago_empresa'] ?? 0;
+        case 'PAGO EPS':
+            return $d['pago_eps'] ?? 0;
+        case 'PAGO ARL':
+            return $d['pago_arl'] ?? 0;
         case 'NOM. EPS':
+            return $d['nom_eps'] ?? $d['nom_fondo'] ?? 'N/A';
         case 'NOM. AFP':
         case 'NOM. ARL':
+            return $d['nom_arl'] ?? $d['nom_fondo'] ?? 'N/A';
         case 'NOM. CESANTIAS':
             return $d['nom_fondo'] ?? 'N/A';
         case 'NIT EPS':
@@ -380,7 +388,7 @@ function getCeldaValor($d, $campo, $columnaExtra)
 // Función para formatear valor según el tipo de campo
 function formatearCelda($valor, $campo)
 {
-    $camposNumericos = ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'INT. CESANTÍAS', 'TOTAL VALOR'];
+    $camposNumericos = ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'INT. CESANTÍAS', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL'];
     $camposCentrados = ['DIAS LIQUIDADO', 'DIAS', 'DIAS INACTIVOS', 'DIAS HABILES', 'DIAS BR', 'CANTIDAD', 'COD_BANCO', 'TIPO'];
 
     if (in_array($campo, $camposNumericos) || strpos($campo, ' VALOR') !== false) {
@@ -453,7 +461,7 @@ if ($tipo == 'E') {
     } else {
         echo "<tr style='background-color: #e0e0e0; font-weight: bold;'>";
         foreach ($columnas as $col) {
-            $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR']) ? 'right' : 'left';
+            $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL']) ? 'right' : 'left';
             if (strpos($col, ' VALOR') !== false)
                 $align = 'right';
             if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO']) || strpos($col, ' CANT.') !== false)
@@ -475,7 +483,7 @@ if ($tipo == 'E') {
         foreach ($columnas as $col) {
             $valor = getCeldaValor($d, $col, $columnaExtra);
             $valorFormateado = formatearCelda($valor, $col);
-            $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR']) ? 'right' : 'left';
+            $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL']) ? 'right' : 'left';
             if (strpos($col, ' VALOR') !== false)
                 $align = 'right';
             if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO']) || strpos($col, ' CANT.') !== false) {
@@ -548,7 +556,7 @@ if ($columnaExtra === 'horas_extras_horizontal') {
 } else {
     $html .= "<tr style='background-color: #e0e0e0;'>";
     foreach ($columnas as $col) {
-        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR']) ? 'right' : 'left';
+        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL']) ? 'right' : 'left';
         if (strpos($col, ' VALOR') !== false)
             $align = 'right';
         if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO']) || strpos($col, ' CANT.') !== false) {
@@ -568,7 +576,7 @@ foreach ($datos as $d) {
     foreach ($columnas as $col) {
         $valor = getCeldaValor($d, $col, $columnaExtra);
         $valorFormateado = formatearCelda($valor, $col);
-        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR']) ? 'right' : 'left';
+        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL']) ? 'right' : 'left';
         if (strpos($col, ' VALOR') !== false)
             $align = 'right';
         if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO']) || strpos($col, ' CANT.') !== false) {

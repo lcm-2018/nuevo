@@ -26,6 +26,7 @@ try {
                 , `ctt_documentos`.`id_soportester`
                 , `ctt_documentos`.`estado`
                 , `ctt_soportes_contrato`.`descripcion`
+                , `ctt_documentos`.`id_soporte`
             FROM
                 `ctt_documentos`
                 INNER JOIN `ctt_soportes_contrato` 
@@ -43,6 +44,7 @@ if (!empty($docs)) {
         $id_doc = $d['id_soportester'];
         $borrar  = '';
         $btnEstado = '';
+        $editar = '';
 
         // Estado basado en el campo 'estado' (1=activo, 0=inactivo) y adicionalmente en la fecha de vigencia
         $esActivo = ($d['estado'] == 1 && $d['fec_vig'] >= date('Y-m-d'));
@@ -68,13 +70,19 @@ if (!empty($docs)) {
             $borrar = '';
         }
 
+        if ($d['id_soporte'] == 23) {
+            if ($permisos->PermisosUsuario($opciones, 5201, 3) || $id_rol == 1) {
+                $editar = '<a onclick="EditarCuentaBancaria(' . $id_t . ')" class="btn btn-outline-primary btn-xs rounded-circle shadow me-1" title="Editar Cuenta"><span class="fas fa-pencil-alt"></span></a>';
+            }
+        }
+
         $data[] = [
             'id_doc'       => $id_doc,
             'tipo'         => mb_strtoupper($d['descripcion']),
             'fec_inicio'   => $d['fec_inicio'],
             'fec_vigencia' => $d['fec_vig'],
             'vigente'      => '<div class="text-center">' . $btnEstado . '</div>',
-            'doc'          => '<div class="text-center"><button text="' . $id_doc . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 descargar" title="Descargar"><span class="far fa-file-pdf"></span></button>' . $borrar . '</div>',
+            'doc'          => '<div class="text-center"><button text="' . $id_doc . '" class="btn btn-outline-danger btn-xs rounded-circle shadow me-1 descargar" title="Descargar"><span class="far fa-file-pdf"></span></button>' . $editar . $borrar . '</div>',
         ];
     }
 } else {

@@ -33,6 +33,11 @@ try {
                 , `tb_terceros`.`nit_tercero`
                 , `tb_tipos_documento`.`codigo_ne`
                 , `ctb_doc`.`id_manu`
+                , (SELECT GROUP_CONCAT(DISTINCT doc_causa.id_manu SEPARATOR ', ') 
+                   FROM pto_pag_detalle 
+                   INNER JOIN pto_cop_detalle ON pto_cop_detalle.id_pto_cop_det = pto_pag_detalle.id_pto_cop_det
+                   INNER JOIN ctb_doc AS doc_causa ON doc_causa.id_ctb_doc = pto_cop_detalle.id_ctb_doc
+                   WHERE pto_pag_detalle.id_ctb_doc = `ctb_doc`.`id_ctb_doc`) AS `num_causacion`
                 , `tt`.`valor`
                 , `cb`.`num_cuenta`
                 , `cb`.`tipo_cuenta`
@@ -75,9 +80,25 @@ try {
 
 echo "\xEF\xBB\xBF";
 ?>
+<?php
+function calcularDV($nit)
+{
+    $vpri = [3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71];
+    $x = 0;
+    $y = 0;
+    $z = strlen($nit);
+    for ($i = 0; $i < $z; $i++) {
+        $y = substr($nit, $i, 1);
+        $x += ($y * $vpri[$z - 1 - $i]);
+    }
+    $y = $x % 11;
+    return ($y > 1) ? 11 - $y : $y;
+}
+?>
 <table class="table-bordered bg-light" style="width:100% !important;" border=1>
     <tr>
         <td>No. de registro</td>
+        <td>No. Causación</td>
         <td>Identificación</td>
         <td>Nombre tercero</td>
         <td>Tipo de identificación</td>
@@ -98,10 +119,18 @@ echo "\xEF\xBB\xBF";
         $detalle_cuenta = $tipo_cuenta != '' ? ($tipo_cuenta == 'Ahorros' ? 'A' : 'C') : '';
         $cod_banco = $c['cod_banco'];
         $val = number_format($c['valor'], 2, ',', '');
+
+        $nom_tercero = preg_replace('/[^\p{L}\p{N}\s]/u', '', $c['nom_tercero']);
+        $nit_tercero = $c['nit_tercero'];
+        if ($c['codigo_ne'] == '31') {
+            $nit_tercero .= '-' . calcularDV($c['nit_tercero']);
+        }
+
         echo "<tr>
                 <td class='text-start'>{$reg}</td>
-                <td class='text-start'>{$c['nit_tercero']}</td>
-                <td class='text-start'>{$c['nom_tercero']}</td>
+                <td class='text-start'>{$c['num_causacion']}</td>
+                <td class='text-start'>{$nit_tercero}</td>
+                <td class='text-start'>{$nom_tercero}</td>
                 <td class='text-start'>{$c['codigo_ne']}</td>
                 <td class='text-start' style=\"mso-number-format:'\@'\">{$producto}</td>
                 <td class='text-start'>{$banco}</td>

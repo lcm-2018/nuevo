@@ -47,71 +47,51 @@ try {
                 , `ctb_libaux`.`debito`
                 , `ctb_libaux`.`credito`
                 , `ctb_libaux`.`id_ctb_libaux`
-                , `tes_conciliacion_detalle`.`id_ctb_libaux` AS `conciliado`
-                ,  `tes_conciliacion_detalle`.`fecha_marca` AS marca
                 , `tb_terceros`.`nom_tercero`
                 , `tb_terceros`.`nit_tercero`
             FROM
                 `ctb_libaux`
-                INNER JOIN `ctb_pgcp` 
-                    ON (`ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
                 INNER JOIN `tes_cuentas` 
-                    ON (`tes_cuentas`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
+                    ON (`tes_cuentas`.`id_cuenta` = `ctb_libaux`.`id_cuenta`)
                 INNER JOIN `ctb_doc` 
                     ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
                 INNER JOIN `ctb_fuente` 
                     ON (`ctb_doc`.`id_tipo_doc` = `ctb_fuente`.`id_doc_fuente`)
-                LEFT JOIN `tes_conciliacion_detalle`
-                    ON (`tes_conciliacion_detalle`.`id_ctb_libaux` = `ctb_libaux`.`id_ctb_libaux`)
                 LEFT JOIN `tb_terceros` 
                     ON (`ctb_libaux`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
+                LEFT JOIN `tes_conciliacion_detalle`
+                    ON (`tes_conciliacion_detalle`.`id_ctb_libaux` = `ctb_libaux`.`id_ctb_libaux` AND `tes_conciliacion_detalle`.`fecha_marca` <= '$fin_mes')
             WHERE `tes_cuentas`.`id_tes_cuenta` = $id AND `ctb_doc`.`estado` = 2 AND `ctb_doc`.`fecha` <= '$fin_mes'
-                    AND (`tes_conciliacion_detalle`.`fecha_marca` > '$fin_mes' OR `tes_conciliacion_detalle`.`fecha_marca` IS NULL)
-                  ";
+                    AND `tes_conciliacion_detalle`.`id_ctb_libaux` IS NULL";
     $rs = $cmd->query($sql);
     $lista = $rs->fetchAll();
     $rs->closeCursor();
     unset($rs);
     $tot_deb = 0;
     $tot_cre = 0;
-    $tdc = 0;
-    $tcc = 0;
     foreach ($lista as $lp) {
         $tot_deb += $lp['debito'];
         $tot_cre += $lp['credito'];
-        if ($lp['conciliado'] > 0 && $lp['marca'] <= $fin_mes) {
-            $tdc += $lp['debito'];
-            $tcc += $lp['credito'];
-        }
     }
-    $tot_deb = $tot_deb - $tdc;
-    $tot_cre = $tot_cre - $tcc;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 try {
     $sql = "SELECT
-                `tes_conciliacion`.`id_conciliacion`
-                , `tes_conciliacion`.`saldo_extracto`
-                , `tes_conciliacion`.`estado`
-                , IFNULL(`t1`.`debito`,0) AS `debito`
-                , IFNULL(`t1`.`credito`,0) AS `credito`
+                tc.`id_conciliacion`
+                , tc.`saldo_extracto`
+                , tc.`estado`
+                , IFNULL((SELECT SUM(l.debito) 
+                   FROM tes_conciliacion_detalle tcd 
+                   INNER JOIN ctb_libaux l ON tcd.id_ctb_libaux = l.id_ctb_libaux 
+                   WHERE tcd.id_concilia = tc.id_conciliacion), 0) AS debito
+                , IFNULL((SELECT SUM(l.credito) 
+                   FROM tes_conciliacion_detalle tcd 
+                   INNER JOIN ctb_libaux l ON tcd.id_ctb_libaux = l.id_ctb_libaux 
+                   WHERE tcd.id_concilia = tc.id_conciliacion), 0) AS credito
             FROM
-                `tes_conciliacion`
-                INNER JOIN `tes_cuentas` 
-                    ON (`tes_conciliacion`.`id_cuenta` = `tes_cuentas`.`id_tes_cuenta`)
-                LEFT JOIN
-                (SELECT
-                    `tes_conciliacion_detalle`.`id_concilia`
-                    , SUM(`ctb_libaux`.`debito`) AS `debito`
-                    , SUM(`ctb_libaux`.`credito`) AS `credito`
-                FROM
-                    `tes_conciliacion_detalle`
-                    INNER JOIN `ctb_libaux` 
-                        ON (`tes_conciliacion_detalle`.`id_ctb_libaux` = `ctb_libaux`.`id_ctb_libaux`)
-                GROUP BY `tes_conciliacion_detalle`.`id_concilia`) AS `t1`
-                ON (`t1`.`id_concilia` = `tes_conciliacion`.`id_conciliacion`)
-            WHERE (`tes_cuentas`.`id_tes_cuenta` = $id AND `tes_conciliacion`.`vigencia` = '$vigencia' AND `tes_conciliacion`.`mes` = '$mes')";
+                `tes_conciliacion` tc
+            WHERE tc.`id_cuenta` = $id AND tc.`vigencia` = '$vigencia' AND tc.`mes` = '$mes'";
     $rs = $cmd->query($sql);
     $data = $rs->fetch(PDO::FETCH_ASSOC);
     if (!empty($data)) {
@@ -132,16 +112,14 @@ try {
 }
 try {
     $sql = "SELECT
-                    `tb_bancos`.`id_banco`
-                    , `tes_cuentas`.`id_cuenta`
-                    , `tes_cuentas`.`id_tes_cuenta`
+                    `tes_cuentas`.`id_tes_cuenta`
                     , `tb_bancos`.`nom_banco`
                     , `tes_tipo_cuenta`.`tipo_cuenta`
                     , `tes_cuentas`.`numero`
                     , `tes_cuentas`.`nombre` AS `descripcion`
-                    , `t1`. `debito`
-                    , `t1`.`credito`
                     , `ctb_pgcp`.`cuenta` AS `cta_contable`
+                    , IFNULL(`t1`.`debito`, 0) AS `debito`
+                    , IFNULL(`t1`.`credito`, 0) AS `credito`
                 FROM
                     `tes_cuentas`
                     INNER JOIN `ctb_pgcp` 
@@ -150,17 +128,17 @@ try {
                         ON (`tes_cuentas`.`id_banco` = `tb_bancos`.`id_banco`)
                     INNER JOIN `tes_tipo_cuenta` 
                         ON (`tes_cuentas`.`id_tipo_cuenta` = `tes_tipo_cuenta`.`id_tipo_cuenta`)
-                    INNER JOIN 
+                    LEFT JOIN 
                         (SELECT
-                            `ctb_libaux`.`id_cuenta`
-                            , SUM(`ctb_libaux`.`debito`) AS `debito` 
-                            , SUM(`ctb_libaux`.`credito`) AS `credito`
-                            , `ctb_doc`.`fecha`
+                            l.`id_cuenta`
+                            , SUM(l.`debito`) AS `debito` 
+                            , SUM(l.`credito`) AS `credito`
                         FROM
-                            `ctb_libaux`
-                            INNER JOIN `ctb_doc`  ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                        WHERE `ctb_doc`.`estado` = 2 AND `ctb_doc`.`fecha` <= '$fin_mes' 
-                        GROUP BY `ctb_libaux`.`id_cuenta`) AS `t1`  
+                            `ctb_libaux` l
+                            INNER JOIN `ctb_doc` d ON (l.`id_ctb_doc` = d.`id_ctb_doc`)
+                            INNER JOIN `tes_cuentas` tc ON (tc.`id_cuenta` = l.`id_cuenta`)
+                        WHERE tc.`id_tes_cuenta` = $id AND d.`estado` = 2 AND d.`fecha` <= '$fin_mes' 
+                        GROUP BY l.`id_cuenta`) AS `t1`  
                         ON (`t1`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
                 WHERE `tes_cuentas`.`id_tes_cuenta` = $id";
     $rs = $cmd->query($sql);
@@ -205,7 +183,7 @@ $anulado = '';
 
 ?>
 <div class="text-end py-3">
-    <?php if ($permisos->PermisosUsuario($opciones, 5601, 6)  || $id_rol == 1) { ?>
+    <?php if ($permisos->PermisosUsuario($opciones, 5601, 6) || $id_rol == 1) { ?>
         <a type="button" class="btn btn-primary btn-sm" onclick="imprSelecTes('areaImprimir','0');"> Imprimir</a>
     <?php } ?>
     <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
@@ -275,7 +253,8 @@ $anulado = '';
         </br>
         <table class="table-bordered bg-light" style="width:100% !important;">
             <tr>
-                <td class='text-center' style="width:18%"><label class="small"><img src="../../assets/images/logo.png" width="100"></label></td>
+                <td class='text-center' style="width:18%"><label class="small"><img src="../../assets/images/logo.png"
+                            width="100"></label></td>
                 <td style="text-align:center">
                     <strong><?php echo $ips['nombre']; ?> </strong>
                     <div>NIT <?php echo $ips['nit'] . '-' . $ips['dig_ver']; ?></div>
@@ -357,7 +336,7 @@ $anulado = '';
                 $tdebito += $l['debito'];
                 $tcredito += $l['credito'];
 
-            ?>
+                ?>
                 <tr style="text-align: left;">
                     <td><?= date('Y-m-d', strtotime($l['fecha'])); ?></td>
                     <td><?= $l['cod'] . $l['id_manu']; ?></td>
@@ -366,7 +345,7 @@ $anulado = '';
                     <td style="text-align: right;"><?= pesos($l['debito']); ?></td>
                     <td style="text-align: right;"><?= pesos($l['credito']); ?></td>
                 </tr>
-            <?php
+                <?php
             }
             ?>
             <tr>

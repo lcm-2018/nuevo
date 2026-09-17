@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: ../../index.php');
@@ -309,7 +309,11 @@ $content .= <<<HTML
                             <th class="bg-sofia">Débito</th>
                             <th class="bg-sofia">Crédito</th>
                             <th class="bg-sofia">Estado</th>
-                            <th class="bg-sofia">Acción</th>
+                            <th class="bg-sofia">
+                                <div class="d-flex justify-content-center align-items-center" style="font-size:12px;">
+                                    <input type="checkbox" id="checkAllConciliacion" class="me-1" title="Seleccionar/Deseleccionar todos" onchange="MarcarTodoConciliacion(this)"> Todos
+                                </div>
+                            </th>
                         </tr>
 	                </thead>
 	                <tbody id="modificaDetConciliacion">
