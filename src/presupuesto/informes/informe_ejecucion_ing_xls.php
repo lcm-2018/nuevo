@@ -10,14 +10,20 @@ if (!isset($_SESSION['user'])) {
 }
 $vigencia = $_SESSION['vigencia'];
 $fecha_corte = $_POST['fecha_corte'];
-$detalle_mes = $_POST['mes'];
+$detalle_mes = $_POST['mes'] ?? '0';
+$detalle_periodo = $_POST['periodo'] ?? '0';
 $fecha_ini = $_POST['fecha_ini'];
 $mes = date("m", strtotime($fecha_corte));
 $fecha_ini_mes = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-' . $mes . '-01'));
 // Último día del mes anterior a la fecha de corte
 $fecha_fin_mes_ant = date("Y-m-d", strtotime($fecha_ini_mes . ' -1 day'));
 $id_vigencia = $_SESSION['id_vigencia'];
-$total_cols = $detalle_mes == '1' ? 21 : 15; // se ajusta abajo según col_ejecucion
+$total_cols = 15;
+if ($detalle_mes == '1') {
+    $total_cols = 21;
+} elseif ($detalle_periodo == '1') {
+    $total_cols = 23; // Add columns for Periodo/Acumulado etc.
+}
 function pesos($valor)
 {
     return number_format($valor, 2, ".", ",");
@@ -50,6 +56,17 @@ $sql = "WITH
                 THEN pmd.valor_deb 
                 ELSE 0 
             END) AS val_reduccion,
+            -- Acumulados periodo
+            SUM(CASE 
+                WHEN pm.id_tipo_mod = 2 AND DATE(pm.fecha) <= :fecha_corte 
+                THEN pmd.valor_deb 
+                ELSE 0 
+            END) AS val_adicion_acum,
+            SUM(CASE 
+                WHEN pm.id_tipo_mod = 3 AND DATE(pm.fecha) <= :fecha_corte 
+                THEN pmd.valor_deb 
+                ELSE 0 
+            END) AS val_reduccion_acum,
             SUM(CASE 
                 WHEN pm.id_tipo_mod = 2 AND DATE(pm.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte 
                 THEN pmd.valor_deb 
@@ -64,7 +81,7 @@ $sql = "WITH
         INNER JOIN pto_mod pm ON pmd.id_pto_mod = pm.id_pto_mod
         WHERE pm.estado = 2 
             AND pm.id_tipo_mod IN (2, 3)
-            AND DATE(pm.fecha) BETWEEN :fecha_ini AND :fecha_corte
+            AND DATE(pm.fecha) <= :fecha_corte
         GROUP BY pmd.id_cargue
     ),
     -- CTE para reconocimientos
@@ -85,11 +102,27 @@ $sql = "WITH
                 WHEN DATE(pr.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte 
                 THEN IFNULL(prd.valor_liberado, 0)
                 ELSE 0 
-            END) AS val_liberado_mes
+            END) AS val_liberado_mes,
+            -- Acumulados y periodos
+            SUM(CASE 
+                WHEN DATE(pr.fecha) < :fecha_ini 
+                THEN IFNULL(prd.valor, 0) - IFNULL(prd.valor_liberado, 0)
+                ELSE 0 
+            END) AS val_reconocimiento_antes,
+            SUM(CASE 
+                WHEN DATE(pr.fecha) BETWEEN :fecha_ini AND :fecha_corte 
+                THEN IFNULL(prd.valor, 0)
+                ELSE 0 
+            END) AS val_reconocimiento_periodo,
+            SUM(CASE 
+                WHEN DATE(pr.fecha) <= :fecha_corte 
+                THEN IFNULL(prd.valor_liberado, 0)
+                ELSE 0 
+            END) AS val_liberado_acum
         FROM pto_rad_detalle prd
         INNER JOIN pto_rad pr ON prd.id_pto_rad = pr.id_pto_rad
         WHERE pr.estado = 2
-            AND DATE(pr.fecha) BETWEEN :fecha_ini AND :fecha_corte
+            AND DATE(pr.fecha) <= :fecha_corte
         GROUP BY prd.id_rubro
     ),
     -- CTE para recaudos
@@ -110,12 +143,28 @@ $sql = "WITH
                 WHEN DATE(pr.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte 
                 THEN IFNULL(prd.valor_liberado, 0)
                 ELSE 0 
-            END) AS val_recaudo_liberado_mes
+            END) AS val_recaudo_liberado_mes,
+            -- Acumulados y periodos
+            SUM(CASE 
+                WHEN DATE(pr.fecha) < :fecha_ini 
+                THEN IFNULL(prd.valor, 0) - IFNULL(prd.valor_liberado, 0)
+                ELSE 0 
+            END) AS val_recaudo_antes,
+            SUM(CASE 
+                WHEN DATE(pr.fecha) BETWEEN :fecha_ini AND :fecha_corte 
+                THEN IFNULL(prd.valor, 0)
+                ELSE 0 
+            END) AS val_recaudo_periodo,
+            SUM(CASE 
+                WHEN DATE(pr.fecha) <= :fecha_corte 
+                THEN IFNULL(prd.valor_liberado, 0)
+                ELSE 0 
+            END) AS val_recaudo_liberado_acum
         FROM pto_rec_detalle prd
         INNER JOIN pto_rec pr ON prd.id_pto_rac = pr.id_pto_rec
         LEFT JOIN pto_rad_detalle prdd ON prd.id_pto_rad_detalle = prdd.id_pto_rad_det
         WHERE pr.estado = 2
-            AND DATE(pr.fecha) BETWEEN :fecha_ini AND :fecha_corte
+            AND DATE(pr.fecha) <= :fecha_corte
         GROUP BY COALESCE(prd.id_rubro, prdd.id_rubro)
     ),
     -- CTE base con valores individuales
@@ -135,7 +184,16 @@ $sql = "WITH
             IFNULL(rc.val_recaudo_mes, 0) AS val_recaudo_mes,
             IFNULL(rc.val_recaudo_liberado_mes, 0) AS val_recaudo_liberado_mes,
             IFNULL(rk.val_reconocimiento_mes, 0) AS val_reconocimiento_mes,
-            IFNULL(rk.val_liberado_mes, 0) AS val_liberado_mes
+            IFNULL(rk.val_liberado_mes, 0) AS val_liberado_mes,
+            -- Nuevos acumulados y periodos
+            IFNULL(m.val_adicion_acum, 0) AS val_adicion_acum,
+            IFNULL(m.val_reduccion_acum, 0) AS val_reduccion_acum,
+            IFNULL(rk.val_reconocimiento_antes, 0) AS val_reconocimiento_antes,
+            IFNULL(rk.val_reconocimiento_periodo, 0) AS val_reconocimiento_periodo,
+            IFNULL(rk.val_liberado_acum, 0) AS val_liberado_acum,
+            IFNULL(rc.val_recaudo_antes, 0) AS val_recaudo_antes,
+            IFNULL(rc.val_recaudo_periodo, 0) AS val_recaudo_periodo,
+            IFNULL(rc.val_recaudo_liberado_acum, 0) AS val_recaudo_liberado_acum
         FROM pto_cargue pc
         INNER JOIN pto_presupuestos pp ON pc.id_pto = pp.id_pto
         LEFT JOIN modificaciones m ON m.id_cargue = pc.id_cargue
@@ -159,7 +217,15 @@ $sql = "WITH
         IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_recaudo_mes ELSE 0 END), 0) AS recaudo_mes,
         IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_recaudo_liberado_mes ELSE 0 END), 0) AS recaudo_liberado_mes,
         IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_reconocimiento_mes ELSE 0 END), 0) AS reconocimiento_mes,
-        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_liberado_mes ELSE 0 END), 0) AS liberado_mes
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_liberado_mes ELSE 0 END), 0) AS liberado_mes,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_adicion_acum ELSE 0 END), 0) AS adicion_acum,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_reduccion_acum ELSE 0 END), 0) AS reduccion_acum,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_reconocimiento_antes ELSE 0 END), 0) AS reconocimiento_antes,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_reconocimiento_periodo ELSE 0 END), 0) AS reconocimiento_periodo,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_liberado_acum ELSE 0 END), 0) AS liberado_acum,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_recaudo_antes ELSE 0 END), 0) AS recaudo_antes,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_recaudo_periodo ELSE 0 END), 0) AS recaudo_periodo,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_recaudo_liberado_acum ELSE 0 END), 0) AS recaudo_liberado_acum
     FROM base_calculos parent
     LEFT JOIN base_calculos child ON child.cod_pptal LIKE CONCAT(parent.cod_pptal, '%')
     GROUP BY parent.cod_pptal, parent.nom_rubro, parent.tipo_dato
@@ -226,7 +292,7 @@ try {
             <td rowspan="2">Nombre</td>
             <td rowspan="2">Tipo</td>
             <td rowspan="2">Inicial</td>
-            <?php if ($detalle_mes == '1'): ?>
+            <?php if ($detalle_mes == '1' || $detalle_periodo == '1'): ?>
                 <td colspan="2">Adiciones</td>
                 <td colspan="2">Reducciones</td>
             <?php else: ?>
@@ -234,7 +300,7 @@ try {
                 <td rowspan="2">Reducciones</td>
             <?php endif; ?>
             <td rowspan="2">Definitivo</td>
-            <?php if ($detalle_mes == '1'): ?>
+            <?php if ($detalle_mes == '1' || $detalle_periodo == '1'): ?>
                 <td colspan="4">Reconocimiento</td>
                 <td colspan="4">Recaudo</td>
             <?php else: ?>
@@ -255,17 +321,30 @@ try {
                 <td>Acumulada</td>
                 <td>Mes</td>
                 <td>Acumulada</td>
-            <?php endif; ?>
-            <td>Saldo ant.</td>
-            <?= $detalle_mes == '1' ? '<td>Mes</td>' : ''; ?>
-            <?= $detalle_mes == '1' ? '<td>Liberado</td>' : ''; ?>
-            <td>Acumulado</td>
-            <?php if ($detalle_mes == '1'): ?>
+                <td>Saldo ant.</td>
+                <td>Mes</td>
+                <td>Liberado</td>
+                <td>Acumulado</td>
                 <td>Saldo Ant.</td>
                 <td>Mes</td>
                 <td>Liberado</td>
                 <td>Acumulado</td>
+            <?php elseif ($detalle_periodo == '1'): ?>
+                <td>Periodo</td>
+                <td>Acumulada</td>
+                <td>Periodo</td>
+                <td>Acumulada</td>
+                <td>Saldo ant.</td>
+                <td>Periodo</td>
+                <td>Liberado</td>
+                <td>Acumulado</td>
+                <td>Saldo Ant.</td>
+                <td>Periodo</td>
+                <td>Liberado</td>
+                <td>Acumulado</td>
             <?php else: ?>
+                <td>Saldo ant.</td>
+                <td>Acumulado</td>
                 <td>Saldo Ant.</td>
                 <td>Acumulado</td>
             <?php endif; ?>
@@ -282,9 +361,14 @@ try {
             $tipo = $keyrb !== false ? $rubros[$keyrb]['tipo_dato'] : '99';
 
             $tipo_dat = $tipo == '0' ? 'M' : 'D';
-            $definitivo = $value['inicial'] + $value['adicion'] - $value['reduccion'];
-            $reconocimiento_acumulado = $value['reconocimiento_ant'] + $value['reconocimiento_mes'] - $value['liberado_mes'];
-            $recaudo_acumulado = $value['recaudo_ant'] + $value['recaudo_mes'] - $value['recaudo_liberado_mes'];
+            $definitivo = $value['inicial'] + $value['adicion_acum'] - $value['reduccion_acum'];
+            if ($detalle_periodo == '1') {
+                $reconocimiento_acumulado = $value['reconocimiento_antes'] + $value['reconocimiento_periodo'] - $value['liberado_acum'];
+                $recaudo_acumulado = $value['recaudo_antes'] + $value['recaudo_periodo'] - $value['recaudo_liberado_acum'];
+            } else {
+                $reconocimiento_acumulado = $value['reconocimiento_ant'] + $value['reconocimiento_mes'] - $value['liberado_mes'];
+                $recaudo_acumulado = $value['recaudo_ant'] + $value['recaudo_mes'] - $value['recaudo_liberado_mes'];
+            }
             $presupuesto_por_ejecutar = $definitivo - $reconocimiento_acumulado;
             $cuentas_por_cobrar = $reconocimiento_acumulado - $recaudo_acumulado;
             $porc_ejec = $definitivo != 0 ? round(($recaudo_acumulado / $definitivo) * 100, 2) : 0;
@@ -293,18 +377,44 @@ try {
                     <td class="text">' . $nomrb . '</td>
                     <td class="text">' . $tipo_dat . '</td>
                     <td style="text-align:right">' . pesos($value['inicial']) . '</td>';
-            echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['adicion_mes']) . '</td>' : '';
-            echo '<td style="text-align:right">' . pesos($value['adicion']) . '</td>';
-            echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['reduccion_mes']) . '</td>' : '';
-            echo '<td style="text-align:right">' . pesos($value['reduccion']) . '</td>';
-            echo '<td style="text-align:right">' . pesos(($value['inicial'] + $value['adicion'] - $value['reduccion'])) . '</td>';
-            echo '<td style="text-align:right">' . pesos($value['reconocimiento_ant']) . '</td>';
-            echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['reconocimiento_mes']) . '</td>' : '';
-            echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['liberado_mes']) . '</td>' : '';
-            echo '<td style="text-align:right">' . pesos($reconocimiento_acumulado) . '</td>';
-            echo '<td style="text-align:right">' . pesos($value['recaudo_ant']) . '</td>';
-            echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['recaudo_mes']) . '</td>' : '';
-            echo  $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['recaudo_liberado_mes']) . '</td>' : '';
+            if ($detalle_mes == '1') {
+                echo '<td style="text-align:right">' . pesos($value['adicion_mes']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['adicion']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['reduccion_mes']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['reduccion']) . '</td>';
+            } elseif ($detalle_periodo == '1') {
+                echo '<td style="text-align:right">' . pesos($value['adicion']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['adicion_acum']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['reduccion']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['reduccion_acum']) . '</td>';
+            } else {
+                echo '<td style="text-align:right">' . pesos($value['adicion']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['reduccion']) . '</td>';
+            }
+            
+            echo '<td style="text-align:right">' . pesos($definitivo) . '</td>';
+            
+            if ($detalle_mes == '1') {
+                echo '<td style="text-align:right">' . pesos($value['reconocimiento_ant']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['reconocimiento_mes']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['liberado_mes']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($reconocimiento_acumulado) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['recaudo_ant']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['recaudo_mes']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['recaudo_liberado_mes']) . '</td>';
+            } elseif ($detalle_periodo == '1') {
+                echo '<td style="text-align:right">' . pesos($value['reconocimiento_antes']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['reconocimiento_periodo']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['liberado_acum']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($reconocimiento_acumulado) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['recaudo_antes']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['recaudo_periodo']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['recaudo_liberado_acum']) . '</td>';
+            } else {
+                echo '<td style="text-align:right">' . pesos($value['reconocimiento_ant']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($reconocimiento_acumulado) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['recaudo_ant']) . '</td>';
+            }
             $saldo_por_ejecutar = $definitivo - $recaudo_acumulado;
             echo '<td style="text-align:right">' . pesos($recaudo_acumulado) . '</td>
              <td style="text-align:right">' .  $porc_ejec . '</td>';

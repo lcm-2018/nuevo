@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: ../../../index.php');
@@ -40,6 +40,11 @@ $fecha_actual = $fecha->format('Y-m-d');
                         <div class="col-2"></div>
                         <div class="col-3 small">Movimiento del mes:</div>
                         <div class="col-3"><input type="checkbox" id="mes" name="mes" value="0"></div>
+                    </div>
+                    <div class="row mb-1">
+                        <div class="col-2"></div>
+                        <div class="col-3 small">Movimiento por periodo:</div>
+                        <div class="col-3"><input type="checkbox" id="periodo" name="periodo" value="0"></div>
                     </div>
                     <div class="px-50">&nbsp; </div>
                     <div class="text-center">

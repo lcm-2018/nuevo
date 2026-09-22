@@ -7,15 +7,16 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-$vigencia        = $_SESSION['vigencia'];
-$fecha_corte     = $_POST['fecha_corte'];
-$detalle_mes     = $_POST['mes'];
-$fecha_ini       = $_POST['fecha_ini'];
-$mes             = date("m", strtotime($fecha_corte));
-$fecha_ini_mes   = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-' . $mes . '-01'));
+$vigencia = $_SESSION['vigencia'];
+$fecha_corte = $_POST['fecha_corte'];
+$detalle_mes = $_POST['mes'] ?? '0';
+$detalle_periodo = $_POST['periodo'] ?? '0';
+$fecha_ini = $_POST['fecha_ini'];
+$mes = date("m", strtotime($fecha_corte));
+$fecha_ini_mes = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-' . $mes . '-01'));
 // Último día del mes anterior a la fecha de corte
 $fecha_fin_mes_ant = date("Y-m-d", strtotime($fecha_ini_mes . ' -1 day'));
-$id_vigencia     = $_SESSION['id_vigencia'];
+$id_vigencia = $_SESSION['id_vigencia'];
 
 // Número de columnas dinámico según si se muestra detalle mensual
 // Modo sin detalle: Código, Nombre, Estado, Tipo, Inicial, Adiciones, Reducciones,
@@ -23,7 +24,12 @@ $id_vigencia     = $_SESSION['id_vigencia'];
 //                   Compromisos(CRP), %Ejec, Obligación(Causado), Pagos,
 //                   Saldo Pto., Compromisos x Pagar, Ctas x Pagar = 18 cols
 // Modo con detalle: agrega 4 grupos × 3 subcols (Saldo Ant. + Mes + Acumulada) = 18 + 12 = 30 cols
-$total_cols = $detalle_mes == '1' ? 30 : 18;
+$total_cols = 18;
+if ($detalle_mes == '1') {
+    $total_cols = 30;
+} elseif ($detalle_periodo == '1') {
+    $total_cols = 22;
+}
 
 function pesos($valor)
 {
@@ -59,6 +65,23 @@ $sql = "WITH
                 WHEN pm.id_tipo_mod IN (1,6) AND DATE(pm.fecha) BETWEEN :fecha_ini AND :fecha_corte
                 THEN pmd.valor_cred ELSE 0
             END) AS val_contracredito,
+            -- Acumulados periodo
+            SUM(CASE
+                WHEN pm.id_tipo_mod = 2 AND DATE(pm.fecha) <= :fecha_corte
+                THEN pmd.valor_deb ELSE 0
+            END) AS val_adicion_acum,
+            SUM(CASE
+                WHEN pm.id_tipo_mod = 3 AND DATE(pm.fecha) <= :fecha_corte
+                THEN pmd.valor_deb ELSE 0
+            END) AS val_reduccion_acum,
+            SUM(CASE
+                WHEN pm.id_tipo_mod IN (1,6) AND DATE(pm.fecha) <= :fecha_corte
+                THEN pmd.valor_deb ELSE 0
+            END) AS val_credito_acum,
+            SUM(CASE
+                WHEN pm.id_tipo_mod IN (1,6) AND DATE(pm.fecha) <= :fecha_corte
+                THEN pmd.valor_cred ELSE 0
+            END) AS val_contracredito_acum,
             -- Valores del mes actual
             SUM(CASE
                 WHEN pm.id_tipo_mod = 2 AND DATE(pm.fecha) BETWEEN :fecha_ini_mes AND :fecha_corte
@@ -82,7 +105,7 @@ $sql = "WITH
         INNER JOIN pto_presupuestos pp ON pc.id_pto = pp.id_pto
         WHERE pm.estado = 2
             AND pm.id_tipo_mod IN (1, 2, 3, 6)
-            AND DATE(pm.fecha) BETWEEN :fecha_ini AND :fecha_corte
+            AND DATE(pm.fecha) <= :fecha_corte
             AND pp.id_tipo = 2
             AND pp.id_vigencia = :id_vigencia
         GROUP BY pmd.id_cargue
@@ -236,6 +259,11 @@ $sql = "WITH
             IFNULL(m.val_reduccion_mes, 0)                         AS val_reduccion_mes,
             IFNULL(m.val_credito_mes, 0)                           AS val_credito_mes,
             IFNULL(m.val_contracredito_mes, 0)                     AS val_contracredito_mes,
+            -- Acumulados periodo
+            IFNULL(m.val_adicion_acum, 0)                          AS val_adicion_acum,
+            IFNULL(m.val_reduccion_acum, 0)                        AS val_reduccion_acum,
+            IFNULL(m.val_credito_acum, 0)                          AS val_credito_acum,
+            IFNULL(m.val_contracredito_acum, 0)                    AS val_contracredito_acum,
             -- Saldo anterior (acumulado hasta fin del mes anterior)
             IFNULL(comp.val_comprometido_ant, 0)
                 - IFNULL(comp.val_comprometido_liberado_ant, 0)    AS val_comprometido_ant,
@@ -279,6 +307,11 @@ $sql = "WITH
         IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_reduccion_mes     ELSE 0 END), 0) AS reduccion_mes,
         IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_credito_mes       ELSE 0 END), 0) AS credito_mes,
         IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_contracredito_mes ELSE 0 END), 0) AS contracredito_mes,
+        -- Acumulados periodo
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_adicion_acum      ELSE 0 END), 0) AS adicion_acum,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_reduccion_acum    ELSE 0 END), 0) AS reduccion_acum,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_credito_acum      ELSE 0 END), 0) AS credito_acum,
+        IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_contracredito_acum ELSE 0 END), 0) AS contracredito_acum,
         -- Saldo anterior
         IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_comprometido_ant  ELSE 0 END), 0) AS comprometido_ant,
         IFNULL(SUM(CASE WHEN child.tipo_dato = 1 THEN child.val_registrado_ant    ELSE 0 END), 0) AS registrado_ant,
@@ -296,11 +329,11 @@ $sql = "WITH
 
 try {
     $stmt = $cmd->prepare($sql);
-    $stmt->bindParam(':fecha_ini',         $fecha_ini,         PDO::PARAM_STR);
-    $stmt->bindParam(':fecha_corte',       $fecha_corte,       PDO::PARAM_STR);
-    $stmt->bindParam(':fecha_ini_mes',     $fecha_ini_mes,     PDO::PARAM_STR);
+    $stmt->bindParam(':fecha_ini', $fecha_ini, PDO::PARAM_STR);
+    $stmt->bindParam(':fecha_corte', $fecha_corte, PDO::PARAM_STR);
+    $stmt->bindParam(':fecha_ini_mes', $fecha_ini_mes, PDO::PARAM_STR);
     $stmt->bindParam(':fecha_fin_mes_ant', $fecha_fin_mes_ant, PDO::PARAM_STR);
-    $stmt->bindParam(':id_vigencia',       $id_vigencia,       PDO::PARAM_INT);
+    $stmt->bindParam(':id_vigencia', $id_vigencia, PDO::PARAM_INT);
     $stmt->execute();
     $rubros = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $stmt->closeCursor();
@@ -320,7 +353,7 @@ try {
                  `razon_social_ips` AS `nombre`, `nit_ips` AS `nit`, `dv` AS `dig_ver`
             FROM
                 `tb_datos_ips`";
-    $res     = $cmd->query($sql);
+    $res = $cmd->query($sql);
     $empresa = $res->fetch();
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -338,17 +371,21 @@ try {
 <table style="width:100% !important; border-collapse: collapse;" class="table-hover" border="1">
     <thead>
         <tr>
-            <td rowspan="4" style="text-align:center"><label class="small"><img src="<?= Plantilla::getHost() ?>/assets/images/logo.png" width="100"></label></td>
+            <td rowspan="4" style="text-align:center"><label class="small"><img
+                        src="<?= Plantilla::getHost() ?>/assets/images/logo.png" width="100"></label></td>
             <td colspan="<?= $total_cols ?>" style="text-align:center"><?php echo $empresa['nombre']; ?></td>
         </tr>
         <tr>
-            <td colspan="<?= $total_cols ?>" style="text-align:center"><?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></td>
+            <td colspan="<?= $total_cols ?>" style="text-align:center">
+                <?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></td>
         </tr>
         <tr>
-            <td colspan="<?= $total_cols ?>" style="text-align:center"><?php echo 'EJECUCION PRESUPUESTAL DE GASTOS'; ?></td>
+            <td colspan="<?= $total_cols ?>" style="text-align:center"><?php echo 'EJECUCION PRESUPUESTAL DE GASTOS'; ?>
+            </td>
         </tr>
         <tr>
-            <td colspan="<?= $total_cols ?>" style="text-align:center"><?php echo 'Fecha de corte: ' . $fecha_corte; ?></td>
+            <td colspan="<?= $total_cols ?>" style="text-align:center"><?php echo 'Fecha de corte: ' . $fecha_corte; ?>
+            </td>
         </tr>
         <!-- Fila 1: Encabezados de grupo -->
         <tr style="background-color: #CED3D3; text-align:center; font-size:9px; border:1px solid #999;">
@@ -357,7 +394,7 @@ try {
             <td rowspan="2" border="1" style="border:1px solid #999;">Estado</td>
             <td rowspan="2" border="1" style="border:1px solid #999;">Tipo</td>
             <td rowspan="2" border="1" style="border:1px solid #999;">Inicial</td>
-            <?php if ($detalle_mes == '1'): ?>
+            <?php if ($detalle_mes == '1' || $detalle_periodo == '1'): ?>
                 <td colspan="2" border="1" style="border:1px solid #999;">Adiciones</td>
                 <td colspan="2" border="1" style="border:1px solid #999;">Reducciones</td>
                 <td colspan="2" border="1" style="border:1px solid #999;">Créditos</td>
@@ -419,15 +456,24 @@ try {
                 <td style="border:1px solid #999;">Saldo Ant.</td>
                 <td style="border:1px solid #999;">Mes</td>
                 <td style="border:1px solid #999;">Acumulada</td>
+            <?php elseif ($detalle_periodo == '1'): ?>
+                <td style="border:1px solid #999;">Periodo</td>
+                <td style="border:1px solid #999;">Acumulado</td>
+                <td style="border:1px solid #999;">Periodo</td>
+                <td style="border:1px solid #999;">Acumulado</td>
+                <td style="border:1px solid #999;">Periodo</td>
+                <td style="border:1px solid #999;">Acumulado</td>
+                <td style="border:1px solid #999;">Periodo</td>
+                <td style="border:1px solid #999;">Acumulado</td>
             <?php endif; ?>
         </tr>
     </thead>
     <tbody style="font-size:9px;">
         <?php
         foreach ($acum as $key => $value) {
-            $keyrb    = array_search($key, array_column($rubros, 'cod_pptal'));
-            $nomrb    = $keyrb !== false ? $rubros[$keyrb]['nom_rubro'] : '';
-            $tipo     = $keyrb !== false ? $rubros[$keyrb]['tipo_dato'] : '99';
+            $keyrb = array_search($key, array_column($rubros, 'cod_pptal'));
+            $nomrb = $keyrb !== false ? $rubros[$keyrb]['nom_rubro'] : '';
+            $tipo = $keyrb !== false ? $rubros[$keyrb]['tipo_dato'] : '99';
             $tipo_dat = $tipo == '0' ? 'M' : 'D';
 
             // Presupuesto definitivo
@@ -457,14 +503,30 @@ try {
             echo '<td class="text">' . $tipo_dat . '</td>';
             echo '<td style="text-align:right">' . pesos($value['inicial']) . '</td>';
 
-            echo $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['adicion_mes'])       . '</td>' : '';
-            echo '<td style="text-align:right">' . pesos($value['adicion'])       . '</td>';
-            echo $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['reduccion_mes'])     . '</td>' : '';
-            echo '<td style="text-align:right">' . pesos($value['reduccion'])     . '</td>';
-            echo $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['credito_mes'])       . '</td>' : '';
-            echo '<td style="text-align:right">' . pesos($value['credito'])       . '</td>';
-            echo $detalle_mes == '1' ? '<td style="text-align:right">' . pesos($value['contracredito_mes']) . '</td>' : '';
-            echo '<td style="text-align:right">' . pesos($value['contracredito']) . '</td>';
+            if ($detalle_mes == '1') {
+                echo '<td style="text-align:right">' . pesos($value['adicion_mes']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['adicion']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['reduccion_mes']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['reduccion']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['credito_mes']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['credito']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['contracredito_mes']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['contracredito']) . '</td>';
+            } else if ($detalle_periodo == '1') {
+                echo '<td style="text-align:right">' . pesos($value['adicion']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['adicion_acum']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['reduccion']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['reduccion_acum']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['credito']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['credito_acum']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['contracredito']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['contracredito_acum']) . '</td>';
+            } else {
+                echo '<td style="text-align:right">' . pesos($value['adicion']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['reduccion']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['credito']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['contracredito']) . '</td>';
+            }
 
             echo '<td style="text-align:right">' . pesos($definitivo) . '</td>';
 
@@ -473,15 +535,15 @@ try {
                 $comprometido_acum = $value['comprometido_ant'] + $value['comprometido_mes'];
                 echo '<td style="text-align:right">' . pesos($value['comprometido_ant']) . '</td>';
                 echo '<td style="text-align:right">' . pesos($value['comprometido_mes']) . '</td>';
-                echo '<td style="text-align:right">' . pesos($comprometido_acum)         . '</td>';
+                echo '<td style="text-align:right">' . pesos($comprometido_acum) . '</td>';
                 // Compromisos (CRP): Saldo Ant. | Mes | Acumulada
                 $registrado_acum = $value['registrado_ant'] + $value['registrado_mes'];
-                echo '<td style="text-align:right">' . pesos($value['registrado_ant'])   . '</td>';
-                echo '<td style="text-align:right">' . pesos($value['registrado_mes'])   . '</td>';
-                echo '<td style="text-align:right">' . pesos($registrado_acum)           . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['registrado_ant']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['registrado_mes']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($registrado_acum) . '</td>';
             } else {
                 echo '<td style="text-align:right">' . pesos($value['comprometido']) . '</td>';
-                echo '<td style="text-align:right">' . pesos($value['registrado'])   . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['registrado']) . '</td>';
             }
 
             echo '<td style="text-align:right">' . $porc_ejec . '</td>';
@@ -491,27 +553,27 @@ try {
                 $causado_acum = $value['causado_ant'] + $value['causado_mes'];
                 echo '<td style="text-align:right">' . pesos($value['causado_ant']) . '</td>';
                 echo '<td style="text-align:right">' . pesos($value['causado_mes']) . '</td>';
-                echo '<td style="text-align:right">' . pesos($causado_acum)         . '</td>';
+                echo '<td style="text-align:right">' . pesos($causado_acum) . '</td>';
                 // Pagos: Saldo Ant. | Mes | Acumulada
                 $pagado_acum = $value['pagado_ant'] + $value['pagado_mes'];
-                echo '<td style="text-align:right">' . pesos($value['pagado_ant'])  . '</td>';
-                echo '<td style="text-align:right">' . pesos($value['pagado_mes'])  . '</td>';
-                echo '<td style="text-align:right">' . pesos($pagado_acum)          . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['pagado_ant']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['pagado_mes']) . '</td>';
+                echo '<td style="text-align:right">' . pesos($pagado_acum) . '</td>';
             } else {
                 echo '<td style="text-align:right">' . pesos($value['causado']) . '</td>';
-                echo '<td style="text-align:right">' . pesos($value['pagado'])  . '</td>';
+                echo '<td style="text-align:right">' . pesos($value['pagado']) . '</td>';
             }
 
             // Columnas de saldos calculados
             // En modo detalle usamos los acumulados (ant + mes), en modo simple los totales directos
             $comp_acum_final = $detalle_mes == '1' ? ($value['comprometido_ant'] + $value['comprometido_mes']) : $value['comprometido'];
-            $reg_acum_final  = $detalle_mes == '1' ? ($value['registrado_ant']   + $value['registrado_mes'])   : $value['registrado'];
-            $caus_acum_final = $detalle_mes == '1' ? ($value['causado_ant']      + $value['causado_mes'])      : $value['causado'];
-            $pag_acum_final  = $detalle_mes == '1' ? ($value['pagado_ant']       + $value['pagado_mes'])       : $value['pagado'];
+            $reg_acum_final = $detalle_mes == '1' ? ($value['registrado_ant'] + $value['registrado_mes']) : $value['registrado'];
+            $caus_acum_final = $detalle_mes == '1' ? ($value['causado_ant'] + $value['causado_mes']) : $value['causado'];
+            $pag_acum_final = $detalle_mes == '1' ? ($value['pagado_ant'] + $value['pagado_mes']) : $value['pagado'];
 
-            echo '<td style="text-align:right">' . pesos($definitivo - $comp_acum_final)          . '</td>'; // Saldo Pto. = Definitivo - Acum. Disponibilidades
-            echo '<td style="text-align:right">' . pesos($reg_acum_final - $pag_acum_final)        . '</td>'; // Compromisos x Pagar = Acum. Compromisos - Acum. Pagos
-            echo '<td style="text-align:right">' . pesos($caus_acum_final - $pag_acum_final)       . '</td>'; // Ctas x Pagar = Acum. Obligación - Acum. Pagos
+            echo '<td style="text-align:right">' . pesos($definitivo - $comp_acum_final) . '</td>'; // Saldo Pto. = Definitivo - Acum. Disponibilidades
+            echo '<td style="text-align:right">' . pesos($reg_acum_final - $pag_acum_final) . '</td>'; // Compromisos x Pagar = Acum. Compromisos - Acum. Pagos
+            echo '<td style="text-align:right">' . pesos($caus_acum_final - $pag_acum_final) . '</td>'; // Ctas x Pagar = Acum. Obligación - Acum. Pagos
             echo '</tr>';
         }
         ?>

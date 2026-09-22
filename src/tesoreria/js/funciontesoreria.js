@@ -3525,7 +3525,7 @@ function MarcarTodoConciliacion(check_all) {
 	} else {
 		var opc = check_all.checked ? 1 : 0;
 		var ids_libaux = [];
-		$('input[name="check[]"]:not(:disabled)').each(function() {
+		$('input[name="check[]"]:not(:disabled)').each(function () {
 			ids_libaux.push($(this).attr('text'));
 		});
 

@@ -42,7 +42,7 @@ try {
                         INNER JOIN `ctb_doc` ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
                         INNER JOIN `ctb_pgcp` ON (`ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
                     WHERE 
-                        `ctb_doc`.`estado` = 2 AND `ctb_doc`.`fecha` BETWEEN '$fini' AND '$ffin' AND `ctb_pgcp`.`cuenta` LIKE '7%'
+                        `ctb_doc`.`estado` = 2 AND DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') BETWEEN '$fini' AND '$ffin' AND `ctb_pgcp`.`cuenta` LIKE '7%'
                     GROUP BY LEFT(`ctb_pgcp`.`cuenta`, 4))
             SELECT
                 `cc`.`id_cta_costo`

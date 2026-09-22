@@ -267,25 +267,30 @@ try {
 }
 
 // Obtener detalles de CRP
-try {
-    $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT
-                `pto_crp_detalle`.`id_pto_crp_det`
-                , `pto_cdp_detalle`.`id_rubro`
-                , `pto_crp_detalle`.`id_tercero_api`
-            FROM
-                `pto_crp_detalle`
-                INNER JOIN `pto_cdp_detalle` 
-                    ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
-            WHERE (`pto_crp_detalle`.`id_pto_crp` = $crp)";
-    $rs = $cmd->query($sql);
-    $ids_detalle = $rs->fetchAll();
-    $rs->closeCursor();
-    unset($rs);
-    $cmd = null;
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-    exit();
+$ids_detalle = [];
+if ($_SESSION['pto'] == 1 && !empty($crp)) {
+    try {
+        $cmd = \Config\Clases\Conexion::getConexion();
+        $sql = "SELECT
+                    `pto_crp_detalle`.`id_pto_crp_det`
+                    , `pto_cdp_detalle`.`id_rubro`
+                    , `pto_crp_detalle`.`id_tercero_api`
+                FROM
+                    `pto_crp_detalle`
+                    INNER JOIN `pto_cdp_detalle` 
+                        ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
+                WHERE (`pto_crp_detalle`.`id_pto_crp` = $crp)";
+        $rs = $cmd->query($sql);
+        if ($rs) {
+            $ids_detalle = $rs->fetchAll();
+            $rs->closeCursor();
+            unset($rs);
+        }
+        $cmd = null;
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+        exit();
+    }
 }
 
 // Función para obtener ID de detalle
