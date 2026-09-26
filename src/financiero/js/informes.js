@@ -132,15 +132,39 @@ const LoadInforme = (id) => {
         mjeError('Debe seleccionar un periodo');
         return false;
     }
-    //redireccion por post
-    $('<form>', {
+    // Mostrar overlay de carga
+    mostrarOverlay();
+
+    // Crear un iframe oculto para la descarga
+    let iframeName = 'iframe_download_' + new Date().getTime();
+    let iframe = $('<iframe>', {
+        name: iframeName,
+        id: iframeName,
+        style: 'display:none'
+    });
+    $('body').append(iframe);
+
+    //redireccion por post al iframe
+    let form = $('<form>', {
         method: 'POST',
-        action: url
-    }).append($('<input>', {
+        action: url,
+        target: iframeName
+    });
+
+    form.append($('<input>', {
         type: 'hidden',
         name: 'periodo',
         value: $('#periodo').val()
-    })).appendTo('body').submit();
+    }));
+
+    $('body').append(form);
+    form.submit();
+
+    // Ocultar overlay después de un breve delay
+    // No eliminamos el iframe ni el form para permitir que la descarga continúe
+    setTimeout(function () {
+        ocultarOverlay();
+    }, 3000);
 }
 
 $('#areaReporte').on('click', '#btnExcelEntrada', function () {

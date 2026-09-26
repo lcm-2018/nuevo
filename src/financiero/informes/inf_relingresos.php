@@ -31,10 +31,17 @@ if ($periodo == 1) {
 }
 
 $cmd = \Config\Clases\Conexion::getConexion();
+
+    $sql_empresa = "SELECT razon_social_ips AS nombre, nit_ips AS nit, dv AS dig_ver FROM tb_datos_ips";
+    $res_empresa = $cmd->query($sql_empresa);
+    $empresa = $res_empresa->fetch();
+    $nit_empresa = $empresa['nit'];
+    $nombre_empresa = $empresa['nombre'];
+
 try {
     $sql = "SELECT
                 `pto_cargue`.`id_cargue`
-                , CONCAT(`pto_sia`.`codigo`, `pto_cargue`.`cod_pptal`) AS `cod_rubro`
+                , `pto_cargue`.`cod_pptal` AS `cod_rubro`
                 , `pto_cargue`.`nom_rubro`
                 , `ingresos`.`fecha`
                 , `ingresos`.`id_manu`
@@ -117,7 +124,7 @@ try {
                             ON (`tb_terceros`.`id_tercero_api` = `recaudo`.`id_tercero_api`)
                         LEFT JOIN
                             (SELECT
-                                `tb_bancos`.`cod_sia`
+                                `tb_bancos`.`nom_banco` AS `cod_sia`
                                 , `tes_cuentas`.`numero`
                                 , `pto_rec`.`id_pto_rec`
                             FROM
@@ -136,7 +143,7 @@ try {
                             (SELECT
                                 `pto_rec`.`id_pto_rec`
                                 , `tes_cuentas`.`numero`
-                                , `tb_bancos`.`cod_sia`
+                                , `tb_bancos`.`nom_banco` AS `cod_sia`
                             FROM
                                 `pto_rec`
                                 INNER JOIN `fac_pagos_erp` 
@@ -155,7 +162,7 @@ try {
                             (SELECT
                                 `pto_rec`.`id_pto_rec`
                                 , `tes_cuentas`.`numero`
-                                , `tb_bancos`.`cod_sia`
+                                , `tb_bancos`.`nom_banco` AS `cod_sia`
                             FROM
                                 `pto_rec`
                                 INNER JOIN `fac_pagos_erp` 
@@ -174,7 +181,7 @@ try {
                             (SELECT
                                 `pto_rec`.`id_pto_rec`
                                 , `tes_cuentas`.`numero`
-                                , `tb_bancos`.`cod_sia`
+                                , `tb_bancos`.`nom_banco` AS `cod_sia`
                             FROM
                                 `pto_rec`
                                 INNER JOIN `fac_otros_pagos` 
@@ -198,21 +205,8 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$body = '';
-foreach ($lista as $r) {
-    $valor = $r['valor'] > 0 ? $r['valor'] : $r['liberado'] * -1;
-    $body .= "<tr>
-                <td>{$r['cod_rubro']}</td>
-                <td>{$r['fecha']}</td>
-                <td>{$meses}</td>
-                <td>{$r['id_manu']}</td>
-                <td>{$r['nom_tercero']}</td>
-                <td>{$r['objeto']}</td>
-                <td>{$valor}</td>
-                <td>{$r['cuenta']}</td>
-                <td>{$r['sia']}</td>
-            </tr>";
-}
+
+
 echo "\xEF\xBB\xBF";
 ?>
 <table class="table-bordered bg-light" style="width:100% !important;" border=1>
@@ -226,9 +220,11 @@ echo "\xEF\xBB\xBF";
         <td colspan="10" style="text-align: center; font-weight: bold;">PERIODO: <?= $meses ?></td>
     </tr>
     <tr>
+        <th>Fila</th>
+        <th>NIT</th>
+        <th>Nombre de la entidad</th>
         <th>Código Presupuestal</th>
         <th>Fecha De Recaudo</th>
-        <th>Periodo reportado</th>
         <th>Numero De Recibo</th>
         <th>Recibido De</th>
         <th>Concepto Recaudo</th>
@@ -237,6 +233,25 @@ echo "\xEF\xBB\xBF";
         <th>Banco</th>
     </tr>
     <tbody>
-        <?= $body; ?>
+        <?php
+$fila = 1;
+        foreach ($lista as $r) {
+            $rubro = isset($r['rubro']) ? $r['rubro'] : (isset($r['codigo']) ? $r['codigo'] : (isset($r['cuenta']) ? $r['cuenta'] : (isset($r['cod_rubro']) ? $r['cod_rubro'] : '')));
+            $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+
+    $valor = $r['valor'] > 0 ? $r['valor'] : $r['liberado'] * -1;
+    echo "<tr>
+                <td>{$fila}</td>\n                <td style='mso-number-format:\"\\@\"'>{$nit_empresa}</td>\n                <td>{$nombre_empresa}</td>\n                <td style='mso-number-format:\"\\@\"'>{$rubro_limpio}</td>
+                <td>{$r['fecha']}</td>
+                <td style='mso-number-format:\"\\@\"'>{$r['id_manu']}</td>
+                <td>{$r['nom_tercero']}</td>
+                <td>{$r['objeto']}</td>
+                <td>{$valor}</td>
+                <td style='mso-number-format:\"\\@\"'>{$rubro_limpio}</td>
+                <td>{$r['sia']}</td>
+            </tr>";
+            $fila++;
+}
+?>
     </tbody>
 </table>

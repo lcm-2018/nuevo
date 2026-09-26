@@ -1,5 +1,7 @@
 <?php
 session_start();
+set_time_limit(0);
+ini_set('memory_limit', '-1');
 if (!isset($_SESSION['user'])) {
     header('Location: ../../../index.php');
     exit();
@@ -27,6 +29,13 @@ if ($periodo == 1) {
 }
 
 $cmd = \Config\Clases\Conexion::getConexion();
+
+    $sql_empresa = "SELECT razon_social_ips AS nombre, nit_ips AS nit, dv AS dig_ver FROM tb_datos_ips";
+    $res_empresa = $cmd->query($sql_empresa);
+    $empresa = $res_empresa->fetch();
+    $nit_empresa = $empresa['nit'];
+    $nombre_empresa = $empresa['nombre'];
+
 try {
     $sql = "SELECT
                 `pto_cargue`.`id_cargue`
@@ -270,36 +279,8 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$body = '';
-foreach ($lista as $r) {
-    if ($periodo == 2) {
-        $valor = $r['valor_aprobado'] + $r['add'] - $r['red'];
-    } else {
-        $valor = $r['valor_aprobado'];
-    }
-    $body .= "<tr>
-                <td>{$r['cod_rubro']}</td>
-                <td>{$r['nom_rubro']}</td>
-                <td>{$valor}</td>
-                <td>{$r['cre_periodo']}</td>
-                <td>{$r['cre_acumulado']}</td>
-                <td>{$r['contra_periodo']}</td>
-                <td>{$r['contra_acumulado']}</td>
-                <td>{$r['aplazamiento']}</td>
-                <td>{$r['aplazamiento_acum']}</td>
-                <td>{$r['desaplazamiento']}</td>
-                <td>{$r['desaplazamiento_acum']}</td>
-                <td>{$r['red_periodo']}</td>
-                <td>{$r['red_acumulado']}</td>
-                <td>{$r['add_periodo']}</td>
-                <td>{$r['add_acumulado']}</td>
-                <td>{$r['compromiso_periodo']}</td>
-                <td>{$r['compromiso_acumulado']}</td>
-                <td>{$r['pago_periodo']}</td>
-                <td>{$r['pago_acumulado']}</td>
-                <td>{$meses}</td>
-            </tr>";
-}
+
+
 echo "\xEF\xBB\xBF";
 ?>
 <table class="table-bordered bg-light" style="width:100% !important;" border=1>
@@ -313,6 +294,9 @@ echo "\xEF\xBB\xBF";
         <td colspan="20" style="text-align: center; font-weight: bold;">PERIODO: <?= $meses ?></td>
     </tr>
     <tr>
+        <th>Fila</th>
+        <th>NIT</th>
+        <th>Nombre de la entidad</th>
         <th>Código Rubro Presupuestal</th>
         <th>Nombre Rubro Presupuestal</th>
         <th>Apropiación Inicial</th>
@@ -335,6 +319,41 @@ echo "\xEF\xBB\xBF";
         <th>Periodo reportado</th>
     </tr>
     <tbody>
-        <?= $body; ?>
+        <?php
+$fila = 1;
+        foreach ($lista as $r) {
+            $rubro = isset($r['rubro']) ? $r['rubro'] : (isset($r['codigo']) ? $r['codigo'] : (isset($r['cuenta']) ? $r['cuenta'] : (isset($r['cod_rubro']) ? $r['cod_rubro'] : '')));
+            $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+
+    if ($periodo == 2) {
+        $valor = $r['valor_aprobado'] + $r['add'] - $r['red'];
+    } else {
+        $valor = $r['valor_aprobado'];
+    }
+    echo "<tr>
+                <td>{$fila}</td>\n                <td style='mso-number-format:\"\\@\"'>{$nit_empresa}</td>\n                <td>{$nombre_empresa}</td>\n                <td style='mso-number-format:\"\\@\"'>{$rubro_limpio}</td>
+                <td>{$r['nom_rubro']}</td>
+                <td>{$valor}</td>
+                <td>{$r['cre_periodo']}</td>
+                <td>{$r['cre_acumulado']}</td>
+                <td>{$r['contra_periodo']}</td>
+                <td>{$r['contra_acumulado']}</td>
+                <td>{$r['aplazamiento']}</td>
+                <td>{$r['aplazamiento_acum']}</td>
+                <td>{$r['desaplazamiento']}</td>
+                <td>{$r['desaplazamiento_acum']}</td>
+                <td>{$r['red_periodo']}</td>
+                <td>{$r['red_acumulado']}</td>
+                <td>{$r['add_periodo']}</td>
+                <td>{$r['add_acumulado']}</td>
+                <td>{$r['compromiso_periodo']}</td>
+                <td>{$r['compromiso_acumulado']}</td>
+                <td>{$r['pago_periodo']}</td>
+                <td>{$r['pago_acumulado']}</td>
+                <td>{$meses}</td>
+            </tr>";
+            $fila++;
+}
+?>
     </tbody>
 </table>

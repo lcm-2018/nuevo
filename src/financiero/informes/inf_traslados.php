@@ -1,5 +1,7 @@
 <?php
 session_start();
+set_time_limit(0);
+ini_set('memory_limit', '-1');
 if (!isset($_SESSION['user'])) {
     header('Location: ../../../index.php');
     exit();
@@ -26,18 +28,25 @@ if ($periodo == 1) {
 }
 
 $cmd = \Config\Clases\Conexion::getConexion();
+
+    $sql_empresa = "SELECT razon_social_ips AS nombre, nit_ips AS nit, dv AS dig_ver FROM tb_datos_ips";
+    $res_empresa = $cmd->query($sql_empresa);
+    $empresa = $res_empresa->fetch();
+    $nit_empresa = $empresa['nit'];
+    $nombre_empresa = $empresa['nombre'];
+
 try {
     $sql = "SELECT
                 `ctb_doc`.`id_ctb_doc`
                 , `ctb_doc`.`id_manu`
                 , DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') AS `fecha`
                 , `ctb_pgcp`.`cuenta` AS `deb_cuenta`
-                , `tb_bancos`.`cod_sia` AS `deb_sia`
+                , `tb_bancos`.`nom_banco` AS `deb_sia`
                 , `tes_cuentas`.`numero` AS `deb_numero`
                 , `fin_cod_fuente`.`codigo` AS `deb_codigo`
                 , `ctb_libaux`.`debito`
                 , `cred`.`cuenta` AS `cre_cuenta`
-                , `cred`.`cod_sia` AS `cre_sia`
+                , `cred`.`nom_banco` AS `cre_sia`
                 , `cred`.`numero` AS `cre_numero`
                 , `cred`.`codigo` AS `cre_codigo`
                 , `cred`.`credito`
@@ -57,7 +66,7 @@ try {
                 (SELECT
                     `ctb_doc`.`id_ctb_doc`
                     , `ctb_pgcp`.`cuenta`
-                    , `tb_bancos`.`cod_sia`
+                    , `tb_bancos`.`nom_banco`
                     , `tes_cuentas`.`numero`
                     , `fin_cod_fuente`.`codigo`
                     , `ctb_libaux`.`credito`
@@ -77,29 +86,14 @@ try {
                 ON (`ctb_doc`.`id_ctb_doc` = `cred`.`id_ctb_doc`)
             WHERE (`ctb_doc`.`id_tipo_doc` = 10 AND `ctb_libaux`.`debito` > 0 AND `ctb_doc`.`estado` = 2 AND `tes_cuentas`.`estado` = 1
                 AND DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') BETWEEN $rango)
-            ORDER BY DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d'),`tb_bancos`.`cod_sia` ASC";
+            ORDER BY DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d'),`tb_bancos`.`nom_banco` ASC";
     $res = $cmd->query($sql);
     $lista = $res->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$body = '';
-foreach ($lista as $r) {
-    $body .= "<tr>
-                <td>{$r['id_manu']}</td>
-                <td>{$r['fecha']}</td>
-                <td>{$r['cre_cuenta']}</td>
-                <td>{$r['cre_sia']}</td>
-                <td>{$r['cre_numero']}</td>
-                <td>{$r['cre_codigo']}</td>
-                <td>{$r['debito']}</td>
-                <td>{$r['deb_sia']}</td>
-                <td>{$r['deb_numero']}</td>
-                <td>{$r['deb_codigo']}</td>
-                <td>{$meses}</td>
-                <td>{$r['deb_cuenta']}</td>
-            </tr>";
-}
+
+
 echo "\xEF\xBB\xBF";
 ?>
 <table class="table-bordered bg-light" style="width:100% !important;" border=1>
@@ -113,6 +107,9 @@ echo "\xEF\xBB\xBF";
         <td colspan="12" style="text-align: center; font-weight: bold;">PERIODO: <?= $meses ?></td>
     </tr>
     <tr>
+        <th>Fila</th>
+        <th>NIT</th>
+        <th>Nombre de la entidad</th>
         <th>Documento</th>
         <th>Fecha</th>
         <th>Cuenta Contable</th>
@@ -123,10 +120,30 @@ echo "\xEF\xBB\xBF";
         <th>Banco Receptor</th>
         <th>Numero Cuenta Bancaria</th>
         <th>Fuente De Financiación</th>
-        <th>Periodo Reportado</th>
         <th>Cuenta Contable</th>
     </tr>
     <tbody>
-        <?= $body; ?>
+        <?php
+$fila = 1;
+        foreach ($lista as $r) {
+            $rubro = isset($r['rubro']) ? $r['rubro'] : (isset($r['codigo']) ? $r['codigo'] : (isset($r['cuenta']) ? $r['cuenta'] : ''));
+            $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+
+    echo "<tr>
+                <td>{$fila}</td>\n                <td style='mso-number-format:\"\\@\"'>{$nit_empresa}</td>\n                <td>{$nombre_empresa}</td>\n                <td style='mso-number-format:\"\\@\"'>{$r['id_manu']}</td>
+                <td>{$r['fecha']}</td>
+                <td style='mso-number-format:\"\\@\"'>{$r['cre_cuenta']}</td>
+                <td>{$r['cre_sia']}</td>
+                <td style='mso-number-format:\"\\@\"'>{$r['cre_numero']}</td>
+                <td style='mso-number-format:\"\\@\"'>{$r['cre_codigo']}</td>
+                <td>{$r['debito']}</td>
+                <td>{$r['deb_sia']}</td>
+                <td style='mso-number-format:\"\\@\"'>{$r['deb_numero']}</td>
+                <td style='mso-number-format:\"\\@\"'>{$r['deb_codigo']}</td>
+                <td style='mso-number-format:\"\\@\"'>{$r['deb_cuenta']}</td>
+            </tr>";
+            $fila++;
+}
+?>
     </tbody>
 </table>

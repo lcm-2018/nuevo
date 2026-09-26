@@ -149,11 +149,11 @@ try {
         if ($bandera) {
             $total += $pendiente;
             $body .= "<tr>
-                <td>{$r['cuenta']}</td>
+                <td style='mso-number-format:\"\\@\"'>{$r['cuenta']}</td>
                 <td>{$r['nombre']}</td>
                 <td>3</td>
                 <td>{$r['codigo_ne']}</td>
-                <td>{$r['nit_tercero']}</td>
+                <td style='mso-number-format:\"\\@\"'>{$r['nit_tercero']}</td>
                 <td>{$r['dv']}</td>
                 <td>{$r['nom_tercero']}</td>
                 <td>$actividad</td>

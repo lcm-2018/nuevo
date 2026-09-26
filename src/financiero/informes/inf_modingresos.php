@@ -1,5 +1,7 @@
 <?php
 session_start();
+set_time_limit(0);
+ini_set('memory_limit', '-1');
 if (!isset($_SESSION['user'])) {
     header('Location: ../../../index.php');
     exit();
@@ -27,6 +29,13 @@ if ($periodo == 1) {
 }
 
 $cmd = \Config\Clases\Conexion::getConexion();
+
+    $sql_empresa = "SELECT razon_social_ips AS nombre, nit_ips AS nit, dv AS dig_ver FROM tb_datos_ips";
+    $res_empresa = $cmd->query($sql_empresa);
+    $empresa = $res_empresa->fetch();
+    $nit_empresa = $empresa['nit'];
+    $nombre_empresa = $empresa['nombre'];
+
 try {
     $sql = "SELECT
                 `pto_mod`.`id_pto_mod`
@@ -64,17 +73,8 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$body = '';
-foreach ($lista as $r) {
-    $body .= "<tr>
-                <td>{$r['nombre']}</td>
-                <td>{$r['cod_pptal']}</td>
-                <td>{$r['numero_acto']}</td>
-                <td>{$r['fecha']}</td>
-                <td>{$r['debito']}</td>
-                <td>{$r['credito']}</td>
-            </tr>";
-}
+
+
 echo "\xEF\xBB\xBF";
 ?>
 <table class="table-bordered bg-light" style="width:100% !important;" border=1>
@@ -88,6 +88,9 @@ echo "\xEF\xBB\xBF";
         <td colspan="6" style="text-align: center; font-weight: bold;">PERIODO: <?= $meses ?></td>
     </tr>
     <tr>
+        <th>Fila</th>
+        <th>NIT</th>
+        <th>Nombre de la entidad</th>
         <th>Tipo</th>
         <th>Código Rubro Presupuestal</th>
         <th>Acto Administrativo</th>
@@ -96,6 +99,22 @@ echo "\xEF\xBB\xBF";
         <th>Reducciones</th>
     </tr>
     <tbody>
-        <?= $body; ?>
+        <?php
+$fila = 1;
+        foreach ($lista as $r) {
+            $rubro = isset($r['rubro']) ? $r['rubro'] : (isset($r['codigo']) ? $r['codigo'] : (isset($r['cuenta']) ? $r['cuenta'] : ''));
+            $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+
+    echo "<tr>
+                <td>{$fila}</td>\n                <td style='mso-number-format:\"\\@\"'>{$nit_empresa}</td>\n                <td>{$nombre_empresa}</td>\n                <td>{$r['nombre']}</td>
+                <td style='mso-number-format:\"\\@\"'>{$r['cod_pptal']}</td>
+                <td>{$r['numero_acto']}</td>
+                <td>{$r['fecha']}</td>
+                <td>{$r['debito']}</td>
+                <td>{$r['credito']}</td>
+            </tr>";
+            $fila++;
+}
+?>
     </tbody>
 </table>

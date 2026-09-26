@@ -1,5 +1,7 @@
 <?php
 session_start();
+set_time_limit(0);
+ini_set('memory_limit', '-1');
 if (!isset($_SESSION['user'])) {
     header('Location: ../../../index.php');
     exit();
@@ -27,6 +29,13 @@ if ($periodo == 1) {
 }
 
 $cmd = \Config\Clases\Conexion::getConexion();
+
+    $sql_empresa = "SELECT razon_social_ips AS nombre, nit_ips AS nit, dv AS dig_ver FROM tb_datos_ips";
+    $res_empresa = $cmd->query($sql_empresa);
+    $empresa = $res_empresa->fetch();
+    $nit_empresa = $empresa['nit'];
+    $nombre_empresa = $empresa['nombre'];
+
 try {
     $sql = "SELECT
                 `ctb_doc`.`id_ctb_doc`
@@ -83,23 +92,8 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$body = '';
-foreach ($lista as $r) {
-    $body .= "<tr>
-                <td>{$r['fecha']}</td>
-                <td>{$meses}</td>
-                <td>{$r['id_manu']}</td>
-                <td>{$r['nom_tercero']}</td>
-                <td>{$r['nit_tercero']}</td>
-                <td>{$r['detalle']}</td>
-                <td>{$r['valor']}</td>
-                <td>{$r['descuento']}</td>
-                <td>{$r['neto']}</td>
-                <td>{$r['sia']}</td>
-                <td>{$r['numero']}</td>
-                <td>{$r['documento']}</td>
-            </tr>";
-}
+
+
 echo "\xEF\xBB\xBF";
 ?>
 <table class="table-bordered bg-light" style="width:100% !important;" border=1>
@@ -113,6 +107,9 @@ echo "\xEF\xBB\xBF";
         <td colspan="12" style="text-align: center; font-weight: bold;">PERIODO: <?= $meses ?></td>
     </tr>
     <tr>
+        <th>Fila</th>
+        <th>NIT</th>
+        <th>Nombre de la entidad</th>
         <th>Fecha De Pago</th>
         <th>Periodo reporte</th>
         <th>No. De Comprobante</th>
@@ -127,6 +124,28 @@ echo "\xEF\xBB\xBF";
         <th>No. De Cheque O Nd</th>
     </tr>
     <tbody>
-        <?= $body; ?>
+        <?php
+$fila = 1;
+        foreach ($lista as $r) {
+            $rubro = isset($r['rubro']) ? $r['rubro'] : (isset($r['codigo']) ? $r['codigo'] : (isset($r['cuenta']) ? $r['cuenta'] : ''));
+            $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+
+    echo "<tr>
+                <td>{$fila}</td>\n                <td style='mso-number-format:\"\\@\"'>{$nit_empresa}</td>\n                <td>{$nombre_empresa}</td>\n                <td>{$r['fecha']}</td>
+                <td>{$meses}</td>
+                <td style='mso-number-format:\"\\@\"'>{$r['id_manu']}</td>
+                <td>{$r['nom_tercero']}</td>
+                <td style='mso-number-format:\"\\@\"'>{$r['nit_tercero']}</td>
+                <td>{$r['detalle']}</td>
+                <td>{$r['valor']}</td>
+                <td>{$r['descuento']}</td>
+                <td>{$r['neto']}</td>
+                <td>{$r['sia']}</td>
+                <td style='mso-number-format:\"\\@\"'>{$r['numero']}</td>
+                <td>{$r['documento']}</td>
+            </tr>";
+            $fila++;
+}
+?>
     </tbody>
 </table>
