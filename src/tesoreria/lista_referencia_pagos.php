@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 
 if (!isset($_SESSION['user'])) {
@@ -27,22 +27,19 @@ try {
     $sql = "SELECT
                 `tes_referencia`.`id_referencia`
                 , `tes_referencia`.`numero`
-                ,  DATE_FORMAT(`tes_referencia`.`fecha`, '%Y-%m-%d') AS `fecha`
+                , DATE_FORMAT(`tes_referencia`.`fecha`, '%Y-%m-%d') AS `fecha`
                 , `tes_referencia`.`estado`
-                , SUM(`t1`.`valor`) AS `valor`
+                , SUM(`ctb_libaux`.`credito`) AS `valor`
                 , `tes_cuentas`.`nombre` AS `banco`
             FROM
                 `tes_referencia`
                 LEFT JOIN `ctb_doc` 
                     ON (`ctb_doc`.`id_ref` = `tes_referencia`.`id_referencia` AND `ctb_doc`.`estado` = 2)
-                LEFT JOIN 
-                    (SELECT `id_ctb_doc`, SUM(`credito`) AS `valor`
-                    FROM `ctb_libaux`
-                    GROUP BY `id_ctb_doc`)AS`t1` 
-                    ON (`t1`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
+                LEFT JOIN `ctb_libaux`
+                    ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
                 LEFT JOIN `tes_cuentas` 
                     ON (`tes_cuentas`.`id_tes_cuenta` = `tes_referencia`.`id_tes_cuenta`)
-            WHERE (DATE_FORMAT(`tes_referencia`.`fecha`, '%Y-%m-%d') BETWEEN '$inicio' AND '$fin')
+            WHERE `tes_referencia`.`fecha` >= '$inicio' AND `tes_referencia`.`fecha` <= '$fin 23:59:59'
             GROUP BY `tes_referencia`.`id_referencia`";
     $rs = $cmd->query($sql);
     $referencias = $rs->fetchAll();

@@ -229,7 +229,7 @@ try {
             )
             SELECT
                 l.cuenta,
-                COALESCE(s.id_sede, 'sin_asignar') AS id_sede,
+                COALESCE(CASE WHEN d.id_tipo_doc = 5 THEN e.sede_emp ELSE s.id_sede END, 'sin_asignar') AS id_sede,
                 SUM(l.valor_movimiento)             AS total_valor
             FROM LibauxNumerado l
             LEFT JOIN CostosNumerado c
@@ -242,12 +242,16 @@ try {
                 ON c.id_area_cc = fca.id_area
             LEFT JOIN tb_sedes s
                 ON fca.id_sede = s.id_sede
+            LEFT JOIN tb_terceros t
+                ON l.id_tercero_api = t.id_tercero_api
+            LEFT JOIN nom_empleado e
+                ON t.nit_tercero = e.no_documento
             WHERE d.estado = 2
               AND d.fecha BETWEEN :fec_ini AND :fec_fin
               $and_where_costos
             GROUP BY
                 l.cuenta,
-                COALESCE(s.id_sede, 'sin_asignar')
+                COALESCE(CASE WHEN d.id_tipo_doc = 5 THEN e.sede_emp ELSE s.id_sede END, 'sin_asignar')
         ";
 
         $rs_costos = $cmd_principal->prepare($sql_costos);

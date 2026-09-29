@@ -12,6 +12,25 @@ function pesos($valor)
 {
     return '$' . number_format($valor, 2);
 }
+
+if (!function_exists('calcularDV')) {
+    function calcularDV($nit)
+    {
+        if (empty($nit)) return '';
+        $factores = [3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71];
+        $nit = strval($nit);
+        $len = strlen($nit);
+        $suma = 0;
+        for ($i = 0; $i < $len; $i++) {
+            $suma += intval($nit[$len - 1 - $i]) * $factores[$i];
+        }
+        $residuo = $suma % 11;
+        if ($residuo > 1) {
+            return 11 - $residuo;
+        }
+        return $residuo;
+    }
+}
 include '../../../config/autoloader.php';
 
 
@@ -67,6 +86,7 @@ try {
                 , `ctb_doc`.`id_tercero`
                 , `tb_terceros`.`nom_tercero`
                 , `tb_terceros`.`nit_tercero`
+                , `tb_tipos_documento`.`descripcion` AS `tipo_doc_tercero`
                 , `ctb_doc`.`fecha_reg`
                 , CONCAT_WS(' ', `seg_usuarios_sistema`.`nombre1`
                 , `seg_usuarios_sistema`.`nombre2`
@@ -81,6 +101,8 @@ try {
                     ON (`ctb_doc`.`id_tipo_doc` = `ctb_fuente`.`id_doc_fuente`)
                 LEFT JOIN `tb_terceros` 
                     ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
+                LEFT JOIN `tb_tipos_documento`
+                    ON (`tb_terceros`.`tipo_doc` = `tb_tipos_documento`.`id_tipodoc`)
             WHERE (`ctb_doc`.`id_ctb_doc` IN ($ids))";
     $res = $cmd->query($sql);
     $documentos_tes = $res->fetchAll();
@@ -479,7 +501,13 @@ foreach ($documentos_tes as $documento) {
             </tr>
             <tr>
                 <td class='text-start' style="width:18%">CC/NIT:</td>
-                <td class='text-start'><?php echo number_format($num_doc, 0, '', '.'); ?></td>
+                <td class='text-start'><?php 
+                    $nit_mostrar = number_format($num_doc, 0, '', '.');
+                    if (isset($documento['tipo_doc_tercero']) && strtoupper(trim($documento['tipo_doc_tercero'])) == 'NIT') {
+                        $nit_mostrar .= '-' . calcularDV($num_doc);
+                    }
+                    echo $nit_mostrar;
+                ?></td>
             </tr>
             <tr>
                 <td class='text-start'>OBJETO:</td>

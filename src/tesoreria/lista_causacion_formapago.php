@@ -144,6 +144,8 @@ if ($id_fp > 0) {
         $sql = "SELECT
                     `tes_detalle_pago`.`id_detalle_pago`
                     , `tb_bancos`.`id_banco`
+                    , `tb_bancos`.`nom_banco`
+                    , `tes_cuentas`.`nombre` AS `nombre_cuenta`
                     , `tes_cuentas`.`id_tes_cuenta`
                     , `tes_detalle_pago`.`id_forma_pago`
                     , `tes_detalle_pago`.`documento`
@@ -174,22 +176,6 @@ $optionsFormasPago = '<option value="0">--Seleccione--</option>';
 foreach ($formas_pago as $forma_pago) {
     $selected = (isset($forma_pago_edit['id_forma_pago']) && $forma_pago_edit['id_forma_pago'] == $forma_pago['id_forma_pago']) ? 'selected' : '';
     $optionsFormasPago .= '<option value="' . $forma_pago['id_forma_pago'] . '" ' . $selected . '>' . $forma_pago['forma_pago'] . '</option>';
-}
-
-$optionsCuentas = '<option value="0">--Seleccione--</option>';
-if ($id_fp > 0 && isset($forma_pago_edit['id_banco'])) {
-    try {
-        $id_banco_edit = $forma_pago_edit['id_banco'];
-        $sql = "SELECT `id_tes_cuenta`, `nombre` FROM `tes_cuentas` WHERE `id_banco` = $id_banco_edit AND `estado` = 1 ORDER BY `nombre` ASC";
-        $rs = $cmd->query($sql);
-        $cuentas_edit = $rs->fetchAll();
-        foreach ($cuentas_edit as $cta) {
-            $selected = ($forma_pago_edit['id_tes_cuenta'] == $cta['id_tes_cuenta']) ? 'selected' : '';
-            $optionsCuentas .= '<option value="' . $cta['id_tes_cuenta'] . '" ' . $selected . '>' . $cta['nombre'] . '</option>';
-        }
-    } catch (PDOException $e) {
-        // Ignorar o registrar error
-    }
 }
 
 // Construir filas de la tabla
@@ -233,20 +219,11 @@ foreach ($rubros as $ce) {
                 <input type="hidden" name="id_pto_cop" id="id_pto_cop" value="<?= $id_cop; ?>">
                 <input type="hidden" name="id_fp" id="id_fp" value="<?= $id_fp; ?>">
                 <div class="row mb-2">
-                    <div class="col-md-3">
-                        <label for="banco" class="small fw-bold">BANCO</label>
-                        <select name="banco" id="banco" class="form-select form-select-sm bg-input" required
-                            onchange="mostrarCuentas(value);">
-                            <?= $optionsBancos; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="cuentas" class="small fw-bold">CUENTA</label>
-                        <div id="divBanco">
-                            <select name="cuentas" id="cuentas" class="form-select form-select-sm bg-input">
-                                <?= $optionsCuentas ?? '<option value="0">--Seleccione--</option>'; ?>
-                            </select>
-                        </div>
+                    <div class="col-md-6">
+                        <label for="buscaCuentas" class="small fw-bold">CUENTA BANCARIA</label>
+                        <input type="text" id="buscaCuentas" class="form-control form-control-sm bg-input awesomplete" placeholder="Buscar cuenta bancaria..." value="<?= isset($forma_pago_edit['nombre_cuenta']) ? $forma_pago_edit['nom_banco'] . ' - ' . $forma_pago_edit['nombre_cuenta'] : '' ?>">
+                        <input type="hidden" name="cuentas" id="cuentas" value="<?= isset($forma_pago_edit['id_tes_cuenta']) ? $forma_pago_edit['id_tes_cuenta'] : '0' ?>">
+                        <input type="hidden" name="banco" id="banco" value="<?= isset($forma_pago_edit['id_banco']) ? $forma_pago_edit['id_banco'] : '1' ?>">
                     </div>
                     <div class="col-md-2">
                         <label for="forma_pago_det" class="small fw-bold">FORMA DE PAGO</label>
@@ -301,3 +278,22 @@ foreach ($rubros as $ce) {
         </div>
     </div>
 </div>
+<script>
+    (function initAwesompleteCuenta() {
+        const inputCuenta = document.getElementById('buscaCuentas');
+        if (inputCuenta) {
+            inicializarAwesomplete(
+                inputCuenta, 
+                ValueInput('host') + '/src/tesoreria/datos/consultar/consulta_tes_cuentas_awesomplete.php', 
+                '#cuentas'
+            );
+            
+            // Disparar SaldoCuenta cuando se seleccione una cuenta en awesomplete
+            inputCuenta.addEventListener('awesomplete-selectcomplete', function(event) {
+                if (typeof SaldoCuenta === 'function') {
+                    SaldoCuenta(event.text.value);
+                }
+            });
+        }
+    })();
+</script>

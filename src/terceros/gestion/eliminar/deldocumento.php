@@ -15,7 +15,7 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     
     $sql = "SELECT
-                    `ruta_doc`,`nombre_doc`
+                    `id_tercero`,`id_soporte`,`ruta_doc`,`nombre_doc`
                 FROM `ctt_documentos`
                 WHERE `id_soportester` = $id";
     $rs = $cmd->query($sql);
@@ -28,6 +28,16 @@ try {
     if ($query->rowCount() > 0) {
         $consulta = "DELETE FROM `ctt_documentos` WHERE `id_soportester` = $id";
         Logs::guardaLog($consulta);
+        
+        // Si el documento es una certificación bancaria (id_soporte == 23), eliminar la cuenta bancaria
+        if ($pdf['id_soporte'] == 23) {
+            $id_t = $pdf['id_tercero'];
+            $delCta = "DELETE FROM `ctt_cuenta_bancaria` WHERE `id_tercero` = ?";
+            $stmtDel = $cmd->prepare($delCta);
+            $stmtDel->execute([$id_t]);
+            Logs::guardaLog("DELETE FROM `ctt_cuenta_bancaria` WHERE `id_tercero` = $id_t");
+        }
+        
         if (!empty($pdf)) {
             $filePath = $pdf['ruta_doc'] . $pdf['nombre_doc'];
             if (file_exists($filePath)) {

@@ -1261,7 +1261,7 @@ class Liquidacion
                         } else {
                             $fecha_corte = $cortes_empleado['val_bsp'] == '' ? $cortes_empleado['inicia_ctt'] : $cortes_empleado['corte_bsp'];
                             //verificar si hay 360 día para la bonificiacion sacandolo los dias entre fecha_corte y fecha_fin
-                            $tiene_bsp = (strtotime($fin) - strtotime($fecha_corte)) / (60 * 60 * 24) >= 360;
+                            $tiene_bsp = (new Cesantias())->calcularDias($fecha_corte, $fin, $id_empleado) >= 360;
                             if ($tiene_bsp) {
                                 $param['corte'] = date('Y-m-d', strtotime($fecha_corte . ' +1 year'));
                                 $response = $this->LiquidaBSP($param);

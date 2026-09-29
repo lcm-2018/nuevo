@@ -58,6 +58,20 @@ if (isset($_POST['ccnit']) && $_POST['ccnit']) {
 if (isset($_POST['tercero']) && $_POST['tercero']) {
     $andwhere .= " AND tb_terceros.nom_tercero LIKE '%" . $_POST['tercero'] . "%'";
 }
+if (isset($_POST['causacion']) && $_POST['causacion']) {
+    $andwhere .= " AND EXISTS (SELECT 1 FROM `pto_pag_detalle`
+                        INNER JOIN `pto_cop_detalle` 
+                            ON `pto_pag_detalle`.`id_pto_cop_det` = `pto_cop_detalle`.`id_pto_cop_det`
+                        INNER JOIN `ctb_doc` AS `doc_causacion`
+                            ON (`pto_cop_detalle`.`id_ctb_doc` = `doc_causacion`.`id_ctb_doc`)
+                        WHERE `pto_pag_detalle`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`
+                        AND `doc_causacion`.`id_manu` LIKE '%" . $_POST['causacion'] . "%')";
+}
+if (isset($_POST['valor']) && $_POST['valor'] !== '') {
+    // Para filtrar por valor (sumatoria de credito), validamos que la diferencia entre debito y credito sea 0 en la vista,
+    // pero para busqueda permitimos encontrar el documento que tenga ese credito.
+    $andwhere .= " AND (SELECT SUM(`credito`) FROM `ctb_libaux` WHERE `ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`) = " . floatval($_POST['valor']);
+}
 if (isset($_POST['estado']) && strlen($_POST['estado'])) {
     if ($_POST['estado'] == "-1") {
         $andwhere .= " AND ctb_doc.estado>=" . $_POST['estado'];

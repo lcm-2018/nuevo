@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -45,9 +45,8 @@ if ($fin_mes != 0) {
                     , `t1`. `debito`
                     , `t1`.`credito`
                     , `ctb_pgcp`.`cuenta` AS `cta_contable`
-                    , IFNULL(`t3`.`debito`,0) AS `debito_conciliado`
-                    , IFNULL(`t3`.`credito`,0) AS `credito_conciliado`
-
+                    , 0 AS `debito_conciliado`
+                    , 0 AS `credito_conciliado`
                 FROM
                     `tes_cuentas`
                     INNER JOIN `ctb_pgcp` 
@@ -58,38 +57,16 @@ if ($fin_mes != 0) {
                         ON (`tes_cuentas`.`id_tipo_cuenta` = `tes_tipo_cuenta`.`id_tipo_cuenta`)
                     INNER JOIN 
                         (SELECT
-                            `ctb_libaux`.`id_cuenta`
-                            , SUM(`ctb_libaux`.`debito`) AS `debito` 
-                            , SUM(`ctb_libaux`.`credito`) AS `credito`
-                            , `ctb_doc`.`fecha`
+                            l.`id_cuenta`
+                            , SUM(l.`debito`) AS `debito` 
+                            , SUM(l.`credito`) AS `credito`
                         FROM
-                            `ctb_libaux`
-                            INNER JOIN `ctb_doc` 
-                                ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                        WHERE (`ctb_doc`.`estado` = 2 AND `ctb_doc`.`fecha` <= '$fin_mes')
-                        GROUP BY `ctb_libaux`.`id_cuenta`)AS `t1`  
-                        ON (`t1`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
-                    LEFT JOIN 
-                        (SELECT
-                            `tes_conciliacion`.`id_conciliacion`
-                            , `tes_cuentas`.`id_cuenta`
-                        FROM
-                            `tes_conciliacion`
-                            INNER JOIN `tes_cuentas` 
-                                ON (`tes_conciliacion`.`id_cuenta` = `tes_cuentas`.`id_tes_cuenta`)
-                        WHERE (`tes_conciliacion`.`mes` = '$mes' AND `tes_conciliacion`.`vigencia` = '$vigencia')) AS `t2`
-                        ON (`t2`.`id_cuenta` = `t1`.`id_cuenta`)
-                    LEFT JOIN 
-                        (SELECT
-                            `tes_conciliacion_detalle`.`id_concilia`
-                            , SUM(`ctb_libaux`.`debito`) AS `debito`
-                            , SUM(`ctb_libaux`.`credito`) AS `credito`
-                        FROM
-                            `tes_conciliacion_detalle`
-                            INNER JOIN `ctb_libaux` 
-                                ON (`tes_conciliacion_detalle`.`id_ctb_libaux` = `ctb_libaux`.`id_ctb_libaux`)
-                        GROUP BY `tes_conciliacion_detalle`.`id_concilia`) AS `t3`
-                        ON (`t3`.`id_concilia` = `t2`.`id_conciliacion`)";
+                            `ctb_libaux` l
+                            INNER JOIN `ctb_doc` d ON (l.`id_ctb_doc` = d.`id_ctb_doc`)
+                            INNER JOIN `tes_cuentas` tc ON (tc.`id_cuenta` = l.`id_cuenta`)
+                        WHERE (d.`estado` = 2 AND d.`fecha` <= '$fin_mes')
+                        GROUP BY l.`id_cuenta`) AS `t1`  
+                        ON (`t1`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)";
         //        echo $sql;
         $rs = $cmd->query($sql);
         $lista = $rs->fetchAll();

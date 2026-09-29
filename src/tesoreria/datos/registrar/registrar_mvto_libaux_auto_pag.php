@@ -26,12 +26,13 @@ try {
     if ($query->rowCount() > 0) {
         Logs::guardaLog("DELETE FROM `ctb_libaux` WHERE `id_ctb_doc` = $id_doc");
     }
-    $query = "SELECT `id_tercero` FROM `ctb_doc` WHERE `id_ctb_doc` = ?";
+    $query = "SELECT `id_tercero`, `id_ref_ctb` FROM `ctb_doc` WHERE `id_ctb_doc` = ?";
     $query = $cmd->prepare($query);
     $query->bindParam(1, $id_doc, PDO::PARAM_INT);
     $query->execute();
     $datos = $query->fetch();
     $id_tercero = $datos['id_tercero'];
+    $id_ref_ctb = $datos['id_ref_ctb'];
     $sq2 = "SELECT
                 `tes_cuentas`.`id_cuenta` AS `cta_contable`
                 , `tes_detalle_pago`.`valor`
@@ -54,6 +55,19 @@ try {
                     INNER JOIN `ctb_referencia` 
                         ON (`ctb_doc`.`id_ref_ctb` = `ctb_referencia`.`id_ctb_referencia`)
                 WHERE (`ctb_doc`.`id_ctb_doc` = $id_doc)";
+    } else if ($tipo == 4 && !empty($id_ref_ctb)) {
+        $total_fp = 0;
+        foreach ($formapago as $fp) {
+            $total_fp += $fp['valor'];
+        }
+        $sql = "SELECT
+                `id_cuenta`
+                , NULL AS `accion`
+                , 1 AS `ref`
+                , $total_fp AS `valor`
+            FROM
+                `ctb_referencia`
+            WHERE (`id_ctb_referencia` = $id_ref_ctb)";
     } else {
         if ($id_cop > 0) {
             $sql = "SELECT

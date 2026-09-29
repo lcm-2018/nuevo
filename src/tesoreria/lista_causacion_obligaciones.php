@@ -145,6 +145,12 @@ try {
             targets: opCaracterJS == '2' ? [] : [1, 2],
             "visible": false
         }],
+        //definir para que salga en la opcion de filas todo con -1
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, "Todos"]
+        ],
+
     });
     $('#tableObligacionesPago').wrap('<div class="overflow" />');
     $('#tableObligacionesPago_filter #verAnulados').remove();

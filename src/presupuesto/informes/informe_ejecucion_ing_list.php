@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: ../../../index.php');
@@ -32,10 +32,15 @@ $fecha_actual = $fecha->format('Y-m-d');
                         <div class="col-3 small">Fecha de corte:</div>
                         <div class="col-3"><input type="date" name="fecha" id="fecha" class="form-control form-control-sm bg-input" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_actual; ?>"></div>
                     </div>
-                    <div class="row mb-3">
+                    <div class="row mb-1">
                         <div class="col-2"></div>
                         <div class="col-3 small">Movimiento del mes:</div>
                         <div class="col-3"><input type="checkbox" id="mes" name="mes" value="0"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-2"></div>
+                        <div class="col-3 small">Movimiento por periodo:</div>
+                        <div class="col-3"><input type="checkbox" id="periodo" name="periodo" value="0"></div>
                     </div>
                     <div class="text-center">
                         <button value="2" class="btn btn-primary" onclick="generarInforme(this);"><span></span> Consultar</button>

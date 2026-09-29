@@ -169,7 +169,7 @@ class NominaElectronicaService
                 $jPayroll = $this->builder->build();
 
                 // Enviar a Taxxa
-                $response = $this->sendPayroll($jPayroll);
+                $response = $this->sendPayroll($jPayroll, $idNomina, $idEmp);
 
                 // Procesar respuesta
                 $indicene = strtolower(self::TIPO_REF) . $numero;
@@ -252,7 +252,7 @@ class NominaElectronicaService
      * @return array Respuesta cruda de Taxxa (decodificada)
      * @throws Exception
      */
-    private function sendPayroll(array $jPayroll): array
+    private function sendPayroll(array $jPayroll, int $idNomina, int $idEmp): array
     {
         $payload = [
             'sToken' => $this->taxxaService->getToken(),
@@ -284,6 +284,8 @@ class NominaElectronicaService
         $curlError = curl_error($ch);
         curl_close($ch);
 
+        $this->logEnvioEmpleado($idNomina, $idEmp, $payload, $response);
+
         if ($curlError) {
             throw new Exception("Error de conexión con Taxxa: " . $curlError);
         }
@@ -295,6 +297,38 @@ class NominaElectronicaService
         }
 
         return $decoded;
+    }
+
+    /**
+     * Guarda el log del envío de cada empleado
+     */
+    private function logEnvioEmpleado(int $idNomina, int $idEmp, array $request, $response): void
+    {
+        // Guardar en la misma carpeta de logs que usa TaxxaService
+        $logDir = __DIR__ . '/../../../../contabilidad/soportes/equivalente/logs';
+        
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+
+        $fechaActual = date('Y-m-d');
+        $logDirFecha = $logDir . '/' . $fechaActual;
+
+        if (!is_dir($logDirFecha)) {
+            mkdir($logDirFecha, 0755, true);
+        }
+
+        $logPath = $logDirFecha . '/log_nomina_' . $idNomina . '_emp_' . $idEmp . '.txt';
+
+        $log = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'id_nomina' => $idNomina,
+            'id_empleado' => $idEmp,
+            'request' => $request,
+            'response' => is_string($response) ? json_decode($response) : $response
+        ];
+
+        file_put_contents($logPath, json_encode($log, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 
     /**

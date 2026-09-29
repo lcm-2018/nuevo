@@ -9,7 +9,8 @@ $vigencia = $_SESSION['vigencia'];
 // Función para calcular el dígito de verificación del NIT (algoritmo DIAN módulo 11)
 function calcularDV($nit)
 {
-    if (empty($nit)) return '';
+    if (empty($nit))
+        return '';
     $factores = [3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71];
     $nit = strval($nit);
     $len = strlen($nit);
@@ -31,55 +32,61 @@ $fecha_corte = $_POST['fec_fin'];
 $cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT
-        `cop`.`id_ctb_doc` AS `id_causacion`
-        , `doc_causacion`.`id_manu` AS `no_causacion`
-        , DATE_FORMAT(`doc_causacion`.`fecha`,'%Y-%m-%d') AS `fecha`
-        , `doc_causacion`.`detalle` AS `objeto`
-        , `tt`.`nit_tercero`
-        , `tt`.`nom_tercero`
-        , `ttd`.`codigo_ne` AS `tipo_doc`
-        , `fact`.`num_factura`
-        , `rubro`.`cod_pptal`
-        , (IFNULL(`cop`.`valor`,0) - IFNULL(`cop`.`valor_liberado`,0)) AS `val_bruto`
-        , IFNULL(`ret`.`valor_retencion`, 0) AS `retencion_causacion`
-        , IFNULL(`pag`.`val_pagado`, 0) AS `val_pagado`
-    FROM
-        `pto_cop_detalle` AS `cop`
-        INNER JOIN `ctb_doc` AS `doc_causacion`
-            ON (`cop`.`id_ctb_doc` = `doc_causacion`.`id_ctb_doc`)
-        LEFT JOIN `tb_terceros` AS `tt`
-            ON (`cop`.`id_tercero_api` = `tt`.`id_tercero_api`)
-        LEFT JOIN `tb_tipos_documento` AS `ttd`
-            ON (`tt`.`tipo_doc` = `ttd`.`id_tipodoc`)
-        LEFT JOIN (
-            SELECT `id_ctb_doc`, GROUP_CONCAT(`num_doc` SEPARATOR ', ') AS `num_factura`
-            FROM `ctb_factura`
-            GROUP BY `id_ctb_doc`
-        ) AS `fact`
-            ON (`doc_causacion`.`id_ctb_doc` = `fact`.`id_ctb_doc`)
-        LEFT JOIN `pto_crp_detalle` AS `crp`
-            ON (`cop`.`id_pto_crp_det` = `crp`.`id_pto_crp_det`)
-        LEFT JOIN `pto_cdp_detalle` AS `cdp`
-            ON (`crp`.`id_pto_cdp_det` = `cdp`.`id_pto_cdp_det`)
-        LEFT JOIN `pto_cargue` AS `rubro`
-            ON (`cdp`.`id_rubro` = `rubro`.`id_cargue`)
-        LEFT JOIN (
-            SELECT `id_ctb_doc`, SUM(`valor_retencion`) AS `valor_retencion`
-            FROM `ctb_causa_retencion`
-            GROUP BY `id_ctb_doc`
-        ) AS `ret`
-            ON (`ret`.`id_ctb_doc` = `cop`.`id_ctb_doc`)
-        LEFT JOIN (
-            SELECT `id_pto_cop_det`, SUM(IFNULL(`valor`,0) - IFNULL(`valor_liberado`,0)) AS `val_pagado`
-            FROM `pto_pag_detalle`
-            GROUP BY `id_pto_cop_det`
-        ) AS `pag`
-            ON (`pag`.`id_pto_cop_det` = `cop`.`id_pto_cop_det`)
-    WHERE (
-        `doc_causacion`.`estado` = 2
-        AND DATE_FORMAT(`doc_causacion`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
-    )
-    ORDER BY `doc_causacion`.`fecha`, `doc_causacion`.`id_manu`";
+                `cop`.`id_ctb_doc` AS `id_causacion`
+                , `doc_causacion`.`id_manu` AS `no_causacion`
+                , DATE_FORMAT(`doc_causacion`.`fecha`,'%Y-%m-%d') AS `fecha`
+                , `doc_causacion`.`detalle` AS `objeto`
+                , `tt`.`nit_tercero`
+                , `tt`.`nom_tercero`
+                , `ttd`.`codigo_ne` AS `tipo_doc`
+                , `fact`.`num_factura`
+                , `rubro`.`cod_pptal`
+                , (IFNULL(`cop`.`valor`,0) - IFNULL(`cop`.`valor_liberado`,0)) AS `val_bruto`
+                , IFNULL(`ret`.`valor_retencion`, 0) AS `retencion_causacion`
+                , IFNULL(`pag`.`val_pagado`, 0) AS `val_pagado`
+            FROM
+                `pto_cop_detalle` AS `cop`
+                INNER JOIN `ctb_doc` AS `doc_causacion`
+                    ON (`cop`.`id_ctb_doc` = `doc_causacion`.`id_ctb_doc`)
+                LEFT JOIN `tb_terceros` AS `tt`
+                    ON (`cop`.`id_tercero_api` = `tt`.`id_tercero_api`)
+                LEFT JOIN `tb_tipos_documento` AS `ttd`
+                    ON (`tt`.`tipo_doc` = `ttd`.`id_tipodoc`)
+                LEFT JOIN (
+                    SELECT `fact_inner`.`id_ctb_doc`, GROUP_CONCAT(`fact_inner`.`num_doc` SEPARATOR ', ') AS `num_factura`
+                    FROM `ctb_factura` AS `fact_inner`
+                    INNER JOIN `ctb_doc` AS `doc_fact` ON `fact_inner`.`id_ctb_doc` = `doc_fact`.`id_ctb_doc`
+                    WHERE `doc_fact`.`estado` = 2
+                    GROUP BY `fact_inner`.`id_ctb_doc`
+                ) AS `fact`
+                    ON (`doc_causacion`.`id_ctb_doc` = `fact`.`id_ctb_doc`)
+                LEFT JOIN `pto_crp_detalle` AS `crp`
+                    ON (`cop`.`id_pto_crp_det` = `crp`.`id_pto_crp_det`)
+                LEFT JOIN `pto_cdp_detalle` AS `cdp`
+                    ON (`crp`.`id_pto_cdp_det` = `cdp`.`id_pto_cdp_det`)
+                LEFT JOIN `pto_cargue` AS `rubro`
+                    ON (`cdp`.`id_rubro` = `rubro`.`id_cargue`)
+                LEFT JOIN (
+                    SELECT `ret`.`id_ctb_doc`, SUM(`ret`.`valor_retencion`) AS `valor_retencion`
+                    FROM `ctb_causa_retencion` AS `ret`
+                    INNER JOIN `ctb_doc` AS `doc_ret` ON `ret`.`id_ctb_doc` = `doc_ret`.`id_ctb_doc`
+                    WHERE `doc_ret`.`estado` = 2
+                    GROUP BY `ret`.`id_ctb_doc`
+                ) AS `ret`
+                    ON (`ret`.`id_ctb_doc` = `cop`.`id_ctb_doc`)
+                LEFT JOIN (
+                    SELECT `pag`.`id_pto_cop_det`, SUM(IFNULL(`pag`.`valor`,0) - IFNULL(`pag`.`valor_liberado`,0)) AS `val_pagado`
+                    FROM `pto_pag_detalle` AS `pag`
+                    INNER JOIN `ctb_doc` AS `doc_pag` ON `pag`.`id_ctb_doc` = `doc_pag`.`id_ctb_doc`
+                    WHERE `doc_pag`.`estado` = 2
+                    GROUP BY `pag`.`id_pto_cop_det`
+                ) AS `pag`
+                    ON (`pag`.`id_pto_cop_det` = `cop`.`id_pto_cop_det`)
+            WHERE (
+                `doc_causacion`.`estado` = 2
+                AND DATE_FORMAT(`doc_causacion`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_inicial' AND '$fecha_corte'
+            )
+            ORDER BY `doc_causacion`.`fecha`, `doc_causacion`.`id_manu`";
 
     $res = $cmd->query($sql);
     $datos = $res->fetchAll();
@@ -121,11 +128,24 @@ include_once '../../../financiero/encabezado_empresa.php';
         $total_pendiente = 0;
 
         if (!empty($datos)) {
+            // === Pre-proceso: Agrupar por id_causacion y cod_pptal ===
+            $datos_agrupados = [];
+            foreach ($datos as $row) {
+                $key = $row['id_causacion'] . '_' . $row['cod_pptal'];
+                if (!isset($datos_agrupados[$key])) {
+                    $datos_agrupados[$key] = $row;
+                } else {
+                    $datos_agrupados[$key]['val_bruto'] += $row['val_bruto'];
+                    $datos_agrupados[$key]['val_pagado'] += $row['val_pagado'];
+                }
+            }
+            $datos = array_values($datos_agrupados);
+
             // === Primera pasada: calcular totales por causación ===
             // Se agrupa por id_causacion para sumar val_bruto total y retenciones únicas
             $causaciones_totales = [];  // id_causacion => total_bruto
             $causaciones_ret = [];      // id_causacion => retencion (única por causación)
-
+        
             foreach ($datos as $row) {
                 $id_caus = $row['id_causacion'];
                 if (!isset($causaciones_totales[$id_caus])) {
@@ -151,7 +171,7 @@ include_once '../../../financiero/encabezado_empresa.php';
                     : 0;
                 $val_neto = $row['val_bruto'] - $descuento;
                 $val_pagado = $row['val_pagado'];
-                $pendiente = $val_neto - $val_pagado;
+                $pendiente = $row['val_bruto'] - $row['val_pagado'];
 
                 $total_bruto += $row['val_bruto'];
                 $total_descuentos += $descuento;
@@ -182,10 +202,12 @@ include_once '../../../financiero/encabezado_empresa.php';
         <tr style="background-color:#CED3D3; font-weight:bold;">
             <td colspan="8" style="text-align:right; border:#A9A9A9 1px solid;">TOTALES:</td>
             <td style="text-align:right; border:#A9A9A9 1px solid;"><?php echo number_format($total_bruto, 2); ?></td>
-            <td style="text-align:right; border:#A9A9A9 1px solid;"><?php echo number_format($total_descuentos, 2); ?></td>
+            <td style="text-align:right; border:#A9A9A9 1px solid;"><?php echo number_format($total_descuentos, 2); ?>
+            </td>
             <td style="text-align:right; border:#A9A9A9 1px solid;"><?php echo number_format($total_neto, 2); ?></td>
             <td style="text-align:right; border:#A9A9A9 1px solid;"><?php echo number_format($total_pagado, 2); ?></td>
-            <td style="text-align:right; border:#A9A9A9 1px solid;"><?php echo number_format($total_pendiente, 2); ?></td>
+            <td style="text-align:right; border:#A9A9A9 1px solid;"><?php echo number_format($total_pendiente, 2); ?>
+            </td>
         </tr>
     </tfoot>
 </table>

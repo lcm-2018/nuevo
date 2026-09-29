@@ -1695,6 +1695,11 @@ DEDUCCIONES;
                     CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
                     `li`.`dias_liq` AS `dias`,
                     `ti`.`tipo` AS `tipo_incapacidad`,
+                    `li`.`pago_empresa` AS `pago_empresa`,
+                    `li`.`pago_eps` AS `pago_eps`,
+                    IFNULL(`tt_eps`.`nom_tercero`, 'N/A') AS `nom_eps`,
+                    `li`.`pago_arl` AS `pago_arl`,
+                    IFNULL(`tt_arl`.`nom_tercero`, 'N/A') AS `nom_arl`,
                     `li`.`pago_empresa` + `li`.`pago_eps` + `li`.`pago_arl` AS `valor`
                 FROM 
                     `nom_liq_incap` AS `li`
@@ -1704,6 +1709,14 @@ DEDUCCIONES;
                         ON (`inc`.`id_tipo` = `ti`.`id_tipo`)
                     INNER JOIN `nom_empleado` AS `e` 
                         ON (`inc`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `nom_terceros` AS `nt_eps` 
+                        ON (`li`.`id_arl` = `nt_eps`.`id_tn`)
+                    LEFT JOIN `tb_terceros` AS `tt_eps` 
+                        ON (`nt_eps`.`id_tercero_api` = `tt_eps`.`id_tercero_api`)
+                    LEFT JOIN `nom_terceros` AS `nt_arl` 
+                        ON (`li`.`id_eps` = `nt_arl`.`id_tn`)
+                    LEFT JOIN `tb_terceros` AS `tt_arl` 
+                        ON (`nt_arl`.`id_tercero_api` = `tt_arl`.`id_tercero_api`)
                 WHERE 
                     `li`.`id_nomina` = :id_nomina AND `li`.`estado` = 1
                 ORDER BY 
@@ -1804,6 +1817,9 @@ DEDUCCIONES;
                     CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
                     `ll`.`dias_licluto` AS `dias`,
                     'LICENCIA DE LUTO' AS `tipo_licencia`,
+                    `ll`.`val_liq` AS `pago_empresa`,
+                    0 AS `pago_eps`,
+                    'N/A' AS `nom_eps`,
                     `ll`.`val_liq` AS `valor`
                 FROM 
                     `nom_liq_licluto` AS `ll`
@@ -1825,6 +1841,9 @@ DEDUCCIONES;
                         WHEN 2 THEN 'LICENCIA DE PATERNIDAD'
                         ELSE 'LICENCIA REMUNERADA'
                     END AS `tipo_licencia`,
+                    0 AS `pago_empresa`,
+                    `lm`.`val_liq` AS `pago_eps`,
+                    IFNULL(`tbt`.`nom_tercero`, 'N/A') AS `nom_eps`,
                     `lm`.`val_liq` AS `valor`
                 FROM 
                     `nom_liq_licmp` AS `lm`
@@ -1832,6 +1851,10 @@ DEDUCCIONES;
                         ON (`lm`.`id_licmp` = `lic`.`id_licmp`)
                     INNER JOIN `nom_empleado` AS `e` 
                         ON (`lic`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `nom_terceros` AS `teps` 
+                        ON (`lm`.`id_eps` = `teps`.`id_tn`)
+                    LEFT JOIN `tb_terceros` AS `tbt` 
+                        ON (`teps`.`id_tercero_api` = `tbt`.`id_tercero_api`)
                 WHERE 
                     `lm`.`id_nomina` = :id_nomina AND `lm`.`estado` = 1
                 

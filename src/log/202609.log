@@ -1,0 +1,1 @@
+[2026-09-16 09:36:45] Usuario: 1-ADMINN ADMINP, IP: ::1, SQL: DELETE FROM `tes_conciliacion_detalle` WHERE `id_concilia` = 306 AND `id_ctb_libaux` = 2545089

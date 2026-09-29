@@ -145,20 +145,23 @@ try {
     $id_ter_api = $stmt->fetchColumn() ?: 0;
 
     // Obtener detalles de COP
-    $sql = "SELECT
-                `pto_cop_detalle`.`id_pto_cop_det`
-                , `pto_cdp_detalle`.`id_rubro`
-                , `pto_cop_detalle`.`id_tercero_api`
-            FROM
-                `pto_cop_detalle`
-                INNER JOIN `pto_crp_detalle` 
-                    ON (`pto_cop_detalle`.`id_pto_crp_det` = `pto_crp_detalle`.`id_pto_crp_det`)
-                INNER JOIN `pto_cdp_detalle` 
-                    ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
-            WHERE (`pto_cop_detalle`.`id_ctb_doc` = ?)";
-    $stmt = $cmd->prepare($sql);
-    $stmt->execute([$id_ctb_doc]);
-    $ids_detalle = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $ids_detalle = [];
+    if ($_SESSION['pto'] == 1 && !empty($id_ctb_doc)) {
+        $sql = "SELECT
+                    `pto_cop_detalle`.`id_pto_cop_det`
+                    , `pto_cdp_detalle`.`id_rubro`
+                    , `pto_cop_detalle`.`id_tercero_api`
+                FROM
+                    `pto_cop_detalle`
+                    INNER JOIN `pto_crp_detalle` 
+                        ON (`pto_cop_detalle`.`id_pto_crp_det` = `pto_crp_detalle`.`id_pto_crp_det`)
+                    INNER JOIN `pto_cdp_detalle` 
+                        ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
+                WHERE (`pto_cop_detalle`.`id_ctb_doc` = ?)";
+        $stmt = $cmd->prepare($sql);
+        $stmt->execute([$id_ctb_doc]);
+        $ids_detalle = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     $cmd = null;
 } catch (PDOException $e) {
@@ -242,11 +245,12 @@ try {
     Logs::guardaLog("INSERT INTO `ctb_doc` (`id_vigencia`, `id_tipo_doc`, `id_manu`,`id_tercero`, `fecha`, `detalle`, `id_user_reg`, `fecha_reg`, `estado`) VALUES ($id_vigencia, $tipo_doc, $id_manu, $id_ter_api, '$fecha', '$objeto', $iduser, '$fecha2', 2)");
 
     // Insertar en pto_pag_detalle para aportes patronales
-    $sql_pag = "INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`)
-                VALUES (?, ?, ?, ?, ?)";
-    $stmt_pag = $cmd->prepare($sql_pag);
+    if ($_SESSION['pto'] == 1) {
+        $sql_pag = "INSERT INTO `pto_pag_detalle` (`id_ctb_doc`,`id_pto_cop_det`,`valor`,`valor_liberado`,`id_tercero_api`)
+                    VALUES (?, ?, ?, ?, ?)";
+        $stmt_pag = $cmd->prepare($sql_pag);
 
-    foreach ($rubros as $rb) {
+        foreach ($rubros as $rb) {
         $tipo = $rb['id_tipo'];
         $valor = 0;
         $liberado = 0;
@@ -389,6 +393,7 @@ try {
                 break;
         }
     }
+}
 
     // Insertar en ctb_libaux para aportes patronales (DÉBITOS)
     $sql_libaux = "INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) 

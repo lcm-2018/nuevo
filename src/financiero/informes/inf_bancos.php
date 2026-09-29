@@ -1,5 +1,7 @@
 <?php
 session_start();
+set_time_limit(0);
+ini_set('memory_limit', '-1');
 if (!isset($_SESSION['user'])) {
     header('Location: ../../../index.php');
     exit();
@@ -13,208 +15,112 @@ header("Expires: 0");
 include '../../../config/autoloader.php';
 $periodo = $_POST['periodo'];
 $vigencia = $_SESSION['vigencia'];
+session_write_close(); // Liberar la sesión para no bloquear el navegador
 $vig_ant = $vigencia - 1;
 $meses = '';
 if ($periodo == 1) {
-    $periodos = "SELECT '$vigencia-01-01' AS `mes`
-                UNION ALL SELECT '$vigencia-02-01'
-                UNION ALL SELECT '$vigencia-03-01'
-                UNION ALL SELECT '$vigencia-04-01'
-                UNION ALL SELECT '$vigencia-05-01'
-                UNION ALL SELECT '$vigencia-06-01'";
+    $start_date = "$vigencia-01-01";
+    $end_date = "$vigencia-06-30";
     $meses = 'ENERO - JUNIO';
+    $mes_extracto_inicial = '12';
+    $vig_extracto_inicial = $vig_ant;
+    $mes_extracto_final = '06';
 } else if ($periodo == 2) {
-    $periodos = "SELECT '$vigencia-07-01' AS `mes`
-                UNION ALL SELECT '$vigencia-08-01'
-                UNION ALL SELECT '$vigencia-09-01'
-                UNION ALL SELECT '$vigencia-10-01'
-                UNION ALL SELECT '$vigencia-11-01'
-                UNION ALL SELECT '$vigencia-12-01'";
+    $start_date = "$vigencia-07-01";
+    $end_date = "$vigencia-12-31";
     $meses = 'JULIO - DICIEMBRE';
+    $mes_extracto_inicial = '06';
+    $vig_extracto_inicial = $vigencia;
+    $mes_extracto_final = '12';
 } else {
-    $periodos = "SELECT '$vigencia-01-01' AS `mes`
-                UNION ALL SELECT '$vigencia-02-01'
-                UNION ALL SELECT '$vigencia-03-01'
-                UNION ALL SELECT '$vigencia-04-01'
-                UNION ALL SELECT '$vigencia-05-01'
-                UNION ALL SELECT '$vigencia-06-01'
-                UNION ALL SELECT '$vigencia-07-01'
-                UNION ALL SELECT '$vigencia-08-01'
-                UNION ALL SELECT '$vigencia-09-01'
-                UNION ALL SELECT '$vigencia-10-01'
-                UNION ALL SELECT '$vigencia-11-01'
-                UNION ALL SELECT '$vigencia-12-01'";
+    $start_date = "$vigencia-01-01";
+    $end_date = "$vigencia-12-31";
     $meses = 'ENERO - DICIEMBRE';
+    $mes_extracto_inicial = '12';
+    $vig_extracto_inicial = $vig_ant;
+    $mes_extracto_final = '12';
 }
 
 $cmd = \Config\Clases\Conexion::getConexion();
+
+    $sql_empresa = "SELECT razon_social_ips AS nombre, nit_ips AS nit, dv AS dig_ver FROM tb_datos_ips";
+    $res_empresa = $cmd->query($sql_empresa);
+    $empresa = $res_empresa->fetch();
+    $nit_empresa = $empresa['nit'];
+    $nombre_empresa = $empresa['nombre'];
+
 try {
-    $sql = "SELECT
+    $sql = "WITH mov_diarios AS (
+                SELECT 
+                    `cd`.`fecha`, 
+                    `cl`.`id_cuenta`, 
+                    SUM(IFNULL(`cl`.`debito`, 0)) AS `debito`, 
+                    SUM(IFNULL(`cl`.`credito`, 0)) AS `credito`,
+                    SUM(IF(`tcd`.`id_ctb_libaux` IS NULL, IFNULL(`cl`.`debito`, 0), 0)) AS `debito_nr`,
+                    SUM(IF(`tcd`.`id_ctb_libaux` IS NULL, IFNULL(`cl`.`credito`, 0), 0)) AS `credito_nr`
+                FROM `ctb_libaux` `cl`
+                INNER JOIN `ctb_doc` `cd` ON `cl`.`id_ctb_doc` = `cd`.`id_ctb_doc`
+                LEFT JOIN `tes_conciliacion_detalle` `tcd` ON `tcd`.`id_ctb_libaux` = `cl`.`id_ctb_libaux`
+                WHERE `cd`.`estado` = 2
+                GROUP BY `cd`.`fecha`, `cl`.`id_cuenta`
+            )
+            SELECT
                 `ctb_pgcp`.`cuenta` AS `codigo`
-                , `tb_bancos`.`cod_sia` AS `banco`
+                , `tb_bancos`.`nom_banco` AS `banco`
                 , `tes_cuentas`.`numero`
                 , `tes_cuentas`.`nombre` AS `denominacion`
                 , `fin_cod_fuente`.`codigo` AS `fuente`
-                , `nom_meses`.`nom_mes`
-                , `tt`.`saldo`
-                , IFNULL(`tesc`.`saldo`,0) AS `extr_inicial`
-                , IFNULL(`taux`.`debito`,0) AS `debito`
-                , IFNULL(`taux`.`credito`,0) AS `credito`
+                , '$meses' AS `nom_mes`
+                , IFNULL(`tt`.`saldo`,0) AS `saldo`
+                , IFNULL(`ext_ini`.`saldo_extracto`, 0) AS `extr_inicial`
+                , IFNULL(`mov`.`debito`, 0) AS `debito`
+                , IFNULL(`mov`.`credito`, 0) AS `credito`
                 , 0 AS `nd`
                 , 0 AS `nc`
-                , IFNULL(`tt2`.`saldo`,0) AS `sf_libros`
-                , IFNULL(`tes_conciliacion`.`saldo_extracto`,0) AS `sf_extracto`
-                , IFNULL(`ttt`.`debito`,0) AS `sf_debito`
-                , IFNULL(`ttt`.`credito`,0) AS `sf_credito`
+                , IFNULL(`tt`.`saldo`,0) + IFNULL(`mov`.`debito`, 0) - IFNULL(`mov`.`credito`, 0) AS `sf_libros`
+                , IFNULL(`ext_fin`.`saldo_extracto`, 0) AS `sf_extracto`
+                , IFNULL(`nr`.`debito`, 0) AS `sf_debito`
+                , IFNULL(`nr`.`credito`, 0) AS `sf_credito`
             FROM
                 `tes_cuentas`
-                INNER JOIN `ctb_pgcp` 
-                    ON (`tes_cuentas`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
-                INNER JOIN `tb_bancos` 
-                    ON (`tes_cuentas`.`id_banco` = `tb_bancos`.`id_banco`)
-                INNER JOIN `fin_cod_fuente` 
-                    ON (`tes_cuentas`.`id_fte` = `fin_cod_fuente`.`id`)
-                INNER JOIN
-                    (SELECT 
-                        DATE_FORMAT(`meses`.`mes`, '%m') AS `mes`,
-                        `ctb_libaux`.`id_cuenta`,
-                        SUM(IFNULL(`ctb_libaux`.`debito`, 0) - IFNULL(`ctb_libaux`.`credito`, 0)) AS `saldo`
-                    FROM 
-                        ($periodos) AS `meses`
-                        JOIN `ctb_doc` 
-                            ON `ctb_doc`.`estado` = 2 AND DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') < `meses`.`mes`
-                        JOIN `ctb_libaux` 
-                            ON `ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`
-                    GROUP BY `mes`, `ctb_libaux`.`id_cuenta`
-                    ORDER BY `mes`, `ctb_libaux`.`id_cuenta`) AS `tt`
-                    ON (`tt`.`id_cuenta` = `tes_cuentas`.`id_cuenta`)
-                LEFT JOIN `nom_meses`
-                    ON(`nom_meses`.`codigo` = `tt`.`mes`)
-                LEFT JOIN 
-                    (SELECT 
-                        `tes_cuentas`.`id_tes_cuenta`
-                        , LPAD(
-                            CASE 
-                                WHEN `mc`.`mes` = 12 THEN 1
-                                ELSE `mc`.`mes` + 1
-                            END, 2, 
-                            '0') AS `mes`
-                        , IFNULL(`saldo_extracto`, 0) AS `saldo`
-                            
-                    FROM 
-                        `tes_cuentas`
-                        JOIN
-                            (SELECT '$vig_ant' AS `vigencia`,'12'  AS `mes`
-                            UNION ALL SELECT '$vigencia','01'
-                            UNION ALL SELECT '$vigencia','02'
-                            UNION ALL SELECT '$vigencia','03'
-                            UNION ALL SELECT '$vigencia','04'
-                            UNION ALL SELECT '$vigencia','05'
-                            UNION ALL SELECT '$vigencia','06'
-                            UNION ALL SELECT '$vigencia','07'
-                            UNION ALL SELECT '$vigencia','08'
-                            UNION ALL SELECT '$vigencia','09'
-                            UNION ALL SELECT '$vigencia','10'
-                            UNION ALL SELECT '$vigencia','11'
-                            ) AS `mc`
-                        LEFT JOIN `tes_conciliacion` AS `tc`
-                            ON (`tc`.`vigencia` = `mc`.`vigencia` AND `mc`.`mes`=`tc`.`mes` AND`tes_cuentas`.`id_tes_cuenta`= `tc`.`id_cuenta`)
-                    WHERE `tes_cuentas`.`estado` = 1
-                    ORDER BY `tes_cuentas`.`id_tes_cuenta`, `mes`) AS `tesc`
-                    ON (`tesc`.`mes` = `tt`.`mes` AND `tesc`.`id_tes_cuenta` = `tes_cuentas`.`id_tes_cuenta`)
-                LEFT JOIN 
-                    (SELECT
-                        DATE_FORMAT(`ctb_doc`.`fecha`,'%m') AS `mes`
-                        , SUM(IFNULL(`ctb_libaux`.`debito`,0)) AS `debito`
-                        , SUM(IFNULL(`ctb_libaux`.`credito`,0)) AS `credito`  
-                        , `ctb_libaux`.`id_cuenta`
-                        
-                    FROM
-                        `ctb_libaux`
-                        INNER JOIN `ctb_doc` 
-                        ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                    WHERE (`ctb_doc`.`estado` = 2 AND DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') BETWEEN '$vigencia-01-01' AND '$vigencia-12-31')
-                    GROUP BY DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m'),`ctb_libaux`.`id_cuenta`)AS `taux`
-                    ON (`taux`.`mes` = `tt`.`mes` AND `taux`.`id_cuenta` = `tes_cuentas`.`id_cuenta`)
-                LEFT JOIN
-                    (SELECT 
-                        DATE_FORMAT(`meses`.`mes`, '%m') AS `mes`,
-                        `ctb_libaux`.`id_cuenta`,
-                        SUM(IFNULL(`ctb_libaux`.`debito`, 0) - IFNULL(`ctb_libaux`.`credito`, 0)) AS `saldo`
-                    FROM 
-                        ($periodos) AS `meses`
-                        JOIN `ctb_doc` 
-                            ON `ctb_doc`.`estado` = 2 AND DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m') <= DATE_FORMAT(`meses`.`mes`,'%Y-%m')
-                        JOIN `ctb_libaux` 
-                            ON `ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`
-                    GROUP BY `mes`, `ctb_libaux`.`id_cuenta`
-                    ORDER BY `mes`, `ctb_libaux`.`id_cuenta`) AS `tt2`
-                    ON (`tt2`.`id_cuenta` = `tes_cuentas`.`id_cuenta` AND `nom_meses`.`codigo` = `tt2`.`mes`)
-                LEFT JOIN `tes_conciliacion`
-                    ON (`tes_conciliacion`.`vigencia` = '$vigencia' AND `tes_conciliacion`.`mes` = `tt2`.`mes` AND `tes_conciliacion`.`id_cuenta` = `tes_cuentas`.`id_tes_cuenta`)
-                LEFT JOIN
-                    (SELECT 
-                        DATE_FORMAT(`mes`, '%m') AS `mes`, `id_cuenta`, `debito`, `credito`
-                    FROM
-                        (SELECT 
-                            CONCAT(`mc`.`mes`,'-01') AS `mes`,
-                            `cl`.`id_cuenta`,
-                            SUM(`cl`.`debito`) AS `debito`,
-                            SUM(`cl`.`credito`) AS `credito`
-                        FROM 
-                            (SELECT '$vigencia-01' AS `mes`
-                            UNION ALL SELECT '$vigencia-02'
-                            UNION ALL SELECT '$vigencia-03'
-                            UNION ALL SELECT '$vigencia-04'
-                            UNION ALL SELECT '$vigencia-05'
-                            UNION ALL SELECT '$vigencia-06'
-                            UNION ALL SELECT '$vigencia-07'
-                            UNION ALL SELECT '$vigencia-08'
-                            UNION ALL SELECT '$vigencia-09'
-                            UNION ALL SELECT '$vigencia-10'
-                            UNION ALL SELECT '$vigencia-11'
-                            UNION ALL SELECT '$vigencia-12') AS `mc`
-                            JOIN 
-                            (SELECT
-                                DATE_FORMAT(`cd`.`fecha`, '%Y-%m') AS `fecha`,
-                                `cl`.`id_cuenta`,
-                                IFNULL(`cl`.`debito`, 0) AS `debito`,
-                                IFNULL(`cl`.`credito`, 0) AS `credito`
-                                FROM `ctb_libaux` `cl`
-                                INNER JOIN `ctb_doc` `cd` ON `cl`.`id_ctb_doc` = `cd`.`id_ctb_doc`
-                                LEFT JOIN `tes_conciliacion_detalle` `tcd` ON `tcd`.`id_ctb_libaux` = `cl`.`id_ctb_libaux`
-                                WHERE `cd`.`estado` = 2 AND `tcd`.`id_ctb_libaux` IS NULL) AS `cl` 
-                                ON `cl`.`fecha` <= `mc`.`mes`
-                        GROUP BY `mc`.`mes`, `cl`.`id_cuenta`
-                        ORDER BY `cl`.`id_cuenta`, `mc`.`mes`) AS `acum`)`ttt`
-                        ON (`ttt`.`id_cuenta` = `tes_cuentas`.`id_tes_cuenta` AND `ttt`.`mes` = `tt2`.`mes`)
-            WHERE (`tes_cuentas`.`estado` = 1)";
+                INNER JOIN `ctb_pgcp` ON (`tes_cuentas`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
+                INNER JOIN `tb_bancos` ON (`tes_cuentas`.`id_banco` = `tb_bancos`.`id_banco`)
+                INNER JOIN `fin_cod_fuente` ON (`tes_cuentas`.`id_fte` = `fin_cod_fuente`.`id`)
+                LEFT JOIN (
+                    SELECT id_cuenta, SUM(debito - credito) AS saldo
+                    FROM mov_diarios
+                    WHERE fecha < '$start_date 00:00:00'
+                    GROUP BY id_cuenta
+                ) tt ON tt.id_cuenta = tes_cuentas.id_cuenta
+                LEFT JOIN (
+                    SELECT id_cuenta, SUM(debito) AS debito, SUM(credito) AS credito
+                    FROM mov_diarios
+                    WHERE fecha BETWEEN '$start_date 00:00:00' AND '$end_date 23:59:59'
+                    GROUP BY id_cuenta
+                ) mov ON mov.id_cuenta = tes_cuentas.id_cuenta
+                LEFT JOIN `tes_conciliacion` ext_ini 
+                    ON ext_ini.id_cuenta = tes_cuentas.id_tes_cuenta 
+                    AND ext_ini.vigencia = '$vig_extracto_inicial' 
+                    AND ext_ini.mes = '$mes_extracto_inicial'
+                LEFT JOIN `tes_conciliacion` ext_fin 
+                    ON ext_fin.id_cuenta = tes_cuentas.id_tes_cuenta 
+                    AND ext_fin.vigencia = '$vigencia' 
+                    AND ext_fin.mes = '$mes_extracto_final'
+                LEFT JOIN (
+                    SELECT id_cuenta, SUM(debito_nr) AS debito, SUM(credito_nr) AS credito
+                    FROM mov_diarios
+                    WHERE fecha <= '$end_date 23:59:59'
+                    GROUP BY id_cuenta
+                ) nr ON nr.id_cuenta = tes_cuentas.id_cuenta
+            WHERE (`tes_cuentas`.`estado` = 1)
+            ORDER BY `tes_cuentas`.`numero` ASC";
     $res = $cmd->query($sql);
     $lista = $res->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$body = '';
-foreach ($lista as $r) {
-    $saldo_con = $r['sf_libros'] - ($r['sf_extracto'] + $r['sf_debito'] - $r['sf_credito']);
-    $body .= "<tr>
-                <td>{$r['codigo']}</td>
-                <td>{$r['banco']}</td>
-                <td>{$r['numero']}</td>
-                <td>{$r['denominacion']}</td>
-                <td>{$r['fuente']}</td>
-                <td>{$r['nom_mes']}</td>
-                <td>{$r['saldo']}</td>
-                <td>{$r['extr_inicial']}</td>
-                <td>{$r['debito']}</td>
-                <td>{$r['credito']}</td>
-                <td>{$r['nd']}</td>
-                <td>{$r['nc']}</td>
-                <td>{$r['sf_libros']}</td>
-                <td>{$r['sf_extracto']}</td>
-                <td>{$saldo_con}</td>
-            </tr>";
-}
+
+
 echo "\xEF\xBB\xBF";
 ?>
 <table class="table-bordered bg-light" style="width:100% !important;" border=1>
@@ -228,6 +134,9 @@ echo "\xEF\xBB\xBF";
         <td colspan="15" style="text-align: center; font-weight: bold;">PERIODO: <?= $meses ?></td>
     </tr>
     <tr>
+        <th>Fila</th>
+        <th>NIT</th>
+        <th>Nombre de la entidad</th>
         <th>Código Contable</th>
         <th>Banco</th>
         <th>No. Cuenta</th>
@@ -245,6 +154,32 @@ echo "\xEF\xBB\xBF";
         <th>Saldo Conciliado</th>
     </tr>
     <tbody>
-        <?= $body; ?>
+        <?php
+        $fila = 1;
+        foreach ($lista as $r) {
+            $rubro = isset($r['rubro']) ? $r['rubro'] : (isset($r['codigo']) ? $r['codigo'] : (isset($r['cuenta']) ? $r['cuenta'] : ''));
+            $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+
+            $saldo_con = $r['sf_libros'] - ($r['sf_extracto'] + $r['sf_debito'] - $r['sf_credito']);
+            echo "<tr>
+                <td>{$fila}</td>\n                <td style='mso-number-format:\"\\@\"'>{$nit_empresa}</td>\n                <td>{$nombre_empresa}</td>\n                <td style='mso-number-format:\"\@\";'>{$rubro_limpio}</td>
+                <td>{$r['banco']}</td>
+                <td style='mso-number-format:\"\@\";'>{$r['numero']}</td>
+                <td>{$r['denominacion']}</td>
+                <td>{$r['fuente']}</td>
+                <td>{$r['nom_mes']}</td>
+                <td>{$r['saldo']}</td>
+                <td>{$r['extr_inicial']}</td>
+                <td>{$r['debito']}</td>
+                <td>{$r['credito']}</td>
+                <td>{$r['nd']}</td>
+                <td>{$r['nc']}</td>
+                <td>{$r['sf_libros']}</td>
+                <td>{$r['sf_extracto']}</td>
+                <td>{$saldo_con}</td>
+            </tr>";
+            $fila++;
+        }
+        ?>
     </tbody>
 </table>
