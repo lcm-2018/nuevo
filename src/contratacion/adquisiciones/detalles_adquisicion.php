@@ -19,7 +19,7 @@ $permisos = new Permisos();
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 $opciones = $permisos->PermisoOpciones($id_user);
-$peReg =  $permisos->PermisosUsuario($opciones, 5302, 0) || $id_rol == 1 ? 1 : 0;
+$peReg = $permisos->PermisosUsuario($opciones, 5302, 0) || $id_rol == 1 ? 1 : 0;
 
 function pesos($valor)
 {
@@ -367,7 +367,7 @@ if ($adquisicion['id_tipo'] == 2) {
 }
 $detalle_html = '';
 $total_compra = 0;
-$fila =  $boton_oc = $guardar_oc = $cerrar_oc = '';
+$fila = $boton_oc = $guardar_oc = $cerrar_oc = '';
 //orden de compra
 if (in_array($adquisicion['filtro_adq'], ['1', '2'])) {
     if (empty($adquisicion['id_orden'])) {
@@ -541,7 +541,7 @@ if ($id_estudio == '') {
         }
     }
 }
-if ($adquisicion['estado'] == 9) {
+if ($adquisicion['estado'] >= 7) {
     $pos3 = isset($posicion[3]) ? $posicion[3] : 0;
     $pos11 = isset($posicion[11]) ? $posicion[11] : 0;
     $secop = $urlProceso != '' ? '<a href="' . $urlProceso . '" target="_blank" class="btn btn-link btn-sm">Ver en SECOP II</a>' : '';

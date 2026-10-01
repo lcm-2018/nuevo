@@ -39,7 +39,7 @@ $cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT
                 DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') AS `fecha`
-                , CONCAT(`pto_sia`.`codigo` , `pto_cargue`.`cod_pptal`) AS `cod_ppto`
+                , IFNULL(CONCAT(`pto_sia`.`codigo` , `pto_cargue`.`cod_pptal`), `pto_cargue`.`cod_pptal`) AS `cod_ppto`
                 , `pto_clase_sia`.`codigo`
                 , `banco`.`codigo` AS `fte`
                 , `ctb_doc`.`id_manu`
@@ -65,11 +65,11 @@ try {
                     ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
                 INNER JOIN `pto_cargue` 
                     ON (`pto_cdp_detalle`.`id_rubro` = `pto_cargue`.`id_cargue`)
-                INNER JOIN `pto_homologa_gastos` 
+                LEFT JOIN `pto_homologa_gastos` 
                     ON (`pto_homologa_gastos`.`id_cargue` = `pto_cargue`.`id_cargue`)
-                INNER JOIN `pto_clase_sia` 
+                LEFT JOIN `pto_clase_sia` 
                     ON (`pto_homologa_gastos`.`id_csia` = `pto_clase_sia`.`id_csia`)
-                INNER JOIN `pto_sia` 
+                LEFT JOIN `pto_sia` 
                     ON (`pto_homologa_gastos`.`id_sia` = `pto_sia`.`id_sia`)
                 LEFT JOIN
                     (SELECT
@@ -228,7 +228,12 @@ echo "\xEF\xBB\xBF";
 $fila = 1;
         foreach ($lista as $r) {
             $rubro = isset($r['rubro']) ? $r['rubro'] : (isset($r['codigo']) ? $r['codigo'] : (isset($r['cuenta']) ? $r['cuenta'] : ''));
-            $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+                        $ptos = isset($_POST['ptos']) ? $_POST['ptos'] : 0;
+            if ($ptos == 1) {
+                $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+            } else {
+                $rubro_limpio = $rubro;
+            }
 
     echo "<tr>
                 <td>{$fila}</td>\n                <td style='mso-number-format:\"\\@\"'>{$nit_empresa}</td>\n                <td>{$nombre_empresa}</td>\n                <td>{$r['fecha']}</td>

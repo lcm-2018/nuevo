@@ -148,7 +148,12 @@ echo "\xEF\xBB\xBF";
 $fila = 1;
         foreach ($lista as $r) {
             $rubro = isset($r['rubro']) ? $r['rubro'] : (isset($r['codigo']) ? $r['codigo'] : (isset($r['cuenta']) ? $r['cuenta'] : ''));
-            $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+                        $ptos = isset($_POST['ptos']) ? $_POST['ptos'] : 0;
+            if ($ptos == 1) {
+                $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+            } else {
+                $rubro_limpio = $rubro;
+            }
 
     $acto = $r['nombre'] . ' ' . $r['numero_acto'];
     echo "<tr>

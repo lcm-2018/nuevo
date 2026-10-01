@@ -89,7 +89,7 @@ const InformeFinanciero = (boton) => {
     });
 }
 
-const LoadInforme = (id) => {
+const LoadInforme = (id, ptos = 1) => {
     switch (id) {
         case 1:
             url = 'inf_bancos.php';
@@ -155,6 +155,12 @@ const LoadInforme = (id) => {
         type: 'hidden',
         name: 'periodo',
         value: $('#periodo').val()
+    }));
+
+    form.append($('<input>', {
+        type: 'hidden',
+        name: 'ptos',
+        value: ptos
     }));
 
     $('body').append(form);
