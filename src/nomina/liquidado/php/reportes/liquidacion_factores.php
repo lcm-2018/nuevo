@@ -226,7 +226,7 @@ function generarLiquidacion(
 
     $dias_inactivos = (float) ($d['dias_inactivo'] ?? 0);
     $dias_habiles = (float) ($d['dias_vacaciones'] ?? 0);
-    $total_dias_vac = $dias_inactivos + $dias_habiles;
+    $total_dias_vac = $dias_inactivos; // Días calendario de la novedad
 
     // ── Conceptos de LIQUIDACION según tipo de nómina ────────────────────
     $conceptos_liq = [];
