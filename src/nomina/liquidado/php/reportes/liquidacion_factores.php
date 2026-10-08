@@ -120,15 +120,17 @@ unset($stmt_ps);
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function fmt($valor): string
 {
-    if ((float) $valor == 0)
-        return '';
-    return '$ ' . number_format((float) $valor, 2, ',', '.');
+    return '$ ' . number_format((float) $valor, 2, '.', ',');
 }
 
 function fmtDias($dias): string
 {
+    if ($dias === 'N/A')
+        return 'N/A';
     if ((float) $dias == 0)
-        return '';
+        return '0';
+    if (floor((float) $dias) == (float) $dias)
+        return (string) (int) $dias;
     return number_format((float) $dias, 2, '.', '');
 }
 
@@ -247,37 +249,38 @@ function generarLiquidacion(
     $dias_ps = (float) ($d['dias_ps'] ?? 0);
     $dias_pn = (float) ($d['dias_pn'] ?? 0);
 
-    if ($val_laborado > 0)
-        $conceptos_liq[] = ['SALARIO LABORADO', $dias_lab, $val_laborado, false];
-    if ($aux_tran_liq > 0)
-        $conceptos_liq[] = ['SUBSIDIO DE TRANSPORTE', '', $aux_tran_liq, false];
-    if ($aux_alim_liq > 0)
-        $conceptos_liq[] = ['SUBSIDIO DE ALIMENTACIÓN', '', $aux_alim_liq, false];
-        
-    if ($final_bsp > 0)
-        $conceptos_liq[] = ['BONIFICACIÓN SERVICIOS PRESTADOS', $dias_bsp, $final_bsp, false];
+    $val_compensa = (float) ($d['val_compensa'] ?? 0);
+    $horas_ext = (float) ($d['horas_ext'] ?? 0);
 
-    if ($final_vacacion > 0)
-        $conceptos_liq[] = ['VACACIONES', $total_dias_vac, $final_vacacion, false];
-    if ($final_prima_vac > 0)
-        $conceptos_liq[] = ['PRIMA DE VACACIONES', $dias_habiles, $final_prima_vac, false];
-    if ($final_bon_recrea > 0)
-        $conceptos_liq[] = ['BONIFICACIÓN RECREACIÓN', 3.0, $final_bon_recrea, false];
-        
-    if ($final_ces > 0)
-        $conceptos_liq[] = ['CESANTÍAS', $dias_ces, $final_ces, false];
-    if ($final_ices > 0)
-        $conceptos_liq[] = ['INTERESES DE CESANTÍAS', '', $final_ices, false];
+    $conceptos_liq[] = ['SALARIO LABORADO', $dias_lab, $val_laborado, false];
 
-    if ($final_prima > 0)
-        $conceptos_liq[] = ['PRIMA DE SERVICIOS', $dias_ps, $final_prima, false];
-    if ($final_prima_nav > 0)
-        $conceptos_liq[] = ['PRIMA DE NAVIDAD', $dias_pn, $final_prima_nav, false];
+    $g_representa_liq = (float) ($d['g_representa'] ?? 0);
+    $tiene_grep_liq = (int) (($factores_por_empleado[$id_empleado] ?? [])['tiene_grep'] ?? 0);
+    if ($tiene_grep_liq == 1) {
+        $conceptos_liq[] = ['GASTOS DE REPRESENTACIÓN', $dias_lab, $g_representa_liq, false];
+    }
+
+    $conceptos_liq[] = ['SUBSIDIO DE TRANSPORTE', '', $aux_tran_liq, false];
+    $conceptos_liq[] = ['SUBSIDIO DE ALIMENTACIÓN', '', $aux_alim_liq, false];
+
+    $conceptos_liq[] = ['BONIFICACIÓN SERVICIOS PRESTADOS', $dias_bsp, $final_bsp, false];
+    $conceptos_liq[] = ['VACACIONES', $total_dias_vac, $final_vacacion, false];
+    $conceptos_liq[] = ['PRIMA DE VACACIONES', $dias_habiles, $final_prima_vac, false];
+    $conceptos_liq[] = ['BONIFICACIÓN RECREACIÓN', 3.0, $final_bon_recrea, false];
+
+    $conceptos_liq[] = ['CESANTÍAS', $dias_ces, $final_ces, false];
+    $conceptos_liq[] = ['INTERESES A CESANTÍAS', '', $final_ices, false];
+
+    $conceptos_liq[] = ['PRIMA DE SERVICIOS', $dias_ps, $final_prima, false];
+    $conceptos_liq[] = ['PRIMA DE NAVIDAD', $dias_pn, $final_prima_nav, false];
+
+    $conceptos_liq[] = ['RECARGOS', 'N/A', $horas_ext, false];
+    $conceptos_liq[] = ['COMPENSATORIOS', '0', $val_compensa, false];
 
     $val_indemniza = (float) ($d['val_indemniza'] ?? 0);
     if ($val_indemniza > 0)
         $conceptos_liq[] = ['INDEMNIZACIÓN POR VACACIONES', '', $val_indemniza, false];
-        
+
     // Subrayar el último elemento
     if (!empty($conceptos_liq)) {
         $conceptos_liq[count($conceptos_liq) - 1][3] = true;
@@ -328,70 +331,24 @@ function generarLiquidacion(
     // Doceavas partes (÷ 12)
     $doceava_bsp = $fs_bsp_ant > 0 ? round($fs_bsp_ant / 12, 0) : 0;
     $doceava_ps = $fs_pri_ser_ant > 0 ? round($fs_pri_ser_ant / 12, 0) : 0;
+    $doceava_pv = $fs_pri_vac_ant > 0 ? round($fs_pri_vac_ant / 12, 0) : 0;
+    $doceava_pn = $fs_pri_nav_ant > 0 ? round($fs_pri_nav_ant / 12, 0) : 0;
+    $doceava_horas = $fs_prom_horas > 0 ? round($fs_prom_horas / 12, 0) : 0;
 
     $factores = [];
-    if ($fs_salario > 0) {
-        $factores[] = ['SUELDO BÁSICO', $fs_salario];
-    }
-    if ($fs_tiene_grep && $fs_grep > 0) {
+    $factores[] = ['SUELDO BÁSICO', $fs_salario];
+
+    if ($fs_tiene_grep) {
         $factores[] = ['GASTOS DE REPRESENTACIÓN', $fs_grep];
     }
 
-    $tiene_vacaciones = ($final_vacacion > 0 || $final_prima_vac > 0);
-    $tiene_cesantias = ($final_ces > 0);
-    $tiene_prima = ($final_prima > 0 || $final_prima_nav > 0);
-    $tiene_bsp = ($final_bsp > 0);
-    $tiene_salario = ($val_laborado > 0);
-
-    $mostrar_aux_trans = false;
-    $mostrar_aux_alim = false;
-    $mostrar_doceava_bsp = false;
-    $mostrar_doceava_ps = false;
-    $mostrar_prom_horas = false;
-
-    if ($tiene_vacaciones || $tiene_cesantias || $tiene_prima || $tiene_bsp || $tiene_salario) {
-        if ($tiene_vacaciones) {
-            $mostrar_aux_trans = true;
-            $mostrar_aux_alim = true;
-            $mostrar_doceava_bsp = true;
-            $mostrar_doceava_ps = true;
-        }
-        if ($tiene_cesantias) {
-            $mostrar_aux_trans = true;
-            $mostrar_aux_alim = true;
-            $mostrar_doceava_bsp = true;
-            $mostrar_doceava_ps = true;
-            $mostrar_prom_horas = true;
-        }
-        if ($tiene_prima) {
-            $mostrar_aux_trans = true;
-            $mostrar_aux_alim = true;
-            $mostrar_doceava_bsp = true;
-            $mostrar_prom_horas = true;
-        }
-        if ($tiene_bsp) {
-            $mostrar_aux_trans = true;
-            $mostrar_aux_alim = true;
-            $mostrar_doceava_ps = true;
-        }
-        if ($tiene_salario) {
-            $mostrar_aux_trans = true;
-            $mostrar_aux_alim = true;
-        }
-    } else {
-        // Por defecto
-        $mostrar_aux_trans = true;
-        $mostrar_aux_alim = true;
-        $mostrar_doceava_bsp = true;
-        $mostrar_doceava_ps = true;
-        $mostrar_prom_horas = true;
-    }
-
-    if ($mostrar_aux_trans && $fs_aux_trans > 0) $factores[] = ['SUBSIDIO DE TRANSPORTE', $fs_aux_trans];
-    if ($mostrar_aux_alim && $fs_aux_alim > 0) $factores[] = ['SUBSIDIO DE ALIMENTACIÓN', $fs_aux_alim];
-    if ($mostrar_doceava_bsp && $doceava_bsp > 0) $factores[] = ["DOCEAVA PARTE ULT. BONIF\nSERVICIOS", $doceava_bsp];
-    if ($mostrar_doceava_ps && $doceava_ps > 0) $factores[] = ["DOCEAVA PARTE ULT. PRIMA\nSERVICIOS", $doceava_ps];
-    if ($mostrar_prom_horas && $fs_prom_horas > 0) $factores[] = ['PROMEDIO HORAS EXTRAS', $fs_prom_horas];
+    $factores[] = ['SUBSIDIO DE TRANSPORTE', $fs_aux_trans];
+    $factores[] = ['SUBSIDIO DE ALIMENTACIÓN', $fs_aux_alim];
+    $factores[] = ['DOCEAVA PARTE ULT. PRIMA VAC', $doceava_pv];
+    $factores[] = ['DOCEAVA PARTE ULT. BONIFIC SERVICIOS', $doceava_bsp];
+    $factores[] = ['DOCEAVA PARTE ULT. PRIMA SERVICIOS', $doceava_ps];
+    $factores[] = ['DOCEAVA PARTE ULT. PRIMA NAV', $doceava_pn];
+    $factores[] = ['DOCEAVA PARTE ULT. Ho. Ex/RECARGOS', $doceava_horas];
 
     $total_fs = array_sum(array_column($factores, 1));
 

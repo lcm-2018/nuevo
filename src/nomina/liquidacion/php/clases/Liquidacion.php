@@ -1107,7 +1107,7 @@ class Liquidacion
                         $param['bsp_ant'] = $cortes_empleado['val_bsp'] ?? 0;
                         $param['pri_ser_ant'] = $cortes_empleado['val_liq_ps'] ?? 0;
                         $param['pri_vac_ant'] = $cortes_empleado['val_liq_pv'] ?? 0;
-                        $param['pri_nav_ant'] = $cortes_empleado['val_liq'] ?? 0;
+                        $param['pri_nav_ant'] = $cortes_empleado['val_prima_vac'] ?? 0;
                         $param['prom_horas'] = $cortes_empleado['prom'] ?? 0;
                     } else if ($opcion == 1) {
                         $param = (new Valores_Liquidacion($this->conexion))->getRegistro($id_nomina, $id_empleado);
