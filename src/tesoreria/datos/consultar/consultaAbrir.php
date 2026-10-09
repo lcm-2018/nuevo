@@ -13,7 +13,7 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "UPDATE `ctb_doc`
                 SET `estado` = ?, `id_user_act` = ?, `fecha_act` = ?
-            WHERE `id_ctb_doc` = ?";
+            WHERE `id_ctb_doc` = ? AND `estado` != 0";
     $query = $cmd->prepare($sql);
     $query->bindParam(1, $estado, PDO::PARAM_INT);
     $query->bindParam(2, $id_user, PDO::PARAM_INT);

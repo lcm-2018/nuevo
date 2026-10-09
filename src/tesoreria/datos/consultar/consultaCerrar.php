@@ -47,7 +47,7 @@ try {
 
         if ($dif == 0) {
             $estado = 2;
-            $query = "UPDATE `ctb_doc` SET `estado`= ? WHERE `id_ctb_doc` = ?";
+            $query = "UPDATE `ctb_doc` SET `estado`= ? WHERE `id_ctb_doc` = ? AND `estado` != 0";
             $query = $cmd->prepare($query);
             $query->bindParam(1, $estado, PDO::PARAM_INT);
             $query->bindParam(2, $id_ctb_doc, PDO::PARAM_INT);
@@ -62,7 +62,7 @@ try {
     }
     if ($total == 0) {
         $estado = 2;
-        $query = "UPDATE `ctb_doc` SET `estado`= ? WHERE `id_ctb_doc` IN ($data)";
+        $query = "UPDATE `ctb_doc` SET `estado`= ? WHERE `id_ctb_doc` IN ($data) AND `estado` != 0";
         $query = $cmd->prepare($query);
         $query->bindParam(1, $estado, PDO::PARAM_INT);
         $query->execute();

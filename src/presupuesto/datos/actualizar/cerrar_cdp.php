@@ -16,7 +16,7 @@ $estado = 2;
 $response['status'] = 'ok';
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "UPDATE `pto_cdp` SET `estado` = ? WHERE `id_pto_cdp` = ?";
+    $sql = "UPDATE `pto_cdp` SET `estado` = ? WHERE `id_pto_cdp` = ? AND `estado` != 0";
     $sql = $cmd->prepare($sql);
     $sql->bindParam(1, $estado, PDO::PARAM_INT);
     $sql->bindParam(2, $id_cdp, PDO::PARAM_INT);

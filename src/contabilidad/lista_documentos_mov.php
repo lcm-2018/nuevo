@@ -174,7 +174,7 @@ HTML;
 }
 
 // Validar permisos de registro
-$peRegValue = ($peReg && !($tipo_doc == '5' || $tipo_doc == '3')) || ($_SESSION['caracter'] == '1' && $tipo_doc == '3') ? 1 : 0;
+$peRegValue = ($peReg && !($tipo_doc == '5' || $tipo_doc == '3')) || ($_SESSION['caracter'] == '1' && ($tipo_doc == '3' || $tipo_doc == '18')) ? 1 : 0;
 
 $content = <<<HTML
 <div class="card w-100">

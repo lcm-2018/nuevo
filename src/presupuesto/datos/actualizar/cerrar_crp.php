@@ -9,17 +9,17 @@ include '../../../../config/autoloader.php';
 use Config\Clases\Logs;
 $cmd = \Config\Clases\Conexion::getConexion();
 
-$id_cdp = file_get_contents("php://input");
+$id_crp = file_get_contents("php://input");
 $id_user = $_SESSION['id_user'];
 $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $estado = 2;
 $response['status'] = 'ok';
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "UPDATE `pto_crp` SET `estado` = ? WHERE `id_pto_crp` = ?";
+    $sql = "UPDATE `pto_crp` SET `estado` = ? WHERE `id_pto_crp` = ? AND `estado` != 0";
     $sql = $cmd->prepare($sql);
     $sql->bindParam(1, $estado, PDO::PARAM_INT);
-    $sql->bindParam(2, $id_cdp, PDO::PARAM_INT);
+    $sql->bindParam(2, $id_crp, PDO::PARAM_INT);
     if (!($sql->execute())) {
         $response['msg'] = $sql->errorInfo()[2];
         exit();
