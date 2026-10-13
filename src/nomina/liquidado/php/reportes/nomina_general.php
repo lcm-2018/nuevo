@@ -20,6 +20,7 @@ include_once '../../../../../config/autoloader.php';
 $id_nomina = isset($_POST['id']) ? intval($_POST['id']) : exit('Acceso Denegado');
 $documento = "REPORTE DE LIQUIDACIÓN DE EMPLEADOS";
 $nomina = Nomina::getRegistro($id_nomina);
+$decimales = isset(Valores::getOwnerConfig()['decimales']) ? intval(Valores::getOwnerConfig()['decimales']) : 0;
 $mes = mb_strtoupper(Valores::NombreMes($nomina['mes']));
 
 $conexion = Conexion::getConexion();
@@ -202,7 +203,7 @@ foreach ($datos as $d) {
         }
 
         if ($col['type'] === 'number') {
-            $value = number_format($value, 0, ',', '.');
+            $value = number_format($value, $decimales, ',', '.');
         } elseif ($col['type'] === 'days') {
             $value = intval($value);
         }
@@ -238,7 +239,7 @@ foreach ($columnasVisibles as $col) {
     $style = "text-align: {$align}; font-size: 7px;";
 
     if ($col['type'] === 'number') {
-        $value = number_format($value, 0, ',', '.');
+        $value = number_format($value, $decimales, ',', '.');
     } elseif ($col['type'] === 'days') {
         $value = intval($value);
     }

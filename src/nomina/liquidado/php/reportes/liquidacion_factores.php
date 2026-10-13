@@ -240,7 +240,7 @@ function generarLiquidacion(
     $final_prima = (float) ($d['valor_ps'] ?? 0) + (float) ($ps['val_prima'] ?? 0);
     $final_ces = (float) ($d['val_cesantias'] ?? 0) + (float) ($ps['val_cesantia'] ?? 0);
     $final_ices = (float) ($d['val_icesantias'] ?? 0) + (float) ($ps['val_interes_cesantia'] ?? 0);
-    $final_prima_nav = (float) ($ps['val_prima_nav'] ?? 0);
+    $final_prima_nav = (float) ($d['valor_pv'] ?? 0) + (float) ($ps['val_prima_nav'] ?? 0);
     $final_bsp = (float) ($d['val_bsp'] ?? 0);
 
     // Días
