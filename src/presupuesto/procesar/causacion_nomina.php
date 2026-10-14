@@ -185,13 +185,14 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `nom_cdp_empleados`.`rubro`
-                , `nom_cdp_empleados`.`valor`
+                , SUM(`nom_cdp_empleados`.`valor`) AS `valor`
                 , `pto_cargue`.`cod_pptal`
             FROM
                 `nom_cdp_empleados`
                 INNER JOIN `pto_cargue` 
                     ON (`nom_cdp_empleados`.`rubro` = `pto_cargue`.`id_cargue`)
-            WHERE (`nom_cdp_empleados`.`id_nomina` = $idNomina AND `nom_cdp_empleados`.`tipo` = 'M')";
+            WHERE (`nom_cdp_empleados`.`id_nomina` = $idNomina AND `nom_cdp_empleados`.`tipo` = 'M')
+            GROUP BY `nom_cdp_empleados`.`rubro`, `pto_cargue`.`cod_pptal`";
     $rs = $cmd->query($sql);
     $valxrubro = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
@@ -199,6 +200,7 @@ try {
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    exit();
 }
 if (empty($valxrubro)) {
     echo 'No se ha generado una solicitud de CDP para esta nómina';
@@ -238,6 +240,7 @@ if (empty($valxrubro)) {
         echo $tabla;
         exit();
     }
+    $cmd = null;
 }
 
 try {

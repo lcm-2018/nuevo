@@ -47,13 +47,14 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT
                 `nom_cdp_empleados`.`rubro`
-                , `nom_cdp_empleados`.`valor`
+                , SUM(`nom_cdp_empleados`.`valor`) AS `valor`
                 , `pto_cargue`.`cod_pptal`
             FROM
                 `nom_cdp_empleados`
                 INNER JOIN `pto_cargue` 
                     ON (`nom_cdp_empleados`.`rubro` = `pto_cargue`.`id_cargue`)
-            WHERE (`nom_cdp_empleados`.`id_nomina` = $id_nomina AND `nom_cdp_empleados`.`tipo` = 'PL')";
+            WHERE (`nom_cdp_empleados`.`id_nomina` = $id_nomina AND `nom_cdp_empleados`.`tipo` = 'PL')
+            GROUP BY `nom_cdp_empleados`.`rubro`, `pto_cargue`.`cod_pptal`";
     $rs = $cmd->query($sql);
     $valxrubro = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
