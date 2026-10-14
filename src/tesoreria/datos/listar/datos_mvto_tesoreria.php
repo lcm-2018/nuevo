@@ -244,6 +244,20 @@ if (!empty($listappto)) {
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
+    $conciliados = [];
+    try {
+        $sql = "SELECT DISTINCT `ctb_libaux`.`id_ctb_doc`
+                FROM `tes_conciliacion_detalle`
+                INNER JOIN `ctb_libaux` 
+                    ON `tes_conciliacion_detalle`.`id_ctb_libaux` = `ctb_libaux`.`id_ctb_libaux`
+                WHERE `ctb_libaux`.`id_ctb_doc` IN ($id_cta)";
+        $rs = $cmd->query($sql);
+        $conciliados = $rs->fetchAll();
+        $rs->closeCursor();
+        unset($rs);
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    }
     foreach ($listappto as $lp) {
         $valor_total = 0;
         $id_ctb = $lp['id_ctb_doc'];
@@ -283,14 +297,17 @@ if (!empty($listappto)) {
             $borrar = '<a value="' . $id_ctb . '" onclick="eliminarRegistroTec(' . $id_ctb . ')" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow "  title="Eliminar"><span class="fas fa-trash-alt"></span></a>';
         }
         if (($permisos->PermisosUsuario($opciones, 5601, 5) || $permisos->PermisosUsuario($opciones, 5602, 5) || $permisos->PermisosUsuario($opciones, 5603, 5) || $permisos->PermisosUsuario($opciones, 5604, 5) || $id_rol == 1)) {
+            $is_conciliado = in_array($id_ctb, array_column($conciliados, 'id_ctb_doc'));
             if ($estado == 1) {
                 $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow" onclick="cerrarDocumentoCtbTes(' . $id_ctb . ')" title="Cerrar"><span class="fas fa-lock"></span></a>';
             } else {
-                $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-secondary btn-xs rounded-circle me-1 shadow" onclick="abrirDocumentoTes(' . $id_ctb . ')" title="Abrir"><span class="fas fa-unlock"></span></a>';
+                if (!$is_conciliado) {
+                    $cerrar = '<a value="' . $id_ctb . '" class="btn btn-outline-secondary btn-xs rounded-circle me-1 shadow" onclick="abrirDocumentoTes(' . $id_ctb . ')" title="Abrir"><span class="fas fa-unlock"></span></a>';
+                }
             }
             $anular = '<a value="' . $id_ctb . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow" onclick="anularDocumentoTes(' . $id_ctb . ')" title="Anular"><span class="fas fa-ban"></span></a>';
             $key = array_search($id_ctb, array_column($erp, 'id_transaccion'));
-            if ($fecha < $fecha_cierre || $key !== false) {
+            if ($fecha < $fecha_cierre || $key !== false || $is_conciliado) {
                 $anular = null;
                 $cerrar = null;
             }
