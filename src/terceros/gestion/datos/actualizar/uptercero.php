@@ -5,6 +5,43 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 include '../../../../../config/autoloader.php';
+
+use Src\Common\Php\Clases\Valores;
+
+// Configuración de validación de campos para terceros
+// Orden de los campos: [0 => direccion, 1 => correo, 2 => contacto, 3 => actividad]
+// 1 = obligatorio, 0 = no obligatorio (por defecto todos en 1)
+$valida_tercero = [1, 1, 1, 1];
+try {
+    $ownerConfig = Valores::getOwnerConfig();
+    if (isset($ownerConfig['valida_tercero']) && $ownerConfig['valida_tercero'] !== '') {
+        $validaConfig = $ownerConfig['valida_tercero'];
+        if (is_string($validaConfig)) {
+            $decoded = json_decode($validaConfig, true);
+            if (is_array($decoded)) {
+                $validaConfig = $decoded;
+            } else {
+                $cleaned = trim($validaConfig, "[] \t\n\r\0\x0B");
+                $validaConfig = explode(',', $cleaned);
+            }
+        }
+        if (is_array($validaConfig)) {
+            $valida_tercero = [
+                isset($validaConfig[0]) ? (int)$validaConfig[0] : 1,
+                isset($validaConfig[1]) ? (int)$validaConfig[1] : 1,
+                isset($validaConfig[2]) ? (int)$validaConfig[2] : 1,
+                isset($validaConfig[3]) ? (int)$validaConfig[3] : 1,
+            ];
+        }
+    }
+} catch (Exception $e) {
+    $valida_tercero = [1, 1, 1, 1];
+}
+
+$valDireccion = $valida_tercero[0];
+$valCorreo    = $valida_tercero[1];
+$valContacto  = $valida_tercero[2];
+
 $idTercero = isset($_POST['idt']) ? $_POST['idt'] : exit('Acción no permitida');
 //API URL
 $api = \Config\Clases\Conexion::Api();
@@ -126,6 +163,10 @@ if (isset($tercero['id_tercero'])) {
                 <h5 class="mb-0" style="color: white;">ACTUALIZAR DATOS DE TERCERO</h5>
             </div>
             <form id="formActualizaTercero">
+                <input type="hidden" id="valida_tercero" value='<?php echo json_encode($valida_tercero); ?>'>
+                <input type="hidden" id="valida_direccion" value="<?php echo $valDireccion; ?>">
+                <input type="hidden" id="valida_correo" value="<?php echo $valCorreo; ?>">
+                <input type="hidden" id="valida_contacto" value="<?php echo $valContacto; ?>">
                 <input type="number" id="idTercero" name="idTercero" value="<?php echo $id_api ?>" hidden>
                 <div class="row px-4 pt-2 mb-3">
                     <div class="col-md-2">
@@ -243,7 +284,7 @@ if (isset($tercero['id_tercero'])) {
                     </div>
                     <div class="col-md-3 d-flex align-items-end">
                         <div class="w-100">
-                            <label for="txtDireccionPreview" class="small">Dirección</label>
+                            <label for="txtDireccionPreview" class="small">Dirección<?= $valDireccion == 1 ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <div class="input-group input-group-sm">
                                 <input type="text" class="form-control form-control-sm bg-light"
                                     id="txtDireccionPreview" placeholder="Use el generador →" readonly
@@ -261,11 +302,11 @@ if (isset($tercero['id_tercero'])) {
                 </div>
                 <div class="row px-4 mb-3">
                     <div class="col-md-3">
-                        <label for="mailEmp" class="small">Correo</label>
+                        <label for="mailEmp" class="small">Correo<?= $valCorreo == 1 ? ' <span class="text-danger">*</span>' : '' ?></label>
                         <input type="email" class="form-control form-control-sm bg-input" id="mailEmp" name="mailEmp" placeholder="Correo electrónico" value="<?php echo $tercero['correo'] ?>">
                     </div>
                     <div class="col-md-2">
-                        <label for="txtTelEmp" class="small">Contacto</label>
+                        <label for="txtTelEmp" class="small">Contacto<?= $valContacto == 1 ? ' <span class="text-danger">*</span>' : '' ?></label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txtTelEmp" name="txtTelEmp" placeholder="Teléfono/celular" value="<?php echo $tercero['telefono'] ?>">
                     </div>
                     <div class="col-md-2 text-center mt-1">
@@ -589,6 +630,7 @@ if (isset($tercero['id_tercero'])) {
 
 <script>
     (function () {
+        window.valida_tercero = <?php echo json_encode($valida_tercero); ?>;
         // Eliminar cualquier modal previo que haya quedado en el body (evita conflictos de IDs)
         $('body > #modalGeneradorDireccion').remove();
 

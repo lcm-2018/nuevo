@@ -7,12 +7,48 @@ if (!isset($_SESSION['user'])) {
 include '../../../../config/autoloader.php';
 
 use Src\Common\Php\Clases\Permisos;
+use Src\Common\Php\Clases\Valores;
 
 $permisos = new Permisos();
 
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 $opciones = $permisos->PermisoOpciones($id_user);
+
+// Configuración de validación de campos para terceros
+// Orden de los campos: [0 => direccion, 1 => correo, 2 => contacto, 3 => actividad]
+// 1 = obligatorio, 0 = no obligatorio (por defecto todos en 1)
+$valida_tercero = [1, 1, 1, 1];
+try {
+    $ownerConfig = Valores::getOwnerConfig();
+    if (isset($ownerConfig['valida_tercero']) && $ownerConfig['valida_tercero'] !== '') {
+        $validaConfig = $ownerConfig['valida_tercero'];
+        if (is_string($validaConfig)) {
+            $decoded = json_decode($validaConfig, true);
+            if (is_array($decoded)) {
+                $validaConfig = $decoded;
+            } else {
+                $cleaned = trim($validaConfig, "[] \t\n\r\0\x0B");
+                $validaConfig = explode(',', $cleaned);
+            }
+        }
+        if (is_array($validaConfig)) {
+            $valida_tercero = [
+                isset($validaConfig[0]) ? (int)$validaConfig[0] : 1,
+                isset($validaConfig[1]) ? (int)$validaConfig[1] : 1,
+                isset($validaConfig[2]) ? (int)$validaConfig[2] : 1,
+                isset($validaConfig[3]) ? (int)$validaConfig[3] : 1,
+            ];
+        }
+    }
+} catch (Exception $e) {
+    $valida_tercero = [1, 1, 1, 1];
+}
+
+$valDireccion = $valida_tercero[0];
+$valCorreo    = $valida_tercero[1];
+$valContacto  = $valida_tercero[2];
+$valActividad = $valida_tercero[3];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -94,6 +130,11 @@ try {
                     </div>
                     <div class="shadow">
                         <form id="formNuevoTercero">
+                            <input type="hidden" id="valida_tercero" value='<?php echo json_encode($valida_tercero); ?>'>
+                            <input type="hidden" id="valida_direccion" value="<?php echo $valDireccion; ?>">
+                            <input type="hidden" id="valida_correo" value="<?php echo $valCorreo; ?>">
+                            <input type="hidden" id="valida_contacto" value="<?php echo $valContacto; ?>">
+                            <input type="hidden" id="valida_actividad" value="<?php echo $valActividad; ?>">
                             <div class="row px-4 pt-2 mb-3">
                                 <div class="col-md-2">
                                     <label for="slcTipoTercero" class="small">Tipo de tercero</label>
@@ -208,7 +249,7 @@ try {
                                 </div>
                                 <div class="col-md-3 d-flex align-items-end">
                                     <div class="w-100">
-                                        <label for="txtDireccionPreview" class="small">Dirección</label>
+                                        <label for="txtDireccionPreview" class="small">Dirección<?= $valDireccion == 1 ? ' <span class="text-danger">*</span>' : '' ?></label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control form-control-sm bg-light"
                                                 id="txtDireccionPreview" placeholder="Use el generador →" readonly>
@@ -224,12 +265,12 @@ try {
                             </div>
                             <div class="row px-4 mb-3">
                                 <div class="col-md-3">
-                                    <label for="mailEmp" class="small">Correo</label>
+                                    <label for="mailEmp" class="small">Correo<?= $valCorreo == 1 ? ' <span class="text-danger">*</span>' : '' ?></label>
                                     <input type="email" class="form-control form-control-sm bg-input" id="mailEmp"
                                         name="mailEmp" placeholder="Correo electrónico">
                                 </div>
                                 <div class="col-md-2">
-                                    <label for="txtTelEmp" class="small">Contacto</label>
+                                    <label for="txtTelEmp" class="small">Contacto<?= $valContacto == 1 ? ' <span class="text-danger">*</span>' : '' ?></label>
                                     <input type="text" class="form-control form-control-sm bg-input" id="txtTelEmp"
                                         name="txtTelEmp" placeholder="Teléfono/celular">
                                 </div>
@@ -276,7 +317,7 @@ try {
                                     </select>
                                 </div>
                                 <div class="col-md-12 mt-2">
-                                    <label for="buscarActvEconoMulti" class="small">Actividades Económicas (Puede seleccionar varias)</label>
+                                    <label for="buscarActvEconoMulti" class="small">Actividades Económicas (Puede seleccionar varias)<?= $valActividad == 1 ? ' <span class="text-danger">*</span>' : '' ?></label>
                                     <input type="text" class="form-control form-control-sm bg-input" id="buscarActvEconoMulti" placeholder="Buscar y seleccionar actividad económica...">
                                     <div id="contenedorActividades" class="mt-2 d-flex flex-wrap gap-1"></div>
                                 </div>
@@ -592,6 +633,7 @@ try {
 
 <script>
     (function () {
+        window.valida_tercero = <?php echo json_encode($valida_tercero); ?>;
         // Autocomplete para actividades económicas múltiples
         $('#buscarActvEconoMulti').autocomplete({
             source: function (request, response) {

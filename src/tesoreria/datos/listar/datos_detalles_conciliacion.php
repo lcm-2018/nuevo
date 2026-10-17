@@ -56,7 +56,7 @@ try {
                 INNER JOIN `ctb_fuente` ON (`ctb_doc`.`id_tipo_doc` = `ctb_fuente`.`id_doc_fuente`)
                 LEFT JOIN `tes_conciliacion_detalle` ON (`tes_conciliacion_detalle`.`id_ctb_libaux` = `ctb_libaux`.`id_ctb_libaux`)
                 LEFT JOIN `tes_conciliacion` ON (`tes_conciliacion`.`id_conciliacion` = `tes_conciliacion_detalle`.`id_concilia`)
-                LEFT JOIN `tb_terceros` ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
+                LEFT JOIN `tb_terceros` ON (`ctb_libaux`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
             WHERE (`tes_cuentas`.`id_tes_cuenta` = $id_cuenta AND `ctb_doc`.`estado` = 2 
                     AND `ctb_doc`.`fecha` <= '$fecha' AND (`tes_conciliacion_detalle`.`fecha_marca` >= '$fecha' or `tes_conciliacion_detalle`.`fecha_marca` IS NULL)
                     AND (`tes_conciliacion`.`vigencia` = '$vigencia' OR `tes_conciliacion`.`vigencia` IS NULL))";
@@ -75,15 +75,15 @@ $tcc = 0;
 if (!empty($lista)) {
     $cmd = null;
     foreach ($lista as $lp) {
-        if ($lp['conciliado'] > 0  && $lp['marca'] <= $fecha) {
-            $chk =  'checked';
+        if ($lp['conciliado'] > 0 && $lp['marca'] <= $fecha) {
+            $chk = 'checked';
             $estado = 'Conciliado';
         } else {
-            $chk =  '';
+            $chk = '';
             $estado = 'Pendiente';
         }
-        if ($lp['conciliado'] > 0  && $lp['marca'] > $fecha) {
-            $chk =  'disabled';
+        if ($lp['conciliado'] > 0 && $lp['marca'] > $fecha) {
+            $chk = 'disabled';
             $estado = 'Marcado';
         }
 
@@ -95,19 +95,19 @@ if (!empty($lista)) {
         }
         $check = '<input ' . $chk . ' type="checkbox" name="check[]" onclick="GuardaDetalleConciliacion(this)" text="' . $lp['id_ctb_libaux'] . '">';
         $nombre = $lp['nom_tercero'] . ' -> ' . $lp['nit_tercero'];
-	        $data[] = [
+        $data[] = [
 
-	            'fecha' => date('Y-m-d', strtotime($lp['fecha'])),
-	            'no_comprobante' => $lp['cod'] . $lp['id_manu'],
-	            'tercero' => $nombre,
-	            'documento' => $lp['documento'],
-	            'debito_valor' => (float) $lp['debito'],
-	            'credito_valor' => (float) $lp['credito'],
-	            'debito' => '<div class="text-end">' . pesos($lp['debito']) . '</div>',
-	            'credito' => '<div class="text-end">' . pesos($lp['credito']) . '</div>',
-	            'estado' => '<div class="text-center">' . $estado . '</div>',
-	            'accion' => '<div class="text-center vertical-align-middle">' . $check . '</div>',
-	        ];
+            'fecha' => date('Y-m-d', strtotime($lp['fecha'])),
+            'no_comprobante' => $lp['cod'] . $lp['id_manu'],
+            'tercero' => $nombre,
+            'documento' => $lp['documento'],
+            'debito_valor' => (float) $lp['debito'],
+            'credito_valor' => (float) $lp['credito'],
+            'debito' => '<div class="text-end">' . pesos($lp['debito']) . '</div>',
+            'credito' => '<div class="text-end">' . pesos($lp['credito']) . '</div>',
+            'estado' => '<div class="text-center">' . $estado . '</div>',
+            'accion' => '<div class="text-center vertical-align-middle">' . $check . '</div>',
+        ];
     }
     $tot_deb = $tot_deb - $tdc;
     $tot_cre = $tot_cre - $tcc;
