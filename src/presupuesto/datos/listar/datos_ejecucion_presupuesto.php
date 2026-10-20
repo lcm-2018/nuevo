@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -43,8 +43,12 @@ $andwhere = " ";
 if (isset($_POST['id_manu']) && $_POST['id_manu']) {
     $andwhere .= $_POST['option'] == 0 ? " AND pto_cdp.id_manu LIKE '%" . $_POST['id_manu'] . "%'" : " AND pto_cdp.id_manu = '" . $_POST['id_manu'] . "'";
 }
-if (isset($_POST['fec_ini']) && $_POST['fec_ini'] && isset($_POST['fec_fin']) && $_POST['fec_fin']) {
+if (!empty($_POST['fec_ini']) && !empty($_POST['fec_fin'])) {
     $andwhere .= " AND pto_cdp.fecha BETWEEN '" . $_POST['fec_ini'] . "' AND '" . $_POST['fec_fin'] . "'";
+} elseif (!empty($_POST['fec_ini'])) {
+    $andwhere .= " AND pto_cdp.fecha >= '" . $_POST['fec_ini'] . "'";
+} elseif (!empty($_POST['fec_fin'])) {
+    $andwhere .= " AND pto_cdp.fecha <= '" . $_POST['fec_fin'] . "'";
 }
 if (isset($_POST['objeto']) && $_POST['objeto']) {
     $andwhere .= " AND pto_cdp.objeto LIKE '%" . $_POST['objeto'] . "%'";
@@ -119,12 +123,23 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-// obtener el numero total de registros de la anterior consulta
+// obtener el numero total de registros filtrados
+$totalRecordsFiltered = 0;
+try {
+    $sql = "SELECT COUNT(*) AS `total` FROM `pto_cdp` WHERE `id_pto` = $id_pto_presupuestos $buscar $andwhere";
+    $rs = $cmd->query($sql);
+    $total = $rs->fetch();
+    $totalRecordsFiltered = !empty($total['total']) ? intval($total['total']) : 0;
+} catch (PDOException $e) {
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+}
+
+// obtener el numero total de registros sin filtros
 try {
     $sql = "SELECT COUNT(*) AS `total` FROM `pto_cdp` WHERE `id_pto` = $id_pto_presupuestos";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $totalRecords = !empty($total['total']) ? intval($total['total']) : 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -229,7 +244,7 @@ if (!empty($listappto)) {
 $cmd = null;
 $datos = [
     'data' => $data,
-    'recordsFiltered' => $totalRecords,
+    'recordsFiltered' => $totalRecordsFiltered,
     'recordsTotal' => $totalRecords,
 ];
 

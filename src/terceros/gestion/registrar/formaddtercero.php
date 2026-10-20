@@ -8,6 +8,7 @@ include '../../../../config/autoloader.php';
 
 use Src\Common\Php\Clases\Permisos;
 use Src\Common\Php\Clases\Valores;
+use Src\Common\Php\Clases\Combos;
 
 $permisos = new Permisos();
 
@@ -19,6 +20,7 @@ $opciones = $permisos->PermisoOpciones($id_user);
 // Orden de los campos: [0 => direccion, 1 => correo, 2 => contacto, 3 => actividad]
 // 1 = obligatorio, 0 = no obligatorio (por defecto todos en 1)
 $valida_tercero = [1, 1, 1, 1];
+$dirTercero = 1;
 try {
     $ownerConfig = Valores::getOwnerConfig();
     if (isset($ownerConfig['valida_tercero']) && $ownerConfig['valida_tercero'] !== '') {
@@ -41,8 +43,12 @@ try {
             ];
         }
     }
+    if (isset($ownerConfig['direccion_tercero']) && $ownerConfig['direccion_tercero'] !== '') {
+        $dirTercero = (int)$ownerConfig['direccion_tercero'];
+    }
 } catch (Exception $e) {
     $valida_tercero = [1, 1, 1, 1];
+    $dirTercero = 1;
 }
 
 $valDireccion = $valida_tercero[0];
@@ -132,6 +138,7 @@ try {
                         <form id="formNuevoTercero">
                             <input type="hidden" id="valida_tercero" value='<?php echo json_encode($valida_tercero); ?>'>
                             <input type="hidden" id="valida_direccion" value="<?php echo $valDireccion; ?>">
+                            <input type="hidden" id="direccion_tercero" value="<?php echo $dirTercero; ?>">
                             <input type="hidden" id="valida_correo" value="<?php echo $valCorreo; ?>">
                             <input type="hidden" id="valida_contacto" value="<?php echo $valContacto; ?>">
                             <input type="hidden" id="valida_actividad" value="<?php echo $valActividad; ?>">
@@ -247,21 +254,29 @@ try {
                                         <option selected value="0">Debe elegir departamento</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3 d-flex align-items-end">
-                                    <div class="w-100">
-                                        <label for="txtDireccionPreview" class="small">Dirección<?= $valDireccion == 1 ? ' <span class="text-danger">*</span>' : '' ?></label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control form-control-sm bg-light"
-                                                id="txtDireccionPreview" placeholder="Use el generador →" readonly>
-                                            <input type="hidden" id="txtDireccion" name="txtDireccion">
-                                            <button class="btn btn-sm text-white" type="button"
-                                                id="btnAbrirGeneradorDir" style="background-color: #16a085;"
-                                                title="Abrir generador de dirección DIAN">
-                                                <i class="fa-solid fa-location-dot"></i>
-                                            </button>
+                                <?php if ($dirTercero == 1) { ?>
+                                    <div class="col-md-3 d-flex align-items-end">
+                                        <div class="w-100">
+                                            <label for="txtDireccionPreview" class="small">Dirección<?= $valDireccion == 1 ? ' <span class="text-danger">*</span>' : '' ?></label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" class="form-control form-control-sm bg-light"
+                                                    id="txtDireccionPreview" placeholder="Use el generador →" readonly>
+                                                <input type="hidden" id="txtDireccion" name="txtDireccion">
+                                                <button class="btn btn-sm text-white" type="button"
+                                                    id="btnAbrirGeneradorDir" style="background-color: #16a085;"
+                                                    title="Abrir generador de dirección DIAN">
+                                                    <i class="fa-solid fa-location-dot"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                <?php } else { ?>
+                                    <div class="col-md-3">
+                                        <label for="txtDireccion" class="small">Dirección<?= $valDireccion == 1 ? ' <span class="text-danger">*</span>' : '' ?></label>
+                                        <input type="text" class="form-control form-control-sm bg-input"
+                                            id="txtDireccion" name="txtDireccion" placeholder="Residencial">
+                                    </div>
+                                <?php } ?>
                             </div>
                             <div class="row px-4 mb-3">
                                 <div class="col-md-3">
@@ -368,6 +383,7 @@ try {
 </div>
 </div>
 
+<?php if ($dirTercero == 1) { ?>
 <!-- Modal Generador de Direcciones DIAN -->
 <div class="modal fade" id="modalGeneradorDireccion" tabindex="-1" aria-labelledby="lblGeneradorDir" aria-hidden="true"
     data-bs-backdrop="false" data-bs-keyboard="true">
@@ -381,6 +397,36 @@ try {
                     aria-label="Cerrar"></button>
             </div>
             <div class="modal-body p-3">
+                <!-- Selector de Tipo de Dirección: Urbana vs Rural -->
+                <div class="d-flex justify-content-center mb-3">
+                    <div class="btn-group btn-group-sm w-100" role="group" id="grpTipoDireccion" style="max-width: 480px;">
+                        <input type="radio" class="btn-check" name="rdoTipoDir" id="rdoDirUrbana" value="urbana" checked autocomplete="off">
+                        <label class="btn btn-outline-success fw-bold py-1" for="rdoDirUrbana">
+                            <i class="fa-solid fa-city me-1"></i> Urbana (Vía, Cruce y Placa)
+                        </label>
+
+                        <input type="radio" class="btn-check" name="rdoTipoDir" id="rdoDirRural" value="rural" autocomplete="off">
+                        <label class="btn btn-outline-success fw-bold py-1" for="rdoDirRural">
+                            <i class="fa-solid fa-tree me-1"></i> Rural / Especial (Vereda, Corregimiento...)
+                        </label>
+                    </div>
+                </div>
+                <style>
+                    #grpTipoDireccion .btn-check:checked + label {
+                        background-color: #16a085 !important;
+                        border-color: #16a085 !important;
+                        color: #ffffff !important;
+                    }
+                    #grpTipoDireccion label {
+                        border-color: #16a085 !important;
+                        color: #16a085;
+                    }
+                    #grpTipoDireccion label:hover {
+                        background-color: #e8f8f5;
+                        color: #16a085;
+                    }
+                </style>
+
                 <!-- Vista previa de la dirección -->
                 <div class="alert py-2 mb-3 border"
                     style="background-color: #e8f8f5; border-color: #16a085 !important;">
@@ -394,126 +440,148 @@ try {
                     </div>
                 </div>
 
-                <!-- Vía Principal -->
-                <div class="card mb-3 border-0 shadow-sm">
-                    <div class="card-header py-1 px-3 small fw-bold text-white" style="background-color: #1abc9c;">
-                        <i class="fa-solid fa-road me-1"></i> Vía Principal
+                <!-- Sección Urbana -->
+                <div id="secDirUrbana">
+                    <!-- Vía Principal -->
+                    <div class="card mb-3 border-0 shadow-sm">
+                        <div class="card-header py-1 px-3 small fw-bold text-white" style="background-color: #1abc9c;">
+                            <i class="fa-solid fa-road me-1"></i> Vía Principal
+                        </div>
+                        <div class="card-body py-2 px-3">
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    <label class="form-label small mb-0">Tipo de vía <span
+                                            class="text-danger">*</span></label>
+                                    <select id="slcTipoVia" class="form-select form-select-sm bg-input">
+                                        <?php echo Combos::getNomenclaturaDian(); ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small mb-0">Número <span class="text-danger">*</span></label>
+                                    <input type="text" id="txtNumVia" class="form-control form-control-sm bg-input"
+                                        placeholder="Ej: 45" maxlength="5">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small mb-0">Letra</label>
+                                    <select id="slcLetraVia" class="form-select form-select-sm bg-input">
+                                        <option value="">--</option>
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="C">C</option>
+                                        <option value="D">D</option>
+                                        <option value="E">E</option>
+                                        <option value="F">F</option>
+                                        <option value="G">G</option>
+                                        <option value="H">H</option>
+                                        <option value="I">I</option>
+                                        <option value="J">J</option>
+                                        <option value="K">K</option>
+                                        <option value="L">L</option>
+                                        <option value="M">M</option>
+                                        <option value="N">N</option>
+                                        <option value="P">P</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small mb-0">BIS</label>
+                                    <select id="slcBisVia" class="form-select form-select-sm bg-input">
+                                        <option value="">No</option>
+                                        <option value="BIS">BIS</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small mb-0">Cuadrante</label>
+                                    <select id="slcCuadranteVia" class="form-select form-select-sm bg-input">
+                                        <option value="">--</option>
+                                        <option value="SUR">SUR</option>
+                                        <option value="NORTE">NORTE</option>
+                                        <option value="ESTE">ESTE</option>
+                                        <option value="OESTE">OESTE</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body py-2 px-3">
-                        <div class="row g-2">
-                            <div class="col-md-3">
-                                <label class="form-label small mb-0">Tipo de vía <span
-                                        class="text-danger">*</span></label>
-                                <select id="slcTipoVia" class="form-select form-select-sm bg-input">
-                                    <option value="">--Seleccione--</option>
-                                    <option value="AC">Avenida Calle (AC)</option>
-                                    <option value="AK">Avenida Carrera (AK)</option>
-                                    <option value="AV">Avenida (AV)</option>
-                                    <option value="CL">Calle (CL)</option>
-                                    <option value="CR">Carrera (CR)</option>
-                                    <option value="DG">Diagonal (DG)</option>
-                                    <option value="TV">Transversal (TV)</option>
-                                    <option value="CQ">Circular (CQ)</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small mb-0">Número <span class="text-danger">*</span></label>
-                                <input type="text" id="txtNumVia" class="form-control form-control-sm bg-input"
-                                    placeholder="Ej: 45" maxlength="5">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small mb-0">Letra</label>
-                                <select id="slcLetraVia" class="form-select form-select-sm bg-input">
-                                    <option value="">--</option>
-                                    <option value="A">A</option>
-                                    <option value="B">B</option>
-                                    <option value="C">C</option>
-                                    <option value="D">D</option>
-                                    <option value="E">E</option>
-                                    <option value="F">F</option>
-                                    <option value="G">G</option>
-                                    <option value="H">H</option>
-                                    <option value="I">I</option>
-                                    <option value="J">J</option>
-                                    <option value="K">K</option>
-                                    <option value="L">L</option>
-                                    <option value="M">M</option>
-                                    <option value="N">N</option>
-                                    <option value="P">P</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small mb-0">BIS</label>
-                                <select id="slcBisVia" class="form-select form-select-sm bg-input">
-                                    <option value="">No</option>
-                                    <option value="BIS">BIS</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label small mb-0">Cuadrante</label>
-                                <select id="slcCuadranteVia" class="form-select form-select-sm bg-input">
-                                    <option value="">--</option>
-                                    <option value="SUR">SUR</option>
-                                    <option value="NORTE">NORTE</option>
-                                    <option value="ESTE">ESTE</option>
-                                    <option value="OESTE">OESTE</option>
-                                </select>
+
+                    <!-- Vía Secundaria / Placa -->
+                    <div class="card mb-3 border-0 shadow-sm">
+                        <div class="card-header py-1 px-3 small fw-bold text-white" style="background-color: #1abc9c;">
+                            <i class="fa-solid fa-hashtag me-1"></i> Número de cruce y Placa
+                        </div>
+                        <div class="card-body py-2 px-3">
+                            <div class="row g-2">
+                                <div class="col-md-2">
+                                    <label class="form-label small mb-0">Número <span class="text-danger">*</span></label>
+                                    <input type="text" id="txtNumCruce" class="form-control form-control-sm bg-input"
+                                        placeholder="Ej: 20" maxlength="5">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small mb-0">Letra</label>
+                                    <select id="slcLetraCruce" class="form-select form-select-sm bg-input">
+                                        <option value="">--</option>
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="C">C</option>
+                                        <option value="D">D</option>
+                                        <option value="E">E</option>
+                                        <option value="F">F</option>
+                                        <option value="G">G</option>
+                                        <option value="H">H</option>
+                                        <option value="I">I</option>
+                                        <option value="J">J</option>
+                                        <option value="K">K</option>
+                                        <option value="L">L</option>
+                                        <option value="M">M</option>
+                                        <option value="N">N</option>
+                                        <option value="P">P</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-1 d-flex align-items-end justify-content-center pb-1">
+                                    <span class="fw-bold text-muted" style="font-size: 1.2rem;">-</span>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small mb-0">Placa <span class="text-danger">*</span></label>
+                                    <input type="text" id="txtPlaca" class="form-control form-control-sm bg-input"
+                                        placeholder="Ej: 15" maxlength="5">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small mb-0">Cuadrante</label>
+                                    <select id="slcCuadrantePlaca" class="form-select form-select-sm bg-input">
+                                        <option value="">--</option>
+                                        <option value="SUR">SUR</option>
+                                        <option value="NORTE">NORTE</option>
+                                        <option value="ESTE">ESTE</option>
+                                        <option value="OESTE">OESTE</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Vía Secundaria / Placa -->
-                <div class="card mb-3 border-0 shadow-sm">
+                <!-- Sección Rural / Especial -->
+                <div id="secDirRural" class="card mb-3 border-0 shadow-sm" style="display: none;">
                     <div class="card-header py-1 px-3 small fw-bold text-white" style="background-color: #1abc9c;">
-                        <i class="fa-solid fa-hashtag me-1"></i> Número de cruce y Placa
+                        <i class="fa-solid fa-tree me-1"></i> Ubicación Rural o Especial
                     </div>
                     <div class="card-body py-2 px-3">
                         <div class="row g-2">
-                            <div class="col-md-2">
-                                <label class="form-label small mb-0">Número <span class="text-danger">*</span></label>
-                                <input type="text" id="txtNumCruce" class="form-control form-control-sm bg-input"
-                                    placeholder="Ej: 20" maxlength="5">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small mb-0">Letra</label>
-                                <select id="slcLetraCruce" class="form-select form-select-sm bg-input">
-                                    <option value="">--</option>
-                                    <option value="A">A</option>
-                                    <option value="B">B</option>
-                                    <option value="C">C</option>
-                                    <option value="D">D</option>
-                                    <option value="E">E</option>
-                                    <option value="F">F</option>
-                                    <option value="G">G</option>
-                                    <option value="H">H</option>
-                                    <option value="I">I</option>
-                                    <option value="J">J</option>
-                                    <option value="K">K</option>
-                                    <option value="L">L</option>
-                                    <option value="M">M</option>
-                                    <option value="N">N</option>
-                                    <option value="P">P</option>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-0">Tipo de nomenclatura <span
+                                        class="text-danger">*</span></label>
+                                <select id="slcTipoRural" class="form-select form-select-sm bg-input">
+                                    <?php echo Combos::getNomenclaturaDian('VRD'); ?>
                                 </select>
                             </div>
-                            <div class="col-md-1 d-flex align-items-end justify-content-center pb-1">
-                                <span class="fw-bold text-muted" style="font-size: 1.2rem;">-</span>
+                            <div class="col-md-8">
+                                <label class="form-label small mb-0">Nombre de la vereda, corregimiento, etc. <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" id="txtNombreRural" class="form-control form-control-sm bg-input"
+                                    placeholder="Ej: La Esmeralda, El Placer, San Isidro, Km 14 Vía al Mar..." maxlength="100">
                             </div>
-                            <div class="col-md-2">
-                                <label class="form-label small mb-0">Placa <span class="text-danger">*</span></label>
-                                <input type="text" id="txtPlaca" class="form-control form-control-sm bg-input"
-                                    placeholder="Ej: 15" maxlength="5">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small mb-0">Cuadrante</label>
-                                <select id="slcCuadrantePlaca" class="form-select form-select-sm bg-input">
-                                    <option value="">--</option>
-                                    <option value="SUR">SUR</option>
-                                    <option value="NORTE">NORTE</option>
-                                    <option value="ESTE">ESTE</option>
-                                    <option value="OESTE">OESTE</option>
-                                </select>
-                            </div>
+                        </div>
+                        <div class="form-text small text-muted mt-2">
+                            <i class="fa-solid fa-circle-info me-1"></i>Para direcciones rurales ingrese el tipo de nomenclatura y el nombre del lugar. Si requiere indicar lote, casa o manzana, use los complementos abajo.
                         </div>
                     </div>
                 </div>
@@ -534,28 +602,7 @@ try {
                             <div class="col-md-4">
                                 <label class="form-label small mb-0">Tipo</label>
                                 <select id="slcTipoCompl1" class="form-select form-select-sm bg-input">
-                                    <option value="">--Seleccione--</option>
-                                    <option value="AP">Apartamento (AP)</option>
-                                    <option value="BG">Bodega (BG)</option>
-                                    <option value="BL">Bloque (BL)</option>
-                                    <option value="CA">Casa (CA)</option>
-                                    <option value="CN">Consultorio (CN)</option>
-                                    <option value="ED">Edificio (ED)</option>
-                                    <option value="EN">Entrada (EN)</option>
-                                    <option value="ET">Etapa (ET)</option>
-                                    <option value="GJ">Garaje (GJ)</option>
-                                    <option value="IN">Interior (IN)</option>
-                                    <option value="LC">Local (LC)</option>
-                                    <option value="LT">Lote (LT)</option>
-                                    <option value="MZ">Manzana (MZ)</option>
-                                    <option value="OF">Oficina (OF)</option>
-                                    <option value="P">Piso (P)</option>
-                                    <option value="PH">Penthouse (PH)</option>
-                                    <option value="SC">Sector (SC)</option>
-                                    <option value="SM">Semisótano (SM)</option>
-                                    <option value="SS">Sótano (SS)</option>
-                                    <option value="TO">Torre (TO)</option>
-                                    <option value="UR">Urbanización (UR)</option>
+                                    <?php echo Combos::getNomenclaturaDian(); ?>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -569,28 +616,7 @@ try {
                             <div class="col-md-4">
                                 <label class="form-label small mb-0">Tipo</label>
                                 <select id="slcTipoCompl2" class="form-select form-select-sm bg-input">
-                                    <option value="">--Seleccione--</option>
-                                    <option value="AP">Apartamento (AP)</option>
-                                    <option value="BG">Bodega (BG)</option>
-                                    <option value="BL">Bloque (BL)</option>
-                                    <option value="CA">Casa (CA)</option>
-                                    <option value="CN">Consultorio (CN)</option>
-                                    <option value="ED">Edificio (ED)</option>
-                                    <option value="EN">Entrada (EN)</option>
-                                    <option value="ET">Etapa (ET)</option>
-                                    <option value="GJ">Garaje (GJ)</option>
-                                    <option value="IN">Interior (IN)</option>
-                                    <option value="LC">Local (LC)</option>
-                                    <option value="LT">Lote (LT)</option>
-                                    <option value="MZ">Manzana (MZ)</option>
-                                    <option value="OF">Oficina (OF)</option>
-                                    <option value="P">Piso (P)</option>
-                                    <option value="PH">Penthouse (PH)</option>
-                                    <option value="SC">Sector (SC)</option>
-                                    <option value="SM">Semisótano (SM)</option>
-                                    <option value="SS">Sótano (SS)</option>
-                                    <option value="TO">Torre (TO)</option>
-                                    <option value="UR">Urbanización (UR)</option>
+                                    <?php echo Combos::getNomenclaturaDian(); ?>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -630,10 +656,12 @@ try {
         </div>
     </div>
 </div>
+<?php } ?>
 
 <script>
     (function () {
         window.valida_tercero = <?php echo json_encode($valida_tercero); ?>;
+        window.direccion_tercero = <?php echo $dirTercero; ?>;
         // Autocomplete para actividades económicas múltiples
         $('#buscarActvEconoMulti').autocomplete({
             source: function (request, response) {
@@ -670,40 +698,101 @@ try {
         // Eliminar cualquier modal previo que haya quedado en el body (evita conflictos de IDs)
         $('body > #modalGeneradorDireccion').remove();
 
+        // Diccionario y listas de códigos para direcciones rurales vs urbanas
+        var codigosRuralesMap = {
+            'VRD': 'VRD', 'VEREDA': 'VRD', 'VDA': 'VRD', 'VDA.': 'VRD',
+            'C': 'C', 'CORREGIMIENTO': 'C', 'CORR': 'C', 'CORR.': 'C',
+            'CAS': 'CAS', 'CASERIO': 'CAS', 'CASERÍO': 'CAS',
+            'FCA': 'FCA', 'FINCA': 'FCA',
+            'HC': 'HC', 'HACIENDA': 'HC',
+            'KM': 'KM', 'KILOMETRO': 'KM', 'KILÓMETRO': 'KM',
+            'PRJ': 'PRJ', 'PARAJE': 'PRJ',
+            'SEC': 'SEC', 'SECTOR': 'SEC',
+            'BRR': 'BRR', 'BARRIO': 'BRR',
+            'IP': 'IP', 'IPD': 'IPD', 'IPM': 'IPM',
+            'NOMBRE VIA': 'NOMBRE VIA',
+            'PA': 'PA', 'PARCELA': 'PA',
+            'PD': 'PD', 'PREDIO': 'PD',
+            'ZF': 'ZF', 'ZN': 'ZN'
+        };
+
+        var codigosUrbanos = ['CL', 'CR', 'AV', 'AC', 'AK', 'DG', 'TV', 'AUT', 'CIR', 'BLV', 'CN', 'CRT', 'CRV'];
+
+        // Función para alternar modo Urbana / Rural
+        function cambiarModoDireccion(modo) {
+            if (modo === 'rural') {
+                $('#rdoDirRural').prop('checked', true);
+                $('#secDirUrbana').hide();
+                $('#secDirRural').slideDown(150);
+            } else {
+                $('#rdoDirUrbana').prop('checked', true);
+                $('#secDirRural').hide();
+                $('#secDirUrbana').slideDown(150);
+            }
+            $('#modalGeneradorDireccion .is-invalid').removeClass('is-invalid');
+            construirDireccion();
+        }
+
         // Función para construir la dirección según nomenclatura DIAN
         function construirDireccion() {
             var partes = [];
+            var esRural = ($('input[name="rdoTipoDir"]:checked').val() === 'rural');
 
-            var tipoVia = $('#slcTipoVia').val();
-            var numVia = $.trim($('#txtNumVia').val());
-            var letraVia = $('#slcLetraVia').val();
-            var bisVia = $('#slcBisVia').val();
-            var cuadranteVia = $('#slcCuadranteVia').val();
-            var numCruce = $.trim($('#txtNumCruce').val());
-            var letraCruce = $('#slcLetraCruce').val();
-            var placa = $.trim($('#txtPlaca').val());
-            var cuadrantePlaca = $('#slcCuadrantePlaca').val();
+            if (esRural) {
+                var tipoRural = $('#slcTipoRural').val();
+                var nombreRural = $.trim($('#txtNombreRural').val());
 
-            // Vía principal
-            if (tipoVia) partes.push(tipoVia);
-            if (numVia) partes.push(numVia);
-            if (letraVia) partes.push(letraVia);
-            if (bisVia) partes.push(bisVia);
-            if (cuadranteVia) partes.push(cuadranteVia);
+                // Limpiar duplicaciones accidentales en el nombre (ej. "Vereda La Esmeralda" cuando ya eligió VRD)
+                if (nombreRural) {
+                    if (tipoRural === 'VRD') {
+                        nombreRural = nombreRural.replace(/^(vereda|vda\.?)\s+/i, '');
+                    } else if (tipoRural === 'C') {
+                        nombreRural = nombreRural.replace(/^(corregimiento|corr\.?)\s+/i, '');
+                    } else if (tipoRural === 'CAS') {
+                        nombreRural = nombreRural.replace(/^(caser[ií]o)\s+/i, '');
+                    } else if (tipoRural === 'FCA') {
+                        nombreRural = nombreRural.replace(/^(finca)\s+/i, '');
+                    } else if (tipoRural === 'HC') {
+                        nombreRural = nombreRural.replace(/^(hacienda)\s+/i, '');
+                    } else if (tipoRural === 'KM') {
+                        nombreRural = nombreRural.replace(/^(kil[oó]metro|km\.?)\s+/i, '');
+                    }
+                }
 
-            // Separador entre vía principal y cruce
-            if (numCruce) partes.push(numCruce);
-            if (letraCruce) partes.push(letraCruce);
+                if (tipoRural && tipoRural != '0') partes.push(tipoRural);
+                if (nombreRural) partes.push(nombreRural);
+            } else {
+                var tipoVia = $('#slcTipoVia').val();
+                var numVia = $.trim($('#txtNumVia').val());
+                var letraVia = $('#slcLetraVia').val();
+                var bisVia = $('#slcBisVia').val();
+                var cuadranteVia = $('#slcCuadranteVia').val();
+                var numCruce = $.trim($('#txtNumCruce').val());
+                var letraCruce = $('#slcLetraCruce').val();
+                var placa = $.trim($('#txtPlaca').val());
+                var cuadrantePlaca = $('#slcCuadrantePlaca').val();
 
-            // Placa
-            if (placa) partes.push('-');
-            if (placa) partes.push(placa);
-            if (cuadrantePlaca) partes.push(cuadrantePlaca);
+                // Vía principal
+                if (tipoVia && tipoVia != '0') partes.push(tipoVia);
+                if (numVia) partes.push(numVia);
+                if (letraVia) partes.push(letraVia);
+                if (bisVia) partes.push(bisVia);
+                if (cuadranteVia) partes.push(cuadranteVia);
+
+                // Separador entre vía principal y cruce
+                if (numCruce) partes.push(numCruce);
+                if (letraCruce) partes.push(letraCruce);
+
+                // Placa
+                if (placa) partes.push('-');
+                if (placa) partes.push(placa);
+                if (cuadrantePlaca) partes.push(cuadrantePlaca);
+            }
 
             // Complemento 1
             var tipoC1 = $('#slcTipoCompl1').val();
             var valC1 = $.trim($('#txtValCompl1').val());
-            if (tipoC1 && valC1) {
+            if (tipoC1 && tipoC1 != '0' && valC1) {
                 partes.push(tipoC1);
                 partes.push(valC1);
             }
@@ -712,7 +801,7 @@ try {
             if ($('#divComplemento2').is(':visible')) {
                 var tipoC2 = $('#slcTipoCompl2').val();
                 var valC2 = $.trim($('#txtValCompl2').val());
-                if (tipoC2 && valC2) {
+                if (tipoC2 && tipoC2 != '0' && valC2) {
                     partes.push(tipoC2);
                     partes.push(valC2);
                 }
@@ -731,10 +820,36 @@ try {
         $(document).off('click.generadorDirCompl');
         $(document).off('keypress.generadorDir');
 
+        // Evento de cambio de modo (Urbana / Rural)
+        $(document).on('change.generadorDir', 'input[name="rdoTipoDir"]', function () {
+            cambiarModoDireccion($(this).val());
+        });
+
+        // Cambio inteligente: si en vía principal eligen una nomenclatura rural (ej. Vereda)
+        $(document).on('change.generadorDir', '#slcTipoVia', function () {
+            var val = $(this).val();
+            if (codigosRuralesMap[val]) {
+                cambiarModoDireccion('rural');
+                $('#slcTipoRural').val(codigosRuralesMap[val]);
+                $('#txtNombreRural').focus();
+            }
+        });
+
+        // Cambio inteligente: si en rural eligen una nomenclatura urbana (ej. Calle o Carrera)
+        $(document).on('change.generadorDir', '#slcTipoRural', function () {
+            var val = $(this).val();
+            if (codigosUrbanos.indexOf(val) !== -1) {
+                cambiarModoDireccion('urbana');
+                $('#slcTipoVia').val(val);
+                $('#txtNumVia').focus();
+            }
+        });
+
         // Actualizar vista previa en cada cambio
         $(document).on('input.generadorDir change.generadorDir',
             '#slcTipoVia, #txtNumVia, #slcLetraVia, #slcBisVia, #slcCuadranteVia, ' +
             '#txtNumCruce, #slcLetraCruce, #txtPlaca, #slcCuadrantePlaca, ' +
+            '#slcTipoRural, #txtNombreRural, ' +
             '#slcTipoCompl1, #txtValCompl1, #slcTipoCompl2, #txtValCompl2',
             function () {
                 construirDireccion();
@@ -759,15 +874,33 @@ try {
                 });
             }
 
-            // Si ya hay una dirección, no limpiar los campos
-            if (!$('#txtDireccion').val()) {
-                $('#slcTipoVia, #slcLetraVia, #slcBisVia, #slcCuadranteVia').val('');
-                $('#slcLetraCruce, #slcCuadrantePlaca').val('');
+            var dirActual = $.trim($('#txtDireccion').val());
+
+            if (!dirActual) {
+                // Si no hay dirección, inicializar en modo Urbana limpia
+                cambiarModoDireccion('urbana');
+                $('#slcTipoVia, #slcTipoCompl1, #slcTipoCompl2').val('0');
+                $('#slcTipoRural').val('VRD');
+                $('#txtNombreRural').val('');
+                $('#slcLetraVia, #slcBisVia, #slcCuadranteVia, #slcLetraCruce, #slcCuadrantePlaca').val('');
                 $('#txtNumVia, #txtNumCruce, #txtPlaca').val('');
-                $('#slcTipoCompl1, #slcTipoCompl2').val('');
                 $('#txtValCompl1, #txtValCompl2, #txtInfoAdicionalDir').val('');
                 $('#divComplemento2').hide();
                 $('#txtVistaPrevia').text('—');
+            } else {
+                // Detectar si la dirección actual es rural
+                var partesDir = dirActual.split(/\s+/);
+                var primerToken = partesDir[0] ? partesDir[0].toUpperCase() : '';
+
+                if (codigosRuralesMap[primerToken]) {
+                    cambiarModoDireccion('rural');
+                    $('#slcTipoRural').val(codigosRuralesMap[primerToken]);
+                    var resto = dirActual.substring(partesDir[0].length).trim();
+                    $('#txtNombreRural').val(resto);
+                } else {
+                    cambiarModoDireccion('urbana');
+                }
+                construirDireccion();
             }
 
             modalDir.show();
@@ -836,7 +969,7 @@ try {
             $('#divComplemento2').slideDown(200);
         });
         $(document).on('click.generadorDirCompl', '#btnQuitarComplemento2', function () {
-            $('#slcTipoCompl2').val('');
+            $('#slcTipoCompl2').val('0');
             $('#txtValCompl2').val('');
             $('#divComplemento2').slideUp(200);
             construirDireccion();
@@ -844,25 +977,37 @@ try {
 
         // Aplicar dirección al formulario
         $(document).on('click.generadorDir', '#btnAplicarDireccion', function () {
-            // Validar campos obligatorios
+            // Validar campos obligatorios según el modo (Urbana vs Rural)
             var valid = true;
             $('#modalGeneradorDireccion .is-invalid').removeClass('is-invalid');
+            var esRural = ($('input[name="rdoTipoDir"]:checked').val() === 'rural');
 
-            if (!$('#slcTipoVia').val()) {
-                $('#slcTipoVia').addClass('is-invalid');
-                valid = false;
-            }
-            if (!$.trim($('#txtNumVia').val())) {
-                $('#txtNumVia').addClass('is-invalid');
-                valid = false;
-            }
-            if (!$.trim($('#txtNumCruce').val())) {
-                $('#txtNumCruce').addClass('is-invalid');
-                valid = false;
-            }
-            if (!$.trim($('#txtPlaca').val())) {
-                $('#txtPlaca').addClass('is-invalid');
-                valid = false;
+            if (esRural) {
+                if (!$('#slcTipoRural').val() || $('#slcTipoRural').val() == '0') {
+                    $('#slcTipoRural').addClass('is-invalid');
+                    valid = false;
+                }
+                if (!$.trim($('#txtNombreRural').val())) {
+                    $('#txtNombreRural').addClass('is-invalid');
+                    valid = false;
+                }
+            } else {
+                if (!$('#slcTipoVia').val() || $('#slcTipoVia').val() == '0') {
+                    $('#slcTipoVia').addClass('is-invalid');
+                    valid = false;
+                }
+                if (!$.trim($('#txtNumVia').val())) {
+                    $('#txtNumVia').addClass('is-invalid');
+                    valid = false;
+                }
+                if (!$.trim($('#txtNumCruce').val())) {
+                    $('#txtNumCruce').addClass('is-invalid');
+                    valid = false;
+                }
+                if (!$.trim($('#txtPlaca').val())) {
+                    $('#txtPlaca').addClass('is-invalid');
+                    valid = false;
+                }
             }
 
             if (!valid) {
@@ -890,7 +1035,7 @@ try {
             }
         });
 
-        // Permitir solo números en campos numéricos del generador
+        // Permitir solo números en campos numéricos urbanos del generador
         $(document).on('keypress.generadorDir', '#txtNumVia, #txtNumCruce, #txtPlaca', function (e) {
             if (e.which < 48 || e.which > 57) {
                 e.preventDefault();

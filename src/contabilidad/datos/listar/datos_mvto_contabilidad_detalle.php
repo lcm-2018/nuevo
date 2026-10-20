@@ -31,15 +31,26 @@ try {
                 , `ctb_doc`.`estado`
                 , `tb_terceros`.`nom_tercero`
                 , `tb_terceros`.`nit_tercero`
+                , `tb_sedes`.`nom_sede`
             FROM
                 `ctb_libaux`
                 LEFT JOIN `ctb_pgcp` 
                     ON (`ctb_libaux`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
+                LEFT JOIN `tb_sedes`
+                    ON (`tb_sedes`.`id_sede` = `ctb_libaux`.`id_sede`)
                 INNER JOIN `ctb_doc` 
                     ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
                 LEFT JOIN `tb_terceros`
                     ON (`ctb_libaux`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
-            WHERE (`ctb_libaux`.`id_ctb_doc` = $id_ctb_doc)";
+            WHERE (`ctb_libaux`.`id_ctb_doc` = $id_ctb_doc)
+            ORDER BY
+                CASE 
+                    WHEN `ctb_libaux`.`debito` > 0 THEN 1 
+                    WHEN `ctb_libaux`.`credito` > 0 THEN 2 
+                    ELSE 3 
+                END ASC
+                , `tb_sedes`.`nom_sede` ASC
+                , `ctb_pgcp`.`cuenta` ASC";
     $rs = $cmd->query($sql);
     $listappto = $rs->fetchAll();
     $rs->closeCursor();
@@ -71,9 +82,9 @@ if (!empty($listappto)) {
         $cred = $lp['credito'];
         $totDebito += $deb;
         $totCredito += $cred;
-        $valorDebito =  number_format($deb, 2, '.', ',');
-        $valorCredito =  number_format($cred, 2, '.', ',');
-        $tercero = !empty($lp['nom_tercero']) ? $lp['nom_tercero'] : '';
+        $valorDebito = number_format($deb, 2, '.', ',');
+        $valorCredito = number_format($cred, 2, '.', ',');
+        $tercero = !empty($lp['nom_tercero']) ? $lp['nom_tercero'] . ' ' . '<span class="small"><span class="text-secondary small">' . $lp['nom_sede'] . '</span></span>' : '';
         $borrar = $editar = $detalles = $registrar = null;
         if ($estado == 1) {
             $detalles = '<a value="' . $id_ctb . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow detalles" title="Detalles"><span class="fas fa-eye "></span></a>';

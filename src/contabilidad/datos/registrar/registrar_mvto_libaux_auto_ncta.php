@@ -205,9 +205,9 @@ try {
                 d.id_subgrupo";
     $datos_sedes = obtenerSedesActivas($cmd);
     $sedes = $datos_sedes['sedes'];
-    
+
     $objeto = [];
-    
+
     foreach ($sedes as $sede) {
         if ($sede['es_principal'] == 1) {
             $cmd_sede = $cmd;
@@ -218,7 +218,7 @@ try {
                 continue;
             }
         }
-        
+
         try {
             $rs = $cmd_sede->prepare($sq2);
             $rs->bindValue(':fec_ini_1', $fec_ini, PDO::PARAM_STR);
@@ -229,17 +229,18 @@ try {
             $objeto_sede = $rs->fetchAll();
             $rs->closeCursor();
             unset($rs);
-            
+
             $objeto = array_merge($objeto, $objeto_sede);
         } catch (PDOException $e) {
             error_log("Error consultando egresos en sede {$sede['nom_sede']}: " . $e->getMessage());
         }
-        
+
         if ($sede['es_principal'] != 1) {
             $cmd_sede = null;
         }
     }
 
+    $id_sede = null;
     $id_cuenta = null;
     $debito = 0;
     $credito = 0;
@@ -248,8 +249,8 @@ try {
     $total_credito = 0;
 
     $query = "INSERT INTO `ctb_libaux`
-                (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`,`ref`)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`,`ref`,`id_sede`)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $query = $cmd->prepare($query);
     $query->bindParam(1, $id_doc, PDO::PARAM_INT);
     $query->bindParam(2, $id_tercero, PDO::PARAM_INT);
@@ -259,10 +260,16 @@ try {
     $query->bindParam(6, $iduser, PDO::PARAM_INT);
     $query->bindParam(7, $fecha2);
     $query->bindParam(8, $ref, PDO::PARAM_INT);
+    $query->bindParam(9, $id_sede, PDO::PARAM_INT);
 
     if (!empty($objeto)) {
         foreach ($objeto as $o) {
             $valor = (float) $o['vr_parcial'];
+
+            $id_sede = $o['id_sede'] ?? null;
+            if (empty($id_sede)) {
+                $id_sede = NULL;
+            }
 
             $id_cuenta = $o['id_cuenta_egreso'] ?? null;
             if (empty($id_cuenta)) {

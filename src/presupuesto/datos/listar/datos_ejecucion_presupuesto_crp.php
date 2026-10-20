@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -46,8 +46,12 @@ if (isset($_POST['id_manu']) && $_POST['id_manu']) {
 if (isset($_POST['id_manucdp']) && $_POST['id_manucdp']) {
     $andwhere .= " AND detalle.id_cdp LIKE '%" . $_POST['id_manucdp'] . "%'";
 }
-if (isset($_POST['fec_ini']) && $_POST['fec_ini'] && isset($_POST['fec_fin']) && $_POST['fec_fin']) {
+if (!empty($_POST['fec_ini']) && !empty($_POST['fec_fin'])) {
     $andwhere .= " AND pto_crp.fecha BETWEEN '" . $_POST['fec_ini'] . "' AND '" . $_POST['fec_fin'] . "'";
+} elseif (!empty($_POST['fec_ini'])) {
+    $andwhere .= " AND pto_crp.fecha >= '" . $_POST['fec_ini'] . "'";
+} elseif (!empty($_POST['fec_fin'])) {
+    $andwhere .= " AND pto_crp.fecha <= '" . $_POST['fec_fin'] . "'";
 }
 if (isset($_POST['contrato']) && $_POST['contrato']) {
     $andwhere .= " AND pto_crp.num_contrato LIKE '%" . $_POST['contrato'] . "%'";
@@ -125,12 +129,39 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-// obtener el numero total de registros de la anterior consulta
+// Obtener el número total de registros filtrados
+$totalRecordsFiltered = 0;
+try {
+    $sql = "SELECT COUNT(*) AS `total` 
+            FROM `pto_crp`
+            LEFT JOIN 
+                (SELECT
+                    `pto_crp_detalle`.`id_pto_crp`
+                    , `pto_cdp`.`id_manu` AS `id_cdp`
+                FROM
+                    `pto_crp_detalle`
+                    LEFT JOIN `pto_cdp_detalle` 
+                        ON (`pto_crp_detalle`.`id_pto_cdp_det` = `pto_cdp_detalle`.`id_pto_cdp_det`)
+                    LEFT JOIN `pto_cdp` 
+                        ON (`pto_cdp_detalle`.`id_pto_cdp` = `pto_cdp`.`id_pto_cdp`)  
+                GROUP BY `pto_crp_detalle`.`id_pto_crp`) AS `detalle`
+                ON (`pto_crp`.`id_pto_crp` = `detalle`.`id_pto_crp`)
+            LEFT JOIN `tb_terceros`
+                ON (`pto_crp`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
+            WHERE (`id_pto` = $id_pto_presupuestos) $buscar $andwhere";
+    $rs = $cmd->query($sql);
+    $total = $rs->fetch();
+    $totalRecordsFiltered = !empty($total['total']) ? intval($total['total']) : 0;
+} catch (PDOException $e) {
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+}
+
+// Obtener el número total de registros sin filtros
 try {
     $sql = "SELECT COUNT(*) AS `total` FROM `pto_crp` WHERE `id_pto` = $id_pto_presupuestos";
     $rs = $cmd->query($sql);
     $total = $rs->fetch();
-    $totalRecords = !empty($total['total']) ?  $total['total'] : 0;
+    $totalRecords = !empty($total['total']) ? intval($total['total']) : 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -209,7 +240,8 @@ if (!empty($listappto)) {
 }
 $datos = [
     'data' => $data,
-    'recordsFiltered' => $totalRecords,
+    'recordsFiltered' => $totalRecordsFiltered,
+    'recordsTotal' => $totalRecords,
 ];
 
 

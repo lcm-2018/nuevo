@@ -430,6 +430,7 @@ function FormResponsabilidad(id) {
         let valCorreo    = validaTercero[1] !== undefined ? parseInt(validaTercero[1]) : ($('#valida_correo').length ? parseInt($('#valida_correo').val()) : 1);
         let valContacto  = validaTercero[2] !== undefined ? parseInt(validaTercero[2]) : ($('#valida_contacto').length ? parseInt($('#valida_contacto').val()) : 1);
         let valActividad = validaTercero[3] !== undefined ? parseInt(validaTercero[3]) : ($('#valida_actividad').length ? parseInt($('#valida_actividad').val()) : 1);
+        let dirTercero   = typeof window.direccion_tercero !== 'undefined' ? parseInt(window.direccion_tercero) : ($('#direccion_tercero').length ? parseInt($('#direccion_tercero').val()) : 1);
 
         if ($('#slcTipoTercero').val() === '0') {
             $('#slcTipoTercero').addClass('is-invalid');
@@ -463,10 +464,16 @@ function FormResponsabilidad(id) {
             $('#slcMunicipioEmp').addClass('is-invalid');
             $('#slcMunicipioEmp').focus();
             mjeError('Error', 'Diligenciar, campo obligatorio');
-        } else if (valDireccion === 1 && $('#txtDireccion').val() === '') {
-            $('#txtDireccionPreview').addClass('is-invalid');
-            $('#btnAbrirGeneradorDir').trigger('click');
-            mjeError('Error', 'Debe generar la dirección usando el generador DIAN');
+        } else if (valDireccion === 1 && $.trim($('#txtDireccion').val()) === '') {
+            if (dirTercero === 1) {
+                $('#txtDireccionPreview').addClass('is-invalid');
+                $('#btnAbrirGeneradorDir').trigger('click');
+                mjeError('Error', 'Debe generar la dirección usando el generador DIAN');
+            } else {
+                $('#txtDireccion').addClass('is-invalid');
+                $('#txtDireccion').focus();
+                mjeError('Error', 'Diligenciar, campo obligatorio');
+            }
         } else if (valCorreo === 1 && $('#mailEmp').val().trim() === '') {
             $('#mailEmp').addClass('is-invalid');
             $('#mailEmp').focus();
@@ -593,6 +600,7 @@ function FormResponsabilidad(id) {
         let valDireccion = validaTercero[0] !== undefined ? parseInt(validaTercero[0]) : ($('#valida_direccion').length ? parseInt($('#valida_direccion').val()) : 1);
         let valCorreo    = validaTercero[1] !== undefined ? parseInt(validaTercero[1]) : ($('#valida_correo').length ? parseInt($('#valida_correo').val()) : 1);
         let valContacto  = validaTercero[2] !== undefined ? parseInt(validaTercero[2]) : ($('#valida_contacto').length ? parseInt($('#valida_contacto').val()) : 1);
+        let dirTercero   = typeof window.direccion_tercero !== 'undefined' ? parseInt(window.direccion_tercero) : ($('#direccion_tercero').length ? parseInt($('#direccion_tercero').val()) : 1);
 
         if ($('#datFecInicio').val() === '') {
             $('#datFecInicio').addClass('is-invalid');
@@ -610,10 +618,16 @@ function FormResponsabilidad(id) {
             $('#slcMunicipioEmp').addClass('is-invalid');
             $('#slcMunicipioEmp').focus();
             mjeError('Error', msg);
-        } else if (valDireccion === 1 && $('#txtDireccion').val() === '') {
-            $('#txtDireccionPreview').addClass('is-invalid');
-            $('#btnAbrirGeneradorDir').trigger('click');
-            mjeError('Error', 'Debe generar la dirección usando el generador DIAN');
+        } else if (valDireccion === 1 && $.trim($('#txtDireccion').val()) === '') {
+            if (dirTercero === 1) {
+                $('#txtDireccionPreview').addClass('is-invalid');
+                $('#btnAbrirGeneradorDir').trigger('click');
+                mjeError('Error', 'Debe generar la dirección usando el generador DIAN');
+            } else {
+                $('#txtDireccion').addClass('is-invalid');
+                $('#txtDireccion').focus();
+                mjeError('Error', msg);
+            }
         } else if (valCorreo === 1 && $('#mailEmp').val().trim() === '') {
             $('#mailEmp').addClass('is-invalid');
             $('#mailEmp').focus();

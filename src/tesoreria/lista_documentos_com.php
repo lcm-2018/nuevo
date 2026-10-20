@@ -185,6 +185,8 @@ HTML;
     }
 }
 
+$disabledExcel = ($tipo_doc != '0' && !empty($tipo_doc)) ? '' : 'disabled';
+
 $content = <<<HTML
 <div class="card w-100">
     <div class="card-header bg-sofia text-white">
@@ -254,9 +256,12 @@ $content = <<<HTML
                     <option value="3">Anulado</option>
                 </select>
             </div>
-            <div class="col-md-1">
-                <button type="button" id="btn_buscar_filtro" class="btn btn-outline-success btn-sm w-100" title="Filtrar">
+            <div class="col-md-2 d-flex align-items-center gap-1">
+                <button type="button" id="btn_buscar_filtro" class="btn btn-outline-success btn-sm" title="Filtrar">
                     <span class="fas fa-search fa-lg" aria-hidden="true"></span>
+                </button>
+                <button type="button" id="btn_exportar_excel_Tes" class="btn btn-outline-success btn-sm" title="Exportar a Excel" {$disabledExcel}>
+                    <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
                 </button>
             </div>
         </div>
