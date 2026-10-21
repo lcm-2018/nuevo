@@ -43,11 +43,11 @@ if ($periodo == 1) {
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
-    $sql_empresa = "SELECT razon_social_ips AS nombre, nit_ips AS nit, dv AS dig_ver FROM tb_datos_ips";
-    $res_empresa = $cmd->query($sql_empresa);
-    $empresa = $res_empresa->fetch();
-    $nit_empresa = $empresa['nit'];
-    $nombre_empresa = $empresa['nombre'];
+$sql_empresa = "SELECT razon_social_ips AS nombre, nit_ips AS nit, dv AS dig_ver FROM tb_datos_ips";
+$res_empresa = $cmd->query($sql_empresa);
+$empresa = $res_empresa->fetch();
+$nit_empresa = $empresa['nit'];
+$nombre_empresa = $empresa['nombre'];
 
 try {
     $sql = "WITH mov_diarios AS (
@@ -158,7 +158,12 @@ echo "\xEF\xBB\xBF";
         $fila = 1;
         foreach ($lista as $r) {
             $rubro = isset($r['rubro']) ? $r['rubro'] : (isset($r['codigo']) ? $r['codigo'] : (isset($r['cuenta']) ? $r['cuenta'] : ''));
-            $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+            $ptos = isset($_POST['ptos']) ? $_POST['ptos'] : 0;
+            if ($ptos == 1) {
+                $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+            } else {
+                $rubro_limpio = $rubro;
+            }
 
             $saldo_con = $r['sf_libros'] - ($r['sf_extracto'] + $r['sf_debito'] - $r['sf_credito']);
             echo "<tr>

@@ -172,6 +172,34 @@ if ($res > 1 || $regAtTerc == 'SI') {
             $query->execute();
             if ($cmd->lastInsertId() > 0) {
                 Logs::guardaLog("INSERT INTO `tb_rel_tercero` (`id_tercero_api`,`id_tipo_tercero`,`id_user_reg`,`fec_reg`) VALUES(" . ($id_ter_api ?? 'NULL') . ", $tipotercero, $iduser, '" . $date->format('Y-m-d H:i:s') . "')");
+                
+                // Registrar actividades economicas adicionales
+                if (isset($_POST['actividades_economicas']) && is_array($_POST['actividades_economicas'])) {
+                    $actividades = $_POST['actividades_economicas'];
+                    foreach ($actividades as $id_actv) {
+                        $api_actv = \Config\Clases\Conexion::Api();
+                        $url_actv = $api_actv . 'terceros/datos/res/nuevo/actividad';
+                        $ch_actv = curl_init($url_actv);
+                        $data_actv = [
+                            "id_tercero" => $id_ter_api,
+                            "id_actividad" => $id_actv,
+                            "finic" => $fecInicio,
+                            "id_user" => $iduser,
+                            "tipo_user" => $tipouser,
+                            "nit_reg" => $nit_crea,
+                        ];
+                        $payload_actv = json_encode($data_actv);
+                        curl_setopt($ch_actv, CURLOPT_CUSTOMREQUEST, 'PUT');
+                        curl_setopt($ch_actv, CURLOPT_POSTFIELDS, $payload_actv);
+                        curl_setopt($ch_actv, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+                        curl_setopt($ch_actv, CURLOPT_RETURNTRANSFER, true);
+                        curl_setopt($ch_actv, CURLOPT_SSL_VERIFYPEER, false);
+                        curl_setopt($ch_actv, CURLOPT_SSL_VERIFYHOST, false);
+                        curl_exec($ch_actv);
+                        curl_close($ch_actv);
+                    }
+                }
+                
                 echo 'ok';
             } else {
                 echo $query->errorInfo()[2] . '-.-';

@@ -120,15 +120,17 @@ unset($stmt_ps);
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function fmt($valor): string
 {
-    if ((float) $valor == 0)
-        return '';
-    return '$ ' . number_format((float) $valor, 2, ',', '.');
+    return '$ ' . number_format((float) $valor, 2, '.', ',');
 }
 
 function fmtDias($dias): string
 {
+    if ($dias === 'N/A')
+        return 'N/A';
     if ((float) $dias == 0)
-        return '';
+        return '0';
+    if (floor((float) $dias) == (float) $dias)
+        return (string) (int) $dias;
     return number_format((float) $dias, 2, '.', '');
 }
 
@@ -226,81 +228,62 @@ function generarLiquidacion(
 
     $dias_inactivos = (float) ($d['dias_inactivo'] ?? 0);
     $dias_habiles = (float) ($d['dias_vacaciones'] ?? 0);
-    $total_dias_vac = $dias_inactivos + $dias_habiles;
+    $total_dias_vac = $dias_inactivos; // Días calendario de la novedad
 
     // ── Conceptos de LIQUIDACION según tipo de nómina ────────────────────
     $conceptos_liq = [];
+    $ps = $ps_por_empleado[$id_empleado] ?? [];
 
-    if ($tipo_nomina_codigo === 'PS') {
-        // --- Nómina de PRESTACIONES SOCIALES ---
-        // Los valores consolidados vienen de nom_liq_prestaciones_sociales
-        $ps = $ps_por_empleado[$id_empleado] ?? [];
+    $final_vacacion = (float) ($d['valor_vacacion'] ?? 0) + (float) ($ps['val_vacacion'] ?? 0);
+    $final_prima_vac = (float) ($d['val_prima_vac'] ?? 0) + (float) ($ps['val_prima_vac'] ?? 0);
+    $final_bon_recrea = (float) ($d['val_bon_recrea'] ?? 0) + (float) ($ps['val_bonifica_recrea'] ?? 0);
+    $final_prima = (float) ($d['valor_ps'] ?? 0) + (float) ($ps['val_prima'] ?? 0);
+    $final_ces = (float) ($d['val_cesantias'] ?? 0) + (float) ($ps['val_cesantia'] ?? 0);
+    $final_ices = (float) ($d['val_icesantias'] ?? 0) + (float) ($ps['val_interes_cesantia'] ?? 0);
+    $final_prima_nav = (float) ($d['valor_pv'] ?? 0) + (float) ($ps['val_prima_nav'] ?? 0);
+    $final_bsp = (float) ($d['val_bsp'] ?? 0);
 
-        $ps_bsp = (float) ($d['val_bsp'] ?? 0);
-        $ps_vac = (float) ($ps['val_vacacion'] ?? 0);
-        $ps_prim_vac = (float) ($ps['val_prima_vac'] ?? 0);
-        $ps_bon_rec = (float) ($ps['val_bonifica_recrea'] ?? 0);
-        $ps_ces = (float) ($ps['val_cesantia'] ?? 0);
-        $ps_ices = (float) ($ps['val_interes_cesantia'] ?? 0);
-        $ps_prima = (float) ($ps['val_prima'] ?? 0);
-        $ps_prima_nav = (float) ($ps['val_prima_nav'] ?? 0);
+    // Días
+    $dias_bsp = (float) ($d['dias_bsp'] ?? 0);
+    $dias_ces = (float) ($d['dias_ces'] ?? 0);
+    $dias_ps = (float) ($d['dias_ps'] ?? 0);
+    $dias_pn = (float) ($d['dias_pn'] ?? 0);
 
-        // Días desde el CTE de getRegistrosDT
-        $ps_dias_bsp = (float) ($d['dias_bsp'] ?? 0);
-        $ps_dias_ces = (float) ($d['dias_ces'] ?? 0);
-        $ps_dias_ps = (float) ($d['dias_ps'] ?? 0);
-        $ps_dias_pn = (float) ($d['dias_pn'] ?? 0);
+    $val_compensa = (float) ($d['val_compensa'] ?? 0);
+    $horas_ext = (float) ($d['horas_ext'] ?? 0);
 
-        if ($ps_bsp > 0)
-            $conceptos_liq[] = ['BONIFICACIÓN SERVICIOS PRESTADOS', $ps_dias_bsp, $ps_bsp, false];
-        if ($ps_vac > 0)
-            $conceptos_liq[] = ['VACACIONES', $total_dias_vac, $ps_vac, false];
-        if ($ps_prim_vac > 0)
-            $conceptos_liq[] = ['PRIMA DE VACACIONES', $dias_habiles, $ps_prim_vac, false];
-        if ($ps_bon_rec > 0)
-            $conceptos_liq[] = ['BONIFICACIÓN RECREACIÓN', 3.0, $ps_bon_rec, false];
-        if ($ps_ces > 0)
-            $conceptos_liq[] = ['CESANTÍAS', $ps_dias_ces, $ps_ces, false];
-        if ($ps_ices > 0)
-            $conceptos_liq[] = ['INTERESES DE CESANTÍAS', '', $ps_ices, false];
-        if ($ps_prima > 0)
-            $conceptos_liq[] = ['PRIMA DE SERVICIOS', $ps_dias_ps, $ps_prima, false];
-        if ($ps_prima_nav > 0)
-            $conceptos_liq[] = ['PRIMA DE NAVIDAD', $ps_dias_pn, $ps_prima_nav, true];
+    $conceptos_liq[] = ['SALARIO LABORADO', $dias_lab, $val_laborado, false];
 
-    } elseif (mb_strpos($tipo_upper, 'VACACION') !== false) {
-        if ($val_prima_vac > 0)
-            $conceptos_liq[] = ['PRIMA DE VACACIONES', $dias_habiles, $val_prima_vac, false];
-        if ($val_bon_recrea > 0)
-            $conceptos_liq[] = ['BONIFICACION RECREACIÓN', 3.0, $val_bon_recrea, false];
-        if ($val_vacacion > 0)
-            $conceptos_liq[] = ['VACACIONES', $total_dias_vac, $val_vacacion, true];
-        $val_indemniza = (float) ($d['val_indemniza'] ?? 0);
-        if ($val_indemniza > 0)
-            $conceptos_liq[] = ['INDEMNIZACIÓN POR VACACIONES', '', $val_indemniza, false];
+    $g_representa_liq = (float) ($d['g_representa'] ?? 0);
+    $tiene_grep_liq = (int) (($factores_por_empleado[$id_empleado] ?? [])['tiene_grep'] ?? 0);
+    if ($tiene_grep_liq == 1) {
+        $conceptos_liq[] = ['GASTOS DE REPRESENTACIÓN', $dias_lab, $g_representa_liq, false];
+    }
 
-    } elseif (mb_strpos($tipo_upper, 'PRIMA') !== false && mb_strpos($tipo_upper, 'SERVICIO') !== false) {
-        if ($val_ps > 0)
-            $conceptos_liq[] = ['PRIMA DE SERVICIOS', $dias_ps, $val_ps, true];
+    $conceptos_liq[] = ['SUBSIDIO DE TRANSPORTE', '', $aux_tran_liq, false];
+    $conceptos_liq[] = ['SUBSIDIO DE ALIMENTACIÓN', '', $aux_alim_liq, false];
 
-    } elseif (mb_strpos($tipo_upper, 'CESANT') !== false) {
-        if ($val_ces > 0)
-            $conceptos_liq[] = ['CESANTÍAS', $dias_ces, $val_ces, false];
-        if ($val_ices > 0)
-            $conceptos_liq[] = ['INTERESES DE CESANTÍAS', '', $val_ices, true];
+    $conceptos_liq[] = ['BONIFICACIÓN SERVICIOS PRESTADOS', $dias_bsp, $final_bsp, false];
+    $conceptos_liq[] = ['VACACIONES', $total_dias_vac, $final_vacacion, false];
+    $conceptos_liq[] = ['PRIMA DE VACACIONES', $dias_habiles, $final_prima_vac, false];
+    $conceptos_liq[] = ['BONIFICACIÓN RECREACIÓN', 3.0, $final_bon_recrea, false];
 
-    } else {
-        // Nómina regular mensual
-        if ($val_laborado > 0)
-            $conceptos_liq[] = ['SALARIO LABORADO', $dias_lab, $val_laborado, false];
-        if ($aux_tran_liq > 0)
-            $conceptos_liq[] = ['SUBSIDIO DE TRANSPORTE', '', $aux_tran_liq, false];
-        if ($aux_alim_liq > 0)
-            $conceptos_liq[] = ['SUBSIDIO DE ALIMENTACIÓN', '', $aux_alim_liq, true];
+    $conceptos_liq[] = ['CESANTÍAS', $dias_ces, $final_ces, false];
+    $conceptos_liq[] = ['INTERESES A CESANTÍAS', '', $final_ices, false];
 
-        $val_indemniza = (float) ($d['val_indemniza'] ?? 0);
-        if ($val_indemniza > 0)
-            $conceptos_liq[] = ['INDEMNIZACIÓN POR VACACIONES', '', $val_indemniza, false];
+    $conceptos_liq[] = ['PRIMA DE SERVICIOS', $dias_ps, $final_prima, false];
+    $conceptos_liq[] = ['PRIMA DE NAVIDAD', $dias_pn, $final_prima_nav, false];
+
+    $conceptos_liq[] = ['RECARGOS', 'N/A', $horas_ext, false];
+    $conceptos_liq[] = ['COMPENSATORIOS', '0', $val_compensa, false];
+
+    $val_indemniza = (float) ($d['val_indemniza'] ?? 0);
+    if ($val_indemniza > 0)
+        $conceptos_liq[] = ['INDEMNIZACIÓN POR VACACIONES', '', $val_indemniza, false];
+
+    // Subrayar el último elemento
+    if (!empty($conceptos_liq)) {
+        $conceptos_liq[count($conceptos_liq) - 1][3] = true;
     }
 
     // Total liquidación
@@ -348,22 +331,24 @@ function generarLiquidacion(
     // Doceavas partes (÷ 12)
     $doceava_bsp = $fs_bsp_ant > 0 ? round($fs_bsp_ant / 12, 0) : 0;
     $doceava_ps = $fs_pri_ser_ant > 0 ? round($fs_pri_ser_ant / 12, 0) : 0;
+    $doceava_pv = $fs_pri_vac_ant > 0 ? round($fs_pri_vac_ant / 12, 0) : 0;
+    $doceava_pn = $fs_pri_nav_ant > 0 ? round($fs_pri_nav_ant / 12, 0) : 0;
+    $doceava_horas = $fs_prom_horas > 0 ? round($fs_prom_horas / 12, 0) : 0;
 
     $factores = [];
-    if ($fs_salario > 0)
-        $factores[] = ['SUELDO BÁSICO', $fs_salario];
-    if ($fs_aux_trans > 0)
-        $factores[] = ['SUBSIDIO DE TRANSPORTE', $fs_aux_trans];
-    if ($fs_aux_alim > 0)
-        $factores[] = ['SUBSIDIO DE ALIMENTACIÓN', $fs_aux_alim];
-    if ($doceava_bsp > 0)
-        $factores[] = ["DOCEAVA PARTE ULT. BONIF\nSERVICIOS", $doceava_bsp];
-    if ($doceava_ps > 0)
-        $factores[] = ["DOCEAVA PARTE ULT. PRIMA\nSERVICIOS", $doceava_ps];
-    if ($fs_tiene_grep && $fs_grep > 0)
+    $factores[] = ['SUELDO BÁSICO', $fs_salario];
+
+    if ($fs_tiene_grep) {
         $factores[] = ['GASTOS DE REPRESENTACIÓN', $fs_grep];
-    if ($fs_prom_horas > 0)
-        $factores[] = ['PROMEDIO HORAS EXTRAS', $fs_prom_horas];
+    }
+
+    $factores[] = ['SUBSIDIO DE TRANSPORTE', $fs_aux_trans];
+    $factores[] = ['SUBSIDIO DE ALIMENTACIÓN', $fs_aux_alim];
+    $factores[] = ['DOCEAVA PARTE ULT. PRIMA VAC', $doceava_pv];
+    $factores[] = ['DOCEAVA PARTE ULT. BONIFIC SERVICIOS', $doceava_bsp];
+    $factores[] = ['DOCEAVA PARTE ULT. PRIMA SERVICIOS', $doceava_ps];
+    $factores[] = ['DOCEAVA PARTE ULT. PRIMA NAV', $doceava_pn];
+    $factores[] = ['DOCEAVA PARTE ULT. Ho. Ex/RECARGOS', $doceava_horas];
 
     $total_fs = array_sum(array_column($factores, 1));
 
@@ -462,7 +447,7 @@ $firmas = (new CReportes())->getFormFirmas(
     ['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']],
     51,
     $nomina['fecha'],
-    'CNOM'
+    'FASA'
 );
 
 // ── HTML completo ────────────────────────────────────────────────────────────

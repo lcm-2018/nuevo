@@ -7,11 +7,11 @@ if (!isset($_SESSION['user'])) {
 
 include_once '../../../../config/autoloader.php';
 
-$vigencia =                 $_SESSION['vigencia'];
-$start =                    isset($_POST['start']) ? intval($_POST['start']) : 0;
-$length =                   isset($_POST['length']) ? intval($_POST['length']) : 10;
-$col =                      $_POST['order'][0]['column'] + 1;
-$dir =                      $_POST['order'][0]['dir'];
+$vigencia = $_SESSION['vigencia'];
+$start = isset($_POST['start']) ? intval($_POST['start']) : 0;
+$length = isset($_POST['length']) ? intval($_POST['length']) : 10;
+$col = $_POST['order'][0]['column'] + 1;
+$dir = $_POST['order'][0]['dir'];
 
 $filtros = [];
 
@@ -30,18 +30,18 @@ use Src\Common\Php\Clases\Permisos;
 use Src\Common\Php\Clases\Valores;
 use Src\Nomina\Empleados\Php\Clases\Vacaciones;
 
-$sql        = new Liquidacion();
-$permisos   = new Permisos();
-$Valores    = new Valores();
+$sql = new Liquidacion();
+$permisos = new Permisos();
+$Valores = new Valores();
 $Vacaciones = new Vacaciones();
 
 
-$opciones =             $permisos->PermisoOpciones($id_user);
-$obj =                  $sql->getRegistrosDT($start, $length, $filtros, $col, $dir);
-$totalRecordsFilter =   $sql->getRegistrosFilter($filtros);
-$totalRecords =         $sql->getRegistrosTotal($filtros);
-$mp =                   Combos::getMetodoPago();
-$liquidados =           $Vacaciones->getRegistrosDT(0, -1, [], 1, 'asc');
+$opciones = $permisos->PermisoOpciones($id_user);
+$obj = $sql->getRegistrosDT($start, $length, $filtros, $col, $dir);
+$totalRecordsFilter = $sql->getRegistrosFilter($filtros);
+$totalRecords = $sql->getRegistrosTotal($filtros);
+$mp = Combos::getMetodoPago();
+$liquidados = $Vacaciones->getRegistrosDT(0, -1, [], 1, 'asc');
 $liq = [];
 foreach ($liquidados as $l) {
     $id = $l['id_vac'];
@@ -73,23 +73,23 @@ if (!empty($obj)) {
 
         if ($o['vac'] > 0 && $tieneVacSinLiquidar) {
             $datos[] = [
-                'check'        => '<div class="text-center"><input type="checkbox" name="chk_liquidacion[]" value="' . $id . '" checked><input type="hidden" name="id_contrato[' . $id . ']" value="' . $id_contrato . '"></div>',
-                'doc'          => $o['no_documento'],
-                'nombre'       => mb_strtoupper($o['nombre']),
-                'observacion'  => '',
-                'laborado'     => 0,
-                'incapacidad'  => 0,
-                'licencia'     => 0,
-                'vacacion'     => 0,
-                'otro'         => 0,
-                'pago'         => $metodo,
+                'check' => '<div class="text-center"><input type="checkbox" name="chk_liquidacion[]" value="' . $id . '" checked><input type="hidden" name="id_contrato[' . $id . ']" value="' . $id_contrato . '"></div>',
+                'doc' => $o['no_documento'],
+                'nombre' => mb_strtoupper($o['nombre']),
+                'observacion' => '',
+                'laborado' => 0,
+                'incapacidad' => 0,
+                'licencia' => 0,
+                'vacacion' => 0,
+                'otro' => 0,
+                'pago' => $metodo,
             ];
         }
     }
 }
 $data = [
-    'data'              => $datos,
-    'recordsFiltered'   => $totalRecordsFilter,
-    'recordsTotal'      => $totalRecords,
+    'data' => $datos,
+    'recordsFiltered' => $totalRecordsFilter,
+    'recordsTotal' => $totalRecords,
 ];
 echo json_encode($data);

@@ -20,74 +20,105 @@ function pesos($valor)
 {
     return number_format($valor, 2, ',', '.');
 }
-$id_r = $_POST['dato'];
+$id_r = isset($_POST['dato']) ? $_POST['dato'] : null;
+$idPto = 0;
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_pto` FROM `pto_presupuestos` WHERE (`id_tipo` = 1 AND `id_vigencia` = $id_vigencia)";
     $rs = $cmd->query($sql);
     $listappto = $rs->fetch();
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
-try {
-    $sql = "SELECT
-                `pto_rad`.`id_pto_rad`
-                , `pto_rad`.`id_manu`
-                , `pto_rad`.`id_tercero_api`
-                , `pto_rad`.`fecha`
-                , `pto_rad`.`objeto`
-                , `pto_rad`.`num_factura`
-                , `tb_terceros`.`nom_tercero`
-                , `tb_terceros`.`nit_tercero`
-            FROM
-                `pto_rad`
-                LEFT JOIN `tb_terceros` 
-                    ON (`pto_rad`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
-            WHERE (`pto_rad`.`estado` = 2  AND `id_pto` = {$listappto['id_pto']} AND `pto_rad`.`tipo_movimiento` IS NULL)";
-    $rs = $cmd->query($sql);
-    $listado = $rs->fetchAll();
-    $rs->closeCursor();
-    unset($rs);
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
-try {
-    $sql = "SELECT
-                `pto_rad`.`id_pto_rad`
-                , SUM(IFNULL(`pto_rad_detalle`.`valor`,0) - IFNULL(`pto_rad_detalle`.`valor_liberado`,0)) AS `valor`
-            FROM
-                `pto_rad_detalle`
-                INNER JOIN `pto_rad` 
-                    ON (`pto_rad_detalle`.`id_pto_rad` = `pto_rad`.`id_pto_rad`)
-            WHERE (`pto_rad`.`estado` = 2 AND `pto_rad`.`id_pto` = {$listappto['id_pto']})
-            GROUP BY `pto_rad`.`id_pto_rad`";
-    $rs = $cmd->query($sql);
-    $radicados = $rs->fetchAll();
-    $rs->closeCursor();
-    unset($rs);
-} catch (PDOException $e) {
-    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
-}
-// Consultas totales obligados
-try {
-    $sql = "SELECT
-                `ctb_doc`.`id_rad`
-                , SUM(`ctb_libaux`.`debito`) AS `valor`
-            FROM
-                `ctb_libaux`
-                INNER JOIN `ctb_doc` 
-                    ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-            WHERE (`ctb_doc`.`estado` > 0 AND `ctb_doc`.`id_vigencia` = $id_vigencia AND  `ctb_doc`.`id_rad` IS NOT NULL )
-            GROUP BY `ctb_doc`.`id_rad`";
-    $rs = $cmd->query($sql);
-    $causados = $rs->fetchAll();
+    $idPto = !empty($listappto['id_pto']) ? intval($listappto['id_pto']) : 0;
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 
-$fecha = date('Y-m-d', strtotime($listado[0]['fecha']));
+$listado = [];
+if ($idPto > 0) {
+    try {
+        $sql = "SELECT
+                    `pto_rad`.`id_pto_rad`
+                    , `pto_rad`.`id_manu`
+                    , `pto_rad`.`id_tercero_api`
+                    , `pto_rad`.`fecha`
+                    , `pto_rad`.`objeto`
+                    , `pto_rad`.`num_factura`
+                    , `tb_terceros`.`nom_tercero`
+                    , `tb_terceros`.`nit_tercero`
+                    , IFNULL(SUM(`pto_rad_detalle`.`valor` - IFNULL(`pto_rad_detalle`.`valor_liberado`, 0)), 0) AS `valor_radicado`
+                FROM
+                    `pto_rad`
+                    LEFT JOIN `pto_rad_detalle` 
+                        ON (`pto_rad`.`id_pto_rad` = `pto_rad_detalle`.`id_pto_rad`)
+                    LEFT JOIN `tb_terceros` 
+                        ON (`pto_rad`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
+                WHERE (`pto_rad`.`estado` = 2 AND `pto_rad`.`id_pto` = $idPto AND `pto_rad`.`tipo_movimiento` IS NULL)
+                GROUP BY `pto_rad`.`id_pto_rad`
+                ORDER BY `pto_rad`.`id_manu` DESC";
+        $rs = $cmd->query($sql);
+        $listado = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $rs->closeCursor();
+        unset($rs);
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    }
+}
+
+$causadosLookup = [];
+if (!empty($listado)) {
+    $idsRadMap = [];
+    foreach ($listado as $ce) {
+        $idsRadMap[intval($ce['id_pto_rad'])] = true;
+    }
+
+    try {
+        // 1. Consultar únicamente ctb_doc (muy liviana, sin tocar ctb_libaux)
+        $sqlDocs = "SELECT `id_ctb_doc`, `id_rad`
+                    FROM `ctb_doc`
+                    WHERE `estado` > 0 
+                      AND `id_vigencia` = $id_vigencia 
+                      AND `id_rad` IS NOT NULL";
+        $rs = $cmd->query($sqlDocs);
+        $docsCausados = $rs->fetchAll(PDO::FETCH_ASSOC);
+        $rs->closeCursor();
+        unset($rs);
+
+        $mapCtbRad = [];
+        $idsCtbCausados = [];
+        foreach ($docsCausados as $dc) {
+            $idRadDoc = intval($dc['id_rad']);
+            if (isset($idsRadMap[$idRadDoc])) {
+                $idCtb = intval($dc['id_ctb_doc']);
+                $mapCtbRad[$idCtb] = $idRadDoc;
+                $idsCtbCausados[] = $idCtb;
+            }
+        }
+
+        // 2. Si hay documentos causados para estos radicados, consultar ctb_libaux por su índice id_ctb_doc
+        if (!empty($idsCtbCausados)) {
+            $idsCtbIn = implode(',', $idsCtbCausados);
+            $sqlLib = "SELECT `id_ctb_doc`, SUM(`debito`) AS `valor`
+                       FROM `ctb_libaux`
+                       WHERE `id_ctb_doc` IN ($idsCtbIn)
+                       GROUP BY `id_ctb_doc`";
+            $rs = $cmd->query($sqlLib);
+            $libauxRows = $rs->fetchAll(PDO::FETCH_ASSOC);
+            $rs->closeCursor();
+            unset($rs);
+
+            foreach ($libauxRows as $lr) {
+                $idRad = $mapCtbRad[intval($lr['id_ctb_doc'])];
+                if (!isset($causadosLookup[$idRad])) {
+                    $causadosLookup[$idRad] = 0;
+                }
+                $causadosLookup[$idRad] += floatval($lr['valor']);
+            }
+        }
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    }
+}
 
 ?>
 <script>
@@ -97,14 +128,14 @@ $fecha = date('Y-m-d', strtotime($listado[0]['fecha']));
             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         language: dataTable_es,
         "order": [
-            [0, "desc"]
+            [1, "desc"]
         ],
         columnDefs: [{
             class: 'text-wrap',
             targets: [4]
         }],
     });
-    $('#tableContrtacionCdp').wrap('<div class="overflow" />');
+    $('#tableContrtacionRp').wrap('<div class="overflow" />');
 </script>
 <div class="px-0">
     <div class="shadow">
@@ -128,21 +159,18 @@ $fecha = date('Y-m-d', strtotime($listado[0]['fecha']));
                 <tbody>
                     <?php
                     $acciones = null;
-                    if (true) {
-                        $id_t = [];
+                    if (!empty($listado)) {
                         foreach ($listado as $ce) {
                             $detalles = $editar = null;
                             $id_ter = $ce['id_tercero_api'];
-                            $id_rad = $ce['id_pto_rad'];
-                            $key = array_search($id_rad, array_column($radicados, 'id_pto_rad'));
-                            $key2 = array_search($id_rad, array_column($causados, 'id_rad'));
-                            $sum_rad = $key !== false ? $radicados[$key]['valor'] : 0;
-                            $sum_cau = $key2 !== false ? $causados[$key2]['valor'] : 0;
+                            $id_rad = intval($ce['id_pto_rad']);
+                            $sum_rad = floatval($ce['valor_radicado']);
+                            $sum_cau = isset($causadosLookup[$id_rad]) ? $causadosLookup[$id_rad] : 0;
                             $saldoo = $sum_rad - $sum_cau;
                             $saldo_rad = pesos($saldoo);
 
                             $numeroc = $ce['num_factura'];
-                            if ($permisos->PermisosUsuario($opciones, 5501, 3)  || $id_rol == 1) {
+                            if ($permisos->PermisosUsuario($opciones, 5501, 3) || $id_rol == 1) {
                                 $editar = '<a value="' . $id_rad . '" onclick="cargarListaDetalleCtbInvoice(' . $id_rad . ', 0)" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-plus-square "></span></a>';
                             }
                             $fecha = date('Y-m-d', strtotime($ce['fecha']));
@@ -151,11 +179,11 @@ $fecha = date('Y-m-d', strtotime($listado[0]['fecha']));
                                 <tr>
                                     <td class="text-center"><input type="checkbox" value="" id="defaultCheck1"></td>
                                     <td class="text-start"><?php echo $ce['id_manu']; ?></td>
-                                    <td class="text-start"><?php echo $numeroc  ?></td>
+                                    <td class="text-start"><?php echo $numeroc; ?></td>
                                     <td class="text-start"><?php echo $fecha; ?></td>
                                     <td class="text-start"><?php echo $ce['nom_tercero']; ?></td>
-                                    <td class="text-end"> <?php echo  $saldo_rad; ?></td>
-                                    <td class="text-center"> <?php echo $editar .  $acciones; ?></td>
+                                    <td class="text-end"> <?php echo $saldo_rad; ?></td>
+                                    <td class="text-center"> <?php echo $editar . $acciones; ?></td>
                                 </tr>
                     <?php
                             }

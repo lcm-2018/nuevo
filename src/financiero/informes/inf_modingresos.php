@@ -62,9 +62,9 @@ try {
                     ON (`detalles`.`id_cargue` = `pto_cargue`.`id_cargue`)
                 INNER JOIN `pto_presupuestos` 
                     ON (`pto_cargue`.`id_pto` = `pto_presupuestos`.`id_pto`)
-                INNER JOIN `pto_homologa_ingresos` 
+                LEFT JOIN `pto_homologa_ingresos` 
                     ON (`pto_homologa_ingresos`.`id_cargue` = `pto_cargue`.`id_cargue`)
-                INNER JOIN `pto_sia` 
+                LEFT JOIN `pto_sia` 
                     ON (`pto_homologa_ingresos`.`id_sia` = `pto_sia`.`id_sia`)
             WHERE (`pto_mod`.`estado` = 2 AND `pto_presupuestos`.`id_tipo` = 1 AND DATE_FORMAT(`pto_mod`.`fecha`,'%Y-%m-%d') BETWEEN $rango)
             ORDER BY  DATE_FORMAT(`pto_mod`.`fecha`,'%Y-%m-%d')";
@@ -103,7 +103,12 @@ echo "\xEF\xBB\xBF";
 $fila = 1;
         foreach ($lista as $r) {
             $rubro = isset($r['rubro']) ? $r['rubro'] : (isset($r['codigo']) ? $r['codigo'] : (isset($r['cuenta']) ? $r['cuenta'] : ''));
-            $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+                        $ptos = isset($_POST['ptos']) ? $_POST['ptos'] : 0;
+            if ($ptos == 1) {
+                $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+            } else {
+                $rubro_limpio = $rubro;
+            }
 
     echo "<tr>
                 <td>{$fila}</td>\n                <td style='mso-number-format:\"\\@\"'>{$nit_empresa}</td>\n                <td>{$nombre_empresa}</td>\n                <td>{$r['nombre']}</td>

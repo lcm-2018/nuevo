@@ -444,10 +444,18 @@ function FormResponsabilidad(id) {
             $('#slcMunicipioEmp').addClass('is-invalid');
             $('#slcMunicipioEmp').focus();
             mjeError('Error', 'Diligenciar, campo obligatorio');
+        } else if ($('#txtDireccion').val() === '') {
+            $('#txtDireccionPreview').addClass('is-invalid');
+            $('#btnAbrirGeneradorDir').trigger('click');
+            mjeError('Error', 'Debe generar la dirección usando el generador DIAN');
         } else if ($('#mailEmp').val() === '') {
             $('#mailEmp').addClass('is-invalid');
             $('#mailEmp').focus();
             mjeError('Error', 'Diligenciar, campo obligatorio');
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('#mailEmp').val())) {
+            $('#mailEmp').addClass('is-invalid');
+            $('#mailEmp').focus();
+            mjeError('Error', 'El correo electrónico no tiene un formato válido');
         } else if ($('#txtTelEmp').val() === '') {
             $('#txtTelEmp').addClass('is-invalid');
             $('#txtTelEmp').focus();
@@ -456,6 +464,10 @@ function FormResponsabilidad(id) {
             $('#slcRiesgoLab').addClass('is-invalid');
             $('#slcRiesgoLab').focus();
             mjeError('Error', 'Diligenciar, campo obligatorio');
+        } else if ($('input[name="actividades_economicas[]"]').length === 0) {
+            $('#buscarActvEconoMulti').addClass('is-invalid');
+            $('#buscarActvEconoMulti').focus();
+            mjeError('Error', 'Debe seleccionar al menos una actividad económica');
         } else {
             let datos = $('#formNuevoTercero').serialize();
             let pasT = hex_sha512($('#txtCCempleado').val());
@@ -1567,7 +1579,7 @@ $(document).on('click', '#btnUpdateCuenta', function () {
         mjeError('¡Debe ingresar un número de cuenta!');
         return false;
     }
-    
+
     let datos = $('#formEditCuenta').serialize();
     mostrarOverlay();
     $.ajax({

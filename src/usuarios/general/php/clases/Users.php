@@ -145,25 +145,25 @@ class Users
         unset($stmt);
         if (empty($datos)) {
             $datos = [
-                'id_usuario'    =>  -1,
-                'login'         => '',
-                'clave'         => '',
-                'nombre'        => '',
-                'id_rol'        => 0,
-                'estado'        => 1,
-                'nombre1'       => '',
-                'nombre2'       => '',
-                'apellido1'     => '',
-                'apellido2'     => '',
-                'id_tipo_doc'   => 0,
+                'id_usuario' => -1,
+                'login' => '',
+                'clave' => '',
+                'nombre' => '',
+                'id_rol' => 0,
+                'estado' => 1,
+                'nombre1' => '',
+                'nombre2' => '',
+                'apellido1' => '',
+                'apellido2' => '',
+                'id_tipo_doc' => 0,
                 'num_documento' => '',
-                'email'         => '',
-                'telefono'      => '',
-                'direccion'     => '',
-                'cargo'         => '',
+                'email' => '',
+                'telefono' => '',
+                'direccion' => '',
+                'cargo' => '',
                 'id_centrocosto' => 0,
-                'sexo'          => 'M',
-                'id_area'       => 0
+                'sexo' => 'M',
+                'id_area' => 0
             ];
         }
         return $datos;
@@ -293,11 +293,11 @@ class Users
 
     public function getFormUsuario($id_user)
     {
-        $obj    = $this->getUserId($id_user);
+        $obj = $this->getUserId($id_user);
         $tpDocs = Combos::getTiposDocumento($obj['id_tipo_doc']);
-        $rol    = Combos::getRolUser($obj['id_rol']);
+        $rol = Combos::getRolUser($obj['id_rol']);
         $ccosto = Combos::getCentrosCosto($obj['id_centrocosto']);
-        $areas  = Combos::getAreasxCentrosCosto($obj['id_centrocosto'], $obj['id_area']);
+        $areas = Combos::getAreasxCentrosCosto($obj['id_centrocosto'], $obj['id_area']);
         $sedesRows = $this->getFormSedesRows($id_user);
         $bodegasRows = $this->getFormBodegasRows($id_user);
         $M = $obj['sexo'] == 'M' ? 'checked' : '';
@@ -388,7 +388,7 @@ class Users
                             <div class="row g-3 mt-1">
                                 <div class="col-md-3">
                                     <label class="form-label small" for="txt_cargo">Cargo</label>
-                                    <input type="text" class="form-control form-control-sm bg-input" id="txt_cargo" name="txt_cargo" placeholder="Cargo">
+                                    <input type="text" class="form-control form-control-sm bg-input" id="txt_cargo" name="txt_cargo" placeholder="Cargo" value="{$obj['cargo']}">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label small" for="sl_centroCosto">Centro de costo - Dependencia</label>
@@ -617,7 +617,7 @@ class Users
 
                 if ($d['slcRolUser'] != 1) {
                     $Permisos = new Permisos();
-                    $obj    = $Permisos->getPermisosRoles($d['slcRolUser']);
+                    $obj = $Permisos->getPermisosRoles($d['slcRolUser']);
                     foreach ($obj as $o) {
                         $o['id_usuario'] = $id;
                         if ($o['per_consultar'] == 1 || $o['per_adicionar'] == 1 || $o['per_modificar'] == 1 || $o['per_eliminar'] == 1 || $o['per_anular'] == 1 || $o['per_imprimir'] == 1) {
@@ -695,7 +695,7 @@ class Users
                         $this->conexion->rollBack();
                         return $sep;
                     } else {
-                        $obj    = $Permisos->getPermisosRoles($d['slcRolUser']);
+                        $obj = $Permisos->getPermisosRoles($d['slcRolUser']);
                         foreach ($obj as $o) {
                             $o['id_usuario'] = $d['id_usuario'];
                             if ($o['per_consultar'] == 1 || $o['per_adicionar'] == 1 || $o['per_modificar'] == 1 || $o['per_eliminar'] == 1 || $o['per_anular'] == 1 || $o['per_imprimir'] == 1) {
@@ -738,7 +738,7 @@ class Users
 
             if ($stmt->execute() && $stmt->rowCount() > 0) {
                 Logs::guardaLog("UPDATE `seg_usuarios_sistema` SET `clave` = '{$d['nuevaClave']}' WHERE `id_usuario` = {$d['id_user']}");
-                $consulta  = "UPDATE `seg_usuarios_sistema` SET `fec_cambioclave` = ? WHERE `id_usuario` = ?";
+                $consulta = "UPDATE `seg_usuarios_sistema` SET `fec_cambioclave` = ? WHERE `id_usuario` = ?";
                 $stmt2 = $this->conexion->prepare($consulta);
                 $stmt2->bindValue(1, Sesion::Hoy(), PDO::PARAM_STR);
                 $stmt2->bindValue(2, $d['id_user'], PDO::PARAM_INT);
@@ -795,7 +795,7 @@ class Users
 
     public function getPermisosModulos($id)
     {
-        $user   = $this->getUserId($id);
+        $user = $this->getUserId($id);
         $head =
             <<<HTML
                 <tr>
@@ -850,15 +850,15 @@ class Users
 
     public function getPermisosModulosJSON($id)
     {
-        $obj    = (new Permisos())->getPermisosModulos($id);
-        $adm    = [];
-        $fin    = [];
+        $obj = (new Permisos())->getPermisosModulos($id);
+        $adm = [];
+        $fin = [];
 
         foreach ($obj as $o) {
             $isAdm = ($o['id_modulo'] > 0 && $o['id_modulo'] < 50);
             $estado = $o['estado'] > 0 ? '<i class="fas fa-toggle-on fa-lg text-success"></i>' : '<i class="fas fa-toggle-off fa-lg text-secondary"></i>';
             $val = $o['estado'] > 0 ? 0 : 1;
-            $boton =  $o['estado'] > 0 ? '<button data-id="' . $o['id_modulo'] . '" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 opciones" title="Ver permisos de opciones de módulo"><span class="fas fa-cogs"></span></button>' : '';
+            $boton = $o['estado'] > 0 ? '<button data-id="' . $o['id_modulo'] . '" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 opciones" title="Ver permisos de opciones de módulo"><span class="fas fa-cogs"></span></button>' : '';
 
             $fila = [
                 'id' => $o['id_modulo'],
@@ -914,7 +914,7 @@ class Users
 
     public function getPermisosOpcionesJSON($a)
     {
-        $obj    = (new Permisos())->getPermisosOpciones($a['id_user'], $a['id']);
+        $obj = (new Permisos())->getPermisosOpciones($a['id_user'], $a['id']);
         $data = [];
         foreach ($obj as $o) {
             $o = array_values($o);
@@ -946,7 +946,8 @@ class Users
             7 => 'per_imprimir'
         ];
 
-        if (!isset($cols[$col_idx])) return 'Índice de columna inválido';
+        if (!isset($cols[$col_idx]))
+            return 'Índice de columna inválido';
         $col_name = $cols[$col_idx];
 
         try {

@@ -134,8 +134,8 @@ class Primas
                         $param['tiene_grep'] = $cortes_empleado['tiene_grep'] ?? 0;
                         $param['bsp_ant'] = $cortes_empleado['val_bsp'] ?? 0;
                         $param['pri_ser_ant'] = $cortes_empleado['val_liq_ps'] ?? 0;
-                        $param['pri_vac_ant'] = $cortes_empleado['val_liq_pv'] ?? 0;
-                        $param['pri_nav_ant'] = $cortes_empleado['val_liq'] ?? 0;
+                        $param['pri_vac_ant'] = $cortes_empleado['val_prima_vac'] ?? 0;
+                        $param['pri_nav_ant'] = $cortes_empleado['val_liq_pv'] ?? 0;
                         $param['prom_horas'] = $cortes_empleado['prom'] ?? 0;
 
                         $param['aux_trans'] = $salarios[$id_empleado] <= $param['smmlv'] * 2 ? $parametro[2] : 0;

@@ -32,11 +32,11 @@ if ($periodo == 1) {
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
-    $sql_empresa = "SELECT razon_social_ips AS nombre, nit_ips AS nit, dv AS dig_ver FROM tb_datos_ips";
-    $res_empresa = $cmd->query($sql_empresa);
-    $empresa = $res_empresa->fetch();
-    $nit_empresa = $empresa['nit'];
-    $nombre_empresa = $empresa['nombre'];
+$sql_empresa = "SELECT razon_social_ips AS nombre, nit_ips AS nit, dv AS dig_ver FROM tb_datos_ips";
+$res_empresa = $cmd->query($sql_empresa);
+$empresa = $res_empresa->fetch();
+$nit_empresa = $empresa['nit'];
+$nombre_empresa = $empresa['nombre'];
 
 try {
     $sql = "SELECT
@@ -55,9 +55,9 @@ try {
                     `pto_cargue`
             INNER JOIN `pto_presupuestos` 
                 ON (`pto_cargue`.`id_pto` = `pto_presupuestos`.`id_pto`)
-            INNER JOIN `pto_homologa_ingresos` 
+            LEFT JOIN `pto_homologa_ingresos` 
                 ON (`pto_homologa_ingresos`.`id_cargue` = `pto_cargue`.`id_cargue`)
-            INNER JOIN `pto_sia` 
+            LEFT JOIN `pto_sia` 
                 ON (`pto_homologa_ingresos`.`id_sia` = `pto_sia`.`id_sia`)
             LEFT JOIN
                     (SELECT 
@@ -234,13 +234,18 @@ echo "\xEF\xBB\xBF";
     </tr>
     <tbody>
         <?php
-$fila = 1;
+        $fila = 1;
         foreach ($lista as $r) {
             $rubro = isset($r['rubro']) ? $r['rubro'] : (isset($r['codigo']) ? $r['codigo'] : (isset($r['cuenta']) ? $r['cuenta'] : (isset($r['cod_rubro']) ? $r['cod_rubro'] : '')));
-            $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+            $ptos = isset($_POST['ptos']) ? $_POST['ptos'] : 0;
+            if ($ptos == 1) {
+                $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+            } else {
+                $rubro_limpio = $rubro;
+            }
 
-    $valor = $r['valor'] > 0 ? $r['valor'] : $r['liberado'] * -1;
-    echo "<tr>
+            $valor = $r['valor'] > 0 ? $r['valor'] : $r['liberado'] * -1;
+            echo "<tr>
                 <td>{$fila}</td>\n                <td style='mso-number-format:\"\\@\"'>{$nit_empresa}</td>\n                <td>{$nombre_empresa}</td>\n                <td style='mso-number-format:\"\\@\"'>{$rubro_limpio}</td>
                 <td>{$r['fecha']}</td>
                 <td style='mso-number-format:\"\\@\"'>{$r['id_manu']}</td>
@@ -251,7 +256,7 @@ $fila = 1;
                 <td>{$r['sia']}</td>
             </tr>";
             $fila++;
-}
-?>
+        }
+        ?>
     </tbody>
 </table>

@@ -30,16 +30,16 @@ if ($periodo == 1) {
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
-    $sql_empresa = "SELECT razon_social_ips AS nombre, nit_ips AS nit, dv AS dig_ver FROM tb_datos_ips";
-    $res_empresa = $cmd->query($sql_empresa);
-    $empresa = $res_empresa->fetch();
-    $nit_empresa = $empresa['nit'];
-    $nombre_empresa = $empresa['nombre'];
+$sql_empresa = "SELECT razon_social_ips AS nombre, nit_ips AS nit, dv AS dig_ver FROM tb_datos_ips";
+$res_empresa = $cmd->query($sql_empresa);
+$empresa = $res_empresa->fetch();
+$nit_empresa = $empresa['nit'];
+$nombre_empresa = $empresa['nombre'];
 
 try {
     $sql = "SELECT
                 `pto_cargue`.`id_cargue`
-                , CONCAT(`pto_sia`.`codigo`, `pto_cargue`.`cod_pptal`) AS `cod_rubro`
+                , IFNULL(CONCAT(`pto_sia`.`codigo`, `pto_cargue`.`cod_pptal`), `pto_cargue`.`cod_pptal`) AS `cod_rubro`
                 , `pto_cargue`.`nom_rubro`
                 , `pto_cargue`.`valor_aprobado`
                 , IFNULL(`adicion`.`debito`,0) AS `add`
@@ -54,9 +54,9 @@ try {
                 `pto_cargue`
                 INNER JOIN `pto_presupuestos` 
                     ON (`pto_cargue`.`id_pto` = `pto_presupuestos`.`id_pto`)
-                INNER JOIN `pto_homologa_ingresos` 
+                LEFT JOIN `pto_homologa_ingresos` 
                     ON (`pto_homologa_ingresos`.`id_cargue` = `pto_cargue`.`id_cargue`)
-                INNER JOIN `pto_sia` 
+                LEFT JOIN `pto_sia` 
                     ON (`pto_homologa_ingresos`.`id_sia` = `pto_sia`.`id_sia`)
                 LEFT JOIN 
                     (SELECT
@@ -156,7 +156,7 @@ try {
                     WHERE (DATE_FORMAT(`pto_rec`.`fecha`,'%Y-%m-%d') BETWEEN '$vigencia-01-01' AND '$vigencia-12-31' AND `pto_rec`.`estado` = 2)
                     GROUP BY `id_rubro`) AS `rec_acumulado`
                         ON (`rec_acumulado`.`id_rubro` = `pto_cargue`.`id_cargue`)
-            WHERE (`pto_presupuestos`.`id_tipo` = 1 AND `pto_presupuestos`.`id_vigencia` = $id_vigencia)
+            WHERE (`pto_cargue`.`tipo_dato` = 1 AND `pto_presupuestos`.`id_tipo` = 1 AND `pto_presupuestos`.`id_vigencia` = $id_vigencia)
             ORDER BY `pto_cargue`.`id_cargue` ASC";
     $res = $cmd->query($sql);
     $lista = $res->fetchAll(PDO::FETCH_ASSOC);
@@ -191,21 +191,26 @@ echo "\xEF\xBB\xBF";
     </tr>
     <tbody>
         <?php
-$fila = 1;
+        $fila = 1;
         foreach ($lista as $r) {
             $rubro = isset($r['rubro']) ? $r['rubro'] : (isset($r['codigo']) ? $r['codigo'] : (isset($r['cuenta']) ? $r['cuenta'] : (isset($r['cod_rubro']) ? $r['cod_rubro'] : '')));
-            $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+            $ptos = isset($_POST['ptos']) ? $_POST['ptos'] : 0;
+            if ($ptos == 1) {
+                $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+            } else {
+                $rubro_limpio = $rubro;
+            }
 
-    if ($periodo == 2) {
-        $valor = $r['valor_aprobado'] + $r['add'] - $r['red'];
-    } else {
-        $valor = $r['valor_aprobado'];
-    }
-    
-    $presupuesto_definitivo = $valor + $r['add_acumulado'] - $r['red_acumulado'];
-    $saldo_por_recaudar = $presupuesto_definitivo - $r['rec_acumulado'];
+            if ($periodo == 2) {
+                $valor = $r['valor_aprobado'] + $r['add'] - $r['red'];
+            } else {
+                $valor = $r['valor_aprobado'];
+            }
 
-    echo "<tr>
+            $presupuesto_definitivo = $valor + $r['add_acumulado'] - $r['red_acumulado'];
+            $saldo_por_recaudar = $presupuesto_definitivo - $r['rec_acumulado'];
+
+            echo "<tr>
                 <td>{$fila}</td>\n                <td style='mso-number-format:\"\\@\"'>{$nit_empresa}</td>\n                <td>{$nombre_empresa}</td>\n                <td style='mso-number-format:\"\\@\"'>{$rubro_limpio}</td>
                 <td>{$valor}</td>
                 <td>{$r['add_acumulado']}</td>
@@ -215,7 +220,7 @@ $fila = 1;
                 <td>{$r['rec_acumulado']}</td>
             </tr>";
             $fila++;
-}
-?>
+        }
+        ?>
     </tbody>
 </table>

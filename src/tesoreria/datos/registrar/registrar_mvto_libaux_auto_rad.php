@@ -39,6 +39,17 @@ try {
     $datos = $query->fetch();
     $id_tercero = $datos['id_tercero'];
     $id_cta_credito = $datos['id_cuenta'];
+
+    if ($tipo == 6) {
+        $queryCop = "SELECT `id_cuenta` FROM `ctb_libaux` WHERE `id_ctb_doc` = ? AND `debito` > 0 LIMIT 1";
+        $stmtCop = $cmd->prepare($queryCop);
+        $stmtCop->bindParam(1, $id_cop, PDO::PARAM_INT);
+        $stmtCop->execute();
+        $ctaCop = $stmtCop->fetch();
+        if (!empty($ctaCop['id_cuenta'])) {
+            $id_cta_credito = $ctaCop['id_cuenta'];
+        }
+    }
     $sq2 = "SELECT
                 `tes_cuentas`.`id_cuenta` AS `cta_contable`
                 , `tes_detalle_pago`.`valor`
@@ -62,7 +73,7 @@ try {
     $sql->bindParam(6, $iduser, PDO::PARAM_INT);
     $sql->bindParam(7, $fecha2);
     $credito = 0;
-    $id_cuenta =  $formapago['cta_contable'];
+    $id_cuenta = $formapago['cta_contable'];
     $debito = $formapago['valor'];
     $sql->execute();
     if ($cmd->lastInsertId() > 0) {
@@ -75,13 +86,13 @@ try {
             Logs::guardaLog("INSERT INTO `ctb_libaux` (`id_ctb_doc`,`id_tercero_api`,`id_cuenta`,`debito`,`credito`,`id_user_reg`,`fecha_reg`) VALUES ($id_doc, $id_tercero, $id_cuenta, '$debito', '$credito', $iduser, '$fecha2')");
             $registros++;
         } else {
-            $response['msg'] += $sql->errorInfo()[2];
+            $response['msg'] = $sql->errorInfo()[2];
         }
     } else {
-        $response['msg'] += $sql->errorInfo()[2];
+        $response['msg'] = $sql->errorInfo()[2];
     }
 } catch (PDOException $e) {
-    $response['msg'] =  $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+    $response['msg'] = $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
 if ($registros > 0) {
     $response['status'] = 'ok';

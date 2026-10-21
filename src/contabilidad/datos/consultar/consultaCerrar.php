@@ -10,7 +10,7 @@ $response['status'] = 'error';
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $estado = 2;
-    $query = "UPDATE `ctb_doc` SET `estado`= ? WHERE `id_ctb_doc` IN ($data)";
+    $query = "UPDATE `ctb_doc` SET `estado`= ? WHERE `id_ctb_doc` IN ($data) AND `estado` != 0";
     $query = $cmd->prepare($query);
     $query->bindParam(1, $estado, PDO::PARAM_INT);
     $query->execute();

@@ -2655,7 +2655,7 @@ function changeEstadoAnulacionTes() {
 		$('#objeto').focus();
 		mjeError('Debe digitar un motivo de anulación');
 	} else {
-		var datos = $('#formAnulaDocTes').serialize();
+		var datos = $('#formAnulaDocTes').serialize() + '&id_doc=' + $('#id_tipo_doc').val();
 		mostrarOverlay();
 		$.ajax({
 			type: 'POST',

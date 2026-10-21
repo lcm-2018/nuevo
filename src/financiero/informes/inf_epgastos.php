@@ -39,7 +39,7 @@ $cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT
                 `pto_cargue`.`id_cargue`
-                , CONCAT(`pto_sia`.`codigo`, `pto_cargue`.`cod_pptal`) AS `cod_rubro`
+                , IFNULL(CONCAT(`pto_sia`.`codigo`, `pto_cargue`.`cod_pptal`), `pto_cargue`.`cod_pptal`) AS `cod_rubro`
                 , `pto_cargue`.`nom_rubro`
                 , `pto_cargue`.`valor_aprobado`
                 , IFNULL(`adicion`.`debito`,0) AS `add`
@@ -64,9 +64,9 @@ try {
                 `pto_cargue`
                 INNER JOIN `pto_presupuestos` 
                     ON (`pto_cargue`.`id_pto` = `pto_presupuestos`.`id_pto`)
-                INNER JOIN `pto_homologa_gastos` 
+                LEFT JOIN `pto_homologa_gastos` 
                     ON (`pto_homologa_gastos`.`id_cargue` = `pto_cargue`.`id_cargue`)
-                INNER JOIN `pto_sia` 
+                LEFT JOIN `pto_sia` 
                     ON (`pto_homologa_gastos`.`id_sia` = `pto_sia`.`id_sia`)
                 LEFT JOIN 
                     (SELECT
@@ -272,7 +272,7 @@ try {
                     WHERE (DATE_FORMAT(`ctb_doc`.`fecha`,'%Y-%m-%d') BETWEEN $rango AND `ctb_doc`.`estado` = 2)
                     GROUP BY `pto_cdp_detalle`.`id_rubro`) AS `pago_acumulado`
                         ON (`pto_cargue`.`id_cargue` = `pago_acumulado`.`id_rubro`)
-            WHERE (`pto_presupuestos`.`id_tipo` = 2 AND `pto_presupuestos`.`id_vigencia` = $id_vigencia)
+            WHERE (`pto_cargue`.`tipo_dato` = 1 AND `pto_presupuestos`.`id_tipo` = 2 AND `pto_presupuestos`.`id_vigencia` = $id_vigencia)
             ORDER BY `pto_cargue`.`id_cargue` ASC";
     $res = $cmd->query($sql);
     $lista = $res->fetchAll(PDO::FETCH_ASSOC);
@@ -323,7 +323,12 @@ echo "\xEF\xBB\xBF";
 $fila = 1;
         foreach ($lista as $r) {
             $rubro = isset($r['rubro']) ? $r['rubro'] : (isset($r['codigo']) ? $r['codigo'] : (isset($r['cuenta']) ? $r['cuenta'] : (isset($r['cod_rubro']) ? $r['cod_rubro'] : '')));
-            $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+                        $ptos = isset($_POST['ptos']) ? $_POST['ptos'] : 0;
+            if ($ptos == 1) {
+                $rubro_limpio = preg_replace('/[^0-9]/', '', $rubro);
+            } else {
+                $rubro_limpio = $rubro;
+            }
 
     if ($periodo == 2) {
         $valor = $r['valor_aprobado'] + $r['add'] - $r['red'];

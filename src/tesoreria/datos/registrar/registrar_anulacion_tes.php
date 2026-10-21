@@ -9,6 +9,7 @@ $id_pto_doc = isset($_POST['id_pto_doc']) ? $_POST['id_pto_doc'] : exit('Acceso 
 $fecha = $_POST['fecha'];
 $motivo = $_POST['objeto'];
 $iduser = $_SESSION['id_user'];
+$id_doc = $_POST['id_doc'];
 $estado = 0;
 include '../../../../config/autoloader.php';
 $response['status'] = 'error';
@@ -30,6 +31,14 @@ try {
         $sql2 = $cmd->prepare($sql2);
         $sql2->bindParam(1, $id_pto_doc, PDO::PARAM_INT);
         $sql2->execute();
+        if ($id_doc == 11) {
+            $sql3 = "UPDATE `ctb_doc`
+                    SET `id_ctb_doc_tipo3 ` = NULL
+                WHERE `id_ctb_doc_tipo3 ` = ?";
+            $sql3 = $cmd->prepare($sql3);
+            $sql3->bindParam(1, $id_pto_doc, PDO::PARAM_INT);
+            $sql3->execute();
+        }
         $response['status'] = 'ok';
     } else {
         $response['msg'] = $sql->errorInfo()[2];
