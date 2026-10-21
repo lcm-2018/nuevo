@@ -129,11 +129,12 @@ $id_bodega = isset($_POST['id_bodega']) && $_POST['id_bodega'] ? $_POST['id_bode
         $('#tb_pedidos_ing').DataTable().ajax.reload(null, false);
     });
 
-    $('.filtro_ped').keypress(function(e) {
+    $('.filtro_ped').keypress(function(e) {        
         if (e.keyCode == 13) {
+            e.preventDefault();
             $('#tb_pedidos_ing').DataTable().ajax.reload(null, false);
         }
-    });
+    })
 
     $('.filtro_ped').click(function(e) {
         $('#tb_pedidos_ing').DataTable().ajax.reload(null, false);

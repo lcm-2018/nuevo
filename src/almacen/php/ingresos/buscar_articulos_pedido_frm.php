@@ -141,6 +141,7 @@ $id_pedido = isset($_POST['id_pedido']) && $_POST['id_pedido'] ? $_POST['id_pedi
 
     $('.filtro_art').keypress(function(e) {
         if (e.keyCode == 13) {
+            e.preventDefault();
             $('#tb_articulos_pedido').DataTable().ajax.reload(null, false);
         }
     });

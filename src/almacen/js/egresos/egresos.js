@@ -372,7 +372,7 @@
                     cancelButtonText: "No",
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        guardar_egreso(1);
+                        guardar_egreso(1,0);
                     }
                 });
             } else if (es_devfianza == 1 && filas == 0 && id_ingreso) {
@@ -380,29 +380,33 @@
                     title: "Generar Egreso",
                     text: "Desea Generar el Egreso en base a la Orden de Ingreso Fianza " + id_ingreso,
                     icon: "question",
+                    input: "checkbox",
+                    inputValue: 0,
+                    inputPlaceholder: "Egresar utilizando los mismos lotes con las mismas cantidades",
                     showCancelButton: true,
                     confirmButtonColor: "#3085d6",
                     cancelButtonColor: "#d33",
                     confirmButtonText: "Si",
                     cancelButtonText: "No",
                 }).then((result) => {
-                    if (result.isConfirmed) {
-                        guardar_egreso(2);
+                    if (result.isConfirmed) {                        
+                        let mismos_lotes = result.value ? 1 : 0;
+                        guardar_egreso(2, mismos_lotes);
                     }
                 });
             } else {
-                guardar_egreso(0);
+                guardar_egreso(0,0);
             }
         }
     });
 
-    function guardar_egreso(generar_egreso) {
+    function guardar_egreso(generar_egreso, mismos_lotes) {
         var data = $('#frm_reg_orden_egreso').serialize();
         $.ajax({
             type: 'POST',
             url: 'editar_egresos.php',
             dataType: 'json',
-            data: data + "&oper=add" + '&generar_egreso=' + generar_egreso
+            data: data + "&oper=add" + '&generar_egreso=' + generar_egreso + '&mismos_lotes=' + (mismos_lotes || 0)
         }).done(function (r) {
             if (r.mensaje == 'ok') {
                 $('#id_egreso').val(r.id);

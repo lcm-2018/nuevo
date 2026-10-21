@@ -187,6 +187,7 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
 
     $('.filtro_lot').keypress(function(e) {
         if (e.keyCode == 13) {
+            e.preventDefault();
             $('#tb_lotes_articulos').DataTable().ajax.reload(null, false);
         }
     });

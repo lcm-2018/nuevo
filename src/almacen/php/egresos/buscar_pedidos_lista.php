@@ -18,42 +18,44 @@ $dir = $_POST['order'][0]['dir'];
 $idusr = $_SESSION['id_user'];
 $idrol = $_SESSION['rol'];
 
-$where_usr = " WHERE PP.estado=2";
-
-if (isset($_POST['ped_parcial']) && $_POST['ped_parcial']) {
-    $where_usr .= " AND PP.id_pedido NOT IN 
-                    (SELECT far_cec_pedido_detalle.id_pedido
-                    FROM far_cec_pedido_detalle
-                    LEFT JOIN (SELECT EED.id_ped_detalle,SUM(EED.cantidad) AS cantidad     
-                            FROM far_orden_egreso_detalle AS EED
-                            INNER JOIN far_orden_egreso AS EE ON (EE.id_egreso=EED.id_egreso)
-                            WHERE EE.estado<>0 AND EED.id_ped_detalle IS NOT NULL
-                            GROUP BY EED.id_ped_detalle
-                        ) AS EGRESO ON (EGRESO.id_ped_detalle=far_cec_pedido_detalle.id_ped_detalle)
-                    GROUP BY far_cec_pedido_detalle.id_pedido
-                    HAVING SUM(IF(far_cec_pedido_detalle.cantidad>IFNULL(EGRESO.cantidad,0),1,0))=0)";
-} else {
-    $where_usr .= " AND PP.id_pedido NOT IN 
-                    (SELECT PD.id_pedido FROM far_cec_pedido_detalle AS PD 
-                    INNER JOIN far_orden_egreso_detalle AS ED ON (ED.id_ped_detalle=PD.id_ped_detalle)
-                    INNER JOIN far_orden_egreso AS EE ON (EE.id_egreso=ED.id_egreso)
-                    WHERE EE.estado<>0)";
-}
-
-if ($idrol != 1) {
-    $where_usr .= " AND PP.id_bodega IN (SELECT id_bodega FROM seg_bodegas_usuario WHERE id_usuario=$idusr)";
-}
-
-$where = $where_usr;
-if (isset($_POST['num_pedido']) && $_POST['num_pedido']) {
-    $where .= " AND PP.num_pedido='" . $_POST['num_pedido'] . "'";
-}
-if (isset($_POST['fec_ini']) && $_POST['fec_ini'] && isset($_POST['fec_fin']) && $_POST['fec_fin']) {
-    $where .= " AND PP.fec_pedido BETWEEN '" . $_POST['fec_ini'] . "' AND '" . $_POST['fec_fin'] . "'";
-}
-
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
+    
+    $cmd->exec("DROP TEMPORARY TABLE IF EXISTS tmp_egresos");
+    $sql = "CREATE TEMPORARY TABLE tmp_egresos AS
+            SELECT EED.id_ped_detalle,SUM(EED.cantidad) AS cantidad
+            FROM far_orden_egreso_detalle AS EED
+            INNER JOIN far_orden_egreso AS EE ON (EE.id_egreso = EED.id_egreso)
+            WHERE EE.estado <> 0 AND EED.id_ped_detalle IS NOT NULL
+            GROUP BY EED.id_ped_detalle";
+    $cmd->exec($sql);
+
+    $where_usr = " WHERE PP.estado=2";
+    if (isset($_POST['ped_parcial']) && $_POST['ped_parcial']) {
+        $where_usr .= " AND PP.id_pedido NOT IN 
+                        (SELECT far_cec_pedido_detalle.id_pedido
+                        FROM far_cec_pedido_detalle
+                        LEFT JOIN tmp_egresos ON (tmp_egresos.id_ped_detalle=far_cec_pedido_detalle.id_ped_detalle)
+                        GROUP BY far_cec_pedido_detalle.id_pedido
+                        HAVING SUM(IF(far_cec_pedido_detalle.cantidad>IFNULL(tmp_egresos.cantidad,0),1,0))=0)";
+    } else {
+        $where_usr .= " AND PP.id_pedido NOT IN 
+                        (SELECT far_cec_pedido_detalle.id_pedido 
+                        FROM far_cec_pedido_detalle 
+                        INNER JOIN tmp_egresos ON (tmp_egresos.id_ped_detalle=far_cec_pedido_detalle.id_ped_detalle))";
+    }
+
+    if ($idrol != 1) {
+        $where_usr .= " AND PP.id_bodega IN (SELECT id_bodega FROM seg_bodegas_usuario WHERE id_usuario=$idusr)";
+    }
+
+    $where = $where_usr;
+    if (isset($_POST['num_pedido']) && $_POST['num_pedido']) {
+        $where .= " AND PP.num_pedido='" . $_POST['num_pedido'] . "'";
+    }
+    if (isset($_POST['fec_ini']) && $_POST['fec_ini'] && isset($_POST['fec_fin']) && $_POST['fec_fin']) {
+        $where .= " AND PP.fec_pedido BETWEEN '" . $_POST['fec_ini'] . "' AND '" . $_POST['fec_fin'] . "'";
+    }
 
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM far_cec_pedido AS PP" . $where_usr;

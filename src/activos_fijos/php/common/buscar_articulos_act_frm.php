@@ -120,6 +120,7 @@ $cmd = \Config\Clases\Conexion::getConexion();
 
     $('.filtro_art').keypress(function(e) {
         if (e.keyCode == 13) {
+            e.preventDefault();
             $('#tb_articulos_activos').DataTable().ajax.reload(null, false);
         }
     });

@@ -172,6 +172,7 @@ $fecha_sis = date('Y-m-d');
 
     $('.filtro_ped').keypress(function(e) {
         if (e.keyCode == 13) {
+            e.preventDefault();
             $('#tb_pedidos_tra').DataTable().ajax.reload(null, false);
         }
     });

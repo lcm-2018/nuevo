@@ -519,13 +519,13 @@
     $('#btn_duplicar_pedido').on('click', function () {    
         let id = $('#txt_peddup').val();
         if (!id) {
-            mjeError('Debe seleccionar un pedido para duplicar');
+            mjeError('Debe seleccionar un Pedido para duplicar');
             return;
         }
         Swal.fire({
-            title: "¿Está seguro de duplicar el pedido " + id + " ?",
+            title: "¿Está seguro de duplicar el Pedido " + id + " ?",
             text: "No podrá revertir esta acción",
-            icon: "warning",
+            icon: "question",
             showCancelButton: true,
             confirmButtonColor: "#3085d6",
             cancelButtonColor: "#d33",

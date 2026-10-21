@@ -79,7 +79,7 @@ $content = <<<HTML
                 </button>
             </div>    
             <div class="col-md-1">
-                <button type="button" id="btn_duplicar_pedido" class="btn btn-outline-primary btn-sm" title="Duplicar Pedido">
+                <button type="button" id="btn_duplicar_pedido" class="btn btn-outline-primary btn-sm" title="Duplicar Pedido de Bodega">
                     <span class="fas fa-clone" aria-hidden="true"></span>
                 </button>
                 <input type="hidden" id="txt_peddup" class="form-control form-control-sm bg-input">

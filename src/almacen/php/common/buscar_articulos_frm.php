@@ -178,6 +178,7 @@ $checked = ($proceso == 'pceco') ? 'checked' : '';
 
     $('.filtro_art').keypress(function(e) {
         if (e.keyCode == 13) {
+            e.preventDefault();
             $('#tb_articulos_bodega').DataTable().ajax.reload(null, false);
         }
     });

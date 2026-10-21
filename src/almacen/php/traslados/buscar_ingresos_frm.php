@@ -152,6 +152,7 @@ $fecha_sis = $fecha['fecha'];
 
     $('.filtro_ing').keypress(function(e) {
         if (e.keyCode == 13) {
+            e.preventDefault();
             $('#tb_ingresos_tra').DataTable().ajax.reload(null, false);
         }
     });

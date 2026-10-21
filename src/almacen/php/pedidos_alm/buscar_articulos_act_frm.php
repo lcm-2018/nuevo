@@ -137,6 +137,7 @@ $es_clinico = isset($_POST['es_clinico']) ? $_POST['es_clinico'] : 0;
 
     $('.filtro_art').keypress(function(e) {
         if (e.keyCode == 13) {
+            e.preventDefault();
             $('#tb_articulos_activos').DataTable().ajax.reload(null, false);
         }
     });
