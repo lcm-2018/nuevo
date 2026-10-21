@@ -150,6 +150,7 @@ $cmd = \Config\Clases\Conexion::getConexion();
 
     $('.filtro_acf').keypress(function(e) {
         if (e.keyCode == 13) {
+            e.preventDefault();
             $('#tb_activos_fijos').DataTable().ajax.reload(null, false);
         }
     });

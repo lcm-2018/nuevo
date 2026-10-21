@@ -742,4 +742,75 @@
         });
     });
 
+    /* ---------------------------------------------------
+    DUPLICAR UN INGRESO
+    -----------------------------------------------------*/
+    $('#tb_ingresos').on('click', 'tr', function () {
+        let tabla = $('#tb_ingresos').DataTable();
+        let data = tabla.row(this).data(); 
+        if (!data) return;
+        $('#txt_ingdup').val(data.id_ingreso);
+    });
+
+    $('#tb_ingresos').on('draw.dt', function () {
+        $('#txt_ingdup').val('');
+    });
+
+    $('#btn_duplicar_ingreso').on('click', function () {          
+        let id = $('#txt_ingdup').val();
+        if (!id) {
+            mjeError('Debe seleccionar una Orden de Ingreso para duplicar');
+            return;
+        }
+        Swal.fire({
+            title: "¿Está seguro de duplicar la Orden de Ingreso " + id + " ?",
+            text: "No podrá revertir esta acción",
+            icon: "question",
+            input: "select",
+            inputOptions: {},
+            inputPlaceholder: "Cargando tipos de ingreso...",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, duplicar",
+            cancelButtonText: "Cancelar",
+            didOpen: () => {
+                const $sel = $(Swal.getInput());
+                $.post('../common/cargar_tipos_ingreso.php', { term: '' }, null, 'json').done(function (lista) {
+                    $sel.empty().append('<option value="">--Seleccione el nuevo tipo de ingreso--</option>');
+                    lista.forEach(function (t) {
+                        if (t.id !== '') $sel.append($('<option>').val(t.id).text(t.label));
+                    });
+                }).fail(function () {
+                    $sel.empty().append('<option value="">Error al cargar tipos</option>');
+                });
+            },
+            inputValidator: (value) => {
+                if (!value) return 'Debe seleccionar el tipo de ingreso';
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let id_tipo = result.value;                
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_ingresos.php',
+                    dataType: 'json',
+                    data: { id: id, id_tipo_ingreso: id_tipo, oper: 'dupl' }
+                }).done(function (r) {
+                    if (r.mensaje == 'ok') {                        
+                        $('#tb_ingresos').DataTable().ajax.reload(null, false);
+                        mje("Proceso realizado correctamente","Nueva Orden de Ingreso creada: " + r.id,0);
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                }).fail(function () {
+                    alert('Ocurrió un error');
+                });
+            }
+        });
+    });
+
 })(jQuery);

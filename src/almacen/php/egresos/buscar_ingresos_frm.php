@@ -24,10 +24,10 @@ $fecha_sis = date('Y-m-d');
                         <input type="text" class="filtro_ing form-control form-control-sm bg-input" id="txt_num_ing_fil" placeholder="No. Ingreso">
                     </div>
                     <div class="col-md-2">
-                        <input type="date" class="filtro_ing form-control form-control-sm bg-input" id="txt_fecini_fil" name="txt_fecini_fil" placeholder="Fecha Inicial" value="<?php echo $fecha_sis ?>">
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fecini_fil" name="txt_fecini_fil" placeholder="Fecha Inicial" value="<?php echo $fecha_sis ?>">
                     </div>
                     <div class="col-md-2">
-                        <input type="date" class="filtro_ing form-control form-control-sm bg-input" id="txt_fecfin_fil" name="txt_fecfin_fil" placeholder="Fecha Final" value="<?php echo $fecha_sis ?>">
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fecfin_fil" name="txt_fecfin_fil" placeholder="Fecha Final" value="<?php echo $fecha_sis ?>">
                     </div>
                     <div class="col-md-2">
                         <button type="button" id="btn_buscar_ing_fil" class="btn btn-outline-success btn-sm" title="Filtrar">
@@ -77,7 +77,7 @@ $fecha_sis = date('Y-m-d');
                     type: 'POST',
                     dataType: 'json',
                     data: function(data) {
-                        data.num_ingido = $('#txt_num_ing_fil').val();
+                        data.num_ingreso = $('#txt_num_ing_fil').val();
                         data.fec_ini = $('#txt_fecini_fil').val();
                         data.fec_fin = $('#txt_fecfin_fil').val()
                     }
@@ -152,6 +152,7 @@ $fecha_sis = date('Y-m-d');
 
     $('.filtro_ing').keypress(function(e) {
         if (e.keyCode == 13) {
+            e.preventDefault();
             $('#tb_ingresos_fz').DataTable().ajax.reload(null, false);
         }
     });
@@ -159,4 +160,5 @@ $fecha_sis = date('Y-m-d');
     $('.filtro_ing').click(function(e) {
         $('#tb_ingresos_fz').DataTable().ajax.reload(null, false);
     });
+
 </script>

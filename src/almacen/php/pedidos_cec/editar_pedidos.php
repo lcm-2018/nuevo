@@ -223,7 +223,7 @@ try {
                 }
             } else {
                 if ($estado != 2) {
-                    $res['mensaje'] = 'Solo se puede anular pedidos en estado cerrado.<br/>';
+                    $res['mensaje'] = 'Solo se puede anular Pedidos en estado cerrado.<br/>';
                 } else if ($det_traslado >= 1) {
                     $res['mensaje'] = 'El Pedido ya tiene registros de entrega en una Orden de Egreso';
                 }

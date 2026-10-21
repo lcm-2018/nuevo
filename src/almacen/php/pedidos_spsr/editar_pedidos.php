@@ -184,7 +184,7 @@ try {
             } else {
                 $res['mensaje'] = 'Solo se puede Finalizar Pedidos en estado Confirmado.<br/>';
             }*/
-            $res['mensaje'] = 'Funcionalidad no habilitada, el pedido ya está Confirmado';     
+            $res['mensaje'] = 'Funcionalidad no habilitada, el Pedido ya está Confirmado';     
         }
 
         if ($oper == 'annul') {
@@ -217,7 +217,7 @@ try {
                 }
             } else {
                 if ($estado != 2) {
-                    $res['mensaje'] = 'Solo se puede anular pedidos en estado cerrado.<br/>';
+                    $res['mensaje'] = 'Solo se puede anular Pedidos en estado Cerrado.<br/>';
                 } else if ($det_traslado >= 1) {
                     $res['mensaje'] = 'El Pedido ya tiene registros de entrega en un Traslado';
                 }

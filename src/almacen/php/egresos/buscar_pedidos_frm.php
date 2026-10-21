@@ -23,10 +23,10 @@ $cmd = \Config\Clases\Conexion::getConexion();
                         <input type="text" class="filtro_ped form-control form-control-sm bg-input" id="txt_num_ped_fil" placeholder="No. Pedido">
                     </div>
                     <div class="col-md-2">
-                        <input type="date" class="filtro_ped form-control form-control-sm bg-input" id="txt_fecini_fil" name="txt_fecini_fil" placeholder="Fecha Inicial">
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fecini_fil" name="txt_fecini_fil" placeholder="Fecha Inicial">
                     </div>
                     <div class="col-md-2">
-                        <input type="date" class="filtro_ped form-control form-control-sm bg-input" id="txt_fecfin_fil" name="txt_fecfin_fil" placeholder="Fecha Final">
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fecfin_fil" name="txt_fecfin_fil" placeholder="Fecha Final">
                     </div>
                     <div class="col-md-4">
                         <div class="form-control form-control-sm bg-input">
@@ -158,6 +158,7 @@ $cmd = \Config\Clases\Conexion::getConexion();
 
     $('.filtro_ped').keypress(function(e) {
         if (e.keyCode == 13) {
+            e.preventDefault();
             $('#tb_pedidos_egr').DataTable().ajax.reload(null, false);
         }
     });
@@ -165,4 +166,5 @@ $cmd = \Config\Clases\Conexion::getConexion();
     $('.filtro_ped').click(function(e) {
         $('#tb_pedidos_egr').DataTable().ajax.reload(null, false);
     });
+
 </script>

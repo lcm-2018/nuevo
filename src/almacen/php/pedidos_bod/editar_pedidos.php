@@ -230,7 +230,7 @@ try {
                 }
             } else {
                 if ($estado != 2) {
-                    $res['mensaje'] = 'Solo se puede anular pedidos en estado cerrado';
+                    $res['mensaje'] = 'Solo se puede anular Pedidos en estado Cerrado';
                 } else if ($det_traslado >= 1) {
                     $res['mensaje'] = 'El Pedido ya tiene registros de entrega en un Traslado';
                 }
@@ -296,7 +296,7 @@ try {
                 }                
             } else {
                 if ($estado != 2) {
-                    $res['mensaje'] = 'Solo se puede duplicar pedidos en estado cerrado';
+                    $res['mensaje'] = 'Solo se puede duplicar Pedidos en estado Cerrado';
                 } else if ($num_detalles == 0) {
                     $res['mensaje'] = 'El Pedido a duplicar no tiene detalles';
                 }

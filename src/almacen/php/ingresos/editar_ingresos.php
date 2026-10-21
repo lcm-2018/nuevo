@@ -30,6 +30,7 @@ try {
         ($permisos->PermisosUsuario($opciones, 5006, 3) && $oper == 'add' && $_POST['id_ingreso'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5006, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5006, 3) && $oper == 'close') ||
+        ($permisos->PermisosUsuario($opciones, 5006, 2) && $oper == 'dupl') ||
         ($permisos->PermisosUsuario($opciones, 5006, 5) && $oper == 'annul' || $id_rol == 1)
     ) {
 
@@ -301,6 +302,75 @@ try {
                 }
             } else {
                 $res['mensaje'] = 'Solo puede Anular Ordenes de Ingreso en estado Cerrado';
+            }
+        }
+
+        if ($oper == 'dupl') {
+            $id = $_POST['id'];
+            $id_tipo_ingreso = $_POST['id_tipo_ingreso'];
+
+            $sql = 'SELECT far_orden_ingreso.estado,far_orden_ingreso.fec_ingreso,far_orden_ingreso.detalle,far_orden_ingreso_tipo.orden_compra 
+                    FROM far_orden_ingreso 
+                    INNER JOIN far_orden_ingreso_tipo ON (far_orden_ingreso_tipo.id_tipo_ingreso = far_orden_ingreso.id_tipo_ingreso)
+                    WHERE far_orden_ingreso.id_ingreso=' . $id . ' LIMIT 1';
+            $rs = $cmd->query($sql);
+            $obj_ingreso = $rs->fetch();
+            $estado = isset($obj_ingreso['estado']) ? $obj_ingreso['estado'] : -1;
+            $orden_compra = isset($obj_ingreso['orden_compra']) ? $obj_ingreso['orden_compra'] : -1;
+
+            $sql = "SELECT COUNT(*) AS total FROM far_orden_ingreso_detalle WHERE id_ingreso=" . $id;
+            $rs = $cmd->query($sql);
+            $obj_detalles = $rs->fetch();
+            $num_detalles = $obj_detalles['total'];
+
+            if ($estado == 2 && $num_detalles > 0 && $orden_compra <> 1) {
+                $error = 0;
+                $cmd->beginTransaction();
+
+                date_default_timezone_set('America/Bogota');
+                $fec_ingreso = date('Y-m-d');
+                $hor_ingreso = date('h:iA');
+
+                $sql = "INSERT INTO far_orden_ingreso(fec_ingreso,hor_ingreso,id_tipo_ingreso,detalle,id_provedor,id_centrocosto,
+                            id_sede,id_bodega,id_sedetraslado,val_total,id_usr_crea,fec_creacion,creado_far,estado) 
+                        SELECT '$fec_ingreso','$hor_ingreso',$id_tipo_ingreso,detalle,id_provedor,id_centrocosto,
+                            id_sede,id_bodega,id_sedetraslado,val_total,$id_usr_ope,'$fecha_ope',0,1 
+                        FROM far_orden_ingreso WHERE id_ingreso=$id";
+                $rs1 = $cmd->query($sql);
+
+                $sql = 'SELECT LAST_INSERT_ID() AS id';
+                $rs = $cmd->query($sql);
+                $obj = $rs->fetch();
+                $id_ingreso = $obj['id'];
+                
+                $sql = "INSERT INTO far_orden_ingreso_detalle(id_ingreso,id_lote,observacion,cantidad,valor_sin_iva,iva,valor,id_presentacion,tam_muestra,def_menores,def_mayores,def_criticos,obs_recepcion) 
+                        SELECT $id_ingreso,id_lote,observacion,cantidad,valor_sin_iva,iva,valor,id_presentacion,tam_muestra,def_menores,def_mayores,def_criticos,obs_recepcion
+                        FROM far_orden_ingreso_detalle
+                        WHERE id_ingreso=$id";
+                $rs2 = $cmd->query($sql);
+
+                if ($rs1 == false || $rs2 == false || error_get_last()) {
+                    $error = 1;
+                }
+                if ($error == 0) {
+                    $cmd->commit();
+                    $res['id'] = $id_ingreso;
+                    $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Duplicó Orden de Ingreso Id: " . $id . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
+                    Logs::guardaLog($proceso);
+                } else {
+                    $res['mensaje'] = 'Error de Ejecución de Proceso';
+                    $cmd->rollBack();
+                }                
+            } else {                
+                if ($estado != 2) {
+                    $res['mensaje'] = 'Solo se puede duplicar Ordenes de Ingreso en estado Cerrado';
+                } else if ($num_detalles == 0) {
+                    $res['mensaje'] = 'La Orden de Ingreso a duplicar no tiene detalles';
+                } else if ($orden_compra == 1) {
+                    $res['mensaje'] = 'No se puede duplicar una Ordenes de Ingreso con Orden de Compra';
+                }    
             }
         }
     } else {
