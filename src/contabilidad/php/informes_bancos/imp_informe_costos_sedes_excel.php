@@ -208,6 +208,7 @@ try {
                     p.cuenta,
                     (l.debito - l.credito) AS valor_movimiento,
                     l.id_tercero_api,
+                    l.id_sede,
                     ROW_NUMBER() OVER(
                         PARTITION BY l.id_ctb_doc, (l.debito - l.credito)
                         ORDER BY l.id_ctb_libaux
@@ -229,7 +230,14 @@ try {
             )
             SELECT
                 l.cuenta,
-                COALESCE(CASE WHEN d.id_tipo_doc = 5 THEN e.sede_emp ELSE s.id_sede END, 'sin_asignar') AS id_sede,
+                COALESCE(
+                    CASE 
+                        WHEN l.id_sede IS NOT NULL AND l.id_sede > 0 THEN l.id_sede
+                        WHEN d.id_tipo_doc = 5 THEN e.sede_emp 
+                        ELSE s.id_sede 
+                    END, 
+                    'sin_asignar'
+                ) AS id_sede,
                 SUM(l.valor_movimiento)             AS total_valor
             FROM LibauxNumerado l
             LEFT JOIN CostosNumerado c
@@ -251,7 +259,14 @@ try {
               $and_where_costos
             GROUP BY
                 l.cuenta,
-                COALESCE(CASE WHEN d.id_tipo_doc = 5 THEN e.sede_emp ELSE s.id_sede END, 'sin_asignar')
+                COALESCE(
+                    CASE 
+                        WHEN l.id_sede IS NOT NULL AND l.id_sede > 0 THEN l.id_sede
+                        WHEN d.id_tipo_doc = 5 THEN e.sede_emp 
+                        ELSE s.id_sede 
+                    END, 
+                    'sin_asignar'
+                )
         ";
 
         $rs_costos = $cmd_principal->prepare($sql_costos);

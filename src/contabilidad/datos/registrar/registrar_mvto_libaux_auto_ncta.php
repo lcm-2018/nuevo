@@ -203,8 +203,12 @@ try {
                 d.grp_tipo_egreso,
                 d.id_centro,
                 d.id_subgrupo";
+
     $datos_sedes = obtenerSedesActivas($cmd);
     $sedes = $datos_sedes['sedes'];
+
+    // Guardar la BD principal ANTES del loop de sedes
+    $bd_principal = $cmd->query("SELECT DATABASE() AS db_actual")->fetch()['db_actual'];
 
     $objeto = [];
 
@@ -239,6 +243,9 @@ try {
             $cmd_sede = null;
         }
     }
+
+    // Restaurar la BD principal después del loop (conectarSede cambia la BD del Singleton)
+    $cmd->exec("USE `{$bd_principal}`");
 
     $id_sede = null;
     $id_cuenta = null;
