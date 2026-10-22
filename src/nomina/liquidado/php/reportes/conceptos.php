@@ -397,7 +397,7 @@ function formatearCelda($valor, $campo)
     return $valor;
 }
 
-$numColumnas = count($columnas);
+$numColumnas = is_countable($columnas) ? count($columnas) : 0;
 
 // Si es tipo Excel, generar archivo Excel
 if ($tipo == 'E') {

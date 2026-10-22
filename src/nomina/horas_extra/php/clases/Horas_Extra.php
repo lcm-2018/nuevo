@@ -152,7 +152,7 @@ class Horas_Extra
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 
     /**
@@ -201,7 +201,7 @@ class Horas_Extra
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 
     /**
@@ -380,7 +380,7 @@ class Horas_Extra
                 if ($rowIndex++ === 0) continue;
 
                 // Validar cantidad de columnas
-                if (count($row) !== 10) {
+                if (!is_array($row) || count($row) !== 10) {
                     throw new Exception("Fila $rowIndex: número de columnas incorrecto.");
                 }
                 // en un array colocar todos los datos del csv de la fila 

@@ -128,7 +128,7 @@ class Liquidado
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 
     /**
@@ -151,6 +151,6 @@ class Liquidado
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 }

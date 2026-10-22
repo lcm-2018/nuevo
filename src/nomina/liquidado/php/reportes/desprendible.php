@@ -334,7 +334,7 @@ HTML;
 
 // Generar el contenido HTML
 $html = '';
-$totalEmpleados = count($empleados);
+$totalEmpleados = is_countable($empleados) ? count($empleados) : 0;
 $contador = 0;
 
 foreach ($empleados as $empleado) {

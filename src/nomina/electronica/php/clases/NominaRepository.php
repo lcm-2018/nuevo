@@ -448,7 +448,7 @@ class NominaRepository
             $sql = "SELECT `consecutivo` FROM `nom_consecutivo_viaticos` LIMIT 1";
             $stmt = $this->conexion->query($sql);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return !empty($result) ? max(1, intval($result['consecutivo'])) : 1;
+            return !empty($result) ? max(1, intval($result['consecutivo'] ?? 1)) : 1;
         } catch (\PDOException $e) {
             return 1;
         }

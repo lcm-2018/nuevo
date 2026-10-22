@@ -454,7 +454,7 @@ class Detalles
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 
     /**
@@ -490,7 +490,7 @@ class Detalles
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 
     public function getFormulario($id_empleado, $id_nomina, $item)
@@ -1297,7 +1297,7 @@ DEDUCCIONES;
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($data) ? $data['concepto'] : 'CONCEPTO NO DEFINIDO';
+        return !empty($data) && isset($data['concepto']) ? $data['concepto'] : 'CONCEPTO NO DEFINIDO';
     }
 
     /**
@@ -2143,11 +2143,12 @@ DEDUCCIONES;
         $retencion = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
 
-        if (!empty($retencion) && floatval($retencion['deducido']) > 0) {
+        $deducidoRet = floatval($retencion['deducido'] ?? 0);
+        if (!empty($retencion) && $deducidoRet > 0) {
             $grupos['RETENCION FUENTE UVT P1'] = [
                 'orden' => 7,
                 'total_devengado' => 0,
-                'total_deducido' => floatval($retencion['deducido']),
+                'total_deducido' => $deducidoRet,
                 'total_patronal' => 0,
                 'detalles' => []
             ];

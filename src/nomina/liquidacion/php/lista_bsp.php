@@ -9,8 +9,8 @@ include_once '../../../../config/autoloader.php';
 
 $start = isset($_POST['start']) ? intval($_POST['start']) : 0;
 $length = isset($_POST['length']) ? intval($_POST['length']) : 10;
-$col = $_POST['order'][0]['column'] + 1;
-$dir = $_POST['order'][0]['dir'];
+$col = isset($_POST['order'][0]['column']) ? intval($_POST['order'][0]['column']) + 1 : 1;
+$dir = $_POST['order'][0]['dir'] ?? 'ASC';
 
 $filtros = [];
 
@@ -66,7 +66,7 @@ if (!empty($obj) && !empty($emp_bsp)) {
 
 $data = [
     'data' => $datos,
-    'recordsFiltered' => count($datos),    // empleados BSP que coinciden con el filtro activo
-    'recordsTotal' => count($emp_bsp),  // total de empleados con BSP pendiente (sin filtro)
+    'recordsFiltered' => is_countable($datos) ? count($datos) : 0,    // empleados BSP que coinciden con el filtro activo
+    'recordsTotal' => is_countable($emp_bsp) ? count($emp_bsp) : 0,  // total de empleados con BSP pendiente (sin filtro)
 ];
 echo json_encode($data);

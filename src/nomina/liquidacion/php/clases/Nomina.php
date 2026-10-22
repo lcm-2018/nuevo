@@ -210,7 +210,7 @@ class Nomina
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 
     /**
@@ -284,7 +284,7 @@ class Nomina
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 
     public function getFormulario($id)
@@ -587,14 +587,15 @@ class Nomina
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return $row ? intval($row['id_vigencia']) : 0;
+        return $row && isset($row['id_vigencia']) ? intval($row['id_vigencia']) : 0;
     }
 
     public function cambiaEstado($id_nomina, $estado)
     {
         if ($estado == 2 && $_SESSION['pto'] != 1) {
             $estado = 3;
-            $tipo = self::getRegistro($id_nomina)['tipo'];
+            $regNom = self::getRegistro($id_nomina);
+            $tipo = $regNom['tipo'] ?? '';
             $sqlInsertPto = "INSERT INTO `nom_nomina_pto_ctb_tes` (`id_nomina`, `tipo`) VALUES (?, ?), (?, 'PL')";
             $stmtPto = $this->conexion->prepare($sqlInsertPto);
             $stmtPto->bindParam(1, $id_nomina, PDO::PARAM_INT);

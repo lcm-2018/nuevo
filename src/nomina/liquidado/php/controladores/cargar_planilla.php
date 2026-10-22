@@ -92,7 +92,7 @@ if ($extension === 'csv') {
 }
 
 // Quitar encabezado (fila 0)
-if (count($filas) <= 1) {
+if (!is_array($filas) || count($filas) <= 1) {
     $res['msg'] = 'El archivo no contiene datos a procesar.';
     echo json_encode($res);
     exit;

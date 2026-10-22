@@ -51,7 +51,7 @@ try {
 
     // Estadísticas del proceso
     $stats = [
-        'total' => count($empleados),
+        'total' => is_countable($empleados) ? count($empleados) : 0,
         'enviados' => 0,
         'sin_correo' => 0,
         'fallidos' => 0,

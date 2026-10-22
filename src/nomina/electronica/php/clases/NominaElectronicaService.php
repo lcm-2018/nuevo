@@ -290,7 +290,7 @@ class NominaElectronicaService
             throw new Exception("Error de conexión con Taxxa: " . $curlError);
         }
 
-        $decoded = json_decode($response, true);
+        $decoded = is_string($response) ? json_decode($response, true) : null;
 
         if ($decoded === null) {
             throw new Exception("Respuesta inválida de Taxxa (no JSON): " . substr($response, 0, 200));

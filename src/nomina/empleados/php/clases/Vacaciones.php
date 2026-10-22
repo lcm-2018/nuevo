@@ -881,7 +881,7 @@ class Vacaciones
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
             unset($stmt);
-            return !empty($row) ? (int)$row['id_vac'] : 0;
+            return !empty($row) ? (int)($row['id_vac'] ?? 0) : 0;
         } catch (PDOException $e) {
             return 0;
         }

@@ -452,7 +452,7 @@ $firmas = (new CReportes())->getFormFirmas(
 
 // ── HTML completo ────────────────────────────────────────────────────────────
 $html = '';
-$total_emps = count($empleados);
+$total_emps = is_countable($empleados) ? count($empleados) : 0;
 $contador = 0;
 
 foreach ($empleados as $empleado) {
