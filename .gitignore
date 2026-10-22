@@ -1,9 +1,14 @@
+# Variables de entorno y credenciales sensibles (NUNCA subir al repositorio)
+.env
+.env.local
+.env.*.local
+
 # Ignorar archivo de configuración de conexión a base de datos
 config/clases/Conexion.php
 
 # Ignorar archivo de configuración SMTP (contiene credenciales)
 config/smtp_config.php
 
-# Ignorar carpeta de logs
+# Ignorar carpeta de logs y scripts temporales
 logs/
 scripts/

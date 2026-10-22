@@ -21,12 +21,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5006, 2) && $oper == 'add' && $_POST['id_ingreso'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5006, 2) && $oper == 'add' && $_POST['id_ingreso'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5006, 3) && $oper == 'add' && $_POST['id_ingreso'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5006, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5006, 3) && $oper == 'close') ||
@@ -342,7 +343,7 @@ try {
                 $rs = $cmd->query($sql);
                 $obj = $rs->fetch();
                 $id_ingreso = $obj['id'];
-                
+
                 $sql = "INSERT INTO far_orden_ingreso_detalle(id_ingreso,id_lote,observacion,cantidad,valor_sin_iva,iva,valor,id_presentacion,tam_muestra,def_menores,def_mayores,def_criticos,obs_recepcion) 
                         SELECT $id_ingreso,id_lote,observacion,cantidad,valor_sin_iva,iva,valor,id_presentacion,tam_muestra,def_menores,def_mayores,def_criticos,obs_recepcion
                         FROM far_orden_ingreso_detalle
@@ -362,15 +363,15 @@ try {
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
                     $cmd->rollBack();
-                }                
-            } else {                
+                }
+            } else {
                 if ($estado != 2) {
                     $res['mensaje'] = 'Solo se puede duplicar Ordenes de Ingreso en estado Cerrado';
                 } else if ($num_detalles == 0) {
                     $res['mensaje'] = 'La Orden de Ingreso a duplicar no tiene detalles';
                 } else if ($orden_compra == 1) {
                     $res['mensaje'] = 'No se puede duplicar una Ordenes de Ingreso con Orden de Compra';
-                }    
+                }
             }
         }
     } else {

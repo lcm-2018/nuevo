@@ -18,12 +18,13 @@ $opciones = $permisos->PermisoOpciones($id_user);
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
 $id_usr_crea = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5508, 2) && $oper == 'add' && $_POST['id_cec_sgcta'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5508, 2) && $oper == 'add' && $_POST['id_cec_sgcta'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5508, 3) && $oper == 'add' && $_POST['id_cec_sgcta'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5508, 4) && $oper == 'del') || $id_rol == 1
     ) {

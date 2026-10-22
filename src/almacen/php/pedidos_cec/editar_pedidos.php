@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5004, 2) && $oper == 'add' && $_POST['id_pedido'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5004, 2) && $oper == 'add' && $_POST['id_pedido'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5004, 3) && $oper == 'add' && $_POST['id_pedido'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5004, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5004, 3) && $oper == 'conf') ||
@@ -105,7 +106,7 @@ try {
             if ($obj_pedido['estado'] == 1) {
                 $sql = "DELETE FROM far_cec_pedido WHERE id_pedido=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {                    
+                if ($rs) {
                     $res['mensaje'] = 'ok';
 
                     $proceso = "Se Eliminó Pedido de Dependencia Id: " . $id . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];

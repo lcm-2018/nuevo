@@ -21,7 +21,7 @@ ini_set('memory_limit', '-1');
 $id = $_POST['id'];
 $parametros = json_decode($_POST['parametros']);
 $separador = ",";
-$res = array();
+$res = [];
 
 try {
 

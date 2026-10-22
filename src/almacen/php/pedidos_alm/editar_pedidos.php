@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5005, 2) && $oper == 'add' && $_POST['id_pedido'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5005, 2) && $oper == 'add' && $_POST['id_pedido'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5005, 3) && $oper == 'add' && $_POST['id_pedido'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5005, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5005, 3) && $oper == 'conf') ||
@@ -83,7 +84,7 @@ try {
         }
 
         if ($oper == 'del') {
-            $id = $_POST['id'];            
+            $id = $_POST['id'];
             $sql = "SELECT estado,fec_pedido,detalle FROM far_alm_pedido WHERE id_pedido=" . $id;
             $rs = $cmd->query($sql);
             $obj_pedido = $rs->fetch();

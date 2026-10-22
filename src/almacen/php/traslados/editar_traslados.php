@@ -21,12 +21,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5008, 2) && $oper == 'add' && $_POST['id_traslado'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5008, 2) && $oper == 'add' && $_POST['id_traslado'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5008, 3) && $oper == 'add' && $_POST['id_traslado'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5008, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5008, 3) && $oper == 'close') ||
@@ -129,7 +130,7 @@ try {
                                 ORDER BY fec_vencimiento,existencia";
                         $rs1 = $cmd->prepare($sql);
 
-                        $lotes = array();
+                        $lotes = [];
                         foreach ($objs as $obj) {
                             $rs1->bindParam(':id_med', $obj['id_medicamento']);
                             $rs1->execute();
@@ -231,7 +232,7 @@ try {
             if ($obj_tra['estado'] == 1) {
                 $sql = "DELETE FROM far_traslado WHERE id_traslado=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {                    
+                if ($rs) {
                     $res['mensaje'] = 'ok';
 
                     $proceso = "Se Eliminó Traslado Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
@@ -428,7 +429,7 @@ try {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
 
-                        $proceso = "Se Cerró Traslado Id: " . $id. ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
+                        $proceso = "Se Cerró Traslado Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
                         Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = 'Error de Ejecución de Proceso';
@@ -486,7 +487,7 @@ try {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
 
-                        $proceso = "Se Anuló Traslado Id: " . $id. ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
+                        $proceso = "Se Anuló Traslado Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
                         Logs::guardaLog($proceso);
                     } else {
                         $cmd->rollBack();

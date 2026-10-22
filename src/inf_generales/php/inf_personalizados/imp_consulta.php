@@ -10,7 +10,7 @@ include '../common/funciones_generales.php';
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $id = $_POST['id'];
     $parametros = json_decode($_POST['parametros']);
@@ -40,7 +40,7 @@ try {
     $rs1 = $cmd->query($cnsql . $limite, PDO::FETCH_BOTH);
     $objs = $rs1->fetchAll(PDO::FETCH_NUM);
     $n = $rs1->columnCount();
-    
+
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -89,18 +89,18 @@ try {
                         <th><?= $col['name'] ?></th>
                     <?php endfor; ?>
                 </tr>
-                
+
             </thead>
             <tbody style="font-size: 60%;">
                 <?php
                 $j = 0;
-                foreach ($objs as $obj) : ?>
+                foreach ($objs as $obj): ?>
                     <tr>
-                        <?php for ($i = 0; $i < $n; $i++) : ?>
+                        <?php for ($i = 0; $i < $n; $i++): ?>
                             <td><?php echo $obj[$i] ?></td>
                         <?php endfor; ?>
                     </tr>
-                <?php $j++;
+                    <?php $j++;
                 endforeach; ?>
             </tbody>
             <tfoot style="font-size:60%">

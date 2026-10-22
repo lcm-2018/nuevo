@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5705, 2) && $oper == 'add' && $_POST['id_pedido'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5705, 2) && $oper == 'add' && $_POST['id_pedido'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5705, 3) && $oper == 'add' && $_POST['id_pedido'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5705, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5705, 3) && $oper == 'aprob') ||
@@ -121,7 +122,7 @@ try {
             if ($obj_mant['estado'] == 1) {
                 $sql = "DELETE FROM acf_mantenimiento WHERE id_mantenimiento=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {                    
+                if ($rs) {
                     $res['mensaje'] = 'ok';
 
                     $proceso = "Se Eliminó Mantenimiento Id: " . $id . ", Fecha: " . $obj_mant['fec_mantenimiento'] . ", Observaciones: " . $obj_mant['observaciones'];
@@ -287,7 +288,7 @@ try {
                 if ($error == 0) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
-                    
+
                     $proceso = "Se Anuló Mantenimiento Id: " . $id . ", Fecha: " . $obj_mant['fec_mantenimiento'] . ", Observaciones: " . $obj_mant['observaciones'];
                     Logs::guardaLog($proceso);
                 } else {

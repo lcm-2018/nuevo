@@ -21,12 +21,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5007, 2) && $oper == 'add' && $_POST['id_egreso'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5007, 2) && $oper == 'add' && $_POST['id_egreso'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5007, 3) && $oper == 'add' && $_POST['id_egreso'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5007, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5007, 3) && $oper == 'close') ||
@@ -102,7 +103,7 @@ try {
                 $id_egreso = $res['id'];
                 $sql = '';
 
-                if($mismos_lotes == 1 && $generar_egreso == 2) {
+                if ($mismos_lotes == 1 && $generar_egreso == 2) {
                     $id_ingreso = $_POST['txt_id_ingreso'];
                     $sql = "INSERT INTO far_orden_egreso_detalle(id_egreso,id_lote,cantidad,valor)
                         SELECT $id_egreso,id_lote,cantidad,valor
@@ -112,7 +113,7 @@ try {
 
                 } else {
                     //Si el egreso se genera en base a un Pedido
-                    if ($generar_egreso == 1) {  
+                    if ($generar_egreso == 1) {
                         $id_pedido = $_POST['txt_id_pedido'];
                         $sql = "SELECT far_cec_pedido_detalle.id_ped_detalle,far_cec_pedido_detalle.id_medicamento,
                                     far_cec_pedido_detalle.cantidad-IFNULL(EGRESO.cantidad,0) AS cantidad,
@@ -127,7 +128,7 @@ try {
                                         GROUP BY EED.id_ped_detalle
                                     ) AS EGRESO ON (EGRESO.id_ped_detalle=far_cec_pedido_detalle.id_ped_detalle) 
                                 WHERE far_cec_pedido_detalle.cantidad>IFNULL(EGRESO.cantidad,0) AND far_cec_pedido_detalle.id_pedido=" . $id_pedido;
-                    
+
                     }
                     //Si el egreso se genera en base a un Ingreso Fianza
                     else if ($generar_egreso == 2) {
@@ -166,7 +167,7 @@ try {
                             ORDER BY fec_vencimiento,existencia";
                     $rs1 = $cmd->prepare($sql);
 
-                    $lotes = array();
+                    $lotes = [];
                     foreach ($objs as $obj) {
                         $rs1->bindParam(':id_med', $obj['id_medicamento']);
                         $rs1->execute();
@@ -225,8 +226,8 @@ try {
                                 $rs2->execute();
                             }
                         }
-                    }                    
-                }   
+                    }
+                }
 
                 $sql = "UPDATE far_orden_egreso SET val_total=(SELECT SUM(valor*cantidad) FROM far_orden_egreso_detalle WHERE id_egreso=$id_egreso) WHERE id_egreso=$id_egreso";
                 $rs = $cmd->query($sql);
@@ -254,7 +255,7 @@ try {
             if ($obj_egreso['estado'] == 1) {
                 $sql = "DELETE FROM far_orden_egreso WHERE id_egreso=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {                    
+                if ($rs) {
                     $res['mensaje'] = 'ok';
 
                     $proceso = "Se Eliminó Órden de Egreso Id: " . $id . ", Fecha: " . $obj_egreso['fec_egreso'] . ", Detalle: " . $obj_egreso['detalle'];
@@ -362,7 +363,7 @@ try {
                         $obj = $rs->fetch();
                         $num_egreso_tipo = $obj['consecutivo'];
                         $res['num_egreso_tipo'] = $num_egreso_tipo;
-                        
+
                         $sql = "UPDATE far_orden_egreso SET num_egreso=$num_egreso,num_egreso_tipo=$num_egreso_tipo,estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope',val_total=(SELECT SUM(valor*cantidad) FROM far_orden_egreso_detalle WHERE id_egreso=$id) WHERE id_egreso= $id";
                         $rs1 = $cmd->query($sql);
 
@@ -428,8 +429,8 @@ try {
                 }
                 if ($rs) {
                     $cmd->commit();
-                    $res['mensaje'] = 'ok';    
-                    
+                    $res['mensaje'] = 'ok';
+
                     $proceso = "Se Anuló Órden de Egreso Id: " . $id . ", Fecha: " . $obj_egreso['fec_egreso'] . ", Detalle: " . $obj_egreso['detalle'];
                     Logs::guardaLog($proceso);
                 } else {

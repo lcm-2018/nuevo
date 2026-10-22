@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5706, 2) && $oper == 'add') ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5706, 2) && $oper == 'add') ||
         ($permisos->PermisosUsuario($opciones, 5706, 3) && $oper == 'close') || $id_rol == 1
     ) {
 
@@ -109,7 +110,7 @@ try {
                     $rs = $cmd->query($sql);
                     $obj_det = $rs->fetch();
                     if ($obj_det['total'] == 0) {
-                        $sql = "UPDATE acf_mantenimiento SET estado=4 WHERE id_mantenimiento="  . $obj_man['id_mantenimiento'];
+                        $sql = "UPDATE acf_mantenimiento SET estado=4 WHERE id_mantenimiento=" . $obj_man['id_mantenimiento'];
                         $updated = $cmd->query($sql);
                     }
                 }

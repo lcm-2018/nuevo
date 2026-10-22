@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5703, 2) && $oper == 'add' && $_POST['id_ingreso'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5703, 2) && $oper == 'add' && $_POST['id_ingreso'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5703, 3) && $oper == 'add' && $_POST['id_ingreso'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5703, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5703, 3) && $oper == 'close') ||
@@ -98,7 +99,7 @@ try {
             if ($obj_ingreso['estado'] == 1) {
                 $sql = "DELETE FROM acf_orden_ingreso WHERE id_ingreso=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {                    
+                if ($rs) {
                     $res['mensaje'] = 'ok';
 
                     $proceso = "Se Eliminó Órden de Ingreso de Activos Fijos Id: " . $id . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
@@ -241,7 +242,7 @@ try {
                     if ($error == 0) {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
-                        
+
                         $proceso = "Se Anuló Órden de Ingreso de Activos Fijos Id: " . $id . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
                         Logs::guardaLog($proceso);
                     } else {

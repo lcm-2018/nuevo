@@ -23,12 +23,12 @@ $rs = $cmd->query($sql);
 $obj = $rs->fetch();
 
 if ($obj === false) {
-    $obj = array(); // Inicializa $obj como un array vacío
+    $obj = []; // Inicializa $obj como un array vacío
 }
 
 if (empty($obj)) {
     $n = $rs->columnCount();
-    for ($i = 0; $i < $n; $i++) :
+    for ($i = 0; $i < $n; $i++):
         $col = $rs->getColumnMeta($i);
         $name = $col['name'];
         $obj[$name] = NULL;
@@ -71,38 +71,49 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                 <div class="row mb-2">
                     <div class="col-md-1">
                         <label for="txt_fec_ing" class="small">Id.</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_ide" name="txt_ide" class="small" value="<?php echo ($id == -1 ? '' : $id) ?>" readonly="readonly">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_ide" name="txt_ide"
+                            class="small" value="<?php echo ($id == -1 ? '' : $id) ?>" readonly="readonly">
                     </div>
                     <div class="col-md-2">
                         <label for="txt_nom_sede" class="small">Sede</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_sede" class="small" value="<?php echo $obj['nom_sede'] ?>" readonly="readonly">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_sede" class="small"
+                            value="<?php echo $obj['nom_sede'] ?>" readonly="readonly">
                         <input type="hidden" id="id_txt_sede" name="id_txt_sede" value="<?php echo $obj['id_sede'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="txt_nom_sede" class="small">Area</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_area" class="small" value="<?php echo $area['nom_area'] ?>" readonly="readonly">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_nom_area" class="small"
+                            value="<?php echo $area['nom_area'] ?>" readonly="readonly">
                         <input type="hidden" id="id_txt_area" name="id_txt_area" value="<?php echo $area['id_area'] ?>">
                     </div>
                     <div class="col-md-6">
                         <div class="row mb-2">
                             <div class="col-md-3">
                                 <label for="txt_fec_ing" class="small">Fecha Ingreso</label>
-                                <input type="text" class="form-control form-control-sm bg-input" id="txt_fec_ing" name="txt_fec_ing" class="small" value="<?php echo $obj['fec_ingreso'] ?>" readonly="readonly">
+                                <input type="text" class="form-control form-control-sm bg-input" id="txt_fec_ing"
+                                    name="txt_fec_ing" class="small" value="<?php echo $obj['fec_ingreso'] ?>"
+                                    readonly="readonly">
                             </div>
                             <div class="col-md-3">
                                 <label for="txt_hor_ing" class="small">Hora Ingreso</label>
-                                <input type="text" class="form-control form-control-sm bg-input" id="txt_hor_ing" name="txt_hor_ing" class="small" value="<?php echo $obj['hor_ingreso'] ?>" readonly="readonly">
+                                <input type="text" class="form-control form-control-sm bg-input" id="txt_hor_ing"
+                                    name="txt_hor_ing" class="small" value="<?php echo $obj['hor_ingreso'] ?>"
+                                    readonly="readonly">
                             </div>
                             <div class="col-md-3">
                                 <label for="txt_num_ing" class="small">No. Ingreso</label>
-                                <input type="text" class="form-control form-control-sm bg-input" id="txt_num_ing" name="txt_num_ing" class="small" value="<?php echo $obj['num_ingreso'] ?>" readonly="readonly">
+                                <input type="text" class="form-control form-control-sm bg-input" id="txt_num_ing"
+                                    name="txt_num_ing" class="small" value="<?php echo $obj['num_ingreso'] ?>"
+                                    readonly="readonly">
                             </div>
                             <div class="col-md-3">
                                 <label for="txt_est_ing" class="small">Estado Ingreso</label>
-                                <input type="text" class="form-control form-control-sm bg-input" id="txt_est_ing" name="txt_est_ing" class="small" value="<?php echo $obj['nom_estado'] ?>" readonly="readonly">
+                                <input type="text" class="form-control form-control-sm bg-input" id="txt_est_ing"
+                                    name="txt_est_ing" class="small" value="<?php echo $obj['nom_estado'] ?>"
+                                    readonly="readonly">
                             </div>
                         </div>
-                    </div>                    
+                    </div>
                     <div class="col-md-2">
                         <label for="sl_tip_ing" class="small" required>Tipo Ingreso</label>
                         <select class="form-select form-select-sm bg-input" id="sl_tip_ing" name="sl_tip_ing">
@@ -111,28 +122,37 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     </div>
                     <div class="col-md-1">
                         <label for="txt_num_ing_tipo" class="small">No. Tipo Ing.</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_num_ing_tipo" name="txt_num_ing_tipo" class="small" value="<?php echo $obj['num_ingreso_tipo'] ?>" readonly="readonly">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_num_ing_tipo"
+                            name="txt_num_ing_tipo" class="small" value="<?php echo $obj['num_ingreso_tipo'] ?>"
+                            readonly="readonly">
                     </div>
                     <div class="col-md-2">
                         <label for="txt_num_fac" class="small">No. Fact./Acta/Rem.</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_num_fac" name="txt_num_fac" class="small" value="<?php echo $obj['num_factura'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_num_fac"
+                            name="txt_num_fac" class="small" value="<?php echo $obj['num_factura'] ?>">
                     </div>
                     <div class="col-md-2">
                         <label for="txt_fec_fac" class="small">Fecha Fact./Acta/Rem.</label>
-                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fec_fac" name="txt_fec_fac" class="small" value="<?php echo $obj['fec_factura'] ?>">
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fec_fac"
+                            name="txt_fec_fac" class="small" value="<?php echo $obj['fec_factura'] ?>">
                     </div>
                     <div class="col-md-5">
                         <label for="txt_tercero" class="small">Tercero</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_tercero" value="<?php echo $obj['nom_tercero'] ?>">
-                        <input type="hidden" id="id_txt_tercero" name="id_txt_tercero" value="<?php echo $obj['id_tercero'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_tercero"
+                            value="<?php echo $obj['nom_tercero'] ?>">
+                        <input type="hidden" id="id_txt_tercero" name="id_txt_tercero"
+                            value="<?php echo $obj['id_tercero'] ?>">
                     </div>
                     <div class="col-md-12">
                         <label for="txt_det_ing" class="small">Detalle</label>
-                        <textarea class="form-control" id="txt_det_ing" name="txt_det_ing" rows="2"><?php echo $obj['detalle'] ?></textarea>
+                        <textarea class="form-control" id="txt_det_ing" name="txt_det_ing"
+                            rows="2"><?php echo $obj['detalle'] ?></textarea>
                     </div>
                 </div>
             </form>
-            <table id="tb_ingresos_detalles" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle w-100" style="font-size:80%">
+            <table id="tb_ingresos_detalles"
+                class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle w-100"
+                style="font-size:80%">
                 <thead>
                     <tr class="text-center">
                         <th class="bg-sofia">Id</th>
@@ -155,7 +175,8 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     <label for="txt_val_tot" class="small">Total Orden Ingreso</label>
                 </div>
                 <div class="col-md-2">
-                    <input type="text" class="form-control form-control-sm bg-input" id="txt_val_tot" name="txt_val_tot" class="small" value="<?php echo formato_valor($obj['val_total']) ?>" readonly="readonly">
+                    <input type="text" class="form-control form-control-sm bg-input" id="txt_val_tot" name="txt_val_tot"
+                        class="small" value="<?php echo formato_valor($obj['val_total']) ?>" readonly="readonly">
                 </div>
             </div>
         </div>

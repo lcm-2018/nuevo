@@ -8,11 +8,11 @@ include '../../../config/autoloader.php';
 use Config\Clases\Logs;
 
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    
+
 
     if ($oper == "add") {
         $id_crp = $_POST['id_crp'];

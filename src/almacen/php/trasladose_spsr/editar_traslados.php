@@ -21,12 +21,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5017, 2) && $oper == 'add' && $_POST['id_traslado'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5017, 2) && $oper == 'add' && $_POST['id_traslado'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5017, 3) && $oper == 'add' && $_POST['id_traslado'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5017, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5017, 3) && $oper == 'close') ||
@@ -113,9 +114,9 @@ try {
                                 WHERE FM.es_clinico<>1 AND PD.id_pedido=" . $id_pedido;
                         $rs0 = $cmd->query($sql);
                         $obj0 = $rs0->fetch();
-                        
+
                         if ($obj0['cant_articulos'] == 0) {
-                        
+
                             $sql = "SELECT far_pedido_detalle.id_ped_detalle,far_pedido_detalle.id_medicamento,
                                             far_pedido_detalle.cantidad-IFNULL(TRASLADO.cantidad,0) AS cantidad,
                                             far_medicamentos.val_promedio,
@@ -141,7 +142,7 @@ try {
                                     ORDER BY fec_vencimiento,existencia";
                             $rs1 = $cmd->prepare($sql);
 
-                            $lotes = array();
+                            $lotes = [];
                             foreach ($objs as $obj) {
                                 $rs1->bindParam(':id_med', $obj['id_medicamento']);
                                 $rs1->execute();
@@ -184,7 +185,7 @@ try {
                                         $res['mensaje'] .= ', ' . $obj['cod_medicamento'] . '-' . $obj['nom_medicamento'];
                                     }
                                 }
-                            }                           
+                            }
 
                             if ($res['mensaje'] == 'ok') {
                                 $sql = "INSERT INTO far_traslado_r_detalle(id_traslado,id_lote_origen,cantidad,valor,id_ped_detalle) 
@@ -203,8 +204,8 @@ try {
                             }
                         } else {
                             $res['mensaje'] = 'Los siguientes Artículos no son de uso Clínico: ' . $obj0['articulos'];
-                        } 
-                            
+                        }
+
                     } else if ($generar_traslado == 2) {
 
                         $id_ingreso = $_POST['txt_id_ingreso'];
@@ -216,7 +217,7 @@ try {
                                 WHERE FM.es_clinico<>1 AND ID.id_ingreso=" . $id_ingreso;
                         $rs0 = $cmd->query($sql);
                         $obj0 = $rs0->fetch();
-                        
+
                         if ($obj0['cant_articulos'] == 0) {
                             $sql = "INSERT INTO far_traslado_r_detalle(id_traslado,id_lote_origen,cantidad,valor) 
                                     SELECT $id_traslado,ID.id_lote,(ID.cantidad*PC.cantidad),FM.val_promedio
@@ -228,7 +229,7 @@ try {
                             $rs = $cmd->query($sql);
                         } else {
                             $res['mensaje'] = 'Los siguientes Artículos no son de uso Clínico: ' . $obj0['articulos'];
-                        }    
+                        }
                     }
 
                     $sql = "UPDATE far_traslado_r SET val_total=(SELECT SUM(valor*cantidad) FROM far_traslado_r_detalle WHERE id_traslado=$id_traslado) WHERE id_traslado=$id_traslado";
@@ -260,7 +261,7 @@ try {
             if ($obj_tra['estado'] == 1) {
                 $sql = "DELETE FROM far_traslado_r WHERE id_traslado=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {                    
+                if ($rs) {
                     $res['mensaje'] = 'ok';
 
                     $proceso = "Se Eliminó Traslado SPSR Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
@@ -416,7 +417,7 @@ try {
                 $password = $obj_sede['pw_sede'];
                 $user = $obj_sede['us_sede'];
                 $continuar = true;
-                
+
                 if (!isMySQLPortOpen($ip, $port) && $continuar) {
                     $res['mensaje'] = "Error: El servidor MySQL no responde en $ip:$port. Verifique el servicio.";
                     $continuar = false;
@@ -506,7 +507,8 @@ try {
                                 $sql->bindValue(':cantidad', $med['cantidad'], PDO::PARAM_INT);
                                 $sql->bindValue(':valor', $med['valor']);
                                 $rs = $sql->execute();
-                                if (!$rs) break;
+                                if (!$rs)
+                                    break;
                             }
                         }
 

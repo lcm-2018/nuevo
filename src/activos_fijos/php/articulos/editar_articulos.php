@@ -19,12 +19,13 @@ $opciones = $permisos->PermisoOpciones($id_user);
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
 $id_usr_crea = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5701, 2) && $oper == 'add' && $_POST['id_articulo'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5701, 2) && $oper == 'add' && $_POST['id_articulo'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5701, 3) && $oper == 'add' && $_POST['id_articulo'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5701, 4) && $oper == 'del') || $id_rol == 1
     ) {
@@ -105,7 +106,7 @@ try {
 
                 $sql = "DELETE FROM far_medicamentos WHERE id_med=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {                    
+                if ($rs) {
                     $res['mensaje'] = 'ok';
 
                     $proceso = "Se Eliminó Artículo Id: " . $id . ", Código: " . $obj['cod_medicamento'] . ", Nombre: " . $obj['nom_medicamento'];
@@ -116,8 +117,8 @@ try {
             } else {
                 $res['mensaje'] = 'El Articulo tiene registrado lotes. Elimine el registro desde le Módulo de Almacén';
             }
-        } 
-         
+        }
+
     } else {
         $res['mensaje'] = 'El Usuario del Sistema no tiene Permisos para esta Acción';
     }

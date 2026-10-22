@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5705, 2) && $oper == 'add' && $_POST['id_detalle'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5705, 2) && $oper == 'add' && $_POST['id_detalle'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5705, 3) && $oper == 'add' && $_POST['id_detalle'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5705, 4) && $oper == 'del') || $id_rol == 1
     ) {

@@ -20,12 +20,13 @@ $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5010, 2) && $oper == 'add' && $_POST['id_marca'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5010, 2) && $oper == 'add' && $_POST['id_marca'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5010, 3) && $oper == 'add' && $_POST['id_marca'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5010, 4) && $oper == 'del') || $id_rol == 1
     ) {
@@ -70,15 +71,15 @@ try {
             $id = $_POST['id'];
             $sql = "SELECT descripcion FROM acf_marca WHERE id=" . $id;
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch();  
+            $obj = $rs->fetch();
 
             $sql = "DELETE FROM acf_marca WHERE id=" . $id;
             $rs = $cmd->query($sql);
             if ($rs) {
                 $res['mensaje'] = 'ok';
-                
+
                 $proceso = "Se Eliminó Marca Id: " . $id . ", Nombre: " . $obj['descripcion'];
-                Logs::guardaLog($proceso);                
+                Logs::guardaLog($proceso);
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];
             }

@@ -70,13 +70,25 @@ if ($extension === 'csv') {
 
     $xlsx = new \SimpleXLSX\SimpleXLSX($ruta_temp);
     if (!$xlsx->success()) {
-        @unlink($ruta_temp);
+        if (file_exists($ruta_temp)) {
+            try {
+                unlink($ruta_temp);
+            } catch (\Throwable $e) {
+                error_log("cargar_planilla.php - Error al eliminar archivo temporal: " . $e->getMessage());
+            }
+        }
         $res['msg'] = 'No se pudo leer el archivo Excel. Asegúrese de usar el formato descargado (.csv) o un .xlsx válido.';
         echo json_encode($res);
         exit;
     }
     $filas = $xlsx->rows();
-    @unlink($ruta_temp);
+    if (file_exists($ruta_temp)) {
+        try {
+            unlink($ruta_temp);
+        } catch (\Throwable $e) {
+            error_log("cargar_planilla.php - Error al eliminar archivo temporal: " . $e->getMessage());
+        }
+    }
 }
 
 // Quitar encabezado (fila 0)

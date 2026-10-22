@@ -20,7 +20,7 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
 $id_usr_crea = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -28,13 +28,14 @@ try {
     $bodega = bodega_principal($cmd);
     $bodega_pri = $bodega['id_bodega'];
 
-    if (($permisos->PermisosUsuario($opciones, 5002, 2) && $oper == 'add' && $_POST['id_lote'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5002, 2) && $oper == 'add' && $_POST['id_lote'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5002, 3) && $oper == 'add' && $_POST['id_lote'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5002, 4) && $oper == 'del') || $id_rol == 1
     ) {
 
         $id_articulo = $_POST['id_articulo'];
-        
+
         if ($id_articulo > 0) {
 
             if ($oper == 'add') {
@@ -79,7 +80,7 @@ try {
                         $obj = $rs->fetch();
 
                         if ($obj['count'] == 0) {
-                            $arr = array();
+                            $arr = [];
                             array_push($arr, $id);
                             do {
                                 $id_lote = array_shift($arr);
@@ -115,7 +116,7 @@ try {
             }
 
             if ($oper == 'del') {
-                $id = $_POST['id'];                
+                $id = $_POST['id'];
                 $sql = "DELETE FROM far_medicamento_lote WHERE id_lote=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
@@ -130,7 +131,7 @@ try {
             $obj_articulo = $rs->fetch();
 
             $proceso = "Se Modificó LOTES de Articulo Código: " . $obj_articulo['cod_medicamento'] . ", Nombre: " . $obj_articulo['nom_medicamento'];
-            Logs::guardaLog($proceso);                    
+            Logs::guardaLog($proceso);
         } else {
             $res['mensaje'] = 'Primero debe guardar el Articulo';
         }

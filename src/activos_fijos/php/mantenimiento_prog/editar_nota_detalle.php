@@ -20,7 +20,7 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 $ruta = '../../documentos/';
 
 try {
@@ -99,8 +99,8 @@ try {
                     }
 
                     if ($_POST['act_doc'] == 1 && $res['mensaje'] == 'ok') {
-                        $fileNombre =  $_FILES["uploadDocAcf"]['name'];
-                        $nombre = $id . '_' .  date('Ymd_His') . $fileNombre;
+                        $fileNombre = $_FILES["uploadDocAcf"]['name'];
+                        $nombre = $id . '_' . date('Ymd_His') . $fileNombre;
                         $temporal = $_FILES['uploadDocAcf']['tmp_name'];
                         if (!file_exists($ruta)) {
                             mkdir($ruta, 0777, true);

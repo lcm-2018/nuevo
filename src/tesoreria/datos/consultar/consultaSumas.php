@@ -1,12 +1,16 @@
 <?php
 
 include '../../../../config/autoloader.php';
-$conexion = new mysqli($bd_servidor, $bd_usuario, $bd_clave, $bd_base);
+$cmd = \Config\Clases\Conexion::getConexion();
 $data = file_get_contents("php://input");
-$sql = "SELECT sum(debito) as debito, sum(credito) as credito FROM ctb_libaux WHERE id_ctb_doc=$data GROUP BY id_ctb_doc";
-$res = $conexion->query($sql);
-while ($row = $res->fetch_assoc()) {
-    $response[] = array("valordeb" => $row['debito'], "valorcrd" => $row['credito']);
+$response = [];
+if (!empty($data)) {
+    $sql = "SELECT sum(debito) as debito, sum(credito) as credito FROM ctb_libaux WHERE id_ctb_doc = :id_doc GROUP BY id_ctb_doc";
+    $stmt = $cmd->prepare($sql);
+    $stmt->execute([':id_doc' => $data]);
+    while ($row = $stmt->fetch()) {
+        $response[] = array("valordeb" => $row['debito'], "valorcrd" => $row['credito']);
+    }
 }
 echo json_encode($response);
 exit;

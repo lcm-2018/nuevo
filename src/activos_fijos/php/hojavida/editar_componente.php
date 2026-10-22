@@ -20,7 +20,7 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
 $id_usr_crea = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -91,7 +91,7 @@ try {
 
             $sql = "SELECT placa,des_activo FROM acf_hojavida WHERE id_activo_fijo=" . $id_hv;
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch(); 
+            $obj = $rs->fetch();
 
             $proceso = "Se Modificó Componente de Activo Fijo Id: " . $id_hv . ", Placa: " . $obj['placa'] . ", Nombre: " . $obj['des_activo'];
             Logs::guardaLog($proceso);

@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5003, 2) && $oper == 'add' && $_POST['id_pedido'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5003, 2) && $oper == 'add' && $_POST['id_pedido'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5003, 3) && $oper == 'add' && $_POST['id_pedido'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5003, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5003, 3) && $oper == 'conf') ||
@@ -114,7 +115,7 @@ try {
             if ($obj_pedido['estado'] == 1) {
                 $sql = "DELETE FROM far_pedido WHERE id_pedido=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {                    
+                if ($rs) {
                     $res['mensaje'] = 'ok';
 
                     $proceso = "Se Eliminó Pedido de Bodega Id: " . $id . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];
@@ -269,7 +270,7 @@ try {
                 $rs = $cmd->query($sql);
                 $obj = $rs->fetch();
                 $id_pedido = $obj['id'];
-                
+
                 $sql = "INSERT INTO far_pedido_detalle(id_pedido,id_medicamento,cantidad,valor) 
                         SELECT $id_pedido,far_pedido_detalle.id_medicamento,far_pedido_detalle.cantidad,far_medicamentos.val_promedio
                         FROM far_pedido_detalle
@@ -293,7 +294,7 @@ try {
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
                     $cmd->rollBack();
-                }                
+                }
             } else {
                 if ($estado != 2) {
                     $res['mensaje'] = 'Solo se puede duplicar Pedidos en estado Cerrado';

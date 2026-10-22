@@ -15,8 +15,11 @@ $vigencia = $user->getvigencia();
 
 $res['status'] = 'error';
 
-if (($obj != null) && $obj['login'] === $usuario && ($obj['clave'] === $clave)) {
-    if ($obj['estado'] == 1 && ($obj['fec_finalizacion'] == '' || $obj['fec_finalizacion'] >= date('Y-m-d'))) {
+if ($obj !== null && $obj['login'] === $usuario && $obj['clave'] === $clave) {
+    $estado = (int)$obj['estado'];
+    $fecFin = !empty($obj['fec_finalizacion']) ? (string)$obj['fec_finalizacion'] : '';
+
+    if ($estado === 1 && ($fecFin === '' || $fecFin >= date('Y-m-d'))) {
         $_SESSION['id_user'] = $obj['id_usuario'];
         $_SESSION['user'] = $obj['nombre'];
         $_SESSION['login'] = $obj['login'];
@@ -29,9 +32,9 @@ if (($obj != null) && $obj['login'] === $usuario && ($obj['clave'] === $clave)) 
         $_SESSION['pto'] = $empresa['tiene_pto'];
         Logs::guardaLog('Inicio de sesión');
         $res['status'] = 'ok';
-    } else if ($obj['estado'] == 0) {
+    } else if ($estado === 0) {
         $res['msg'] = 'Usuario inactivo, por favor comuníquese con el administrador del sistema.';
-    } else if ($obj['fec_finalizacion'] != '' && $obj['fec_finalizacion'] < date('Y-m-d')) {
+    } else if ($fecFin !== '' && $fecFin < date('Y-m-d')) {
         $res['msg'] = 'Su acceso ha expirado, por favor comuníquese con el administrador del sistema.';
     }
 } else {

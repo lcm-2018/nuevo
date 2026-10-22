@@ -1,14 +1,16 @@
-﻿<?php
+<?php
 // Busca consecutivos del tipo de documento recibido para validar que no se duplique número
 include '../../../../config/autoloader.php';
-$conexion = new mysqli($bd_servidor, $bd_usuario, $bd_clave, $bd_base);
-$_post = json_decode(file_get_contents('php://input'),true);
-// Buscamos si hay registros posteriores a la fecha recibida
-    $sql = "SELECT id_manu from pto_documento WHERE id_manu = '$_post[doc]' AND tipo_doc='$_post[tipo]' ";
-    $res = $conexion->query($sql);
-    $row = $res->fetch_assoc();
-    $num = $res->num_rows;
+$cmd = \Config\Clases\Conexion::getConexion();
+$_post = json_decode(file_get_contents('php://input'), true);
+
+$doc = $_post['doc'] ?? '';
+$tipo = $_post['tipo'] ?? '';
+$sql = "SELECT COUNT(*) as total FROM pto_documento WHERE id_manu = :doc AND tipo_doc = :tipo";
+$stmt = $cmd->prepare($sql);
+$stmt->execute([':doc' => $doc, ':tipo' => $tipo]);
+$num = (int)$stmt->fetchColumn();
+
 $response[] = array("numero" => $num);
 echo json_encode($response);
-$conexion->btn-close();
 exit;

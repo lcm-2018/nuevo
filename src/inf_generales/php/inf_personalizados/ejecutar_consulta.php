@@ -8,7 +8,7 @@ include '../../../../config/autoloader.php';
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $id = $_POST['id'];
     $parametros = json_decode($_POST['parametros']);
@@ -37,7 +37,7 @@ try {
     $rs = $cmd->query($cnsql . $limite, PDO::FETCH_BOTH);
     $objs = $rs->fetchAll(PDO::FETCH_NUM);
     $n = $rs->columnCount();
-?>
+    ?>
 
     <div class="table-responsive">
         <table id="tabla" class="table table-striped table-bordered table-sm" style="width:100%; font-size:80%">
@@ -54,20 +54,20 @@ try {
             <tbody>
                 <?php
                 $j = 0;
-                foreach ($objs as $obj) : ?>
+                foreach ($objs as $obj): ?>
                     <tr>
-                        <?php foreach ($obj as $valor) : ?>
+                        <?php foreach ($obj as $valor): ?>
                             <td><?= $valor ?></td>
                         <?php endforeach; ?>
                     </tr>
-                <?php $j++;
+                    <?php $j++;
                 endforeach; ?>
             </tbody>
         </table>
     </div>
     <label><strong>No. Registros Visualizados:<?= $j ?></strong></label>
     <label><strong>De un Total de:<?= $total ?></strong></label>
-<?php
+    <?php
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getMessage();

@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5709, 2) && $oper == 'add' && $_POST['id_baja'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5709, 2) && $oper == 'add' && $_POST['id_baja'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5709, 3) && $oper == 'add' && $_POST['id_baja'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5709, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5709, 3) && $oper == 'close') ||
@@ -143,7 +144,7 @@ try {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Cerró Baja de Activos Fijos Id: " . $id. ", Fecha: " . $obj_baja['fec_orden'] . ", Observaciones: " . $obj_baja['observaciones'];
+                    $proceso = "Se Cerró Baja de Activos Fijos Id: " . $id . ", Fecha: " . $obj_baja['fec_orden'] . ", Observaciones: " . $obj_baja['observaciones'];
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
@@ -183,8 +184,8 @@ try {
                 if ($error == 0) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
-                    
-                    $proceso = "Se Anuló Baja de Activos Fijos Id: " . $id. ", Fecha: " . $obj_baja['fec_orden'] . ", Observaciones: " . $obj_baja['observaciones'];
+
+                    $proceso = "Se Anuló Baja de Activos Fijos Id: " . $id . ", Fecha: " . $obj_baja['fec_orden'] . ", Observaciones: " . $obj_baja['observaciones'];
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';

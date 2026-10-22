@@ -1,36 +1,73 @@
 <?php
-session_start();
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 set_time_limit(10000);
 ini_set('memory_limit', '512M');
+
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-$vigencia = $_SESSION['vigencia'];
-$fecha_corte = $_POST['fecha_corte'];
-$fecha_ini = $_POST['fecha_ini'];
 
-function pesos($valor)
-{
-    return '$' . number_format($valor, 2);
-}
-include '../../../config/autoloader.php';
-include '../../financiero/consultas.php';
+$vigencia    = $_SESSION['vigencia'] ?? '';
+$fecha_corte = $_POST['fecha_corte'] ?? '';
+$fecha_ini   = $_POST['fecha_ini'] ?? '';
+
+include_once '../../../config/autoloader.php';
+include_once '../../financiero/consultas.php';
 
 $cmd = \Config\Clases\Conexion::getConexion();
 
 // Obtener sedes activas usando la función centralizada
-$datos_sedes = obtenerSedesActivas($cmd);
-$sedes = $datos_sedes['sedes'];
-$sede_principal = $datos_sedes['sede_principal'];
+$datos_sedes    = obtenerSedesActivas($cmd);
+$sedes          = $datos_sedes['sedes'] ?? [];
+$sede_principal = $datos_sedes['sede_principal'] ?? null;
 
 // Array para consolidar reconocimientos de todas las sedes
 $causaciones = [];
 
+// Consulta SQL con sentencias preparadas y compatibilidad con ONLY_FULL_GROUP_BY (MySQL 8+)
+$sql = "SELECT
+            DATE_FORMAT(`pto_rad`.`fecha`, '%Y-%m-%d') AS `fecha`,
+            `pto_rad`.`id_manu`,
+            `pto_rad`.`id_pto_rad`,
+            `pto_rad`.`objeto`,
+            `pto_rad`.`num_factura`,
+            `pto_cargue`.`cod_pptal` AS `rubro`,
+            `pto_cargue`.`nom_rubro`,
+            `tt`.`id_tercero_api`,
+            `tt`.`id_rubro`,
+            `tt`.`val1`,
+            `tt`.`val2`,
+            `tt`.`valor`,
+            `tb_terceros`.`nom_tercero`,
+            `tb_terceros`.`nit_tercero`
+        FROM `pto_rad`
+        INNER JOIN (
+            SELECT
+                `id_pto_rad`,
+                `id_rubro`,
+                SUM(IFNULL(`valor`, 0)) AS `val1`,
+                SUM(IFNULL(`valor_liberado`, 0)) AS `val2`,
+                SUM(IFNULL(`valor`, 0) - IFNULL(`valor_liberado`, 0)) AS `valor`,
+                `id_tercero_api`
+            FROM `pto_rad_detalle`
+            GROUP BY `id_pto_rad`, `id_rubro`, `id_tercero_api`
+        ) AS `tt` ON `tt`.`id_pto_rad` = `pto_rad`.`id_pto_rad`
+        INNER JOIN `pto_cargue` 
+            ON `tt`.`id_rubro` = `pto_cargue`.`id_cargue`
+        LEFT JOIN `tb_terceros` 
+            ON `tt`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`
+        WHERE `pto_rad`.`estado` = 2 
+          AND DATE_FORMAT(`pto_rad`.`fecha`, '%Y-%m-%d') BETWEEN :fecha_ini AND :fecha_corte
+        ORDER BY `pto_rad`.`fecha` ASC, `pto_rad`.`id_manu` ASC";
+
 // Iterar sobre todas las sedes activas
 foreach ($sedes as $sede) {
-    // Usar conexión actual para la sede principal, conectar para las demás
-    if ($sede['es_principal'] == 1) {
+    if (!empty($sede['es_principal'])) {
         $cmd_sede = $cmd;
     } else {
         $cmd_sede = conectarSede($sede['bd_sede']);
@@ -40,86 +77,48 @@ foreach ($sedes as $sede) {
         }
     }
 
-    // Consultar reconocimientos en esta sede
     try {
-        $sql = "SELECT
-                    DATE_FORMAT(`pto_rad`.`fecha`,'%Y-%m-%d') AS `fecha`
-                    , `pto_rad`.`id_manu`
-                    , `pto_rad`.`id_pto_rad`
-                    , `pto_rad`.`objeto`
-                    , `pto_rad`.`num_factura`
-                    , `pto_cargue`.`cod_pptal` AS `rubro`
-                    , `pto_cargue`.`nom_rubro`
-                    , `tt`.`id_tercero_api`
-                    , `tt`.`id_rubro`
-                    , `tt`.`val1`
-                    , `tt`.`val2`
-                    , `tt`.`valor`
-                    , `tb_terceros`.`nom_tercero`
-                    , `tb_terceros`.`nit_tercero`
-                FROM
-                    `pto_rad`
-                    INNER JOIN
-                        (SELECT
-                            `id_pto_rad`
-                            , `id_rubro`
-                            , IFNULL(`valor`,0) as `val1`
-                            , IFNULL(`valor_liberado`,0) as `val2`
-                            , SUM(IFNULL(`valor`,0) - IFNULL(`valor_liberado`,0)) AS `valor`
-                            , `id_tercero_api`
-                        FROM
-                            `pto_rad_detalle`
-                        GROUP BY `id_pto_rad`, `id_rubro`,`id_tercero_api`) AS `tt`
-                        ON (`tt`.`id_pto_rad` = `pto_rad`.`id_pto_rad`)
-                    INNER JOIN `pto_cargue` 
-                        ON (`tt`.`id_rubro` = `pto_cargue`.`id_cargue`)
-                    LEFT JOIN `tb_terceros`
-                        ON (`tt`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
-                WHERE (`pto_rad`.`estado` = 2 AND DATE_FORMAT(`pto_rad`.`fecha`,'%Y-%m-%d') BETWEEN '$fecha_ini' AND '$fecha_corte')
-                ORDER BY `pto_rad`.`fecha` ASC, `pto_rad`.`id_manu` ASC";
+        $stmt = $cmd_sede->prepare($sql);
+        $stmt->execute([
+            ':fecha_ini'   => $fecha_ini,
+            ':fecha_corte' => $fecha_corte,
+        ]);
+        $causaciones_sede = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
 
-        $res = $cmd_sede->query($sql);
-        $causaciones_sede = $res->fetchAll(PDO::FETCH_ASSOC);
-        $res->closeCursor();
-
-        // Agregar nombre de sede a cada registro para referencia
-        foreach ($causaciones_sede as &$cau) {
-            $cau['nom_sede'] = $sede['nom_sede'];
+        // Evitar uso de referencias y array_merge repetitivo en memoria
+        $nom_sede = $sede['nom_sede'] ?? '';
+        foreach ($causaciones_sede as $row) {
+            $row['nom_sede'] = $nom_sede;
+            $causaciones[] = $row;
         }
-        unset($cau); // Romper la referencia
-
-        // Consolidar con los resultados de otras sedes
-        $causaciones = array_merge($causaciones, $causaciones_sede);
     } catch (PDOException $e) {
         error_log("Error consultando reconocimientos en sede {$sede['nom_sede']}: " . $e->getMessage());
     }
 
-    // Cerrar la conexión si no es la principal
-    if ($sede['es_principal'] != 1) {
+    // Cerrar la referencia de conexión si no es la principal
+    if (empty($sede['es_principal'])) {
         $cmd_sede = null;
     }
 }
 
-// Ordenar el resultado consolidado primero por sede, luego por fecha y número manual
-usort($causaciones, function ($a, $b) {
-    // Primero ordenar por nombre de sede
-    $comp = strcmp($a['nom_sede'], $b['nom_sede']);
-    if ($comp !== 0) {
-        return $comp;
-    }
-    // Si la sede es la misma, ordenar por fecha
-    $comp = strcmp($a['fecha'], $b['fecha']);
-    if ($comp !== 0) {
-        return $comp;
-    }
-    // Si la fecha es la misma, ordenar por número manual
-    return strcmp($a['id_manu'], $b['id_manu']);
-});
+// Restaurar la conexión activa a la base de datos de la sede principal si cambió
+if (!empty($sede_principal['bd_sede'])) {
+    conectarSede($sede_principal['bd_sede']);
+}
+
+// PHP 8+: operador spaceship (<=>) encadenado con null-coalescing y orden numérico en id_manu
+usort($causaciones, static fn(array $a, array $b): int =>
+    (($a['nom_sede'] ?? '') <=> ($b['nom_sede'] ?? ''))
+    ?: (($a['fecha'] ?? '') <=> ($b['fecha'] ?? ''))
+    ?: ((int)($a['id_manu'] ?? 0) <=> (int)($b['id_manu'] ?? 0))
+    ?: (($a['id_manu'] ?? '') <=> ($b['id_manu'] ?? ''))
+);
 
 $nom_informe = "RELACION DE RECONOCIMIENTOS";
 include_once '../../financiero/encabezado_empresa.php';
 ?>
-<table class="table-hover" style="width:100% !important; border-collapse: collapse;" border="1">
+<table class="table-hover table-selectable" style="width:100% !important; border-collapse: collapse;" border="1">
     <thead>
         <tr class="centrar">
             <th>Sede</th>
@@ -138,25 +137,49 @@ include_once '../../financiero/encabezado_empresa.php';
     <tbody>
         <?php
         if (!empty($causaciones)) {
+            $total_val1 = 0.0;
+            $total_val2 = 0.0;
+            $total_neto = 0.0;
+
             foreach ($causaciones as $rp) {
-                if ($rp['valor'] != 0) {
+                $val1  = (float)($rp['val1'] ?? 0);
+                $val2  = (float)($rp['val2'] ?? 0);
+                $valor = (float)($rp['valor'] ?? 0);
+
+                if ($valor != 0.0) {
+                    $total_val1 += $val1;
+                    $total_val2 += $val2;
+                    $total_neto += $valor;
+
+                    $nit_raw = $rp['nit_tercero'] ?? '';
+                    $nit_formateado = is_numeric($nit_raw) 
+                        ? number_format((float)$nit_raw, 0, "", ".") 
+                        : (string)$nit_raw;
+
                     echo "<tr>
-                        <td style='text-align:left'>" . $rp['nom_sede'] . "</td>
-                        <td style='text-align:left;mso-number-format:\@;'>" . $rp['id_manu'] . "</td>
-                        <td style='text-align:left;mso-number-format:\@;'>" . $rp['num_factura'] . "</td>
-                        <td style='text-align:left;white-space: nowrap;'>" . $rp['fecha'] . "</td>
-                        <td style='text-align:left'>" . $rp['nom_tercero'] . "</td>
-                        <td style='text-align:right;white-space: nowrap;mso-number-format:\@;'>" . number_format($rp['nit_tercero'], 0, "", ".") . "</td>
-                        <td style='text-align:left'>" . $rp['objeto'] . "</td>
-                        <td style='text-align:left;mso-number-format:\@;'>" . $rp['rubro'] . "</td>
-                        <td style='text-align:right'>" . number_format($rp['val1'], 2, ".", ",") . "</td>
-                        <td style='text-align:right'>" . number_format($rp['val2'], 2, ".", ",") . "</td>
-                        <td style='text-align:right'>" . number_format($rp['valor'], 2, ".", ",") . "</td>
+                        <td style='text-align:left'>" . htmlspecialchars((string)($rp['nom_sede'] ?? ''), ENT_QUOTES, 'UTF-8') . "</td>
+                        <td style='text-align:left;mso-number-format:\@;'>" . htmlspecialchars((string)($rp['id_manu'] ?? ''), ENT_QUOTES, 'UTF-8') . "</td>
+                        <td style='text-align:left;mso-number-format:\@;'>" . htmlspecialchars((string)($rp['num_factura'] ?? ''), ENT_QUOTES, 'UTF-8') . "</td>
+                        <td style='text-align:left;white-space: nowrap;'>" . htmlspecialchars((string)($rp['fecha'] ?? ''), ENT_QUOTES, 'UTF-8') . "</td>
+                        <td style='text-align:left'>" . htmlspecialchars((string)($rp['nom_tercero'] ?? ''), ENT_QUOTES, 'UTF-8') . "</td>
+                        <td style='text-align:right;white-space: nowrap;mso-number-format:\@;'>" . htmlspecialchars($nit_formateado, ENT_QUOTES, 'UTF-8') . "</td>
+                        <td style='text-align:left'>" . htmlspecialchars((string)($rp['objeto'] ?? ''), ENT_QUOTES, 'UTF-8') . "</td>
+                        <td style='text-align:left;mso-number-format:\@;'>" . htmlspecialchars((string)($rp['rubro'] ?? ''), ENT_QUOTES, 'UTF-8') . "</td>
+                        <td style='text-align:right'>" . number_format($val1, 2, ".", ",") . "</td>
+                        <td style='text-align:right'>" . number_format($val2, 2, ".", ",") . "</td>
+                        <td style='text-align:right'>" . number_format($valor, 2, ".", ",") . "</td>
                     </tr>";
                 }
             }
+
+            echo "<tr>
+                <th colspan='8' style='text-align:center'>TOTAL</th>
+                <th style='text-align:right'>" . number_format($total_val1, 2, ".", ",") . "</th>
+                <th style='text-align:right'>" . number_format($total_val2, 2, ".", ",") . "</th>
+                <th style='text-align:right'>" . number_format($total_neto, 2, ".", ",") . "</th>
+            </tr>";
         } else {
-            echo "<tr><td colspan='11'  style='text-align:center'>No hay datos para mostrar</td></tr>";
+            echo "<tr><td colspan='11' style='text-align:center'>No hay datos para mostrar</td></tr>";
         }
         ?>
     </tbody>
