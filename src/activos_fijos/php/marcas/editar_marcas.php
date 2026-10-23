@@ -43,8 +43,8 @@ try {
                     $res['mensaje'] = 'ok';
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
 
                     $proceso = "Se Registró Marca Id: " . $obj['id'] . ", Nombre: " . $nom_marca;
                     Logs::guardaLog($proceso);
@@ -71,14 +71,14 @@ try {
             $id = $_POST['id'];
             $sql = "SELECT descripcion FROM acf_marca WHERE id=" . $id;
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch();
+            $obj = $rs ? $rs->fetch() : null;
 
             $sql = "DELETE FROM acf_marca WHERE id=" . $id;
             $rs = $cmd->query($sql);
             if ($rs) {
                 $res['mensaje'] = 'ok';
 
-                $proceso = "Se Eliminó Marca Id: " . $id . ", Nombre: " . $obj['descripcion'];
+                $proceso = "Se Eliminó Marca Id: " . $id . ", Nombre: " . ($obj['descripcion'] ?? '');
                 Logs::guardaLog($proceso);
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];

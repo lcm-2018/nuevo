@@ -7,7 +7,7 @@ function sedes($cmd, $titulo = '', $id = 0)
         $sql = "SELECT tb_sedes.id_sede,tb_sedes.nom_sede FROM tb_sedes
                 ORDER BY es_principal DESC,nom_sede ASC";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs ? $rs->fetchAll() : [];
         $rs->closeCursor();
         unset($rs);
         foreach ($objs as $obj) {
@@ -32,7 +32,7 @@ function usuarios($cmd, $titulo = '', $id = 0)
                 WHERE estado=1 
                 ORDER BY apellido1,apellido2,nombre1,nombre2";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs ? $rs->fetchAll() : [];
         $rs->closeCursor();
         unset($rs);
         foreach ($objs as $obj) {
@@ -63,7 +63,7 @@ function sedes_usuario($cmd, $titulo = '', $id = 0)
                     ORDER BY es_principal DESC,nom_sede ASC";
         }
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs ? $rs->fetchAll() : [];
         $rs->closeCursor();
         unset($rs);
         foreach ($objs as $obj) {
@@ -85,7 +85,7 @@ function centros_costo($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT id_centro,nom_centro FROM tb_centrocostos WHERE id_centro<>0 ORDER BY nom_centro";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs ? $rs->fetchAll() : [];
         $rs->closeCursor();
         unset($rs);
         foreach ($objs as $obj) {
@@ -111,7 +111,7 @@ function terceros($cmd, $titulo = '', $id = 0)
                     (tb_terceros.id_tercero_api IN (SELECT id_tercero_api FROM tb_rel_tercero) OR tb_terceros.es_clinico=1)
                 ORDER BY tb_terceros.nom_tercero";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs ? $rs->fetchAll() : [];
         $rs->closeCursor();
         unset($rs);
         foreach ($objs as $obj) {
@@ -135,7 +135,7 @@ function tipo_ingreso($cmd, $titulo = '', $id = 0)
                 FROM far_orden_ingreso_tipo
                 WHERE activofijo = 1 OR id_tipo_ingreso = $id";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs ? $rs->fetchAll() : [];
         $rs->closeCursor();
         unset($rs);
         foreach ($objs as $obj) {
@@ -158,7 +158,7 @@ function marcas($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT id, descripcion FROM acf_marca WHERE id<>0 ORDER BY descripcion";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs ? $rs->fetchAll() : [];
         $rs->closeCursor();
         unset($rs);
         foreach ($objs as $obj) {
@@ -336,7 +336,7 @@ function subgrupo_articulo($cmd, $titulo = '', $id = -1)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT id_subgrupo,cod_subgrupo,nom_subgrupo FROM far_subgrupos WHERE id_grupo IN (3,4,5) OR far_subgrupos.af_menor_cuantia=1";
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs ? $rs->fetchAll() : [];
         $rs->closeCursor();
         unset($rs);
         foreach ($objs as $obj) {
@@ -362,7 +362,7 @@ function bodegas_sede($cmd, $titulo = '', $idsede = 0, $id = 0)
                 WHERE tb_sedes_bodega.id_sede=$idsede
                 ORDER BY far_bodegas.es_principal DESC, far_bodegas.nombre";
             $rs = $cmd->query($sql);
-            $objs = $rs->fetchAll();
+            $objs = $rs ? $rs->fetchAll() : [];
             $rs->closeCursor();
             unset($rs);
             foreach ($objs as $obj) {
@@ -388,7 +388,7 @@ function areas_sede($cmd, $titulo = '', $idsede = 0, $id = -1)
                     WHERE (id_sede=$idsede AND estado=1 AND id_area<>0) OR id_area=$id
                     ORDER BY es_almacen DESC, nom_area";
             $rs = $cmd->query($sql);
-            $objs = $rs->fetchAll();
+            $objs = $rs ? $rs->fetchAll() : [];
             $rs->closeCursor();
             unset($rs);
             foreach ($objs as $obj) {

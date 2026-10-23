@@ -14,7 +14,7 @@ try {
             FROM seg_usuarios_sistema
             WHERE CONCAT(nombre1,nombre2,apellido1,apellido2) LIKE '%$term%'";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

@@ -37,9 +37,8 @@ try {
 
             $sql = "SELECT estado,fec_ingreso,detalle FROM acf_orden_ingreso WHERE id_ingreso=" . $id_ingreso;
             $rs = $cmd->query($sql);
-            $obj_ingreso = $rs->fetch();
-
-            if ($obj_ingreso['estado'] == 1) {
+            $obj_ingreso = $rs ? $rs->fetch() : null;
+            if (($obj_ingreso['estado'] ?? -1) == 1) {
                 if ($oper == 'add') {
                     $id = $_POST['id_detalle'];
                     $id_art = $_POST['id_txt_nom_art'];
@@ -52,9 +51,8 @@ try {
                     if ($id == -1) {
                         $sql = "SELECT COUNT(*) AS existe FROM acf_orden_ingreso_detalle WHERE id_ingreso=$id_ingreso AND id_articulo=" . $id_art;
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-
-                        if ($obj['existe'] == 0) {
+                        $obj = $rs ? $rs->fetch() : null;
+                        if (($obj['existe'] ?? 0) == 0) {
                             $sql = "INSERT INTO acf_orden_ingreso_detalle(id_ingreso,id_articulo,observacion,cantidad,valor_sin_iva,iva,valor)
                                     VALUES($id_ingreso,$id_art,'$observacion',$cantidad,$vr_unidad,$iva,$vr_costo)";
                             $rs = $cmd->query($sql);
@@ -63,8 +61,8 @@ try {
                                 $res['mensaje'] = 'ok';
                                 $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                                 $rs = $cmd->query($sql_i);
-                                $obj = $rs->fetch();
-                                $res['id'] = $obj['id'];
+                                $obj = $rs ? $rs->fetch() : null;
+                                $res['id'] = $obj['id'] ?? null;
                             } else {
                                 $res['mensaje'] = $cmd->errorInfo()[2];
                             }
@@ -74,9 +72,8 @@ try {
                     } else {
                         $sql = "SELECT COUNT(*) AS cantidad FROM acf_orden_ingreso_acfs WHERE id_ing_detalle=" . $id;
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-
-                        if ($cantidad >= $obj['cantidad']) {
+                        $obj = $rs ? $rs->fetch() : null;
+                        if ($cantidad >= ($obj['cantidad'] ?? 0)) {
                             $sql = "UPDATE acf_orden_ingreso_detalle 
                                     SET cantidad=$cantidad,valor_sin_iva=$vr_unidad,iva=$iva,valor=$vr_costo,observacion='$observacion'
                                     WHERE id_ing_detalle=" . $id;
@@ -112,8 +109,8 @@ try {
 
                     $sql = "SELECT val_total FROM acf_orden_ingreso WHERE id_ingreso=" . $id_ingreso;
                     $rs = $cmd->query($sql);
-                    $obj_total = $rs->fetch();
-                    $res['val_total'] = formato_valor($obj_total['val_total']);
+                    $obj_total = $rs ? $rs->fetch() : null;
+                    $res['val_total'] = formato_valor($obj_total['val_total'] ?? 0);
 
                     $proceso = "Se Modificó detalles de Órden de Ingreso de Activos Fijos Id: " . $id_ingreso . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
                     Logs::guardaLog($proceso);

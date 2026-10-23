@@ -37,7 +37,7 @@ function datos_articulo($cmd, $id_med)
                 LEFT JOIN acf_orden_ingreso_detalle ON (acf_orden_ingreso_detalle.id_ing_detalle=v.id)
                 WHERE far_medicamentos.id_med=$id_med";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
+        $obj = $rs ? $rs->fetch() : null;
         if (isset($obj['id_med'])) {
             $res = array(
                 'id_med' => $obj['id_med'],
@@ -70,7 +70,7 @@ function datos_activo_fijo($cmd, $id_acf)
                 INNER JOIN far_medicamentos ON (far_medicamentos.id_med=acf_hojavida.id_articulo)
                 WHERE acf_hojavida.id_activo_fijo=$id_acf";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
+        $obj = $rs ? $rs->fetch() : null;
         if (isset($obj['id_activo_fijo'])) {
             $res = array(
                 'id_activo_fijo' => $obj['id_activo_fijo'],
@@ -103,8 +103,8 @@ function edit_estados_activo_fijo($cmd, $id_acf)
                 INNER JOIN acf_traslado ON (acf_traslado.id_traslado=acf_traslado_detalle.id_traslado)
                 WHERE acf_traslado.estado IN (1,2) AND acf_traslado_detalle.id_activo_fijo=$id_acf";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-        if ($obj['total'] > 0) {
+        $obj = $rs ? $rs->fetch() : null;
+        if (($obj['total'] ?? 0) > 0) {
             $edit_ubi = 0;
         }
 
@@ -112,8 +112,8 @@ function edit_estados_activo_fijo($cmd, $id_acf)
                 INNER JOIN acf_baja ON (acf_baja.id_baja=acf_baja_detalle.id_baja)
                 WHERE acf_baja.estado=2 AND acf_baja_detalle.id_activo_fijo=$id_acf";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-        if ($obj['total'] > 0) {
+        $obj = $rs ? $rs->fetch() : null;
+        if (($obj['total'] ?? 0) > 0) {
             $edit_ubi = 0;
             $edit_art = 0;
             $edit_est = 0;
@@ -123,8 +123,8 @@ function edit_estados_activo_fijo($cmd, $id_acf)
                 INNER JOIN acf_mantenimiento ON (acf_mantenimiento.id_mantenimiento=acf_mantenimiento_detalle.id_mantenimiento)
                 WHERE acf_mantenimiento.estado IN (2,3) AND acf_mantenimiento_detalle.id_activo_fijo=$id_acf";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-        if ($obj['total'] > 0) {
+        $obj = $rs ? $rs->fetch() : null;
+        if (($obj['total'] ?? 0) > 0) {
             $edit_est = 0;
         }
         $cmd = null;
@@ -145,8 +145,8 @@ function estados_activo_fijo($cmd, $id_acf)
                 WHERE acf_mantenimiento.estado=3 AND acf_mantenimiento_detalle.estado IN (1,2) 
                     AND acf_mantenimiento_detalle.id_activo_fijo=$id_acf";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-        if ($obj['total'] > 0) {
+        $obj = $rs ? $rs->fetch() : null;
+        if (($obj['total'] ?? 0) > 0) {
             $res = array('estado' => 3);
         } else {
             $sql = "SELECT COUNT(*) AS total FROM acf_mantenimiento_detalle
@@ -154,8 +154,8 @@ function estados_activo_fijo($cmd, $id_acf)
                     WHERE acf_mantenimiento.estado=2 AND acf_mantenimiento_detalle.estado IN (1,2) 
                         AND acf_mantenimiento_detalle.id_activo_fijo=$id_acf";
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch();
-            if ($obj['total'] > 0) {
+            $obj = $rs ? $rs->fetch() : null;
+            if (($obj['total'] ?? 0) > 0) {
                 $res = array('estado' => 2);
             } else {
                 $res = array('estado' => 1);
@@ -192,7 +192,7 @@ function bodega_principal($cmd)
                 LEFT JOIN seg_bodegas_usuario ON (seg_bodegas_usuario.id_bodega=far_bodegas.id_bodega AND seg_bodegas_usuario.id_usuario=$idusr)
                 WHERE far_bodegas.es_principal=1";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
+        $obj = $rs ? $rs->fetch() : null;
         if (isset($obj['id_bodega'])) {
             if (isset($obj['id_sede'])) {
                 if (isset($obj['id_usuario']) || $idrol == 1) {
@@ -224,8 +224,7 @@ function sede_principal($cmd)
                 LEFT JOIN seg_sedes_usuario ON (seg_sedes_usuario.id_sede = tb_sedes.id_sede AND seg_sedes_usuario.id_usuario = $idusr)
                 WHERE tb_sedes.es_principal=1";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-
+        $obj = $rs ? $rs->fetch() : null;
         if (isset($obj['id_sede'])) {
             if (isset($obj['id_usuario']) || $idrol == 1) {
                 $res = array('id_sede' => $obj['id_sede'], 'nom_sede' => $obj['nom_sede']);
@@ -254,8 +253,7 @@ function area_principal($cmd)
                 INNER JOIN seg_usuarios_sistema AS usr ON (usr.id_usuario=far_centrocosto_area.id_responsable)
                 WHERE far_centrocosto_area.es_almacen=1";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-
+        $obj = $rs ? $rs->fetch() : null;
         if (isset($obj['id_area'])) {
             $res = array('id_area' => $obj['id_area'], 'nom_area' => $obj['nom_area'], 'id_responsable' => $obj['id_responsable'], 'nom_responsable' => $obj['nom_responsable']);
         } else {

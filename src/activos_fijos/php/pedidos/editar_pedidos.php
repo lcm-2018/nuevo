@@ -49,8 +49,8 @@ try {
                     $res['mensaje'] = 'ok';
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
 
                     $proceso = "Se Registró Pedido de Activos Fijos Id: " . $obj['id'] . ", Fecha: " . $fec_ped . ", Detalle: " . $detalle;
                     Logs::guardaLog($proceso);
@@ -60,9 +60,8 @@ try {
             } else {
                 $sql = "SELECT estado FROM far_alm_pedido WHERE id_pedido=" . $id;
                 $rs = $cmd->query($sql);
-                $obj_pedido = $rs->fetch();
-
-                if ($obj_pedido['estado'] == 1) {
+                $obj_pedido = $rs ? $rs->fetch() : null;
+                if (($obj_pedido['estado'] ?? -1) == 1) {
                     $sql = "UPDATE far_alm_pedido SET detalle='$detalle'  WHERE id_pedido=" . $id;
                     $rs = $cmd->query($sql);
 
@@ -86,9 +85,8 @@ try {
 
             $sql = "SELECT estado,fec_pedido,detalle FROM far_alm_pedido WHERE id_pedido=" . $id;
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
-
-            if ($obj_pedido['estado'] == 1) {
+            $obj_pedido = $rs ? $rs->fetch() : null;
+            if (($obj_pedido['estado'] ?? -1) == 1) {
                 $sql = "DELETE FROM far_alm_pedido WHERE id_pedido=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
@@ -109,13 +107,13 @@ try {
 
             $sql = 'SELECT estado,fec_pedido,detalle FROM far_alm_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
-            $estado = isset($obj_pedido['estado']) ? $obj_pedido['estado'] : -1;
+            $obj_pedido = $rs ? $rs->fetch() : null;
+            $estado = $obj_pedido['estado'] ?? -1;
 
             $sql = "SELECT COUNT(*) AS total FROM far_alm_pedido_detalle WHERE id_pedido=" . $id;
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $num_detalles = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $num_detalles = $obj_detalles['total'] ?? 0;
 
             if ($estado == 1 && $num_detalles > 0) {
                 $error = 0;
@@ -123,8 +121,8 @@ try {
 
                 $sql = 'SELECT num_pedidoactual_alm FROM tb_datos_ips LIMIT 1';
                 $rs = $cmd->query($sql);
-                $obj = $rs->fetch();
-                $num_pedido = $obj['num_pedidoactual_alm'];
+                $obj = $rs ? $rs->fetch() : null;
+                $num_pedido = $obj['num_pedidoactual_alm'] ?? 0;
                 $res['num_pedido'] = $num_pedido;
 
                 $sql = "UPDATE far_alm_pedido SET num_pedido=$num_pedido,estado=2,id_usr_confirma=$id_usr_ope,fec_confirma='$fecha_ope' WHERE id_pedido=$id";
@@ -159,8 +157,8 @@ try {
 
             $sql = 'SELECT estado,fec_pedido,detalle FROM far_alm_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
-            $estado = $obj_pedido['estado'];
+            $obj_pedido = $rs ? $rs->fetch() : null;
+            $estado = $obj_pedido['estado'] ?? -1;
 
             if ($obj_pedido['estado'] == 2) {
                 $sql = "UPDATE far_alm_pedido SET id_usr_anula=$id_usr_ope,fec_anulacion='$fecha_ope',estado=0 WHERE id_pedido=$id";
@@ -184,8 +182,8 @@ try {
 
             $sql = 'SELECT estado,fec_pedido,detalle FROM far_alm_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
-            $estado = $obj_pedido['estado'];
+            $obj_pedido = $rs ? $rs->fetch() : null;
+            $estado = $obj_pedido['estado'] ?? -1;
 
             if ($obj_pedido['estado'] == 3) {
                 $sql = "UPDATE far_alm_pedido SET id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope',estado=4 WHERE id_pedido=$id";

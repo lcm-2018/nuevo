@@ -20,18 +20,21 @@ $sql = "SELECT AI.*,
         INNER JOIN tb_terceros AS TE ON (TE.id_tercero=AI.id_provedor)
         WHERE AI.id_ingreso=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
 if ($obj === false) {
     $obj = []; // Inicializa $obj como un array vacío
 }
 
 if (empty($obj)) {
-    $n = $rs->columnCount();
+    $obj = [];
+    $n = $rs ? $rs->columnCount() : 0;
     for ($i = 0; $i < $n; $i++):
         $col = $rs->getColumnMeta($i);
-        $name = $col['name'];
-        $obj[$name] = NULL;
+        $name = $col['name'] ?? null;
+        if ($name) {
+            $obj[$name] = NULL;
+        }
     endfor;
     //Inicializa variable por defecto
     $obj['id_tipo_ingreso'] = 0;

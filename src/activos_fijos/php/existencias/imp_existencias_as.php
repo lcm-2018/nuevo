@@ -51,7 +51,7 @@ try {
             GROUP BY SE.id_sede
             ORDER BY SE.id_sede";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
 

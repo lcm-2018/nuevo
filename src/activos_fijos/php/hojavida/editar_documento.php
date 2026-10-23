@@ -108,8 +108,8 @@ try {
 
                 $sql = "SELECT archivo FROM acf_hojavida_documentos WHERE id_documento=" . $id;
                 $rs = $cmd->query($sql);
-                $obj = $rs->fetch();
-                $archivo = $obj['archivo'];
+                $obj = $rs ? $rs->fetch() : null;
+                $archivo = $obj['archivo'] ?? '';
 
                 $sql = "DELETE FROM acf_hojavida_documentos WHERE id_documento=" . $id;
                 $rs = $cmd->query($sql);
@@ -125,9 +125,9 @@ try {
 
             $sql = "SELECT placa,des_activo FROM acf_hojavida WHERE id_activo_fijo=" . $id_hv;
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch();
+            $obj = $rs ? $rs->fetch() : null;
 
-            $proceso = "Se Modificó Documento de Activo Fijo Id: " . $id_hv . ", Placa: " . $obj['placa'] . ", Nombre: " . $obj['des_activo'];
+            $proceso = "Se Modificó Documento de Activo Fijo Id: " . $id_hv . ", Placa: " . ($obj['placa'] ?? '') . ", Nombre: " . ($obj['des_activo'] ?? '');
             Logs::guardaLog($proceso);
         } else {
             $res['mensaje'] = 'Primero debe guardar la Hoja de Vida';

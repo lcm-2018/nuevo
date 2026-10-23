@@ -51,8 +51,8 @@ try {
                     $res['mensaje'] = 'ok';
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
 
                     $proceso = "Se Registró Artículo Id: " . $obj['id'] . ", Código: " . $cod_art . ", Nombre: " . $nom_art;
                     Logs::guardaLog($proceso);
@@ -66,9 +66,8 @@ try {
                         INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_med=far_medicamentos.id_med)
                         WHERE far_subgrupos.af_menor_cuantia=1 AND far_medicamentos.id_med=" . $id;
                 $rs = $cmd->query($sql);
-                $obj_existe = $rs->fetch();
-
-                if ($obj_existe['existe'] == 0) {
+                $obj_existe = $rs ? $rs->fetch() : null;
+                if (($obj_existe['existe'] ?? 0) == 0) {
                     $sql = "UPDATE far_medicamentos SET cod_medicamento='$cod_art',nom_medicamento='$nom_art',
                             id_subgrupo=$id_subgrp,top_min=$top_min,top_max=$top_max,id_unidadmedida_2=$id_unimed,estado=$estado,vida_util=$vid_uti
                         WHERE id_med=" . $id;
@@ -97,19 +96,18 @@ try {
                     INNER JOIN far_medicamento_lote ON (far_medicamento_lote.id_med=far_medicamentos.id_med)
                     WHERE far_subgrupos.af_menor_cuantia=1 AND far_medicamentos.id_med=" . $id;
             $rs = $cmd->query($sql);
-            $obj_existe = $rs->fetch();
-
-            if ($obj_existe['existe'] == 0) {
+            $obj_existe = $rs ? $rs->fetch() : null;
+            if (($obj_existe['existe'] ?? 0) == 0) {
                 $sql = "SELECT cod_medicamento,nom_medicamento FROM far_medicamentos WHERE id_med=" . $id;
                 $rs = $cmd->query($sql);
-                $obj = $rs->fetch();
+                $obj = $rs ? $rs->fetch() : null;
 
                 $sql = "DELETE FROM far_medicamentos WHERE id_med=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Eliminó Artículo Id: " . $id . ", Código: " . $obj['cod_medicamento'] . ", Nombre: " . $obj['nom_medicamento'];
+                    $proceso = "Se Eliminó Artículo Id: " . $id . ", Código: " . ($obj['cod_medicamento'] ?? '') . ", Nombre: " . ($obj['nom_medicamento'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];

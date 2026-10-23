@@ -75,9 +75,8 @@ try {
             } else {
                 $sql = "SELECT estado FROM acf_mantenimiento WHERE id_mantenimiento=" . $id;
                 $rs = $cmd->query($sql);
-                $obj_mant = $rs->fetch();
-
-                if ($obj_mant['estado'] == 1) {
+                $obj_mant = $rs ? $rs->fetch() : null;
+                if (($obj_mant['estado'] ?? -1) == 1) {
                     $sql = "UPDATE acf_mantenimiento SET
                                 observaciones = :observaciones,
                                 tipo_mantenimiento = :tipo_mantenimiento,
@@ -117,9 +116,8 @@ try {
 
             $sql = "SELECT estado,fec_mantenimiento,observaciones FROM acf_mantenimiento WHERE id_mantenimiento=" . $id;
             $rs = $cmd->query($sql);
-            $obj_mant = $rs->fetch();
-
-            if ($obj_mant['estado'] == 1) {
+            $obj_mant = $rs ? $rs->fetch() : null;
+            if (($obj_mant['estado'] ?? -1) == 1) {
                 $sql = "DELETE FROM acf_mantenimiento WHERE id_mantenimiento=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
@@ -140,13 +138,13 @@ try {
 
             $sql = 'SELECT estado,fec_mantenimiento,observaciones FROM acf_mantenimiento WHERE id_mantenimiento=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_mant = $rs->fetch();
-            $estado = isset($obj_mant['estado']) ? $obj_mant['estado'] : -1;
+            $obj_mant = $rs ? $rs->fetch() : null;
+            $estado = $obj_mant['estado'] ?? -1;
 
             $sql = "SELECT COUNT(*) AS total FROM acf_mantenimiento_detalle WHERE id_mantenimiento=" . $id;
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $num_detalles = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $num_detalles = $obj_detalles['total'] ?? 0;
 
             if ($estado == 1 && $num_detalles > 0) {
                 $sql = "SELECT GROUP_CONCAT(acf_hojavida.placa) as placas 
@@ -154,7 +152,7 @@ try {
                         INNER JOIN acf_hojavida ON (acf_hojavida.id_activo_fijo = acf_mantenimiento_detalle.id_activo_fijo)
                         WHERE acf_mantenimiento_detalle.id_mantenimiento=$id AND acf_hojavida.estado IN (4,5)";
                 $rs = $cmd->query($sql);
-                $obj_mant_pla = $rs->fetch();
+                $obj_mant_pla = $rs ? $rs->fetch() : null;
                 $placas = isset($obj_mant_pla['placas']) ? $obj_mant_pla['placas'] : '';
 
                 if (!$placas) {
@@ -194,8 +192,8 @@ try {
 
             $sql = 'SELECT estado,fec_mantenimiento,observaciones FROM acf_mantenimiento WHERE id_mantenimiento=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_mant = $rs->fetch();
-            $estado = isset($obj_mant['estado']) ? $obj_mant['estado'] : -1;
+            $obj_mant = $rs ? $rs->fetch() : null;
+            $estado = $obj_mant['estado'] ?? -1;
 
             if ($estado == 2) {
                 $sql = "SELECT GROUP_CONCAT(acf_hojavida.placa) as placas 
@@ -203,7 +201,7 @@ try {
                         INNER JOIN acf_hojavida ON (acf_hojavida.id_activo_fijo = acf_mantenimiento_detalle.id_activo_fijo)
                         WHERE acf_mantenimiento_detalle.id_mantenimiento=$id AND acf_hojavida.estado IN (4,5)";
                 $rs = $cmd->query($sql);
-                $obj_mant_pla = $rs->fetch();
+                $obj_mant_pla = $rs ? $rs->fetch() : null;
                 $placas = isset($obj_mant_pla['placas']) ? $obj_mant_pla['placas'] : '';
 
                 if (!$placas) {
@@ -239,8 +237,8 @@ try {
 
             $sql = 'SELECT estado,fec_mantenimiento,observaciones FROM acf_mantenimiento WHERE id_mantenimiento=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_mant = $rs->fetch();
-            $estado = isset($obj_mant['estado']) ? $obj_mant['estado'] : -1;
+            $obj_mant = $rs ? $rs->fetch() : null;
+            $estado = $obj_mant['estado'] ?? -1;
 
             if ($estado == 3) {
                 $error = 0;
@@ -272,8 +270,8 @@ try {
 
             $sql = 'SELECT estado,fec_mantenimiento,observaciones FROM acf_mantenimiento WHERE id_mantenimiento=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_mant = $rs->fetch();
-            $estado = isset($obj_mant['estado']) ? $obj_mant['estado'] : -1;
+            $obj_mant = $rs ? $rs->fetch() : null;
+            $estado = $obj_mant['estado'] ?? -1;
 
             if ($estado == 2) {
                 $error = 0;
@@ -304,7 +302,7 @@ try {
         if ($oper == 'aprob' || $oper == 'ejecu' || $oper == 'close' || $oper == 'annul') {
             $sql = "SELECT id_activo_fijo FROM acf_mantenimiento_detalle WHERE id_mantenimiento=" . $id;
             $rs = $cmd->query($sql);
-            $objs = $rs->fetchAll();
+            $objs = $rs ? $rs->fetchAll() : [];
             $rs->closeCursor();
             unset($rs);
             foreach ($objs as $obj) {

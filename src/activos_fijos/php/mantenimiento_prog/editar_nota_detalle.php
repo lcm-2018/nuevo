@@ -79,8 +79,8 @@ try {
                     if ($_POST['del_doc'] == 1 || $_POST['act_doc'] == 1) {
                         $sql = "SELECT archivo FROM acf_mantenimiento_detalle_nota WHERE id_det_nota=" . $id;
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-                        $archivo = $obj['archivo'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $archivo = $obj['archivo'] ?? '';
                         if ($archivo && file_exists($ruta . $archivo)) {
                             unlink($ruta . $archivo);
                         }
@@ -129,8 +129,8 @@ try {
 
                 $sql = "SELECT archivo FROM acf_mantenimiento_detalle_nota WHERE id_det_nota=" . $id;
                 $rs = $cmd->query($sql);
-                $obj = $rs->fetch();
-                $archivo = $obj['archivo'];
+                $obj = $rs ? $rs->fetch() : null;
+                $archivo = $obj['archivo'] ?? '';
 
                 $sql = "DELETE FROM acf_mantenimiento_detalle_nota WHERE id_det_nota=" . $id;
                 $rs = $cmd->query($sql);
@@ -150,9 +150,9 @@ try {
                 INNER JOIN acf_hojavida ON (acf_hojavida.id_activo_fijo = acf_mantenimiento_detalle.id_activo_fijo)
                 WHERE acf_mantenimiento_detalle.id_mant_detalle=" . $id_md;
             $rs = $cmd->query($sql);
-            $obj_man = $rs->fetch();
+            $obj_man = $rs ? $rs->fetch() : null;
 
-            $proceso = "Se Modificó notas de Progreso de Mantenimiento Id: " . $obj_man['id_mantenimiento'] . ", Fecha: " . $obj_man['fec_mantenimiento'] . ", Equipo Placa: " . $obj_man['placa'];
+            $proceso = "Se Modificó notas de Progreso de Mantenimiento Id: " . ($obj_man['id_mantenimiento'] ?? '') . ", Fecha: " . ($obj_man['fec_mantenimiento'] ?? '') . ", Equipo Placa: " . ($obj_man['placa'] ?? '');
             Logs::guardaLog($proceso);
         } else {
             $res['mensaje'] = 'Primero debe guardar El registro de Orden de mantenimiento';

@@ -48,8 +48,8 @@ try {
                     $res['mensaje'] = 'ok';
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
 
                     $proceso = "Se Registró Baja de Activos Fijos Id: " . $obj['id'] . ", Fecha: " . $fec_orden . ", Observaciones: " . $observaciones;
                     Logs::guardaLog($proceso);
@@ -59,9 +59,8 @@ try {
             } else {
                 $sql = "SELECT estado FROM acf_baja WHERE id_baja=" . $id;
                 $rs = $cmd->query($sql);
-                $obj_baja = $rs->fetch();
-
-                if ($obj_baja['estado'] == 1) {
+                $obj_baja = $rs ? $rs->fetch() : null;
+                if (($obj_baja['estado'] ?? -1) == 1) {
                     $sql = "UPDATE acf_baja SET observaciones='$observaciones'
                             WHERE id_baja=" . $id;
                     $rs = $cmd->query($sql);
@@ -86,9 +85,8 @@ try {
 
             $sql = "SELECT estado,fec_orden,observaciones FROM acf_baja WHERE id_baja=" . $id;
             $rs = $cmd->query($sql);
-            $obj_baja = $rs->fetch();
-
-            if ($obj_baja['estado'] == 1) {
+            $obj_baja = $rs ? $rs->fetch() : null;
+            if (($obj_baja['estado'] ?? -1) == 1) {
                 $sql = "DELETE FROM acf_baja WHERE id_baja=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
@@ -109,13 +107,13 @@ try {
 
             $sql = 'SELECT estado,fec_orden,observaciones FROM acf_baja WHERE id_baja=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_baja = $rs->fetch();
-            $estado = isset($obj_baja['estado']) ? $obj_baja['estado'] : -1;
+            $obj_baja = $rs ? $rs->fetch() : null;
+            $estado = $obj_baja['estado'] ?? -1;
 
             $sql = "SELECT COUNT(*) AS total FROM acf_baja_detalle WHERE id_baja=" . $id;
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $num_detalles = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $num_detalles = $obj_detalles['total'] ?? 0;
 
             if ($estado == 1 && $num_detalles > 0) {
                 $error = 0;
@@ -123,8 +121,8 @@ try {
 
                 $sql = 'SELECT num_bajaactual_acf FROM tb_datos_ips LIMIT 1';
                 $rs = $cmd->query($sql);
-                $obj = $rs->fetch();
-                $num_baja = $obj['num_bajaactual_acf'];
+                $obj = $rs ? $rs->fetch() : null;
+                $num_baja = $obj['num_bajaactual_acf'] ?? 0;
                 $res['num_baja'] = $num_baja;
 
                 $sql = "UPDATE acf_baja SET num_baja=$num_baja, estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope' WHERE id_baja=$id";
@@ -164,8 +162,8 @@ try {
 
             $sql = 'SELECT estado,fec_orden,observaciones FROM acf_baja WHERE id_baja=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_baja = $rs->fetch();
-            $estado = isset($obj_baja['estado']) ? $obj_baja['estado'] : -1;
+            $obj_baja = $rs ? $rs->fetch() : null;
+            $estado = $obj_baja['estado'] ?? -1;
 
             if ($estado == 2) {
                 $error = 0;

@@ -35,9 +35,8 @@ try {
 
         $sql = "SELECT estado,fec_ingreso,detalle FROM acf_orden_ingreso WHERE id_ingreso=" . $id_ingreso;
         $rs = $cmd->query($sql);
-        $obj_ingreso = $rs->fetch();
-
-        if ($obj_ingreso['estado'] == 1) {
+        $obj_ingreso = $rs ? $rs->fetch() : null;
+        if (($obj_ingreso['estado'] ?? -1) == 1) {
             if ($oper == 'add') {
                 $id = $_POST['id_act_fijo'];
                 $id_art = $_POST['id_articulo'];
@@ -55,8 +54,8 @@ try {
                             LEFT JOIN acf_orden_ingreso_acfs ON (acf_orden_ingreso_acfs.id_ing_detalle=acf_orden_ingreso_detalle.id_ing_detalle)
                             WHERE acf_orden_ingreso_detalle.id_ing_detalle=" . $id_ing_det;
                     $rs = $cmd->query($sql);
-                    $obj = $rs->fetch();
-                    $cantidad = $obj['cantidad'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $cantidad = $obj['cantidad'] ?? 0;
                     if ($obj['cantidad'] > $obj['registros']) {
                         $sql = "INSERT INTO acf_orden_ingreso_acfs(id_ing_detalle,id_articulo,placa,num_serial,id_marca,valor,tipo_activo)
                                 VALUES($id_ing_det,$id_art,'$placa','$num_serial',$id_marca,$valor,$tip_act)";
@@ -66,8 +65,8 @@ try {
                             $res['mensaje'] = 'ok';
                             $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                             $rs = $cmd->query($sql_i);
-                            $obj = $rs->fetch();
-                            $res['id'] = $obj['id'];
+                            $obj = $rs ? $rs->fetch() : null;
+                            $res['id'] = $obj['id'] ?? null;
                         } else {
                             $res['mensaje'] = $cmd->errorInfo()[2];
                         }

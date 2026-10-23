@@ -251,14 +251,14 @@ try {
 
             $sql = "SELECT placa,des_activo FROM acf_hojavida WHERE id_activo_fijo=" . $id;
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch();
+            $obj = $rs ? $rs->fetch() : null;
 
             $sql = "DELETE FROM acf_hojavida WHERE id_activo_fijo=" . $id;
             $rs = $cmd->query($sql);
             if ($rs) {
                 $res['mensaje'] = 'ok';
 
-                $proceso = "Se Eliminó Activo Fijo Id: " . $id . ", Placa: " . $obj['placa'] . ", Nombre: " . $obj['des_activo'];
+                $proceso = "Se Eliminó Activo Fijo Id: " . $id . ", Placa: " . ($obj['placa'] ?? '') . ", Nombre: " . ($obj['des_activo'] ?? '');
                 Logs::guardaLog($proceso);
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];

@@ -21,7 +21,7 @@ $sql = "SELECT acf_orden_ingreso_detalle.id_articulo,
         INNER JOIN far_medicamentos ON (far_medicamentos.id_med = acf_orden_ingreso_detalle.id_articulo)
         WHERE acf_orden_ingreso_detalle.id_ing_detalle=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
 ?>
 

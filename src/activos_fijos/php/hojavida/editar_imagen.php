@@ -37,8 +37,8 @@ try {
             if ($_POST['del_imagen'] == 1 || $_POST['act_imagen'] == 1) {
                 $sql = "SELECT imagen FROM acf_hojavida WHERE id_activo_fijo=" . $id_hv;
                 $rs = $cmd->query($sql);
-                $obj = $rs->fetch();
-                $imagen = $obj['imagen'];
+                $obj = $rs ? $rs->fetch() : null;
+                $imagen = $obj['imagen'] ?? '';
                 if ($imagen && file_exists($ruta . $imagen)) {
                     unlink($ruta . $imagen);
                 }
@@ -85,9 +85,9 @@ try {
 
             $sql = "SELECT placa,des_activo FROM acf_hojavida WHERE id_activo_fijo=" . $id_hv;
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch();
+            $obj = $rs ? $rs->fetch() : null;
 
-            $proceso = "Se Modificó Imagen de Activo Fijo Id: " . $id_hv . ", Placa: " . $obj['placa'] . ", Nombre: " . $obj['des_activo'];
+            $proceso = "Se Modificó Imagen de Activo Fijo Id: " . $id_hv . ", Placa: " . ($obj['placa'] ?? '') . ", Nombre: " . ($obj['des_activo'] ?? '');
             Logs::guardaLog($proceso);
         } else {
             $res['mensaje'] = 'Primero debe guardar la Hoja de Vida del Activo Fijo';

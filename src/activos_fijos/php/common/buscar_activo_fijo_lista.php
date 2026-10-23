@@ -44,15 +44,15 @@ try {
     $sql = "SELECT COUNT(*) AS total FROM acf_hojavida AS HV
             INNER JOIN far_medicamentos AS FM ON (FM.id_med = HV.id_articulo)" . $where_gen;
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM acf_hojavida AS HV
             INNER JOIN far_medicamentos AS FM ON (FM.id_med = HV.id_articulo)" . $where;
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT HV.id_activo_fijo,HV.placa,
@@ -74,7 +74,7 @@ try {
         . $where . " ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

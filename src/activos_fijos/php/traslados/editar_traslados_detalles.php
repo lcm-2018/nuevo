@@ -38,9 +38,8 @@ try {
 
             $sql = "SELECT estado,fec_traslado,observaciones,id_area_origen FROM acf_traslado WHERE id_traslado=" . $id_traslado;
             $rs = $cmd->query($sql);
-            $obj_traslado = $rs->fetch();
-
-            if ($obj_traslado['estado'] == 1) {
+            $obj_traslado = $rs ? $rs->fetch() : null;
+            if (($obj_traslado['estado'] ?? -1) == 1) {
                 if ($oper == 'add') {
                     if ($obj_traslado['id_area_origen'] == $id_area) {
                         $id = $_POST['id_detalle'];
@@ -51,16 +50,16 @@ try {
                         if ($id == -1) {
                             $sql = "SELECT COUNT(*) AS count FROM acf_traslado_detalle WHERE id_traslado=$id_traslado AND id_activo_fijo=" . $id_activo_fijo;
                             $rs = $cmd->query($sql);
-                            $obj = $rs->fetch();
-                            $det_ing = $obj['count'];
+                            $obj = $rs ? $rs->fetch() : null;
+                            $det_ing = $obj['count'] ?? 0;
 
                             $sql = "SELECT acf_traslado.id_traslado 
                                     FROM acf_traslado_detalle 
                                     INNER JOIN acf_traslado ON (acf_traslado.id_traslado=acf_traslado_detalle.id_traslado)
                                     WHERE acf_traslado.estado=1 AND acf_traslado.id_traslado<>$id_traslado AND acf_traslado_detalle.id_activo_fijo=$id_activo_fijo LIMIT 1";
                             $rs = $cmd->query($sql);
-                            $obj = $rs->fetch();
-                            $otro_tra = isset($obj['id_traslado']) ? $obj['id_traslado'] : 0;
+                            $obj = $rs ? $rs->fetch() : null;
+                            $otro_tra = $obj['id_traslado'] ?? 0;
 
                             if ($det_ing == 0 && $otro_tra == 0) {
                                 $sql = "INSERT INTO acf_traslado_detalle(id_traslado,id_activo_fijo,estado_general,observacion)
@@ -71,8 +70,8 @@ try {
                                     $res['mensaje'] = 'ok';
                                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                                     $rs = $cmd->query($sql_i);
-                                    $obj = $rs->fetch();
-                                    $res['id'] = $obj['id'];
+                                    $obj = $rs ? $rs->fetch() : null;
+                                    $res['id'] = $obj['id'] ?? null;
                                 } else {
                                     $res['mensaje'] = $cmd->errorInfo()[2];
                                 }

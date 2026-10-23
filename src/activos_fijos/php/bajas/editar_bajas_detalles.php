@@ -37,9 +37,8 @@ try {
 
             $sql = "SELECT estado,fec_orden,observaciones FROM acf_baja WHERE id_baja=" . $id_baja;
             $rs = $cmd->query($sql);
-            $obj_baja = $rs->fetch();
-
-            if ($obj_baja['estado'] == 1) {
+            $obj_baja = $rs ? $rs->fetch() : null;
+            if (($obj_baja['estado'] ?? -1) == 1) {
                 if ($oper == 'add') {
                     $id = $_POST['id_detalle'];
                     $id_activo_fijo = $_POST['id_txt_actfij'];
@@ -49,8 +48,8 @@ try {
                     if ($id == -1) {
                         $sql = "SELECT COUNT(*) AS count FROM acf_baja_detalle WHERE id_baja=$id_baja AND id_activo_fijo=" . $id_activo_fijo;
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-                        if ($obj['count'] == 0) {
+                        $obj = $rs ? $rs->fetch() : null;
+                        if (($obj['count'] ?? 0) == 0) {
                             $sql = "INSERT INTO acf_baja_detalle(id_baja,id_activo_fijo,estado_general,observacion)
                                     VALUES($id_baja,$id_activo_fijo,$estado_general,'$observacion')";
                             $rs = $cmd->query($sql);
@@ -59,8 +58,8 @@ try {
                                 $res['mensaje'] = 'ok';
                                 $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                                 $rs = $cmd->query($sql_i);
-                                $obj = $rs->fetch();
-                                $res['id'] = $obj['id'];
+                                $obj = $rs ? $rs->fetch() : null;
+                                $res['id'] = $obj['id'] ?? null;
                             } else {
                                 $res['mensaje'] = $cmd->errorInfo()[2];
                             }

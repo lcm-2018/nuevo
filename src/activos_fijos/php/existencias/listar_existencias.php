@@ -65,8 +65,8 @@ try {
             INNER JOIN far_subgrupos AS FG ON (FG.id_subgrupo=ME.id_subgrupo)
             WHERE FG.id_grupo IN (3,4,5) OR FG.af_menor_cuantia=1";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM far_medicamentos AS ME
@@ -77,8 +77,8 @@ try {
                 GROUP BY HV.id_articulo) AS EX ON (EX.id_articulo=ME.id_med)
             $where";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT ME.id_med,ME.cod_medicamento,ME.nom_medicamento,
@@ -102,7 +102,7 @@ try {
             LEFT JOIN acf_orden_ingreso_detalle AS DE ON (DE.id_ing_detalle=VU.id)
             $where ORDER BY $col $dir $limit";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

@@ -21,9 +21,8 @@ $sql = "SELECT MD.*,HV.placa,HV.num_serial,FM.nom_medicamento AS nom_articulo,HV
         INNER JOIN far_medicamentos FM ON (FM.id_med=HV.id_articulo)
         WHERE MD.id_mant_detalle=" . $id_md . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
-
-$editar = in_array($obj['estado'], [1, 2]) && $id_md != -1 && in_array($obj['estado_man'], [3]) ? '' : 'disabled="disabled"';
+$obj = $rs ? $rs->fetch() : null;
+$editar = in_array($obj['estado'] ?? -1, [1, 2]) && $id_md != -1 && in_array($obj['estado_man'], [3]) ? '' : 'disabled="disabled"';
 
 ?>
 

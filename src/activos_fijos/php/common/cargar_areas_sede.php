@@ -17,7 +17,7 @@ try {
             WHERE id_area<>0 AND estado=1 AND id_sede=$idsede
             ORDER BY es_almacen DESC,nom_area";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     foreach ($objs as $obj) {

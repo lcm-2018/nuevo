@@ -39,7 +39,7 @@ try {
             LEFT JOIN seg_usuarios_sistema AS USR ON (USR.id_usuario=HV.id_responsable)
             WHERE HV.id_activo_fijo=" . $id . " LIMIT 1";
     $rs = $cmd->query($sql);
-    $obj_e = $rs->fetch();
+    $obj_e = $rs ? $rs->fetch() : null;
 
     $sql = "SELECT HVC.*,
                 ART.nom_medicamento AS nom_articulo,
@@ -266,7 +266,7 @@ try {
         <?php endif ?>
     </table>
 
-    <?php if (count($obj_com) > 0 && ($tipo == 'com' || $tipo == 'todo')): ?>
+    <?php if ((is_array($obj_com) ? count($obj_com) : 0) > 0 && ($tipo == 'com' || $tipo == 'todo')): ?>
         <table style="width:100%; border:#A9A9A9 1px solid;">
             <thead style="font-size:60%">
                 <tr style="background-color:#CED3D3; color:#000000; text-align:center">
@@ -295,7 +295,7 @@ try {
         </table>
     <?php endif ?>
 
-    <?php if (count($obj_doc) > 0 && ($tipo == 'doc' || $tipo == 'todo')): ?>
+    <?php if ((is_array($obj_doc) ? count($obj_doc) : 0) > 0 && ($tipo == 'doc' || $tipo == 'todo')): ?>
         <table style="width:100%; border:#A9A9A9 1px solid;">
             <thead style="font-size:60%">
                 <tr style="background-color:#CED3D3; color:#000000; text-align:center">

@@ -28,7 +28,7 @@ try {
             LEFT JOIN seg_usuarios_sistema AS usr ON (usr.id_usuario = M.id_usr_aprueba)
             WHERE M.id_mantenimiento=" . $id . " LIMIT 1";
     $rs = $cmd->query($sql);
-    $obj_e = $rs->fetch();
+    $obj_e = $rs ? $rs->fetch() : null;
 
     $sql = "SELECT MD.id_mant_detalle,
                 HV.placa,FM.nom_medicamento AS nom_articulo,HV.des_activo,
@@ -40,7 +40,7 @@ try {
             INNER JOIN far_centrocosto_area AS CA ON (CA.id_area=MD.id_area)
             WHERE MD.id_mantenimiento=" . $id . " ORDER BY MD.id_mant_detalle";
     $rs = $cmd->query($sql);
-    $obj_ds = $rs->fetchAll();
+    $obj_ds = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
@@ -144,7 +144,7 @@ try {
         </tbody>
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
-                <td>TOTAL REGISTROS:<?php echo COUNT($obj_ds); ?> </td>
+                <td>TOTAL REGISTROS:<?php echo is_array($obj_ds) ? count($obj_ds) : 0; ?> </td>
                 <td colspan="5"></td>
             </tr>
         </tfoot>

@@ -17,18 +17,21 @@ $sql = "SELECT HV.*,ART.nom_medicamento AS nom_articulo,
         INNER JOIN far_medicamentos AS ART  ON (ART.id_med=HV.id_articulo)
         WHERE HV.id_activo_fijo=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
 if ($obj === false) {
     $obj = []; // Inicializa $obj como un array vacío
 }
 
 if (empty($obj)) {
-    $n = $rs->columnCount();
+    $obj = [];
+    $n = $rs ? $rs->columnCount() : 0;
     for ($i = 0; $i < $n; $i++):
         $col = $rs->getColumnMeta($i);
-        $name = $col['name'];
-        $obj[$name] = NULL;
+        $name = $col['name'] ?? null;
+        if ($name) {
+            $obj[$name] = NULL;
+        }
     endfor;
     //Inicializa variable por defecto
     $obj['id_tipo_ingreso'] = 0;

@@ -38,15 +38,15 @@ try {
     $sql = "SELECT COUNT(*) AS total FROM acf_orden_ingreso_acfs
             WHERE id_ing_detalle=" . $_POST['id_ing_detalle'];
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM acf_orden_ingreso_acfs
             WHERE id_ing_detalle=" . $_POST['id_ing_detalle'] . $where;
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT acf_orden_ingreso_acfs.id_act_fij,
@@ -60,7 +60,7 @@ try {
             INNER JOIN acf_marca ON (acf_marca.id = acf_orden_ingreso_acfs.id_marca)
             WHERE acf_orden_ingreso_detalle.id_ing_detalle=" . $_POST['id_ing_detalle'] . $where . " ORDER BY $col $dir $limit";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
