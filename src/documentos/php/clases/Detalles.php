@@ -47,11 +47,11 @@ class Detalles
                     `fin_respon_doc` AS `frd`
                     LEFT JOIN `tb_terceros` AS `tt` 
                         ON (`frd`.`id_tercero` = `tt`.`id_tercero_api`)
-                WHERE (`frd`.`id_respon_doc` = $id)";
+                WHERE (`frd`.`id_respon_doc` = ?)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
-        $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $registro = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
         $stmt->closeCursor();
         unset($stmt);
         if (empty($registro)) {

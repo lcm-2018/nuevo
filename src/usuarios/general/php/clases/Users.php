@@ -511,8 +511,10 @@ class Users
             return [];
         }
 
-        $sedesPlaceholders = implode(',', array_fill(0, count($sedes), '?'));
-        $bodegasPlaceholders = implode(',', array_fill(0, count($bodegas), '?'));
+        $countSedes = is_array($sedes) ? count($sedes) : 0;
+        $countBodegas = is_array($bodegas) ? count($bodegas) : 0;
+        $sedesPlaceholders = implode(',', array_fill(0, $countSedes, '?'));
+        $bodegasPlaceholders = implode(',', array_fill(0, $countBodegas, '?'));
         $sql = "SELECT DISTINCT `id_bodega`
                 FROM `tb_sedes_bodega`
                 WHERE `id_sede` IN ($sedesPlaceholders)

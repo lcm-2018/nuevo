@@ -132,10 +132,10 @@ class Documentos
                 WHERE (1 = 1 $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $registro = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 
     /**
@@ -156,10 +156,10 @@ class Documentos
                 WHERE (1 = 1)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $registro = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 
     /**
@@ -178,7 +178,7 @@ class Documentos
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
-        $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+        $registro = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
         $stmt->closeCursor();
         unset($stmt);
         if (empty($registro)) {

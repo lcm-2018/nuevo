@@ -14,18 +14,19 @@ try {
     $sql = "SELECT id_consulta,nom_consulta,des_consulta,consulta,parametros FROM tb_consultas_sql
             WHERE id_consulta=$id";
     $rs = $cmd->query($sql);
-    $obj = $rs->fetch();
+    $obj = $rs ? $rs->fetch() : null;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
+$data = [];
 if ($obj){
-    $data['id_consulta'] = $obj['id_consulta'];
-    $data['nom_consulta'] = $obj['nom_consulta'];
-    $data['des_consulta'] = $obj['des_consulta'];
-    $data['consulta'] = $obj['consulta'];
-    $data['parametros'] = $obj['parametros'];
+    $data['id_consulta'] = $obj['id_consulta'] ?? '';
+    $data['nom_consulta'] = $obj['nom_consulta'] ?? '';
+    $data['des_consulta'] = $obj['des_consulta'] ?? '';
+    $data['consulta'] = $obj['consulta'] ?? '';
+    $data['parametros'] = $obj['parametros'] ?? '';
 }
 
 if (empty($data)) {

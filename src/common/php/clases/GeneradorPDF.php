@@ -522,7 +522,7 @@ HTML;
      */
     public function generarDesprendiblesMasivo($empleados, $titulo, $subtitulo, $callback = null)
     {
-        $stats = ['total' => count($empleados), 'exitosos' => 0, 'fallidos' => 0, 'errores' => []];
+        $stats = ['total' => (is_array($empleados) || $empleados instanceof \Countable) ? count($empleados) : 0, 'exitosos' => 0, 'fallidos' => 0, 'errores' => []];
 
         foreach ($empleados as $empleado) {
             try {
