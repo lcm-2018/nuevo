@@ -41,11 +41,11 @@ try {
                     INNER JOIN far_orden_ingreso_tipo ON (far_orden_ingreso_tipo.id_tipo_ingreso = far_orden_ingreso.id_tipo_ingreso)
                     WHERE far_orden_ingreso.id_ingreso=" . $id_ingreso;
             $rs = $cmd->query($sql);
-            $obj_ingreso = $rs->fetch();
-            $estado = $obj_ingreso['estado'];
-            $id_tipo_ing = $obj_ingreso['id_tipo_ingreso'];
-            $orden_compra = $obj_ingreso['orden_compra'];
-            $id_pedido = $obj_ingreso['id_pedido'] ? $obj_ingreso['id_pedido'] : 0;
+            $obj_ingreso = $rs ? $rs->fetch() : null;
+            $estado = $obj_ingreso['estado'] ?? 0;
+            $id_tipo_ing = $obj_ingreso['id_tipo_ingreso'] ?? 0;
+            $orden_compra = $obj_ingreso['orden_compra'] ?? 0;
+            $id_pedido = !empty($obj_ingreso['id_pedido']) ? $obj_ingreso['id_pedido'] : 0;
 
             if ($estado == 1) {
                 if ($oper == 'add') {
@@ -77,14 +77,14 @@ try {
                         if ($orden_compra == 1 && $id_pedido != 0) {
                             $sql = "SELECT id_med,id_bodega FROM far_medicamento_lote WHERE id_lote=" . $id_lote;
                             $rs = $cmd->query($sql);
-                            $obj = $rs->fetch();
-                            $id_articulo = $obj['id_med'];
-                            $id_bodega = $obj['id_bodega'];
+                            $obj = $rs ? $rs->fetch() : null;
+                            $id_articulo = $obj['id_med'] ?? 0;
+                            $id_bodega = $obj['id_bodega'] ?? 0;
 
                             $sql = "SELECT aprobado FROM far_alm_pedido_detalle WHERE id_pedido=$id_pedido AND id_medicamento=$id_articulo";
                             $rs = $cmd->query($sql);
-                            $obj = $rs->fetch();
-                            $can_aprobado = $obj['aprobado'];
+                            $obj = $rs ? $rs->fetch() : null;
+                            $can_aprobado = $obj['aprobado'] ?? 0;
 
                             $sql = "SELECT SUM(far_orden_ingreso_detalle.cantidad*far_presentacion_comercial.cantidad) AS cantidad
                                     FROM far_orden_ingreso_detalle
@@ -94,17 +94,17 @@ try {
                                     WHERE far_orden_ingreso.estado<>0 AND far_orden_ingreso.id_bodega=$id_bodega AND far_orden_ingreso.id_pedido=$id_pedido AND 
                                         far_medicamento_lote.id_med=$id_articulo AND far_orden_ingreso_detalle.id_ing_detalle<>$id";
                             $rs = $cmd->query($sql);
-                            $obj = $rs->fetch();
-                            $can_ingresada = $obj['cantidad'] + $cantidad * $cant_umpl;
+                            $obj = $rs ? $rs->fetch() : null;
+                            $can_ingresada = ($obj['cantidad'] ?? 0) + $cantidad * $cant_umpl;
                         }
 
                         if (($can_ingresada <= $can_aprobado) || $orden_compra == 0) {
 
                             $sql = "SELECT COUNT(*) AS existe FROM far_orden_ingreso_detalle WHERE id_ingreso=$id_ingreso AND id_lote=" . $id_lote . " AND id_ing_detalle<>" . $id;
                             $rs = $cmd->query($sql);
-                            $obj = $rs->fetch();
+                            $obj = $rs ? $rs->fetch() : null;
 
-                            if ($obj['existe'] == 0) {
+                            if (isset($obj['existe']) && $obj['existe'] == 0) {
                                 if ($id == -1) {
                                     $sql = "INSERT INTO far_orden_ingreso_detalle(id_ingreso,id_lote,id_presentacion,cantidad,valor_sin_iva,iva,valor,observacion,
                                                         tam_muestra,def_menores,def_mayores,def_criticos,obs_recepcion)
@@ -116,8 +116,8 @@ try {
                                         $res['mensaje'] = 'ok';
                                         $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                                         $rs = $cmd->query($sql_i);
-                                        $obj = $rs->fetch();
-                                        $res['id'] = $obj['id'];
+                                        $obj = $rs ? $rs->fetch() : null;
+                                        $res['id'] = $obj['id'] ?? null;
                                     } else {
                                         $res['mensaje'] = $cmd->errorInfo()[2];
                                     }
@@ -163,10 +163,10 @@ try {
 
                     $sql = "SELECT val_total FROM far_orden_ingreso WHERE id_ingreso=" . $id_ingreso;
                     $rs = $cmd->query($sql);
-                    $obj_total = $rs->fetch();
-                    $res['val_total'] = $obj_total['val_total'];
+                    $obj_total = $rs ? $rs->fetch() : null;
+                    $res['val_total'] = $obj_total['val_total'] ?? 0;
 
-                    $proceso = "Se Modificó detalles de Órden de Ingreso Id: " . $id_ingreso . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
+                    $proceso = "Se Modificó detalles de Órden de Ingreso Id: " . $id_ingreso . ", Fecha: " . ($obj_ingreso['fec_ingreso'] ?? '') . ", Detalle: " . ($obj_ingreso['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 }
             } else {

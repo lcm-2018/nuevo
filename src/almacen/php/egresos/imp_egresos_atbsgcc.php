@@ -70,9 +70,9 @@ if (isset($_POST['modulo']) && strlen($_POST['modulo'])) {
 try {
     $sql = "SELECT id_centro,nom_centro FROM tb_centrocostos WHERE es_farmacia=1 LIMIT 1";
     $rs = $cmd->query($sql);
-    $obj = $rs->fetch();
+    $obj = $rs ? $rs->fetch() : null;
     $id_farmacia = isset($obj['id_centro']) ? $obj['id_centro'] : 0;
-    $nom_farmacia = isset($obj['id_centro']) ? $obj['nom_centro'] : '';
+    $nom_farmacia = isset($obj['nom_centro']) ? $obj['nom_centro'] : '';
 
     $sql = "SELECT far_orden_egreso_tipo.id_tipo_egreso,far_orden_egreso_tipo.nom_tipo_egreso,far_orden_egreso_tipo.consumo,
                 SUM(far_orden_egreso.val_total) AS val_total_te
@@ -220,18 +220,18 @@ try {
                             $rs_ccos->bindParam(':id_cencos', $id_cencos);
                             $rs_ccos->bindParam(':id_subgrupo', $id_subgrupo);
                             $rs_ccos->execute();
-                            $obj_ccos = $rs_ccos->fetch();
+                            $obj_ccos = $rs_ccos ? $rs_ccos->fetch() : null;
                             $cuenta_con = isset($obj_ccos['cuenta']) ? $obj_ccos['cuenta'] : '';
                         } else {
                             $rs_tegr->bindParam(':id_tipo_egreso', $id_tipo_egreso);
                             $rs_tegr->execute();
-                            $obj_tegr = $rs_tegr->fetch();
+                            $obj_tegr = $rs_tegr ? $rs_tegr->fetch() : null;
                             $cuenta_con = isset($obj_tegr['cuenta']) ? $obj_tegr['cuenta'] : '';
                         }
 
                         $rs_subg->bindParam(':id_subgrupo', $id_subgrupo);
                         $rs_subg->execute();
-                        $obj_subg = $rs_subg->fetch();
+                        $obj_subg = $rs_subg ? $rs_subg->fetch() : null;
                         $cuenta_subg = isset($obj_subg['cuenta']) ? $obj_subg['cuenta'] : '';
 
                         $tabla .=  '<tr class="resaltar">

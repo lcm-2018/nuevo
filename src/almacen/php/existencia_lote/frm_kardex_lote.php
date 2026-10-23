@@ -16,11 +16,16 @@ $sql = "SELECT far_medicamento_lote.id_lote,far_medicamento_lote.lote,
         INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)
         WHERE far_medicamento_lote.id_lote=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
-if (empty($obj)) {
+if (empty($obj) || !is_array($obj)) {
     //Inicializa variable por defecto
-    $obj['id_lote'] = 0;
+    $obj = [
+        'id_lote' => 0,
+        'cod_medicamento' => '',
+        'nom_medicamento' => '',
+        'lote' => '',
+    ];
 }
 
 ?>

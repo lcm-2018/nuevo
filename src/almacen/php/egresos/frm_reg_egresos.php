@@ -32,18 +32,22 @@ $sql = "SELECT EE.fec_egreso,EE.hor_egreso,EE.num_egreso,EE.id_sede,EE.id_bodega
                     GROUP BY ED.id_egreso) AS EGRESO ON (EGRESO.id_egreso=EE.id_egreso)   
         WHERE EE.id_egreso=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
 $editar = 'disabled="disabled"';
 if (empty($obj)) {
-    $n = $rs->columnCount();
+    $obj = [];
+    $n = $rs ? $rs->columnCount() : 0;
     for ($i = 0; $i < $n; $i++) :
         $col = $rs->getColumnMeta($i);
-        $name = $col['name'];
-        $obj[$name] = NULL;
+        $name = $col['name'] ?? null;
+        if ($name) {
+            $obj[$name] = NULL;
+        }
     endfor;
     //Inicializa variable por defecto
-    $obj['id_sede'] = sede_unica_usuario($cmd)['id_sede'];
+    $sede_u = sede_unica_usuario($cmd);
+    $obj['id_sede'] = $sede_u['id_sede'] ?? 0;
     $obj['id_tipo_egreso'] = 0;
     $obj['id_tercero'] = 0;
     $obj['nom_tercero'] = 'NINGUNO';

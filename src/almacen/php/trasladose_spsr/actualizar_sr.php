@@ -24,14 +24,15 @@ if (isset($_POST['id_seddes'])) {
 
             $sql = "SELECT ip_sede,bd_sede,pw_sede,us_sede,pt_http FROM tb_sedes WHERE id_sede=" . $_POST['id_seddes'] . " LIMIT 1";
             $rs = $cmd->query($sql);
-            $obj_sede = $rs->fetch();
+            $obj_sede = $rs ? $rs->fetch() : null;
 
-            $ip_pr = explode(':', $obj_sede['ip_sede']);
-            $ip = $ip_pr[0];
-            $port = $ip_pr[1];
-            $database = $obj_sede['bd_sede'];
-            $password = $obj_sede['pw_sede'];
-            $user = $obj_sede['us_sede'];
+            $ip_sede = $obj_sede['ip_sede'] ?? '';
+            $ip_pr = explode(':', $ip_sede);
+            $ip = $ip_pr[0] ?? '';
+            $port = $ip_pr[1] ?? '';
+            $database = $obj_sede['bd_sede'] ?? '';
+            $password = $obj_sede['pw_sede'] ?? '';
+            $user = $obj_sede['us_sede'] ?? '';
             $continuar = true;
 
             // Verifica conexión a servicio remoto
@@ -54,7 +55,7 @@ if (isset($_POST['id_seddes'])) {
             if ($continuar) {
 
                 $bodega = bodega_principal($cmd);
-                $id_bodega_origen = $bodega['id_bodega'] ? $bodega['id_bodega'] : 0;
+                $id_bodega_origen = !empty($bodega['id_bodega']) ? $bodega['id_bodega'] : 0;
 
                 $where = " WHERE id_traslado_origen IS NULL AND id_bodega_origen=$id_bodega_origen";
                 if ($id_rol != 1) {
@@ -83,7 +84,7 @@ if (isset($_POST['id_seddes'])) {
                 if (!$rs) {
                     $res['mensaje'] = 'Error consultando registros de Trasslados locales';
                 } else {
-                    $obj = $rs->fetch(PDO::FETCH_ASSOC);
+                    $obj = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
                     $ids = !empty($obj['ids']) ? $obj['ids'] : '';
 
                     if ($ids) {

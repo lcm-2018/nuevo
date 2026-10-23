@@ -37,8 +37,8 @@ try {
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM far_cec_pedido_detalle WHERE id_pedido=" . $_POST['id_pedido'];
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total 
@@ -46,8 +46,8 @@ try {
             INNER JOIN far_medicamentos ON (far_medicamentos.id_med = far_cec_pedido_detalle.id_medicamento)
             WHERE id_pedido=" . $_POST['id_pedido'] . $where;
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT far_cec_pedido_detalle.id_ped_detalle,far_medicamentos.cod_medicamento,far_medicamentos.nom_medicamento,

@@ -44,8 +44,8 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
             }
 
             $rs = $cmd->query($sql);
-            $obj_karact = $rs->fetch();
-            if ($obj_karact['id_kardex']) {
+            $obj_karact = $rs ? $rs->fetch() : null;
+            if (!empty($obj_karact['id_kardex'])) {
                 $id_karact = $obj_karact['id_kardex'];
             }
 
@@ -53,20 +53,20 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
             $sql = "SELECT existencia_lote,val_promedio_lote  FROM far_kardex 
                     WHERE id_kardex = (SELECT MAX(id_kardex) FROM far_kardex WHERE id_lote=" . $med['id_lote'] . " AND id_kardex<" . $id_karact . " AND estado=1)";
             $rs = $cmd->query($sql);
-            $obj_karlot = $rs->fetch();
+            $obj_karlot = $rs ? $rs->fetch() : null;
             if ($obj_karlot) {
-                $existencia_lote = $obj_karlot['existencia_lote'];
-                $promedio_lote = $obj_karlot['val_promedio_lote'];
+                $existencia_lote = $obj_karlot['existencia_lote'] ?? 0;
+                $promedio_lote = $obj_karlot['val_promedio_lote'] ?? 0;
             }
 
             //Consulta la existencia y valor promedio inicial del MEDICAMENTO al que pertenece el lote
             $sql = "SELECT existencia, val_promedio FROM far_kardex 
                     WHERE id_kardex = (SELECT MAX(id_kardex) FROM far_kardex WHERE id_med=" . $med['id_med'] . " AND id_kardex<" . $id_karact . " AND estado=1)";
             $rs = $cmd->query($sql);
-            $obj_karmed = $rs->fetch();
+            $obj_karmed = $rs ? $rs->fetch() : null;
             if ($obj_karmed) {
-                $existencia = $obj_karmed['existencia'];
-                $promedio = $obj_karmed['val_promedio'];
+                $existencia = $obj_karmed['existencia'] ?? 0;
+                $promedio = $obj_karmed['val_promedio'] ?? 0;
             }
         }
 
@@ -89,22 +89,24 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
                         INNER JOIN far_presentacion_comercial ON (far_presentacion_comercial.id_prescom=far_orden_ingreso_detalle.id_presentacion)
                         WHERE id_ingreso=" . $kar['id_ingreso'] . " AND id_lote=" . $kar['id_lote'];
                 $rs = $cmd->query($sql);
-                $obj_ing = $rs->fetch();
+                $obj_ing = $rs ? $rs->fetch() : null;
+                $cant_ing = $obj_ing['cantidad'] ?? 0;
+                $val_ing = $obj_ing['valor'] ?? 0;
 
                 //Calcula y Actualiza existencia y valor promedio del MEDICAMENTO y LOTE en el Kardex
-                $total = $obj_ing['cantidad'] * $obj_ing['valor'] + $existencia * $promedio;
-                $existencia = $existencia + $obj_ing['cantidad'];
-                $promedio = $total / $existencia;
+                $total = $cant_ing * $val_ing + $existencia * $promedio;
+                $existencia = $existencia + $cant_ing;
+                $promedio = $existencia > 0 ? $total / $existencia : 0;
 
                 $sql = "UPDATE far_kardex SET existencia=" . $existencia . ",val_promedio=" . $promedio . " WHERE id_kardex=" . $kar['id_kardex'];
                 $rs = $cmd->query($sql);
 
                 if ($kar['id_lote'] == $med['id_lote']) {
-                    $total = $obj_ing['cantidad'] * $obj_ing['valor'] + $existencia_lote * $promedio_lote;
-                    $existencia_lote = $existencia_lote + $obj_ing['cantidad'];
-                    $promedio_lote = $total / $existencia_lote;
+                    $total = $cant_ing * $val_ing + $existencia_lote * $promedio_lote;
+                    $existencia_lote = $existencia_lote + $cant_ing;
+                    $promedio_lote = $existencia_lote > 0 ? $total / $existencia_lote : 0;
 
-                    $sql = "UPDATE far_kardex SET can_ingreso=" . $obj_ing['cantidad'] . ",val_ingreso=" . $obj_ing['valor'] . ",
+                    $sql = "UPDATE far_kardex SET can_ingreso=" . $cant_ing . ",val_ingreso=" . $val_ing . ",
                                 existencia_lote=" . $existencia_lote . ",val_promedio_lote=" . $promedio_lote . " WHERE id_kardex=" . $kar['id_kardex'];
                     $rs = $cmd->query($sql);
                 }
@@ -112,26 +114,28 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
                 // Actualiza Valores en la Orden de Ingreso                
                 $sql = "SELECT SUM(cantidad*valor) AS total FROM far_orden_ingreso_detalle WHERE id_ingreso=" . $kar['id_ingreso'];
                 $rs = $cmd->query($sql);
-                $obj_ingtot = $rs->fetch();
+                $obj_ingtot = $rs ? $rs->fetch() : null;
+                $total_ing = $obj_ingtot['total'] ?? 0;
 
-                $sql = "UPDATE far_orden_ingreso SET val_total=" . $obj_ingtot['total'] . " WHERE id_ingreso=" . $kar['id_ingreso'];
+                $sql = "UPDATE far_orden_ingreso SET val_total=" . $total_ing . " WHERE id_ingreso=" . $kar['id_ingreso'];
                 $rs = $cmd->query($sql);
 
             } elseif ($kar['id_egreso']) {      //Si el movimiento es un Egreso
                 $sql = "SELECT cantidad FROM far_orden_egreso_detalle WHERE id_egr_detalle=" . $kar['id_egr_detalle'];
                 $rs = $cmd->query($sql);
-                $obj_egr = $rs->fetch();
+                $obj_egr = $rs ? $rs->fetch() : null;
+                $cant_egr = $obj_egr['cantidad'] ?? 0;
 
                 //Calcula y Actualiza existencia del MEDICAMENTO y LOTE en el Kardex
-                $existencia = $existencia - $obj_egr['cantidad'];
+                $existencia = $existencia - $cant_egr;
 
                 $sql = "UPDATE far_kardex SET existencia=" . $existencia . ",val_promedio=" . $promedio . " WHERE id_kardex=" . $kar['id_kardex'];
                 $rs = $cmd->query($sql);
 
                 if ($kar['id_lote'] == $med['id_lote']) {
-                    $existencia_lote = $existencia_lote - $obj_egr['cantidad'];
+                    $existencia_lote = $existencia_lote - $cant_egr;
 
-                    $sql = "UPDATE far_kardex SET can_egreso=" . $obj_egr['cantidad'] . ",
+                    $sql = "UPDATE far_kardex SET can_egreso=" . $cant_egr . ",
                                 existencia_lote=" . $existencia_lote . ",val_promedio_lote=" . $promedio_lote . " WHERE id_kardex=" . $kar['id_kardex'];
                     $rs = $cmd->query($sql);
                 }
@@ -142,26 +146,28 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
 
                 $sql = "SELECT SUM(cantidad*valor) AS total FROM far_orden_egreso_detalle WHERE id_egreso=" . $kar['id_egreso'];
                 $rs = $cmd->query($sql);
-                $obj_egrtot = $rs->fetch();
+                $obj_egrtot = $rs ? $rs->fetch() : null;
+                $total_egr = $obj_egrtot['total'] ?? 0;
 
-                $sql = "UPDATE far_orden_egreso SET val_total=" . $obj_egrtot['total'] . " WHERE id_egreso=" . $kar['id_egreso'];
+                $sql = "UPDATE far_orden_egreso SET val_total=" . $total_egr . " WHERE id_egreso=" . $kar['id_egreso'];
                 $rs = $cmd->query($sql);
 
             } elseif ($kar['id_egreso_tra']) {      //Si el movimiento es un traslado Egreso
                 $sql = "SELECT cantidad FROM far_traslado_detalle WHERE id_traslado=" . $kar['id_egreso_tra'] . " AND id_lote_origen=" . $kar['id_lote'];
                 $rs = $cmd->query($sql);
-                $obj_egrtra = $rs->fetch();
+                $obj_egrtra = $rs ? $rs->fetch() : null;
+                $cant_egrtra = $obj_egrtra['cantidad'] ?? 0;
 
                 //Calcula y Actualiza existencia del MEDICAMENTO y LOTE en el Kardex
-                $existencia = $existencia - $obj_egrtra['cantidad'];
+                $existencia = $existencia - $cant_egrtra;
 
                 $sql = "UPDATE far_kardex SET existencia=" . $existencia . ",val_promedio=" . $promedio . " WHERE id_kardex=" . $kar['id_kardex'];
                 $rs = $cmd->query($sql);
 
                 if ($kar['id_lote'] == $med['id_lote']) {
-                    $existencia_lote = $existencia_lote - $obj_egrtra['cantidad'];
+                    $existencia_lote = $existencia_lote - $cant_egrtra;
 
-                    $sql = "UPDATE far_kardex SET can_egreso=" . $obj_egrtra['cantidad'] . ",
+                    $sql = "UPDATE far_kardex SET can_egreso=" . $cant_egrtra . ",
                                 existencia_lote=" . $existencia_lote . ",val_promedio_lote=" . $promedio_lote . " WHERE id_kardex=" . $kar['id_kardex'];
                     $rs = $cmd->query($sql);
                 }
@@ -172,28 +178,31 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
 
                 $sql = "SELECT SUM(cantidad*valor) AS total FROM far_traslado_detalle WHERE id_traslado=" . $kar['id_egreso_tra'];
                 $rs = $cmd->query($sql);
-                $obj_egrtratot = $rs->fetch();
+                $obj_egrtratot = $rs ? $rs->fetch() : null;
+                $total_egrtra = $obj_egrtratot['total'] ?? 0;
 
-                $sql = "UPDATE far_traslado SET val_total=" . $obj_egrtratot['total'] . " WHERE id_traslado=" . $kar['id_egreso_tra'];
+                $sql = "UPDATE far_traslado SET val_total=" . $total_egrtra . " WHERE id_traslado=" . $kar['id_egreso_tra'];
                 $rs = $cmd->query($sql);
 
             } elseif ($kar['id_ingreso_tra']) {     //Si el movimiento es un traslado Ingreso
                 $sql = "SELECT cantidad,valor FROM far_traslado_detalle WHERE id_traslado=" . $kar['id_ingreso_tra'] . " AND id_lote_destino=" . $kar['id_lote'];
                 $rs = $cmd->query($sql);
-                $obj_ingtra = $rs->fetch();
+                $obj_ingtra = $rs ? $rs->fetch() : null;
+                $cant_ingtra = $obj_ingtra['cantidad'] ?? 0;
+                $val_ingtra = $obj_ingtra['valor'] ?? 0;
 
                 //Calcula y Actualiza existencia del MEDICAMENTO y LOTE en el Kardex
-                $existencia = $existencia + $obj_ingtra['cantidad'];
+                $existencia = $existencia + $cant_ingtra;
 
                 $sql = "UPDATE far_kardex SET existencia=" . $existencia . ",val_promedio=" . $promedio . " WHERE id_kardex=" . $kar['id_kardex'];
                 $rs = $cmd->query($sql);
 
                 if ($kar['id_lote'] == $med['id_lote']) {
-                    $total = $obj_ingtra['cantidad'] * $obj_ingtra['valor'] + $existencia_lote * $promedio_lote;
-                    $existencia_lote = $existencia_lote + $obj_ingtra['cantidad'];
-                    $promedio_lote = $total / $existencia_lote;
+                    $total = $cant_ingtra * $val_ingtra + $existencia_lote * $promedio_lote;
+                    $existencia_lote = $existencia_lote + $cant_ingtra;
+                    $promedio_lote = $existencia_lote > 0 ? $total / $existencia_lote : 0;
 
-                    $sql = "UPDATE far_kardex SET can_ingreso=" . $obj_ingtra['cantidad'] . ",val_ingreso=" . $promedio . ",
+                    $sql = "UPDATE far_kardex SET can_ingreso=" . $cant_ingtra . ",val_ingreso=" . $promedio . ",
                                 existencia_lote=" . $existencia_lote . ",val_promedio_lote=" . $promedio_lote . " WHERE id_kardex=" . $kar['id_kardex'];
                     $rs = $cmd->query($sql);
                 }
@@ -204,26 +213,28 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
 
                 $sql = "SELECT SUM(cantidad*valor) AS total FROM far_traslado_detalle WHERE id_traslado=" . $kar['id_ingreso_tra'];
                 $rs = $cmd->query($sql);
-                $obj_ingtratot = $rs->fetch();
+                $obj_ingtratot = $rs ? $rs->fetch() : null;
+                $total_ingtra = $obj_ingtratot['total'] ?? 0;
 
-                $sql = "UPDATE far_traslado SET val_total=" . $obj_ingtratot['total'] . " WHERE id_traslado=" . $kar['id_ingreso_tra'];
+                $sql = "UPDATE far_traslado SET val_total=" . $total_ingtra . " WHERE id_traslado=" . $kar['id_ingreso_tra'];
                 $rs = $cmd->query($sql);
 
             } elseif ($kar['id_egreso_tra_r']) {      //Si el movimiento es un traslado Egreso remoto
                 $sql = "SELECT cantidad FROM far_traslado_r_detalle WHERE id_traslado=" . $kar['id_egreso_tra_r'] . " AND id_lote_origen=" . $kar['id_lote'];
                 $rs = $cmd->query($sql);
-                $obj_egrrem = $rs->fetch();
+                $obj_egrrem = $rs ? $rs->fetch() : null;
+                $cant_egrrem = $obj_egrrem['cantidad'] ?? 0;
 
                 //Calcula y Actualiza existencia del MEDICAMENTO y LOTE en el Kardex
-                $existencia = $existencia - $obj_egrrem['cantidad'];
+                $existencia = $existencia - $cant_egrrem;
 
                 $sql = "UPDATE far_kardex SET existencia=" . $existencia . ",val_promedio=" . $promedio . " WHERE id_kardex=" . $kar['id_kardex'];
                 $rs = $cmd->query($sql);
 
                 if ($kar['id_lote'] == $med['id_lote']) {
-                    $existencia_lote = $existencia_lote - $obj_egrrem['cantidad'];
+                    $existencia_lote = $existencia_lote - $cant_egrrem;
 
-                    $sql = "UPDATE far_kardex SET can_egreso=" . $obj_egrrem['cantidad'] . ",
+                    $sql = "UPDATE far_kardex SET can_egreso=" . $cant_egrrem . ",
                                 existencia_lote=" . $existencia_lote . ",val_promedio_lote=" . $promedio_lote . " WHERE id_kardex=" . $kar['id_kardex'];
                     $rs = $cmd->query($sql);
                 }
@@ -234,28 +245,31 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
 
                 $sql = "SELECT SUM(cantidad*valor) AS total FROM far_traslado_r_detalle WHERE id_traslado=" . $kar['id_egreso_tra_r'];
                 $rs = $cmd->query($sql);
-                $obj_egrremtot = $rs->fetch();
+                $obj_egrremtot = $rs ? $rs->fetch() : null;
+                $total_egrrem = $obj_egrremtot['total'] ?? 0;
 
-                $sql = "UPDATE far_traslado_r SET val_total=" . $obj_egrremtot['total'] . " WHERE id_traslado=" . $kar['id_egreso_tra_r'];
+                $sql = "UPDATE far_traslado_r SET val_total=" . $total_egrrem . " WHERE id_traslado=" . $kar['id_egreso_tra_r'];
                 $rs = $cmd->query($sql);
                 
             } elseif ($kar['id_ingreso_tra_r']) {     //Si el movimiento es un traslado Ingreso Remoto
                 $sql = "SELECT cantidad,valor FROM far_traslado_r_detalle WHERE id_traslado=" . $kar['id_ingreso_tra_r'] . " AND id_lote_destino=" . $kar['id_lote'];
                 $rs = $cmd->query($sql);
-                $obj_ingrem = $rs->fetch();
+                $obj_ingrem = $rs ? $rs->fetch() : null;
+                $cant_ingrem = $obj_ingrem['cantidad'] ?? 0;
+                $val_ingrem = $obj_ingrem['valor'] ?? 0;
 
                 //Calcula y Actualiza existencia del MEDICAMENTO y LOTE en el Kardex
-                $existencia = $existencia + $obj_ingrem['cantidad'];
+                $existencia = $existencia + $cant_ingrem;
                 
                 $sql = "UPDATE far_kardex SET existencia=" . $existencia . ",val_promedio=" . $promedio . " WHERE id_kardex=" . $kar['id_kardex'];
                 $rs = $cmd->query($sql);
 
                 if ($kar['id_lote'] == $med['id_lote']) {
-                    $total = $obj_ingrem['cantidad'] * $obj_ingrem['valor'] + $existencia_lote * $promedio_lote;
-                    $existencia_lote = $existencia_lote + $obj_ingrem['cantidad'];
-                    $promedio_lote = $total / $existencia_lote;
+                    $total = $cant_ingrem * $val_ingrem + $existencia_lote * $promedio_lote;
+                    $existencia_lote = $existencia_lote + $cant_ingrem;
+                    $promedio_lote = $existencia_lote > 0 ? $total / $existencia_lote : 0;
 
-                    $sql = "UPDATE far_kardex SET can_ingreso=" . $obj_ingrem['cantidad'] . ",val_ingreso=" . $promedio . ",
+                    $sql = "UPDATE far_kardex SET can_ingreso=" . $cant_ingrem . ",val_ingreso=" . $promedio . ",
                                 existencia_lote=" . $existencia_lote . ",val_promedio_lote=" . $promedio_lote . " WHERE id_kardex=" . $kar['id_kardex'];
                     $rs = $cmd->query($sql);
                 }
@@ -263,9 +277,10 @@ function recalcular_kardex($cmd, $idlot, $tipo, $iding, $idegr, $idtra, $iding_r
                 // Actualiza Valores en el Traslado Ingreso Remoto
                 $sql = "SELECT SUM(cantidad*valor) AS total FROM far_traslado_r_detalle WHERE id_traslado=" . $kar['id_ingreso_tra_r'];
                 $rs = $cmd->query($sql);
-                $obj_ingremtot = $rs->fetch();
+                $obj_ingremtot = $rs ? $rs->fetch() : null;
+                $total_ingrem = $obj_ingremtot['total'] ?? 0;
 
-                $sql = "UPDATE far_traslado_r SET val_total=" . $obj_ingremtot['total'] . " WHERE id_traslado=" . $kar['id_ingreso_tra_r'];
+                $sql = "UPDATE far_traslado_r SET val_total=" . $total_ingrem . " WHERE id_traslado=" . $kar['id_ingreso_tra_r'];
                 $rs = $cmd->query($sql);
             }
         }

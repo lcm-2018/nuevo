@@ -91,11 +91,12 @@ function sedes_usuario($cmd, $titulo = '', $id = 0)
                     ORDER BY es_principal DESC,nom_sede ASC";
         }
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs ? $rs->fetchAll() : [];
         $rs->closeCursor();
         unset($rs);
+        $total_objs = is_countable($objs) ? count($objs) : 0;
         foreach ($objs as $obj) {
-            if ($obj['id_sede']  == $id || count($objs) == 1) {
+            if ($obj['id_sede']  == $id || $total_objs == 1) {
                 echo '<option value="' . $obj['id_sede'] . '" selected="selected">' . $obj['nom_sede'] . '</option>';
             } else {
                 echo '<option value="' . $obj['id_sede'] . '">' . $obj['nom_sede'] . '</option>';
@@ -203,8 +204,8 @@ function centros_costo_usuario($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT COUNT(*) AS bodegas FROM seg_bodegas_usuario WHERE id_usuario=$idusr";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-        if ($idrol == 1 || $obj['bodegas'] > 0) {
+        $obj = $rs ? $rs->fetch() : null;
+        if ($idrol == 1 || ($obj['bodegas'] ?? 0) > 0) {
             $sql = "SELECT id_centro,nom_centro FROM tb_centrocostos WHERE id_centro<>0 ORDER BY nom_centro";
         } else {
             $sql = "SELECT id_centro,nom_centro FROM tb_centrocostos 
@@ -212,11 +213,12 @@ function centros_costo_usuario($cmd, $titulo = '', $id = 0)
                     ORDER BY nom_centro";
         }
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll();
+        $objs = $rs ? $rs->fetchAll() : [];
         $rs->closeCursor();
         unset($rs);
+        $total_objs = is_countable($objs) ? count($objs) : 0;
         foreach ($objs as $obj) {
-            if ($obj['id_centro']  == $id || count($objs) == 1) {
+            if ($obj['id_centro']  == $id || $total_objs == 1) {
                 echo '<option value="' . $obj['id_centro'] . '" selected="selected">' . $obj['nom_centro'] . '</option>';
             } else {
                 echo '<option value="' . $obj['id_centro'] . '">' . $obj['nom_centro'] . '</option>';

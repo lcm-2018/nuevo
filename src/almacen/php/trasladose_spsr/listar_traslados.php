@@ -65,15 +65,15 @@ try {
     $sql = "SELECT COUNT(*) AS total FROM far_traslado_r 
             INNER JOIN far_bodegas AS tb_bo ON (tb_bo.id_bodega=far_traslado_r.id_bodega_origen) $where_usr";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM far_traslado_r 
             INNER JOIN far_bodegas AS tb_bo ON (tb_bo.id_bodega=far_traslado_r.id_bodega_origen) $where_usr $where";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT far_traslado_r.id_traslado,far_traslado_r.num_traslado,far_traslado_r.fec_traslado,far_traslado_r.hor_traslado,

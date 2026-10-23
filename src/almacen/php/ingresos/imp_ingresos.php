@@ -110,7 +110,8 @@ try {
         <tbody style="font-size: 60%;">
             <?php
             $total = 0;
-            $numreg = count($objs);
+            $objs = $objs ?? [];
+            $numreg = is_countable($objs) ? count($objs) : 0;
             $tabla = '';
             foreach ($objs as $obj) {
                 $tabla .=  '<tr class="resaltar" style="text-align:center"> 

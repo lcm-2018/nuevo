@@ -57,9 +57,9 @@ try {
     if ($idrol != 1) {
         $sql = "SELECT count(*) AS count FROM seg_bodegas_usuario WHERE id_usuario=$idusr";
         $rs = $cmd->query($sql);
-        $bodegas = $rs->fetch();
+        $bodegas = $rs ? $rs->fetch() : null;
 
-        if ($bodegas['count'] > 0) {
+        if (isset($bodegas['count']) && $bodegas['count'] > 0) {
             $where_usr .= " AND far_cec_pedido.id_bodega IN (SELECT id_bodega FROM seg_bodegas_usuario WHERE id_usuario=$idusr)";
         } else {
             $where_usr .= " AND far_cec_pedido.id_cencosto IN (SELECT id_centrocosto FROM seg_usuarios_sistema WHERE id_usuario=$idusr)";
@@ -69,14 +69,14 @@ try {
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM far_cec_pedido $where_usr";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM far_cec_pedido $where_usr $where";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT far_cec_pedido.id_pedido,far_cec_pedido.num_pedido,

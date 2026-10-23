@@ -53,8 +53,8 @@ try {
                         $res['mensaje'] = 'ok';
                         $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                         $rs = $cmd->query($sql_i);
-                        $obj = $rs->fetch();
-                        $res['id'] = $obj['id'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $res['id'] = $obj['id'] ?? null;
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
                     }
@@ -86,9 +86,9 @@ try {
 
             $sql = "SELECT cod_medicamento,nom_medicamento FROM far_medicamentos WHERE id_med=" . $id_articulo;
             $rs = $cmd->query($sql);
-            $obj_articulo = $rs->fetch();
+            $obj_articulo = $rs ? $rs->fetch() : null;
 
-            $proceso = "Se Modificó CUMS de Articulo Código: " . $obj_articulo['cod_medicamento'] . ", Nombre: " . $obj_articulo['nom_medicamento'];
+            $proceso = "Se Modificó CUMS de Articulo Código: " . ($obj_articulo['cod_medicamento'] ?? '') . ", Nombre: " . ($obj_articulo['nom_medicamento'] ?? '');
             Logs::guardaLog($proceso);
         } else {
             $res['mensaje'] = 'Primero debe guardar el Articulo';

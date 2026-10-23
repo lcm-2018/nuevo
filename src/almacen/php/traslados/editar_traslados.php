@@ -60,10 +60,10 @@ try {
                         $res['mensaje'] = 'ok';
                         $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                         $rs = $cmd->query($sql_i);
-                        $obj = $rs->fetch();
-                        $res['id'] = $obj['id'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $res['id'] = $obj['id'] ?? 0;
 
-                        $proceso = "Se Registró Traslado Id: " . $obj['id'] . ", Fecha: " . $fec_traslado . ", Detalle: " . $detalle;
+                        $proceso = "Se Registró Traslado Id: " . ($obj['id'] ?? 0) . ", Fecha: " . $fec_traslado . ", Detalle: " . $detalle;
                         Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
@@ -71,9 +71,9 @@ try {
                 } else {
                     $sql = "SELECT estado FROM far_traslado WHERE id_traslado=" . $id;
                     $rs = $cmd->query($sql);
-                    $obj_tra = $rs->fetch();
+                    $obj_tra = $rs ? $rs->fetch() : null;
 
-                    if ($obj_tra['estado'] == 1) {
+                    if (isset($obj_tra['estado']) && $obj_tra['estado'] == 1) {
                         $sql = "UPDATE far_traslado 
                             SET tipo=$tip_traslado,id_ingreso=$id_ingreso,id_sede_origen=$id_sede_origen,id_bodega_origen=$id_bodega_origen,
                                 id_sede_destino=$id_sede_destino,id_bodega_destino=$id_bodega_destino,detalle='$detalle'
@@ -139,7 +139,7 @@ try {
                             $val_promedio = $obj['val_promedio'];
                             $id_detalle = $obj['id_ped_detalle'];
 
-                            if (count($obj_lotes) >= 1) {
+                            if (is_countable($obj_lotes) && count($obj_lotes) >= 1) {
                                 $i = 0;
                                 while ($cantidad >= 1) {
                                     if (!isset($obj_lotes[$i])) {
@@ -161,10 +161,12 @@ try {
                                 }
 
                                 if ($cantidad >= 1) {/* Completar la cantidad cuando ya no hay mas lotes en el ultimo lote encontrado */
-                                    $index = count($lotes) - 1;
-                                    $id_lote = $lotes[$index]['id_lote'];
-                                    $q = $lotes[$index]['cantidad'] + $cantidad;
-                                    $lotes[$index] = array('id_lote' => $id_lote, 'cantidad' => (int) $q, 'val_promedio' => $val_promedio, 'id_detalle' => $id_detalle);
+                                    $index = is_countable($lotes) ? count($lotes) - 1 : -1;
+                                    if ($index >= 0 && isset($lotes[$index])) {
+                                        $id_lote = $lotes[$index]['id_lote'];
+                                        $q = $lotes[$index]['cantidad'] + $cantidad;
+                                        $lotes[$index] = array('id_lote' => $id_lote, 'cantidad' => (int) $q, 'val_promedio' => $val_promedio, 'id_detalle' => $id_detalle);
+                                    }
                                 }
                             } else {
                                 if ($res['mensaje'] == 'ok') {
@@ -208,8 +210,8 @@ try {
 
                     $sql = "SELECT val_total FROM far_traslado WHERE id_traslado=" . $id_traslado;
                     $rs = $cmd->query($sql);
-                    $obj_traslado = $rs->fetch();
-                    $res['val_total'] = formato_valor($obj_traslado['val_total']);
+                    $obj_traslado = $rs ? $rs->fetch() : null;
+                    $res['val_total'] = formato_valor($obj_traslado['val_total'] ?? 0);
                 }
 
                 if ($res['mensaje'] == 'ok') {
@@ -227,15 +229,15 @@ try {
 
             $sql = "SELECT estado,fec_traslado,detalle FROM far_traslado WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
-            $obj_tra = $rs->fetch();
+            $obj_tra = $rs ? $rs->fetch() : null;
 
-            if ($obj_tra['estado'] == 1) {
+            if (isset($obj_tra['estado']) && $obj_tra['estado'] == 1) {
                 $sql = "DELETE FROM far_traslado WHERE id_traslado=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Eliminó Traslado Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
+                    $proceso = "Se Eliminó Traslado Id: " . $id . ", Fecha: " . ($obj_tra['fec_traslado'] ?? '') . ", Detalle: " . ($obj_tra['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -250,18 +252,18 @@ try {
 
             $sql = "SELECT estado,fec_traslado,detalle FROM far_traslado WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
-            $obj_tra = $rs->fetch();
-            $estado = isset($obj_tra['estado']) ? $obj_tra['estado'] : -1;
+            $obj_tra = $rs ? $rs->fetch() : null;
+            $estado = $obj_tra['estado'] ?? -1;
 
             $sql = "SELECT COUNT(*) AS total FROM far_traslado_detalle WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $num_detalles = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $num_detalles = $obj_detalles['total'] ?? 0;
 
             $sql = "SELECT COUNT(*) AS total FROM far_kardex WHERE id_ingreso_tra=$id OR id_egreso_tra=$id";
             $rs = $cmd->query($sql);
-            $obj_kardex = $rs->fetch();
-            $num_reg_kardex = $obj_kardex['total'];
+            $obj_kardex = $rs ? $rs->fetch() : null;
+            $num_reg_kardex = $obj_kardex['total'] ?? 0;
 
             if ($estado == 1 && $num_detalles > 0 && $num_reg_kardex == 0) {
                 $respuesta = verificar_existencias($cmd, $id, "T");
@@ -278,12 +280,12 @@ try {
                             INNER JOIN far_bodegas AS b_destino ON(far_traslado.id_bodega_destino=b_destino.id_bodega)
                             WHERE far_traslado.id_traslado=' . $id;
                     $rs = $cmd->query($sql);
-                    $obj_tra_bobd = $rs->fetch();
-                    $id_sede_origen = $obj_tra_bobd['id_sede_origen'];
-                    $id_bodega_origen = $obj_tra_bobd['id_bodega_origen'];
-                    $id_sede_destino = $obj_tra_bobd['id_sede_destino'];
-                    $id_bodega_destino = $obj_tra_bobd['id_bodega_destino'];
-                    $detalle = 'TRASLADO DE BODEGA: ' . $obj_tra_bobd['nom_b_origen'] . ' A ' . $obj_tra_bobd['nom_b_destino'];
+                    $obj_tra_bobd = $rs ? $rs->fetch() : null;
+                    $id_sede_origen = $obj_tra_bobd['id_sede_origen'] ?? 0;
+                    $id_bodega_origen = $obj_tra_bobd['id_bodega_origen'] ?? 0;
+                    $id_sede_destino = $obj_tra_bobd['id_sede_destino'] ?? 0;
+                    $id_bodega_destino = $obj_tra_bobd['id_bodega_destino'] ?? 0;
+                    $detalle = 'TRASLADO DE BODEGA: ' . ($obj_tra_bobd['nom_b_origen'] ?? '') . ' A ' . ($obj_tra_bobd['nom_b_destino'] ?? '');
                     $fec_movimiento = date('Y-m-d');
 
                     /*Crear los lotes en la bodega destino si no existen*/
@@ -301,15 +303,15 @@ try {
                         /*trae los datos del lote de la bodega origen*/
                         $sql = "SELECT lote,id_med,id_cum,fec_vencimiento FROM far_medicamento_lote WHERE id_lote=$id_lote_origen LIMIT 1";
                         $rs = $cmd->query($sql);
-                        $obj_lo = $rs->fetch();
-                        $lote = $obj_lo['lote'];
-                        $id_med = $obj_lo['id_med'];
-                        $id_cum = $obj_lo['id_cum'];
-                        $fec_ven = $obj_lo['fec_vencimiento'];
+                        $obj_lo = $rs ? $rs->fetch() : null;
+                        $lote = $obj_lo['lote'] ?? '';
+                        $id_med = $obj_lo['id_med'] ?? 0;
+                        $id_cum = $obj_lo['id_cum'] ?? 0;
+                        $fec_ven = $obj_lo['fec_vencimiento'] ?? '';
 
                         $sql = "SELECT id_lote AS id_lote_destino FROM far_medicamento_lote WHERE lote='$lote' AND id_med=$id_med AND id_cum=$id_cum AND id_bodega=$id_bodega_destino LIMIT 1";
                         $rs = $cmd->query($sql);
-                        $obj_ld = $rs->fetch();
+                        $obj_ld = $rs ? $rs->fetch() : null;
 
                         if (isset($obj_ld['id_lote_destino'])) {
                             $id_lote_destino = $obj_ld['id_lote_destino'];
@@ -320,8 +322,8 @@ try {
 
                             $sql = 'SELECT LAST_INSERT_ID() AS id_lote_destino';
                             $rs = $cmd->query($sql);
-                            $obj = $rs->fetch();
-                            $id_lote_destino = $obj['id_lote_destino'];
+                            $obj = $rs ? $rs->fetch() : null;
+                            $id_lote_destino = $obj['id_lote_destino'] ?? 0;
 
                             if ($rs1 == false || error_get_last()) {
                                 $error = 1;
@@ -356,17 +358,17 @@ try {
                             /* Valores del Lote Origen */
                             $sql = 'SELECT existencia,val_promedio,id_med FROM far_medicamento_lote WHERE id_lote=' . $id_lote_origen . ' LIMIT 1';
                             $rs = $cmd->query($sql);
-                            $obj = $rs->fetch();
-                            $id_medicamento = $obj['id_med'];
-                            $val_promedio_lote = $obj['val_promedio'] ? $obj['val_promedio'] : 0;
-                            $existencia_lote = $obj['existencia'];
+                            $obj = $rs ? $rs->fetch() : null;
+                            $id_medicamento = $obj['id_med'] ?? 0;
+                            $val_promedio_lote = !empty($obj['val_promedio']) ? $obj['val_promedio'] : 0;
+                            $existencia_lote = $obj['existencia'] ?? 0;
 
                             /* Valores del Medicamento */
                             $sql = 'SELECT existencia,val_promedio FROM far_medicamentos WHERE id_med=' . $id_medicamento . ' LIMIT 1';
                             $rs = $cmd->query($sql);
-                            $obj = $rs->fetch();
-                            $val_promedio_med = $obj['val_promedio'] ? $obj['val_promedio'] : 0;
-                            $existencia_med = $obj['existencia'];
+                            $obj = $rs ? $rs->fetch() : null;
+                            $val_promedio_med = !empty($obj['val_promedio']) ? $obj['val_promedio'] : 0;
+                            $existencia_med = $obj['existencia'] ?? 0;
 
                             $existencia_lote_kdx = $existencia_lote - $cantidad;
                             $existencia_med_kdx = $existencia_med - $cantidad;
@@ -385,9 +387,9 @@ try {
                             /* Genera el ingreso de la bodega destino */
                             $sql = 'SELECT existencia,val_promedio FROM far_medicamento_lote WHERE id_lote=' . $id_lote_destino . ' LIMIT 1';
                             $rs = $cmd->query($sql);
-                            $obj = $rs->fetch();
-                            $val_promedio_lote = $obj['val_promedio'] ? $obj['val_promedio'] : 0;
-                            $existencia_lote = $obj['existencia'];
+                            $obj = $rs ? $rs->fetch() : null;
+                            $val_promedio_lote = !empty($obj['val_promedio']) ? $obj['val_promedio'] : 0;
+                            $existencia_lote = $obj['existencia'] ?? 0;
 
                             $valor_promedio_lote_kdx = $val_promedio_lote;
                             $existencia_lote_kdx = $existencia_lote + $cantidad;
@@ -412,8 +414,8 @@ try {
                     if ($error == 0) {
                         $sql = 'SELECT num_trasladoactual FROM tb_datos_ips LIMIT 1';
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-                        $num_traslado = $obj['num_trasladoactual'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $num_traslado = $obj['num_trasladoactual'] ?? 0;
                         $res['num_traslado'] = $num_traslado;
 
                         $sql = "UPDATE far_traslado SET num_traslado=$num_traslado,estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope',val_total=(SELECT SUM(valor*cantidad) FROM far_traslado_detalle WHERE id_traslado=$id) WHERE id_traslado= $id";
@@ -429,7 +431,7 @@ try {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
 
-                        $proceso = "Se Cerró Traslado Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
+                        $proceso = "Se Cerró Traslado Id: " . $id . ", Fecha: " . ($obj_tra['fec_traslado'] ?? '') . ", Detalle: " . ($obj_tra['detalle'] ?? '');
                         Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = 'Error de Ejecución de Proceso';
@@ -454,8 +456,8 @@ try {
 
             $sql = "SELECT estado,fec_traslado,detalle FROM far_traslado WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
-            $obj_tra = $rs->fetch();
-            $estado = $obj_tra['estado'];
+            $obj_tra = $rs ? $rs->fetch() : null;
+            $estado = $obj_tra['estado'] ?? 0;
 
             if ($estado == 2) {
                 $respuesta = verificar_kardex($cmd, $id, "T");
@@ -478,8 +480,8 @@ try {
                         $sql = "SELECT CONCAT(GROUP_CONCAT(id_lote_origen),',',GROUP_CONCAT(id_lote_destino)) AS lotes
                                 FROM far_traslado_detalle WHERE id_traslado=" . $id;
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-                        $lotes = $obj['lotes'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $lotes = $obj['lotes'] ?? '';
 
                         recalcular_kardex($cmd, $lotes, 'T', '', '', $id, '', '', '', '');
                     }
@@ -487,7 +489,7 @@ try {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
 
-                        $proceso = "Se Anuló Traslado Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
+                        $proceso = "Se Anuló Traslado Id: " . $id . ", Fecha: " . ($obj_tra['fec_traslado'] ?? '') . ", Detalle: " . ($obj_tra['detalle'] ?? '');
                         Logs::guardaLog($proceso);
                     } else {
                         $cmd->rollBack();

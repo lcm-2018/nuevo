@@ -156,6 +156,7 @@ try {
             $total = 0;
             $numreg = 0;
 
+            $objs = $objs ?? [];
             foreach ($objs as $obj1) {
                 $id_sede = $obj1['id_sede'];
                 $id_bodega = $obj1['id_bodega'];
@@ -185,7 +186,7 @@ try {
                             <td style="text-align:right">' . formato_valor($obj['val_total']) . '</td></tr>';                        
                     }
                     $total += $obj2['val_total_sg'];
-                    $numreg += count($objd);
+                    $numreg += is_countable($objd) ? count($objd) : 0;
                 }
             }
             echo $tabla;

@@ -64,16 +64,16 @@ try {
             FROM far_medicamentos
             LEFT JOIN far_medicamento_lote ON (far_medicamento_lote.id_med=far_medicamentos.id_med)" . $where_gen;
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(DISTINCT far_medicamentos.id_med) AS total 
             FROM far_medicamentos
             LEFT JOIN far_medicamento_lote ON (far_medicamento_lote.id_med=far_medicamentos.id_med)" . $where;
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla 
     $sql = "SELECT far_medicamentos.id_med,far_medicamentos.cod_medicamento,

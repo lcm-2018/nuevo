@@ -53,15 +53,15 @@ try {
     $sql = "SELECT COUNT(*) AS total FROM far_medicamento_lote
             INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)" . $where_gen;
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM far_medicamento_lote
     INNER JOIN far_medicamentos ON (far_medicamentos.id_med=far_medicamento_lote.id_med)" . $where;
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT far_medicamento_lote.id_lote,far_medicamentos.id_med,

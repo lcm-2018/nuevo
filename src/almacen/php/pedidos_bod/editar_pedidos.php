@@ -50,11 +50,11 @@ try {
             } else {
                 $sql = "SELECT id_sede_origen,id_bodega_origen,id_sede_destino,id_bodega_destino FROM far_pedido WHERE id_pedido=" . $id;
                 $rs = $cmd->query($sql);
-                $obj_pedido = $rs->fetch();
-                $id_sede_origen = $obj_pedido['id_sede_origen'];
-                $id_bodega_origen = $obj_pedido['id_bodega_origen'];
-                $id_sede_destino = $obj_pedido['id_sede_destino'];
-                $id_bodega_destino = $obj_pedido['id_bodega_destino'];
+                $obj_pedido = $rs ? $rs->fetch() : null;
+                $id_sede_origen = $obj_pedido['id_sede_origen'] ?? 0;
+                $id_bodega_origen = $obj_pedido['id_bodega_origen'] ?? 0;
+                $id_sede_destino = $obj_pedido['id_sede_destino'] ?? 0;
+                $id_bodega_destino = $obj_pedido['id_bodega_destino'] ?? 0;
             }
 
             if ($id_bodega_origen != $id_bodega_destino) {
@@ -69,10 +69,10 @@ try {
                         $res['mensaje'] = 'ok';
                         $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                         $rs = $cmd->query($sql_i);
-                        $obj = $rs->fetch();
-                        $res['id'] = $obj['id'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $res['id'] = $obj['id'] ?? null;
 
-                        $proceso = "Se Registró Pedido de Bodega Id: " . $obj['id'] . ", Fecha: " . $fec_pedido . ", Detalle: " . $detalle;
+                        $proceso = "Se Registró Pedido de Bodega Id: " . ($obj['id'] ?? '') . ", Fecha: " . $fec_pedido . ", Detalle: " . $detalle;
                         Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
@@ -80,9 +80,9 @@ try {
                 } else {
                     $sql = "SELECT estado FROM far_pedido WHERE id_pedido=" . $id;
                     $rs = $cmd->query($sql);
-                    $obj_pedido = $rs->fetch();
+                    $obj_pedido = $rs ? $rs->fetch() : null;
 
-                    if ($obj_pedido['estado'] == 1) {
+                    if (isset($obj_pedido['estado']) && $obj_pedido['estado'] == 1) {
                         $sql = "UPDATE far_pedido SET detalle='$detalle',id_sede_origen=$id_sede_origen,id_bodega_origen=$id_bodega_origen,id_sede_destino=$id_sede_destino,id_bodega_destino=$id_bodega_destino
                                 WHERE id_pedido=" . $id;
                         $rs = $cmd->query($sql);
@@ -110,15 +110,15 @@ try {
 
             $sql = "SELECT estado,fec_pedido,detalle FROM far_pedido WHERE id_pedido=" . $id;
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
+            $obj_pedido = $rs ? $rs->fetch() : null;
 
-            if ($obj_pedido['estado'] == 1) {
+            if (isset($obj_pedido['estado']) && $obj_pedido['estado'] == 1) {
                 $sql = "DELETE FROM far_pedido WHERE id_pedido=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Eliminó Pedido de Bodega Id: " . $id . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];
+                    $proceso = "Se Eliminó Pedido de Bodega Id: " . $id . ", Fecha: " . ($obj_pedido['fec_pedido'] ?? '') . ", Detalle: " . ($obj_pedido['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -133,13 +133,13 @@ try {
 
             $sql = 'SELECT estado,fec_pedido,detalle FROM far_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
+            $obj_pedido = $rs ? $rs->fetch() : null;
             $estado = isset($obj_pedido['estado']) ? $obj_pedido['estado'] : -1;
 
             $sql = "SELECT COUNT(*) AS total FROM far_pedido_detalle WHERE id_pedido=" . $id;
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $num_detalles = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $num_detalles = $obj_detalles['total'] ?? 0;
 
             if ($estado == 1 && $num_detalles > 0) {
                 $error = 0;
@@ -147,8 +147,8 @@ try {
 
                 $sql = 'SELECT num_pedidoactual FROM tb_datos_ips LIMIT 1';
                 $rs = $cmd->query($sql);
-                $obj = $rs->fetch();
-                $num_pedido = $obj['num_pedidoactual'];
+                $obj = $rs ? $rs->fetch() : null;
+                $num_pedido = $obj['num_pedidoactual'] ?? 0;
                 $res['num_pedido'] = $num_pedido;
 
                 $sql = "UPDATE far_pedido SET num_pedido=$num_pedido,estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope' WHERE id_pedido=$id";
@@ -163,7 +163,7 @@ try {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Confirmó Pedido de Bodega Id: " . $id . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];
+                    $proceso = "Se Confirmó Pedido de Bodega Id: " . $id . ", Fecha: " . ($obj_pedido['fec_pedido'] ?? '') . ", Detalle: " . ($obj_pedido['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
@@ -206,16 +206,16 @@ try {
 
             $sql = 'SELECT estado,fec_pedido,detalle FROM far_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
-            $estado = $obj_pedido['estado'];
+            $obj_pedido = $rs ? $rs->fetch() : null;
+            $estado = $obj_pedido['estado'] ?? 0;
 
             $sql = 'SELECT COUNT(*) AS total FROM far_pedido_detalle
                     INNER JOIN far_traslado_detalle ON (far_traslado_detalle.id_ped_detalle = far_pedido_detalle.id_ped_detalle) 
                     INNER JOIN far_traslado ON (far_traslado.id_traslado = far_traslado_detalle.id_traslado)
                     WHERE far_pedido_detalle.id_pedido=' . $id . ' AND far_traslado.estado>=1';
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $det_traslado = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $det_traslado = $obj_detalles['total'] ?? 0;
 
             if ($estado == 2 && $det_traslado == 0) {
                 $sql = "UPDATE far_pedido SET id_usr_anula=$id_usr_ope,fec_anulacion='$fecha_ope',estado=0 WHERE id_pedido=$id";
@@ -223,7 +223,7 @@ try {
                 if ($rs) {
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Anuló Pedido de Bodega Id: " . $id . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];
+                    $proceso = "Se Anuló Pedido de Bodega Id: " . $id . ", Fecha: " . ($obj_pedido['fec_pedido'] ?? '') . ", Detalle: " . ($obj_pedido['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $error = $cmd->errorInfo();
@@ -243,13 +243,13 @@ try {
 
             $sql = 'SELECT estado,fec_pedido,detalle FROM far_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
+            $obj_pedido = $rs ? $rs->fetch() : null;
             $estado = isset($obj_pedido['estado']) ? $obj_pedido['estado'] : -1;
 
             $sql = "SELECT COUNT(*) AS total FROM far_pedido_detalle WHERE id_pedido=" . $id;
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $num_detalles = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $num_detalles = $obj_detalles['total'] ?? 0;
 
             if ($estado == 2 && $num_detalles > 0) {
                 $error = 0;
@@ -268,8 +268,8 @@ try {
 
                 $sql = 'SELECT LAST_INSERT_ID() AS id';
                 $rs = $cmd->query($sql);
-                $obj = $rs->fetch();
-                $id_pedido = $obj['id'];
+                $obj = $rs ? $rs->fetch() : null;
+                $id_pedido = $obj['id'] ?? 0;
 
                 $sql = "INSERT INTO far_pedido_detalle(id_pedido,id_medicamento,cantidad,valor) 
                         SELECT $id_pedido,far_pedido_detalle.id_medicamento,far_pedido_detalle.cantidad,far_medicamentos.val_promedio
@@ -289,7 +289,7 @@ try {
                     $res['id'] = $id_pedido;
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Duplicó Pedido de Bodega Id: " . $id . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];
+                    $proceso = "Se Duplicó Pedido de Bodega Id: " . $id . ", Fecha: " . ($obj_pedido['fec_pedido'] ?? '') . ", Detalle: " . ($obj_pedido['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';

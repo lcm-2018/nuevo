@@ -49,10 +49,10 @@ try {
                     $res['mensaje'] = 'ok';
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
 
-                    $proceso = "Se Registró Área Id: " . $obj['id'] . ", Nombre: " . $nom_area;
+                    $proceso = "Se Registró Área Id: " . ($obj['id'] ?? '') . ", Nombre: " . $nom_area;
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -60,9 +60,9 @@ try {
             } else {
                 $sql = "SELECT es_almacen,nom_area FROM far_centrocosto_area WHERE id_area=" . $id;
                 $rs = $cmd->query($sql);
-                $obj_alm = $rs->fetch();
-                if ($obj_alm['es_almacen'] == 1) {
-                    $nom_area = $obj_alm['nom_area'];
+                $obj_alm = $rs ? $rs->fetch() : null;
+                if (isset($obj_alm['es_almacen']) && $obj_alm['es_almacen'] == 1) {
+                    $nom_area = $obj_alm['nom_area'] ?? '';
                 }
 
                 $sql = "UPDATE far_centrocosto_area 
@@ -89,21 +89,21 @@ try {
 
             $sql = "SELECT es_almacen,nom_area FROM far_centrocosto_area WHERE id_area=" . $id;
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch();
+            $obj = $rs ? $rs->fetch() : null;
 
-            if ($obj['es_almacen'] == 0) {
+            if (isset($obj['es_almacen']) && $obj['es_almacen'] == 0) {
                 $sql = "DELETE FROM far_centrocosto_area WHERE id_area=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Eliminó Área Id: " . $id . ", Nombre: " . $obj['nom_area'];
+                    $proceso = "Se Eliminó Área Id: " . $id . ", Nombre: " . ($obj['nom_area'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }
             } else {
-                $res['mensaje'] = 'No se puede eliminar el Área: ' . $obj['nom_area'];
+                $res['mensaje'] = 'No se puede eliminar el Área: ' . ($obj['nom_area'] ?? '');
             }
         }
     } else {

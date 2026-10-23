@@ -198,12 +198,12 @@ function sede_unica_usuario($cmd)
         $res = [];
         $sql = "SELECT COUNT(*) AS count FROM seg_sedes_usuario WHERE id_usuario=$idusr";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-        if ($obj['count'] == 1) {
+        $obj = $rs ? $rs->fetch() : null;
+        if (isset($obj['count']) && $obj['count'] == 1) {
             $sql = "SELECT id_sede FROM seg_sedes_usuario WHERE id_usuario=$idusr";
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch();
-            $res = array('id_sede' => $obj['id_sede']);
+            $obj = $rs ? $rs->fetch() : null;
+            $res = array('id_sede' => $obj['id_sede'] ?? '0');
         } else {
             $res = array('id_sede' => '0');
         }

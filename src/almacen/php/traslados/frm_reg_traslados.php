@@ -26,26 +26,30 @@ $sql = "SELECT TT.fec_traslado,TT.hor_traslado,TT.num_traslado,TT.tipo,
                     GROUP BY TD.id_traslado) AS PEDIDO ON (PEDIDO.id_traslado=TT.id_traslado)    
         WHERE TT.id_traslado=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
 $editar = 'disabled="disabled"';
 if (empty($obj)) {
-    $n = $rs->columnCount();
+    $obj = [];
+    $n = $rs ? $rs->columnCount() : 0;
     for ($i = 0; $i < $n; $i++) :
         $col = $rs->getColumnMeta($i);
-        $name = $col['name'];
-        $obj[$name] = NULL;
+        $name = $col['name'] ?? null;
+        if ($name) {
+            $obj[$name] = NULL;
+        }
     endfor;
     //Inicializa variable por defecto
-    $obj['id_sede_origen'] = sede_unica_usuario($cmd)['id_sede'];
+    $sede_u = sede_unica_usuario($cmd);
+    $obj['id_sede_origen'] = $sede_u['id_sede'] ?? 0;
     $obj['id_sede_destino'] = 0;
     $obj['estado'] = 1;
     $obj['nom_estado'] = 'PENDIENTE';
     $obj['val_total'] = 0;
 
     $fecha = fecha_hora_servidor();
-    $obj['fec_traslado'] = $fecha['fecha'];
-    $obj['hor_traslado'] = $fecha['hora'];
+    $obj['fec_traslado'] = $fecha['fecha'] ?? date('Y-m-d');
+    $obj['hor_traslado'] = $fecha['hora'] ?? date('H:i:s');
     $editar = '';
 }
 $guardar = in_array($obj['estado'], [1]) ? '' : 'disabled="disabled"';

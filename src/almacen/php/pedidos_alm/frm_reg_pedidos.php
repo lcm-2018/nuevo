@@ -20,14 +20,17 @@ $sql = "SELECT far_alm_pedido.*,
         INNER JOIN far_bodegas ON (far_bodegas.id_bodega=far_alm_pedido.id_bodega)
         WHERE id_pedido=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
 if (empty($obj)) {
-    $n = $rs->columnCount();
+    $obj = [];
+    $n = $rs ? $rs->columnCount() : 0;
     for ($i = 0; $i < $n; $i++) :
         $col = $rs->getColumnMeta($i);
-        $name = $col['name'];
-        $obj[$name] = NULL;
+        $name = $col['name'] ?? null;
+        if ($name) {
+            $obj[$name] = NULL;
+        }
     endfor;
     //Inicializa variable por defecto
     $obj['estado'] = 1;
@@ -35,13 +38,13 @@ if (empty($obj)) {
     $obj['val_total'] = 0;
 
     $bodega = bodega_principal($cmd);
-    $obj['id_bodega'] = $bodega['id_bodega'];
-    $obj['nom_bodega'] = $bodega['nom_bodega'];
-    $obj['id_sede'] = $bodega['id_sede'];
+    $obj['id_bodega'] = $bodega['id_bodega'] ?? 0;
+    $obj['nom_bodega'] = $bodega['nom_bodega'] ?? '';
+    $obj['id_sede'] = $bodega['id_sede'] ?? 0;
 
     $fecha = fecha_hora_servidor();
-    $obj['fec_pedido'] = $fecha['fecha'];
-    $obj['hor_pedido'] = $fecha['hora'];
+    $obj['fec_pedido'] = $fecha['fecha'] ?? date('Y-m-d');
+    $obj['hor_pedido'] = $fecha['hora'] ?? date('H:i:s');
 }
 $guardar = in_array($obj['estado'], [1]) ? '' : 'disabled="disabled"';
 $confirmar = in_array($obj['estado'], [1]) && $id != -1 ? '' : 'disabled="disabled"';

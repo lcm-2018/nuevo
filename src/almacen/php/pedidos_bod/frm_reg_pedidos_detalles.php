@@ -20,24 +20,29 @@ $sql = "SELECT far_pedido_detalle.*,
         INNER JOIN far_medicamentos ON (far_medicamentos.id_med = far_pedido_detalle.id_medicamento)
         WHERE far_pedido_detalle.id_ped_detalle=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
 if (empty($obj)) {
-    $n = $rs->columnCount();
+    $obj = [];
+    $n = $rs ? $rs->columnCount() : 0;
     for ($i = 0; $i < $n; $i++) :
         $col = $rs->getColumnMeta($i);
-        $name = $col['name'];
-        $obj[$name] = NULL;
+        $name = $col['name'] ?? null;
+        if ($name) {
+            $obj[$name] = NULL;
+        }
     endfor;
 
     $articulo = datos_articulo($cmd, $id_med);
-    $obj['id_medicamento'] = $articulo['id_med'];
-    $obj['nom_articulo'] = $articulo['nom_articulo'];
-    $obj['valor'] = $articulo['val_promedio'];
+    $obj['id_medicamento'] = $articulo['id_med'] ?? 0;
+    $obj['nom_articulo'] = $articulo['nom_articulo'] ?? '';
+    $obj['valor'] = $articulo['val_promedio'] ?? 0;
 
-    $existencia = existencia_articulo($cmd, $id_med, $id_bodega)['existencia'];
+    $ex_art = existencia_articulo($cmd, $id_med, $id_bodega);
+    $existencia = $ex_art['existencia'] ?? 0;
 } else {
-    $existencia = existencia_articulo($cmd, $obj['id_medicamento'], $id_bodega)['existencia'];
+    $ex_art = existencia_articulo($cmd, $obj['id_medicamento'] ?? 0, $id_bodega);
+    $existencia = $ex_art['existencia'] ?? 0;
 }
 ?>
 

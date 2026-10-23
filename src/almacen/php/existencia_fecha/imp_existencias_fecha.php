@@ -145,6 +145,7 @@ try {
         </thead>
         <tbody style="font-size: 60%;">
             <?php
+            $objs = $objs ?? [];
             $tabla = '';
             $total = 0;
             foreach ($objs as $obj) {
@@ -164,7 +165,7 @@ try {
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="5" style="text-align:left">
-                    No. de Registros: <?php echo count($objs); ?>
+                    No. de Registros: <?php echo is_countable($objs) ? count($objs) : 0; ?>
                 </td>
                 <td style="text-align:left">
                     TOTAL:

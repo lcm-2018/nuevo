@@ -17,7 +17,7 @@ $id_bodega = isset($_POST['id_bodega']) && $_POST['id_bodega'] ? $_POST['id_bode
 
 $sql = "SELECT nombre FROM far_bodegas WHERE id_bodega=$id_bodega";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
 
 $checked = ($proceso == 'pceco') ? 'checked' : '';
