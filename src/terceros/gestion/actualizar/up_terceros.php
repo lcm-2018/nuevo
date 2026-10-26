@@ -15,7 +15,7 @@ function UpTercerosEmpresa($api, $ids, $cmd, $fecInicio, $es_clinic, $planilla =
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     $result = curl_exec($ch);
     curl_close($ch);
-    $terceros = json_decode($result, true);
+    $terceros = is_string($result) && $result !== '' ? json_decode($result, true) : [];
     $tipodoc = $nombre = $nit = $direccion = $telefono = $municipio = $email = $idter = NULL;
     $c = 0;
     $fecInicio = $fecInicio == '' ? `fec_inicio` : $fecInicio;

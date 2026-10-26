@@ -17,10 +17,9 @@ try {
     
     $sql = "SELECT `id_responsabilidad` FROM `ctt_resposabilidad_terceros` WHERE `id_tercero_api` = $idt AND `id_responsabilidad` = $id_resp_econ";
     $rs = $cmd->query($sql);
-    $data = $rs->fetchAll(PDO::FETCH_ASSOC);
-    $rs->closeCursor();
-    unset($rs);
-    if (count($data) > 0) {
+    $data = $rs ? $rs->fetchAll(PDO::FETCH_ASSOC) : [];
+    if ($rs) { $rs->closeCursor(); unset($rs); }
+    if (!empty($data) && is_countable($data) && count($data) > 0) {
         echo 'La responsabilidad económica ya se encuentra registrada';
         exit();
     }
@@ -65,6 +64,6 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $result = curl_exec($ch);
 curl_close($ch);
-$res = json_decode($result, true);
+$res = is_string($result) && $result !== '' ? json_decode($result, true) : null;
 echo $res;
 */

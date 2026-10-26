@@ -30,7 +30,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
-$id_tercero = $factura['id_tercero_no'];
+$id_tercero = !empty($factura['id_tercero_no']) ? $factura['id_tercero_no'] : 0;
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     

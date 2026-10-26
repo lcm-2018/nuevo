@@ -41,4 +41,4 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $res = curl_exec($ch);
 curl_close($ch);
-echo json_decode($res, true);
+echo is_string($res) && $res !== '' ? json_decode($res, true) : '';

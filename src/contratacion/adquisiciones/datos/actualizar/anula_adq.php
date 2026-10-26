@@ -17,8 +17,8 @@ $cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sq1 = "SELECT `id_orden` FROM `ctt_adquisiciones` WHERE `id_adquisicion` = $id";
     $rs = $cmd->query($sq1);
-    $res = $rs->fetch();
-    if ($res['id_orden'] > 0) {
+    $res = $rs ? $rs->fetch() : false;
+    if (!empty($res['id_orden']) && $res['id_orden'] > 0) {
         $sq2 = "UPDATE `far_alm_pedido` SET `estado` = 2 WHERE `id_pedido` = ?";
         $stmt = $cmd->prepare($sq2);
         $stmt->bindParam(1, $res['id_orden'], PDO::PARAM_INT);

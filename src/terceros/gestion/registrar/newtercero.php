@@ -53,7 +53,7 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $result = curl_exec($ch);
 curl_close($ch);
-$terceros = json_decode($result, true);
+$terceros = is_string($result) && $result !== '' ? json_decode($result, true) : [];
 $regAtTerc = 'NO';
 $res = '';
 $id_ter_api = NULL;
@@ -94,7 +94,7 @@ if ($terceros != '0') {
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     $result = curl_exec($ch);
     curl_close($ch);
-    $res = json_decode($result, true);
+    $res = is_string($result) && $result !== '' ? json_decode($result, true) : null;
     $id_ter_api = $res;
     if ($id_ter_api > 0 && !empty($data['mailEmp'])) {
         try {

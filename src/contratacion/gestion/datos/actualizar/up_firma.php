@@ -33,9 +33,11 @@ try {
     $stmt = $cmd->prepare($sql);
     $stmt->bindParam(1, $idFirma, PDO::PARAM_INT);
     $stmt->execute();
-    $firma = $stmt->fetch(PDO::FETCH_ASSOC);
-    $firma['variable'] = str_replace('${', '', $firma['variable']);
-    $firma['variable'] = str_replace('}', '', $firma['variable']);
+    $firma = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+    if (!empty($firma) && isset($firma['variable'])) {
+        $firma['variable'] = str_replace('${', '', $firma['variable']);
+        $firma['variable'] = str_replace('}', '', $firma['variable']);
+    }
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }

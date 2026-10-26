@@ -47,14 +47,14 @@ try {
     //Consulta el total de registros de la tabla
     /*$sql = "SELECT COUNT(*) AS total FROM far_centrocosto_area WHERE id_area<>0";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : false;
+    $totalRecords = $total ? $total['total'] : 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM far_centrocosto_area $where";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : false;
+    $totalRecordsFilter = $total ? $total['total'] : 0;
     */
     if ($id_tercero > 0) {
         $where = " pto_crp.id_tercero_api=$id_tercero AND pto_crp.estado= 2";

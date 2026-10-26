@@ -29,9 +29,9 @@ try {
                 ON (`nom_valxvigencia`.`id_concepto` = `nom_conceptosxvigencia`.`id_concp`)
             WHERE `id_concepto` = '4' LIMIT 1";
     $rs = $cmd->query($sql);
-    $concec = $rs->fetch();
-    $iNonce = intval($concec['valor']);
-    $idiNonce = $concec['id_valxvig'];
+    $concec = $rs ? $rs->fetch() : false;
+    $iNonce = intval($concec['valor'] ?? 0);
+    $idiNonce = $concec['id_valxvig'] ?? 0;
     $sql = "UPDATE `nom_valxvigencia` SET `valor` = '$iNonce'+1 WHERE `id_valxvig` = '$idiNonce'";
     $rs = $cmd->query($sql);
     if ($rs) {
@@ -187,8 +187,8 @@ try {
                 `nom_resoluciones`
             WHERE `id_resol` = (SELECT MAX(`id_resol`) FROM `nom_resoluciones` WHERE `id_empresa` = '$id_empresa' AND `tipo` = 2)";
     $rs = $cmd->query($sql);
-    $resolucion = $rs->fetch();
-    if ($resolucion['id_resol'] == '') {
+    $resolucion = $rs ? $rs->fetch() : false;
+    if (empty($resolucion) || empty($resolucion['id_resol'])) {
         $fail = 'No se ha registrado una resolución de facturación';
         $response[] = array("value" => "Error", "msg" => json_encode($fail));
         echo json_encode($response);
@@ -222,8 +222,8 @@ try {
 
     $sql = "SELECT `id_soporte`, `referencia` FROM `seg_soporte_fno` WHERE `id_factura_no` = $id_facno LIMIT 1";
     $rs = $cmd->query($sql);
-    $referencia = $rs->fetch();
-    if (!empty($referencia)) {
+    $referencia = $rs ? $rs->fetch() : false;
+    if (!empty($referencia) && !empty($referencia['referencia'])) {
         $dato = explode('-', $referencia['referencia']);
         $secuenciaf = $dato[1];
         $new = false;
@@ -346,7 +346,7 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $restoken = curl_exec($ch);
-$rst = json_decode($restoken);
+$rst = is_string($restoken) && $restoken !== '' ? json_decode($restoken) : null;
 $tokenApi = $rst->jret->stoken;
 $cantidad = 1;
 // inicio documento
@@ -540,7 +540,7 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $rresponse = curl_exec($ch);
-$resnom = json_decode($rresponse, true);
+$resnom = is_string($rresponse) && $rresponse !== '' ? json_decode($rresponse, true) : [];
 $file = 'loglastsend.txt';
 file_put_contents($file, $rresponse);
 //chmod($file, 0777);

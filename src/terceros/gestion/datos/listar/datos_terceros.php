@@ -69,8 +69,8 @@ try {
             FROM
                 `tb_terceros`";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : false;
+    $totalRecords = $total ? $total['total'] : 0;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -84,8 +84,8 @@ try {
                 `tb_terceros`
             WHERE `tb_terceros`.`estado` $andwhere";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : false;
+    $totalRecordsFilter = $total ? $total['total'] : 0;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -111,7 +111,7 @@ if (!empty($id_t)) {
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     $result = curl_exec($ch);
     curl_close($ch);
-    $terceros = json_decode($result, true);
+    $terceros = is_string($result) && $result !== '' ? json_decode($result, true) : [];
     foreach ($terEmpr as $t) {
         $idter = $t['nit_tercero'];
         $key = array_search($idter, array_column($terceros, 'cc_nit'));

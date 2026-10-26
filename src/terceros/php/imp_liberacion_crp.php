@@ -24,8 +24,8 @@ try {
             WHERE
                 id_pto_crp_det=$id_lib";
     $rs = $cmd->query($sql);
-    $obj_liberacion = $rs->fetch();
-    $fecha_reg_lib = $obj_liberacion['fecha_reg'] ?? '';
+    $obj_liberacion = $rs ? $rs->fetch() : false;
+    $fecha_reg_lib = !empty($obj_liberacion) ? ($obj_liberacion['fecha_reg'] ?? '') : '';
 
     //-----crps-----------------------
     $sql = "SELECT

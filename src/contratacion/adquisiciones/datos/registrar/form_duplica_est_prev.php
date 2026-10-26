@@ -427,7 +427,7 @@ try {
             </div>
             <div class="row px-4 pt-2">
                 <?php
-                if (count($polizas) > 0) {
+                if (!empty($polizas) && is_countable($polizas) && count($polizas) > 0) {
                 ?>
                     <span class="small">PÓLIZAS</span>
                 <?php

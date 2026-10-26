@@ -39,7 +39,7 @@ try {
     $tercero = $rs->fetch();
     if (!empty($tercero)) {
         $res['status'] = 1;
-        $res['procedencia'] = $tercero['procedencia'] == '' ? 0 : $tercero['procedencia'];
+        $res['procedencia'] = empty($tercero['procedencia']) ? 0 : $tercero['procedencia'];
         $res['tipo_org'] = $tercero['tipo_org'] == '' ? 0 : $tercero['tipo_org'];
         $res['reg_fiscal'] = $tercero['reg_fiscal'] == '' ? 0 : $tercero['reg_fiscal'];
         $res['resp_fiscal'] = $tercero['resp_fiscal']   == '' ? 0 : $tercero['resp_fiscal'];

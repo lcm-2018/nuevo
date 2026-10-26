@@ -3,7 +3,7 @@
 header('Content-Type: application/json'); // Para respuestas JSON
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $data = json_decode(file_get_contents('php://input'), true); // Leer JSON del cuerpo
+    $data = json_decode(file_get_contents('php://input') ?: '{}', true); // Leer JSON del cuerpo
 
     if (isset($data['action'])) {
         $action = $data['action'];

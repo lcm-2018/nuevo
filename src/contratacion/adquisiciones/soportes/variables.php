@@ -18,8 +18,8 @@ try {
 
     $sql = "SELECT `nombre1`,`nombre2`,`apellido1`,`apellido2` FROM `seg_usuarios_sistema` WHERE `id_usuario` = {$id_user}";
     $rs = $cmd->query($sql);
-    $usuario = $rs->fetch(PDO::FETCH_ASSOC);
-    $usuario = !empty($usuario) ? trim($usuario['nombre1'] . ' ' . $usuario['nombre2'] . ' ' . $usuario['apellido1'] . ' ' . $usuario['apellido2']) : 'XXXXXX';
+    $usuario = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+    $usuario = !empty($usuario) ? trim(($usuario['nombre1'] ?? '') . ' ' . ($usuario['nombre2'] ?? '') . ' ' . ($usuario['apellido1'] ?? '') . ' ' . ($usuario['apellido2'] ?? '')) : 'XXXXXX';
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -46,8 +46,8 @@ try {
                 ON (`ctt_adquisiciones`.`id_cdp` = `pto_cdp`.`id_pto_cdp`)
             WHERE `id_adquisicion` = $id_adqi LIMIT 1";
     $rs = $cmd->query($sql);
-    $adquisicion = $rs->fetch(PDO::FETCH_ASSOC);
-    $id_orden = $adquisicion['id_orden'];
+    $adquisicion = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+    $id_orden = !empty($adquisicion['id_orden']) ? $adquisicion['id_orden'] : '';
     if ($id_orden == '') {
         $sql = "SELECT
                 `ctt_bien_servicio`.`bien_servicio`
@@ -141,7 +141,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
-$tipo_bn = $compra['id_tipo_bn_sv'];
+$tipo_bn = !empty($compra['id_tipo_bn_sv']) ? $compra['id_tipo_bn_sv'] : 0;
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
@@ -206,7 +206,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 $cmd = null;
-$id_ep = $estudio_prev['id_est_prev'];
+$id_ep = !empty($estudio_prev['id_est_prev']) ? $estudio_prev['id_est_prev'] : 0;
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 

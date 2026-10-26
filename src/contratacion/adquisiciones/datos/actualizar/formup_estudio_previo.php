@@ -24,7 +24,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
-$est_prev = isset($estudio_prev) ? $estudio_prev['id_est_prev'] : 0;
+$est_prev = !empty($estudio_prev['id_est_prev']) ? $estudio_prev['id_est_prev'] : 0;
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 

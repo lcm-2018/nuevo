@@ -18,7 +18,7 @@ try {
     $ownerConfig = Valores::getOwnerConfig();
     if (isset($ownerConfig['valida_tercero']) && $ownerConfig['valida_tercero'] !== '') {
         $validaConfig = $ownerConfig['valida_tercero'];
-        if (is_string($validaConfig)) {
+        if (is_string($validaConfig) && $validaConfig !== '') {
             $decoded = json_decode($validaConfig, true);
             if (is_array($decoded)) {
                 $validaConfig = $decoded;
@@ -61,7 +61,7 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $result = curl_exec($ch);
 curl_close($ch);
 
-$tercero = json_decode($result, true);
+$tercero = is_string($result) && $result !== '' ? json_decode($result, true) : [];
 
 if (isset($tercero['id_tercero'])) {
     $id_dpto = $tercero['departamento'];

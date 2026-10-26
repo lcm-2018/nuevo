@@ -45,7 +45,7 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $resp = curl_exec($ch);
 curl_close($ch);
-$res = json_decode($resp, true);
+$res = is_string($resp) && $resp !== '' ? json_decode($resp, true) : [];
 if ($res['status'] == 1) {
     try {
         $id_spvr = $res['msg'];

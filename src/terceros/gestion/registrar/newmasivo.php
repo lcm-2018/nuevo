@@ -47,7 +47,7 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $result = curl_exec($ch);
 curl_close($ch);
-$terceros = json_decode($result, true);
+$terceros = is_string($result) && $result !== '' ? json_decode($result, true) : [];
 if ($terceros == '' || $terceros == '0' || $terceros == []) {
     $terceros = [];
 }
@@ -94,7 +94,7 @@ foreach ($pendientes as $pd) {
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         $result = curl_exec($ch);
         curl_close($ch);
-        $id_api = json_decode($result, true);
+        $id_api = is_string($result) && $result !== '' ? json_decode($result, true) : null;
         if ($id_api > '0') {
             $relacion[] = [
                 'id_tercero_api' => $id_api,

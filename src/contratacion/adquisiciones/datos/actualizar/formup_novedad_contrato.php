@@ -255,7 +255,7 @@ switch ($opcion) {
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
         }
-        $id_contrato = $detalles_novedad['id_adq'];
+        $id_contrato = !empty($detalles_novedad['id_adq']) ? $detalles_novedad['id_adq'] : 0;
         try {
             $cmd = \Config\Clases\Conexion::getConexion();
             $sql = "SELECT 

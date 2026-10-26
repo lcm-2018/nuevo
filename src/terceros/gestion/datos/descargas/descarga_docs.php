@@ -18,10 +18,10 @@ if (isset($_GET['id'])) {
                 FROM `ctt_documentos`
                 WHERE `id_soportester` = $id AND `estado` = 1";
         $rs = $cmd->query($sql);
-        $pdf = $rs->fetch(PDO::FETCH_ASSOC);
+        $pdf = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
 
         if (!empty($pdf)) {
-            $filePath = '../' . $pdf['ruta_doc'] . $pdf['nombre_doc'];
+            $filePath = '../' . ($pdf['ruta_doc'] ?? '') . ($pdf['nombre_doc'] ?? '');
             if (file_exists($filePath)) {
                 // Forzar descarga
                 header('Content-Description: File Transfer');

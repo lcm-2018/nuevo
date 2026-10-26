@@ -25,7 +25,7 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $result = curl_exec($ch);
 curl_close($ch);
-$actvidades = json_decode($result, true);
+$actvidades = is_string($result) && $result !== '' ? json_decode($result, true) : [];
 if (!empty($actvidades)) {
     foreach ($actvidades as $a) {
         $idae = $a['id_actvtercero'];

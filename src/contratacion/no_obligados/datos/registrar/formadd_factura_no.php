@@ -31,7 +31,7 @@ try {
     $stmt->closeCursor();
     unset($stmt);
     if (!empty($factura)) {
-        $id_tercero =  $factura['id_tercero_no'];
+        $id_tercero =  !empty($factura['id_tercero_no']) ? $factura['id_tercero_no'] : 0;
         try {
 
             $sql = "SELECT
@@ -60,8 +60,8 @@ try {
             $stmt2 = $cmd->prepare($sql);
             $stmt2->bindParam(1, $id_tercero, PDO::PARAM_INT);
             $stmt2->execute();
-            $tercero = $stmt2->fetch();
-            $factura['procedencia'] = $tercero['procedencia'] == '' ? 0 : $tercero['procedencia'];
+            $tercero = $stmt2 ? $stmt2->fetch() : false;
+            $factura['procedencia'] = !empty($tercero['procedencia']) ? $tercero['procedencia'] : 0;
             $factura['tipo_org'] = $tercero['tipo_org'] == '' ? 0 : $tercero['tipo_org'];
             $factura['reg_fiscal'] = $tercero['reg_fiscal'] == '' ? 0 : $tercero['reg_fiscal'];
             $factura['resp_fiscal'] = $tercero['resp_fiscal']   == '' ? 0 : $tercero['resp_fiscal'];

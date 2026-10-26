@@ -79,7 +79,7 @@ unset($rs);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
             $res_api = curl_exec($ch);
             curl_close($ch);
-            $res = json_decode($res_api, true);
+            $res = is_string($res_api) && $res_api !== '' ? json_decode($res_api, true) : null;
             if ($res == 1) {
                 $est = 4;
                 try {

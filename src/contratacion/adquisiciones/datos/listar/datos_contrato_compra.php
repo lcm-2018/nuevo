@@ -32,7 +32,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
-$contrata = isset($contrato) ? $contrato['id_contrato_compra'] : 0;
+$contrata = !empty($contrato['id_contrato_compra']) ? $contrato['id_contrato_compra'] : 0;
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 

@@ -26,9 +26,9 @@ if ($id_dep > 0) {
         $dependiente = $stmt->fetch(PDO::FETCH_ASSOC);
         $cmd = null;
         
-        if ($dependiente) {
+        if (!empty($dependiente)) {
             $titulo = "ACTUALIZAR DEPENDIENTE";
-            $idt = $dependiente['id_tercero_api'];
+            $idt = $dependiente['id_tercero_api'] ?? 0;
             $tipo_doc = $dependiente['id_tipo_doc'];
             $num_doc = $dependiente['no_documento'];
             $nombre = $dependiente['nombre_completo'];

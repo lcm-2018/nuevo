@@ -25,7 +25,7 @@ try {
     $ownerConfig = Valores::getOwnerConfig();
     if (isset($ownerConfig['valida_tercero']) && $ownerConfig['valida_tercero'] !== '') {
         $validaConfig = $ownerConfig['valida_tercero'];
-        if (is_string($validaConfig)) {
+        if (is_string($validaConfig) && $validaConfig !== '') {
             $decoded = json_decode($validaConfig, true);
             if (is_array($decoded)) {
                 $validaConfig = $decoded;

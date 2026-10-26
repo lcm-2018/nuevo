@@ -39,8 +39,8 @@ if ($id_clas > 0) {
         $clasificador = $stmt->fetch();
         $stmt->closeCursor();
 
-        if ($clasificador) {
-            $id_unspsc = $clasificador['id_unspsc'];
+        if (!empty($clasificador)) {
+            $id_unspsc = $clasificador['id_unspsc'] ?? '';
             $codigo_unspsc = $clasificador['codigo'];
             $descripcion_unspsc = $clasificador['descripcion'];
         }

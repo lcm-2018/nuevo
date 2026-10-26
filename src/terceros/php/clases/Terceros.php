@@ -228,8 +228,8 @@ class Terceros
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $result = curl_exec($ch);
         curl_close($ch);
-        $terceros = json_decode($result, true);
-        if ($terceros != '0') {
+        $terceros = is_string($result) && $result !== '' ? json_decode($result, true) : '0';
+        if ($terceros != '0' && is_array($terceros) && !empty($terceros)) {
             return $terceros[0];
         } else {
             return [];
@@ -269,7 +269,7 @@ class Terceros
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $result = curl_exec($ch);
         curl_close($ch);
-        return json_decode($result, true);
+        return is_string($result) && $result !== '' ? json_decode($result, true) : [];
     }
 
     public static function getTerceroApi($payload)
@@ -287,8 +287,8 @@ class Terceros
         $result = curl_exec($ch);
         $error = curl_error($ch);
         curl_close($ch);
-        $bancos = json_decode($result, true);
-        $bancos = $bancos != 0 ? $bancos : [];
+        $bancos = is_string($result) && $result !== '' ? json_decode($result, true) : [];
+        $bancos = $bancos != 0 && is_array($bancos) ? $bancos : [];
         return $bancos;
     }
 

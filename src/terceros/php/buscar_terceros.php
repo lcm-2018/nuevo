@@ -49,9 +49,11 @@ if ($buscar == '%%') {
 }
 
 if (empty($data)) {
-    $data[] = [
-        'id' => '0',
-        'label' => 'No hay coincidencias...',
+    $data = [
+        [
+            'id' => '0',
+            'label' => 'No hay coincidencias...',
+        ]
     ];
 }
 echo json_encode($data);

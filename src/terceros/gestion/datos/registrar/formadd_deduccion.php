@@ -25,10 +25,10 @@ if ($id_deduc > 0) {
         $sql = "SELECT * FROM tb_terceros_deducciones WHERE id_deduccion = ?";
         $stmt = $cmd->prepare($sql);
         $stmt->execute([$id_deduc]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($row) {
+        $row = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+        if (!empty($row)) {
             $titulo = "ACTUALIZAR DEDUCCIONES";
-            $id_t = $row['id_tercero_api'];
+            $id_t = $row['id_tercero_api'] ?? 0;
             $id_vigencia = $row['id_vigencia'];
             $intereses = $row['intereses_vivienda'];
             $medicina = $row['medicina_prepagada'];

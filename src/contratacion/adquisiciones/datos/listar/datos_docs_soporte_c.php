@@ -17,8 +17,8 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $result = curl_exec($ch);
 curl_close($ch);
-$det_contrato = json_decode($result, true);
-if ($det_contrato != 0) {
+$det_contrato = is_string($result) && $result !== '' ? json_decode($result, true) : null;
+if (!empty($det_contrato) && $det_contrato != 0) {
     $ruta = base64_encode($det_contrato['contrato']['ruta_contrato'] . $det_contrato['contrato']['nombre_contrato']);
     $num = 1;
     $nom_doc = 'CONTRATO CC-' . $det_contrato['contrato']['id_contrato'];

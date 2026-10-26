@@ -18,9 +18,9 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $result = curl_exec($ch);
 curl_close($ch);
-$compra_entregada = json_decode($result, true);
+$compra_entregada = is_string($result) && $result !== '' ? json_decode($result, true) : [];
 //print_r($compra_entregada);
-$recibido = $compra_entregada['entregas'];
+$recibido = !empty($compra_entregada['entregas']) ? $compra_entregada['entregas'] : [];
 ?>
 <div class="px-0">
     <div class="shadow">

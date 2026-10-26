@@ -78,7 +78,7 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $result = curl_exec($ch);
 curl_close($ch);
-$datos = json_decode($result, true);
+$datos = is_string($result) && $result !== '' ? json_decode($result, true) : [];
 $head = '';
 if (!empty($datos)) {
     foreach ($datos[0] as $key => $value) {

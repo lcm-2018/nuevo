@@ -176,7 +176,7 @@ class Api_SecopII
 
         // Procesamiento de la respuesta
         if ($httpCode === 200) {
-            $data = json_decode($response, true);
+            $data = is_string($response) && $response !== '' ? json_decode($response, true) : [];
 
             if (!empty($data)) {
                 return $returnFirst ? $data[0] : $data;
@@ -254,10 +254,9 @@ class Api_SecopII
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $idContrato, PDO::PARAM_STR);
             $stmt->execute();
-            $data = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stmt->closeCursor();
-            unset($stmt);
-            return ($data['total'] ?? 0) > 0;
+            $data = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+            if ($stmt) { $stmt->closeCursor(); unset($stmt); }
+            return !empty($data) && ($data['total'] ?? 0) > 0;
         } catch (PDOException $e) {
             return false;
         }

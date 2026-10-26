@@ -86,7 +86,7 @@ if (file_exists($file_dest)) {
                 $query = $cmd->prepare($query);
 
                 while (($data = fgetcsv($handle, 0, ';')) !== FALSE) { // Especificar el delimitador, por ejemplo, ';'
-                    if (count($data) < 10) {
+                    if (!is_countable($data) || count($data) < 10) {
                         echo 'Fila con datos insuficientes: ' . implode(';', $data) . '<br>';
                         continue; // Salta a la siguiente fila si los datos son insuficientes
                     }
@@ -138,7 +138,7 @@ if (file_exists($file_dest)) {
                 $query = $cmd->prepare($query);
 
                 while (($data = fgetcsv($handle, 0, ';')) !== FALSE) { // Especificar el delimitador, por ejemplo, ';'
-                    if (count($data) < 5) {
+                    if (!is_countable($data) || count($data) < 5) {
                         echo 'Fila con datos insuficientes: ' . implode(';', $data) . '<br>';
                         continue; // Salta a la siguiente fila si los datos son insuficientes
                     }

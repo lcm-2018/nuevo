@@ -55,8 +55,8 @@ try {
 
     $sql = "SELECT `id_tercero`FROM `seg_terceros_noblig` WHERE `no_doc` = '$no_doc'";
     $rs = $cmd->query($sql);
-    $tercero = $rs->fetch();
-    if ($tercero['id_tercero'] == '') {
+    $tercero = $rs ? $rs->fetch() : false;
+    if (empty($tercero) || empty($tercero['id_tercero'])) {
         $sql = "INSERT INTO `seg_terceros_noblig` (`id_tdoc`, `no_doc`, `nombre`, `procedencia`, `tipo_org`, `reg_fiscal`, `resp_fiscal`, `correo`, `telefono`, `id_pais`, `id_dpto`, `id_municipio`, `direccion`, `id_user_reg`, `fec_reg`) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $sql = $cmd->prepare($sql);

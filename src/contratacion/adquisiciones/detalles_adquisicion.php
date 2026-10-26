@@ -50,7 +50,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
-$tp_bs = $tipo_adq['id_tipo_bn_sv'];
+$tp_bs = !empty($tipo_adq['id_tipo_bn_sv']) ? $tipo_adq['id_tipo_bn_sv'] : 0;
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_relacion`, `id_formato` FROM `ctt_formatos_doc_rel` WHERE (`id_tipo_bn_sv` = $tp_bs)";
@@ -195,7 +195,7 @@ try {
     $rs = $cmd->query($sql);
     $estudios = $rs->fetch();
 
-    $id_estudio = !empty($estudios['id_est_prev']) ? $estudios['id_est_prev'] : '';
+    $id_estudio = !empty($estudios) && !empty($estudios['id_est_prev']) ? $estudios['id_est_prev'] : '';
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -276,7 +276,7 @@ if (!empty($contrato) && isset($contrato['id_secop']) && $contrato['url_secop'] 
     $urlProceso = $contrato['url_secop'] ?? '';
 }
 if (empty($contrato)) {
-    $contrato['id_contrato_compra'] = '';
+    $contrato = ['id_contrato_compra' => ''];
 }
 
 $id_orden = $adquisicion['id_orden'] == '' ? '' : '<input type="hidden" name="id_orden" id="id_orden" value="' . $adquisicion['id_orden'] . '">';

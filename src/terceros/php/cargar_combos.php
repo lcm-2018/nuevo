@@ -85,11 +85,10 @@ function sedes_usuario($cmd, $titulo = '', $id = 0)
                     INNER JOIN seg_sedes_usuario ON (seg_sedes_usuario.id_sede=tb_sedes.id_sede AND seg_sedes_usuario.id_usuario=$idusr)";
         }
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
-    $rs->closeCursor();
-    unset($rs);
+        $objs = $rs ? $rs->fetchAll(PDO::FETCH_ASSOC) : [];
+        if ($rs) { $rs->closeCursor(); unset($rs); }
         foreach ($objs as $obj) {
-            if ($obj['id_sede']  == $id || count($objs) == 1) {
+            if ($obj['id_sede']  == $id || (is_countable($objs) && count($objs) == 1)) {
                 echo '<option value="' . $obj['id_sede'] . '" selected="selected">' . $obj['nom_sede'] . '</option>';
             } else {
                 echo '<option value="' . $obj['id_sede'] . '">' . $obj['nom_sede'] . '</option>';
@@ -167,19 +166,18 @@ function centros_costo_usuario($cmd, $titulo = '', $id = 0)
         echo '<option value="">' . $titulo . '</option>';
         $sql = "SELECT COUNT(*) AS bodegas FROM seg_bodegas_usuario WHERE id_usuario=$idusr";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();        
-        if ($idrol == 1 || $obj['bodegas']>0) {
+        $obj = $rs ? $rs->fetch() : false;        
+        if ($idrol == 1 || (!empty($obj['bodegas']) && $obj['bodegas'] > 0)) {
             $sql = "SELECT id_centro,nom_centro FROM tb_centrocostos WHERE id_centro<>0";
         } else {
             $sql = "SELECT id_centro,nom_centro FROM tb_centrocostos 
                     WHERE id_centro IN (SELECT id_centrocosto FROM seg_usuarios_sistema WHERE id_usuario=$idusr AND id_centrocosto<>0)";
         }
         $rs = $cmd->query($sql);
-        $objs = $rs->fetchAll(PDO::FETCH_ASSOC);
-    $rs->closeCursor();
-    unset($rs);
+        $objs = $rs ? $rs->fetchAll(PDO::FETCH_ASSOC) : [];
+        if ($rs) { $rs->closeCursor(); unset($rs); }
         foreach ($objs as $obj) {
-            if ($obj['id_centro']  == $id || count($objs) == 1) {
+            if ($obj['id_centro']  == $id || (is_countable($objs) && count($objs) == 1)) {
                 echo '<option value="' . $obj['id_centro'] . '" selected="selected">' . $obj['nom_centro'] . '</option>';
             } else {
                 echo '<option value="' . $obj['id_centro'] . '">' . $obj['nom_centro'] . '</option>';

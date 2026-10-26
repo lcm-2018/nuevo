@@ -13,8 +13,8 @@ try {
 
     $sql = "SELECT `filtro_adq` FROM `tb_area_c` WHERE `id_area` = $id";
     $rs = $cmd->query($sql);
-    $datos = $rs->fetch();
-    $area = !empty($datos) ? $datos['filtro_adq'] : 0;
+    $datos = $rs ? $rs->fetch() : false;
+    $area = !empty($datos) && !empty($datos['filtro_adq']) ? $datos['filtro_adq'] : 0;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -36,9 +36,9 @@ if ($area == 0) {
                         ON (`tb_tipo_bien_servicio`.`id_tipo` = `tb_tipo_compra`.`id_tipo`)
                 WHERE (`tb_tipo_bien_servicio`.`filtro_adq` = $area)";
         $rs = $cmd->query($sql);
-        $valores = $rs->fetch();
+        $valores = $rs ? $rs->fetch() : false;
         if (!empty($valores)) {
-            $response['id'] = $valores['id_tipo_b_s'];
+            $response['id'] = $valores['id_tipo_b_s'] ?? 0;
             $response['nombre'] = $valores['tipo_compra'] . ' -> ' . $valores['tipo_bn_sv'];
             $response['filtro'] = $area;
         } else {

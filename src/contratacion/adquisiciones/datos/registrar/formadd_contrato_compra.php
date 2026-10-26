@@ -28,7 +28,7 @@ try {
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
-$est_prev = isset($estudio_prev) ? $estudio_prev['id_est_prev'] : 0;
+$est_prev = !empty($estudio_prev['id_est_prev']) ? $estudio_prev['id_est_prev'] : 0;
 try {
 
     $sql = "SELECT
@@ -173,7 +173,7 @@ $cmd = null;
                 </div>
             </div>
             <?php
-            if (count($polizas) > 0) {
+            if (!empty($polizas) && is_countable($polizas) && count($polizas) > 0) {
             ?>
                 <label for="slcSupervisor" class="small">PÓLIZAS</label>
             <?php } ?>
