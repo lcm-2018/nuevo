@@ -82,7 +82,7 @@ if (empty($tipos)) {
     }
 }
 
-$num = count($tipos);
+$num = is_countable($tipos) ? count($tipos) : 0;
 $anio = date('Y');
 
 $content = <<<HTML

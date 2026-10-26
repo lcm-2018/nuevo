@@ -32,7 +32,7 @@ class BdatosModel
         $sql = "SELECT COUNT(*) AS total FROM dash_bdatos WHERE id_bdatos<>0";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        $r = $stmt->fetch(PDO::FETCH_ASSOC);
+        $r = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
         return (int)($r['total'] ?? 0);
     }
 
@@ -42,7 +42,7 @@ class BdatosModel
         $sql = "SELECT COUNT(*) AS total FROM dash_bdatos " . $bw;
         $stmt = $this->conexion->prepare($sql);        
         $stmt->execute();
-        $r = $stmt->fetch(PDO::FETCH_ASSOC);
+        $r = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
         return (int)($r['total'] ?? 0);
     }
 
@@ -77,7 +77,7 @@ class BdatosModel
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row === false) {
             $columnsStmt = $this->conexion->query("DESCRIBE dash_bdatos");
-            $columns = $columnsStmt->fetchAll(PDO::FETCH_COLUMN);
+            $columns = $columnsStmt ? $columnsStmt->fetchAll(PDO::FETCH_COLUMN) : [];
             $row = array_fill_keys($columns, '');
         }
         return $row;            
@@ -101,7 +101,7 @@ class BdatosModel
         $ok = $stmt->execute();
         if ($ok) {
             $rs = $this->conexion->query('SELECT LAST_INSERT_ID() AS id');
-            $obj = $rs->fetch(PDO::FETCH_ASSOC);
+            $obj = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
             $newId = $obj['id'] ?? null;
             if ($newId) {
                 Logs::guardaLog("INSERT INTO dash_bdatos(nombre_entidad,ip_servidor,nombre_bd,puerto_bd,estado) VALUES('{$d['nombre_entidad']}','{$d['ip_servidor']}','{$d['nombre_bd']}','{$d['puerto_bd']}','{$d['estado']}')");

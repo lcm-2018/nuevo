@@ -247,7 +247,7 @@ class Combos
         $headers = array_keys($array[0]);
         $resultado = '<option value="0" class="text-muted">-- Seleccionar --</option>';
         foreach ($array as $row) {
-            $slc = $row[$headers[0]] == $id ? 'selected' : '';
+            $slc = (!empty($id) && (string)$row[$headers[0]] === (string)$id) ? 'selected' : '';
             $resultado .= '<option value="' . $row[$headers[0]] . '" ' . $slc . '>' . mb_strtoupper($row[$headers[1]]) . '</option>';
         }
         return $resultado;
@@ -256,6 +256,16 @@ class Combos
     public static function getTiposDependientes($id)
     {
         $sql = "SELECT `id_tipo`,`descripcion` FROM `tb_tipo_dependientes`
+                ORDER BY `descripcion` ASC";
+        return (new self())->setConsulta($sql, $id);
+    }
+
+    public static function getNomenclaturaDian($id = 0)
+    {
+        $sql = "SELECT 
+                    `codigo`, 
+                    CONCAT(`descripcion`, ' (', `codigo`, ')') AS `descripcion`
+                FROM `tb_nomenclatura_dian`
                 ORDER BY `descripcion` ASC";
         return (new self())->setConsulta($sql, $id);
     }

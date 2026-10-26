@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5018, 2) && $oper == 'add' && $_POST['id_pedido'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5018, 2) && $oper == 'add' && $_POST['id_pedido'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5018, 3) && $oper == 'add' && $_POST['id_pedido'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5018, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5018, 3) && $oper == 'conf') ||
@@ -55,10 +56,10 @@ try {
                         $res['mensaje'] = 'ok';
                         $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                         $rs = $cmd->query($sql_i);
-                        $obj = $rs->fetch();
-                        $res['id'] = $obj['id'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $res['id'] = $obj['id'] ?? null;
 
-                        $proceso = "Se Registró Pedido SPSR Id: " . $obj['id'] . ", Fecha: " . $fec_pedido . ", Detalle: " . $detalle;
+                        $proceso = "Se Registró Pedido SPSR Id: " . ($obj['id'] ?? '') . ", Fecha: " . $fec_pedido . ", Detalle: " . $detalle;
                         Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
@@ -66,9 +67,9 @@ try {
                 } else {
                     $sql = "SELECT estado FROM far_pedido WHERE id_pedido=" . $id;
                     $rs = $cmd->query($sql);
-                    $obj_pedido = $rs->fetch();
+                    $obj_pedido = $rs ? $rs->fetch() : null;
 
-                    if ($obj_pedido['estado'] == 1) {
+                    if (isset($obj_pedido['estado']) && $obj_pedido['estado'] == 1) {
                         $sql = "UPDATE far_pedido SET detalle='$detalle',id_sede_origen=$id_sede_origen,id_bodega_origen=$id_bodega_origen,id_sede_destino=$id_sede_destino,id_bodega_destino=$id_bodega_destino
                                 WHERE id_pedido=" . $id;
                         $rs = $cmd->query($sql);
@@ -96,15 +97,15 @@ try {
 
             $sql = "SELECT estado,fec_pedido,detalle FROM far_pedido WHERE id_pedido=" . $id;
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
+            $obj_pedido = $rs ? $rs->fetch() : null;
 
-            if ($obj_pedido['estado'] == 1) {
+            if (isset($obj_pedido['estado']) && $obj_pedido['estado'] == 1) {
                 $sql = "DELETE FROM far_pedido WHERE id_pedido=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {                    
+                if ($rs) {
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Eliminó Pedido SPSR Id: " . $id . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];
+                    $proceso = "Se Eliminó Pedido SPSR Id: " . $id . ", Fecha: " . ($obj_pedido['fec_pedido'] ?? '') . ", Detalle: " . ($obj_pedido['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -119,13 +120,13 @@ try {
 
             $sql = 'SELECT estado,fec_pedido,detalle FROM far_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
+            $obj_pedido = $rs ? $rs->fetch() : null;
             $estado = isset($obj_pedido['estado']) ? $obj_pedido['estado'] : -1;
 
             $sql = "SELECT COUNT(*) AS total FROM far_pedido_detalle WHERE id_pedido=" . $id;
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $num_detalles = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $num_detalles = $obj_detalles['total'] ?? 0;
 
             if ($estado == 1 && $num_detalles > 0) {
                 $error = 0;
@@ -133,8 +134,8 @@ try {
 
                 $sql = 'SELECT num_pedidoactual FROM tb_datos_ips LIMIT 1';
                 $rs = $cmd->query($sql);
-                $obj = $rs->fetch();
-                $num_pedido = $obj['num_pedidoactual'];
+                $obj = $rs ? $rs->fetch() : null;
+                $num_pedido = $obj['num_pedidoactual'] ?? 0;
                 $res['num_pedido'] = $num_pedido;
 
                 $sql = "UPDATE far_pedido SET num_pedido=$num_pedido,estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope' WHERE id_pedido=$id";
@@ -149,7 +150,7 @@ try {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Confirmó Pedido SPSR Id: " . $id . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];
+                    $proceso = "Se Confirmó Pedido SPSR Id: " . $id . ", Fecha: " . ($obj_pedido['fec_pedido'] ?? '') . ", Detalle: " . ($obj_pedido['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
@@ -184,7 +185,7 @@ try {
             } else {
                 $res['mensaje'] = 'Solo se puede Finalizar Pedidos en estado Confirmado.<br/>';
             }*/
-            $res['mensaje'] = 'Funcionalidad no habilitada, el Pedido ya está Confirmado';     
+            $res['mensaje'] = 'Funcionalidad no habilitada, el Pedido ya está Confirmado';
         }
 
         if ($oper == 'annul') {
@@ -192,16 +193,16 @@ try {
 
             $sql = 'SELECT estado,fec_pedido,detalle FROM far_pedido WHERE id_pedido=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
-            $estado = $obj_pedido['estado'];
+            $obj_pedido = $rs ? $rs->fetch() : null;
+            $estado = $obj_pedido['estado'] ?? 0;
 
             $sql = 'SELECT COUNT(*) AS total FROM far_pedido_detalle
                     INNER JOIN far_traslado_r_detalle ON (far_traslado_r_detalle.id_ped_detalle = far_pedido_detalle.id_ped_detalle) 
                     INNER JOIN far_traslado_r ON (far_traslado_r.id_traslado = far_traslado_r_detalle.id_traslado)
                     WHERE far_pedido_detalle.id_pedido=' . $id . ' AND far_traslado_r.estado>=1';
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $det_traslado = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $det_traslado = $obj_detalles['total'] ?? 0;
 
             if ($estado == 2 && $det_traslado == 0) {
                 $sql = "UPDATE far_pedido SET id_usr_anula=$id_usr_ope,fec_anulacion='$fecha_ope',estado=0 WHERE id_pedido=$id";
@@ -209,7 +210,7 @@ try {
                 if ($rs) {
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Anuló Pedido SPSR Id: " . $id . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];
+                    $proceso = "Se Anuló Pedido SPSR Id: " . $id . ", Fecha: " . ($obj_pedido['fec_pedido'] ?? '') . ", Detalle: " . ($obj_pedido['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $error = $cmd->errorInfo();

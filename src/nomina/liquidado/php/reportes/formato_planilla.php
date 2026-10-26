@@ -35,7 +35,7 @@ fputs($out, "\xEF\xBB\xBF");
 fputcsv($out, $columnas, ';');
 
 // Una fila vacía de ejemplo
-fputcsv($out, array_fill(0, count($columnas), ''), ';');
+fputcsv($out, array_fill(0, is_countable($columnas) ? count($columnas) : 10, ''), ';');
 
 fclose($out);
 exit;

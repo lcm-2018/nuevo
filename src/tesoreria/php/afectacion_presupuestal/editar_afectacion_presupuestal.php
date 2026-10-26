@@ -13,7 +13,7 @@ $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Accion no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
 $id_usr_crea = (int) $_SESSION['id_user'];
 $id_rol = (int) $_SESSION['rol'];
-$res = array();
+$res = [];
 
 $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_usr_crea);

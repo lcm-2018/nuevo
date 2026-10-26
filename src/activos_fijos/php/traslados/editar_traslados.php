@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5708, 2) && $oper == 'add' && $_POST['id_traslado'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5708, 2) && $oper == 'add' && $_POST['id_traslado'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5708, 3) && $oper == 'add' && $_POST['id_traslado'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5708, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5708, 3) && $oper == 'close') ||
@@ -47,8 +48,8 @@ try {
             } else {
                 $sql = "SELECT id_area_origen FROM acf_traslado WHERE id_traslado=" . $id;
                 $rs = $cmd->query($sql);
-                $obj_traslado = $rs->fetch();
-                $id_area_origen = $obj_traslado['id_area_origen'];
+                $obj_traslado = $rs ? $rs->fetch() : null;
+                $id_area_origen = $obj_traslado['id_area_origen'] ?? 0;
             }
 
             if ($id_area_origen != $id_area_destino) {
@@ -63,8 +64,8 @@ try {
                         $res['mensaje'] = 'ok';
                         $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                         $rs = $cmd->query($sql_i);
-                        $obj = $rs->fetch();
-                        $res['id'] = $obj['id'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $res['id'] = $obj['id'] ?? null;
 
                         $proceso = "Se Registró Traslado de Activos Fijos Id: " . $obj['id'] . ", Fecha: " . $fec_traslado . ", Observaciones: " . $observaciones;
                         Logs::guardaLog($proceso);
@@ -74,9 +75,8 @@ try {
                 } else {
                     $sql = "SELECT estado FROM acf_traslado WHERE id_traslado=" . $id;
                     $rs = $cmd->query($sql);
-                    $obj_traslado = $rs->fetch();
-
-                    if ($obj_traslado['estado'] == 1) {
+                    $obj_traslado = $rs ? $rs->fetch() : null;
+                    if (($obj_traslado['estado'] ?? -1) == 1) {
                         $sql = "UPDATE acf_traslado SET observaciones='$observaciones',id_area_origen=$id_area_origen,id_usr_origen=$id_usr_origen,id_area_destino=$id_area_destino,id_usr_destino=$id_usr_destino
                                 WHERE id_traslado=" . $id;
                         $rs = $cmd->query($sql);
@@ -104,12 +104,11 @@ try {
 
             $sql = "SELECT estado,fec_traslado,observaciones FROM acf_traslado WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
-            $obj_traslado = $rs->fetch();
-
-            if ($obj_traslado['estado'] == 1) {
+            $obj_traslado = $rs ? $rs->fetch() : null;
+            if (($obj_traslado['estado'] ?? -1) == 1) {
                 $sql = "DELETE FROM acf_traslado WHERE id_traslado=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {                    
+                if ($rs) {
                     $res['mensaje'] = 'ok';
 
                     $proceso = "Se Eliminó Traslado de Activos Fijos Id: " . $id . ", Fecha: " . $obj_traslado['fec_traslado'] . ", Observaciones: " . $obj_traslado['observaciones'];
@@ -131,16 +130,16 @@ try {
                     INNER JOIN far_centrocosto_area ON (far_centrocosto_area.id_area=acf_traslado.id_area_destino)
                     WHERE id_traslado=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_traslado = $rs->fetch();
-            $estado = isset($obj_traslado['estado']) ? $obj_traslado['estado'] : -1;
+            $obj_traslado = $rs ? $rs->fetch() : null;
+            $estado = $obj_traslado['estado'] ?? -1;
             $id_area_destino = isset($obj_traslado['id_area_destino']) ? $obj_traslado['id_area_destino'] : 0;
             $id_sede_destino = isset($obj_traslado['id_sede']) ? $obj_traslado['id_sede'] : 0;
             $id_usr_destino = isset($obj_traslado['id_usr_destino']) ? $obj_traslado['id_usr_destino'] : 0;
 
             $sql = "SELECT COUNT(*) AS total FROM acf_traslado_detalle WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $num_detalles = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $num_detalles = $obj_detalles['total'] ?? 0;
 
             if ($estado == 1 && $num_detalles > 0) {
                 $error = 0;
@@ -160,7 +159,7 @@ try {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Cerró Traslado de Activos Fijos Id: " . $id. ", Fecha: " . $obj_traslado['fec_traslado'] . ", Observaciones: " . $obj_traslado['observaciones'];
+                    $proceso = "Se Cerró Traslado de Activos Fijos Id: " . $id . ", Fecha: " . $obj_traslado['fec_traslado'] . ", Observaciones: " . $obj_traslado['observaciones'];
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
@@ -184,8 +183,8 @@ try {
                     INNER JOIN far_centrocosto_area ON (far_centrocosto_area.id_area=acf_traslado.id_area_origen)
                     WHERE id_traslado=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_traslado = $rs->fetch();
-            $estado = $obj_traslado['estado'];
+            $obj_traslado = $rs ? $rs->fetch() : null;
+            $estado = $obj_traslado['estado'] ?? -1;
             $id_area_origen = isset($obj_traslado['id_area_origen']) ? $obj_traslado['id_area_origen'] : 0;
             $id_sede_origen = isset($obj_traslado['id_sede']) ? $obj_traslado['id_sede'] : 0;
             $id_usr_origen = isset($obj_traslado['id_usr_origen']) ? $obj_traslado['id_usr_origen'] : 0;
@@ -196,8 +195,8 @@ try {
                     INNER JOIN acf_hojavida ON (acf_hojavida.id_activo_fijo=acf_traslado_detalle.id_activo_fijo)
                     WHERE acf_traslado.id_traslado=" . $id;
             $rs = $cmd->query($sql);
-            $obj_continuar = $rs->fetch();
-            $continuar = $obj_continuar['continuar'];
+            $obj_continuar = $rs ? $rs->fetch() : null;
+            $continuar = $obj_continuar['continuar'] ?? 0;
 
             $sql = "SELECT COUNT(*) as count
                     FROM acf_traslado_detalle
@@ -205,8 +204,8 @@ try {
                     WHERE acf_traslado_detalle.id_activo_fijo IN (SELECT id_activo_fijo FROM acf_traslado_detalle WHERE id_traslado=$id)
                     AND acf_traslado.id_traslado>$id AND acf_traslado.estado<>0";
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $tra_det = $obj_detalles['count'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $tra_det = $obj_detalles['count'] ?? 0;
 
             if ($estado == 2 && $continuar == 1 && $tra_det == 0) {
                 $error = 0;
@@ -225,8 +224,8 @@ try {
                 if ($error == 0) {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
-                    
-                    $proceso = "Se Anuló Traslado de Activos Fijos Id: " . $id. ", Fecha: " . $obj_traslado['fec_traslado'] . ", Observaciones: " . $obj_traslado['observaciones'];
+
+                    $proceso = "Se Anuló Traslado de Activos Fijos Id: " . $id . ", Fecha: " . $obj_traslado['fec_traslado'] . ", Observaciones: " . $obj_traslado['observaciones'];
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';

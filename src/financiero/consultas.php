@@ -91,8 +91,8 @@ function fechaCierre($vigencia, $modulo, $cmd)
     try {
         $sql = "SELECT MAX(`mes`) AS `mes`  FROM `tb_fin_periodos` WHERE `id_modulo` = '$modulo' AND `vigencia` = '$vigencia'";
         $rs = $cmd->query($sql);
-        $cierre = $rs->fetch();
-        if (empty($cierre) || $cierre['mes'] == '') {
+        $cierre = $rs ? $rs->fetch() : null;
+        if (empty($cierre) || ($cierre['mes'] ?? '') == '') {
             $vigencia = intval($vigencia) - 1;
             $fecha_cierre = date('Y-m-d', strtotime($vigencia . '-12-31'));
         } else {
@@ -144,8 +144,8 @@ function fechaSesion($vigencia, $usuario, $cx)
     try {
         $sql = "SELECT fecha FROM tb_fin_fecha WHERE vigencia = $vigencia AND id_usuario = '$usuario'";
         $rs = $cx->query($sql);
-        $fecha_sesion = $rs->fetch();
-        if (!empty($fecha_sesion)) {
+        $fecha_sesion = $rs ? $rs->fetch() : null;
+        if (!empty($fecha_sesion) && !empty($fecha_sesion['fecha'])) {
             $fecha = date('Y-m-d', strtotime($fecha_sesion['fecha']));
         } else {
             $fecha = date('Y-m-d');
@@ -273,7 +273,7 @@ function SaldoRubro($cmd, $id_rubro, $fecha, $id_cdp)
                     ON (`mod`.`id_cargue` = `pto_cargue`.`id_cargue`)
             WHERE `pto_cargue`.`id_cargue` = $id_rubro";
         $rs = $cmd->query($sql);
-        $saldo = $rs->fetch();
+        $saldo = $rs ? $rs->fetch() : null;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
     }
@@ -286,8 +286,8 @@ function saldoCdp($cdp, $rubro, $cx)
     try {
         $sql = "SELECT sum(valor) as total FROM pto_documento_detalles WHERE id_pto_doc = $cdp AND rubro = '$rubro'";
         $rs = $cx->query($sql);
-        $saldo = $rs->fetch();
-        $valor_cdp = $saldo['total'];
+        $saldo_cdp = $rs ? $rs->fetch() : null;
+        $valor_cdp = (float)($saldo_cdp['total'] ?? 0);
         //$sql = "SELECT sum(valor) as registrado FROM pto_documento_detalles WHERE id_auto_dep = $cdp AND rubro = '$rubro' AND tipo_mov='CRP'";
         $sql = "SELECT
                     SUM(pto_documento_detalles.valor) AS registrado
@@ -296,9 +296,9 @@ function saldoCdp($cdp, $rubro, $cx)
                 INNER JOIN pto_documento ON (pto_documento_detalles.id_pto_doc = pto_documento.id_pto_doc)
                 WHERE pto_documento_detalles.rubro ='$rubro' AND (pto_documento_detalles.tipo_mov ='CRP' OR pto_documento_detalles.tipo_mov ='LRP') AND pto_documento_detalles.id_auto_dep =$cdp AND pto_documento.estado=0;;";
         $rs = $cx->query($sql);
-        $saldo = $rs->fetch();
+        $saldo_reg = $rs ? $rs->fetch() : null;
 
-        $valor_registrado = $saldo['registrado'];
+        $valor_registrado = (float)($saldo_reg['registrado'] ?? 0);
         $saldo = $valor_cdp - $valor_registrado;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

@@ -20,30 +20,34 @@ $sql = "SELECT far_pedido.*,
         INNER JOIN far_bodegas ON (far_bodegas.id_bodega=far_pedido.id_bodega_origen)                           
         WHERE id_pedido=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
 if (empty($obj)) {
-    $n = $rs->columnCount();
+    $obj = [];
+    $n = $rs ? $rs->columnCount() : 0;
     for ($i = 0; $i < $n; $i++) :
         $col = $rs->getColumnMeta($i);
-        $name = $col['name'];
-        $obj[$name] = NULL;
+        $name = $col['name'] ?? null;
+        if ($name) {
+            $obj[$name] = NULL;
+        }
     endfor;
     //Inicializa variable por defecto
     $bodega = bodega_principal_general($cmd);
-    $obj['id_bodega_origen'] = $bodega['id_bodega'];
-    $obj['nom_bodega_origen'] = $bodega['nom_bodega'];
-    $obj['id_sede_origen'] = $bodega['id_sede'];
-    $obj['nom_sede_origen'] = $bodega['nom_sede'];
+    $obj['id_bodega_origen'] = $bodega['id_bodega'] ?? 0;
+    $obj['nom_bodega_origen'] = $bodega['nom_bodega'] ?? '';
+    $obj['id_sede_origen'] = $bodega['id_sede'] ?? 0;
+    $obj['nom_sede_origen'] = $bodega['nom_sede'] ?? '';
 
-    $obj['id_sede_destino'] = sede_unica_usuario($cmd)['id_sede'];
+    $sede_u = sede_unica_usuario($cmd);
+    $obj['id_sede_destino'] = $sede_u['id_sede'] ?? 0;
     $obj['estado'] = 1;
     $obj['nom_estado'] = 'PENDIENTE';
     $obj['val_total'] = 0;
 
     $fecha = fecha_hora_servidor();
-    $obj['fec_pedido'] = $fecha['fecha'];
-    $obj['hor_pedido'] = $fecha['hora'];
+    $obj['fec_pedido'] = $fecha['fecha'] ?? date('Y-m-d');
+    $obj['hor_pedido'] = $fecha['hora'] ?? date('H:i:s');
 }
 $guardar = in_array($obj['estado'], [1]) ? '' : 'disabled="disabled"';
 $confirmar = in_array($obj['estado'], [1]) && $id != -1 ? '' : 'disabled="disabled"';

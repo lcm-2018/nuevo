@@ -19,25 +19,25 @@ set_time_limit(0);
 ini_set('memory_limit', '-1');
 
 $id = $_POST['id'];
-$parametros = json_decode($_POST['parametros']);
+$parametros = json_decode($_POST['parametros'] ?? '[]') ?: [];
 $separador = ",";
-$res = array();
+$res = [];
 
 try {
 
     $sql = 'SELECT consulta,nom_consulta FROM tb_consultas_sql WHERE id_consulta=' . $id . ' LIMIT 1';
     $rs = $cmd->query($sql);
-    $obj = $rs->fetch();
-    $cnsql = $obj['consulta'];
-    $nom_consulta = $obj['nom_consulta'];
+    $obj = $rs ? $rs->fetch() : null;
+    $cnsql = $obj['consulta'] ?? '';
+    $nom_consulta = $obj['nom_consulta'] ?? '';
 
     foreach ($parametros as $pr) {
         $cnsql = str_replace('[' . $pr->parametro . ']', $pr->valor, $cnsql);
     }
 
     $rs = $cmd->query($cnsql);
-    $objs = $rs->fetchAll(PDO::FETCH_NUM);
-    $n = $rs->columnCount();
+    $objs = $rs ? $rs->fetchAll(PDO::FETCH_NUM) : [];
+    $n = $rs ? $rs->columnCount() : 0;
 
 
     $archivo = fopen('consulta_' . $id_usr . '.csv', 'w+b');
@@ -50,7 +50,7 @@ try {
     $encabezado = iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $encabezado);
     fwrite($archivo, $encabezado);
 
-    $l = count($objs); //Cantidad Total Registros
+    $l = is_array($objs) ? count($objs) : 0; //Cantidad Total Registros
     $s = 1;
     foreach ($objs as $obj) {
         $fila = '';

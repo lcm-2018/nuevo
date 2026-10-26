@@ -20,12 +20,13 @@ $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5016, 2) && $oper == 'add' && $_POST['id_prescomercial'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5016, 2) && $oper == 'add' && $_POST['id_prescomercial'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5016, 3) && $oper == 'add' && $_POST['id_prescomercial'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5016, 4) && $oper == 'del') || $id_rol == 1
     ) {
@@ -44,10 +45,10 @@ try {
                     $res['mensaje'] = 'ok';
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
 
-                    $proceso = "Se Registró Presentación Comercial Id: " . $obj['id'] . ", Nombre: " . $nom_presentacion;
+                    $proceso = "Se Registró Presentación Comercial Id: " . ($obj['id'] ?? '') . ", Nombre: " . $nom_presentacion;
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -82,7 +83,7 @@ try {
                 $res['mensaje'] = 'ok';
 
                 $proceso = "Se Eliminó Presentación Comercial Id: " . $obj['id_prescom'] . ", Nombre: " . $obj['nom_presentacion'];
-                Logs::guardaLog($proceso);                
+                Logs::guardaLog($proceso);
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];
             }

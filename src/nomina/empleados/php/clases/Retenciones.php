@@ -52,7 +52,7 @@ class Retenciones
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
             unset($stmt);
-            if (!empty($data)) {
+            if (!empty($data) && isset($data['id'])) {
                 return $data['id'];
             }
             // Si no hay registro activo, busca el más reciente sin importar el estado
@@ -69,7 +69,7 @@ class Retenciones
             $data2 = $stmt2->fetch(PDO::FETCH_ASSOC);
             $stmt2->closeCursor();
             unset($stmt2);
-            return !empty($data2) ? $data2['id'] : 0;
+            return !empty($data2) ? ($data2['id'] ?? 0) : 0;
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }

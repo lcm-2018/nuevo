@@ -16,7 +16,7 @@ try {
                 nom_tercero LIKE '%$term%'
             ORDER BY IF(id_tercero=0,0,CONCAT('1',nom_tercero))";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

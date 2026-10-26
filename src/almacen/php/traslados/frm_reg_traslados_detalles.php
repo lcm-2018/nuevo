@@ -21,22 +21,25 @@ $sql = "SELECT far_traslado_detalle.*,
         INNER JOIN acf_marca ON (acf_marca.id=far_medicamento_lote.id_marca)
         WHERE id_tra_detalle=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
 if (empty($obj)) {
-    $n = $rs->columnCount();
+    $obj = [];
+    $n = $rs ? $rs->columnCount() : 0;
     for ($i = 0; $i < $n; $i++) :
         $col = $rs->getColumnMeta($i);
-        $name = $col['name'];
-        $obj[$name] = NULL;
+        $name = $col['name'] ?? null;
+        if ($name) {
+            $obj[$name] = NULL;
+        }
     endfor;
 
     $lote = datos_lote($cmd, $id_lote);
-    $obj['id_lote_origen'] = $lote['id_lote'];
-    $obj['lote'] = $lote['lote'];
-    $obj['nom_articulo'] = $lote['nom_articulo'];
-    $obj['valor'] = $lote['val_promedio'];
-    $obj['existencia'] = $lote['existencia'];
+    $obj['id_lote_origen'] = $lote['id_lote'] ?? 0;
+    $obj['lote'] = $lote['lote'] ?? '';
+    $obj['nom_articulo'] = $lote['nom_articulo'] ?? '';
+    $obj['valor'] = $lote['val_promedio'] ?? 0;
+    $obj['existencia'] = $lote['existencia'] ?? 0;
 }
 ?>
 

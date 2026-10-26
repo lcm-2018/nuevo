@@ -11,9 +11,6 @@
 session_start();
 
 // Configuración de errores (solo para desarrollo)
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 // Validación de sesión
 if (!isset($_SESSION['user'])) {

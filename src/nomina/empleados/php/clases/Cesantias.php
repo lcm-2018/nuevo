@@ -140,7 +140,7 @@ class Cesantias
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 
     /**
@@ -179,7 +179,7 @@ class Cesantias
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 
     /**
@@ -376,7 +376,7 @@ class Cesantias
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($data) ? ['id' => $data['id_liq_cesan'], 'val_cesantias' => $data['val_cesantias'], 'val_icesantias' => $data['val_icesantias']] : ['id' => 0, 'val_cesantias' => 0, 'val_icesantias' => 0];
+        return !empty($data) ? ['id' => $data['id_liq_cesan'] ?? 0, 'val_cesantias' => $data['val_cesantias'] ?? 0, 'val_icesantias' => $data['val_icesantias'] ?? 0] : ['id' => 0, 'val_cesantias' => 0, 'val_icesantias' => 0];
     }
 
 
@@ -580,7 +580,7 @@ class Cesantias
             $stmt->execute([$fI, $fF, $fI, $fF, $id]);
 
             $dias = $stmt->fetch(PDO::FETCH_ASSOC);
-            $dlcnr = !empty($dias) ? $dias['dias'] : 0;
+            $dlcnr = !empty($dias) ? ($dias['dias'] ?? 0) : 0;
 
         } catch (PDOException $e) {
             $dlcnr = 0;

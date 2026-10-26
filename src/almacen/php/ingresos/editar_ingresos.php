@@ -21,12 +21,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5006, 2) && $oper == 'add' && $_POST['id_ingreso'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5006, 2) && $oper == 'add' && $_POST['id_ingreso'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5006, 3) && $oper == 'add' && $_POST['id_ingreso'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5006, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5006, 3) && $oper == 'close') ||
@@ -50,8 +51,8 @@ try {
 
             $sql = "SELECT orden_compra FROM far_orden_ingreso_tipo WHERE id_tipo_ingreso=" . $id_tiping;
             $rs = $cmd->query($sql);
-            $obj_tiping = $rs->fetch();
-            $id_pedido = $obj_tiping['orden_compra'] == 1 ? $id_pedido : 'NULL';
+            $obj_tiping = $rs ? $rs->fetch() : null;
+            $id_pedido = ($obj_tiping['orden_compra'] ?? 0) == 1 ? $id_pedido : 'NULL';
 
             if ($id == -1) {
                 $sql = "INSERT INTO far_orden_ingreso(fec_ingreso,hor_ingreso,num_factura,fec_factura,id_tipo_ingreso,
@@ -64,10 +65,10 @@ try {
                     $res['mensaje'] = 'ok';
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
 
-                    $proceso = "Se Registró Órden de Ingreso Id: " . $obj['id'] . ", Fecha: " . $fec_ing . ", Detalle: " . $detalle;
+                    $proceso = "Se Registró Órden de Ingreso Id: " . ($obj['id'] ?? '') . ", Fecha: " . $fec_ing . ", Detalle: " . $detalle;
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -75,9 +76,9 @@ try {
             } else {
                 $sql = "SELECT estado FROM far_orden_ingreso WHERE id_ingreso=" . $id;
                 $rs = $cmd->query($sql);
-                $obj_ingreso = $rs->fetch();
+                $obj_ingreso = $rs ? $rs->fetch() : null;
 
-                if ($obj_ingreso['estado'] == 1) {
+                if (isset($obj_ingreso['estado']) && $obj_ingreso['estado'] == 1) {
                     $sql = "UPDATE far_orden_ingreso 
                             SET num_factura='$num_fac',fec_factura='$fec_fac',id_tipo_ingreso=$id_tiping,id_provedor=$id_tercero,detalle='$detalle',id_pedido=$id_pedido,val_aprpeso=$val_aprpeso
                             WHERE id_ingreso=" . $id;
@@ -103,15 +104,15 @@ try {
 
             $sql = "SELECT estado,fec_ingreso,detalle FROM far_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_ingreso = $rs->fetch();
+            $obj_ingreso = $rs ? $rs->fetch() : null;
 
-            if ($obj_ingreso['estado'] == 1) {
+            if (isset($obj_ingreso['estado']) && $obj_ingreso['estado'] == 1) {
                 $sql = "DELETE FROM far_orden_ingreso WHERE id_ingreso=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Eliminó Órden de Ingreso Id: " . $id . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
+                    $proceso = "Se Eliminó Órden de Ingreso Id: " . $id . ", Fecha: " . ($obj_ingreso['fec_ingreso'] ?? '') . ", Detalle: " . ($obj_ingreso['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -126,18 +127,18 @@ try {
 
             $sql = "SELECT estado,fec_ingreso,detalle,id_tipo_ingreso FROM far_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_ingreso = $rs->fetch();
+            $obj_ingreso = $rs ? $rs->fetch() : null;
             $estado = isset($obj_ingreso['estado']) ? $obj_ingreso['estado'] : -1;
 
             $sql = "SELECT COUNT(*) AS total FROM far_orden_ingreso_detalle WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $num_detalles = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $num_detalles = $obj_detalles['total'] ?? 0;
 
             $sql = "SELECT COUNT(*) AS total FROM far_kardex WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_kardex = $rs->fetch();
-            $num_reg_kardex = $obj_kardex['total'];
+            $obj_kardex = $rs ? $rs->fetch() : null;
+            $num_reg_kardex = $obj_kardex['total'] ?? 0;
 
             if ($estado == 1 && $num_detalles > 0 && $num_reg_kardex == 0) {
                 $error = 0;
@@ -170,10 +171,10 @@ try {
                     /* Actualizar valores del Lote */
                     $sql = 'SELECT existencia,val_promedio,id_med FROM far_medicamento_lote WHERE id_lote=' . $id_lote . ' LIMIT 1';
                     $rs = $cmd->query($sql);
-                    $obj = $rs->fetch();
-                    $id_medicamento = $obj['id_med'];
-                    $val_promedio_lote = $obj['val_promedio'] ? $obj['val_promedio'] : 0;
-                    $existencia_lote = $obj['existencia'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $id_medicamento = $obj['id_med'] ?? 0;
+                    $val_promedio_lote = !empty($obj['val_promedio']) ? $obj['val_promedio'] : 0;
+                    $existencia_lote = $obj['existencia'] ?? 0;
 
                     /* Nuevos Valores [far_medicamento_lote] */
                     $valor_promedio_lote_kdx = $val_promedio_lote;
@@ -185,9 +186,9 @@ try {
                     /* Valores [far_medicamentos] */
                     $sql = 'SELECT existencia,val_promedio FROM far_medicamentos WHERE id_med=' . $id_medicamento . ' LIMIT 1';
                     $rs = $cmd->query($sql);
-                    $obj = $rs->fetch();
-                    $val_promedio_med = $obj['val_promedio'] ? $obj['val_promedio'] : 0;
-                    $existencia_med = $obj['existencia'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $val_promedio_med = !empty($obj['val_promedio']) ? $obj['val_promedio'] : 0;
+                    $existencia_med = $obj['existencia'] ?? 0;
 
                     $val_promedio_medicamento_kdx = $val_promedio_med;
                     $existencia_medicamento_kdx = $existencia_med + $cantidad;
@@ -214,14 +215,14 @@ try {
                 if ($error == 0) {
                     $sql = 'SELECT num_ingresoactual FROM tb_datos_ips LIMIT 1';
                     $rs = $cmd->query($sql);
-                    $obj = $rs->fetch();
-                    $num_ingreso = $obj['num_ingresoactual'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $num_ingreso = $obj['num_ingresoactual'] ?? 0;
                     $res['num_ingreso'] = $num_ingreso;
 
-                    $sql = 'SELECT consecutivo FROM far_orden_ingreso_tipo WHERE id_tipo_ingreso=' . $obj_ingreso['id_tipo_ingreso'] . ' LIMIT 1';
+                    $sql = 'SELECT consecutivo FROM far_orden_ingreso_tipo WHERE id_tipo_ingreso=' . ($obj_ingreso['id_tipo_ingreso'] ?? 0) . ' LIMIT 1';
                     $rs = $cmd->query($sql);
-                    $obj = $rs->fetch();
-                    $num_ingreso_tipo = $obj['consecutivo'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $num_ingreso_tipo = $obj['consecutivo'] ?? 0;
                     $res['num_ingreso_tipo'] = $num_ingreso_tipo;
 
                     $sql = "UPDATE far_orden_ingreso SET num_ingreso=$num_ingreso,num_ingreso_tipo=$num_ingreso_tipo,estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope' WHERE id_ingreso=$id";
@@ -262,8 +263,8 @@ try {
 
             $sql = "SELECT estado,fec_ingreso,detalle FROM far_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_ingreso = $rs->fetch();
-            $estado = $obj_ingreso['estado'];
+            $obj_ingreso = $rs ? $rs->fetch() : null;
+            $estado = $obj_ingreso['estado'] ?? 0;
 
             if ($estado == 2) {
                 $respuesta = verificar_kardex($cmd, $id, "I");
@@ -282,8 +283,8 @@ try {
                         $sql = "SELECT GROUP_CONCAT(id_lote) AS lotes
                                 FROM far_orden_ingreso_detalle WHERE id_ingreso=" . $id;
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-                        $lotes = $obj['lotes'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $lotes = $obj['lotes'] ?? '';
 
                         recalcular_kardex($cmd, $lotes, 'I', $id, '', '', '', '', '', '');
                     }
@@ -291,7 +292,7 @@ try {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
 
-                        $proceso = "Se Anuló Órden de Ingreso Id: " . $id . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
+                        $proceso = "Se Anuló Órden de Ingreso Id: " . $id . ", Fecha: " . ($obj_ingreso['fec_ingreso'] ?? '') . ", Detalle: " . ($obj_ingreso['detalle'] ?? '');
                         Logs::guardaLog($proceso);
                     } else {
                         $cmd->rollBack();
@@ -314,14 +315,14 @@ try {
                     INNER JOIN far_orden_ingreso_tipo ON (far_orden_ingreso_tipo.id_tipo_ingreso = far_orden_ingreso.id_tipo_ingreso)
                     WHERE far_orden_ingreso.id_ingreso=' . $id . ' LIMIT 1';
             $rs = $cmd->query($sql);
-            $obj_ingreso = $rs->fetch();
+            $obj_ingreso = $rs ? $rs->fetch() : null;
             $estado = isset($obj_ingreso['estado']) ? $obj_ingreso['estado'] : -1;
             $orden_compra = isset($obj_ingreso['orden_compra']) ? $obj_ingreso['orden_compra'] : -1;
 
             $sql = "SELECT COUNT(*) AS total FROM far_orden_ingreso_detalle WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $num_detalles = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $num_detalles = $obj_detalles['total'] ?? 0;
 
             if ($estado == 2 && $num_detalles > 0 && $orden_compra <> 1) {
                 $error = 0;
@@ -340,9 +341,9 @@ try {
 
                 $sql = 'SELECT LAST_INSERT_ID() AS id';
                 $rs = $cmd->query($sql);
-                $obj = $rs->fetch();
-                $id_ingreso = $obj['id'];
-                
+                $obj = $rs ? $rs->fetch() : null;
+                $id_ingreso = $obj['id'] ?? 0;
+
                 $sql = "INSERT INTO far_orden_ingreso_detalle(id_ingreso,id_lote,observacion,cantidad,valor_sin_iva,iva,valor,id_presentacion,tam_muestra,def_menores,def_mayores,def_criticos,obs_recepcion) 
                         SELECT $id_ingreso,id_lote,observacion,cantidad,valor_sin_iva,iva,valor,id_presentacion,tam_muestra,def_menores,def_mayores,def_criticos,obs_recepcion
                         FROM far_orden_ingreso_detalle
@@ -362,15 +363,15 @@ try {
                 } else {
                     $res['mensaje'] = 'Error de Ejecución de Proceso';
                     $cmd->rollBack();
-                }                
-            } else {                
+                }
+            } else {
                 if ($estado != 2) {
                     $res['mensaje'] = 'Solo se puede duplicar Ordenes de Ingreso en estado Cerrado';
                 } else if ($num_detalles == 0) {
                     $res['mensaje'] = 'La Orden de Ingreso a duplicar no tiene detalles';
                 } else if ($orden_compra == 1) {
                     $res['mensaje'] = 'No se puede duplicar una Ordenes de Ingreso con Orden de Compra';
-                }    
+                }
             }
         }
     } else {

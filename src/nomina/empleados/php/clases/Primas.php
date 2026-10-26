@@ -230,7 +230,7 @@ class Primas
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($data) ? ['id' => $data['id_liq_prima'], 'valor' => $data['val_liq_ps']] : ['id' => 0, 'valor' => 0];
+        return !empty($data) ? ['id' => $data['id_liq_prima'] ?? 0, 'valor' => $data['val_liq_ps'] ?? 0] : ['id' => 0, 'valor' => 0];
     }
 
     public function getRegistroLiq2($a)
@@ -243,7 +243,7 @@ class Primas
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($data) ? ['id' => $data['id_liq_privac'], 'valor' => $data['val_liq_pv']] : ['id' => 0, 'valor' => 0];
+        return !empty($data) ? ['id' => $data['id_liq_privac'] ?? 0, 'valor' => $data['val_liq_pv'] ?? 0] : ['id' => 0, 'valor' => 0];
     }
 
     public function addRegistroLiq1($array)

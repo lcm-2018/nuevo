@@ -54,7 +54,7 @@ try {
             INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo=far_medicamentos.id_subgrupo) 
             $where";
     $rs = $cmd->query($sql);
-    $obj_tot = $rs->fetch();
+    $obj_tot = $rs ? $rs->fetch() : null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -108,6 +108,7 @@ try {
         </thead>
         <tbody style="font-size: 60%;">
             <?php
+            $objs = $objs ?? [];
             $tabla = '';
             foreach ($objs as $obj) {
                 $tabla .=  '<tr class="resaltar"> 
@@ -128,13 +129,13 @@ try {
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="7" style="text-align:left">
-                    No. de Registros: <?php echo count($objs); ?>
+                    No. de Registros: <?php echo is_countable($objs) ? count($objs) : 0; ?>
                 </td>
                 <td style="text-align:left">
                     TOTAL:
                 </td>
                 <td style="text-align:center">
-                    <?php echo formato_valor($obj_tot['val_total']); ?>
+                    <?php echo formato_valor($obj_tot['val_total'] ?? 0); ?>
                 </td>
                 <td></td>
             </tr>

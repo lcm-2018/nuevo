@@ -20,21 +20,24 @@ $sql = "SELECT far_medicamento_lote.*,
         INNER JOIN far_bodegas ON (far_bodegas.id_bodega=far_medicamento_lote.id_bodega)
         WHERE id_lote=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
 if (empty($obj)) {
-    $n = $rs->columnCount();
+    $obj = [];
+    $n = $rs ? $rs->columnCount() : 0;
     for ($i = 0; $i < $n; $i++) :
         $col = $rs->getColumnMeta($i);
-        $name = $col['name'];
-        $obj[$name] = NULL;
+        $name = $col['name'] ?? null;
+        if ($name) {
+            $obj[$name] = NULL;
+        }
     endfor;
     //Inicializa variable por defecto
     $obj['id_marca'] = 0;
     $obj['estado'] = 1;
     $bodega = bodega_principal($cmd);
-    $obj['id_bodega'] = $bodega['id_bodega'];
-    $obj['nom_bodega'] = $bodega['nom_bodega'];
+    $obj['id_bodega'] = $bodega['id_bodega'] ?? 0;
+    $obj['nom_bodega'] = $bodega['nom_bodega'] ?? '';
 }
 ?>
 

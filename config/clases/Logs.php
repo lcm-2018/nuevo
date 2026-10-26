@@ -46,8 +46,13 @@ class Logs
 
         $cadena = "[{$fecha->format('Y-m-d H:i:s')}] Usuario: $id_user-$usuario, 127.0.0.1, SQL: $sql;" . PHP_EOL;
 
-        // Intentar escribir al archivo con manejo de errores
-        $resultado = @file_put_contents($archivo, $cadena, FILE_APPEND | LOCK_EX);
+        // Intentar escribir al archivo con manejo de excepciones y errores
+        try {
+            $resultado = file_put_contents($archivo, $cadena, FILE_APPEND | LOCK_EX);
+        } catch (\Throwable $e) {
+            $resultado = false;
+            error_log("Logs.php - Excepción al escribir: $archivo - " . $e->getMessage());
+        }
 
         if ($resultado === false) {
             $error = error_get_last();

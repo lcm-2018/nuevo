@@ -15,7 +15,7 @@ try {
             WHERE (v_res=2 OR id_uni=0) AND IF(id_uni=0,unidad,CONCAT(unidad,' (',descripcion,')')) LIKE '%$term%'
             ORDER BY IF(id_uni=0,0,CONCAT('1',unidad,descripcion))";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

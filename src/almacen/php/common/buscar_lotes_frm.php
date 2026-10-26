@@ -20,7 +20,7 @@ $disabled  = $proceso == 'mspsr' ? 'disabled' : '';
 
 $sql = "SELECT nombre FROM far_bodegas WHERE id_bodega=$id_bodega";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
 ?>
 

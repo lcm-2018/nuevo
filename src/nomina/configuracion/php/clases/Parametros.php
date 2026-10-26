@@ -145,7 +145,7 @@ class Parametros
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($data) ? $data['id_valxvig'] : 0;
+        return !empty($data) ? ($data['id_valxvig'] ?? 0) : 0;
     }
 
     public function getConceptos()
@@ -266,7 +266,7 @@ class Parametros
             $valor = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
             unset($stmt);
-            return !empty($valor) ? $valor['valor'] : 0;
+            return !empty($valor) ? ($valor['valor'] ?? 0) : 0;
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }

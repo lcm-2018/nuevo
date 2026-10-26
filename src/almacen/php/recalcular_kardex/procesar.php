@@ -35,9 +35,10 @@ if (isset($_POST['tipo'])) {
                 $fecini = $_POST['fec_ini'];
 
                 set_time_limit(0);
-                $res = array();
+                $res = [];
 
-                $cmd = \Config\Clases\Conexion::getConexion();;
+                $cmd = \Config\Clases\Conexion::getConexion();
+                ;
 
                 $cmd->beginTransaction();
 

@@ -14,11 +14,15 @@ $sql = "SELECT id_med,cod_medicamento,nom_medicamento
         FROM far_medicamentos 
         WHERE id_med=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
-if (empty($obj)) {
+if (empty($obj) || !is_array($obj)) {
     //Inicializa variable por defecto
-    $obj['id_med'] = 0;
+    $obj = [
+        'id_med' => 0,
+        'cod_medicamento' => '',
+        'nom_medicamento' => '',
+    ];
 }
 
 ?>

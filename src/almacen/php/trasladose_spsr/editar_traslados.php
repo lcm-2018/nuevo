@@ -21,12 +21,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5017, 2) && $oper == 'add' && $_POST['id_traslado'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5017, 2) && $oper == 'add' && $_POST['id_traslado'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5017, 3) && $oper == 'add' && $_POST['id_traslado'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5017, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5017, 3) && $oper == 'close') ||
@@ -61,10 +62,10 @@ try {
                         $res['mensaje'] = 'ok';
                         $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                         $rs = $cmd->query($sql_i);
-                        $obj = $rs->fetch();
-                        $res['id'] = $obj['id'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $res['id'] = $obj['id'] ?? 0;
 
-                        $proceso = "Se Registró Traslado SPSR Id: " . $obj['id'] . ", Fecha: " . $fec_traslado . ", Detalle: " . $detalle;
+                        $proceso = "Se Registró Traslado SPSR Id: " . ($obj['id'] ?? 0) . ", Fecha: " . $fec_traslado . ", Detalle: " . $detalle;
                         Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
@@ -72,9 +73,9 @@ try {
                 } else {
                     $sql = "SELECT estado FROM far_traslado_r WHERE id_traslado=" . $id;
                     $rs = $cmd->query($sql);
-                    $obj_tra = $rs->fetch();
+                    $obj_tra = $rs ? $rs->fetch() : null;
 
-                    if ($obj_tra['estado'] == 1) {
+                    if (isset($obj_tra['estado']) && $obj_tra['estado'] == 1) {
                         $sql = "UPDATE far_traslado_r 
                             SET tipo=$tip_traslado,id_ingreso=$id_ingreso,id_sede_origen=$id_sede_origen,id_bodega_origen=$id_bodega_origen,
                                 id_sede_destino=$id_sede_destino,id_bodega_destino=$id_bodega_destino,detalle='$detalle'
@@ -112,10 +113,10 @@ try {
                                 INNER JOIN far_medicamentos AS FM ON (FM.id_med = PD.id_medicamento) 
                                 WHERE FM.es_clinico<>1 AND PD.id_pedido=" . $id_pedido;
                         $rs0 = $cmd->query($sql);
-                        $obj0 = $rs0->fetch();
-                        
-                        if ($obj0['cant_articulos'] == 0) {
-                        
+                        $obj0 = $rs0 ? $rs0->fetch() : null;
+
+                        if (($obj0['cant_articulos'] ?? 0) == 0) {
+
                             $sql = "SELECT far_pedido_detalle.id_ped_detalle,far_pedido_detalle.id_medicamento,
                                             far_pedido_detalle.cantidad-IFNULL(TRASLADO.cantidad,0) AS cantidad,
                                             far_medicamentos.val_promedio,
@@ -141,7 +142,7 @@ try {
                                     ORDER BY fec_vencimiento,existencia";
                             $rs1 = $cmd->prepare($sql);
 
-                            $lotes = array();
+                            $lotes = [];
                             foreach ($objs as $obj) {
                                 $rs1->bindParam(':id_med', $obj['id_medicamento']);
                                 $rs1->execute();
@@ -150,7 +151,7 @@ try {
                                 $val_promedio = $obj['val_promedio'];
                                 $id_detalle = $obj['id_ped_detalle'];
 
-                                if (count($obj_lotes) >= 1) {
+                                if (is_countable($obj_lotes) && count($obj_lotes) >= 1) {
                                     $i = 0;
                                     while ($cantidad >= 1) {
                                         if (!isset($obj_lotes[$i])) {
@@ -172,10 +173,12 @@ try {
                                     }
 
                                     if ($cantidad >= 1) {/* Completar la cantidad cuando ya no hay mas lotes en el ultimo lote encontrado */
-                                        $index = count($lotes) - 1;
-                                        $id_lote = $lotes[$index]['id_lote'];
-                                        $q = $lotes[$index]['cantidad'] + $cantidad;
-                                        $lotes[$index] = array('id_lote' => $id_lote, 'cantidad' => (int) $q, 'val_promedio' => $val_promedio, 'id_detalle' => $id_detalle);
+                                        $index = is_countable($lotes) ? count($lotes) - 1 : -1;
+                                        if ($index >= 0 && isset($lotes[$index])) {
+                                            $id_lote = $lotes[$index]['id_lote'];
+                                            $q = $lotes[$index]['cantidad'] + $cantidad;
+                                            $lotes[$index] = array('id_lote' => $id_lote, 'cantidad' => (int) $q, 'val_promedio' => $val_promedio, 'id_detalle' => $id_detalle);
+                                        }
                                     }
                                 } else {
                                     if ($res['mensaje'] == 'ok') {
@@ -184,7 +187,7 @@ try {
                                         $res['mensaje'] .= ', ' . $obj['cod_medicamento'] . '-' . $obj['nom_medicamento'];
                                     }
                                 }
-                            }                           
+                            }
 
                             if ($res['mensaje'] == 'ok') {
                                 $sql = "INSERT INTO far_traslado_r_detalle(id_traslado,id_lote_origen,cantidad,valor,id_ped_detalle) 
@@ -203,8 +206,8 @@ try {
                             }
                         } else {
                             $res['mensaje'] = 'Los siguientes Artículos no son de uso Clínico: ' . $obj0['articulos'];
-                        } 
-                            
+                        }
+
                     } else if ($generar_traslado == 2) {
 
                         $id_ingreso = $_POST['txt_id_ingreso'];
@@ -215,9 +218,9 @@ try {
                                 INNER JOIN far_medicamentos AS FM ON (FM.id_med = ML.id_med) 
                                 WHERE FM.es_clinico<>1 AND ID.id_ingreso=" . $id_ingreso;
                         $rs0 = $cmd->query($sql);
-                        $obj0 = $rs0->fetch();
-                        
-                        if ($obj0['cant_articulos'] == 0) {
+                        $obj0 = $rs0 ? $rs0->fetch() : null;
+
+                        if (($obj0['cant_articulos'] ?? 0) == 0) {
                             $sql = "INSERT INTO far_traslado_r_detalle(id_traslado,id_lote_origen,cantidad,valor) 
                                     SELECT $id_traslado,ID.id_lote,(ID.cantidad*PC.cantidad),FM.val_promedio
                                     FROM far_orden_ingreso_detalle AS ID
@@ -228,7 +231,7 @@ try {
                             $rs = $cmd->query($sql);
                         } else {
                             $res['mensaje'] = 'Los siguientes Artículos no son de uso Clínico: ' . $obj0['articulos'];
-                        }    
+                        }
                     }
 
                     $sql = "UPDATE far_traslado_r SET val_total=(SELECT SUM(valor*cantidad) FROM far_traslado_r_detalle WHERE id_traslado=$id_traslado) WHERE id_traslado=$id_traslado";
@@ -236,8 +239,8 @@ try {
 
                     $sql = "SELECT val_total FROM far_traslado_r WHERE id_traslado=" . $id_traslado;
                     $rs = $cmd->query($sql);
-                    $obj_traslado = $rs->fetch();
-                    $res['val_total'] = formato_valor($obj_traslado['val_total']);
+                    $obj_traslado = $rs ? $rs->fetch() : null;
+                    $res['val_total'] = formato_valor($obj_traslado['val_total'] ?? 0);
                 }
 
                 if ($res['mensaje'] == 'ok') {
@@ -255,15 +258,15 @@ try {
 
             $sql = "SELECT estado,fec_traslado,detalle FROM far_traslado_r WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
-            $obj_tra = $rs->fetch();
+            $obj_tra = $rs ? $rs->fetch() : null;
 
-            if ($obj_tra['estado'] == 1) {
+            if (isset($obj_tra['estado']) && $obj_tra['estado'] == 1) {
                 $sql = "DELETE FROM far_traslado_r WHERE id_traslado=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {                    
+                if ($rs) {
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Eliminó Traslado SPSR Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
+                    $proceso = "Se Eliminó Traslado SPSR Id: " . $id . ", Fecha: " . ($obj_tra['fec_traslado'] ?? '') . ", Detalle: " . ($obj_tra['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -277,18 +280,18 @@ try {
             $id = $_POST['id'];
             $sql = "SELECT estado,fec_traslado,detalle FROM far_traslado_r WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
-            $obj_tra = $rs->fetch();
-            $estado = isset($obj_tra['estado']) ? $obj_tra['estado'] : -1;
+            $obj_tra = $rs ? $rs->fetch() : null;
+            $estado = $obj_tra['estado'] ?? -1;
 
             $sql = "SELECT COUNT(*) AS total FROM far_traslado_r_detalle WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $num_detalles = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $num_detalles = $obj_detalles['total'] ?? 0;
 
             $sql = "SELECT COUNT(*) AS total FROM far_kardex WHERE id_egreso_tra_r=" . $id;
             $rs = $cmd->query($sql);
-            $obj_kardex = $rs->fetch();
-            $num_reg_kardex = $obj_kardex['total'];
+            $obj_kardex = $rs ? $rs->fetch() : null;
+            $num_reg_kardex = $obj_kardex['total'] ?? 0;
 
             if ($estado == 1 && $num_detalles > 0 && $num_reg_kardex == 0) {
                 $respuesta = verificar_existencias($cmd, $id, "TR");
@@ -321,17 +324,17 @@ try {
                         /* Valores del Lote */
                         $sql = 'SELECT existencia,val_promedio,id_med FROM far_medicamento_lote WHERE id_lote=' . $id_lote . ' LIMIT 1';
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-                        $id_medicamento = $obj['id_med'];
-                        $val_promedio_lote = $obj['val_promedio'];
-                        $existencia_lote = $obj['existencia'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $id_medicamento = $obj['id_med'] ?? 0;
+                        $val_promedio_lote = $obj['val_promedio'] ?? 0;
+                        $existencia_lote = $obj['existencia'] ?? 0;
 
                         /* Valores del Medicamento */
                         $sql = 'SELECT existencia,val_promedio FROM far_medicamentos WHERE id_med=' . $id_medicamento . ' LIMIT 1';
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-                        $val_promedio_med = $obj['val_promedio'];
-                        $existencia_med = $obj['existencia'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $val_promedio_med = $obj['val_promedio'] ?? 0;
+                        $existencia_med = $obj['existencia'] ?? 0;
 
                         $existencia_lote_kdx = $existencia_lote - $cantidad;
                         $existencia_med_kdx = $existencia_med - $cantidad;
@@ -358,8 +361,8 @@ try {
                     if ($error == 0) {
                         $sql = 'SELECT num_trasladoactual FROM tb_datos_ips LIMIT 1';
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-                        $num_traslado = $obj['num_trasladoactual'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $num_traslado = $obj['num_trasladoactual'] ?? 0;
                         $res['num_traslado'] = $num_traslado;
 
                         $sql = "UPDATE far_traslado_r SET num_traslado=$num_traslado,estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope',val_total=(SELECT SUM(valor*cantidad) FROM far_traslado_r_detalle WHERE id_traslado=$id) WHERE id_traslado= $id";
@@ -375,7 +378,7 @@ try {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
 
-                        $proceso = "Se Cerró Traslado SPSR Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
+                        $proceso = "Se Cerró Traslado SPSR Id: " . $id . ", Fecha: " . ($obj_tra['fec_traslado'] ?? '') . ", Detalle: " . ($obj_tra['detalle'] ?? '');
                         Logs::guardaLog($proceso);
                     } else {
                         $res['mensaje'] = 'Error de Ejecución de Proceso';
@@ -400,23 +403,24 @@ try {
 
             $sql = "SELECT * FROM far_traslado_r WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
-            $obj_tra = $rs->fetch();
-            $estado = $obj_tra['estado'];
+            $obj_tra = $rs ? $rs->fetch() : null;
+            $estado = $obj_tra['estado'] ?? 0;
 
             if ($estado == 2) {
-                $id_sede_destino = $obj_tra['id_sede_destino'];
+                $id_sede_destino = $obj_tra['id_sede_destino'] ?? 0;
                 $sql = "SELECT ip_sede,bd_sede,pw_sede,us_sede,pt_http FROM tb_sedes WHERE id_sede=$id_sede_destino LIMIT 1";
                 $rs = $cmd->query($sql);
-                $obj_sede = $rs->fetch();
+                $obj_sede = $rs ? $rs->fetch() : null;
 
-                $ip_pr = explode(':', $obj_sede['ip_sede']);
-                $ip = $ip_pr[0];
-                $port = $ip_pr[1];
-                $database = $obj_sede['bd_sede'];
-                $password = $obj_sede['pw_sede'];
-                $user = $obj_sede['us_sede'];
+                $ip_sede = $obj_sede['ip_sede'] ?? '';
+                $ip_pr = explode(':', $ip_sede);
+                $ip = $ip_pr[0] ?? '';
+                $port = $ip_pr[1] ?? '';
+                $database = $obj_sede['bd_sede'] ?? '';
+                $password = $obj_sede['pw_sede'] ?? '';
+                $user = $obj_sede['us_sede'] ?? '';
                 $continuar = true;
-                
+
                 if (!isMySQLPortOpen($ip, $port) && $continuar) {
                     $res['mensaje'] = "Error: El servidor MySQL no responde en $ip:$port. Verifique el servicio.";
                     $continuar = false;
@@ -470,8 +474,8 @@ try {
                         // Consulta el usuario en la sede remota
                         $sql = "SELECT id_usuario FROM seg_usuarios_sistema WHERE id_origen=" . $id_usr_ope;
                         $rs = $cmd1->query($sql);
-                        $obj = $rs->fetch();
-                        $id_usr = isset($obj['id_usuario']) ? $obj['id_usuario'] : 1;
+                        $obj = $rs ? $rs->fetch() : null;
+                        $id_usr = $obj['id_usuario'] ?? 1;
 
                         // Insertar el encabezado del traslado
                         $sql = "INSERT INTO far_traslado_r(fec_traslado,hor_traslado,id_sede_origen,id_bodega_origen,
@@ -506,7 +510,8 @@ try {
                                 $sql->bindValue(':cantidad', $med['cantidad'], PDO::PARAM_INT);
                                 $sql->bindValue(':valor', $med['valor']);
                                 $rs = $sql->execute();
-                                if (!$rs) break;
+                                if (!$rs)
+                                    break;
                             }
                         }
 
@@ -519,7 +524,7 @@ try {
                             $cmd1->commit();
                             $res['mensaje'] = 'ok';
 
-                            $proceso = "Se Envió Traslado SPSR Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
+                            $proceso = "Se Envió Traslado SPSR Id: " . $id . ", Fecha: " . ($obj_tra['fec_traslado'] ?? '') . ", Detalle: " . ($obj_tra['detalle'] ?? '');
                             Logs::guardaLog($proceso);
                         } else {
                             $cmd1->rollBack();
@@ -537,9 +542,9 @@ try {
 
             $sql = "SELECT estado,estado2,fec_traslado,detalle FROM far_traslado_r WHERE id_traslado=" . $id;
             $rs = $cmd->query($sql);
-            $obj_tra = $rs->fetch();
-            $estado = $obj_tra['estado'];
-            $estado2 = $obj_tra['estado2'];
+            $obj_tra = $rs ? $rs->fetch() : null;
+            $estado = $obj_tra['estado'] ?? 0;
+            $estado2 = $obj_tra['estado2'] ?? 0;
 
             if ($estado == 2 || ($estado == 3 && $estado2 == 5)) {
 
@@ -555,8 +560,8 @@ try {
                     $sql = "SELECT GROUP_CONCAT(id_lote_origen) AS lotes
                             FROM far_traslado_r_detalle WHERE id_traslado=" . $id;
                     $rs = $cmd->query($sql);
-                    $obj = $rs->fetch();
-                    $lotes = $obj['lotes'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $lotes = $obj['lotes'] ?? '';
 
                     recalcular_kardex($cmd, $lotes, 'ER', '', '', '', '', $id, '', '');
                 }
@@ -564,7 +569,7 @@ try {
                     $cmd->commit();
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Anuló Traslado SPSR Id: " . $id . ", Fecha: " . $obj_tra['fec_traslado'] . ", Detalle: " . $obj_tra['detalle'];
+                    $proceso = "Se Anuló Traslado SPSR Id: " . $id . ", Fecha: " . ($obj_tra['fec_traslado'] ?? '') . ", Detalle: " . ($obj_tra['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $cmd->rollBack();

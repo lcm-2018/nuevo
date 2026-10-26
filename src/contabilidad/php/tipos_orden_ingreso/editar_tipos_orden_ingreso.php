@@ -19,12 +19,13 @@ $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5512, 2) && $oper == 'add' && $_POST['id_tipo_ingreso'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5512, 2) && $oper == 'add' && $_POST['id_tipo_ingreso'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5512, 3) && $oper == 'add' && $_POST['id_tipo_ingreso'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5512, 4) && $oper == 'del') || $id_rol == 1
     ) {

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: ../../index.php');
@@ -71,7 +71,7 @@ $content =
                 <div class="mb-3 col-md-1">
                     <input type="text" class="filtrocrp form-control form-control-sm bg-input" id="txt_ccnit_filtrocrp" placeholder="CC / Nit">
                 </div>
-                <div class="mb-3 col-md-3">
+                <div class="mb-3 col-md-2">
                     <input type="text" class="filtrocrp form-control form-control-sm bg-input" id="txt_tercero_filtrocrp" placeholder="Tercero">
                 </div>
                 <div class="mb-3 col-md-1">
@@ -82,9 +82,12 @@ $content =
                         <option value="3">Anulado</option>
                     </select>
                 </div>
-                <div class="mb-3 col-md-1">
+                <div class="mb-3 col-md-2 d-flex align-items-center gap-1">
                     <a type="button" id="btn_buscar_filtrocrp" class="btn btn-outline-success btn-sm" title="Filtrar">
                         <span class="fas fa-search fa-lg" aria-hidden="true"></span>
+                    </a>
+                    <a type="button" id="btn_exportar_excelcrp" class="btn btn-outline-success btn-sm" title="Exportar a Excel">
+                        <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
                     </a>
                 </div>
             </div>

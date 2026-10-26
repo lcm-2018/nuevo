@@ -22,7 +22,7 @@ try {
             LEFT JOIN seg_usuarios_sistema AS usr ON (usr.id_usuario = AB.id_usr_cierre)
             WHERE AB.id_baja=" . $id . " LIMIT 1";
     $rs = $cmd->query($sql);
-    $obj_e = $rs->fetch();
+    $obj_e = $rs ? $rs->fetch() : null;
 
     $sql = "SELECT HV.placa,FM.nom_medicamento AS nom_articulo,HV.des_activo,BD.observacion,
                 CASE BD.estado_general WHEN 1 THEN 'BUENO' WHEN 2 THEN 'REGULAR' WHEN 3 THEN 'MALO' WHEN 4 THEN 'SIN SERVICIO' END AS estado_general
@@ -31,7 +31,7 @@ try {
             INNER JOIN far_medicamentos AS FM ON (FM.id_med = HV.id_articulo)
             WHERE BD.id_baja=" . $id . " ORDER BY BD.id_baja_detalle";
     $rs = $cmd->query($sql);
-    $obj_ds = $rs->fetchAll();
+    $obj_ds = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
@@ -121,7 +121,7 @@ try {
         </tbody>
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
-                <td>TOTAL REGISTROS:<?php echo COUNT($obj_ds); ?> </td>
+                <td>TOTAL REGISTROS:<?php echo is_array($obj_ds) ? count($obj_ds) : 0; ?> </td>
                 <td colspan="4"></td>
             </tr>
         </tfoot>

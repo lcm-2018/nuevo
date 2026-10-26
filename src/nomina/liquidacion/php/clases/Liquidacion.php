@@ -242,7 +242,7 @@ class Liquidacion
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 
     /**
@@ -318,7 +318,7 @@ class Liquidacion
         $registro = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($registro) ? $registro['total'] : 0;
+        return !empty($registro) ? ($registro['total'] ?? 0) : 0;
     }
 
     public function getRetroactivosActivos()
@@ -1955,11 +1955,11 @@ class Liquidacion
             $rtChk = $stmtChk->fetch(PDO::FETCH_ASSOC);
             $stmtChk->closeCursor();
 
-            if ($rtChk && $rtChk['tipo'] == 'M') {
+            if ($rtChk && isset($rtChk['tipo']) && $rtChk['tipo'] == 'M') {
                 // Valor modificado manualmente — no tocar
-                $response['valor'] = floatval($rtChk['val_liq']);
-                $response['prima'] = floatval($rtChk['val_prima_vac']);
-                $response['bono'] = floatval($rtChk['val_bon_recrea']);
+                $response['valor'] = floatval($rtChk['val_liq'] ?? 0);
+                $response['prima'] = floatval($rtChk['val_prima_vac'] ?? 0);
+                $response['bono'] = floatval($rtChk['val_bon_recrea'] ?? 0);
                 return $response;
             }
 
@@ -2036,8 +2036,8 @@ class Liquidacion
             $stmt = $this->conexion->prepare("SELECT `tipo`, `val_liq_ps` FROM `nom_liq_prima` WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1 ORDER BY `id_liq_prima` DESC LIMIT 1");
             $stmt->execute([$id_empleado, $id_nomina]);
             $rt = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($rt && $rt['tipo'] == 'M') {
-                $response['valor'] = $rt['val_liq_ps'];
+            if ($rt && isset($rt['tipo']) && $rt['tipo'] == 'M') {
+                $response['valor'] = $rt['val_liq_ps'] ?? 0;
                 $response['insert'] = true;
                 return $response;
             }
@@ -2087,8 +2087,8 @@ class Liquidacion
             $stmt = $this->conexion->prepare("SELECT `tipo`, `val_liq_pv` FROM `nom_liq_prima_nav` WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1 ORDER BY `id_liq_privac` DESC LIMIT 1");
             $stmt->execute([$id_empleado, $id_nomina]);
             $rt = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($rt && $rt['tipo'] == 'M') {
-                $response['valor'] = $rt['val_liq_pv'];
+            if ($rt && isset($rt['tipo']) && $rt['tipo'] == 'M') {
+                $response['valor'] = $rt['val_liq_pv'] ?? 0;
                 $response['insert'] = true;
                 return $response;
             }
@@ -2146,9 +2146,9 @@ class Liquidacion
             $stmt = $this->conexion->prepare("SELECT `tipo`, `val_cesantias`, `val_icesantias` FROM `nom_liq_cesantias` WHERE `id_empleado` = ? AND `id_nomina` = ? AND `estado` = 1 ORDER BY `id_liq_cesan` DESC LIMIT 1");
             $stmt->execute([$id_empleado, $id_nomina]);
             $rt = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($rt && $rt['tipo'] == 'M') {
-                $response['valor'] = $rt['val_cesantias'];
-                $response['interes'] = $rt['val_icesantias'];
+            if ($rt && isset($rt['tipo']) && $rt['tipo'] == 'M') {
+                $response['valor'] = $rt['val_cesantias'] ?? 0;
+                $response['interes'] = $rt['val_icesantias'] ?? 0;
                 $response['insert'] = true;
                 return $response;
             }
@@ -2302,7 +2302,7 @@ class Liquidacion
         );
         $stmt->execute([$id_empleado, $id_nomina]);
         $rt = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($rt) {
+        if ($rt && isset($rt['val_bsp'])) {
             $response['valor'] = floatval($rt['val_bsp']);
             $response['insert'] = true;
             return $response;

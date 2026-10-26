@@ -19,12 +19,13 @@ $opciones = $permisos->PermisoOpciones($id_user);
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
 $id_usr_crea = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5002, 2) && $oper == 'add' && $_POST['id_cum'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5002, 2) && $oper == 'add' && $_POST['id_cum'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5002, 3) && $oper == 'add' && $_POST['id_cum'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5002, 4) && $oper == 'del') || $id_rol == 1
     ) {
@@ -52,8 +53,8 @@ try {
                         $res['mensaje'] = 'ok';
                         $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                         $rs = $cmd->query($sql_i);
-                        $obj = $rs->fetch();
-                        $res['id'] = $obj['id'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $res['id'] = $obj['id'] ?? null;
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
                     }
@@ -77,18 +78,18 @@ try {
                 $sql = "DELETE FROM far_medicamento_cum WHERE id_cum=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
-                    $res['mensaje'] = 'ok';                    
+                    $res['mensaje'] = 'ok';
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
-                }                
+                }
             }
 
             $sql = "SELECT cod_medicamento,nom_medicamento FROM far_medicamentos WHERE id_med=" . $id_articulo;
             $rs = $cmd->query($sql);
-            $obj_articulo = $rs->fetch();
+            $obj_articulo = $rs ? $rs->fetch() : null;
 
-            $proceso = "Se Modificó CUMS de Articulo Código: " . $obj_articulo['cod_medicamento'] . ", Nombre: " . $obj_articulo['nom_medicamento'];
-            Logs::guardaLog($proceso); 
+            $proceso = "Se Modificó CUMS de Articulo Código: " . ($obj_articulo['cod_medicamento'] ?? '') . ", Nombre: " . ($obj_articulo['nom_medicamento'] ?? '');
+            Logs::guardaLog($proceso);
         } else {
             $res['mensaje'] = 'Primero debe guardar el Articulo';
         }

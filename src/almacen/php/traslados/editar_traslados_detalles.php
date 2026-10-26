@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
 $id_usr_crea = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5008, 2) && $oper == 'add' && $_POST['id_detalle'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5008, 2) && $oper == 'add' && $_POST['id_detalle'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5008, 3) && $oper == 'add' && $_POST['id_detalle'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5008, 4) && $oper == 'del') || $id_rol == 1
     ) {
@@ -37,11 +38,11 @@ try {
 
             $sql = "SELECT estado,fec_traslado,detalle,id_bodega_origen FROM far_traslado WHERE id_traslado=" . $id_traslado;
             $rs = $cmd->query($sql);
-            $obj_traslado = $rs->fetch();
+            $obj_traslado = $rs ? $rs->fetch() : null;
 
-            if ($obj_traslado['estado'] == 1) {
+            if (isset($obj_traslado['estado']) && $obj_traslado['estado'] == 1) {
                 if ($oper == 'add') {
-                    if ($obj_traslado['id_bodega_origen'] == $id_bodega) {
+                    if (($obj_traslado['id_bodega_origen'] ?? -2) == $id_bodega) {
                         $id = $_POST['id_detalle'];
                         $id_lote = $_POST['id_txt_nom_lot'];
                         $cantidad = $_POST['txt_can_tra'] ? $_POST['txt_can_tra'] : 1;
@@ -49,14 +50,14 @@ try {
 
                         $sql = "SELECT existencia FROM far_medicamento_lote WHERE id_lote=" . $id_lote;
                         $rs = $cmd->query($sql);
-                        $obj_det = $rs->fetch();
+                        $obj_det = $rs ? $rs->fetch() : null;
 
-                        if ($obj_det['existencia'] >= $cantidad) {
+                        if (($obj_det['existencia'] ?? 0) >= $cantidad) {
                             if ($id == -1) {
                                 $sql = "SELECT COUNT(*) AS existe FROM far_traslado_detalle WHERE id_traslado=$id_traslado AND id_lote_origen=" . $id_lote;
                                 $rs = $cmd->query($sql);
-                                $obj = $rs->fetch();
-                                if ($obj['existe'] == 0) {
+                                $obj = $rs ? $rs->fetch() : null;
+                                if (($obj['existe'] ?? 0) == 0) {
 
                                     $sql = "INSERT INTO far_traslado_detalle(id_traslado,id_lote_origen,cantidad,valor)
                                     VALUES($id_traslado,$id_lote,$cantidad,$valor)";
@@ -66,8 +67,8 @@ try {
                                         $res['mensaje'] = 'ok';
                                         $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                                         $rs = $cmd->query($sql_i);
-                                        $obj = $rs->fetch();
-                                        $res['id'] = $obj['id'];
+                                        $obj = $rs ? $rs->fetch() : null;
+                                        $res['id'] = $obj['id'] ?? 0;
                                     } else {
                                         $res['mensaje'] = $cmd->errorInfo()[2];
                                     }
@@ -103,9 +104,9 @@ try {
                     if ($rs) {
                         $sql = "SELECT COUNT(*) AS detalles FROM far_traslado_detalle WHERE id_traslado=" . $id_traslado;
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
+                        $obj = $rs ? $rs->fetch() : null;
 
-                        if ($obj['detalles'] == 0) {
+                        if (($obj['detalles'] ?? 0) == 0) {
                             $sql = "UPDATE far_traslado SET id_ingreso=NULL WHERE id_traslado=" . $id_traslado;
                             $rs = $cmd->query($sql);
                         }
@@ -124,10 +125,10 @@ try {
 
                     $sql = "SELECT val_total FROM far_traslado WHERE id_traslado=" . $id_traslado;
                     $rs = $cmd->query($sql);
-                    $obj_total = $rs->fetch();
-                    $res['val_total'] = formato_valor($obj_total['val_total']);
+                    $obj_total = $rs ? $rs->fetch() : null;
+                    $res['val_total'] = formato_valor($obj_total['val_total'] ?? 0);
 
-                    $proceso = "Se Modificó detalles de Traslado Id: " . $id_traslado . ", Fecha: " . $obj_traslado['fec_traslado'] . ", Detalle: " . $obj_traslado['detalle'];
+                    $proceso = "Se Modificó detalles de Traslado Id: " . $id_traslado . ", Fecha: " . ($obj_traslado['fec_traslado'] ?? '') . ", Detalle: " . ($obj_traslado['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 }
             } else {

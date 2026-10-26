@@ -20,7 +20,7 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
 $id_usr_crea = $_SESSION['id_user'];
-$res = array();
+$res = [];
 $ruta = '../../documentos/';
 
 try {
@@ -77,8 +77,8 @@ try {
                         if ($_POST['archivo'] && file_exists($ruta . $_POST['archivo'])) {
                             unlink($ruta . $_POST['archivo']);
                         }
-                        $fileNombre =  $_FILES["uploadDocAcf"]['name'];
-                        $nombre = $id . '_' .  date('Ymd_His') . $fileNombre;
+                        $fileNombre = $_FILES["uploadDocAcf"]['name'];
+                        $nombre = $id . '_' . date('Ymd_His') . $fileNombre;
                         $temporal = $_FILES['uploadDocAcf']['tmp_name'];
                         if (!file_exists($ruta)) {
                             mkdir($ruta, 0777, true);
@@ -108,8 +108,8 @@ try {
 
                 $sql = "SELECT archivo FROM acf_hojavida_documentos WHERE id_documento=" . $id;
                 $rs = $cmd->query($sql);
-                $obj = $rs->fetch();
-                $archivo = $obj['archivo'];
+                $obj = $rs ? $rs->fetch() : null;
+                $archivo = $obj['archivo'] ?? '';
 
                 $sql = "DELETE FROM acf_hojavida_documentos WHERE id_documento=" . $id;
                 $rs = $cmd->query($sql);
@@ -125,9 +125,9 @@ try {
 
             $sql = "SELECT placa,des_activo FROM acf_hojavida WHERE id_activo_fijo=" . $id_hv;
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch(); 
+            $obj = $rs ? $rs->fetch() : null;
 
-            $proceso = "Se Modificó Documento de Activo Fijo Id: " . $id_hv . ", Placa: " . $obj['placa'] . ", Nombre: " . $obj['des_activo'];
+            $proceso = "Se Modificó Documento de Activo Fijo Id: " . $id_hv . ", Placa: " . ($obj['placa'] ?? '') . ", Nombre: " . ($obj['des_activo'] ?? '');
             Logs::guardaLog($proceso);
         } else {
             $res['mensaje'] = 'Primero debe guardar la Hoja de Vida';

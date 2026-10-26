@@ -50,7 +50,7 @@ function liberarSalida()
 function parsearNombreNatural(string $cadena): array
 {
     $partes = preg_split('/\s+/', trim($cadena), -1, PREG_SPLIT_NO_EMPTY);
-    $n = count($partes);
+    $n = is_array($partes) ? count($partes) : 0;
 
     switch ($n) {
         case 1:
@@ -154,7 +154,7 @@ try {
     $stmt = $conexion->prepare($sql);
     $stmt->execute();
 
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    while ($stmt && ($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
         $es_cc = ($row['tipo_documento'] === '13');
         $valor = $row['debito'] - $row['credito'];
 
@@ -182,7 +182,7 @@ try {
         liberarSalida();
     }
 } catch (PDOException $e) {
-    echo '<tr><td colspan="' . count($columnas) . '">';
+    echo '<tr><td colspan="' . (is_array($columnas) ? count($columnas) : 0) . '">';
     echo htmlspecialchars('Error en la consulta: ' . $e->getMessage(), ENT_QUOTES, 'UTF-8');
     echo '</td></tr>';
 }

@@ -20,12 +20,13 @@ $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5001, 2) && $oper == 'add' && $_POST['id_laboratorio'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5001, 2) && $oper == 'add' && $_POST['id_laboratorio'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5001, 3) && $oper == 'add' && $_POST['id_laboratorio'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5001, 4) && $oper == 'del') || $id_rol == 1
     ) {
@@ -42,10 +43,10 @@ try {
                     $res['mensaje'] = 'ok';
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
 
-                    $proceso = "Se Registró Laboratorio Id: " . $obj['id'] . ", Nombre: " . $nom_laboratorio;
+                    $proceso = "Se Registró Laboratorio Id: " . ($obj['id'] ?? '') . ", Nombre: " . $nom_laboratorio;
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -70,7 +71,7 @@ try {
             $id = $_POST['id'];
             $sql = "SELECT id_lab,nom_laboratorio FROM far_laboratorios WHERE id_lab=" . $id;
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch();            
+            $obj = $rs->fetch();
 
             $sql = "DELETE FROM far_laboratorios WHERE id_lab=" . $id;
             $rs = $cmd->query($sql);
@@ -78,7 +79,7 @@ try {
                 $res['mensaje'] = 'ok';
 
                 $proceso = "Se Eliminó Laboratorio Id: " . $obj['id_lab'] . ", Nombre: " . $obj['nom_laboratorio'];
-                Logs::guardaLog($proceso);                
+                Logs::guardaLog($proceso);
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];
             }

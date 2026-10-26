@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5703, 2) && $oper == 'add' && $_POST['id_ingreso'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5703, 2) && $oper == 'add' && $_POST['id_ingreso'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5703, 3) && $oper == 'add' && $_POST['id_ingreso'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5703, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5703, 3) && $oper == 'close') ||
@@ -54,8 +55,8 @@ try {
                     $res['mensaje'] = 'ok';
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
 
                     $proceso = "Se Registró Órden de Ingreso de Activos Fijos Id: " . $obj['id'] . ", Fecha: " . $fec_ing . ", Detalle: " . $detalle;
                     Logs::guardaLog($proceso);
@@ -65,9 +66,8 @@ try {
             } else {
                 $sql = "SELECT estado FROM acf_orden_ingreso WHERE id_ingreso=" . $id;
                 $rs = $cmd->query($sql);
-                $obj_ingreso = $rs->fetch();
-
-                if ($obj_ingreso['estado'] == 1) {
+                $obj_ingreso = $rs ? $rs->fetch() : null;
+                if (($obj_ingreso['estado'] ?? -1) == 1) {
                     $sql = "UPDATE acf_orden_ingreso 
                         SET num_factura='$num_fac',fec_factura='$fec_fac',id_tipo_ingreso=$id_tiping,id_provedor=$id_tercero,detalle='$detalle'
                         WHERE id_ingreso=" . $id;
@@ -93,12 +93,11 @@ try {
 
             $sql = "SELECT estado,fec_ingreso,detalle FROM acf_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_ingreso = $rs->fetch();
-
-            if ($obj_ingreso['estado'] == 1) {
+            $obj_ingreso = $rs ? $rs->fetch() : null;
+            if (($obj_ingreso['estado'] ?? -1) == 1) {
                 $sql = "DELETE FROM acf_orden_ingreso WHERE id_ingreso=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {                    
+                if ($rs) {
                     $res['mensaje'] = 'ok';
 
                     $proceso = "Se Eliminó Órden de Ingreso de Activos Fijos Id: " . $id . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
@@ -116,13 +115,13 @@ try {
 
             $sql = "SELECT estado,fec_ingreso,detalle,id_tipo_ingreso FROM acf_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_ingreso = $rs->fetch();
-            $estado = isset($obj_ingreso['estado']) ? $obj_ingreso['estado'] : -1;
+            $obj_ingreso = $rs ? $rs->fetch() : null;
+            $estado = $obj_ingreso['estado'] ?? -1;
 
             $sql = "SELECT COUNT(*) AS total FROM acf_orden_ingreso_detalle WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $num_detalles = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $num_detalles = $obj_detalles['total'] ?? 0;
 
             if ($estado == 1 && $num_detalles > 0) {
 
@@ -138,8 +137,8 @@ try {
                                 GROUP BY acf_orden_ingreso_detalle.id_ing_detalle) AS c
                         WHERE cantidad>registros";
                 $rs = $cmd->query($sql);
-                $obj_ingreso_det = $rs->fetch();
-                $articulos_pen = $obj_ingreso_det['articulos'] ? $obj_ingreso_det['articulos'] : "";
+                $obj_ingreso_det = $rs ? $rs->fetch() : null;
+                $articulos_pen = ($obj_ingreso_det['articulos'] ?? 0) ? $obj_ingreso_det['articulos'] : "";
 
                 if (!$articulos_pen) {
                     $error = 0;
@@ -147,14 +146,14 @@ try {
 
                     $sql = 'SELECT num_ingresoactual_acf FROM tb_datos_ips LIMIT 1';
                     $rs = $cmd->query($sql);
-                    $obj = $rs->fetch();
-                    $num_ingreso = $obj['num_ingresoactual_acf'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $num_ingreso = $obj['num_ingresoactual_acf'] ?? 0;
                     $res['num_ingreso'] = $num_ingreso;
 
                     $sql = 'SELECT consecutivo_acf FROM far_orden_ingreso_tipo WHERE id_tipo_ingreso=' . $obj_ingreso['id_tipo_ingreso'] . ' LIMIT 1';
                     $rs = $cmd->query($sql);
-                    $obj = $rs->fetch();
-                    $num_ingreso_tipo = $obj['consecutivo_acf'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $num_ingreso_tipo = $obj['consecutivo_acf'] ?? 0;
                     $res['num_ingreso_tipo'] = $num_ingreso_tipo;
 
                     $sql = "UPDATE acf_orden_ingreso SET num_ingreso=$num_ingreso,num_ingreso_tipo=$num_ingreso_tipo,estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope' WHERE id_ingreso=$id";
@@ -215,17 +214,16 @@ try {
 
             $sql = "SELECT estado,fec_ingreso,detalle FROM acf_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_ingreso = $rs->fetch();
-            $estado = $obj_ingreso['estado'];
+            $obj_ingreso = $rs ? $rs->fetch() : null;
+            $estado = $obj_ingreso['estado'] ?? -1;
 
             if ($estado == 2) {
 
                 //Verificar si se puede anular, siempre que los Activos no se hayan modificado
                 $sql = "SELECT COUNT(*) AS total FROM acf_hojavida WHERE id_usr_actualiza IS NOT NULL AND id_ingreso=" . $id;
                 $rs = $cmd->query($sql);
-                $obj = $rs->fetch();
-
-                if ($obj['total'] == 0) {
+                $obj = $rs ? $rs->fetch() : null;
+                if (($obj['total'] ?? 0) == 0) {
 
                     $error = 0;
                     $cmd->beginTransaction();
@@ -241,7 +239,7 @@ try {
                     if ($error == 0) {
                         $cmd->commit();
                         $res['mensaje'] = 'ok';
-                        
+
                         $proceso = "Se Anuló Órden de Ingreso de Activos Fijos Id: " . $id . ", Fecha: " . $obj_ingreso['fec_ingreso'] . ", Detalle: " . $obj_ingreso['detalle'];
                         Logs::guardaLog($proceso);
                     } else {

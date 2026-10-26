@@ -257,7 +257,11 @@
 				{ data: "credito" },
 				{ data: "botones" }
 			],
-			order: [[0, "desc"]],
+			order: [],
+			lengthMenu: [
+				[10, 25, 50, -1],
+				[10, 25, 50, 'TODOS'],
+			],
 			initComplete: function () {
 				var api = this.api();
 				// Obtener los datos del tfoot de la DataTable
@@ -467,14 +471,103 @@
 		reloadtable('tableMvtoContable');
 	});
 
+	$('#btn_exportar_excel').on("click", function () {
+		let id_doc = $('#id_ctb_doc').val() || $('#slcDocFuente').val();
+		if (!id_doc || id_doc == '0' || id_doc == '') {
+			mjeError('Debe seleccionar un tipo de documento para exportar');
+			return;
+		}
+
+		let id_manu = $('#txt_idmanu_filtro').val() || '';
+		let option = $('#txt_bandera_filtro').is(':checked') ? 1 : 0;
+		let fec_ini = $('#txt_fecini_filtro').val() || '';
+		let fec_fin = $('#txt_fecfin_filtro').val() || '';
+		let rp = $('#txt_rp_filtro').val() || '';
+		let tercero = $('#txt_tercero_filtro').val() || '';
+		let slc_estado = $('#sl_estado_filtro').val();
+		let estado = slc_estado;
+		if (slc_estado == "0") {
+			estado = "-1";
+		} else if (slc_estado == "3") {
+			estado = "0";
+		}
+		let anulados = $('#verAnulados').is(':checked') ? 1 : 0;
+
+		let form = $('<form>', {
+			action: 'informes/informe_documentos_mov_xls.php',
+			method: 'POST'
+		}).append(
+			$('<input>', { type: 'hidden', name: 'id_doc', value: id_doc }),
+			$('<input>', { type: 'hidden', name: 'id_manu', value: id_manu }),
+			$('<input>', { type: 'hidden', name: 'option', value: option }),
+			$('<input>', { type: 'hidden', name: 'fec_ini', value: fec_ini }),
+			$('<input>', { type: 'hidden', name: 'fec_fin', value: fec_fin }),
+			$('<input>', { type: 'hidden', name: 'rp', value: rp }),
+			$('<input>', { type: 'hidden', name: 'tercero', value: tercero }),
+			$('<input>', { type: 'hidden', name: 'estado', value: estado }),
+			$('<input>', { type: 'hidden', name: 'anulados', value: anulados })
+		);
+		$('body').append(form);
+		form.submit();
+		form.remove();
+	});
+
 	$('.filtro').keypress(function (e) {
 		if (e.keyCode == 13) {
-			reloadtable('tableMvtoContable');
+			if ($('#tableMvtoContable').length) {
+				reloadtable('tableMvtoContable');
+			}
+			if ($('#tableMvtCtbInvoice').length) {
+				$('#tableMvtCtbInvoice').DataTable().ajax.reload(null, false);
+			}
 		}
 	});
 
 	$('#btn_buscar_filtro_Invoice').on("click", function () {
 		$('#tableMvtCtbInvoice').DataTable().ajax.reload(null, false)
+	});
+
+	$('#btn_exportar_excel_Invoice').on("click", function () {
+		let cod_doc = $('#cod_ctb_doc').val();
+		let id_doc = $('#id_ctb_doc').val();
+		if (!cod_doc || cod_doc == '') {
+			mjeError('Debe seleccionar un tipo de documento para exportar');
+			return;
+		}
+
+		let id_manu = $('#txt_idmanu_filtro').val() || '';
+		let option = $('#txt_bandera_filtro').is(':checked') ? 1 : 0;
+		let fec_ini = $('#txt_fecini_filtro').val() || '';
+		let fec_fin = $('#txt_fecfin_filtro').val() || '';
+		let rad = $('#txt_rad_filtro').val() || '';
+		let tercero = $('#txt_tercero_filtro').val() || '';
+		let slc_estado = $('#sl_estado_filtro').val();
+		let estado = slc_estado;
+		if (slc_estado == "0") {
+			estado = "-1";
+		} else if (slc_estado == "3") {
+			estado = "0";
+		}
+		let anulados = $('#verAnulados').is(':checked') ? 1 : 0;
+
+		let form = $('<form>', {
+			action: 'informes/informe_documentos_invoice_xls.php',
+			method: 'POST'
+		}).append(
+			$('<input>', { type: 'hidden', name: 'cod_doc', value: cod_doc }),
+			$('<input>', { type: 'hidden', name: 'id_doc', value: id_doc }),
+			$('<input>', { type: 'hidden', name: 'id_manu', value: id_manu }),
+			$('<input>', { type: 'hidden', name: 'option', value: option }),
+			$('<input>', { type: 'hidden', name: 'fec_ini', value: fec_ini }),
+			$('<input>', { type: 'hidden', name: 'fec_fin', value: fec_fin }),
+			$('<input>', { type: 'hidden', name: 'rad', value: rad }),
+			$('<input>', { type: 'hidden', name: 'tercero', value: tercero }),
+			$('<input>', { type: 'hidden', name: 'estado', value: estado }),
+			$('<input>', { type: 'hidden', name: 'anulados', value: anulados })
+		);
+		$('body').append(form);
+		form.submit();
+		form.remove();
 	});
 
 	$('#areaReporte').on('click', '#btnExcelEntrada', function () {
@@ -3841,7 +3934,7 @@ function RegDocREfDr(datos, id_doc) {
 
 function GuardarReferenciaDr(boton) {
 	$('.is-invalid').removeClass('is-invalid');
-	
+
 	if ($('#codigoCta1').val() == '') {
 		$('#id_codigoCta1').val('0');
 	}

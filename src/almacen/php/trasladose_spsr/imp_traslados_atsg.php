@@ -128,7 +128,8 @@ try {
             }
 
             $total = 0;
-            $numreg = count($objs);
+            $objs = $objs ?? [];
+            $numreg = is_countable($objs) ? count($objs) : 0;
 
             foreach ($objs as $obj1) {
                 $id_traslado = $obj1['id_traslado'];

@@ -10,10 +10,10 @@ include '../common/funciones_generales.php';
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $id = $_POST['id'];
-    $parametros = json_decode($_POST['parametros']);
+    $parametros = json_decode($_POST['parametros'] ?? '[]') ?: [];
 
     $limite = ' LIMIT 100';
     if ($_POST['limite']) {
@@ -24,9 +24,9 @@ try {
 
     $sql = 'SELECT consulta,nom_consulta FROM tb_consultas_sql WHERE id_consulta=' . $id . ' LIMIT 1';
     $rs = $cmd->query($sql);
-    $obj = $rs->fetch();
-    $cnsql = $obj['consulta'];
-    $nom_consulta = $obj['nom_consulta'];
+    $obj = $rs ? $rs->fetch() : null;
+    $cnsql = $obj['consulta'] ?? '';
+    $nom_consulta = $obj['nom_consulta'] ?? '';
 
     foreach ($parametros as $pr) {
         $cnsql = str_replace('[' . $pr->parametro . ']', $pr->valor, $cnsql);
@@ -34,13 +34,13 @@ try {
 
     $sqlcount = "SELECT COUNT(*) AS count FROM ($cnsql) AS c2";
     $rs = $cmd->query($sqlcount);
-    $obj = $rs->fetch();
-    $total = $obj['count'];
+    $obj = $rs ? $rs->fetch() : null;
+    $total = $obj['count'] ?? 0;
 
     $rs1 = $cmd->query($cnsql . $limite, PDO::FETCH_BOTH);
-    $objs = $rs1->fetchAll(PDO::FETCH_NUM);
-    $n = $rs1->columnCount();
-    
+    $objs = $rs1 ? $rs1->fetchAll(PDO::FETCH_NUM) : [];
+    $n = $rs1 ? $rs1->columnCount() : 0;
+
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -89,24 +89,24 @@ try {
                         <th><?= $col['name'] ?></th>
                     <?php endfor; ?>
                 </tr>
-                
+
             </thead>
             <tbody style="font-size: 60%;">
                 <?php
                 $j = 0;
-                foreach ($objs as $obj) : ?>
+                foreach ($objs as $obj): ?>
                     <tr>
-                        <?php for ($i = 0; $i < $n; $i++) : ?>
+                        <?php for ($i = 0; $i < $n; $i++): ?>
                             <td><?php echo $obj[$i] ?></td>
                         <?php endfor; ?>
                     </tr>
-                <?php $j++;
+                    <?php $j++;
                 endforeach; ?>
             </tbody>
             <tfoot style="font-size:60%">
                 <tr style="background-color:#CED3D3; color:#000000">
                     <td colspan="<?php echo $n ?>" style="text-align:left">
-                        No. de Registros visualizados: <?php echo count($objs); ?>
+                        No. de Registros visualizados: <?php echo is_array($objs) ? count($objs) : 0; ?>
                         De un total de: <?php echo $total; ?>
                     </td>
                 </tr>

@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
 $id_usr_crea = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5704, 2) && $oper == 'add' && $_POST['id_hv'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5704, 2) && $oper == 'add' && $_POST['id_hv'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5704, 3) && $oper == 'add' && $_POST['id_hv'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5704, 4) && $oper == 'del') || $id_rol == 1
     ) {
@@ -250,14 +251,14 @@ try {
 
             $sql = "SELECT placa,des_activo FROM acf_hojavida WHERE id_activo_fijo=" . $id;
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch(); 
+            $obj = $rs ? $rs->fetch() : null;
 
             $sql = "DELETE FROM acf_hojavida WHERE id_activo_fijo=" . $id;
             $rs = $cmd->query($sql);
             if ($rs) {
                 $res['mensaje'] = 'ok';
 
-                $proceso = "Se Eliminó Activo Fijo Id: " . $id . ", Placa: " . $obj['placa'] . ", Nombre: " . $obj['des_activo'];
+                $proceso = "Se Eliminó Activo Fijo Id: " . $id . ", Placa: " . ($obj['placa'] ?? '') . ", Nombre: " . ($obj['des_activo'] ?? '');
                 Logs::guardaLog($proceso);
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];

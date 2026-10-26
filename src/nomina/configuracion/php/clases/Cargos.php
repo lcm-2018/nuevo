@@ -147,7 +147,7 @@ class Cargos
         $cargo = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return !empty($cargo) ? $cargo['descripcion_carg'] : '';
+        return !empty($cargo) ? ($cargo['descripcion_carg'] ?? '') : '';
     }
     public function getRegistro($id)
     {
@@ -155,7 +155,7 @@ class Cargos
                 `id_cargo`, `codigo`, `descripcion_carg`, `grado`, `perfil_siho`, `id_nombramiento`, `tipo_cargo`
             FROM
                 `nom_cargo_empleado`
-            WHERE (`id_cargo` = $id)";
+            WHERE (`id_cargo` = ?)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();

@@ -17,18 +17,21 @@ $sql = "SELECT HV.*,ART.nom_medicamento AS nom_articulo,
         INNER JOIN far_medicamentos AS ART  ON (ART.id_med=HV.id_articulo)
         WHERE HV.id_activo_fijo=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
 if ($obj === false) {
-    $obj = array(); // Inicializa $obj como un array vacío
+    $obj = []; // Inicializa $obj como un array vacío
 }
 
 if (empty($obj)) {
-    $n = $rs->columnCount();
-    for ($i = 0; $i < $n; $i++) :
+    $obj = [];
+    $n = $rs ? $rs->columnCount() : 0;
+    for ($i = 0; $i < $n; $i++):
         $col = $rs->getColumnMeta($i);
-        $name = $col['name'];
-        $obj[$name] = NULL;
+        $name = $col['name'] ?? null;
+        if ($name) {
+            $obj[$name] = NULL;
+        }
     endfor;
     //Inicializa variable por defecto
     $obj['id_tipo_ingreso'] = 0;
@@ -75,23 +78,30 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     </div>
                     <div class="col-md-3">
                         <label for="sl_responsable" class="small">Reponsable</label>
-                        <select class="form-select form-select-sm bg-input" id="sl_responsable" name="sl_responsable" <?php echo $edit_ubi ?>>
+                        <select class="form-select form-select-sm bg-input" id="sl_responsable" name="sl_responsable"
+                            <?php echo $edit_ubi ?>>
                             <?php usuarios($cmd, '', $obj['id_responsable']) ?>
                         </select>
-                        <input type="hidden" id="id_responsable" name="id_responsable" value="<?php echo $obj['id_responsable'] ?>">
+                        <input type="hidden" id="id_responsable" name="id_responsable"
+                            value="<?php echo $obj['id_responsable'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="placa" class="small">Placa</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="placa" name="placa" value="<?php echo $obj['placa'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="placa" name="placa"
+                            value="<?php echo $obj['placa'] ?>">
                     </div>
                     <div class="col-md-6">
                         <label for="nom_articulo" class="small">Artículo</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="nom_articulo" name="nom_articulo" class="small" value="<?php echo $obj['nom_articulo'] ?>" readonly="readonly" title="Doble Click para Seleccionar el Articulo" <?php echo $edit_art ?>>
-                        <input type="hidden" id="id_articulo" name="id_articulo" value="<?php echo $obj['id_articulo'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="nom_articulo"
+                            name="nom_articulo" class="small" value="<?php echo $obj['nom_articulo'] ?>"
+                            readonly="readonly" title="Doble Click para Seleccionar el Articulo" <?php echo $edit_art ?>>
+                        <input type="hidden" id="id_articulo" name="id_articulo"
+                            value="<?php echo $obj['id_articulo'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="num_serial" class="small">No. Serial</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="num_serial" name="num_serial" value="<?php echo $obj['num_serial'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="num_serial"
+                            name="num_serial" value="<?php echo $obj['num_serial'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="sl_marca" class="small">Marca</label>
@@ -101,7 +111,8 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     </div>
                     <div class="col-md-12">
                         <label for="des_activo" class="small">Nombre del Activo Fijo</label>
-                        <textarea class="form-control form-control-sm bg-input" id="des_activo" name="des_activo" rows="2"><?php echo $obj['des_activo'] ?></textarea>
+                        <textarea class="form-control form-control-sm bg-input" id="des_activo" name="des_activo"
+                            rows="2"><?php echo $obj['des_activo'] ?></textarea>
                     </div>
                     <div class="col-md-3">
                         <label for="sl_tipo_activo" class="small">Tipo Activo</label>
@@ -117,47 +128,58 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     </div>
                     <div class="col-md-3">
                         <label for="valor" class="small">Valor</label>
-                        <input type="number" step="0.0001" class="form-control form-control-sm bg-input" id="valor" name="valor" value="<?php echo $obj['valor'] ?>">
+                        <input type="number" step="0.0001" class="form-control form-control-sm bg-input" id="valor"
+                            name="valor" value="<?php echo $obj['valor'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="modelo" class="small">Modelo</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="modelo" name="modelo" value="<?php echo $obj['modelo'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="modelo" name="modelo"
+                            value="<?php echo $obj['modelo'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="lote" class="small">Lote</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="lote" name="lote" value="<?php echo $obj['lote'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="lote" name="lote"
+                            value="<?php echo $obj['lote'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="fecha_fabricacion" class="small">Fecha de Fabricación</label>
-                        <input type="date" class="form-control form-control-sm bg-input" id="fecha_fabricacion" name="fecha_fabricacion" class="small" value="<?php echo $obj['fecha_fabricacion'] ?>">
+                        <input type="date" class="form-control form-control-sm bg-input" id="fecha_fabricacion"
+                            name="fecha_fabricacion" class="small" value="<?php echo $obj['fecha_fabricacion'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="reg_invima" class="small">Registro INVIMA</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="reg_invima" name="reg_invima" value="<?php echo $obj['reg_invima'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="reg_invima"
+                            name="reg_invima" value="<?php echo $obj['reg_invima'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="fabricante" class="small">Fabricante</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="fabricante" name="fabricante" value="<?php echo $obj['fabricante'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="fabricante"
+                            name="fabricante" value="<?php echo $obj['fabricante'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="lugar_origen" class="small">Lugar de Origen</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="lugar_origen" name="lugar_origen" value="<?php echo $obj['lugar_origen'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="lugar_origen"
+                            name="lugar_origen" value="<?php echo $obj['lugar_origen'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="representante" class="small">Representante</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="representante" name="representante" value="<?php echo $obj['representante'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="representante"
+                            name="representante" value="<?php echo $obj['representante'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="dir_representante" class="small">Dirección del Representante</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="dir_representante" name="dir_representante" value="<?php echo $obj['dir_representante'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="dir_representante"
+                            name="dir_representante" value="<?php echo $obj['dir_representante'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="tel_representante" class="small">Teléfono del Representante</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="tel_representante" name="tel_representante" value="<?php echo $obj['tel_representante'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="tel_representante"
+                            name="tel_representante" value="<?php echo $obj['tel_representante'] ?>">
                     </div>
                     <div class="col-md-12">
                         <label for="recom_fabricante" class="small">Recomendaciones del Fabricante</label>
-                        <textarea class="form-control form-control-sm bg-input" id="recom_fabricante" name="recom_fabricante" rows="3"><?php echo $obj['recom_fabricante'] ?></textarea>
+                        <textarea class="form-control form-control-sm bg-input" id="recom_fabricante"
+                            name="recom_fabricante" rows="3"><?php echo $obj['recom_fabricante'] ?></textarea>
                     </div>
                     <div class="col-md-3">
                         <label for="sl_tipo_ingreso" class="small">Tipo de Adquisición</label>
@@ -167,19 +189,23 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     </div>
                     <div class="col-md-3">
                         <label for="fecha_adquisicion" class="small">Fecha de Adquisición</label>
-                        <input type="date" class="form-control form-control-sm bg-input" id="fecha_adquisicion" name="fecha_adquisicion" value="<?php echo $obj['fecha_adquisicion'] ?>">
+                        <input type="date" class="form-control form-control-sm bg-input" id="fecha_adquisicion"
+                            name="fecha_adquisicion" value="<?php echo $obj['fecha_adquisicion'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="fecha_instalacion" class="small">Fecha de Instalación</label>
-                        <input type="date" class="form-control form-control-sm bg-input" id="fecha_instalacion" name="fecha_instalacion" value="<?php echo $obj['fecha_instalacion'] ?>">
+                        <input type="date" class="form-control form-control-sm bg-input" id="fecha_instalacion"
+                            name="fecha_instalacion" value="<?php echo $obj['fecha_instalacion'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="periodo_garantia" class="small">Periodo de Garantía</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="periodo_garantia" name="periodo_garantia" value="<?php echo $obj['periodo_garantia'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="periodo_garantia"
+                            name="periodo_garantia" value="<?php echo $obj['periodo_garantia'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="vida_util" class="small">Vida Útil (años)</label>
-                        <input type="text" class="form-control form-control-sm bg-input numberint" id="vida_util" name="vida_util" value="<?php echo $obj['vida_util1'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input numberint" id="vida_util"
+                            name="vida_util" value="<?php echo $obj['vida_util1'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="sl_calif_4725" class="small">Calificación 4725</label>
@@ -189,47 +215,58 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     </div>
                     <div class="col-md-3">
                         <label for="calibracion" class="small">Calibración</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="calibracion" name="calibracion" value="<?php echo $obj['calibracion'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="calibracion"
+                            name="calibracion" value="<?php echo $obj['calibracion'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="vol_min" class="small">Voltaje Mínimo</label>
-                        <input type="number" class="form-control form-control-sm bg-input" id="vol_min" name="vol_min" value="<?php echo $obj['vol_min'] ?>">
+                        <input type="number" class="form-control form-control-sm bg-input" id="vol_min" name="vol_min"
+                            value="<?php echo $obj['vol_min'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="vol_max" class="small">Voltaje Máximo</label>
-                        <input type="number" class="form-control form-control-sm bg-input" id="vol_max" name="vol_max" value="<?php echo $obj['vol_max'] ?>">
+                        <input type="number" class="form-control form-control-sm bg-input" id="vol_max" name="vol_max"
+                            value="<?php echo $obj['vol_max'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="frec_min" class="small">Frecuencia Mínima</label>
-                        <input type="number" class="form-control form-control-sm bg-input" id="frec_min" name="frec_min" value="<?php echo $obj['frec_min'] ?>">
+                        <input type="number" class="form-control form-control-sm bg-input" id="frec_min" name="frec_min"
+                            value="<?php echo $obj['frec_min'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="frec_max" class="small">Frecuencia Máxima</label>
-                        <input type="number" class="form-control form-control-sm bg-input" id="frec_max" name="frec_max" value="<?php echo $obj['frec_max'] ?>">
+                        <input type="number" class="form-control form-control-sm bg-input" id="frec_max" name="frec_max"
+                            value="<?php echo $obj['frec_max'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="pot_min" class="small">Potencia Mínima</label>
-                        <input type="number" class="form-control form-control-sm bg-input" id="pot_min" name="pot_min" value="<?php echo $obj['pot_min'] ?>">
+                        <input type="number" class="form-control form-control-sm bg-input" id="pot_min" name="pot_min"
+                            value="<?php echo $obj['pot_min'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="pot_max" class="small">Potencia Máxima</label>
-                        <input type="number" class="form-control form-control-sm bg-input" id="pot_max" name="pot_max" value="<?php echo $obj['pot_max'] ?>">
+                        <input type="number" class="form-control form-control-sm bg-input" id="pot_max" name="pot_max"
+                            value="<?php echo $obj['pot_max'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="cor_min" class="small">Corriente Mínima</label>
-                        <input type="number" class="form-control form-control-sm bg-input" id="cor_min" name="cor_min" value="<?php echo $obj['cor_min'] ?>">
+                        <input type="number" class="form-control form-control-sm bg-input" id="cor_min" name="cor_min"
+                            value="<?php echo $obj['cor_min'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="cor_max" class="small">Corriente Máxima</label>
-                        <input type="number" class="form-control form-control-sm bg-input" id="cor_max" name="cor_max" value="<?php echo $obj['cor_max'] ?>">
+                        <input type="number" class="form-control form-control-sm bg-input" id="cor_max" name="cor_max"
+                            value="<?php echo $obj['cor_max'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="temp_min" class="small">Temperatura Mínima</label>
-                        <input type="number" class="form-control form-control-sm bg-input" id="temp_min" name="temp_min" value="<?php echo $obj['temp_min'] ?>">
+                        <input type="number" class="form-control form-control-sm bg-input" id="temp_min" name="temp_min"
+                            value="<?php echo $obj['temp_min'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="temp_max" class="small">Temperatura Máxima</label>
-                        <input type="number" class="form-control form-control-sm bg-input" id="temp_max" name="temp_max" value="<?php echo $obj['temp_max'] ?>">
+                        <input type="number" class="form-control form-control-sm bg-input" id="temp_max" name="temp_max"
+                            value="<?php echo $obj['temp_max'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="sl_riesgo" class="small">Riesgo</label>
@@ -245,34 +282,42 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     </div>
                     <div class="col-md-3">
                         <label for="cb_diagnostico" class="small">CB Diagnóstico</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="cb_diagnostico" name="cb_diagnostico" value="<?php echo $obj['cb_diagnostico'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="cb_diagnostico"
+                            name="cb_diagnostico" value="<?php echo $obj['cb_diagnostico'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="cb_prevencion" class="small">CB Prevención</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="cb_prevencion" name="cb_prevencion" value="<?php echo $obj['cb_prevencion'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="cb_prevencion"
+                            name="cb_prevencion" value="<?php echo $obj['cb_prevencion'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="cb_rehabilitacion" class="small">CB Rehabilitación</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="cb_rehabilitacion" name="cb_rehabilitacion" value="<?php echo $obj['cb_rehabilitacion'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="cb_rehabilitacion"
+                            name="cb_rehabilitacion" value="<?php echo $obj['cb_rehabilitacion'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="cb_analisis_lab" class="small">CB Análisis de Laboratorio</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="cb_analisis_lab" name="cb_analisis_lab" value="<?php echo $obj['cb_analisis_lab'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="cb_analisis_lab"
+                            name="cb_analisis_lab" value="<?php echo $obj['cb_analisis_lab'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="cb_trat_mant" class="small">CB Tratamiento y Mantenimiento</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="cb_trat_mant" name="cb_trat_mant" value="<?php echo $obj['cb_trat_mant'] ?>">
+                        <input type="text" class="form-control form-control-sm bg-input" id="cb_trat_mant"
+                            name="cb_trat_mant" value="<?php echo $obj['cb_trat_mant'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="sl_estado_general" class="small">Estado de Funcionamiento</label>
-                        <select class="form-select form-select-sm bg-input" id="sl_estado_general" name="sl_estado_general" <?php echo $edit_est ?>>
+                        <select class="form-select form-select-sm bg-input" id="sl_estado_general"
+                            name="sl_estado_general" <?php echo $edit_est ?>>
                             <?php estado_general_activo('', $obj['estado_general']) ?>
                         </select>
-                        <input type="hidden" id="id_estado_general" name="id_estado_general" value="<?php echo $obj['estado_general'] ?>">
+                        <input type="hidden" id="id_estado_general" name="id_estado_general"
+                            value="<?php echo $obj['estado_general'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="fecha_fuera_servicio" class="small">Fecha Fuera de Servicio</label>
-                        <input type="date" class="form-control form-control-sm bg-input" id="fecha_fuera_servicio" name="fecha_fuera_servicio" value="<?php echo $obj['fecha_fuera_servicio'] ?>">
+                        <input type="date" class="form-control form-control-sm bg-input" id="fecha_fuera_servicio"
+                            name="fecha_fuera_servicio" value="<?php echo $obj['fecha_fuera_servicio'] ?>">
                     </div>
                     <div class="col-md-3">
                         <label for="sl_estado" class="small">Estado</label>
@@ -283,11 +328,13 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     </div>
                     <div class="col-md-12">
                         <label for="causa_est_general" class="small">Causa del Estado de Funcionamiento</label>
-                        <textarea class="form-control form-control-sm bg-input" id="causa_est_general" name="causa_est_general" rows="3"><?php echo $obj['causa_est_general'] ?></textarea>
+                        <textarea class="form-control form-control-sm bg-input" id="causa_est_general"
+                            name="causa_est_general" rows="3"><?php echo $obj['causa_est_general'] ?></textarea>
                     </div>
                     <div class="col-md-12">
                         <label for="observaciones" class="small">Observaciones Generales</label>
-                        <textarea class="form-control form-control-sm bg-input" id="observaciones" name="observaciones" rows="3"><?php echo $obj['observaciones'] ?></textarea>
+                        <textarea class="form-control form-control-sm bg-input" id="observaciones" name="observaciones"
+                            rows="3"><?php echo $obj['observaciones'] ?></textarea>
                     </div>
                 </div>
             </form>

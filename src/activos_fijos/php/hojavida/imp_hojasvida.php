@@ -54,7 +54,7 @@ try {
             LEFT JOIN seg_usuarios_sistema AS US ON (US.id_usuario=HV.id_responsable) 
             $where ORDER BY HV.id_activo_fijo DESC ";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
@@ -136,7 +136,7 @@ try {
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="13" style="text-align:left">
-                    No. de Registros: <?php echo count($objs); ?>
+                    No. de Registros: <?php echo is_array($objs) ? count($objs) : 0; ?>
                 </td>
             </tr>
         </tfoot>

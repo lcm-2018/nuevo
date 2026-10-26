@@ -8,10 +8,10 @@ include '../../../../config/autoloader.php';
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $id = $_POST['id'];
-    $parametros = json_decode($_POST['parametros']);
+    $parametros = json_decode($_POST['parametros'] ?? '[]') ?: [];
 
     $limite = ' LIMIT 100';
     if ($_POST['limite']) {
@@ -22,8 +22,8 @@ try {
 
     $sql = 'SELECT consulta FROM tb_consultas_sql WHERE id_consulta=' . $id . ' LIMIT 1';
     $rs = $cmd->query($sql);
-    $obj = $rs->fetch();
-    $cnsql = $obj['consulta'];
+    $obj = $rs ? $rs->fetch() : null;
+    $cnsql = $obj['consulta'] ?? '';
 
     foreach ($parametros as $pr) {
         $cnsql = str_replace('[' . $pr->parametro . ']', $pr->valor, $cnsql);
@@ -31,13 +31,13 @@ try {
 
     $sqlcount = "SELECT COUNT(*) AS count FROM ($cnsql) AS c2";
     $rs = $cmd->query($sqlcount);
-    $obj = $rs->fetch();
-    $total = $obj['count'];
+    $obj = $rs ? $rs->fetch() : null;
+    $total = $obj['count'] ?? 0;
 
     $rs = $cmd->query($cnsql . $limite, PDO::FETCH_BOTH);
-    $objs = $rs->fetchAll(PDO::FETCH_NUM);
-    $n = $rs->columnCount();
-?>
+    $objs = $rs ? $rs->fetchAll(PDO::FETCH_NUM) : [];
+    $n = $rs ? $rs->columnCount() : 0;
+    ?>
 
     <div class="table-responsive">
         <table id="tabla" class="table table-striped table-bordered table-sm" style="width:100%; font-size:80%">
@@ -54,20 +54,20 @@ try {
             <tbody>
                 <?php
                 $j = 0;
-                foreach ($objs as $obj) : ?>
+                foreach ($objs as $obj): ?>
                     <tr>
-                        <?php foreach ($obj as $valor) : ?>
+                        <?php foreach ($obj as $valor): ?>
                             <td><?= $valor ?></td>
                         <?php endforeach; ?>
                     </tr>
-                <?php $j++;
+                    <?php $j++;
                 endforeach; ?>
             </tbody>
         </table>
     </div>
     <label><strong>No. Registros Visualizados:<?= $j ?></strong></label>
     <label><strong>De un Total de:<?= $total ?></strong></label>
-<?php
+    <?php
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getMessage();

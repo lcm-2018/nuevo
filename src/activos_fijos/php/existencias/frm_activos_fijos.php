@@ -19,7 +19,7 @@ $sql = "SELECT far_medicamentos.cod_medicamento,far_medicamentos.nom_medicamento
         INNER JOIN far_subgrupos ON (far_subgrupos.id_subgrupo = far_medicamentos.id_subgrupo)
         WHERE id_med=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 ?>
 
 <div class="px-0">

@@ -19,7 +19,8 @@ if (!isset($_SESSION['user'])) {
 }
 
 // Leer JSON del body
-$data = json_decode(file_get_contents('php://input'), true);
+$input = file_get_contents('php://input');
+$data = is_string($input) && $input !== '' ? json_decode($input, true) : [];
 
 // Validación de entrada
 $idNomina = isset($data['id']) ? filter_var($data['id'], FILTER_VALIDATE_INT) : false;

@@ -32,9 +32,9 @@ $cmd = \Config\Clases\Conexion::getConexion();
 
 $sql_empresa = "SELECT razon_social_ips AS nombre, nit_ips AS nit, dv AS dig_ver FROM tb_datos_ips";
 $res_empresa = $cmd->query($sql_empresa);
-$empresa = $res_empresa->fetch();
-$nit_empresa = $empresa['nit'];
-$nombre_empresa = $empresa['nombre'];
+$empresa = $res_empresa ? $res_empresa->fetch() : null;
+$nit_empresa = $empresa['nit'] ?? '';
+$nombre_empresa = $empresa['nombre'] ?? '';
 
 try {
     $sql = "SELECT

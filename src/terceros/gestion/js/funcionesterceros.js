@@ -412,6 +412,26 @@ function FormResponsabilidad(id) {
     $('#divModalForms').on('click', '#btnNewTercero', function (e) {
         e.preventDefault();
         $('.is-invalid').removeClass('is-invalid');
+
+        // Obtener configuración de obligatoriedad: [0 => direccion, 1 => correo, 2 => contacto, 3 => actividad]
+        let validaTercero = [1, 1, 1, 1];
+        if (typeof window.valida_tercero !== 'undefined' && Array.isArray(window.valida_tercero)) {
+            validaTercero = window.valida_tercero;
+        } else if ($('#valida_tercero').length) {
+            try {
+                let parsed = JSON.parse($('#valida_tercero').val());
+                if (Array.isArray(parsed)) {
+                    validaTercero = parsed;
+                }
+            } catch (err) {}
+        }
+
+        let valDireccion = validaTercero[0] !== undefined ? parseInt(validaTercero[0]) : ($('#valida_direccion').length ? parseInt($('#valida_direccion').val()) : 1);
+        let valCorreo    = validaTercero[1] !== undefined ? parseInt(validaTercero[1]) : ($('#valida_correo').length ? parseInt($('#valida_correo').val()) : 1);
+        let valContacto  = validaTercero[2] !== undefined ? parseInt(validaTercero[2]) : ($('#valida_contacto').length ? parseInt($('#valida_contacto').val()) : 1);
+        let valActividad = validaTercero[3] !== undefined ? parseInt(validaTercero[3]) : ($('#valida_actividad').length ? parseInt($('#valida_actividad').val()) : 1);
+        let dirTercero   = typeof window.direccion_tercero !== 'undefined' ? parseInt(window.direccion_tercero) : ($('#direccion_tercero').length ? parseInt($('#direccion_tercero').val()) : 1);
+
         if ($('#slcTipoTercero').val() === '0') {
             $('#slcTipoTercero').addClass('is-invalid');
             $('#slcTipoTercero').focus();
@@ -444,19 +464,25 @@ function FormResponsabilidad(id) {
             $('#slcMunicipioEmp').addClass('is-invalid');
             $('#slcMunicipioEmp').focus();
             mjeError('Error', 'Diligenciar, campo obligatorio');
-        } else if ($('#txtDireccion').val() === '') {
-            $('#txtDireccionPreview').addClass('is-invalid');
-            $('#btnAbrirGeneradorDir').trigger('click');
-            mjeError('Error', 'Debe generar la dirección usando el generador DIAN');
-        } else if ($('#mailEmp').val() === '') {
+        } else if (valDireccion === 1 && $.trim($('#txtDireccion').val()) === '') {
+            if (dirTercero === 1) {
+                $('#txtDireccionPreview').addClass('is-invalid');
+                $('#btnAbrirGeneradorDir').trigger('click');
+                mjeError('Error', 'Debe generar la dirección usando el generador DIAN');
+            } else {
+                $('#txtDireccion').addClass('is-invalid');
+                $('#txtDireccion').focus();
+                mjeError('Error', 'Diligenciar, campo obligatorio');
+            }
+        } else if (valCorreo === 1 && $('#mailEmp').val().trim() === '') {
             $('#mailEmp').addClass('is-invalid');
             $('#mailEmp').focus();
             mjeError('Error', 'Diligenciar, campo obligatorio');
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('#mailEmp').val())) {
+        } else if ($('#mailEmp').val().trim() !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('#mailEmp').val().trim())) {
             $('#mailEmp').addClass('is-invalid');
             $('#mailEmp').focus();
             mjeError('Error', 'El correo electrónico no tiene un formato válido');
-        } else if ($('#txtTelEmp').val() === '') {
+        } else if (valContacto === 1 && $('#txtTelEmp').val().trim() === '') {
             $('#txtTelEmp').addClass('is-invalid');
             $('#txtTelEmp').focus();
             mjeError('Error', 'Diligenciar, campo obligatorio');
@@ -464,7 +490,7 @@ function FormResponsabilidad(id) {
             $('#slcRiesgoLab').addClass('is-invalid');
             $('#slcRiesgoLab').focus();
             mjeError('Error', 'Diligenciar, campo obligatorio');
-        } else if ($('input[name="actividades_economicas[]"]').length === 0) {
+        } else if (valActividad === 1 && $('input[name="actividades_economicas[]"]').length === 0) {
             $('#buscarActvEconoMulti').addClass('is-invalid');
             $('#buscarActvEconoMulti').focus();
             mjeError('Error', 'Debe seleccionar al menos una actividad económica');
@@ -556,8 +582,26 @@ function FormResponsabilidad(id) {
     $('#divForms').on('click', '#btnUpTercero', function () {
         var msg = 'Diligenciar, campo obligatorio';
 
-
         $('.is-invalid').removeClass('is-invalid');
+
+        // Obtener configuración de obligatoriedad: [0 => direccion, 1 => correo, 2 => contacto, 3 => actividad]
+        let validaTercero = [1, 1, 1, 1];
+        if (typeof window.valida_tercero !== 'undefined' && Array.isArray(window.valida_tercero)) {
+            validaTercero = window.valida_tercero;
+        } else if ($('#valida_tercero').length) {
+            try {
+                let parsed = JSON.parse($('#valida_tercero').val());
+                if (Array.isArray(parsed)) {
+                    validaTercero = parsed;
+                }
+            } catch (err) {}
+        }
+
+        let valDireccion = validaTercero[0] !== undefined ? parseInt(validaTercero[0]) : ($('#valida_direccion').length ? parseInt($('#valida_direccion').val()) : 1);
+        let valCorreo    = validaTercero[1] !== undefined ? parseInt(validaTercero[1]) : ($('#valida_correo').length ? parseInt($('#valida_correo').val()) : 1);
+        let valContacto  = validaTercero[2] !== undefined ? parseInt(validaTercero[2]) : ($('#valida_contacto').length ? parseInt($('#valida_contacto').val()) : 1);
+        let dirTercero   = typeof window.direccion_tercero !== 'undefined' ? parseInt(window.direccion_tercero) : ($('#direccion_tercero').length ? parseInt($('#direccion_tercero').val()) : 1);
+
         if ($('#datFecInicio').val() === '') {
             $('#datFecInicio').addClass('is-invalid');
             $('#datFecInicio').focus();
@@ -574,11 +618,25 @@ function FormResponsabilidad(id) {
             $('#slcMunicipioEmp').addClass('is-invalid');
             $('#slcMunicipioEmp').focus();
             mjeError('Error', msg);
-        } else if ($('#mailEmp').val() === '') {
+        } else if (valDireccion === 1 && $.trim($('#txtDireccion').val()) === '') {
+            if (dirTercero === 1) {
+                $('#txtDireccionPreview').addClass('is-invalid');
+                $('#btnAbrirGeneradorDir').trigger('click');
+                mjeError('Error', 'Debe generar la dirección usando el generador DIAN');
+            } else {
+                $('#txtDireccion').addClass('is-invalid');
+                $('#txtDireccion').focus();
+                mjeError('Error', msg);
+            }
+        } else if (valCorreo === 1 && $('#mailEmp').val().trim() === '') {
             $('#mailEmp').addClass('is-invalid');
             $('#mailEmp').focus();
             mjeError('Error', msg);
-        } else if ($('#txtTelEmp').val() === '') {
+        } else if ($('#mailEmp').val().trim() !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('#mailEmp').val().trim())) {
+            $('#mailEmp').addClass('is-invalid');
+            $('#mailEmp').focus();
+            mjeError('Error', 'El correo electrónico no tiene un formato válido');
+        } else if (valContacto === 1 && $('#txtTelEmp').val().trim() === '') {
             $('#txtTelEmp').addClass('is-invalid');
             $('#txtTelEmp').focus();
             mjeError('Error', msg);

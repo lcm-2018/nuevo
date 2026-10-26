@@ -16,7 +16,7 @@ $sql = "SELECT HV.imagen,HV.placa,HV.num_serial,FM.nom_medicamento nom_articulo
         INNER JOIN far_medicamentos AS FM ON (FM.id_med = HV.id_articulo)
         WHERE HV.id_activo_fijo=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
 ?>
 

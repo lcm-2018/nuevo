@@ -45,6 +45,8 @@ if ($tipo_doc != '') {
     }
 }
 
+$disabledExcel = (!empty($tipo_doc) && $id_tipo_doc > 0) ? '' : 'disabled';
+
 // Construir opciones del select de documentos
 $optionsDocFuente = '<option value="">-- Seleccionar --</option>';
 foreach ($docsFuente as $mov) {
@@ -132,7 +134,7 @@ $content = <<<HTML
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <input type="text" class="filtro form-control form-control-sm bg-input" id="txt_tercero_filtro" placeholder="Tercero">
             </div>
             <div class="col-md-2">
@@ -148,9 +150,12 @@ $content = <<<HTML
                     <input class="form-check-input" type="checkbox" id="verAnulados"> Anulados
                 </label>
             </div>
-            <div class="col-md-1">
-                <button type="button" id="btn_buscar_filtro_Invoice" class="btn btn-outline-success btn-sm w-100" title="Filtrar">
+            <div class="col-md-2 d-flex align-items-center gap-1">
+                <button type="button" id="btn_buscar_filtro_Invoice" class="btn btn-outline-success btn-sm" title="Filtrar">
                     <span class="fas fa-search fa-lg" aria-hidden="true"></span>
+                </button>
+                <button type="button" id="btn_exportar_excel_Invoice" class="btn btn-outline-success btn-sm" title="Exportar a Excel" {$disabledExcel}>
+                    <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
                 </button>
             </div>
         </div>

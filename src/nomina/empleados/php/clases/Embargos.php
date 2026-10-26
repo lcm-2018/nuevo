@@ -388,7 +388,7 @@ class Embargos
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             $stmt->closeCursor();
             unset($stmt);
-            return !empty($data) ? $data['id'] : 0;
+            return !empty($data) ? ($data['id'] ?? 0) : 0;
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();
         }

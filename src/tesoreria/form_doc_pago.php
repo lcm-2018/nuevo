@@ -42,7 +42,7 @@ try {
                 `ctb_referencia`
                 INNER JOIN `ctb_fuente` 
                     ON (`ctb_referencia`.`id_ctb_fuente` = `ctb_fuente`.`id_doc_fuente`)
-            WHERE (`ctb_fuente`.`id_doc_fuente` = $id_ctb_doc)";
+            WHERE (`ctb_fuente`.`id_doc_fuente` = $id_ctb_doc AND `ctb_referencia`.`estado` = 1)";
     $rs = $cmd->query($sql);
     $referencia = $rs->fetchAll();
     $rs->closeCursor();
@@ -145,22 +145,26 @@ $tam = $id_ctb_doc == '14' ? 4 : 6;
                 <div class="row mb-2">
                     <div class="col-md-<?= $tam ?>">
                         <label for="fecha" class="small">FECHA</label>
-                        <input type="date" name="fecha" id="fecha" class="form-control form-control-sm bg-input" value="<?php echo date('Y-m-d', strtotime($datos['fecha'])); ?>" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>">
+                        <input type="date" name="fecha" id="fecha" class="form-control form-control-sm bg-input"
+                            value="<?php echo date('Y-m-d', strtotime($datos['fecha'])); ?>"
+                            min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>">
                     </div>
                     <div class="col-md-<?= $tam ?>">
                         <label for="numDoc" class="small">NUMERO</label>
-                        <input type="number" name="numDoc" id="numDoc" class="form-control form-control-sm bg-input" value="<?php echo $datos['id_manu'] ?>">
+                        <input type="number" name="numDoc" id="numDoc" class="form-control form-control-sm bg-input"
+                            value="<?php echo $datos['id_manu'] ?>">
                     </div>
                 </div>
                 <div class="row mb-2">
                     <?php
                     if ($id_ctb_doc == '14') {
-                    ?>
+                        ?>
                         <div class="col-md-4">
                             <label for="numDoc" class="small">&nbsp;</label>
                             <div class="input-group input-group-sm">
                                 <div class="input-group-text">
-                                    <input type="checkbox" class="form-check-input mt-0" name="chDocSoporte" id="chDocSoporte" <?php echo $datos['check'] == 0 ? '' : 'checked'; ?>>
+                                    <input type="checkbox" class="form-check-input mt-0" name="chDocSoporte"
+                                        id="chDocSoporte" <?php echo $datos['check'] == 0 ? '' : 'checked'; ?>>
                                 </div>
                                 <input type="text" class="form-control" disabled value="DOC. SOPORTE">
                             </div>
@@ -176,9 +180,9 @@ $tam = $id_ctb_doc == '14' ? 4 : 6;
                                 ?>
                             </select>
                         </div>
-                    <?php
+                        <?php
                     } else {
-                    ?>
+                        ?>
                         <div class="col-md-6">
                             <label for="ref_mov" class="small">CONCEPTO</label>
                             <select name="ref_mov" id="ref_mov" class="form-select form-select-sm bg-input" required>
@@ -194,34 +198,41 @@ $tam = $id_ctb_doc == '14' ? 4 : 6;
                         <div class="col-md-6">
                             <label for="numDoc" class="small">REFERENCIA</label>
                             <div class="input-group input-group-sm">
-                                <input type="text" name="referencia" id="referencia" value="<?php echo $ref; ?>" class="form-control form-control-sm bg-input" style="text-align: right;">
+                                <input type="text" name="referencia" id="referencia" value="<?php echo $ref; ?>"
+                                    class="form-control form-control-sm bg-input" style="text-align: right;">
                                 <div class="input-group-text">
-                                    <input type="checkbox" class="form-check-input mt-0" id="checkboxId" onclick="definirReferenciaPago();" <?php echo $chek; ?>>
+                                    <input type="checkbox" class="form-check-input mt-0" id="checkboxId"
+                                        onclick="definirReferenciaPago();" <?php echo $chek; ?>>
                                 </div>
                             </div>
                         </div>
-                </div>
-            <?php
+                    </div>
+                    <?php
                     }
-            ?>
-            <div class="row mb-2">
-                <div class="col-md-12">
-                    <label for="terceromov" class="small">TERCERO</label>
-                    <input type="text" name="terceromov" id="terceromov" class="form-control form-control-sm bg-input" value="<?php echo $tercero ?>">
-                    <input type="hidden" name="id_tercero" id="id_tercero" class="form-control form-control-sm bg-input" value="<?php echo $datos['id_tercero'] ?>">
+                    ?>
+                <div class="row mb-2">
+                    <div class="col-md-12">
+                        <label for="terceromov" class="small">TERCERO</label>
+                        <input type="text" name="terceromov" id="terceromov"
+                            class="form-control form-control-sm bg-input" value="<?php echo $tercero ?>">
+                        <input type="hidden" name="id_tercero" id="id_tercero"
+                            class="form-control form-control-sm bg-input" value="<?php echo $datos['id_tercero'] ?>">
+                    </div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-md-12">
-                    <label for="objeto" class="small">DETALLES</label>
-                    <textarea id="objeto" type="text" name="objeto" class="form-control form-control-sm bg-input py-0 sm" aria-label="Default select example" rows="4" required><?php echo $datos['detalle'] ?></textarea>
+                <div class="row mb-2">
+                    <div class="col-md-12">
+                        <label for="objeto" class="small">DETALLES</label>
+                        <textarea id="objeto" type="text" name="objeto"
+                            class="form-control form-control-sm bg-input py-0 sm" aria-label="Default select example"
+                            rows="4" required><?php echo $datos['detalle'] ?></textarea>
+                    </div>
                 </div>
-            </div>
             </form>
         </div>
     </div>
     <div class="text-end px-4 pt-3 w-100">
-        <button class="btn btn-primary btn-sm" id="gestionarMvtoCtbPag" text="<?php echo $id_documento ?>"><?php echo $id_documento == 0 ? 'Registrar' : 'Actualizar'; ?></button>
+        <button class="btn btn-primary btn-sm" id="gestionarMvtoCtbPag"
+            text="<?php echo $id_documento ?>"><?php echo $id_documento == 0 ? 'Registrar' : 'Actualizar'; ?></button>
         <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>

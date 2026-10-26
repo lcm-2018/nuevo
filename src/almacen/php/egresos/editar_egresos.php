@@ -21,12 +21,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5007, 2) && $oper == 'add' && $_POST['id_egreso'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5007, 2) && $oper == 'add' && $_POST['id_egreso'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5007, 3) && $oper == 'add' && $_POST['id_egreso'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5007, 4) && $oper == 'del') ||
         ($permisos->PermisosUsuario($opciones, 5007, 3) && $oper == 'close') ||
@@ -59,10 +60,10 @@ try {
                     $res['mensaje'] = 'ok';
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
 
-                    $proceso = "Se Registró Órden de Egreso Id: " . $obj['id'] . ", Fecha: " . $fec_egr . ", Detalle: " . $detalle;
+                    $proceso = "Se Registró Órden de Egreso Id: " . ($obj['id'] ?? '') . ", Fecha: " . $fec_egr . ", Detalle: " . $detalle;
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -70,9 +71,9 @@ try {
             } else {
                 $sql = "SELECT estado FROM far_orden_egreso WHERE id_egreso=" . $id;
                 $rs = $cmd->query($sql);
-                $obj_egreso = $rs->fetch();
+                $obj_egreso = $rs ? $rs->fetch() : null;
 
-                if ($obj_egreso['estado'] == 1) {
+                if (isset($obj_egreso['estado']) && $obj_egreso['estado'] == 1) {
                     $sql = "UPDATE far_orden_egreso 
                         SET id_tipo_egreso=$id_tipegr,id_ingreso_fz=$id_ingreso_fz,
                             id_cliente=$id_tercero,id_centrocosto=$id_cencosto,id_area=$id_area,detalle='$detalle',id_sede=$id_sede,id_bodega=$id_bodega
@@ -102,7 +103,7 @@ try {
                 $id_egreso = $res['id'];
                 $sql = '';
 
-                if($mismos_lotes == 1 && $generar_egreso == 2) {
+                if ($mismos_lotes == 1 && $generar_egreso == 2) {
                     $id_ingreso = $_POST['txt_id_ingreso'];
                     $sql = "INSERT INTO far_orden_egreso_detalle(id_egreso,id_lote,cantidad,valor)
                         SELECT $id_egreso,id_lote,cantidad,valor
@@ -112,7 +113,7 @@ try {
 
                 } else {
                     //Si el egreso se genera en base a un Pedido
-                    if ($generar_egreso == 1) {  
+                    if ($generar_egreso == 1) {
                         $id_pedido = $_POST['txt_id_pedido'];
                         $sql = "SELECT far_cec_pedido_detalle.id_ped_detalle,far_cec_pedido_detalle.id_medicamento,
                                     far_cec_pedido_detalle.cantidad-IFNULL(EGRESO.cantidad,0) AS cantidad,
@@ -127,7 +128,7 @@ try {
                                         GROUP BY EED.id_ped_detalle
                                     ) AS EGRESO ON (EGRESO.id_ped_detalle=far_cec_pedido_detalle.id_ped_detalle) 
                                 WHERE far_cec_pedido_detalle.cantidad>IFNULL(EGRESO.cantidad,0) AND far_cec_pedido_detalle.id_pedido=" . $id_pedido;
-                    
+
                     }
                     //Si el egreso se genera en base a un Ingreso Fianza
                     else if ($generar_egreso == 2) {
@@ -166,7 +167,7 @@ try {
                             ORDER BY fec_vencimiento,existencia";
                     $rs1 = $cmd->prepare($sql);
 
-                    $lotes = array();
+                    $lotes = [];
                     foreach ($objs as $obj) {
                         $rs1->bindParam(':id_med', $obj['id_medicamento']);
                         $rs1->execute();
@@ -175,7 +176,7 @@ try {
                         $val_promedio = $obj['val_promedio'];
                         $id_detalle = isset($obj['id_ped_detalle']) ? $obj['id_ped_detalle'] : NULL;
 
-                        if (count($obj_lotes) >= 1) {
+                        if (is_countable($obj_lotes) && count($obj_lotes) >= 1) {
                             $i = 0;
                             while ($cantidad >= 1) {
                                 if (!isset($obj_lotes[$i])) {
@@ -197,7 +198,7 @@ try {
                             }
 
                             if ($cantidad >= 1) {/* Completar la cantidad cuando ya no hay mas lotes en el ultimo lote encontrado */
-                                $index = count($lotes) - 1;
+                                $index = (is_countable($lotes) ? count($lotes) : 0) - 1;
                                 $id_lote = $lotes[$index]['id_lote'];
                                 $q = $lotes[$index]['cantidad'] + $cantidad;
                                 $lotes[$index] = array('id_lote' => $id_lote, 'cantidad' => (int) $q, 'val_promedio' => $val_promedio, 'id_detalle' => $id_detalle);
@@ -225,16 +226,16 @@ try {
                                 $rs2->execute();
                             }
                         }
-                    }                    
-                }   
+                    }
+                }
 
                 $sql = "UPDATE far_orden_egreso SET val_total=(SELECT SUM(valor*cantidad) FROM far_orden_egreso_detalle WHERE id_egreso=$id_egreso) WHERE id_egreso=$id_egreso";
                 $rs = $cmd->query($sql);
 
                 $sql = "SELECT val_total FROM far_orden_egreso WHERE id_egreso=" . $id_egreso;
                 $rs = $cmd->query($sql);
-                $obj_egreso = $rs->fetch();
-                $res['val_total'] = formato_valor($obj_egreso['val_total']);
+                $obj_egreso = $rs ? $rs->fetch() : null;
+                $res['val_total'] = formato_valor($obj_egreso['val_total'] ?? 0);
             }
 
             if ($res['mensaje'] == 'ok') {
@@ -249,15 +250,15 @@ try {
 
             $sql = "SELECT estado,fec_egreso,detalle FROM far_orden_egreso WHERE id_egreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_egreso = $rs->fetch();
+            $obj_egreso = $rs ? $rs->fetch() : null;
 
-            if ($obj_egreso['estado'] == 1) {
+            if (isset($obj_egreso['estado']) && $obj_egreso['estado'] == 1) {
                 $sql = "DELETE FROM far_orden_egreso WHERE id_egreso=" . $id;
                 $rs = $cmd->query($sql);
-                if ($rs) {                    
+                if ($rs) {
                     $res['mensaje'] = 'ok';
 
-                    $proceso = "Se Eliminó Órden de Egreso Id: " . $id . ", Fecha: " . $obj_egreso['fec_egreso'] . ", Detalle: " . $obj_egreso['detalle'];
+                    $proceso = "Se Eliminó Órden de Egreso Id: " . $id . ", Fecha: " . ($obj_egreso['fec_egreso'] ?? '') . ", Detalle: " . ($obj_egreso['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -272,18 +273,18 @@ try {
 
             $sql = "SELECT estado,fec_egreso,detalle,id_tipo_egreso FROM far_orden_egreso WHERE id_egreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_egreso = $rs->fetch();
+            $obj_egreso = $rs ? $rs->fetch() : null;
             $estado = isset($obj_egreso['estado']) ? $obj_egreso['estado'] : -1;
 
             $sql = "SELECT COUNT(*) AS total FROM far_orden_egreso_detalle WHERE id_egreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_detalles = $rs->fetch();
-            $num_detalles = $obj_detalles['total'];
+            $obj_detalles = $rs ? $rs->fetch() : null;
+            $num_detalles = $obj_detalles['total'] ?? 0;
 
             $sql = "SELECT COUNT(*) AS total FROM far_kardex WHERE id_egreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_kardex = $rs->fetch();
-            $num_reg_kardex = $obj_kardex['total'];
+            $obj_kardex = $rs ? $rs->fetch() : null;
+            $num_reg_kardex = $obj_kardex['total'] ?? 0;
 
             if ($estado == 1 && $num_detalles > 0 && $num_reg_kardex == 0) {
                 $respuesta = verificar_existencias($cmd, $id, "E");
@@ -316,17 +317,17 @@ try {
                         /* Valores del Lote */
                         $sql = 'SELECT existencia,val_promedio,id_med FROM far_medicamento_lote WHERE id_lote=' . $id_lote . ' LIMIT 1';
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-                        $id_medicamento = $obj['id_med'];
-                        $val_promedio_lote = $obj['val_promedio'];
-                        $existencia_lote = $obj['existencia'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $id_medicamento = $obj['id_med'] ?? 0;
+                        $val_promedio_lote = $obj['val_promedio'] ?? 0;
+                        $existencia_lote = $obj['existencia'] ?? 0;
 
                         /* Valores del Medicamento */
                         $sql = 'SELECT existencia,val_promedio FROM far_medicamentos WHERE id_med=' . $id_medicamento . ' LIMIT 1';
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-                        $val_promedio_med = $obj['val_promedio'];
-                        $existencia_med = $obj['existencia'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $val_promedio_med = $obj['val_promedio'] ?? 0;
+                        $existencia_med = $obj['existencia'] ?? 0;
 
                         $existencia_lote_kdx = $existencia_lote - $cantidad;
                         $existencia_med_kdx = $existencia_med - $cantidad;
@@ -353,16 +354,16 @@ try {
                     if ($error == 0) {
                         $sql = 'SELECT num_egresoactual FROM tb_datos_ips LIMIT 1';
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-                        $num_egreso = $obj['num_egresoactual'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $num_egreso = $obj['num_egresoactual'] ?? 0;
                         $res['num_egreso'] = $num_egreso;
 
-                        $sql = 'SELECT consecutivo FROM far_orden_egreso_tipo WHERE id_tipo_egreso=' . $obj_egreso['id_tipo_egreso'] . ' LIMIT 1';
+                        $sql = 'SELECT consecutivo FROM far_orden_egreso_tipo WHERE id_tipo_egreso=' . ($obj_egreso['id_tipo_egreso'] ?? 0) . ' LIMIT 1';
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-                        $num_egreso_tipo = $obj['consecutivo'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $num_egreso_tipo = $obj['consecutivo'] ?? 0;
                         $res['num_egreso_tipo'] = $num_egreso_tipo;
-                        
+
                         $sql = "UPDATE far_orden_egreso SET num_egreso=$num_egreso,num_egreso_tipo=$num_egreso_tipo,estado=2,id_usr_cierre=$id_usr_ope,fec_cierre='$fecha_ope',val_total=(SELECT SUM(valor*cantidad) FROM far_orden_egreso_detalle WHERE id_egreso=$id) WHERE id_egreso= $id";
                         $rs1 = $cmd->query($sql);
 
@@ -404,8 +405,8 @@ try {
 
             $sql = "SELECT estado,fec_egreso,detalle FROM far_orden_egreso WHERE id_egreso=" . $id;
             $rs = $cmd->query($sql);
-            $obj_egreso = $rs->fetch();
-            $estado = $obj_egreso['estado'];
+            $obj_egreso = $rs ? $rs->fetch() : null;
+            $estado = $obj_egreso['estado'] ?? 0;
 
             if ($estado == 2) {
 
@@ -421,16 +422,16 @@ try {
                     $sql = "SELECT GROUP_CONCAT(id_lote) AS lotes
                                 FROM far_orden_egreso_detalle WHERE id_egreso=" . $id;
                     $rs = $cmd->query($sql);
-                    $obj = $rs->fetch();
-                    $lotes = $obj['lotes'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $lotes = $obj['lotes'] ?? '';
 
                     recalcular_kardex($cmd, $lotes, 'E', '', $id, '', '', '', '', '');
                 }
                 if ($rs) {
                     $cmd->commit();
-                    $res['mensaje'] = 'ok';    
-                    
-                    $proceso = "Se Anuló Órden de Egreso Id: " . $id . ", Fecha: " . $obj_egreso['fec_egreso'] . ", Detalle: " . $obj_egreso['detalle'];
+                    $res['mensaje'] = 'ok';
+
+                    $proceso = "Se Anuló Órden de Egreso Id: " . $id . ", Fecha: " . ($obj_egreso['fec_egreso'] ?? '') . ", Detalle: " . ($obj_egreso['detalle'] ?? '');
                     Logs::guardaLog($proceso);
                 } else {
                     $cmd->rollBack();

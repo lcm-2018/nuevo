@@ -80,8 +80,8 @@ try {
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM far_orden_egreso $where_usr";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total 
@@ -89,8 +89,8 @@ try {
             INNER JOIN far_orden_egreso_tipo ON (far_orden_egreso_tipo.id_tipo_egreso=far_orden_egreso.id_tipo_egreso)
             $where_usr $where";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT far_orden_egreso.id_egreso,far_orden_egreso.num_egreso,far_orden_egreso.fec_egreso,far_orden_egreso.hor_egreso,

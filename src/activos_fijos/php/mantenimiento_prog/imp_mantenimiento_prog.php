@@ -33,7 +33,7 @@ try {
             LEFT JOIN seg_usuarios_sistema AS usr ON (usr.id_usuario = MD.id_usr_finaliza)
             WHERE MD.id_mant_detalle=" . $id . " LIMIT 1";
     $rs = $cmd->query($sql);
-    $obj_e = $rs->fetch();
+    $obj_e = $rs ? $rs->fetch() : null;
 
     $sql = "SELECT MN.id_det_nota,MN.fec_nota,MN.hor_nota,MN.observacion,MN.archivo,
                 CONCAT_WS(' ',usr.nombre1,usr.nombre2,usr.apellido1,usr.apellido2) AS usr_crea,
@@ -42,7 +42,7 @@ try {
             LEFT JOIN seg_usuarios_sistema AS usr ON (usr.id_usuario = MN.id_usr_crea)
             WHERE id_mant_detalle=" . $id . " ORDER BY id_det_nota";
     $rs = $cmd->query($sql);
-    $obj_ds = $rs->fetchAll();
+    $obj_ds = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
@@ -166,7 +166,7 @@ try {
         </tbody>
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
-                <td>TOTAL REGISTROS:<?php echo COUNT($obj_ds); ?> </td>
+                <td>TOTAL REGISTROS:<?php echo is_array($obj_ds) ? count($obj_ds) : 0; ?> </td>
                 <td colspan="4"></td>
             </tr>
         </tfoot>

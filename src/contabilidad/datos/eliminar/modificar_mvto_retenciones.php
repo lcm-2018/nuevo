@@ -8,7 +8,7 @@ if (!isset($_SESSION['user'])) {
 include '../../../../config/autoloader.php';
 include_once '../../../financiero/consultas.php';
 
-$res = array();
+$res = [];
 
 $id = $_POST['id'];
 //$id_doc = $_POST['id_doc'];

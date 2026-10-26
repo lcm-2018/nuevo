@@ -1,8 +1,5 @@
 <?php
 session_start();
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
@@ -44,17 +41,10 @@ try {
 
     // Consulto en la tabla de costos cuantos registros tiene asociados
     $sq2 = "SELECT
-                `ctt_adquisiciones`.`id_tipo_bn_sv`
-                , `ctb_causa_costos`.`valor`
+                `ctb_causa_costos`.`valor`
             FROM
-                `ctb_doc`
-                INNER JOIN `pto_crp` 
-                    ON (`ctb_doc`.`id_crp` = `pto_crp`.`id_pto_crp`)
-                LEFT JOIN `ctt_adquisiciones` 
-                    ON (`pto_crp`.`id_cdp` = `ctt_adquisiciones`.`id_cdp`)
-                INNER JOIN `ctb_causa_costos` 
-                    ON (`ctb_causa_costos`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-            WHERE (`ctb_doc`.`id_ctb_doc` = $id_doc)";
+                `ctb_causa_costos`
+            WHERE (`ctb_causa_costos`.`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sq2);
     $datoscostos = $rs->fetchAll();
     $rs->closeCursor();

@@ -135,7 +135,7 @@ try {
                         ) AS es ON (es.id_med = far_medicamentos.id_med) 
             $where_art";
     $rs = $cmd->query($sql);
-    $obj_tot = $rs->fetch();
+    $obj_tot = $rs ? $rs->fetch() : null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -197,6 +197,7 @@ try {
         </thead>
         <tbody style="font-size: 60%;">
             <?php
+            $objs = $objs ?? [];
             $tabla = '';
             foreach ($objs as $obj) {
                 $tabla .=  '<tr class="resaltar"> 
@@ -219,22 +220,22 @@ try {
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="3" style="text-align:left">
-                    No. de Registros: <?php echo count($objs); ?>
+                    No. de Registros: <?php echo is_countable($objs) ? count($objs) : 0; ?>
                 </td>
                 <td style="text-align:left">
                     TOTAL:
                 </td>
                 <td colspan="2" style="text-align:right">
-                    <?php echo formato_valor($obj_tot['valores_ini']); ?>
+                    <?php echo formato_valor($obj_tot['valores_ini'] ?? 0); ?>
                 </td>
                 <td colspan="2" style="text-align:right">
-                    <?php echo formato_valor($obj_tot['valores_ent']); ?>
+                    <?php echo formato_valor($obj_tot['valores_ent'] ?? 0); ?>
                 </td>
                 <td colspan="2" style="text-align:right">
-                    <?php echo formato_valor($obj_tot['valores_sal']); ?>
+                    <?php echo formato_valor($obj_tot['valores_sal'] ?? 0); ?>
                 </td>
                 <td colspan="2" style="text-align:right">
-                    <?php echo formato_valor($obj_tot['valores_fin']); ?>
+                    <?php echo formato_valor($obj_tot['valores_fin'] ?? 0); ?>
                 </td>
             </tr>
         </tfoot>

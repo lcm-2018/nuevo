@@ -163,7 +163,7 @@ class Incrementos
     {
         try {
             $sql = "DELETE FROM `nom_incremento_salario` WHERE `id_inc` = ?";
-            $consulta  = "DELETE FROM `nom_incremento_salario` WHERE `id_inc` = $id";
+            $consulta = "DELETE FROM `nom_incremento_salario` WHERE `id_inc` = $id";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindParam(1, $id, PDO::PARAM_INT);
             $stmt->execute();
@@ -184,7 +184,7 @@ class Incrementos
                         (`porcentaje`,`vigencia`,`fecha`,`estado`,`fec_reg`,`id_user_reg`)
                     VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bindValue(1, $array['numPorcIncSal'], PDO::PARAM_INT);
+            $stmt->bindValue(1, $array['numPorcIncSal'], PDO::PARAM_STR);
             $stmt->bindValue(2, Sesion::Vigencia(), PDO::PARAM_STR);
             $stmt->bindValue(3, $array['datFechaInSal'], PDO::PARAM_STR);
             $stmt->bindValue(4, 1, PDO::PARAM_INT);

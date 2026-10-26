@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
 $id_usr_crea = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5002, 2) && $oper == 'add' && $_POST['id_articulo'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5002, 2) && $oper == 'add' && $_POST['id_articulo'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5002, 3) && $oper == 'add' && $_POST['id_articulo'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5002, 4) && $oper == 'del') || $id_rol == 1
     ) {
@@ -54,10 +55,10 @@ try {
                     $res['mensaje'] = 'ok';
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
 
-                    $proceso = "Se Registró Artículo Id: " . $obj['id'] . ", Código: " . $cod_art . ", Nombre: " . $nom_art;
+                    $proceso = "Se Registró Artículo Id: " . ($obj['id'] ?? '') . ", Código: " . $cod_art . ", Nombre: " . $nom_art;
                     Logs::guardaLog($proceso);
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
@@ -83,18 +84,18 @@ try {
             // Verificar según el subgrupo Si el articulo tiene lote x defecto
             $sql = "SELECT lote_xdef FROM far_subgrupos WHERE id_subgrupo=$id_subgrp";
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch();
+            $obj = $rs ? $rs->fetch() : null;
             $lote_xdef = isset($obj['lote_xdef']) ? $obj['lote_xdef'] : 1;
 
             if ($lote_xdef == 1) {
                 $id_articulo = $res['id'];
                 $sql = "SELECT COUNT(*) AS count FROM far_medicamento_lote WHERE id_med=$id_articulo";
                 $rs = $cmd->query($sql);
-                $obj = $rs->fetch();
+                $obj = $rs ? $rs->fetch() : null;
 
-                if ($obj['count'] == 0) {
+                if (isset($obj['count']) && $obj['count'] == 0) {
                     $bodega = bodega_principal($cmd);
-                    $bodega_pri = $bodega['id_bodega'];
+                    $bodega_pri = $bodega['id_bodega'] ?? 0;
 
                     $sql = "INSERT INTO far_medicamento_lote(lote,fec_vencimiento,id_presentacion,id_cum,id_bodega,estado,id_usr_crea,id_med)  
                     VALUES('LOTEG','3000-01-01',0,0,$bodega_pri,1,$id_usr_crea,$id_articulo)";
@@ -108,14 +109,14 @@ try {
 
             $sql = "SELECT cod_medicamento,nom_medicamento FROM far_medicamentos WHERE id_med=" . $id;
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch();            
+            $obj = $rs ? $rs->fetch() : null;
 
             $sql = "DELETE FROM far_medicamentos WHERE id_med=" . $id;
             $rs = $cmd->query($sql);
-            if ($rs) {                
+            if ($rs) {
                 $res['mensaje'] = 'ok';
-                
-                $proceso = "Se Eliminó Artículo Id: " . $id . ", Código: " . $obj['cod_medicamento'] . ", Nombre: " . $obj['nom_medicamento'];
+
+                $proceso = "Se Eliminó Artículo Id: " . $id . ", Código: " . ($obj['cod_medicamento'] ?? '') . ", Nombre: " . ($obj['nom_medicamento'] ?? '');
                 Logs::guardaLog($proceso);
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];

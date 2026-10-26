@@ -37,8 +37,8 @@ try {
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM acf_orden_ingreso_detalle WHERE id_ingreso=" . $_POST['id_ingreso'];
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total 
@@ -46,8 +46,8 @@ try {
             INNER JOIN far_medicamentos ON (far_medicamentos.id_med = acf_orden_ingreso_detalle.id_articulo)
             WHERE id_ingreso=" . $_POST['id_ingreso'] . $where;
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT acf_orden_ingreso_detalle.id_ing_detalle,
@@ -63,7 +63,7 @@ try {
             WHERE acf_orden_ingreso_detalle.id_ingreso=" . $_POST['id_ingreso'] . $where . " ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

@@ -26,21 +26,25 @@ $mes = mb_strtoupper(Valores::NombreMes($nomina['mes']));
 $conexion = Conexion::getConexion();
 $datos = (new Detalles())->getRegistrosDT(1, -1, ['id_nomina' => $id_nomina], 1, 'ASC');
 
+$datos = is_array($datos) ? $datos : [];
+
 // Ordenar datos primero por sede y luego por nombre
-usort($datos, function ($a, $b) {
-    // Primero ordenar por sede
-    $sedeCompare = strcasecmp($a['sede'] ?? '', $b['sede'] ?? '');
-    if ($sedeCompare !== 0) {
-        return $sedeCompare;
-    }
-    // Si las sedes son iguales, ordenar por nombre
-    return strcasecmp($a['nombre'] ?? '', $b['nombre'] ?? '');
-});
+if (!empty($datos)) {
+    usort($datos, function ($a, $b) {
+        // Primero ordenar por sede
+        $sedeCompare = strcasecmp($a['sede'] ?? '', $b['sede'] ?? '');
+        if ($sedeCompare !== 0) {
+            return $sedeCompare;
+        }
+        // Si las sedes son iguales, ordenar por nombre
+        return strcasecmp($a['nombre'] ?? '', $b['nombre'] ?? '');
+    });
+}
 
 $usuario = new Usuario();
 $empresa = $usuario->getEmpresa();
 $rubros = (new Rubros)->getRubros2();
-$count = count($datos);
+$count = is_countable($datos) ? count($datos) : 0;
 
 // Definición de columnas con su configuración
 // 'key' => nombre del campo en datos

@@ -20,7 +20,7 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
 $id_usr_crea = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -28,13 +28,14 @@ try {
     $bodega = bodega_principal($cmd);
     $bodega_pri = $bodega['id_bodega'];
 
-    if (($permisos->PermisosUsuario($opciones, 5002, 2) && $oper == 'add' && $_POST['id_lote'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5002, 2) && $oper == 'add' && $_POST['id_lote'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5002, 3) && $oper == 'add' && $_POST['id_lote'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5002, 4) && $oper == 'del') || $id_rol == 1
     ) {
 
         $id_articulo = $_POST['id_articulo'];
-        
+
         if ($id_articulo > 0) {
 
             if ($oper == 'add') {
@@ -53,9 +54,9 @@ try {
 
                     $sql = "SELECT COUNT(*) AS count FROM far_medicamento_lote WHERE lote='$num_lot' AND id_med=$id_articulo AND id_bodega=$id_bodega";
                     $rs = $cmd->query($sql);
-                    $obj = $rs->fetch();
+                    $obj = $rs ? $rs->fetch() : null;
 
-                    if ($obj['count'] == 0) {
+                    if (isset($obj['count']) && $obj['count'] == 0) {
                         $sql = "INSERT INTO far_medicamento_lote(lote,fec_vencimiento,id_presentacion,id_cum,reg_invima,serie,id_marca,id_bodega,estado,id_usr_crea,id_med)  
                                 VALUES('$num_lot','$fec_ven',$id_pres,$id_cum,'$reg_inv','$ser_ref',$id_marca,$id_bodega,$estado,$id_usr_crea,$id_articulo)";
                         $rs = $cmd->query($sql);
@@ -64,8 +65,8 @@ try {
                             $res['mensaje'] = 'ok';
                             $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                             $rs = $cmd->query($sql_i);
-                            $obj = $rs->fetch();
-                            $res['id'] = $obj['id'];
+                            $obj = $rs ? $rs->fetch() : null;
+                            $res['id'] = $obj['id'] ?? null;
                         } else {
                             $res['mensaje'] = $cmd->errorInfo()[2];
                         }
@@ -76,10 +77,10 @@ try {
                     if ($id_bodega == $bodega_pri) {
                         $sql = "SELECT COUNT(*) AS count FROM far_medicamento_lote WHERE lote='$num_lot' AND id_med=$id_articulo AND id_bodega=$id_bodega AND id_lote<>$id";
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
+                        $obj = $rs ? $rs->fetch() : null;
 
-                        if ($obj['count'] == 0) {
-                            $arr = array();
+                        if (isset($obj['count']) && $obj['count'] == 0) {
+                            $arr = [];
                             array_push($arr, $id);
                             do {
                                 $id_lote = array_shift($arr);
@@ -90,8 +91,8 @@ try {
 
                                 $sql = "SELECT GROUP_CONCAT(id_lote) as lotes FROM far_medicamento_lote WHERE id_lote_pri=" . $id_lote;
                                 $rs = $cmd->query($sql);
-                                $obj_lote = $rs->fetch();
-                                if ($obj_lote['lotes']) {
+                                $obj_lote = $rs ? $rs->fetch() : null;
+                                if (!empty($obj_lote['lotes'])) {
                                     $lotes = explode(',', $obj_lote['lotes']);
                                     foreach ($lotes as $lote) {
                                         array_push($arr, $lote);
@@ -115,7 +116,7 @@ try {
             }
 
             if ($oper == 'del') {
-                $id = $_POST['id'];                
+                $id = $_POST['id'];
                 $sql = "DELETE FROM far_medicamento_lote WHERE id_lote=" . $id;
                 $rs = $cmd->query($sql);
                 if ($rs) {
@@ -127,10 +128,10 @@ try {
 
             $sql = "SELECT cod_medicamento,nom_medicamento FROM far_medicamentos WHERE id_med=" . $id_articulo;
             $rs = $cmd->query($sql);
-            $obj_articulo = $rs->fetch();
+            $obj_articulo = $rs ? $rs->fetch() : null;
 
-            $proceso = "Se Modificó LOTES de Articulo Código: " . $obj_articulo['cod_medicamento'] . ", Nombre: " . $obj_articulo['nom_medicamento'];
-            Logs::guardaLog($proceso);                    
+            $proceso = "Se Modificó LOTES de Articulo Código: " . ($obj_articulo['cod_medicamento'] ?? '') . ", Nombre: " . ($obj_articulo['nom_medicamento'] ?? '');
+            Logs::guardaLog($proceso);
         } else {
             $res['mensaje'] = 'Primero debe guardar el Articulo';
         }

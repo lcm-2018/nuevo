@@ -35,14 +35,14 @@ try {
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM far_medicamento_cum WHERE id_med=" . $_POST['id_articulo'];
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM far_medicamento_cum WHERE id_med=" . $_POST['id_articulo'] . $where;
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT far_medicamento_cum.id_cum,far_medicamento_cum.cum,far_medicamento_cum.ium,

@@ -42,7 +42,7 @@ try {
                        GROUP BY id_articulo) AS e ON (e.id_articulo=far_medicamentos.id_med)
             $where ORDER BY far_medicamentos.id_med DESC ";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
@@ -116,7 +116,7 @@ try {
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="9" style="text-align:left">
-                    No. de Registros: <?php echo count($objs); ?>
+                    No. de Registros: <?php echo is_array($objs) ? count($objs) : 0; ?>
                 </td>
             </tr>
         </tfoot>

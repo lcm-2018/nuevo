@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_ope = date('Y-m-d H:i:s');
 $id_usr_ope = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5706, 2) && $oper == 'add') ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5706, 2) && $oper == 'add') ||
         ($permisos->PermisosUsuario($opciones, 5706, 3) && $oper == 'close') || $id_rol == 1
     ) {
 
@@ -38,9 +39,8 @@ try {
                 INNER JOIN acf_hojavida ON (acf_hojavida.id_activo_fijo = acf_mantenimiento_detalle.id_activo_fijo)
                 WHERE acf_mantenimiento_detalle.id_mant_detalle=" . $id;
         $rs = $cmd->query($sql);
-        $obj_man = $rs->fetch();
-
-        if (in_array($obj_man['estado'], [1, 2])) {
+        $obj_man = $rs ? $rs->fetch() : null;
+        if (in_array($obj_man['estado'] ?? -1, [1, 2])) {
             if ($oper == 'add') {
                 $sql = "UPDATE acf_mantenimiento_detalle 
                         SET observacion_mant=:observacion_mant,estado_fin_mant=:estado_fin_mant,observacion_fin_mant=:observacion_fin_mant,estado=:estado 
@@ -107,9 +107,9 @@ try {
                     //Cierra el mantenimiento si ya finalizo todos los equipos
                     $sql = "SELECT COUNT(*) AS total FROM acf_mantenimiento_detalle WHERE estado IN (1,2) AND id_mantenimiento=" . $obj_man['id_mantenimiento'];
                     $rs = $cmd->query($sql);
-                    $obj_det = $rs->fetch();
-                    if ($obj_det['total'] == 0) {
-                        $sql = "UPDATE acf_mantenimiento SET estado=4 WHERE id_mantenimiento="  . $obj_man['id_mantenimiento'];
+                    $obj_det = $rs ? $rs->fetch() : null;
+                    if (($obj_det['total'] ?? 0) == 0) {
+                        $sql = "UPDATE acf_mantenimiento SET estado=4 WHERE id_mantenimiento=" . $obj_man['id_mantenimiento'];
                         $updated = $cmd->query($sql);
                     }
                 }

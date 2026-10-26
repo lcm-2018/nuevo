@@ -280,7 +280,7 @@ class ViaticoNovedades
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return $data ? floatval($data['val_total']) : 0;
+        return $data && isset($data['val_total']) ? floatval($data['val_total']) : 0;
     }
 
     /**
@@ -303,7 +303,7 @@ class ViaticoNovedades
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return floatval($data['total']);
+        return floatval($data['total'] ?? 0);
     }
 
     /**

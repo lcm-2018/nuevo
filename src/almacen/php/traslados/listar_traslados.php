@@ -66,14 +66,14 @@ try {
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM far_traslado $where_usr";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM far_traslado $where_usr $where";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT far_traslado.id_traslado,far_traslado.num_traslado,far_traslado.fec_traslado,far_traslado.hor_traslado,

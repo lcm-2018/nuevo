@@ -4,11 +4,12 @@ $ruta_firmas = "/proyecto/hc/img/firmas/";
 $ruta_firmas = "/cronhis/img/firmas/";
 
 //FUNCION QUE RETORNA LA BODEGA PRINCIPAL DE LA ENTIDAD VALIDANDO PERMISO DEL USUARIO
-function bodega_principal($cmd){
+function bodega_principal($cmd)
+{
     try {
         $idusr = $_SESSION['id_user'];
         $idrol = $_SESSION['rol'];
-        $res = array();
+        $res = [];
         $sql = "SELECT far_bodegas.id_bodega,far_bodegas.nombre,tb_sedes.id_sede,tb_sedes.nom_sede,seg_bodegas_usuario.id_usuario
                 FROM far_bodegas 
                 LEFT JOIN tb_sedes_bodega ON (tb_sedes_bodega.id_bodega=far_bodegas.id_bodega)
@@ -22,11 +23,11 @@ function bodega_principal($cmd){
                 if (isset($obj['id_usuario']) || $idrol == 1) {
                     $res = array('id_bodega' => $obj['id_bodega'], 'nom_bodega' => $obj['nombre'], 'id_sede' => $obj['id_sede'], 'nom_sede' => $obj['nom_sede']);
                 } else {
-                    $res = array('id_bodega' => '', 'nom_bodega' => 'La Bodega Principal no esta asociada al Usuario', 'id_sede' => '', 'nom_sede' => '');        
-                }    
+                    $res = array('id_bodega' => '', 'nom_bodega' => 'La Bodega Principal no esta asociada al Usuario', 'id_sede' => '', 'nom_sede' => '');
+                }
             } else {
-                $res = array('id_bodega' => '', 'nom_bodega' => 'La Bodega Principal no tiene Sede', 'id_sede' => '', 'nom_sede' => '');    
-            }    
+                $res = array('id_bodega' => '', 'nom_bodega' => 'La Bodega Principal no tiene Sede', 'id_sede' => '', 'nom_sede' => '');
+            }
         } else {
             $res = array('id_bodega' => '', 'nom_bodega' => 'No Existe Bodega Principal', 'id_sede' => '', 'nom_sede' => '');
         }
@@ -38,9 +39,10 @@ function bodega_principal($cmd){
 }
 
 //FUNCION QUE RETORNA LA BODEGA PRINCIPAL DE LA ENTIDAD SIN VALIDAR PERMISO DEL USUARIOS
-function bodega_principal_general($cmd){
+function bodega_principal_general($cmd)
+{
     try {
-        $res = array();
+        $res = [];
         $sql = "SELECT far_bodegas.id_bodega,far_bodegas.nombre,tb_sedes_bodega.id_sede,tb_sedes.nom_sede
                 FROM far_bodegas 
                 LEFT JOIN tb_sedes_bodega ON (tb_sedes_bodega.id_bodega=far_bodegas.id_bodega)
@@ -52,8 +54,8 @@ function bodega_principal_general($cmd){
             if (isset($obj['id_sede'])) {
                 $res = array('id_bodega' => $obj['id_bodega'], 'nom_bodega' => $obj['nombre'], 'id_sede' => $obj['id_sede'], 'nom_sede' => $obj['nom_sede']);
             } else {
-                $res = array('id_bodega' => '', 'nom_bodega' => 'La Bodega Principal no tiene Sede', 'id_sede' => '', 'nom_sede' => '');    
-            }    
+                $res = array('id_bodega' => '', 'nom_bodega' => 'La Bodega Principal no tiene Sede', 'id_sede' => '', 'nom_sede' => '');
+            }
         } else {
             $res = array('id_bodega' => '', 'nom_bodega' => 'No Existe Bodega Principal', 'id_sede' => '', 'nom_sede' => '');
         }
@@ -65,44 +67,57 @@ function bodega_principal_general($cmd){
 }
 
 //FUNCION QUE RETORNAR FECHA Y HORA DEL SERVIDOR
-function fecha_hora_servidor(){
-    $res = array();
+function fecha_hora_servidor()
+{
+    $res = [];
     date_default_timezone_set('America/Bogota');
     $res['hora'] = date('h:iA');
     $res['hora24h'] = date('H:i');
-    $res['fecha'] = date('Y-m-d');    
+    $res['fecha'] = date('Y-m-d');
     return $res;
 }
 
 //FUNCION QUE RETORNAR FECHA Y HORA DEL SERVIDOR
-function add_fecha($fecha, $tipo, $valor){
+function add_fecha($fecha, $tipo, $valor)
+{
     $fecha_ini = $fecha == '' ? new DateTime() : new DateTime($fecha);
-    switch($tipo){
-        case 1: $incremento = $valor.' year'; break;       //Años
-        case 2: $incremento = $valor.' months'; break;     //Meses
-        case 3: $incremento = $valor.' days'; break;       //Dias
-        default: $incremento = '0 days'; break;
+    switch ($tipo) {
+        case 1:
+            $incremento = $valor . ' year';
+            break;       //Años
+        case 2:
+            $incremento = $valor . ' months';
+            break;     //Meses
+        case 3:
+            $incremento = $valor . ' days';
+            break;       //Dias
+        default:
+            $incremento = '0 days';
+            break;
     }
     date_add($fecha_ini, date_interval_create_from_date_string($incremento));
-    $fecha_fin = date_format($fecha_ini, 'Y-m-d');    
-    return $fecha_fin;    
+    $fecha_fin = date_format($fecha_ini, 'Y-m-d');
+    return $fecha_fin;
 }
 
 //FUNCION PARA DAR FORMATO A LOS VALORES NUMERICOS
-function formato_valor($valor){
-    return '$' . number_format($valor, 2, ",", ".");    
+function formato_valor($valor)
+{
+    return '$' . number_format($valor, 2, ",", ".");
 }
 
 //FUNCION PARA DAR FORMATO A LOS VALORES CON DECIMALES
-function formato_decimal($num) {
-    $num = rtrim(rtrim($num, '0'), '.');  
+function formato_decimal($num)
+{
+    $num = rtrim(rtrim($num, '0'), '.');
     return $num;
 }
 
 //FUNCION QUE RETORNAR LOS DATOS DE UN LOTE
-function datos_lote($cmd, $id_lote){
+function datos_lote($cmd, $id_lote)
+{
     try {
-        $res = array();
+        $res = [];
         $sql = "SELECT far_medicamento_lote.id_lote,far_medicamento_lote.lote,far_medicamento_lote.existencia,
                     CONCAT(far_medicamentos.nom_medicamento,IF(far_medicamento_lote.id_marca=0,'',CONCAT(' - ',acf_marca.descripcion))) AS nom_articulo,
                     far_medicamentos.val_promedio,
@@ -128,18 +143,21 @@ function datos_lote($cmd, $id_lote){
 }
 
 //FUNCION QUE RETORNAR LOS DATOS DE UN ARTICULO
-function datos_articulo($cmd, $id_med){
+function datos_articulo($cmd, $id_med)
+{
     try {
-        $res = array();
+        $res = [];
         $sql = "SELECT id_med,nom_medicamento,val_promedio
                 FROM far_medicamentos
                 WHERE id_med=$id_med";
         $rs = $cmd->query($sql);
         $obj = $rs->fetch();
         if (isset($obj['id_med'])) {
-            $res = array('id_med' => $obj['id_med'], 
-                        'nom_articulo' => $obj['nom_medicamento'], 
-                        'val_promedio' => $obj['val_promedio']);
+            $res = array(
+                'id_med' => $obj['id_med'],
+                'nom_articulo' => $obj['nom_medicamento'],
+                'val_promedio' => $obj['val_promedio']
+            );
         } else {
             $res = array('id_med' => '', 'nom_articulo' => '', 'val_promedio' => '');
         }
@@ -151,9 +169,10 @@ function datos_articulo($cmd, $id_med){
 }
 
 //FUNCION QUE RETORNAR LA EXISTENCIA Y DE UN ARTICULO EN UNA BODEGA
-function existencia_articulo($cmd, $id_med, $id_bodega){
+function existencia_articulo($cmd, $id_med, $id_bodega)
+{
     try {
-        $res = array(); 
+        $res = [];
         $sql = "SELECT SUM(existencia) AS existencia
                 FROM far_medicamento_lote
                 WHERE id_med=$id_med AND id_bodega=$id_bodega";
@@ -172,18 +191,19 @@ function existencia_articulo($cmd, $id_med, $id_bodega){
 }
 
 //SEDE UNICA DE UN USUARIO
-function sede_unica_usuario($cmd){
+function sede_unica_usuario($cmd)
+{
     try {
         $idusr = $_SESSION['id_user'];
-        $res = array();
+        $res = [];
         $sql = "SELECT COUNT(*) AS count FROM seg_sedes_usuario WHERE id_usuario=$idusr";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-        if ($obj['count'] == 1) {
+        $obj = $rs ? $rs->fetch() : null;
+        if (isset($obj['count']) && $obj['count'] == 1) {
             $sql = "SELECT id_sede FROM seg_sedes_usuario WHERE id_usuario=$idusr";
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch();
-            $res = array('id_sede' => $obj['id_sede']);
+            $obj = $rs ? $rs->fetch() : null;
+            $res = array('id_sede' => $obj['id_sede'] ?? '0');
         } else {
             $res = array('id_sede' => '0');
         }
@@ -195,17 +215,19 @@ function sede_unica_usuario($cmd){
 }
 
 //BITACORA DE MENSAJES A UN ARCHIVO DE ACCIONES REALIZADAS
-function bitacora($accion, $opcion, $detalle, $id_usuario, $login) {
+function bitacora($accion, $opcion, $detalle, $id_usuario, $login)
+{
     $fecha = '[' . date('Y-m-d h:i:s A') . ']';
     $usuario = $id_usuario . '-' . $login;
-    $ip=$_SERVER['REMOTE_ADDR'];    
+    $ip = $_SERVER['REMOTE_ADDR'];
     $archivo = $_SESSION['ruta_logs'] . date('Ym') . '.log';
-    $log= "$fecha Usuario: $usuario, IP: $ip, Accion: $accion, Opcion: $opcion, Registro: $detalle\r\n";
+    $log = "$fecha Usuario: $usuario, IP: $ip, Accion: $accion, Opcion: $opcion, Registro: $detalle\r\n";
     file_put_contents("$archivo", $log, FILE_APPEND | LOCK_EX);
 }
 
 //FUNCIONES DE CONEXION A SEDE REMOTA
-function isHostReachable($host): bool {
+function isHostReachable($host): bool
+{
     // Si el SO empieza por "WIN" → Windows, si no → asumimos Linux/Unix
     $cmd = (stripos(PHP_OS, 'WIN') === 0) ? "ping -n 1 " : "ping -c 1 ";
     $cmd .= escapeshellarg($host);
@@ -213,23 +235,38 @@ function isHostReachable($host): bool {
     return $status === 0;
 }
 
-function isMySQLPortOpen(string $host, int $port, int $timeout = 2): bool {
-    $errno  = 0;
+function isMySQLPortOpen(string $host, int $port, int $timeout = 2): bool
+{
+    $errno = 0;
     $errstr = '';
-    $fp = @fsockopen($host, $port, $errno, $errstr, $timeout);
-    if ($fp) {
-        fclose($fp);
-        return true;
+    try {
+        set_error_handler(function () {
+            return true; }, E_WARNING);
+        $fp = fsockopen($host, $port, $errno, $errstr, (float) $timeout);
+        restore_error_handler();
+        if ($fp) {
+            fclose($fp);
+            return true;
+        }
+    } catch (\Throwable $e) {
+        restore_error_handler();
+        return false;
     }
     return false;
 }
 
-function canConnectToDatabase(string $host, int $port, string $user, string $password, string $database): array {
-    $mysqli = @new mysqli($host, $user, $password, $database, $port);
-   if ($mysqli->connect_errno) {
-        $error = $mysqli->connect_error;
-        return [false, $error];
+function canConnectToDatabase(string $host, int $port, string $user, string $password, string $database): array
+{
+    try {
+        $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8";
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_TIMEOUT => 2,
+        ];
+        $pdo = new PDO($dsn, $user, $password, $options);
+        $pdo = null;
+        return [true, 'Conexión a la base de datos exitosa.'];
+    } catch (PDOException $e) {
+        return [false, $e->getMessage()];
     }
-    $mysqli->close();
-    return [true, 'Conexión a la base de datos exitosa.'];
 }

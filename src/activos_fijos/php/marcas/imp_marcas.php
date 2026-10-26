@@ -79,7 +79,7 @@ try {
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="2" style="text-align:left">
-                    No. de Registros: <?php echo count($objs); ?>
+                    No. de Registros: <?php echo is_array($objs) ? count($objs) : 0; ?>
                 </td>
             </tr>
         </tfoot>

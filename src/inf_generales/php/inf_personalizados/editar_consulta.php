@@ -15,44 +15,44 @@ $fecha_ope = date('Y-m-d H:i:s');
 $id_rol = $_SESSION['rol'];
 $id_user = $_SESSION['id_user'];
 
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+    $cmd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     if ($id_rol == 1) {
-        $sensql = array();
-        $sensql[0]="alter";
-        $sensql[1]="analyze";
-        $sensql[2]="create";
-        $sensql[3]="delete";
-        $sensql[4]="drop";
-        $sensql[5]="explain";
-        $sensql[6]="grant";
-        $sensql[7]="revoke";
-        $sensql[8]="handler";
-        $sensql[9]="insert";
-        $sensql[10]="kill";
-        $sensql[11]="lock";
-        $sensql[12]="rename";
-        $sensql[13]="replace";
-        $sensql[14]="reset";
-        $sensql[15]="revoke";
-        $sensql[16]="show";
-        $sensql[17]="truncate";
-        $sensql[18]="update";
-        $sensql[19]="use ";
+        $sensql = [];
+        $sensql[0] = "alter";
+        $sensql[1] = "analyze";
+        $sensql[2] = "create";
+        $sensql[3] = "delete";
+        $sensql[4] = "drop";
+        $sensql[5] = "explain";
+        $sensql[6] = "grant";
+        $sensql[7] = "revoke";
+        $sensql[8] = "handler";
+        $sensql[9] = "insert";
+        $sensql[10] = "kill";
+        $sensql[11] = "lock";
+        $sensql[12] = "rename";
+        $sensql[13] = "replace";
+        $sensql[14] = "reset";
+        $sensql[15] = "revoke";
+        $sensql[16] = "show";
+        $sensql[17] = "truncate";
+        $sensql[18] = "update";
+        $sensql[19] = "use ";
 
         $sentencia = $_POST['txt_con_sql'];
         $error = '';
-        for($x=0; $x<=19; $x++){
-            if (strpos($sentencia, $sensql[$x]) != false){ 
+        for ($x = 0; $x <= 19; $x++) {
+            if (strpos($sentencia, $sensql[$x]) != false) {
                 $error .= ' - ' . $sensql[$x];
-            }    
+            }
         }
-        
-        if ($error == ''){
+
+        if ($error == '') {
             $sql = "UPDATE tb_consultas_sql SET
                             nom_consulta = :nom_con,
                             id_opcion = :id_opcion,
@@ -75,14 +75,14 @@ try {
                 $res['des_consulta'] = $_POST['txt_des_con'];
             } else {
                 $res['mensaje'] = $cmd->errorInfo()[2];
-            } 
+            }
         } else {
             $res['mensaje'] = 'Sentencia incorrecta ' . $error;
         }
     } else {
         $res['mensaje'] = 'El Usuario de Sistema no tienen permiso para esta Acción';
     }
-    
+
     $cmd = null;
 } catch (PDOException $e) {
     $res['mensaje'] = $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

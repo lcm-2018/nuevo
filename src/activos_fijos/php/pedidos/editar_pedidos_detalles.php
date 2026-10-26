@@ -20,12 +20,13 @@ include '../common/funciones_generales.php';
 $oper = isset($_POST['oper']) ? $_POST['oper'] : exit('Acción no permitida');
 $fecha_crea = date('Y-m-d H:i:s');
 $id_usr_crea = $_SESSION['id_user'];
-$res = array();
+$res = [];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
-    if (($permisos->PermisosUsuario($opciones, 5702, 2) && $oper == 'add' && $_POST['id_detalle'] == -1) ||
+    if (
+        ($permisos->PermisosUsuario($opciones, 5702, 2) && $oper == 'add' && $_POST['id_detalle'] == -1) ||
         ($permisos->PermisosUsuario($opciones, 5702, 3) && $oper == 'add' && $_POST['id_detalle'] != -1) ||
         ($permisos->PermisosUsuario($opciones, 5702, 4) && $oper == 'del') || $id_rol == 1
     ) {
@@ -36,9 +37,8 @@ try {
 
             $sql = "SELECT estado,fec_pedido,detalle FROM far_alm_pedido WHERE id_pedido=" . $id_pedido;
             $rs = $cmd->query($sql);
-            $obj_pedido = $rs->fetch();
-
-            if ($obj_pedido['estado'] == 1) {
+            $obj_pedido = $rs ? $rs->fetch() : null;
+            if (($obj_pedido['estado'] ?? -1) == 1) {
                 if ($oper == 'add') {
                     $id = $_POST['id_detalle'];
                     $id_med = $_POST['id_txt_nom_med'];
@@ -48,8 +48,8 @@ try {
                     if ($id == -1) {
                         $sql = "SELECT COUNT(*) AS count FROM far_alm_pedido_detalle WHERE id_pedido=$id_pedido AND id_medicamento=" . $id_med;
                         $rs = $cmd->query($sql);
-                        $obj = $rs->fetch();
-                        if ($obj['count'] == 0) {
+                        $obj = $rs ? $rs->fetch() : null;
+                        if (($obj['count'] ?? 0) == 0) {
                             $sql = "INSERT INTO far_alm_pedido_detalle(id_pedido,id_medicamento,cantidad,valor)
                                     VALUES($id_pedido,$id_med ,$cantidad,$valor)";
                             $rs = $cmd->query($sql);
@@ -58,8 +58,8 @@ try {
                                 $res['mensaje'] = 'ok';
                                 $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                                 $rs = $cmd->query($sql_i);
-                                $obj = $rs->fetch();
-                                $res['id'] = $obj['id'];
+                                $obj = $rs ? $rs->fetch() : null;
+                                $res['id'] = $obj['id'] ?? null;
                             } else {
                                 $res['mensaje'] = $cmd->errorInfo()[2];
                             }
@@ -95,8 +95,8 @@ try {
 
                     $sql = "SELECT val_total FROM far_alm_pedido WHERE id_pedido=" . $id_pedido;
                     $rs = $cmd->query($sql);
-                    $obj_total = $rs->fetch();
-                    $res['val_total'] = formato_valor($obj_total['val_total']);
+                    $obj_total = $rs ? $rs->fetch() : null;
+                    $res['val_total'] = formato_valor($obj_total['val_total'] ?? 0);
 
                     $proceso = "Se Modificó detalles de Pedido de Activos Fijos Id: " . $id_pedido . ", Fecha: " . $obj_pedido['fec_pedido'] . ", Detalle: " . $obj_pedido['detalle'];
                     Logs::guardaLog($proceso);

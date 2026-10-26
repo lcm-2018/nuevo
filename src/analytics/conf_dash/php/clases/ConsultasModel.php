@@ -32,7 +32,7 @@ class ConsultasModel
         $sql = "SELECT COUNT(*) AS total FROM dash_consultas WHERE id_consulta<>0";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
-        $r = $stmt->fetch(PDO::FETCH_ASSOC);
+        $r = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
         return (int)($r['total'] ?? 0);
     }
 
@@ -42,7 +42,7 @@ class ConsultasModel
         $sql = "SELECT COUNT(*) AS total FROM dash_consultas " . $bw;
         $stmt = $this->conexion->prepare($sql);        
         $stmt->execute();
-        $r = $stmt->fetch(PDO::FETCH_ASSOC);
+        $r = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
         return (int)($r['total'] ?? 0);
     }
 
@@ -82,7 +82,7 @@ class ConsultasModel
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row === false) {
             $columnsStmt = $this->conexion->query("DESCRIBE dash_consultas");
-            $columns = $columnsStmt->fetchAll(PDO::FETCH_COLUMN);
+            $columns = $columnsStmt ? $columnsStmt->fetchAll(PDO::FETCH_COLUMN) : [];
             $row = array_fill_keys($columns, '');
         }
         return $row;            
@@ -114,7 +114,7 @@ class ConsultasModel
         $ok = $stmt->execute();
         if ($ok) {
             $rs = $this->conexion->query('SELECT LAST_INSERT_ID() AS id');
-            $obj = $rs->fetch(PDO::FETCH_ASSOC);
+            $obj = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
             $newId = $obj['id'] ?? null;
             if ($newId) {
                 Logs::guardaLog("INSERT INTO dash_consultas(titulo_consulta,tipo_bdatos,tipo_informe,tipo_consulta,estado) VALUES('{$d['titulo_consulta']}','{$d['tipo_bdatos']}','{$d['tipo_informe']}','{$d['tipo_consulta']}','{$d['estado']}')");

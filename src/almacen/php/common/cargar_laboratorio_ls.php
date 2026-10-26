@@ -23,6 +23,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
+$data = [];
 foreach ($objs as $obj) {
     $data[] = [
         "id" => $obj['id_lab'],

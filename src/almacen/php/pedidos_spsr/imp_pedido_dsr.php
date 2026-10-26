@@ -28,7 +28,7 @@ try {
         LEFT JOIN seg_usuarios_sistema AS usr ON (usr.id_usuario=far_pedido.id_usr_cierre)
         WHERE id_pedido=" . $id . " LIMIT 1";
     $rs = $cmd->query($sql);
-    $obj_e = $rs->fetch();
+    $obj_e = $rs ? $rs->fetch() : null;
 
      $sql = "SELECT far_medicamentos.id_med,far_medicamentos.cod_medicamento,far_medicamentos.nom_medicamento,
 		    far_for_farmaceutica.descripcion AS forma_farmaceutica,
@@ -41,19 +41,19 @@ try {
     $rs = $cmd->query($sql);
     $obj_ds = $rs->fetchAll();
     
-    $id_sede_destino = $obj_e['id_bodega_solicita'];
-    $fec_pedido = $obj_e['fec_pedido'];
+    $id_sede_destino = $obj_e['id_bodega_solicita'] ?? 0;
+    $fec_pedido = $obj_e['fec_pedido'] ?? '';
 
     $sql = "SELECT ip_sede,bd_sede,pw_sede,us_sede,pt_http FROM tb_sedes WHERE id_sede=$id_sede_destino LIMIT 1";
     $rs = $cmd->query($sql);
-    $obj_sede = $rs->fetch();
+    $obj_sede = $rs ? $rs->fetch() : null;
 
-    $ip_pr = explode(':', $obj_sede['ip_sede']);
-    $ip = $ip_pr[0];
-    $port = $ip_pr[1];
-    $database = $obj_sede['bd_sede'];
-    $password = $obj_sede['pw_sede'];
-    $user = $obj_sede['us_sede'];
+    $ip_pr = explode(':', $obj_sede['ip_sede'] ?? '');
+    $ip = $ip_pr[0] ?? '';
+    $port = $ip_pr[1] ?? 3306;
+    $database = $obj_sede['bd_sede'] ?? '';
+    $password = $obj_sede['pw_sede'] ?? '';
+    $user = $obj_sede['us_sede'] ?? '';
    
     $continuar = true;
     $mensaje = '';
@@ -77,8 +77,8 @@ try {
         
         $sql = "SELECT GROUP_CONCAT(id_medicamento) AS ids_med FROM far_pedido_detalle WHERE id_pedido=" . $id . " LIMIT 1";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-        $ids = $obj['ids_med'];
+        $obj = $rs ? $rs->fetch() : null;
+        $ids = $obj['ids_med'] ?? '';
 
         $fecha = new DateTime($fec_pedido);
         $fecha->modify('-1 month');
@@ -113,7 +113,7 @@ try {
 
         // Convertir resultado a arreglo asociativo indexado por id_origen
         $dsr_map = [];
-        if (is_array($obj_dsr) && count($obj_dsr) > 0) {
+        if (is_countable($obj_dsr) && count($obj_dsr) > 0) {
             foreach ($obj_dsr as $row) {                
                 if (isset($row['id_origen'])) {
                     $dsr_map[$row['id_origen']] = $row;

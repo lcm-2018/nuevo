@@ -17,7 +17,7 @@ try {
                 WHERE CONCAT(HV.placa,' (',M.nom_medicamento,')') LIKE '%$term%'
                 ORDER BY M.nom_medicamento,HV.placa";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

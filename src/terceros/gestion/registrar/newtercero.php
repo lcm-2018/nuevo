@@ -1,8 +1,5 @@
 <?php
 session_start();
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 /*if (!isset($_SESSION['user'])) {
     header('Location: ../../../index.php');
     exit();
@@ -99,7 +96,7 @@ if ($terceros != '0') {
     curl_close($ch);
     $res = json_decode($result, true);
     $id_ter_api = $res;
-    if ($id_ter_api > 0) {
+    if ($id_ter_api > 0 && !empty($data['mailEmp'])) {
         try {
             $mail = new PHPMailer(true);
             $mail->SMTPDebug = 0;  // Desactiva la depuración para evitar errores en pantalla

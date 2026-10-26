@@ -350,8 +350,8 @@ class Reportes
         }
 
         $html_tabla = '';
-        if (count($firmas_activas) > 0) {
-            $num_firmas = count($firmas_activas);
+        $num_firmas = is_array($firmas_activas) ? count($firmas_activas) : 0;
+        if ($num_firmas > 0) {
             $ancho_columna = floor(100 / $num_firmas);
 
             // Encabezados - controlados por ver_head

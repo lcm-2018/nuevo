@@ -25,8 +25,9 @@ include_once '../../../../../config/autoloader.php';
 header('Content-Type: application/json');
 
 // Validar datos de entrada
-$datos = isset($_POST['id']) ? explode('|', base64_decode($_POST['id'])) : null;
-if (!$datos || count($datos) < 2) {
+$rawId = isset($_POST['id']) && is_string($_POST['id']) ? base64_decode($_POST['id']) : '';
+$datos = ($rawId !== false && $rawId !== '') ? explode('|', $rawId) : [];
+if (!is_array($datos) || count($datos) < 2) {
     echo json_encode(['status' => 'error', 'msg' => 'Datos inválidos']);
     exit();
 }

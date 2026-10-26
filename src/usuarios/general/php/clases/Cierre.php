@@ -188,8 +188,8 @@ class Cierre
             $sql = "SELECT MAX(`anio`) as max_anio FROM `tb_vigencias`";
             $stmt = $this->conexion->prepare($sql);
             $stmt->execute();
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            $next_anio = ($row['max_anio'] ?? date('Y')) + 1;
+            $row = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+            $next_anio = (($row['max_anio'] ?? date('Y'))) + 1;
         } catch (PDOException $e) {
             $next_anio = date('Y') + 1;
         }
@@ -223,7 +223,7 @@ class Cierre
             $sqlCheck = "SELECT MAX(`anio`) as max_anio FROM `tb_vigencias`";
             $stmtCheck = $this->conexion->prepare($sqlCheck);
             $stmtCheck->execute();
-            $row = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+            $row = $stmtCheck ? $stmtCheck->fetch(PDO::FETCH_ASSOC) : null;
             $max_anio = $row['max_anio'] ?? 0;
 
             if ($anio <= $max_anio) {

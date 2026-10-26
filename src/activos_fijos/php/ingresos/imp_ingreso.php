@@ -30,7 +30,7 @@ try {
         LEFT JOIN seg_usuarios_sistema AS usr ON (usr.id_usuario=acf_orden_ingreso.id_usr_cierre)
         WHERE id_ingreso=" . $id . " LIMIT 1";
     $rs = $cmd->query($sql);
-    $obj_e = $rs->fetch();
+    $obj_e = $rs ? $rs->fetch() : null;
 
     $sql = "SELECT far_medicamentos.cod_medicamento,far_medicamentos.nom_medicamento,
             acf_orden_ingreso_detalle.cantidad,acf_orden_ingreso_detalle.valor_sin_iva,
@@ -40,7 +40,7 @@ try {
         INNER JOIN far_medicamentos ON (far_medicamentos.id_med = acf_orden_ingreso_detalle.id_articulo)
         WHERE acf_orden_ingreso_detalle.id_ingreso=" . $id . " ORDER BY acf_orden_ingreso_detalle.id_ing_detalle";
     $rs = $cmd->query($sql);
-    $obj_ds = $rs->fetchAll();
+    $obj_ds = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {

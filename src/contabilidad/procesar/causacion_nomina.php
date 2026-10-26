@@ -468,11 +468,11 @@ try {
         // Extraer datos del empleado desde $dd
         $id_empleado = $dd['id_empleado'];
         $id_ter_api = $terceros[$dd['no_documento']] ?? NULL;
-        
+
         if ($id_ter_api === NULL) {
             throw new Exception("El empleado con documento " . $dd['no_documento'] . " no se encuentra registrado como tercero.");
         }
-        
+
         $ccosto = $dd['id_ccosto'] ?? 21;
         $otrosDevengadosEmpleado = $otrosDevengadosPorEmpleado[$id_empleado] ?? [];
 
@@ -516,7 +516,7 @@ try {
         if (!empty($otrosDevengadosEmpleado)) {
             foreach ($otrosDevengadosEmpleado as $otroDevengado) {
                 $valor = $otroDevengado['valor'];
-                
+
                 if ($_SESSION['pto'] == 1) {
                     $rubro = $otroDevengado['rubro'];
                     $id_det = $idsDetalleIndexados[$rubro][(int) $id_ter_api] ?? NULL;
@@ -727,8 +727,15 @@ try {
                         $credito = $dd['val_bon_recrea'];
                         break;
                     case 5:
-                        $credito = $dd['val_bsp'];
+                        $credito = $dd['val_bsp'] - $restar;
+                        if ($credito < 0) {
+                            $restar = $credito * -1;
+                            $credito = 0;
+                        } else {
+                            $restar = 0;
+                        }
                         break;
+
                     case 8:
                         $credito = $dd['valor_incap'] - $dd['pago_empresa'];
                         $credito -= $restar;

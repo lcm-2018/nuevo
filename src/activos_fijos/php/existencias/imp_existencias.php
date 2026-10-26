@@ -66,7 +66,7 @@ try {
             LEFT JOIN acf_orden_ingreso_detalle AS DE ON (DE.id_ing_detalle=VU.id)
             $where ORDER BY ME.nom_medicamento ASC";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
 
@@ -79,7 +79,7 @@ try {
                     GROUP BY id_articulo) AS EX ON (EX.id_articulo=ME.id_med)
         $where";
     $rs = $cmd->query($sql);
-    $obj_tot = $rs->fetch();
+    $obj_tot = $rs ? $rs->fetch() : null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -151,7 +151,7 @@ try {
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="5" style="text-align:left">
-                    No. de Registros: <?php echo count($objs); ?>
+                    No. de Registros: <?php echo is_array($objs) ? count($objs) : 0; ?>
                 </td>
                 <td style="text-align:right">
                     TOTAL:

@@ -12,7 +12,7 @@ try {
             FROM
                 `tb_datos_ips`";
     $res = $cmd->query($sql);
-    $empresa = $res->fetch();
+    $empresa = $res ? $res->fetch() : null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -34,10 +34,10 @@ try {
     <thead>
         <tr>
             <td rowspan="4" colspan="2" style="text-align:center; max-width:20px;"><label class="small"><img src="<?= Plantilla::getHost() ?>/assets/images/logo.png" width="100"></label></td>
-            <td colspan="99" style="text-align:center"><?php echo $empresa['nombre']; ?></td>
+            <td colspan="99" style="text-align:center"><?php echo $empresa['nombre'] ?? ''; ?></td>
         </tr>
         <tr>
-            <td colspan="99" style="text-align:center"><?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></td>
+            <td colspan="99" style="text-align:center"><?php echo ($empresa['nit'] ?? '') . '-' . ($empresa['dig_ver'] ?? ''); ?></td>
         </tr>
         <tr>
             <td colspan="99" style="text-align:center"><?php echo $nom_informe ?></td>
