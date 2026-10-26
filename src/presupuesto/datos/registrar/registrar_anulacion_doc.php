@@ -51,10 +51,10 @@ try {
             $sql->bindParam(1, $id, PDO::PARAM_INT);
             $sql->bindValue(2, 'CXPA', PDO::PARAM_STR);
             $sql->execute();
-            $crp_cxpa = $sql->fetch(PDO::FETCH_ASSOC);
+            $crp_cxpa = $sql ? $sql->fetch(PDO::FETCH_ASSOC) : null;
             //verificar si es diferente de vacio, o sea que existe el crp_cxpa y si existe  ralizar otra validacion para poder anular, que  en ctb_doc.id_ctb_doc_tipo3  no exista el $crp_cxpa['id_ctb_doc']  y que el ctb_doc sea > 0
             if (!empty($crp_cxpa)) {
-                $cxpa = $crp_cxpa['id_ctb_doc'];
+                $cxpa = $crp_cxpa['id_ctb_doc'] ?? 0;
                 $sql = "SELECT `id_ctb_doc` FROM `ctb_doc` WHERE `id_ctb_doc_tipo3` = ? AND `estado` > 0";
                 $sql = $cmd->prepare($sql);
                 $sql->bindParam(1, $cxpa, PDO::PARAM_INT);

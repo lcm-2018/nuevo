@@ -19,8 +19,8 @@ try {
                 `pto_cdp`
             WHERE (`id_pto` = $id_pto)";
     $rs = $cmd->query($sql);
-    $consecutivo = $rs->fetch();
-    $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
+    $consecutivo = $rs ? $rs->fetch() : null;
+    $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

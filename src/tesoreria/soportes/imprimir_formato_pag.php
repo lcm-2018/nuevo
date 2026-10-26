@@ -145,8 +145,8 @@ foreach ($documentos_tes as $documento) {
     try {
         $sql = "SELECT `id_ctb_doc` , SUM(`debito`) AS `valor` FROM `ctb_libaux` WHERE (`id_ctb_doc` = $id_doc)";
         $res = $cmd->query($sql);
-        $datos = $res->fetch();
-        $total = $datos['valor'];
+        $datos = $res ? $res->fetch() : null;
+        $total = (float)($datos['valor'] ?? 0);
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -165,8 +165,8 @@ foreach ($documentos_tes as $documento) {
                     ON (`pto_cop_detalle`.`id_pto_crp_det` = `pto_crp_detalle`.`id_pto_crp_det`)
             WHERE (`ctb_doc`.`id_ctb_doc` = $id_doc) LIMIT 1 ";
         $res = $cmd->query($sql);
-        $datos_crpp = $res->fetch(PDO::FETCH_ASSOC);
-        $id_crpp = !empty($datos_crpp) ? $datos_crpp['id_pto_crp'] : 0;
+        $datos_crpp = $res ? $res->fetch(PDO::FETCH_ASSOC) : null;
+        $id_crpp = !empty($datos_crpp) ? ($datos_crpp['id_pto_crp'] ?? 0) : 0;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -403,17 +403,20 @@ foreach ($documentos_tes as $documento) {
                     WHERE `id_ctb_doc` = $id_doc AND `id_vigencia` = $id_vigencia) AS `t1` 
                 ON 1 = 1";
         $res = $cmd->query($sql);
-        $consecutivos = $res->fetch(PDO::FETCH_ASSOC);
+        $consecutivos = $res ? $res->fetch(PDO::FETCH_ASSOC) : null;
         $id_user = $_SESSION['id_user'];
         $date = new DateTime('now', new DateTimeZone('America/Bogota'));
         $num_resolucion = $vigencia . '0001';
 
-        if ($consecutivos['cons_asigando'] == '' && $consecutivos['cons_maximo'] > 0) {
-            $num_resolucion = $consecutivos['cons_maximo'] + 1;
-        } else if ($consecutivos['cons_asigando'] > 0) {
-            $num_resolucion = $consecutivos['cons_asigando'];
+        $cons_asigando = $consecutivos['cons_asigando'] ?? '';
+        $cons_maximo = $consecutivos['cons_maximo'] ?? 0;
+
+        if ($cons_asigando == '' && $cons_maximo > 0) {
+            $num_resolucion = $cons_maximo + 1;
+        } else if ($cons_asigando > 0) {
+            $num_resolucion = $cons_asigando;
         }
-        if ($consecutivos['cons_asigando'] == '' && $tipo == '4') {
+        if ($cons_asigando == '' && $tipo == '4') {
             try {
                 $sql = "INSERT INTO `tes_resolucion_pago`
 	                    (`consecutivo`,`id_ctb_doc`,`id_vigencia`,`id_user_reg`,`fec_reg`)

@@ -4,7 +4,7 @@ session_start();
 include '../../../../config/autoloader.php';
 include '../../../financiero/consultas.php';
 $cmd = \Config\Clases\Conexion::getConexion();
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 
 $vigencia = $_SESSION['vigencia'] ?? date('Y');
 $rubro = $_post['rubro'] ?? '';
@@ -13,7 +13,7 @@ $rubro = $_post['rubro'] ?? '';
 $sql = "SELECT id_cargue, valor_aprobado FROM pto_cargue WHERE cod_pptal = :rubro AND vigencia = :vigencia";
 $stmt = $cmd->prepare($sql);
 $stmt->execute([':rubro' => $rubro, ':vigencia' => $vigencia]);
-$valor_aprobado = $stmt->fetch();
+$valor_aprobado = $stmt ? $stmt->fetch() : null;
 
 $id_cargue = $valor_aprobado['id_cargue'] ?? 0;
 $total = (float)($valor_aprobado['valor_aprobado'] ?? 0);

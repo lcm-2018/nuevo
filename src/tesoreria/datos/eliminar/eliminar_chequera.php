@@ -2,7 +2,7 @@
 
 use Config\Clases\Logs;
 
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $id = $_post['id'];
 include '../../../../config/autoloader.php';
 $pdo = \Config\Clases\Conexion::getConexion();
@@ -15,10 +15,10 @@ try {
                 `fin_chequeras`
             WHERE (`id_chequera` = $id)";
     $rs = $pdo->query($query);
-    $chequera = $rs->fetch(PDO::FETCH_ASSOC);
+    $chequera = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
 
     // consulto cuantos registros genera la sentencia
-    if ($chequera['contador'] > $chequera['inicial']) {
+    if (!empty($chequera) && ($chequera['contador'] ?? 0) > ($chequera['inicial'] ?? 0)) {
         $response['msg'] = 'La chequera tiene registros asociados, no se puede eliminar';
     } else {
         try {

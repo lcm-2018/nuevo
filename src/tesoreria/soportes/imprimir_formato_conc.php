@@ -32,9 +32,9 @@ $cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT `fin_mes`, `nom_mes` FROM `nom_meses` WHERE (`codigo` = '$mes')";
     $rs = $cmd->query($sql);
-    $dia = $rs->fetch(PDO::FETCH_ASSOC);
+    $dia = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
     $fin_mes = !(empty($dia)) ? date('Y-m-t', strtotime($vigencia . '-' . $mes . '-01')) : 0;
-    $nom_mes = !(empty($dia)) ? mb_strtoupper($dia['nom_mes']) : '';
+    $nom_mes = !(empty($dia)) ? mb_strtoupper($dia['nom_mes'] ?? '') : '';
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -93,13 +93,13 @@ try {
                 `tes_conciliacion` tc
             WHERE tc.`id_cuenta` = $id AND tc.`vigencia` = '$vigencia' AND tc.`mes` = '$mes'";
     $rs = $cmd->query($sql);
-    $data = $rs->fetch(PDO::FETCH_ASSOC);
+    $data = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
     if (!empty($data)) {
-        $id_conciliacion = $data['id_conciliacion'];
-        $saldo = $data['saldo_extracto'];
-        $estado = $data['estado'];
-        $debito = $data['debito'];
-        $credito = $data['credito'];
+        $id_conciliacion = $data['id_conciliacion'] ?? 0;
+        $saldo = $data['saldo_extracto'] ?? 0;
+        $estado = $data['estado'] ?? 0;
+        $debito = $data['debito'] ?? 0;
+        $credito = $data['credito'] ?? 0;
     } else {
         $id_conciliacion = 0;
         $saldo = 0;

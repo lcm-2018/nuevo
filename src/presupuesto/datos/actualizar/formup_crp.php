@@ -42,15 +42,17 @@ try {
                     ON (`ctt_contratos`.`id_compra` = `ctt_adquisiciones`.`id_adquisicion`)
             WHERE (`pto_crp`.`id_pto_crp` = $id_crp)";
     $rs = $cmd->query($sql);
-    $crp = $rs->fetch();
+    $crp = $rs ? $rs->fetch() : null;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$fec_contrato = $crp['fec_ini'] == '' ? '1900-01-01' : date('Y-m-d', strtotime($crp['fec_ini']));
-$min = $crp['fec_cdp'] >= $fec_contrato ? $crp['fec_cdp'] : $fec_contrato;
+$fec_ini = $crp['fec_ini'] ?? '';
+$fec_contrato = $fec_ini == '' ? '1900-01-01' : date('Y-m-d', strtotime($fec_ini));
+$fec_cdp = $crp['fec_cdp'] ?? '';
+$min = $fec_cdp >= $fec_contrato ? $fec_cdp : $fec_contrato;
 $max = $vigencia . '-12-31';
-$id_adq = $crp['id_adquisicion'] != '' ? $crp['id_adquisicion'] : 0;
+$id_adq = !empty($crp['id_adquisicion']) ? $crp['id_adquisicion'] : 0;
 ?>
 <div class="px-0">
     <div class="shadow">

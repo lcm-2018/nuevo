@@ -46,8 +46,8 @@ try {
 if ($registros > 0) {
     $sql = "SELECT SUM(`valor`) AS `valor` FROM `pto_pag_detalle` WHERE `id_ctb_doc` = $id_ctb_doc";
     $rs = $cmd->query($sql);
-    $valor = $rs->fetch();
+    $valor = $rs ? $rs->fetch() : null;
     $response['status'] = 'ok';
-    $response['valor'] = $valor['valor'];
+    $response['valor'] = $valor['valor'] ?? 0;
 }
 echo json_encode($response);

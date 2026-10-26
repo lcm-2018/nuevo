@@ -6,8 +6,11 @@ if (isset($_POST)) {
     //Recibir variables por POST
     $id_crpp = $_POST['crpp'];
     $num = $_POST['num'];
-    $datos = $_POST['datos'];
-    $obj = json_decode($datos, true);
+    $datos = $_POST['datos'] ?? '';
+    $obj = is_string($datos) && $datos !== '' ? json_decode($datos, true) : [];
+    if (!is_array($obj)) {
+        $obj = [];
+    }
     $tipo_mov = 'CRP';
     $iduser = $_SESSION['id_user'];
     $date = new DateTime('now', new DateTimeZone('America/Bogota'));
@@ -29,9 +32,9 @@ if (isset($_POST)) {
                 $sql = "SELECT id_pto_doc,rubro FROM pto_documento_detalles WHERE id_pto_mvto = $key";
                 $query_rubro = $cmd->prepare($sql);
                 $query_rubro->execute();
-                $row_rubro = $query_rubro->fetch();
-                $rubro = $row_rubro['rubro'];
-                $id_auto = $row_rubro['id_pto_doc'];
+                $row_rubro = $query_rubro ? $query_rubro->fetch() : null;
+                $rubro = $row_rubro['rubro'] ?? '';
+                $id_auto = $row_rubro['id_pto_doc'] ?? 0;
                 $query->execute();
                 if ($cmd->lastInsertId() > 0) {
                     $id = $cmd->lastInsertId();

@@ -2,7 +2,7 @@
 
 use Config\Clases\Logs;
 
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $id = $_post['id'];
 
 include '../../../../config/autoloader.php';
@@ -19,10 +19,10 @@ try {
 
     $sql = "SELECT id_pto_rec FROM pto_rec WHERE id_ctb_doc = $id LIMIT 1";
     $rs = $cmd->query($sql);
-    $obj_id_pto_rec = $rs->fetch();
+    $obj_id_pto_rec = $rs ? $rs->fetch() : null;
 
     if (!empty($obj_id_pto_rec)) {
-        $id_pto_rec = $obj_id_pto_rec['id_pto_rec'];
+        $id_pto_rec = $obj_id_pto_rec['id_pto_rec'] ?? 0;
     }
 
     $sql = "DELETE FROM pto_rec_detalle WHERE id_pto_rac = $id_pto_rec";
@@ -33,10 +33,10 @@ try {
 
     $sql = "SELECT id_pto_rad FROM pto_rad WHERE id_ctb_doc = $id LIMIT 1";
     $rs = $cmd->query($sql);
-    $obj_id_pto_rad = $rs->fetch();
+    $obj_id_pto_rad = $rs ? $rs->fetch() : null;
 
     if (!empty($obj_id_pto_rad)) {
-        $id_pto_rad = $obj_id_pto_rad['id_pto_rad'];
+        $id_pto_rad = $obj_id_pto_rad['id_pto_rad'] ?? 0;
     }
 
     $sql = "DELETE FROM pto_rad_detalle WHERE id_pto_rad = $id_pto_rad";

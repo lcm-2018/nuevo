@@ -72,8 +72,8 @@ try {
     if ($response['status'] == 'ok') {
         $query = "SELECT SUM(`valor`) AS `valor` FROM `tes_detalle_pago` WHERE `id_ctb_doc` = $id_ctb_doc";
         $rs = $cmd->query($query);
-        $valor = $rs->fetch();
-        $response['valor'] = $valor['valor'];
+        $valor = $rs ? $rs->fetch() : null;
+        $response['valor'] = $valor['valor'] ?? 0;
     }
     $cmd = null;
 } catch (PDOException $e) {

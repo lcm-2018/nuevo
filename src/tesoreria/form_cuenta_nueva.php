@@ -32,15 +32,15 @@ if ($id_tes_cuenta > 0) {
                         ON (`tes_cuentas`.`id_cuenta` = `ctb_pgcp`.`id_pgcp`)
                 WHERE (`tes_cuentas`.`id_tes_cuenta` = $id_tes_cuenta)";
         $rs = $cmd->query($sql);
-        $cuentas = $rs->fetch();
-        $id_banco = $cuentas['id_banco'];
-        $id_tipo_cuenta = $cuentas['id_tipo_cuenta'];
-        $id_pgcp = $cuentas['id_pgcp'];
-        $cta_contable = $cuentas['cta_contable'];
-        $nombre = $cuentas['nombre'];
-        $numero = $cuentas['numero'];
-        $estado = $cuentas['estado'];
-        $id_fte = $cuentas['id_fte'];
+        $cuentas = $rs ? $rs->fetch() : null;
+        $id_banco = $cuentas['id_banco'] ?? 0;
+        $id_tipo_cuenta = $cuentas['id_tipo_cuenta'] ?? 0;
+        $id_pgcp = $cuentas['id_pgcp'] ?? 0;
+        $cta_contable = $cuentas['cta_contable'] ?? '';
+        $nombre = $cuentas['nombre'] ?? '';
+        $numero = $cuentas['numero'] ?? '';
+        $estado = $cuentas['estado'] ?? 0;
+        $id_fte = $cuentas['id_fte'] ?? 0;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }

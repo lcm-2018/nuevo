@@ -27,8 +27,8 @@ try {
                 `pto_presupuestos`
             WHERE `id_pto` = $id_ppto";
     $rs = $cmd->query($sql);
-    $presupuesto = $rs->fetch();
-    $id_tipo = $presupuesto['id_tipo'];
+    $presupuesto = $rs ? $rs->fetch() : null;
+    $id_tipo = $presupuesto['id_tipo'] ?? 0;
     $sql = "SELECT 
                 `id_trubro`, `nombre`, `id_pto` 
             FROM 
@@ -51,8 +51,8 @@ try {
             WHERE    
                 (`pto_presupuestos`.`id_pto` = $id_cpto );";
     $rs = $cmd->query($sql);
-    $ultimo_codptal = $rs->fetch();
-    $ultimo = $ultimo_codptal['codigo'];
+    $ultimo_codptal = $rs ? $rs->fetch() : null;
+    $ultimo = $ultimo_codptal['codigo'] ?? '';
     $sql = "SELECT 
                 `tipo_dato`, `id_tipo_recurso` 
             FROM 
@@ -60,15 +60,15 @@ try {
             WHERE 
                 `id_pto` = $id_cpto AND `cod_pptal`= '$ultimo'";
     $rs = $cmd->query($sql);
-    $detalles = $rs->fetch();
+    $detalles = $rs ? $rs->fetch() : null;
     //$cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-if (!empty($detalles['tipo_dato']) && $detalles['tipo_dato'] == '1') {
+if (!empty($detalles) && !empty($detalles['tipo_dato']) && $detalles['tipo_dato'] == '1') {
     // Tomo el ultimo nivel separado por punto y sumo 1
-    $ultimo_nivel = explode('.', $ultimo);
-    $ultimo_nivel = $ultimo_nivel[count($ultimo_nivel) - 1];
+    $ultimo_nivel = explode('.', (string)$ultimo);
+    $ultimo_nivel = is_array($ultimo_nivel) && count($ultimo_nivel) > 0 ? $ultimo_nivel[count($ultimo_nivel) - 1] : $ultimo;
     $niveles = strlen($ultimo_nivel) * -1;
     $ultimo_nivel = $ultimo_nivel + 1;
     $ultimo_nivel = str_pad($ultimo_nivel, abs($niveles), "0", STR_PAD_LEFT);

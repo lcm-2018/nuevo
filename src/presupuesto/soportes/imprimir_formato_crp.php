@@ -47,11 +47,11 @@ try {
                     ON (`pto_cdp`.`id_user_act` = `seg_usuarios_sistema_1`.`id_usuario`)
             WHERE (`pto_crp`.`id_pto_crp` = $id_crp)";
     $res = $cmd->query($sql);
-    $crp = $res->fetch();
+    $crp = $res ? $res->fetch() : null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$anulado = $crp['estado'] == '0' ? 'ANULADO' : '';
+$anulado = !empty($crp) && ($crp['estado'] ?? '') == '0' ? 'ANULADO' : '';
 // Valor total del cdp
 try {
     $sql = "SELECT
@@ -60,8 +60,8 @@ try {
                 `pto_crp_detalle`
             WHERE (`id_pto_crp` = $id_crp)";
     $res = $cmd->query($sql);
-    $datos = $res->fetch();
-    $total = $datos['valor'];
+    $datos = $res ? $res->fetch() : null;
+    $total = (float)($datos['valor'] ?? 0);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

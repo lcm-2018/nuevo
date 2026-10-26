@@ -76,7 +76,7 @@ try {
     }), 'id'));
 
     // Obtener terceros API de EPS desde nom_terceros (id_tipo = 1)
-    if (!empty($ids_eps)) {
+    if (!empty($ids_eps) && is_countable($ids_eps)) {
         $placeholders = implode(',', array_fill(0, count($ids_eps), '?'));
         $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders) AND `id_tipo` = 1";
         $stmt = $cmd->prepare($sql);
@@ -88,7 +88,7 @@ try {
     }
 
     // Obtener terceros API de ARL desde nom_terceros (id_tipo = 3)
-    if (!empty($ids_arl)) {
+    if (!empty($ids_arl) && is_countable($ids_arl)) {
         $placeholders = implode(',', array_fill(0, count($ids_arl), '?'));
         $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders) AND `id_tipo` = 3";
         $stmt = $cmd->prepare($sql);
@@ -100,7 +100,7 @@ try {
     }
 
     // Obtener terceros API de AFP desde nom_terceros (id_tipo = 2)
-    if (!empty($ids_afp)) {
+    if (!empty($ids_afp) && is_countable($ids_afp)) {
         $placeholders = implode(',', array_fill(0, count($ids_afp), '?'));
         $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders) AND `id_tipo` = 2";
         $stmt = $cmd->prepare($sql);
@@ -230,8 +230,8 @@ try {
     $sql = "SELECT MAX(`id_manu`) AS `id_manu` FROM `ctb_doc` WHERE `id_vigencia` = ? AND `id_tipo_doc` = ?";
     $stmt = $cmd->prepare($sql);
     $stmt->execute([$id_vigencia, $tipo_doc]);
-    $consecutivo = $stmt->fetch();
-    $id_manu = ($consecutivo['id_manu'] ?? 0) + 1;
+    $consecutivo = $stmt ? $stmt->fetch() : null;
+    $id_manu = (!empty($consecutivo) ? ($consecutivo['id_manu'] ?? 0) : 0) + 1;
 
     // Crear primer CEVA
     $sql = "INSERT INTO `ctb_doc` (`id_vigencia`, `id_tipo_doc`, `id_manu`,`id_tercero`, `fecha`, `detalle`, `id_user_reg`, `fecha_reg`, `estado`)
@@ -530,8 +530,8 @@ try {
     $sql = "SELECT MAX(`id_manu`) AS `id_manu` FROM `ctb_doc` WHERE `id_vigencia` = ? AND `id_tipo_doc` = ?";
     $stmt = $cmd->prepare($sql);
     $stmt->execute([$id_vigencia, $tipo_doc]);
-    $consecutivo = $stmt->fetch();
-    $id_manu = ($consecutivo['id_manu'] ?? 0) + 1;
+    $consecutivo = $stmt ? $stmt->fetch() : null;
+    $id_manu = (!empty($consecutivo) ? ($consecutivo['id_manu'] ?? 0) : 0) + 1;
 
     // Crear segundo CEVA
     $sql = "INSERT INTO `ctb_doc` (`id_vigencia`, `id_tipo_doc`, `id_manu`,`id_tercero`, `fecha`, `detalle`, `id_user_reg`, `fecha_reg`, `estado`)

@@ -2,7 +2,7 @@
 // Busca consecutivos del tipo de documento recibido para sugerir un numero 
 include '../../../../config/autoloader.php';
 $cmd = \Config\Clases\Conexion::getConexion();
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 
 $fecha = $_post['fecha'] ?? date('Y-m-d');
 $documento = $_post['documento'] ?? '';
@@ -10,7 +10,7 @@ $documento = $_post['documento'] ?? '';
 $sql = "SELECT max(id_manu) as id_manu from ctb_doc WHERE CAST(fecha AS DATE) <= :fecha AND tipo_doc = :documento";
 $stmt = $cmd->prepare($sql);
 $stmt->execute([':fecha' => $fecha, ':documento' => $documento]);
-$row = $stmt->fetch();
+$row = $stmt ? $stmt->fetch() : null;
 $id_manu = (int)($row['id_manu'] ?? 0);
 
 // Buscar espacios libre hacia adelante

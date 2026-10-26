@@ -69,10 +69,12 @@ try {
                     ON (`nom_nomina_pto_ctb_tes`.`id_nomina` = `nom_nominas`.`id_nomina`)
             WHERE (`nom_nominas`.`planilla` = 4 AND `nom_nomina_pto_ctb_tes`.`tipo` = 'PL')";
     $rs = $cmd->query($sql);
-    $nominas = $rs->fetchAll();
-    $rs->closeCursor();
+    $nominas = $rs ? $rs->fetchAll() : [];
+    if ($rs) {
+        $rs->closeCursor();
+    }
     unset($rs);
-    $total = count($nominas);
+    $total = is_countable($nominas) ? count($nominas) : 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

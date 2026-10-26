@@ -2,7 +2,7 @@
 
 include '../../../../config/autoloader.php';
 $cmd = \Config\Clases\Conexion::getConexion();
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $id_doc = $_post['id'][0] ?? 0;
 $sql = "SELECT sum(valor) as valor FROM tes_detalle_pago WHERE id_ctb_doc = :id_doc";
 $stmt = $cmd->prepare($sql);

@@ -56,8 +56,8 @@ try {
                 `pto_rad_detalle`
             WHERE (`id_pto_rad` = $dto)";
     $res = $cmd->query($sql);
-    $datos = $res->fetch();
-    $total = $datos['debito'];
+    $datos = $res ? $res->fetch() : null;
+    $total = (float)($datos['debito'] ?? 0);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

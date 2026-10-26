@@ -41,8 +41,8 @@ if (isset($_POST)) {
 
         $query = $cmd->prepare("SELECT `id_pto_presupuestos` FROM `pto_presupuestos` WHERE (`vigencia` =$vigencia AND `id_pto_tipo` =1)");
         $query->execute();
-        $idpto = $query->fetch();
-        $id_pto = $idpto['id_pto_presupuestos'];
+        $idpto = $query ? $query->fetch() : null;
+        $id_pto = $idpto['id_pto_presupuestos'] ?? 0;
 
 
         // cuando el campo id_pto_doc es vacio se inserta el encabezado de la tabla pto_documento_detalles

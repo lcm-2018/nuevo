@@ -18,10 +18,10 @@ try {
                     ON(`tes_causa_arqueo`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
             WHERE `id_causa_arqueo` = $id_arqueo";
     $rs = $cmd->query($sql);
-    $data = $rs->fetch();
-    $tercero = $data['id_tercero'];
-    $fecha_ini = $data['fecha_ini'];
-    $fecha_fin = $data['fecha_fin'];
+    $data = $rs ? $rs->fetch() : null;
+    $tercero = $data['id_tercero'] ?? 0;
+    $fecha_ini = $data['fecha_ini'] ?? date('Y-m-d');
+    $fecha_fin = $data['fecha_fin'] ?? date('Y-m-d');
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

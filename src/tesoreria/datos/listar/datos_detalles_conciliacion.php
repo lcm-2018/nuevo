@@ -27,8 +27,8 @@ try {
             FROM `nom_meses`
             WHERE `codigo` = '$mes'";
     $rs = $cmd->query($sql);
-    $df = $rs->fetch(PDO::FETCH_ASSOC);
-    $dia = $mes == '02' ? cal_days_in_month(CAL_GREGORIAN, 2, $vigencia) : $df['fin_mes'];
+    $df = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+    $dia = $mes == '02' ? cal_days_in_month(CAL_GREGORIAN, 2, $vigencia) : ($df['fin_mes'] ?? 30);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

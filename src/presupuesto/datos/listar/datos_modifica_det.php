@@ -48,9 +48,9 @@ try {
     $sql = "SELECT `estado`, `id_tipo_mod` FROM `pto_mod` WHERE (`id_pto_mod` = $id_pto_mod)";
     // Si documento es igual a TRA modificamos la consulta
     $rs = $cmd->query($sql);
-    $status = $rs->fetch();
-    $estado = empty($status) ? 1 : $status['estado'];
-    $tp_mod = $status['id_tipo_mod'];
+    $status = $rs ? $rs->fetch() : null;
+    $estado = empty($status) ? 1 : ($status['estado'] ?? 1);
+    $tp_mod = $status['id_tipo_mod'] ?? 0;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -59,8 +59,8 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_tipo` FROM `pto_presupuestos` WHERE (`id_pto` = $id_pto)";
     $rs = $cmd->query($sql);
-    $tipo = $rs->fetch();
-    $tipo = $tipo['id_tipo'];
+    $tipo = $rs ? $rs->fetch() : null;
+    $tipo = $tipo['id_tipo'] ?? 0;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

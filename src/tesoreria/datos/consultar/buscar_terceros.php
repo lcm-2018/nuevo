@@ -22,9 +22,11 @@ try {
             FROM
                 `tb_terceros`";
     $rs = $cmd->query($sql);
-    $terceros = $rs->fetchAll();
-    $rs->closeCursor();
-    unset($rs);
+    $terceros = $rs ? $rs->fetchAll() : [];
+    if ($rs) {
+        $rs->closeCursor();
+        unset($rs);
+    }
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -53,9 +55,11 @@ if ($buscar == '%%') {
 }
 
 if (empty($data)) {
-    $data[] = [
-        'id' => '0',
-        'label' => 'No hay coincidencias...',
+    $data = [
+        [
+            'id' => '0',
+            'label' => 'No hay coincidencias...',
+        ]
     ];
 }
 echo json_encode($data);

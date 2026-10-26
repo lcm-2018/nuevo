@@ -166,8 +166,9 @@ FROM
                             AND `pto_documento`.`fecha` <='$fecha_corte'
                             AND `pto_documento_detalles`.`id_auto_dep` =$rp[id_pto_doc]);";
                 $res = $cmd->query($sql);
-                $crp = $res->fetch();
-                $key = array_search($crp['id_tercero'], array_column($terceros, 'id_tercero_api'));
+                $crp = $res ? $res->fetch() : null;
+                $id_ter_crp = $crp['id_tercero'] ?? '';
+                $key = ($id_ter_crp !== '' && is_array($terceros)) ? array_search($id_ter_crp, array_column($terceros, 'id_tercero_api')) : false;
                 $tercero = $key !== false ? ltrim($terceros[$key]['nom_tercero']) : '---';
                 $cc_nit = $key !== false ? number_format($terceros[$key]['nit_tercero'], 0, "", ".") : '---';
 

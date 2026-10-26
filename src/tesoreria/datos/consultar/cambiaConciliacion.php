@@ -3,7 +3,7 @@
 include '../../../../config/autoloader.php';
 use Config\Clases\Logs;
 session_start();
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $id = $_post['id'];
 $estado = $_post['estado'];
 $mes = $_post['mes'];

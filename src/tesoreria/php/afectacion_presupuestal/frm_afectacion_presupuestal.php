@@ -49,11 +49,11 @@ $sql = "SELECT
         WHERE pto_rad.id_ctb_doc = :id_ctb_doc LIMIT 1";
 $rs = $cmd->prepare($sql);
 $rs->execute([':id_ctb_doc' => $id_ctb_doc]);
-$obj_id_pto_rad = $rs->fetch();
+$obj_id_pto_rad = $rs ? $rs->fetch() : null;
 
 $id_pto_rad = 0;
 
-if (!empty($obj_id_pto_rad['id_pto_rad'])) {
+if (!empty($obj_id_pto_rad) && !empty($obj_id_pto_rad['id_pto_rad'])) {
     $id_pto_rad = $obj_id_pto_rad['id_pto_rad'];
 }
 
@@ -66,11 +66,11 @@ $sql = "SELECT
         WHERE pto_rec.id_ctb_doc = :id_ctb_doc LIMIT 1";
 $rs = $cmd->prepare($sql);
 $rs->execute([':id_ctb_doc' => $id_ctb_doc]);
-$obj_id_pto_rec = $rs->fetch();
+$obj_id_pto_rec = $rs ? $rs->fetch() : null;
 
 $id_pto_rec = 0;
 
-if (!empty($obj_id_pto_rec['id_pto_rec'])) {
+if (!empty($obj_id_pto_rec) && !empty($obj_id_pto_rec['id_pto_rec'])) {
     $id_pto_rec = $obj_id_pto_rec['id_pto_rec'];
 }
 //---------------------------------------------------

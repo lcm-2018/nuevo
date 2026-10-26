@@ -157,8 +157,8 @@ FROM
                                 AND `pto_documento_detalles`.`tipo_mov` ='PAG')
                             GROUP BY `pto_documento_detalles`.`rubro`;";
                     $res = $cmd->query($sql);
-                    $pagos = $res->fetch();
-                    $valor_pagado = $pagos['pagado'];
+                    $pagos = $res ? $res->fetch() : null;
+                    $valor_pagado = (float)($pagos['pagado'] ?? 0);
                 } catch (PDOException $e) {
                     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
                 }

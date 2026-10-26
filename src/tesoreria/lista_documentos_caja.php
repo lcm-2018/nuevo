@@ -55,7 +55,7 @@ try {
                     ON (`tes_caja_doc`.`id_caja` = `tes_caja_const`.`id_caja_const`)
             WHERE (`ctb_doc`.`id_ctb_doc` = $id_doc_pag)";
     $rs = $cmd->query($sql);
-    $datosDoc = $rs->fetch();
+    $datosDoc = $rs ? $rs->fetch() : null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -64,10 +64,11 @@ $id_manu = $datosDoc['id_manu'] ?? 0;
 
 // Consulta nombre del tercero
 try {
-    $sql = "SELECT `nom_tercero` FROM `tb_terceros` WHERE `id_tercero_api` = {$datosDoc['id_tercero']}";
+    $id_ter_api = $datosDoc['id_tercero'] ?? 0;
+    $sql = "SELECT `nom_tercero` FROM `tb_terceros` WHERE `id_tercero_api` = {$id_ter_api}";
     $rs = $cmd->query($sql);
-    $dat_ter = $rs->fetch();
-    $tercero = !empty($dat_ter) ? $dat_ter['nom_tercero'] : '---';
+    $dat_ter = $rs ? $rs->fetch() : null;
+    $tercero = !empty($dat_ter) ? ($dat_ter['nom_tercero'] ?? '---') : '---';
 } catch (PDOException $e) {
     $tercero = '---';
 }
@@ -97,8 +98,8 @@ try {
                 `tes_detalle_pago`
             WHERE (`id_ctb_doc` = $id_doc_pag)";
     $rs = $cmd->query($sql);
-    $values = $rs->fetch();
-    $valor_pago = !empty($values) ? $values['valor'] : 0;
+    $values = $rs ? $rs->fetch() : null;
+    $valor_pago = !empty($values) ? ($values['valor'] ?? 0) : 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

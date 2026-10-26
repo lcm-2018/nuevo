@@ -17,8 +17,8 @@ try {
     // Buscar el ultimo max  id_manu de la tabla pto_documento
     $sql = "SELECT max(id_manu) as id_manu FROM pto_documento WHERE tipo_doc='CRP'";
     $rs = $cmd->query($sql);
-    $consecutivo = $rs->fetch(PDO::FETCH_ASSOC);
-    $numero = $consecutivo['id_manu'] + 1;
+    $consecutivo = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+    $numero = (!empty($consecutivo) ? ($consecutivo['id_manu'] ?? 0) : 0) + 1;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

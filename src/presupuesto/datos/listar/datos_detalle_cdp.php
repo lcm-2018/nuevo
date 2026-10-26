@@ -47,8 +47,8 @@ try {
     $sql = "SELECT `estado` FROM `pto_cdp` WHERE (`id_pto_cdp` = $id_cdp)";
     // Si documento es igual a TRA modificamos la consulta
     $rs = $cmd->query($sql);
-    $estado = $rs->fetch(PDO::FETCH_ASSOC);
-    $estado = !empty($estado) ? $estado['estado'] : 1;
+    $estado = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+    $estado = !empty($estado) ? ($estado['estado'] ?? 1) : 1;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -76,13 +76,13 @@ if ($id_adq > 0) {
                 WHERE (`ctt_adquisiciones`.`id_adquisicion` = $id_adq)";
         // Si documento es igual a TRA modificamos la consulta
         $rs = $cmd->query($sql);
-        $adquisicion = $rs->fetch(PDO::FETCH_ASSOC);
+        $adquisicion = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
         if (empty($listappto)) {
             if (!empty($adquisicion)) {
-                $id_rb = $adquisicion['id_rubro'] != '' ? $adquisicion['id_rubro'] : 0;
-                $valor = $adquisicion['val_contrato'] != '' ? $adquisicion['val_contrato'] : 0;
-                $nom_rubro = $adquisicion['cod_pptal'] != '' ? $adquisicion['cod_pptal'] . ' - ' . $adquisicion['nom_rubro'] : '';
-                $tp_dt = $adquisicion['tipo_dato'] != '' ? $adquisicion['tipo_dato'] : 0;
+                $id_rb = !empty($adquisicion['id_rubro']) ? $adquisicion['id_rubro'] : 0;
+                $valor = !empty($adquisicion['val_contrato']) ? $adquisicion['val_contrato'] : 0;
+                $nom_rubro = !empty($adquisicion['cod_pptal']) ? $adquisicion['cod_pptal'] . ' - ' . ($adquisicion['nom_rubro'] ?? '') : '';
+                $tp_dt = !empty($adquisicion['tipo_dato']) ? $adquisicion['tipo_dato'] : 0;
             }
         }
         $cmd = null;

@@ -27,8 +27,8 @@ if ($id_crp > '0') {
     try {
         $sql = "SELECT `id_cdp` FROM `pto_crp` WHERE (`id_pto_crp` = $id_crp)";
         $rs = $cmd->query($sql);
-        $id_cdp = $rs->fetch();
-        $id_cdp = !empty($id_cdp) ? $id_cdp['id_cdp'] : 0;
+        $id_cdp = $rs ? $rs->fetch() : null;
+        $id_cdp = !empty($id_cdp) ? ($id_cdp['id_cdp'] ?? 0) : 0;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -72,8 +72,8 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `estado` FROM `pto_crp` WHERE (`id_pto_crp` = $id_crp)";
     $rs = $cmd->query($sql);
-    $estado = $rs->fetch();
-    $estado = !empty($estado) ? $estado['estado'] : 1;
+    $estado = $rs ? $rs->fetch() : null;
+    $estado = !empty($estado) ? ($estado['estado'] ?? 1) : 1;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

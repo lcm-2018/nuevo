@@ -30,8 +30,8 @@ if (!empty($listappto)) {
         //Consulto el nombre del rubro
         $sql = "SELECT nom_rubro FROM pto_cargue WHERE cod_pptal='$lp[rubro]'";
         $rs = $cmd->query($sql);
-        $nomrubro = $rs->fetch();
-        $nombre = $nomrubro['nom_rubro'];
+        $nomrubro = $rs ? $rs->fetch() : null;
+        $nombre = $nomrubro['nom_rubro'] ?? '';
 
         $id_pto = $lp['id_pto_doc'];
         $id = $lp['id_pto_mvto'];

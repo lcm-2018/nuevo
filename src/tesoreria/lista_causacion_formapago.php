@@ -88,8 +88,8 @@ try {
                     WHERE (`ppd`.`id_ctb_doc` = $id_doc
                         AND `cd`.`estado` > 1))";
     $rs = $cmd->query($sql);
-    $descuentos = $rs->fetch();
-    $valor_descuento = $valor_descuento + $descuentos['valor'];
+    $descuentos = $rs ? $rs->fetch() : null;
+    $valor_descuento = $valor_descuento + ($descuentos['valor'] ?? 0);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -97,7 +97,7 @@ try {
 try {
     $sql = "SELECT SUM(`valor`) AS `valor` FROM `tes_detalle_pago` WHERE `id_ctb_doc` = $id_doc";
     $rs = $cmd->query($sql);
-    $pagos = $rs->fetch();
+    $pagos = $rs ? $rs->fetch() : null;
     $valor_programado = $pagos['valor'] ?? 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -131,11 +131,11 @@ if ($_SESSION['pto'] == '0') {
                         WHERE (`ctb_doc`.`id_ctb_doc_tipo3` = $id_cop)) AS `pagado`
                         ON(`causado`.`id_ctb_doc` = `pagado`.`id_ctb_doc_tipo3`)";
         $rs = $cmd->query($sql);
-        $pagos = $rs->fetch();
+        $pagos = $rs ? $rs->fetch() : null;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
-    $valor_pagar = !empty($pagos) ? $pagos['valor_pagar'] - $pagos['valor_pagado'] : 0;
+    $valor_pagar = !empty($pagos) ? (($pagos['valor_pagar'] ?? 0) - ($pagos['valor_pagado'] ?? 0)) : 0;
 }
 
 $forma_pago_edit = [];
@@ -158,8 +158,8 @@ if ($id_fp > 0) {
                         ON (`tes_cuentas`.`id_banco` = `tb_bancos`.`id_banco`)
                 WHERE `tes_detalle_pago`.`id_detalle_pago` = $id_fp;";
         $rs = $cmd->query($sql);
-        $forma_pago_edit = $rs->fetch();
-        $valor_pagar = $forma_pago_edit['valor'];
+        $forma_pago_edit = $rs ? $rs->fetch() : [];
+        $valor_pagar = $forma_pago_edit['valor'] ?? 0;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }

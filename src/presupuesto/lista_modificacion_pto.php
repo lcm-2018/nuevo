@@ -22,8 +22,8 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_tipo`, `nombre` FROM `pto_presupuestos` WHERE `id_pto` = $id_pto_presupuestos";
     $rs = $cmd->query($sql);
-    $presupuesto = $rs->fetch();
-    $id_tipo = $presupuesto['id_tipo'];
+    $presupuesto = $rs ? $rs->fetch() : null;
+    $id_tipo = $presupuesto['id_tipo'] ?? 0;
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

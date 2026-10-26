@@ -29,8 +29,9 @@ $cmd = \Config\Clases\Conexion::getConexion();
 try {
     $sql = "SELECT `fin_mes`, `nom_mes` FROM `nom_meses` WHERE (`codigo` = '$mes')";
     $rs = $cmd->query($sql);
-    $dia = $rs->fetch(PDO::FETCH_ASSOC);
-    $last = $mes == '02' ? cal_days_in_month(CAL_GREGORIAN, 2, $vigencia) : $dia['fin_mes'];
+    $dia = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+    $dia_fin_mes = !empty($dia) ? ($dia['fin_mes'] ?? '30') : '30';
+    $last = $mes == '02' ? cal_days_in_month(CAL_GREGORIAN, 2, $vigencia) : $dia_fin_mes;
     $fin_mes = !(empty($dia)) ? $vigencia . '-' . $mes . '-' . $last : 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -107,13 +108,13 @@ try {
                 ON (`t1`.`id_concilia` = `tes_conciliacion`.`id_conciliacion`)
             WHERE (`tes_cuentas`.`id_tes_cuenta` = $id AND `tes_conciliacion`.`vigencia` = '$vigencia' AND `tes_conciliacion`.`mes` = '$mes')";
     $rs = $cmd->query($sql);
-    $data = $rs->fetch(PDO::FETCH_ASSOC);
+    $data = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
     if (!empty($data)) {
-        $id_conciliacion = $data['id_conciliacion'];
-        $saldo = $data['saldo_extracto'];
-        $estado = $data['estado'];
-        $debito = $data['debito'];
-        $credito = $data['credito'];
+        $id_conciliacion = $data['id_conciliacion'] ?? 0;
+        $saldo = $data['saldo_extracto'] ?? 0;
+        $estado = $data['estado'] ?? 0;
+        $debito = $data['debito'] ?? 0;
+        $credito = $data['credito'] ?? 0;
     } else {
         $id_conciliacion = 0;
         $saldo = 0;
@@ -139,9 +140,9 @@ try {
                     ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
             WHERE (`tes_cuentas`.`id_tes_cuenta`  = $id AND DATE_FORMAT(`ctb_doc`.`fecha`, '%Y-%m-%d') <= '$fin_mes'  AND `ctb_doc`.`estado` = 2)";
     $rs = $cmd->query($sql);
-    $libros = $rs->fetch(PDO::FETCH_ASSOC);
+    $libros = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
     if (!empty($libros)) {
-        $saldo_libros = $libros['saldo_lib'];
+        $saldo_libros = $libros['saldo_lib'] ?? 0;
     } else {
         $saldo_libros = 0;
     }

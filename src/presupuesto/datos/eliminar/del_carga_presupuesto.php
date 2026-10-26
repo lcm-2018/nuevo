@@ -18,9 +18,9 @@ try {
     // Valido que el rubro no tenga cuentas asociadas
     $sql = "SELECT `cod_pptal`, `id_pto` FROM `pto_cargue` WHERE `id_cargue` = $id_cargue";
     $rs = $cmd->query($sql);
-    $codigo = $rs->fetch();
-    $cod_pptal = $codigo['cod_pptal'];
-    $id_pto = $codigo['id_pto'];
+    $codigo = $rs ? $rs->fetch() : null;
+    $cod_pptal = $codigo['cod_pptal'] ?? '';
+    $id_pto = $codigo['id_pto'] ?? 0;
     // consulta codigo asociado
     $sql = "SELECT `cod_pptal` FROM `pto_cargue` WHERE `cod_pptal` LIKE '$cod_pptal%' AND `id_pto` = $id_pto";
     $rs = $cmd->query($sql);

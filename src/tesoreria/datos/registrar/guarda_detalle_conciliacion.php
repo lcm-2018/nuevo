@@ -23,8 +23,8 @@ try {
                 FROM 
                     tes_conciliacion where id_conciliacion =$id_conciliacion;";
         $rs = $cmd->query($sql);
-        $fecham = $rs->fetch(PDO::FETCH_ASSOC);
-        $fecha_marca = $fecham['fecha_marca'];
+        $fecham = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+        $fecha_marca = $fecham['fecha_marca'] ?? date('Y-m-d');
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -76,9 +76,9 @@ try {
     $query = $cmd->prepare($query);
     $query->bindParam(1, $id_conciliacion, PDO::PARAM_INT);
     $query->execute();
-    $saldos = $query->fetch();
-    $response['debito'] = !empty($saldos) ? $saldos['debito'] : '0';
-    $response['credito'] = !empty($saldos) ? $saldos['credito'] : '0';
+    $saldos = $query ? $query->fetch() : null;
+    $response['debito'] = !empty($saldos) ? ($saldos['debito'] ?? '0') : '0';
+    $response['credito'] = !empty($saldos) ? ($saldos['credito'] ?? '0') : '0';
     $cmd = null;
 } catch (PDOException $e) {
     $response['msg'] = $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

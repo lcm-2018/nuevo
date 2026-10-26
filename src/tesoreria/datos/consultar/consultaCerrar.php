@@ -17,10 +17,12 @@ try {
             WHERE (`ctb_libaux`.`id_ctb_doc` IN ($data))
             GROUP BY `id_ctb_doc`";
     $rs = $cmd->query($sql);
-    $sumaMovimientos = $rs->fetchAll();
-    $rs->closeCursor();
-    unset($rs);
-    $total = count($sumaMovimientos);
+    $sumaMovimientos = $rs ? $rs->fetchAll() : [];
+    if ($rs) {
+        $rs->closeCursor();
+        unset($rs);
+    }
+    $total = is_array($sumaMovimientos) ? count($sumaMovimientos) : 0;
     $cerrados = 0;
     $errores = '';
     foreach ($sumaMovimientos as $sumaMov) {
@@ -42,8 +44,8 @@ try {
         }
         $sql = "SELECT `id_tipo_doc` FROM `ctb_doc` WHERE (`id_ctb_doc` = $id_ctb_doc)";
         $rs = $cmd->query($sql);
-        $tipo = $rs->fetch(PDO::FETCH_ASSOC);
-        $dif = $tipo['id_tipo_doc'] == '14' ? 0 : $dif;
+        $tipo = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+        $dif = (!empty($tipo) && ($tipo['id_tipo_doc'] ?? '') == '14') ? 0 : $dif;
 
         if ($dif == 0) {
             $estado = 2;

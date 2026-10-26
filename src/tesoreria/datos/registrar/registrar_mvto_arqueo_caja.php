@@ -64,9 +64,9 @@ try {
             }
             $query = "SELECT SUM(`valor_arq`) AS `valor` FROM `tes_causa_arqueo` WHERE `id_ctb_doc` = $id_doc";
             $rs = $cmd->query($query);
-            $valor = $rs->fetch();
+            $valor = $rs ? $rs->fetch() : null;
             $response['status'] = 'ok';
-            $response['valor'] = $valor['valor'];
+            $response['valor'] = $valor['valor'] ?? 0;
         } else {
             $response['msg'] = $query->errorInfo()[2];
         }
@@ -92,9 +92,9 @@ try {
                 Logs::guardaLog("UPDATE `tes_causa_arqueo` SET `fecha_ini` = '$fecha_ini', `fecha_fin` = '$fecha_fin', `id_tercero` = $id_tercero_api, `valor_fac` = '$val_fact', `valor_arq` = '$val_arq', `observaciones` = '$observaciones', `id_user_act` = $iduser, `fecha_act` = '$fecha2' WHERE `id_causa_arqueo` = $id_detalle");
                 $query = "SELECT SUM(`valor_arq`) AS `valor` FROM `tes_causa_arqueo` WHERE `id_ctb_doc` = $id_doc";
                 $rs = $cmd->query($query);
-                $valor = $rs->fetch();
+                $valor = $rs ? $rs->fetch() : null;
                 $response['status'] = 'ok';
-                $response['valor'] = $valor['valor'];
+                $response['valor'] = $valor['valor'] ?? 0;
             } else {
                 $response['msg'] = 'No se realizó ningún cambio';
             }

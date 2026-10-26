@@ -14,7 +14,7 @@ $permisos = new Permisos();
 $opciones = $permisos->PermisoOpciones($id_user);
 include '../financiero/consultas.php';
 
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $cdp = $_post['id'];
 $cmd = \Config\Clases\Conexion::getConexion();
 
@@ -138,8 +138,8 @@ try {
                         try {
                             $sql = "SELECT sum(valor) as registrado FROM pto_documento_detalles WHERE id_auto_dep = '$lp[id_pto_doc]' AND rubro ='$lp[rubro]' AND (tipo_mov ='CRP' OR tipo_mov='LRP')";
                             $res = $cmd->query($sql);
-                            $registrado = $res->fetch(PDO::FETCH_ASSOC);
-                            $saldo = $lp['valor'] - $registrado['registrado'];
+                            $registrado = $res ? $res->fetch(PDO::FETCH_ASSOC) : null;
+                            $saldo = (float)($lp['valor'] ?? 0) - (float)($registrado['registrado'] ?? 0);
                         } catch (PDOException $e) {
                             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
                         }
@@ -218,8 +218,8 @@ try {
                                     WHERE `pto_documento_detalles`.`tipo_mov` ='COP' AND `pto_documento_detalles`.`id_auto_dep` ={$lp['id_pto_doc']} AND `pto_documento_detalles`.`estado` =0
                                     GROUP BY `pto_documento_detalles`.`id_documento`;";
                             $res = $cmd->query($sql);
-                            $causado = $res->fetch(PDO::FETCH_ASSOC);
-                            $saldo_rp = $lp['valor'] - $causado['val_causado'];
+                            $causado = $res ? $res->fetch(PDO::FETCH_ASSOC) : null;
+                            $saldo_rp = (float)($lp['valor'] ?? 0) - (float)($causado['val_causado'] ?? 0);
                             $sql2 = $sql;
                         } catch (PDOException $e) {
                             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -233,8 +233,8 @@ try {
                                     WHERE `tipo_mov` ='LRP'
                                         AND `id_auto_crp` ={$lp['id_pto_doc']};";
                             $res = $cmd->query($sql);
-                            $liquidado = $res->fetch(PDO::FETCH_ASSOC);
-                            $valor_liquidado = $liquidado['val_liquidado'];
+                            $liquidado = $res ? $res->fetch(PDO::FETCH_ASSOC) : null;
+                            $valor_liquidado = (float)($liquidado['val_liquidado'] ?? 0);
                             $saldo_rp = $saldo_rp + $valor_liquidado;
                         } catch (PDOException $e) {
                             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

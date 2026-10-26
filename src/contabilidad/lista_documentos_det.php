@@ -262,7 +262,7 @@ $estadoGuardar = $datosDoc['estado'] == '2' ? 'disabled' : '';
 
 // Calcular valores para formulario
 $idCrpValue = $datosDoc['id_crp'] > 0 ? $datosDoc['id_crp'] : 0;
-$minFecha = date('Y-m-d', strtotime($datosDoc['fecha_crp']));
+$minFecha = date('Y-m-d', strtotime($datosDoc['fecha_crp'] ?? $vigencia . '-01-01'));
 $maxFecha = $vigencia . '-12-31';
 
 $content = <<<HTML

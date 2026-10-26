@@ -20,8 +20,8 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_vigencia` FROM `tb_vigencias` WHERE (`anio` = '$vigencia')";
     $res = $cmd->query($sql);
-    $datas = $res->fetch();
-    $vig = $datas['id_vigencia'];
+    $datas = $res ? $res->fetch() : null;
+    $vig = $datas['id_vigencia'] ?? 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

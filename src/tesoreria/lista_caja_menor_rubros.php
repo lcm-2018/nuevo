@@ -52,9 +52,9 @@ try {
                     ON (`t1`.`id_caja_const` = `tes_caja_const`.`id_caja_const`)
             WHERE `tes_caja_const`.`id_caja_const` = $id_caja";
     $rs = $cmd->query($sql);
-    $valores = $rs->fetch(PDO::FETCH_ASSOC);
-    if ($valores) {
-        $max = $valores['valor_total'] - $valores['valor'];
+    $valores = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+    if (!empty($valores)) {
+        $max = ($valores['valor_total'] ?? 0) - ($valores['valor'] ?? 0);
     } else {
         $max = 0;
     }

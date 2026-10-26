@@ -2,7 +2,7 @@
 
 use Config\Clases\Logs;
 
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $id = $_post['id'];
 include '../../../../config/autoloader.php';
 // consulto si el id de la cuenta fue utilizado en seg_fin_chequera_cont

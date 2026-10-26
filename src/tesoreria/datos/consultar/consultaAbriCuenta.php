@@ -16,8 +16,8 @@ try {
 
     $sql = "SELECT id_pgcp from tes_cuentas WHERE id_tes_cuenta=$data";
     $rs = $cmd->query($sql);
-    $cuenta = $rs->fetch();
-    $id_pgcp = $cuenta['id_pgcp'];
+    $cuenta = $rs ? $rs->fetch() : null;
+    $id_pgcp = $cuenta['id_pgcp'] ?? 0;
     // update ctb_libaux set estado='C' where id_ctb_doc=$data;
     $query = $cmd->prepare("UPDATE tes_cuentas SET estado=0 WHERE id_tes_cuenta=?");
     $query->bindParam(1, $data, PDO::PARAM_INT);

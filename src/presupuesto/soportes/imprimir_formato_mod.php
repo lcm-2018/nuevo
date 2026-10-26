@@ -42,11 +42,11 @@ try {
                 LEFT JOIN `seg_usuarios_sistema` AS `seg_usuarios_sistema_1` ON (`pto_mod`.`id_user_act` = `seg_usuarios_sistema_1`.`id_usuario`)
             WHERE (`pto_mod`.`id_pto_mod` = $dto)";
     $res = $cmd->query($sql);
-    $cdp = $res->fetch();
+    $cdp = $res ? $res->fetch() : null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$anulado = $cdp['estado'] == '0' ? 'ANULADO' : '';
+$anulado = !empty($cdp) && ($cdp['estado'] ?? '') == '0' ? 'ANULADO' : '';
 // Valor total del cdp
 try {
     $sql = "SELECT
@@ -55,8 +55,8 @@ try {
                 `pto_mod_detalle`
             WHERE (`id_pto_mod` = $dto)";
     $res = $cmd->query($sql);
-    $datos = $res->fetch();
-    $total = $datos['debito'];
+    $datos = $res ? $res->fetch() : null;
+    $total = (float)($datos['debito'] ?? 0);
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

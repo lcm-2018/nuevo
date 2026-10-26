@@ -34,9 +34,9 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT sum(valor) as valorCrp FROM pto_documento_detalles WHERE id_pto_doc=$datosCrp[id_auto]";
     $rs = $cmd->query($sql);
-    $totalCrp = $rs->fetch();
+    $totalCrp = $rs ? $rs->fetch() : null;
     // total con puntos de mailes number_format()
-    $total = number_format($totalCrp['valorCrp'], 2, '.', ',');
+    $total = number_format((float)($totalCrp['valorCrp'] ?? 0), 2, '.', ',');
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

@@ -6,7 +6,7 @@ $date = new DateTime('now', new DateTimeZone('America/Bogota'));
 $fecha2 = $date->format('Y-m-d H:i:s');
 include '../../../../config/autoloader.php';
 use Config\Clases\Logs;
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $cmd = \Config\Clases\Conexion::getConexion();
 // Consulto si exite referencia de pago activa
 try {
@@ -16,10 +16,10 @@ try {
                 tes_referencia
             WHERE estado =0;";
     $rs = $cmd->query($sql);
-    $referencia = $rs->fetch();
+    $referencia = $rs ? $rs->fetch() : null;
     // verifico si la respuesta en mayor a 0
-    if ($rs->rowCount() > 0) {
-        $ref = $referencia['numero'];
+    if ($rs && $rs->rowCount() > 0 && !empty($referencia)) {
+        $ref = $referencia['numero'] ?? 0;
         $response[] = array("value" => 'ok', "tipo" => 1, "num_ref" => $ref);
     } else {
         // Genero una nueva referencia de pago
@@ -30,8 +30,8 @@ try {
                 tes_referencia
            ";
             $rs = $cmd->query($sql);
-            $referencia = $rs->fetch();
-            $ref = $referencia['valor'] + 1;
+            $referencia = $rs ? $rs->fetch() : null;
+            $ref = !empty($referencia['valor']) ? ($referencia['valor'] + 1) : 1;
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
         }

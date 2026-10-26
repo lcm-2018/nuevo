@@ -32,8 +32,8 @@ try {
                 `pto_cargue`
             WHERE (`id_cargue`  = $id_cargue);";
     $rs = $cmd->query($sql);
-    $detalle = $rs->fetch();
-    $id_ppto = $detalle['id_pto'];
+    $detalle = $rs ? $rs->fetch() : null;
+    $id_ppto = $detalle['id_pto'] ?? 0;
     //**** */
     $sql = "SELECT
                 `id_pto`, `id_tipo`, `id_vigencia`, `nombre`, `descripcion`, `estado`
@@ -41,8 +41,8 @@ try {
                 `pto_presupuestos`
             WHERE `id_pto` = $id_ppto";
     $rs = $cmd->query($sql);
-    $presupuesto = $rs->fetch();
-    $id_tipo = $presupuesto['id_tipo'];
+    $presupuesto = $rs ? $rs->fetch() : null;
+    $id_tipo = $presupuesto['id_tipo'] ?? 0;
     $sql = "SELECT 
                 `id_trubro`, `nombre`, `id_pto` 
             FROM 

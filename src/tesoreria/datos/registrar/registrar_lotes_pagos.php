@@ -27,7 +27,7 @@ try {
     $sql = "SELECT MAX(`id_manu`) AS `id_manu` FROM `ctb_doc` 
             WHERE (`id_tipo_doc` = $id_tipo AND `id_vigencia` = $id_vigencia)";
     $rs = $cmd->query($sql);
-    $id_manu = $rs->fetch(PDO::FETCH_ASSOC);
+    $id_manu = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
     $id_manu = !empty($id_manu['id_manu']) ? $id_manu['id_manu'] : 1;
 } catch (PDOException $e) {
     $response['msg'] = $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

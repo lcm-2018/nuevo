@@ -86,7 +86,7 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
 {
     if ($esPtoCaracter) {
         $ccostos = array_filter(array_map('trim', explode(',', (string) ($detalleEmpleado['id_ccosto'] ?? ''))));
-        if (count($ccostos) !== 1) {
+        if (!is_array($ccostos) || count($ccostos) !== 1) {
             throw new Exception(
                 'El empleado con documento ' . $detalleEmpleado['no_documento'] .
                 ' tiene un centro de costo no valido para el pago: ' . ($detalleEmpleado['id_ccosto'] ?? 'sin definir')
@@ -242,12 +242,12 @@ try {
     $stmt = $cmd->prepare($sql);
     $stmt->bindParam(1, $id_nomina, PDO::PARAM_INT);
     $stmt->execute();
-    $nominaEstado = $stmt->fetch(PDO::FETCH_ASSOC);
+    $nominaEstado = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
     if (empty($nominaEstado)) {
         throw new Exception('No se encontro la nomina a procesar.');
     }
 
-    if ((int) $nominaEstado['estado'] === 5) {
+    if (!empty($nominaEstado) && (int) $nominaEstado['estado'] === 5) {
         throw new Exception('La nomina ya fue pagada y tiene comprobante de egreso.');
     }
 
@@ -263,8 +263,8 @@ try {
     $stmt = $cmd->prepare($sql);
     $stmt->bindParam(1, $id_nomina, PDO::PARAM_INT);
     $stmt->execute();
-    $cevaExistente = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!empty($cevaExistente['ceva'])) {
+    $cevaExistente = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+    if (!empty($cevaExistente) && !empty($cevaExistente['ceva'])) {
         $numCeva = $cevaExistente['id_manu'] ?? $cevaExistente['ceva'];
         throw new Exception('La nomina ya tiene un comprobante de egreso registrado (' . $numCeva . ').');
     }
@@ -274,15 +274,15 @@ try {
     $stmt->bindParam(1, $id_vigencia, PDO::PARAM_INT);
     $stmt->bindParam(2, $tipo_doc_ceva, PDO::PARAM_INT);
     $stmt->execute();
-    $consecutivo = $stmt->fetch();
-    $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
+    $consecutivo = $stmt ? $stmt->fetch() : null;
+    $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
 
     $sql = "SELECT `id_tercero_api` FROM `tb_terceros` WHERE `nit_tercero` = ?";
     $stmt = $cmd->prepare($sql);
     $stmt->bindParam(1, $_SESSION['nit_emp'], PDO::PARAM_STR);
     $stmt->execute();
-    $tercero_emp = $stmt->fetch();
-    $id_ter_emp_api = !empty($tercero_emp) ? $tercero_emp['id_tercero_api'] : 0;
+    $tercero_emp = $stmt ? $stmt->fetch() : null;
+    $id_ter_emp_api = !empty($tercero_emp) ? ($tercero_emp['id_tercero_api'] ?? 0) : 0;
     if (empty($tercero_emp) || (int) $id_ter_emp_api <= 0) {
         throw new Exception(
             'No se encontro un tercero valido para la empresa. Verifique el NIT ' .
@@ -305,13 +305,13 @@ try {
         if ($claveEmpleadoDoc !== 'doc:') {
             $empleadosDoc[$claveEmpleadoDoc] = true;
             $id_ter_api_e = $terceros[$dd['no_documento']] ?? NULL;
-            if (count($empleadosDoc) === 1 && !empty($id_ter_api_e)) {
+            if (is_countable($empleadosDoc) && count($empleadosDoc) === 1 && !empty($id_ter_api_e)) {
                 $idTerceroEmpleadoDoc = (int) $id_ter_api_e;
             }
         }
     }
 
-    if (count($empleadosDoc) === 1 && $idTerceroEmpleadoDoc > 0) {
+    if (is_countable($empleadosDoc) && count($empleadosDoc) === 1 && $idTerceroEmpleadoDoc > 0) {
         $id_ter_doc = $idTerceroEmpleadoDoc;
     }
 

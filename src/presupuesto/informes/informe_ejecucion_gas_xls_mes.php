@@ -133,8 +133,8 @@ FROM
                 `pto_cargue` 
                 WHERE (`cod_pptal`LIKE '$rubro' AND `tipo_dato`=1);";
                 $res = $cmd->query($sql);
-                $inicial = $res->fetch();
-                $inicial = $inicial['inicial'];
+                $inicial = $res ? $res->fetch() : null;
+                $inicial = (float)($inicial['inicial'] ?? 0);
                 // Para valor adicion
                 $sql = "SELECT
                 SUM(`pto_documento_detalles`.`valor`) as valor
@@ -151,8 +151,8 @@ FROM
                  AND `pto_documento_detalles`.`mov` =0
                  AND `pto_documento_detalles`.`rubro` LIKE '$rubro')";
                 $res = $cmd->query($sql);
-                $adicion = $res->fetch();
-                $adicion = $adicion['valor'];
+                $adicion = $res ? $res->fetch() : null;
+                $adicion = (float)($adicion['valor'] ?? 0);
 
                 // Para valor reduccion
                 $sql = "SELECT
@@ -169,8 +169,8 @@ FROM
                   AND `pto_documento_detalles`.`rubro` LIKE '$rubro')
                  GROUP BY `pto_documento_detalles`.`valor`;";
                 $res = $cmd->query($sql);
-                $reduc = $res->fetch();
-                $reducion = $reduc['valor'];
+                $reduc = $res ? $res->fetch() : null;
+                $reducion = (float)($reduc['valor'] ?? 0);
                 // Para valor credito
                 $sql = "SELECT
                 SUM(`pto_documento_detalles`.`valor`) as valor
@@ -185,8 +185,8 @@ FROM
                  AND `pto_documento_detalles`.`mov` =1
                  AND `pto_documento_detalles`.`rubro` LIKE '$rubro')";
                 $res = $cmd->query($sql);
-                $credito = $res->fetch();
-                $val_credito = $credito['valor'];
+                $credito = $res ? $res->fetch() : null;
+                $val_credito = (float)($credito['valor'] ?? 0);
                 // Para valor contracredito
                 $sql = "SELECT
                 SUM(`pto_documento_detalles`.`valor`) as valor
@@ -201,8 +201,8 @@ FROM
                  AND `pto_documento_detalles`.`mov` =0
                  AND `pto_documento_detalles`.`rubro` LIKE '$rubro');";
                 $res = $cmd->query($sql);
-                $credito = $res->fetch();
-                $val_ccred = $credito['valor'];
+                $credito = $res ? $res->fetch() : null;
+                $val_ccred = (float)($credito['valor'] ?? 0);
                 // Para valor ejecutado con CDP
                 $sql = "SELECT sum(valor) as valor FROM pto_documento_detalles WHERE rubro LIKE '$rubro'";
                 $sql = "SELECT
@@ -216,8 +216,8 @@ FROM
                 AND `pto_documento`.`fecha` <='$fecha_corte'
                 AND `pto_documento_detalles`.`rubro` LIKE '$rubro');";
                 $res = $cmd->query($sql);
-                $valorcdp = $res->fetch();
-                $cdp = $valorcdp['valor'];
+                $valorcdp = $res ? $res->fetch() : null;
+                $cdp = (float)($valorcdp['valor'] ?? 0);
                 // Para valor ejecutado con RP
                 $sql = "SELECT sum(valor) as valor FROM pto_documento_detalles WHERE rubro LIKE '$rubro'";
                 $sql = "SELECT
@@ -231,8 +231,8 @@ FROM
                 AND `pto_documento`.`fecha` <='$fecha_corte'
                 AND `pto_documento_detalles`.`rubro` LIKE '$rubro');";
                 $res = $cmd->query($sql);
-                $valorcrp = $res->fetch();
-                $crp = $valorcrp['valor'];
+                $valorcrp = $res ? $res->fetch() : null;
+                $crp = (float)($valorcrp['valor'] ?? 0);
                 // Para valor ejecutado con obligado
                 $sql = "SELECT
                 `pto_documento_detalles`.`rubro`
@@ -246,8 +246,8 @@ FROM
                 AND `ctb_doc`.`fecha`  <='$fecha_corte'
                 AND `pto_documento_detalles`.`tipo_mov` ='COP');";
                 $res = $cmd->query($sql);
-                $valorcop = $res->fetch();
-                $cop = $valorcop['valor'];
+                $valorcop = $res ? $res->fetch() : null;
+                $cop = (float)($valorcop['valor'] ?? 0);
                 // Para valor ejecutado con pagos
                 $sql = "SELECT
                 `pto_documento_detalles`.`rubro`
@@ -261,8 +261,8 @@ FROM
                 AND `pto_documento_detalles`.`estado` =0
                 AND `pto_documento_detalles`.`tipo_mov` ='PAG');";
                 $res = $cmd->query($sql);
-                $valorpag = $res->fetch();
-                $ene = $valorpag['valor'];
+                $valorpag = $res ? $res->fetch() : null;
+                $ene = (float)($valorpag['valor'] ?? 0);
                 // Consulta para febrero
                 // Para valor ejecutado con pagos
                 $sql = "SELECT
@@ -277,8 +277,8 @@ FROM
                 AND `pto_documento_detalles`.`estado` =0
                 AND `pto_documento_detalles`.`tipo_mov` ='PAG');";
                 $res = $cmd->query($sql);
-                $valorpag = $res->fetch();
-                $feb = $valorpag['valor'];
+                $valorpag = $res ? $res->fetch() : null;
+                $feb = (float)($valorpag['valor'] ?? 0);
                 // Para valor ejecutado con pagos
                 // Para valor ejecutado con pagos
                 $sql = "SELECT
@@ -293,8 +293,8 @@ FROM
                 AND `pto_documento_detalles`.`estado` =0
                 AND `pto_documento_detalles`.`tipo_mov` ='PAG');";
                 $res = $cmd->query($sql);
-                $valorpag = $res->fetch();
-                $mar = $valorpag['valor'];
+                $valorpag = $res ? $res->fetch() : null;
+                $mar = (float)($valorpag['valor'] ?? 0);
                 // Suma total trimestre
                 $total_mes = $ene + $feb + $mar;
                 $def = $inicial + $val_credito - $val_ccred + $adicion - $reducion;

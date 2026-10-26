@@ -7,7 +7,7 @@ if (!isset($_SESSION['user'])) {
 //Recibir variables por POST
 include '../../../../config/autoloader.php';
 use Config\Clases\Logs;
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $id_doc = $_post['id'];
 $id_crp = $_post['id_crp'];
 $id_cop = $_post['id_cop'];
@@ -30,9 +30,9 @@ try {
     $query = $cmd->prepare($query);
     $query->bindParam(1, $id_doc, PDO::PARAM_INT);
     $query->execute();
-    $datos = $query->fetch();
-    $id_tercero = $datos['id_tercero'];
-    $id_ref_ctb = $datos['id_ref_ctb'];
+    $datos = $query ? $query->fetch() : null;
+    $id_tercero = $datos['id_tercero'] ?? 0;
+    $id_ref_ctb = $datos['id_ref_ctb'] ?? 0;
     $sq2 = "SELECT
                 `tes_cuentas`.`id_cuenta` AS `cta_contable`
                 , `tes_detalle_pago`.`valor`

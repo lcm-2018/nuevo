@@ -9,7 +9,7 @@ if (!empty($data)) {
     $stmt = $cmd->prepare($sql);
     $stmt->execute([':id_doc' => $data]);
     while ($row = $stmt->fetch()) {
-        $response[] = array("valordeb" => $row['debito'], "valorcrd" => $row['credito']);
+        $response[] = array("valordeb" => $row['debito'] ?? 0, "valorcrd" => $row['credito'] ?? 0);
     }
 }
 echo json_encode($response);

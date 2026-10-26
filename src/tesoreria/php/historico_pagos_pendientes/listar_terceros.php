@@ -48,8 +48,8 @@ try {
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM ctb_doc WHERE id_ctb_doc<>0";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
     $totalRecordsFilter = 0;
 
     //Consulta el total de registros aplicando el filtro
@@ -63,8 +63,8 @@ try {
                 GROUP BY ctb_libaux.id_ctb_doc, tb_terceros.id_tercero_api
             ) AS subquery) ";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];*/
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;*/
 
     //------Consulta los datos para listarlos en la tabla
     $sql = "SELECT 

@@ -18,8 +18,8 @@ if (isset($_POST)) {
     // consultar id_pto_documento de la tabla pto_documento
     $query = $cmd->prepare("SELECT `id_pto_presupuestos` FROM `pto_presupuestos` WHERE `id_pto_tipo` =2;");
     $query->execute();
-    $id_pto = $query->fetch(PDO::FETCH_ASSOC);
-    $id_pto = $id_pto['id_pto_presupuestos'];
+    $id_pto = $query ? $query->fetch(PDO::FETCH_ASSOC) : null;
+    $id_pto = $id_pto['id_pto_presupuestos'] ?? 0;
     if (empty($_POST['id_doc_neo'])) {
         $query = $cmd->prepare("INSERT INTO pto_documento (id_pto_presupuestos,id_sede, tipo_doc, id_manu, fecha, objeto,num_solicitud, id_user_reg, fec_reg) VALUES (?, ?, ?, ?, ?, ?,?,?,?)");
         $query->bindParam(1, $id_pto, PDO::PARAM_INT);

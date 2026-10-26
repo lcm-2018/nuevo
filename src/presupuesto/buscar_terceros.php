@@ -17,7 +17,7 @@ try {
             FROM
                 `tb_terceros`";
     $rs = $cmd->query($sql);
-    $terceros = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $terceros = $rs ? $rs->fetchAll(PDO::FETCH_ASSOC) : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -49,9 +49,11 @@ if ($buscar == '%%') {
 }
 
 if (empty($data)) {
-    $data[] = [
-        'id' => '0',
-        'label' => 'No hay coincidencias...',
+    $data = [
+        [
+            'id' => '0',
+            'label' => 'No hay coincidencias...',
+        ]
     ];
 }
 echo json_encode($data);

@@ -85,8 +85,8 @@ try {
     $sql = "SELECT `nombre` FROM `pto_presupuestos` WHERE `id_pto` = $id_pto_presupuestos";
     $rs = $cmd->query($sql);
     if ($rs) {
-        $nomPresupuestos = $rs->fetch(PDO::FETCH_ASSOC);
-        if ($nomPresupuestos && !empty($nomPresupuestos['nombre'])) {
+        $nomPresupuestos = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+        if (!empty($nomPresupuestos) && !empty($nomPresupuestos['nombre'])) {
             $nombrePto = $nomPresupuestos['nombre'];
         }
     }

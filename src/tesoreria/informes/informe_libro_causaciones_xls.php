@@ -120,7 +120,10 @@ FROM
             $result = curl_exec($ch);
             $error = curl_error($ch);
             curl_close($ch);
-            $bancos = json_decode($result, true);
+            $bancos = is_string($result) && $result !== '' ? json_decode($result, true) : [];
+            if (!is_array($bancos)) {
+                $bancos = [];
+            }
 
             foreach ($causaciones as $rp) {
 
@@ -133,9 +136,13 @@ FROM
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
                 $res_api = curl_exec($ch);
                 curl_close($ch);
-                $dat_ter = json_decode($res_api, true);
-                $tercero = $dat_ter[0]['apellido1'] . ' ' . $dat_ter[0]['apellido2'] . ' ' . $dat_ter[0]['nombre1'] . ' ' . $dat_ter[0]['nombre2'] . ' ' . $dat_ter[0]['razon_social'];
-                $ccnit = $dat_ter[0]['cc_nit'];
+                $dat_ter = is_string($res_api) && $res_api !== '' ? json_decode($res_api, true) : [];
+                $tercero = '';
+                $ccnit = '';
+                if (!empty($dat_ter[0])) {
+                    $tercero = trim(($dat_ter[0]['apellido1'] ?? '') . ' ' . ($dat_ter[0]['apellido2'] ?? '') . ' ' . ($dat_ter[0]['nombre1'] ?? '') . ' ' . ($dat_ter[0]['nombre2'] ?? '') . ' ' . ($dat_ter[0]['razon_social'] ?? ''));
+                    $ccnit = $dat_ter[0]['cc_nit'] ?? '';
+                }
                 // fin api terceros **************************
                 $key = array_search($rp['id_tercero'], array_column($bancos, 'id_tercero'));
                 if ($key !== false) {
@@ -158,8 +165,8 @@ FROM
                 `pto_documento_detalles`
                 WHERE (`id_ctb_cop` =$id_ctb_doc);";
                 $res = $cmd->query($sql);
-                $pagado = $res->fetch();
-                $pago = $pagado['pagos'];
+                $pagado = $res ? $res->fetch() : null;
+                $pago = (float)($pagado['pagos'] ?? 0);
                 $saldo = $rp['valor'] - $pago;
                 // consulto valor retenido a cada documento
                 $sql = "SELECT
@@ -169,8 +176,8 @@ FROM
                 `ctb_causa_retencion`
                 WHERE (`id_ctb_doc` =$id_ctb_doc);";
                 $res = $cmd->query($sql);
-                $reten = $res->fetch();
-                $retenido = $reten['retenido'];
+                $reten = $res ? $res->fetch() : null;
+                $retenido = (float)($reten['retenido'] ?? 0);
                 $saldo = $rp['valor'] - $pago - $retenido;
                 if ($saldo > 0) {
                     echo "<tr>

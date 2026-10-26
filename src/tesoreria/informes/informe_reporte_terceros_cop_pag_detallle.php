@@ -145,9 +145,13 @@ FROM
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
                 $res_api = curl_exec($ch);
                 curl_close($ch);
-                $dat_ter = json_decode($res_api, true);
-                $tercero = $dat_ter[0]['apellido1'] . ' ' . $dat_ter[0]['apellido2'] . ' ' . $dat_ter[0]['nombre1'] . ' ' . $dat_ter[0]['nombre2'] . ' ' . $dat_ter[0]['razon_social'];
-                $ccnit = $dat_ter[0]['cc_nit'];
+                $dat_ter = is_string($res_api) && $res_api !== '' ? json_decode($res_api, true) : [];
+                $tercero = '';
+                $ccnit = '';
+                if (!empty($dat_ter[0])) {
+                    $tercero = trim(($dat_ter[0]['apellido1'] ?? '') . ' ' . ($dat_ter[0]['apellido2'] ?? '') . ' ' . ($dat_ter[0]['nombre1'] ?? '') . ' ' . ($dat_ter[0]['nombre2'] ?? '') . ' ' . ($dat_ter[0]['razon_social'] ?? ''));
+                    $ccnit = $dat_ter[0]['cc_nit'] ?? '';
+                }
                 // fin api terceros **************************
                 $pagos = 0;
                 $retenido = 0;
@@ -168,8 +172,8 @@ FROM
                             AND `pto_documento_detalles`.`rubro` ='{$rp['rubro']}'
                             AND `ctb_doc`.`fecha` <='$fecha_final');";
                 $res = $cmd->query($sql);
-                $pago = $res->fetch();
-                $pagos = $pago['pagado'];
+                $pago = $res ? $res->fetch() : null;
+                $pagos = (float)($pago['pagado'] ?? 0);
                 //Consulta cuenta de banco donde se realizó el pago
                 $sql = "SELECT
                             `tes_detalle_pago`.`id_ctb_pag` 
@@ -183,8 +187,8 @@ FROM
                                 ON (`tes_detalle_pago`.`id_tes_cuenta` = `tes_cuentas`.`id_tes_cuenta`)
                         WHERE (`tes_detalle_pago`.`id_ctb_pag` ='{$rp['id_ctb_doc']}');";
                 $res = $cmd->query($sql);
-                $cuenta = $res->fetch();
-                $banco = $cuenta['banco'];
+                $cuenta = $res ? $res->fetch() : null;
+                $banco = $cuenta['banco'] ?? '';
                 // consulto valor retenido a cada documento
                 $sql = "SELECT
                                 SUM(`ctb_causa_retencion`.`valor_retencion`) as retenido
@@ -195,8 +199,8 @@ FROM
                         WHERE (`ctb_causa_retencion`.`id_ctb_doc` ={$rp['id_ctb_doc']})
                         GROUP BY `ctb_causa_retencion`.`id_ctb_doc`;";
                 $res = $cmd->query($sql);
-                $reten = $res->fetch();
-                $retenido = $reten['retenido'];
+                $reten = $res ? $res->fetch() : null;
+                $retenido = (float)($reten['retenido'] ?? 0);
                 // Consulto el valor total del pago realizado
                 $sql = "SELECT
                         `id_ctb_doc`
@@ -208,17 +212,17 @@ FROM
                         AND `tipo_mov` ='COP')
                     GROUP BY `id_ctb_doc`;";
                 $res = $cmd->query($sql);
-                $pago_total = $res->fetch();
-                $pago_total = $pago_total['total_pago'];
+                $pago_total = $res ? $res->fetch() : null;
+                $pago_total_val = (float)($pago_total['total_pago'] ?? 0);
                 // saco el valor retenido proporcional al valor pagado / total pagado
-                $val_retenido = $retenido *  ($rp['valor'] / $pago_total);
+                $val_retenido = ($pago_total_val > 0) ? ($retenido * ($rp['valor'] / $pago_total_val)) : 0;
                 // redondear val_retenido
                 $val_retenido = round($val_retenido, 0);
                 $val_neto = $rp['valor'] - $val_retenido;
                 if ($pagos > 0) {
                     $pagos = $pagos - $val_retenido;
-                    $cta_banco = $cuenta['numero'];
-                    $nom_banco = $cuenta['banco'];
+                    $cta_banco = $cuenta['numero'] ?? '';
+                    $nom_banco = $cuenta['banco'] ?? '';
                 } else {
                     $pagos = 0;
                     $cta_banco = '';

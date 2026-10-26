@@ -7,7 +7,7 @@ if (!isset($_SESSION['user'])) {
 //Recibir variables por POST
 include '../../../../config/autoloader.php';
 use Config\Clases\Logs;
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 
 $id_doc = $_post['id'];
 $iduser = $_SESSION['id_user'];

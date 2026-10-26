@@ -46,8 +46,8 @@ try {
     $sql = "SELECT `estado` FROM `pto_rad` WHERE (`id_pto_rad` = $id_rad)";
     // Si documento es igual a TRA modificamos la consulta
     $rs = $cmd->query($sql);
-    $estado = $rs->fetch(PDO::FETCH_ASSOC);
-    $estado = !empty($estado) ? $estado['estado'] : 1;
+    $estado = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+    $estado = !empty($estado) ? ($estado['estado'] ?? 1) : 1;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

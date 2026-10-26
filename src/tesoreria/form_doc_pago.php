@@ -26,9 +26,9 @@ try {
                     ON (`ctb_doc`.`id_tipo_doc` = `ctb_fuente`.`id_doc_fuente`)
             WHERE (`ctb_doc`.`id_tipo_doc` = $id_ctb_doc AND `ctb_doc`.`id_vigencia` = $id_vigencia)";
     $rs = $cmd->query($sql);
-    $consecutivo = $rs->fetch();
-    $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
-    $fuente = !empty($consecutivo) ? $consecutivo['nombre'] : '---';
+    $consecutivo = $rs ? $rs->fetch() : null;
+    $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
+    $fuente = !empty($consecutivo) ? ($consecutivo['nombre'] ?? '---') : '---';
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -80,10 +80,10 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `numero` FROM `tes_referencia`  WHERE `estado` = 1";
     $rs = $cmd->query($sql);
-    $pagos_ref = $rs->fetch();
+    $pagos_ref = $rs ? $rs->fetch() : null;
     if (empty($datos)) {
-        if ($rs->rowCount() > 0) {
-            $ref = $pagos_ref['numero'];
+        if (!empty($pagos_ref) && $rs->rowCount() > 0) {
+            $ref = $pagos_ref['numero'] ?? 0;
             $chek = 'checked';
         } else {
             $ref = 0;
@@ -117,18 +117,20 @@ $fecha = date("Y-m-d");
 $fecha_min = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-01-01'));
 $fecha_max = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-12-31'));
 if (empty($datos)) {
-    $datos['id_ctb_doc'] = 0;
-    $datos['id_manu'] = $id_manu;
-    $datos['id_tercero'] = 0;
-    $datos['fecha'] = $fecha;
-    $datos['detalle'] = '';
-    $datos['id_ref_ctb'] = 0;
-    $datos['id_ref'] = '';
-    $datos['id_caja'] = 0;
-    $datos['check'] = 0;
+    $datos = [
+        'id_ctb_doc' => 0,
+        'id_manu' => $id_manu,
+        'id_tercero' => 0,
+        'fecha' => $fecha,
+        'detalle' => '',
+        'id_ref_ctb' => 0,
+        'id_ref' => '',
+        'id_caja' => 0,
+        'check' => 0,
+    ];
     $tercero = '';
 } else {
-    $tercero = ltrim($datos['nom_tercero']);
+    $tercero = ltrim($datos['nom_tercero'] ?? '');
 }
 $cero = isset($datos['id_caja']) ? $datos['id_caja'] : 0;
 $tam = $id_ctb_doc == '14' ? 4 : 6;

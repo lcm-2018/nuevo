@@ -41,8 +41,8 @@ if ($id_doc_pag == 0) {
                     `ctb_doc`
                 WHERE (`id_vigencia` = $id_vigencia AND `id_tipo_doc` = $tipo_dato)";
         $rs = $cmd->query($sql);
-        $consecutivo = $rs->fetch();
-        $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
+        $consecutivo = $rs ? $rs->fetch() : null;
+        $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -89,8 +89,8 @@ if ($id_doc_pag == 0) {
                 WHERE (`ctb_doc`.`id_ctb_doc` =  $id_doc_rad) LIMIT 1";
         }
         $rs = $cmd->query($sql);
-        $datosDoc = $rs->fetch();
-        $tercero = $datosDoc['nom_tercero'];
+        $datosDoc = $rs ? $rs->fetch() : null;
+        $tercero = $datosDoc['nom_tercero'] ?? '---';
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -109,8 +109,8 @@ if ($id_doc_pag == 0) {
                         ON (`ctb_doc`.`id_tipo_doc` = `ctb_fuente`.`id_doc_fuente`)
                 WHERE (`ctb_doc`.`id_ctb_doc` = $iddd)";
         $rs = $cmd->query($sqls);
-        $rdss = $rs->fetch();
-        $id_doc_rad = !empty($rdss) && $rdss['cod'] == 'FELE' ? $datosDoc['id_ctb_doc_tipo3'] : 0;
+        $rdss = $rs ? $rs->fetch() : null;
+        $id_doc_rad = (!empty($rdss) && ($rdss['cod'] ?? '') == 'FELE') ? ($datosDoc['id_ctb_doc_tipo3'] ?? 0) : 0;
     }
     if ($id_doc_rad > 0) {
         $sql = "SELECT
@@ -121,15 +121,16 @@ if ($id_doc_pag == 0) {
                     ON (`pto_rec_detalle`.`id_pto_rac` = `pto_rec`.`id_pto_rec`)
             WHERE (`pto_rec`.`estado` > 0 AND `pto_rec`.`id_ctb_doc` = $id_doc_pag)";
         $rs = $cmd->query($sql);
-        $valor = $rs->fetch();
-        $datosDoc['val_pagado'] = !empty($valor) ? $valor['valor'] : 0;
+        $valor = $rs ? $rs->fetch() : null;
+        $datosDoc['val_pagado'] = !empty($valor) ? ($valor['valor'] ?? 0) : 0;
     }
     // Consulta terceros directamente
     try {
-        $sql = "SELECT `nom_tercero` FROM `tb_terceros` WHERE `id_tercero_api` = {$datosDoc['id_tercero']}";
+        $id_ter_api = $datosDoc['id_tercero'] ?? 0;
+        $sql = "SELECT `nom_tercero` FROM `tb_terceros` WHERE `id_tercero_api` = {$id_ter_api}";
         $rs = $cmd->query($sql);
-        $dat_ter = $rs->fetch();
-        $tercero = !empty($dat_ter) ? $dat_ter['nom_tercero'] : '---';
+        $dat_ter = $rs ? $rs->fetch() : null;
+        $tercero = !empty($dat_ter) ? ($dat_ter['nom_tercero'] ?? '---') : '---';
     } catch (PDOException $e) {
         $tercero = '---';
     }
@@ -152,9 +153,9 @@ try {
 try {
     $sql = "SELECT `numero` FROM `tes_referencia`  WHERE `estado` = 1";
     $rs = $cmd->query($sql);
-    $pagos_ref = $rs->fetch();
-    if ($rs->rowCount() > 0) {
-        $ref = $pagos_ref['numero'];
+    $pagos_ref = $rs ? $rs->fetch() : null;
+    if (!empty($pagos_ref) && $rs->rowCount() > 0) {
+        $ref = $pagos_ref['numero'] ?? 0;
         $chek = 'checked';
     } else {
         $ref = 0;
@@ -173,8 +174,8 @@ try {
                 `tes_detalle_pago`
             WHERE (`id_ctb_doc` = $id_doc_pag)";
     $rs = $cmd->query($sql);
-    $values = $rs->fetch();
-    $valor_pago = !empty($values) ? $values['valor'] : 0;
+    $values = $rs ? $rs->fetch() : null;
+    $valor_pago = !empty($values) ? ($values['valor'] ?? 0) : 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -197,9 +198,9 @@ if ($tipo_dato == '9') {
                         ON (`tes_causa_arqueo`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
                 WHERE `tes_causa_arqueo`.`id_ctb_doc` = $id_arq";
         $rs = $cmd->query($sql);
-        $arqueo = $rs->fetch();
-        $fecha_arq = $arqueo['fecha'];
-        $valor_teso = $arqueo['valor'];
+        $arqueo = $rs ? $rs->fetch() : null;
+        $fecha_arq = $arqueo['fecha'] ?? '';
+        $valor_teso = $arqueo['valor'] ?? 0;
         $valor_pago = $valor_teso;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -234,9 +235,9 @@ try {
             WHERE ctb_referencia.id_ctb_referencia =" . $datosDoc['id_ref_ctb']
         . " AND id_ctb_fuente = $tipo_dato";
     $rs = $cmd->query($sql);
-    $obj_referencia = $rs->fetch();
+    $obj_referencia = $rs ? $rs->fetch() : null;
     if (empty($obj_referencia)) {
-        $obj_referencia['accion_pto'] = 0;
+        $obj_referencia = ['accion_pto' => 0];
     }
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

@@ -50,8 +50,8 @@ if (!empty($listappto)) {
         //Consulto el valor cargado a presupuestos por cada rubro y presupuesto seleccionado
         $sql = "SELECT sum(valor_aprobado) as valor  FROM pto_cargue where cod_pptal like '$lp[cod_pptal]%' and id_pto ='$id_pto_presupuestos' and tipo_dato=1";
         $rs = $cmd->query($sql);
-        $valor = $rs->fetch();
-        $valor_ppto = number_format($valor['valor'], 2, '.', ',');
+        $valor = $rs ? $rs->fetch() : null;
+        $valor_ppto = number_format((float)($valor['valor'] ?? 0), 2, '.', ',');
         if ($estado['estado'] == '1') {
             if ($permisos->PermisosUsuario($opciones, 5401, 3) || $id_rol == 1) {
                 $editar = '<a value="' . $id_pto . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';

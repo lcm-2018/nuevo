@@ -34,8 +34,8 @@ try {
                 `pto_crp`
             WHERE (`id_pto` = $id_pto)";
     $rs = $cmd->query($sql);
-    $consecutivo = $rs->fetch();
-    $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
+    $consecutivo = $rs ? $rs->fetch() : null;
+    $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -46,8 +46,8 @@ try {
             FROM `pto_cdp`
             WHERE `id_pto_cdp` = $id_cdp";
     $rs = $cmd->query($sql);
-    $objeto_ = $rs->fetch();
-    $objeto = !empty($objeto_) ? $objeto_['objeto'] : '';
+    $objeto_ = $rs ? $rs->fetch() : null;
+    $objeto = !empty($objeto_) ? ($objeto_['objeto'] ?? '') : '';
     $fecha_cdp = !empty($objeto_) ? date('Y-m-d', strtotime($objeto_['fecha'])) : date('Y-m-d');
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -84,8 +84,8 @@ try {
                     ON (`ctt_adquisiciones`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
             WHERE (`ctt_novedad_adicion_prorroga`.`id_cdp` = $id_cdp)";
     $rs = $cmd->query($sql);
-    $ctt = $rs->fetch();
-    $id_ter = !empty($ctt) ? $ctt['id_tercero'] : 0;
+    $ctt = $rs ? $rs->fetch() : null;
+    $id_ter = !empty($ctt) ? ($ctt['id_tercero'] ?? 0) : 0;
     $num_contrato = !empty($ctt) ? $ctt['num_contrato'] : '';
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

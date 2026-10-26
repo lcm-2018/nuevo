@@ -49,7 +49,7 @@ try {
             WHERE `pto_documento_detalles`.`id_ctb_doc` = :id_ctb_doc LIMIT 1";
     $rs = $cmd->prepare($sql);
     $rs->execute([':id_ctb_doc' => $id_ctb_doc]);
-    $datos = $rs->fetch();
+    $datos = $rs ? $rs->fetch() : null;
     $id_pto_doc = $datos['id_documento'] ?? '';
     $rs->closeCursor();
     unset($rs);

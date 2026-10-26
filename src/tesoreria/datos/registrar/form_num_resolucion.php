@@ -16,9 +16,9 @@ try {
             FROM `tes_resolucion_pago`
             WHERE `id_ctb_doc` = $id AND `id_vigencia` = $id_vigencia";
     $rs = $cmd->query($sql);
-    $resolucion = $rs->fetch(PDO::FETCH_ASSOC);
-    $id_resol = $resolucion['id_resol'];
-    $consecutivo = $resolucion['consecutivo'];
+    $resolucion = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+    $id_resol = $resolucion['id_resol'] ?? 0;
+    $consecutivo = $resolucion['consecutivo'] ?? '';
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

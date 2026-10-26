@@ -150,7 +150,7 @@ try {
                 ON (`pto_crp`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
             WHERE (`id_pto` = $id_pto_presupuestos) $buscar $andwhere";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
+    $total = $rs ? $rs->fetch() : null;
     $totalRecordsFiltered = !empty($total['total']) ? intval($total['total']) : 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -160,7 +160,7 @@ try {
 try {
     $sql = "SELECT COUNT(*) AS `total` FROM `pto_crp` WHERE `id_pto` = $id_pto_presupuestos";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
+    $total = $rs ? $rs->fetch() : null;
     $totalRecords = !empty($total['total']) ? intval($total['total']) : 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

@@ -23,8 +23,8 @@ try {
             FROM `pto_cargue` 
             WHERE `id_cargue` = $id_rubroCod";
     $res = $cmd->query($sql);
-    $row = $res->fetch();
-    $total = !empty($row) ? $row['valor_aprobado'] : 0;
+    $row = $res ? $res->fetch() : null;
+    $total = !empty($row) ? ($row['valor_aprobado'] ?? 0) : 0;
 } catch (PDOException $e) {
     $response['msg'] = $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }

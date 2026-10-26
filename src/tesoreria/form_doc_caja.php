@@ -42,7 +42,7 @@ try {
                 `tes_caja_const`
             WHERE (`id_caja_const` = $id_documento)";
     $rs = $cmd->query($sql);
-    $datos = $rs->fetch(PDO::FETCH_ASSOC);
+    $datos = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -52,16 +52,18 @@ $fecha = date("Y-m-d");
 $fecha_min = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-01-01'));
 $fecha_max = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-12-31'));
 if (empty($datos)) {
-    $datos['id_caja_const'] = 0;
-    $datos['acto'] = 0;
-    $datos['num_acto'] = '';
-    $datos['nombre_caja'] = '';
-    $datos['fecha_ini'] = $fecha;
-    $datos['fecha_acto'] = $fecha;
-    $datos['valor_total'] = '';
-    $datos['valor_minimo'] = '';
-    $datos['num_poliza'] = '';
-    $datos['porcentaje'] = '';
+    $datos = [
+        'id_caja_const' => 0,
+        'acto' => 0,
+        'num_acto' => '',
+        'nombre_caja' => '',
+        'fecha_ini' => $fecha,
+        'fecha_acto' => $fecha,
+        'valor_total' => '',
+        'valor_minimo' => '',
+        'num_poliza' => '',
+        'porcentaje' => '',
+    ];
 }
 ?>
 <div class="px-0">

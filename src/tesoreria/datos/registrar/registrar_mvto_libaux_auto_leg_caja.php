@@ -9,7 +9,7 @@ if (!isset($_SESSION['user'])) {
 // Recibir variables por POST
 include '../../../../config/autoloader.php';
 use Config\Clases\Logs;
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 
 $id_doc = $_post['id'];
 $id_crp = $_post['id_crp'];
@@ -85,7 +85,7 @@ try {
     $rs = $cmd->prepare($sql);
     $rs->bindParam(1, $id_doc, PDO::PARAM_INT);
     $rs->execute();
-    $row = $rs->fetch(PDO::FETCH_ASSOC);
+    $row = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
     $id_tercero = $row['id_tercero'] ?? null;
     $cmd = null;
 } catch (PDOException $e) {

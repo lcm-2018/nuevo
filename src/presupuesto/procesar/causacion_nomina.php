@@ -137,7 +137,7 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
 {
     if ($esPtoCaracter) {
         $ccostos = array_filter(array_map('trim', explode(',', (string) ($detalleEmpleado['id_ccosto'] ?? ''))));
-        if (count($ccostos) !== 1) {
+        if (!is_array($ccostos) || count($ccostos) !== 1) {
             throw new Exception(
                 'El empleado con documento ' . $detalleEmpleado['no_documento'] .
                 ' tiene un centro de costo no vÃ¡lido para la causación: ' . ($detalleEmpleado['id_ccosto'] ?? 'sin definir')
@@ -275,8 +275,8 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT MAX(`id_manu`) AS `id_manu`  FROM `pto_cdp` WHERE (`id_pto` = $id_pto)";
     $rs = $cmd->query($sql);
-    $consecutivo = $rs->fetch();
-    $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
+    $consecutivo = $rs ? $rs->fetch() : null;
+    $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -322,8 +322,8 @@ try {
     $rs = $cmd->prepare($sql);
     $rs->bindValue(1, $_SESSION['nit_emp'], PDO::PARAM_STR);
     $rs->execute();
-    $tercero = $rs->fetch();
-    $id_ter_api = !empty($tercero) ? $tercero['id_tercero_api'] : null;
+    $tercero = $rs ? $rs->fetch() : null;
+    $id_ter_api = !empty($tercero) ? ($tercero['id_tercero_api'] ?? null) : null;
 
     $empleadosCrp = [];
     $idTerceroEmpleadoCrp = 0;
@@ -338,13 +338,13 @@ try {
 
         if ($claveEmpleadoCrp !== '') {
             $empleadosCrp[$claveEmpleadoCrp] = true;
-            if (count($empleadosCrp) === 1) {
+            if (is_countable($empleadosCrp) && count($empleadosCrp) === 1) {
                 $idTerceroEmpleadoCrp = resolverIdTerceroEmpleado($d['no_documento'] ?? '', $terceros);
             }
         }
     }
 
-    if (count($empleadosCrp) === 1 && $idTerceroEmpleadoCrp > 0) {
+    if (is_countable($empleadosCrp) && count($empleadosCrp) === 1 && $idTerceroEmpleadoCrp > 0) {
         $id_ter_api = $idTerceroEmpleadoCrp;
     }
 
@@ -355,8 +355,8 @@ try {
                 `pto_crp`
             WHERE (`id_pto` = $id_pto)";
     $rs = $cmd->query($sql);
-    $consecutivo = $rs->fetch();
-    $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
+    $consecutivo = $rs ? $rs->fetch() : null;
+    $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
     $sql = "INSERT INTO `pto_crp` (`id_pto`, `id_cdp`, `id_manu`, `fecha`, `objeto`, `id_user_reg`, `fecha_reg`, `estado`, `id_tercero_api`) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $sql = $cmd->prepare($sql);

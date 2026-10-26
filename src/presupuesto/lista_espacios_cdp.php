@@ -26,9 +26,9 @@ try {
 
     $sql = "SELECT MIN(id_manu) AS minimo, MAX(id_manu) AS mayor FROM pto_documento WHERE fecha > '$fecha_cierre' AND tipo_doc= 'CDP'";
     $rs = $cmd->query($sql);
-    $rangos = $rs->fetch();
-    $id_manu = $rangos['minimo'];
-    $id_manu_max = $rangos['mayor'];
+    $rangos = $rs ? $rs->fetch() : null;
+    $id_manu = $rangos['minimo'] ?? 0;
+    $id_manu_max = $rangos['mayor'] ?? 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -71,8 +71,8 @@ try {
                     do {
                         $sql = "SELECT * FROM pto_documento WHERE id_manu ='$id_manu' ORDER BY id_manu ASC";
                         $res = $cmd->query($sql);
-                        $row = $res->fetch(PDO::FETCH_ASSOC);
-                        $id = $row['id_pto_doc'];
+                        $row = $res ? $res->fetch(PDO::FETCH_ASSOC) : null;
+                        $id = $row['id_pto_doc'] ?? 0;
                         if ($row) {
                             $estado = "";
                             $fecha = date('Y-m-d', strtotime($row['fecha']));

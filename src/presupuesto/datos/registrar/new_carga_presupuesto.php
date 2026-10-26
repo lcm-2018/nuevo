@@ -33,8 +33,8 @@ try {
                     ON (`pto_cargue`.`id_pto` = `pto_presupuestos`.`id_pto`)
             WHERE (`pto_presupuestos`.`id_vigencia` = $id_vigencia AND `pto_cargue`.`cod_pptal` = '$padre')";
     $rs = $cmd->query($sq);
-    $data = $rs->fetch();
-    $tipoPadre = !empty($data) ? $data['tipo_dato'] : 0;
+    $data = $rs ? $rs->fetch() : null;
+    $tipoPadre = !empty($data) ? ($data['tipo_dato'] ?? 0) : 0;
     if ($tipoPadre == 1) {
         echo "La cuenta Mayor $padre es de detalle";
         exit();

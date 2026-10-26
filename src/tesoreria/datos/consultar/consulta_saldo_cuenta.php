@@ -13,8 +13,8 @@ try {
                     ON (`tes_cuentas`.`id_cuenta` = `ctb_libaux`.`id_cuenta`)
             WHERE (`tes_cuentas`.`id_tes_cuenta` = {$id_cta})";
     $rs = $cmd->query($sql);
-    $valores = $rs->fetch();
-    $saldo = !empty($valores) ? $valores['saldo'] : 0;
+    $valores = $rs ? $rs->fetch() : null;
+    $saldo = !empty($valores) ? ($valores['saldo'] ?? 0) : 0;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

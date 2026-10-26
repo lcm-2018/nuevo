@@ -15,7 +15,7 @@ try {
                 pto_cargue
             WHERE id_pto=2";
     $rs = $cmd->query($sql);
-    $obj_rubros = $rs->fetchAll(PDO::FETCH_ASSOC);
+    $obj_rubros = $rs ? $rs->fetchAll(PDO::FETCH_ASSOC) : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -47,9 +47,11 @@ if ($buscar == '%%') {
 }
 
 if (empty($data)) {
-    $data[] = [
-        'id' => '0',
-        'label' => 'No hay coincidencias...',
+    $data = [
+        [
+            'id' => '0',
+            'label' => 'No hay coincidencias...',
+        ]
     ];
 }
 echo json_encode($data);

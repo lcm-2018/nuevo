@@ -50,7 +50,7 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT (SUM(`valor`) - SUM(`valor_liberado`)) as `valorCdp` FROM `pto_rad_detalle` WHERE `id_pto_rad` = $id_rad";
     $rs = $cmd->query($sql);
-    $totalCdp = $rs->fetch();
+    $totalCdp = $rs ? $rs->fetch() : null;
     // total con puntos de mailes number_format()
     $valor = !empty($totalCdp['valorCdp']) ? $totalCdp['valorCdp'] : 0;
     $total = number_format($valor, 2, '.', ',');

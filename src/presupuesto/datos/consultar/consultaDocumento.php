@@ -2,7 +2,7 @@
 // Busca consecutivos del tipo de documento recibido para validar que no se duplique número
 include '../../../../config/autoloader.php';
 $cmd = \Config\Clases\Conexion::getConexion();
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 
 $doc = $_post['doc'] ?? '';
 $tipo = $_post['tipo'] ?? '';

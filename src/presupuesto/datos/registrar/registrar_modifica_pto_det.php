@@ -29,17 +29,17 @@ try {
                     ON (`pto_cargue`.`id_pto` = `pto_presupuestos`.`id_pto`)
             WHERE `id_cargue` = $id_rubroCod";
     $res = $cmd->query($sql);
-    $row = $res->fetch();
-    $total = !empty($row) ? $row['valor_aprobado'] : 0;
-    $tipo_pto = $row['id_tipo'];
+    $row = $res ? $res->fetch() : null;
+    $total = !empty($row) ? ($row['valor_aprobado'] ?? 0) : 0;
+    $tipo_pto = $row['id_tipo'] ?? 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 try {
     $sql = "SELECT  `id_tipo_mod` FROM `pto_mod` WHERE (`id_pto_mod` = $id_pto_mod)";
     $res = $cmd->query($sql);
-    $movto = $res->fetch();
-    $tipo_mvto = $movto['id_tipo_mod'];
+    $movto = $res ? $res->fetch() : null;
+    $tipo_mvto = $movto['id_tipo_mod'] ?? 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }

@@ -20,8 +20,8 @@ if (isset($_POST)) {
 
         $sql = "SELECT MAX(`id_manu`) as `id_manu` FROM `pto_mod` WHERE (`id_tipo_mod`= $tipo_doc)";
         $rs = $cmd->query($sql);
-        $id_m = $rs->fetch(PDO::FETCH_ASSOC);
-        $id_manu = !empty($id_m) ? $id_m['id_manu'] + 1 : 1;
+        $id_m = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+        $id_manu = !empty($id_m) ? ($id_m['id_manu'] + 1) : 1;
         $cmd = null;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();

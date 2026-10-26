@@ -83,10 +83,12 @@ try {
                     ON (`t1`.`id_nomina` = `nom_nominas`.`id_nomina`)
             WHERE `nom_nominas`.`planilla` = 2";
     $rs = $cmd->query($sql);
-    $nominas = $rs->fetchAll(PDO::FETCH_ASSOC);
-    $rs->closeCursor();
+    $nominas = $rs ? $rs->fetchAll(PDO::FETCH_ASSOC) : [];
+    if ($rs) {
+        $rs->closeCursor();
+    }
     unset($rs);
-    $cant_nominas = count($nominas);
+    $cant_nominas = is_countable($nominas) ? count($nominas) : 0;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

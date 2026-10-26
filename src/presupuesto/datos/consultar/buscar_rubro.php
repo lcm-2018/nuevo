@@ -26,9 +26,9 @@ try {
             $var = substr($cam, 0, $j);
             $sql = "SELECT tipo_gasto, id_tipo_recurso FROM pto_cargue  WHERE cod_pptal= '$var'";
             $rs = $cmd->query($sql);
-            $res = $rs->fetch();
-            if ($res) {
-                $rta = $res['id_tipo_recurso'] . "-" . $res['tipo_gasto'];
+            $res = $rs ? $rs->fetch() : null;
+            if (!empty($res)) {
+                $rta = ($res['id_tipo_recurso'] ?? '') . "-" . ($res['tipo_gasto'] ?? '');
                 break;
             } else {
                 $rta = '' . '';

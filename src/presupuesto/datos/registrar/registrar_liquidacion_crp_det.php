@@ -17,8 +17,8 @@ if (isset($_POST)) {
     try {
         $sql = "SELECT rubro FROM `pto_documento_detalles` WHERE id_pto_mvto = $id_pto_mov";
         $res = $cmd->query($sql);
-        $rubro = $res->fetch(PDO::FETCH_ASSOC);
-        $rubro_afec = $rubro['rubro'];
+        $rubro = $res ? $res->fetch(PDO::FETCH_ASSOC) : null;
+        $rubro_afec = $rubro['rubro'] ?? '';
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -26,8 +26,8 @@ if (isset($_POST)) {
     try {
         $sql = "SELECT id_auto_dep FROM `pto_documento_detalles` WHERE id_pto_doc = $id_pto_doc limit 1";
         $res = $cmd->query($sql);
-        $cdp = $res->fetch(PDO::FETCH_ASSOC);
-        $id_pto_cdp = $cdp['id_auto_dep'];
+        $cdp = $res ? $res->fetch(PDO::FETCH_ASSOC) : null;
+        $id_pto_cdp = $cdp['id_auto_dep'] ?? 0;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -53,8 +53,8 @@ if (isset($_POST)) {
                             pto_documento_detalles
                         WHERE rubro ='$rubro_afec' AND id_pto_doc =$id_pto_doc AND tipo_mov ='CRP';";
                 $res = $cmd->query($sql);
-                $cdp = $res->fetch(PDO::FETCH_ASSOC);
-                $valor_crp = $cdp['valor'];
+                $cdp = $res ? $res->fetch(PDO::FETCH_ASSOC) : null;
+                $valor_crp = (float)($cdp['valor'] ?? 0);
             } catch (PDOException $e) {
                 echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
             }
@@ -66,8 +66,8 @@ if (isset($_POST)) {
                             pto_documento_detalles
                         WHERE rubro ='$rubro_afec' AND id_auto_crp =$id_pto_doc;";
                 $res = $cmd->query($sql);
-                $liquidado = $res->fetch(PDO::FETCH_ASSOC);
-                $liq = $liquidado['valor'];
+                $liquidado = $res ? $res->fetch(PDO::FETCH_ASSOC) : null;
+                $liq = (float)($liquidado['valor'] ?? 0);
                 $saldo = $valor_crp + $liq;
             } catch (PDOException $e) {
                 echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

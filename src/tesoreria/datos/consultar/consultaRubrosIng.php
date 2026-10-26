@@ -2,7 +2,7 @@
 session_start();
 include '../../../../config/autoloader.php';
 $cmd = \Config\Clases\Conexion::getConexion();
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $search = $_post['search'][0];
 if (isset($_POST['search'])) {
     $sql = "SELECT

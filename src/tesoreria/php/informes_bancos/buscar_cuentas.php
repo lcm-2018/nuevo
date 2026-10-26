@@ -15,7 +15,7 @@ try {
             FROM ctb_pgcp 
             WHERE ctb_pgcp.estado = 1";
     $rs = $cmd->query($sql);
-    $obj_cuentas = $rs->fetchAll();
+    $obj_cuentas = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -47,9 +47,11 @@ if ($buscar == '%%') {
 }
 
 if (empty($data)) {
-    $data[] = [
-        'id' => '0',
-        'label' => 'No hay coincidencias...',
+    $data = [
+        [
+            'id' => '0',
+            'label' => 'No hay coincidencias...',
+        ]
     ];
 }
 echo json_encode($data);

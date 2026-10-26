@@ -13,8 +13,8 @@ function bodega_principal($cmd)
                 LEFT JOIN seg_bodegas_usuario ON (seg_bodegas_usuario.id_bodega=far_bodegas.id_bodega AND seg_bodegas_usuario.id_usuario=$idusr)
                 WHERE far_bodegas.es_principal=1";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-        if (isset($obj['id_bodega'])) {
+        $obj = $rs ? $rs->fetch() : null;
+        if (!empty($obj) && isset($obj['id_bodega'])) {
             if (isset($obj['id_sede'])) {
                 if (isset($obj['id_usuario']) || $idrol == 1) {
                     $res = array('id_bodega' => $obj['id_bodega'], 'nom_bodega' => $obj['nombre'], 'id_sede' => $obj['id_sede']);
@@ -72,8 +72,8 @@ function datos_lote($cmd, $id_lote)
                 INNER JOIN far_presentacion_comercial ON (far_presentacion_comercial.id_prescom=far_medicamento_lote.id_presentacion)
                 WHERE far_medicamento_lote.id_lote=$id_lote";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-        if (isset($obj['id_lote'])) {
+        $obj = $rs ? $rs->fetch() : null;
+        if (!empty($obj) && isset($obj['id_lote'])) {
             $res = array('id_lote' => $obj['id_lote'], 'lote' => $obj['lote'], 'nom_articulo' => $obj['nom_articulo'], 'val_promedio' => $obj['val_promedio'], 'existencia' => $obj['existencia'], 'id_presentacion' => $obj['id_presentacion'], 'nom_presentacion' => $obj['nom_presentacion'], 'cantidad_umpl' => $obj['cantidad_umpl']);
         } else {
             $res = array('id_lote' => '', 'lote' => '', 'nom_articulo' => '', 'val_promedio' => '', 'existencia' => '', 'id_presentacion' => '', 'nom_presentacion' => '', 'cantidad_umpl' => '');
@@ -94,8 +94,8 @@ function datos_articulo($cmd, $id_med)
                 FROM far_medicamentos
                 WHERE id_med=$id_med";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-        if (isset($obj['id_med'])) {
+        $obj = $rs ? $rs->fetch() : null;
+        if (!empty($obj) && isset($obj['id_med'])) {
             $res = array(
                 'id_med' => $obj['id_med'],
                 'nom_articulo' => $obj['nom_medicamento'],
@@ -119,12 +119,12 @@ function sede_unica_usuario($cmd)
         $res = [];
         $sql = "SELECT COUNT(*) AS count FROM seg_sedes_usuario WHERE id_usuario=$idusr";
         $rs = $cmd->query($sql);
-        $obj = $rs->fetch();
-        if ($obj['count'] == 1) {
+        $obj = $rs ? $rs->fetch() : null;
+        if (!empty($obj) && ($obj['count'] ?? 0) == 1) {
             $sql = "SELECT id_sede FROM seg_sedes_usuario WHERE id_usuario=$idusr";
             $rs = $cmd->query($sql);
-            $obj = $rs->fetch();
-            $res = array('id_sede' => $obj['id_sede']);
+            $obj = $rs ? $rs->fetch() : null;
+            $res = array('id_sede' => $obj['id_sede'] ?? '0');
         } else {
             $res = array('id_sede' => '0');
         }

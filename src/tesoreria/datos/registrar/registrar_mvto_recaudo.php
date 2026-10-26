@@ -96,8 +96,8 @@ if ($registros > 0) {
                     ON (`pto_rec_detalle`.`id_pto_rac` = `pto_rec`.`id_pto_rec`)
             WHERE (`pto_rec`.`estado` > 0 AND `pto_rec`.`id_ctb_doc` = $id_ctb_doc)";
     $rs = $cmd->query($sql);
-    $valor = $rs->fetch();
+    $valor = $rs ? $rs->fetch() : null;
     $response['status'] = 'ok';
-    $response['valor'] = $valor['valor'];
+    $response['valor'] = $valor['valor'] ?? 0;
 }
 echo json_encode($response);

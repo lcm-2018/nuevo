@@ -56,10 +56,10 @@ try {
                     ON (`tr`.`num_documento` = `tb_terceros`.`nit_tercero`)
             WHERE `tb_terceros`.`id_tercero_api` = $tercero";
     $rs = $cmd->query($sql);
-    $valores = $rs->fetch(PDO::FETCH_ASSOC);
+    $valores = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
     if (!empty($valores)) {
         $response['status'] = 'ok';
-        $response['facturado'] = $valores['valor_copago'] - $valores['val_copago_anulado'];
+        $response['facturado'] = ($valores['valor_copago'] ?? 0) - ($valores['val_copago_anulado'] ?? 0);
     }
     $cmd = null;
 } catch (PDOException $e) {

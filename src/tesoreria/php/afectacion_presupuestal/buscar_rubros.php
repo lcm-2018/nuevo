@@ -20,7 +20,7 @@ try {
                 INNER JOIN tb_vigencias ON (pto_presupuestos.id_vigencia = tb_vigencias.id_vigencia)
             WHERE pto_presupuestos.id_tipo=1";
     $rs = $cmd->query($sql);
-    $obj_rubros = $rs->fetchAll();
+    $obj_rubros = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -61,11 +61,13 @@ if ($buscar == '%%') {
 }
 
 if (empty($data)) {
-    $data[] = [
-        'id' => '0',
-        'label' => 'No hay coincidencias...',
-        'tipo_dato' => '0',
-        'anio' => '1999',
+    $data = [
+        [
+            'id' => '0',
+            'label' => 'No hay coincidencias...',
+            'tipo_dato' => '0',
+            'anio' => '1999',
+        ]
     ];
 }
 echo json_encode($data);

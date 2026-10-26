@@ -138,7 +138,10 @@ FROM
             $result = curl_exec($ch);
             $error = curl_error($ch);
             curl_close($ch);
-            $bancos = json_decode($result, true);
+            $bancos = is_string($result) && $result !== '' ? json_decode($result, true) : [];
+            if (!is_array($bancos)) {
+                $bancos = [];
+            }
 
             foreach ($causaciones as $rp) {
                 $url = $api . 'terceros/datos/res/datos/id/' . $rp['id_tercero'];
@@ -150,9 +153,13 @@ FROM
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
                 $res_api = curl_exec($ch);
                 curl_close($ch);
-                $dat_ter = json_decode($res_api, true);
-                $tercero = $dat_ter[0]['apellido1'] . ' ' . $dat_ter[0]['apellido2'] . ' ' . $dat_ter[0]['nombre1'] . ' ' . $dat_ter[0]['nombre2'] . ' ' . $dat_ter[0]['razon_social'];
-                $ccnit = $dat_ter[0]['cc_nit'];
+                $dat_ter = is_string($res_api) && $res_api !== '' ? json_decode($res_api, true) : [];
+                $tercero = '';
+                $ccnit = '';
+                if (!empty($dat_ter[0])) {
+                    $tercero = trim(($dat_ter[0]['apellido1'] ?? '') . ' ' . ($dat_ter[0]['apellido2'] ?? '') . ' ' . ($dat_ter[0]['nombre1'] ?? '') . ' ' . ($dat_ter[0]['nombre2'] ?? '') . ' ' . ($dat_ter[0]['razon_social'] ?? ''));
+                    $ccnit = $dat_ter[0]['cc_nit'] ?? '';
+                }
                 $id_ctb_doc = $rp['id_ctb_doc'];
                 $fecha = date('Y-m-d', strtotime($rp['fecha']));
                 // Consultar el valor registrado por rubro y cdp 
@@ -164,9 +171,9 @@ FROM
                             `pto_documento_detalles`
                         WHERE (`id_ctb_doc` =$id_ctb_doc)";
                 $res = $cmd->query($sql);
-                $causa = $res->fetch();
-                $causado = $causa['valor'];
-                $id_cop = $causa['id_ctb_cop'];
+                $causa = $res ? $res->fetch() : null;
+                $causado = (float)($causa['valor'] ?? 0);
+                $id_cop = $causa['id_ctb_cop'] ?? 0;
                 // Suma de valor pagado cuando no afecta presupuesto
                 if ($rp['id_crp'] == 0) {
                     $sql = "SELECT
@@ -176,8 +183,8 @@ FROM
                             `ctb_libaux`
                         WHERE (`id_ctb_doc` =$id_ctb_doc);";
                     $res = $cmd->query($sql);
-                    $pago = $res->fetch();
-                    $causado = $pago['pagos'];
+                    $pago = $res ? $res->fetch() : null;
+                    $causado = (float)($pago['pagos'] ?? 0);
                 }
                 // consulto valor retenido a cada documento
                 if ($id_cop > 0) {
@@ -188,8 +195,8 @@ FROM
                         `ctb_causa_retencion`
                         WHERE (`id_ctb_doc` =$id_cop)";
                     $res = $cmd->query($sql);
-                    $reten = $res->fetch();
-                    $retenido = $reten['retenido'];
+                    $reten = $res ? $res->fetch() : null;
+                    $retenido = (float)($reten['retenido'] ?? 0);
                 } else {
                     $retenido = 0;
                 }

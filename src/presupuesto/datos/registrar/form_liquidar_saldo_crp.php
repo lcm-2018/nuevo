@@ -9,7 +9,7 @@ include_once '../../../financiero/consultas.php';
 $cmd = \Config\Clases\Conexion::getConexion();
 
 
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $cdp = $_post['id'];
 try {
     $sql = "SELECT id,fecha FROM tb_fin_fecha WHERE vigencia = '2023'  ";
@@ -118,8 +118,8 @@ $fecha = date("Y-m-d");
                                     try {
                                         $sql = "SELECT sum(valor) as registrado FROM pto_documento_detalles WHERE id_pto_doc = '$lp[id_pto_doc]' AND rubro ='$lp[rubro]' AND tipo_mov ='COP'";
                                         $res = $cmd->query($sql);
-                                        $registrado = $res->fetch(PDO::FETCH_ASSOC);
-                                        $saldo = $lp['valor'] - $registrado['registrado'];
+                                        $registrado = $res ? $res->fetch(PDO::FETCH_ASSOC) : null;
+                                        $saldo = (float)($lp['valor'] ?? 0) - (float)($registrado['registrado'] ?? 0);
                                     } catch (PDOException $e) {
                                         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
                                     }
@@ -127,8 +127,8 @@ $fecha = date("Y-m-d");
                                     try {
                                         $sql = "SELECT sum(valor) as liberado FROM pto_documento_detalles WHERE id_auto_crp = '$lp[id_pto_doc]' AND rubro ='$lp[rubro]' AND tipo_mov ='LRP'";
                                         $res = $cmd->query($sql);
-                                        $valor_lib = $res->fetch(PDO::FETCH_ASSOC);
-                                        $saldo = $saldo + $valor_lib['liberado'];
+                                        $valor_lib = $res ? $res->fetch(PDO::FETCH_ASSOC) : null;
+                                        $saldo = $saldo + (float)($valor_lib['liberado'] ?? 0);
                                     } catch (PDOException $e) {
                                         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
                                     }

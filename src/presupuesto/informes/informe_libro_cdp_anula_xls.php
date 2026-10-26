@@ -160,8 +160,8 @@ FROM
                         GROUP BY `pto_documento_detalles`.`rubro`;";
                 $sql2 = $sql;
                 $res = $cmd->query($sql);
-                $reg = $res->fetch();
-                $valor_cdp = $rp['valor'] +  $reg['valor_lcd'];
+                $reg = $res ? $res->fetch() : null;
+                $valor_cdp = (float)($rp['valor'] ?? 0) + (float)($reg['valor_lcd'] ?? 0);
                 $saldo =  $valor_cdp - $reg2['valor_rp'];
                 $fecha = date('Y-m-d', strtotime($rp['fecha']));
                 $fecha_anula = date('Y-m-d', strtotime($rp['fecha_anula']));

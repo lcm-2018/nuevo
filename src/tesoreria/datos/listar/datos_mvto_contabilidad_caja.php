@@ -54,11 +54,11 @@ try {
             FROM `ctb_doc`
             WHERE (`id_ctb_doc` = $id_ctb_doc)";
     $rs = $cmd->query($sql);
-    $estado = $rs->fetch();
+    $estado = $rs ? $rs->fetch() : null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$estado = $estado['estado'];
+$estado = $estado['estado'] ?? 0;
 $data = [];
 $totDebito = 0;
 $totCredito = 0;

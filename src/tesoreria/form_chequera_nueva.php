@@ -39,16 +39,15 @@ try {
                     ON (`fin_chequeras`.`id_cuenta` = `tes_cuentas`.`id_tes_cuenta`)
             WHERE (`fin_chequeras`.`id_chequera` = $id)";
     $rs = $cmd->query($sql);
-    $chequera = $rs->fetch(PDO::FETCH_ASSOC);
+    $chequera = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
     if (!empty($chequera)) {
-        $id_chequera = $chequera['id_chequera'];
-        $id_banco = $chequera['id_banco'];
-        $cuenta = $chequera['id_cuenta'];
-        $numero = $chequera['numero'];
-        $fecha = $chequera['fecha'];
-        $fecha = date("Y-m-d", strtotime($fecha));
-        $inicial = $chequera['en_uso'];
-        $maximo = $chequera['final'];
+        $id_chequera = $chequera['id_chequera'] ?? 0;
+        $id_banco = $chequera['id_banco'] ?? 0;
+        $cuenta = $chequera['id_cuenta'] ?? 0;
+        $numero = $chequera['numero'] ?? '';
+        $fecha = !empty($chequera['fecha']) ? date("Y-m-d", strtotime($chequera['fecha'])) : date("Y-m-d");
+        $inicial = $chequera['en_uso'] ?? 0;
+        $maximo = $chequera['final'] ?? 0;
     } else {
         $id_chequera = 0;
         $id_banco = 0;

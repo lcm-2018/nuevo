@@ -7,7 +7,7 @@ if (!isset($_SESSION['user'])) {
 //Recibir variables por POST
 include '../../../../config/autoloader.php';
 use Config\Clases\Logs;
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $id_doc = $_post['id'];
 $id_crp = $_post['id_crp'];
 $id_cop = $_post['id_cop'];
@@ -36,16 +36,16 @@ try {
     $query = $cmd->prepare($query);
     $query->bindParam(1, $id_doc, PDO::PARAM_INT);
     $query->execute();
-    $datos = $query->fetch();
-    $id_tercero = $datos['id_tercero'];
-    $id_cta_credito = $datos['id_cuenta'];
+    $datos = $query ? $query->fetch() : null;
+    $id_tercero = $datos['id_tercero'] ?? 0;
+    $id_cta_credito = $datos['id_cuenta'] ?? 0;
 
     if ($tipo == 6) {
         $queryCop = "SELECT `id_cuenta` FROM `ctb_libaux` WHERE `id_ctb_doc` = ? AND `debito` > 0 LIMIT 1";
         $stmtCop = $cmd->prepare($queryCop);
         $stmtCop->bindParam(1, $id_cop, PDO::PARAM_INT);
         $stmtCop->execute();
-        $ctaCop = $stmtCop->fetch();
+        $ctaCop = $stmtCop ? $stmtCop->fetch() : null;
         if (!empty($ctaCop['id_cuenta'])) {
             $id_cta_credito = $ctaCop['id_cuenta'];
         }

@@ -161,7 +161,7 @@ try {
         return $d['tipo'] == 'afp';
     }), 'id'));
     // Obtener terceros API de EPS (id_tipo = 1)
-    if (!empty($ids_eps)) {
+    if (!empty($ids_eps) && is_countable($ids_eps)) {
         $placeholders_eps = implode(',', array_fill(0, count($ids_eps), '?'));
         $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_eps) AND `id_tipo` = 1";
         $stmt = $cmd->prepare($sql);
@@ -173,7 +173,7 @@ try {
     }
 
     // Obtener terceros API de ARL (id_tipo = 3)
-    if (!empty($ids_arl)) {
+    if (!empty($ids_arl) && is_countable($ids_arl)) {
         $placeholders_arl = implode(',', array_fill(0, count($ids_arl), '?'));
         $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_arl) AND `id_tipo` = 3";
         $stmt = $cmd->prepare($sql);
@@ -185,7 +185,7 @@ try {
     }
 
     // Obtener terceros API de AFP (id_tipo = 2)
-    if (!empty($ids_afp)) {
+    if (!empty($ids_afp) && is_countable($ids_afp)) {
         $placeholders_afp = implode(',', array_fill(0, count($ids_afp), '?'));
         $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_afp) AND `id_tipo` = 2";
         $stmt = $cmd->prepare($sql);
@@ -253,8 +253,8 @@ try {
     // CDP - Consecutivo
     $sql = "SELECT MAX(`id_manu`) AS `id_manu` FROM `pto_cdp` WHERE (`id_pto` = $id_pto)";
     $rs = $cmd->query($sql);
-    $consecutivo = $rs->fetch();
-    $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
+    $consecutivo = $rs ? $rs->fetch() : null;
+    $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
 
     // Insertar CDP
     $sql = "INSERT INTO `pto_cdp` (`id_pto`, `id_manu`, `fecha`, `objeto`, `id_user_reg`, `fecha_reg`, `estado`) 
@@ -277,14 +277,14 @@ try {
     // CRP - Obtener tercero
     $sql = "SELECT `id_tercero_api` FROM `tb_terceros` WHERE `nit_tercero` = " . $_SESSION['nit_emp'];
     $rs = $cmd->query($sql);
-    $tercero = $rs->fetch();
-    $id_ter_api = !empty($tercero) ? $tercero['id_tercero_api'] : null;
+    $tercero = $rs ? $rs->fetch() : null;
+    $id_ter_api = !empty($tercero) ? ($tercero['id_tercero_api'] ?? null) : null;
 
     // CRP - Consecutivo
     $sql = "SELECT MAX(`id_manu`) AS `id_manu` FROM `pto_crp` WHERE (`id_pto` = $id_pto)";
     $rs = $cmd->query($sql);
-    $consecutivo = $rs->fetch();
-    $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
+    $consecutivo = $rs ? $rs->fetch() : null;
+    $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
 
     // Insertar CRP
     $sql = "INSERT INTO `pto_crp` (`id_pto`, `id_cdp`, `id_manu`, `fecha`, `objeto`, `id_user_reg`, `fecha_reg`, `estado`, `id_tercero_api`) 

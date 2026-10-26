@@ -130,8 +130,8 @@ FROM
                         AND `pto_documento`.`fecha` <='$fecha_corte'
                         AND `pto_documento_detalles`.`id_auto_dep` =$rp[id_pto_doc]);";
             $res = $cmd->query($sql);
-            $crp = $res->fetch();
-            if ($crp['id_tercero'] == '') {
+            $crp = $res ? $res->fetch() : null;
+            if (empty($crp['id_tercero'])) {
                 $tercero = '';
                 $cc_nit = '';
             } else {

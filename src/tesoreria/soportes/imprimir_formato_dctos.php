@@ -122,7 +122,7 @@ try {
         try {
             $sql = "SELECT `cod`, `nombre` FROM `ctb_fuente` WHERE `id_doc_fuente` = $tipo_doc";
             $res = $cmd->query($sql);
-            $dss = $res->fetch();
+            $dss = $res ? $res->fetch() : null;
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
         }
@@ -138,8 +138,8 @@ try {
         try {
             $sql = "SELECT SUM(`debito`) as `valor` FROM `ctb_libaux` WHERE `id_ctb_doc` = $dto";
             $res = $cmd->query($sql);
-            $datos = $res->fetch();
-            $total = $datos['valor'];
+            $datos = $res ? $res->fetch() : null;
+            $total = (float)($datos['valor'] ?? 0);
         } catch (PDOException $e) {
             echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
         }

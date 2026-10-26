@@ -53,8 +53,8 @@ foreach ($listado as $ce) {
     try {
         $sql = "SELECT id_manu FROM pto_documento WHERE id_pto_doc =$ce[id_pto_doc]";
         $rs = $cmd->query($sql);
-        $datamanu = $rs->fetch();
-        $id_manu = $datamanu['id_manu'];
+        $datamanu = $rs ? $rs->fetch() : null;
+        $id_manu = $datamanu['id_manu'] ?? 0;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -66,16 +66,16 @@ foreach ($listado as $ce) {
     try {
         $sql = "SELECT sum(valor) as valorcop FROM pto_documento_detalles WHERE id_ctb_doc =$ce[id_ctb_doc] AND tipo_mov='COP'";
         $rs = $cmd->query($sql);
-        $sumacrp = $rs->fetch();
-        $valor_obl = $sumacrp['valorcop'];
+        $sumacrp = $rs ? $rs->fetch() : null;
+        $valor_obl = (float)($sumacrp['valorcop'] ?? 0);
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
     try {
         $sql = "SELECT sum(valor) as valorpag FROM pto_documento_detalles WHERE id_ctb_cop =$ce[id_ctb_doc] AND tipo_mov='PAG'";
         $rs = $cmd->query($sql);
-        $sumacop = $rs->fetch();
-        $valor_pag = $sumacop['valorpag'];
+        $sumacop = $rs ? $rs->fetch() : null;
+        $valor_pag = (float)($sumacop['valorpag'] ?? 0);
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -94,8 +94,8 @@ foreach ($listado as $ce) {
             ON (`ctt_adquisiciones`.`id_cdp` = `pto_documento`.`id_auto`)
     WHERE (`pto_documento`.`id_auto` =$ce[id_auto_dep]);";
         $rs = $cmd->query($sql);
-        $num_contrato = $rs->fetch();
-        $numeroc = $num_contrato['id_compra'];
+        $num_contrato = $rs ? $rs->fetch() : null;
+        $numeroc = $num_contrato['id_compra'] ?? '';
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }

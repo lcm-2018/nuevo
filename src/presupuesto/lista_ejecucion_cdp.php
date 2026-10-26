@@ -51,8 +51,8 @@ if (empty($datosCdp)) {
                     `pto_cdp`
                 WHERE (`id_pto` = $id_ppto)";
         $rs = $cmd->query($sql);
-        $consecutivo = $rs->fetch();
-        $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
+        $consecutivo = $rs ? $rs->fetch() : null;
+        $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
         $cmd = null;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -68,7 +68,7 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT (SUM(`valor`) - SUM(`valor_liberado`)) as `valorCdp` FROM `pto_cdp_detalle` WHERE `id_pto_cdp` = $id_cdp";
     $rs = $cmd->query($sql);
-    $totalCdp = $rs->fetch();
+    $totalCdp = $rs ? $rs->fetch() : null;
     // total con puntos de mailes number_format()
     $valor = !empty($totalCdp['valorCdp']) ? $totalCdp['valorCdp'] : 0;
     $total = number_format($valor, 2, '.', ',');
@@ -102,8 +102,8 @@ if ($id_otro != 0) {
                         ON (`ctt_novedad_adicion_prorroga`.`id_adq` = `ctt_contratos`.`id_contrato_compra`)
                 WHERE (`ctt_novedad_adicion_prorroga`.`id_nov_con` = $id_otro)";
     $res = $cmd->query($sql);
-    $datosOtro = $res->fetch();
-    $id_adq = $datosOtro['id_adq'];
+    $datosOtro = $res ? $res->fetch() : null;
+    $id_adq = $datosOtro['id_adq'] ?? 0;
     $valorotro = $datosOtro['val_adicion'];
 }
 // Si el proceso viene de adquisiciones llama el objeto y valida fecha
@@ -112,8 +112,8 @@ if ($id_adq > 0) {
     // consulto datos de ctt_adquisiciones donde id_adq sea igual a id_adquisiciones
     $sql = "SELECT `objeto`,`fecha_adquisicion`,`val_contrato` FROM `ctt_adquisiciones` WHERE `id_adquisicion` = $id_adq";
     $res = $cmd->query($sql);
-    $datosAdq = $res->fetch();
-    $objeto = $datosAdq['objeto'];
+    $datosAdq = $res ? $res->fetch() : null;
+    $objeto = $datosAdq['objeto'] ?? '';
     $valoradq = $datosAdq['val_contrato'];
 }
 if ($id_otro > 0) {

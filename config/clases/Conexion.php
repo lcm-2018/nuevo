@@ -9,12 +9,12 @@ class Conexion
 {
     private static $instancia = null;
     private $conexion;
-    private $bd_driver = "mysql";
-    private $bd_servidor = "localhost";
-    private $bd_base = "ybd_redsalud";
-    private $bd_usuario = "root";
-    private $bd_clave = "12345";
-    private $charset = "charset=utf8";
+    private $bd_driver;
+    private $bd_servidor;
+    private $bd_base;
+    private $bd_usuario;
+    private $bd_clave;
+    private $charset;
 
     private function __construct()
     {
