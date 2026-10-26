@@ -9,24 +9,24 @@ class Conexion
 {
     private static $instancia = null;
     private $conexion;
-    private $bd_driver;
-    private $bd_servidor;
-    private $bd_base;
-    private $bd_usuario;
-    private $bd_clave;
-    private $charset;
+    private $bd_driver = "mysql";
+    private $bd_servidor = "localhost";
+    private $bd_base = "ybd_redsalud";
+    private $bd_usuario = "root";
+    private $bd_clave = "12345";
+    private $charset = "charset=utf8";
 
     private function __construct()
     {
         // Cargar variables de entorno desde .env
         Env::cargar();
 
-        $this->bd_driver   = Env::get('DB_DRIVER', 'mysql');
+        $this->bd_driver = Env::get('DB_DRIVER', 'mysql');
         $this->bd_servidor = Env::get('DB_HOST', 'localhost:3308');
-        $this->bd_base     = Env::get('DB_NAME', 'ipiales');
-        $this->bd_usuario  = Env::get('DB_USER', 'root');
-        $this->bd_clave    = Env::get('DB_PASS', '12345');
-        $this->charset     = "charset=" . Env::get('DB_CHARSET', 'utf8');
+        $this->bd_base = Env::get('DB_NAME', 'ipiales');
+        $this->bd_usuario = Env::get('DB_USER', 'root');
+        $this->bd_clave = Env::get('DB_PASS', '12345');
+        $this->charset = "charset=" . Env::get('DB_CHARSET', 'utf8');
 
         try {
             $dsn = "$this->bd_driver:host=$this->bd_servidor;dbname=$this->bd_base;{$this->charset}";
