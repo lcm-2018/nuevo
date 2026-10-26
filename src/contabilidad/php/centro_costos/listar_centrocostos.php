@@ -33,14 +33,14 @@ try {
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM tb_centrocostos WHERE id_centro<>0";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM tb_centrocostos $where";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT tb_centrocostos.id_centro,tb_centrocostos.nom_centro,                
@@ -50,7 +50,7 @@ try {
             INNER JOIN seg_usuarios_sistema AS usr ON (usr.id_usuario=tb_centrocostos.id_responsable)
             $where ORDER BY $col $dir $limit";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
@@ -80,7 +80,7 @@ if (!empty($objs)) {
                 WHERE tb_centrocostos_cta.estado=1 AND tb_centrocostos_cta.fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND tb_centrocostos_cta.id_cencos=$id
                 ORDER BY tb_centrocostos_cta.fecha_vigencia DESC LIMIT 1";
         $rs = $cmd->query($sql);
-        $objs_cta = $rs->fetch();
+        $objs_cta = $rs ? $rs->fetch() : null;
         $cuenta = isset($objs_cta['cuenta']) ? $objs_cta['cuenta'] : '';
 
         $data[] = [

@@ -81,18 +81,18 @@ try {
                             // Consultar el valor del registro COP OBLIGADO de la tabla pto_documento_detalles
                             $sql = "SELECT sum(valor) as saldo,id_ctb_doc FROM pto_documento_detalles WHERE rubro = '$ce[rubro]' AND (tipo_mov = 'COP' OR tipo_mov = 'LCO') AND id_pto_doc = $ce[id_pto_doc]";
                             $rs = $cmd->query($sql);
-                            $saldo = $rs->fetch();
-                            $obligado = $saldo['saldo'];
-                            $id_ctb_doc = $saldo['id_ctb_doc'];
+                            $saldo = $rs ? $rs->fetch() : null;
+                            $obligado = (float)($saldo['saldo'] ?? 0);
+                            $id_ctb_doc = $saldo['id_ctb_doc'] ?? 0;
                             $sq3 = "SELECT sum(valor) as comprom FROM pto_documento_detalles WHERE rubro = '$ce[rubro]' AND tipo_mov = 'CRP' AND id_pto_doc = $ce[id_pto_doc]";
                             $rs3 = $cmd->query($sq3);
-                            $com = $rs3->fetch();
-                            $comprometido = $com['comprom'];
+                            $com = $rs3 ? $rs3->fetch() : null;
+                            $comprometido = (float)($com['comprom'] ?? 0);
                             // Consultar el valor liquidado del registro de la tabla pto_documento_detalles
                             $sq3 = "SELECT sum(valor) as liquidado FROM pto_documento_detalles WHERE rubro = '$ce[rubro]' AND tipo_mov = 'LRP' AND id_auto_crp = $ce[id_pto_doc]";
                             $rs3 = $cmd->query($sq3);
-                            $liq = $rs3->fetch();
-                            $liquidado = $liq['liquidado'];
+                            $liq = $rs3 ? $rs3->fetch() : null;
+                            $liquidado = (float)($liq['liquidado'] ?? 0);
                             $valor =  $comprometido - $obligado + $liquidado;
                             if ((intval($permisos['editar'])) === 1) {
                                 $editar = '<a value="' . $id_doc . '" onclick="cargarListaDetalleCont(' . $id_doc . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow editar" title="Causar"><span class="fas fa-plus-square "></span></a>';

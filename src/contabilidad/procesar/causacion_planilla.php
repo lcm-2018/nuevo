@@ -104,7 +104,7 @@ try {
     }), 'id'));
 
     // Obtener terceros API de EPS (id_tipo = 1)
-    if (!empty($ids_eps)) {
+    if (!empty($ids_eps) && is_array($ids_eps)) {
         $placeholders_eps = implode(',', array_fill(0, count($ids_eps), '?'));
         $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_eps) AND `id_tipo` = 1";
         $stmt = $cmd->prepare($sql);
@@ -116,7 +116,7 @@ try {
     }
 
     // Obtener terceros API de ARL (id_tipo = 3)
-    if (!empty($ids_arl)) {
+    if (!empty($ids_arl) && is_array($ids_arl)) {
         $placeholders_arl = implode(',', array_fill(0, count($ids_arl), '?'));
         $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_arl) AND `id_tipo` = 3";
         $stmt = $cmd->prepare($sql);
@@ -128,7 +128,7 @@ try {
     }
 
     // Obtener terceros API de AFP (id_tipo = 2)
-    if (!empty($ids_afp)) {
+    if (!empty($ids_afp) && is_array($ids_afp)) {
         $placeholders_afp = implode(',', array_fill(0, count($ids_afp), '?'));
         $sql = "SELECT `id_tn`, `id_tercero_api` FROM `nom_terceros` WHERE `id_tn` IN ($placeholders_afp) AND `id_tipo` = 2";
         $stmt = $cmd->prepare($sql);
@@ -245,8 +245,8 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT MAX(`id_manu`) AS `id_manu` FROM `ctb_doc` WHERE `id_vigencia` = $id_vigencia AND `id_tipo_doc` = $cnom";
     $rs = $cmd->query($sql);
-    $consecutivo = $rs->fetch();
-    $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
+    $consecutivo = $rs ? $rs->fetch() : null;
+    $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -258,8 +258,8 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_tercero_api` FROM `tb_terceros` WHERE `nit_tercero` = " . $_SESSION['nit_emp'];
     $rs = $cmd->query($sql);
-    $tercero = $rs->fetch();
-    $id_ter_api = !empty($tercero) ? $tercero['id_tercero_api'] : NULL;
+    $tercero = $rs ? $rs->fetch() : null;
+    $id_ter_api = !empty($tercero) ? ($tercero['id_tercero_api'] ?? NULL) : NULL;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

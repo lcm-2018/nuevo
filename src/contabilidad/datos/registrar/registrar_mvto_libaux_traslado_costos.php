@@ -4,7 +4,7 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../index.php');
     exit();
 }
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 include_once '../../../../config/autoloader.php';
 
 $cmd = \Config\Clases\Conexion::getConexion();

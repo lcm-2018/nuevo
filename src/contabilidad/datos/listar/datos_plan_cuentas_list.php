@@ -29,7 +29,7 @@ try {
             ORDER BY `cuenta` ASC
             LIMIT $start, $length";
     $rs = $cmd->query($sql);
-    $lista = $rs->fetchAll();
+    $lista = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
@@ -38,8 +38,8 @@ try {
 try {
     $sql = "SELECT COUNT(*) AS `total` FROM `ctb_pgcp` $where";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }

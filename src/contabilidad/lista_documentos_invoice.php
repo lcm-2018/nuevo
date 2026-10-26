@@ -25,9 +25,11 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `cod`, `nombre` FROM `ctb_fuente` WHERE `contab` = 2 ORDER BY `nombre`";
     $rs = $cmd->query($sql);
-    $docsFuente = $rs->fetchAll();
-    $rs->closeCursor();
-    unset($rs);
+    $docsFuente = $rs ? $rs->fetchAll() : [];
+    if ($rs) {
+        $rs->closeCursor();
+        unset($rs);
+    }
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -38,8 +40,8 @@ if ($tipo_doc != '') {
     try {
         $sql = "SELECT `id_doc_fuente` FROM `ctb_fuente` WHERE `cod` = '$tipo_doc'";
         $rs = $cmd->query($sql);
-        $tipo_doc_fuente = $rs->fetch();
-        $id_tipo_doc = !empty($tipo_doc_fuente) ? $tipo_doc_fuente['id_doc_fuente'] : 0;
+        $tipo_doc_fuente = $rs ? $rs->fetch() : null;
+        $id_tipo_doc = !empty($tipo_doc_fuente) ? ($tipo_doc_fuente['id_doc_fuente'] ?? 0) : 0;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }

@@ -36,22 +36,22 @@ try {
             WHERE estado=1 AND fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND id_subgrupo=" . $_POST['id_subgrupo'] . " 
             ORDER BY fecha_vigencia DESC LIMIT 1";
     $rs = $cmd->query($sql);
-    $cuenta = $rs->fetch();
+    $cuenta = $rs ? $rs->fetch() : null;
     $id_vig = isset($cuenta['id']) ? $cuenta['id'] : 0;
 
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM far_subgrupos_cta WHERE id_subgrupo=" . $_POST['id_subgrupo'];
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM far_subgrupos_cta 
             INNER JOIN ctb_pgcp ON (ctb_pgcp.id_pgcp=far_subgrupos_cta.id_cuenta)
             WHERE far_subgrupos_cta.id_subgrupo=" . $_POST['id_subgrupo'] . $where;
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT far_subgrupos_cta.id_subgrupo_cta,far_subgrupos_cta.fecha_vigencia,   
@@ -62,7 +62,7 @@ try {
             WHERE far_subgrupos_cta.id_subgrupo=" . $_POST['id_subgrupo'] . $where . " ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

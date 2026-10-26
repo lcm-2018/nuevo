@@ -34,7 +34,7 @@ try {
                 AND `pto_documento`.`tipo_doc` ='CRP');
             ";
     $rs = $cmd->query($sql);
-    $listappto = $rs->fetchAll();
+    $listappto = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
@@ -48,15 +48,15 @@ if (!empty($listappto)) {
         // Sumar el valor del crp de la tabla id_pto_mtvo
         $sql = "SELECT SUM(valor) AS valor FROM pto_documento_detalles WHERE id_pto_doc=$id_pto";
         $rs2 = $cmd->query($sql);
-        $suma = $rs2->fetch();
-        $valor_cdp = $suma['valor'];
+        $suma = $rs2 ? $rs2->fetch() : null;
+        $valor_cdp = (float)($suma['valor'] ?? 0);
         $valor_cdp = number_format($valor_cdp, 2, ',', '.');
         $tercero = $lp['id_tercero'] . " - " . $lp['nombre'];
         $fecha = date('Y-m-d', strtotime($lp['fecha']));
         // Numero de cdp asociado al registros
         $sql = "SELECT id_manu FROM pto_documento WHERE id_pto_doc =$lp[id_auto]";
         $rs = $cmd->query($sql);
-        $listmanu = $rs->fetch();
+        $listmanu = $rs ? $rs->fetch() : null;
         if ((intval($permisos['editar'])) === 1) {
             $editar = '<a value="' . $id_pto . '" onclick="CargarListadoCrpp(' . $id_pto . ')" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
             $detalles = '<a value="' . $id_pto . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow detalles" title="Detalles"><span class="fas fa-eye "></span></a>';

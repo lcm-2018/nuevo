@@ -1,7 +1,7 @@
 <?php
 include '../../../../config/autoloader.php';
 $cmd = \Config\Clases\Conexion::getConexion();
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $id_rp = $_post['id'];
 $parcial = $_post['total'];
 $valor_total = 0;

@@ -1,5 +1,5 @@
 <?php
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $id = $_post['id'];
 include '../../../../config/autoloader.php';
 try {
@@ -16,22 +16,22 @@ try {
             ON (`ctb_libaux`.`cuenta` = `ctb_pgcp`.`cuenta`)
         WHERE (`ctb_libaux`.`id_ctb_libaux` =$id);";
     $rs = $pdo->query($sq2);
-    $resultado = $rs->fetch();
-    $cuenta = $resultado['cuenta'];
-    $nombre = $resultado['nombre'];
-    $debito = $resultado['debito'];
-    $credito = $resultado['credito'];
-    // si $resultado es vacio se consulta solo valores
-    if ($resultado == null) {
+    $resultado = $rs ? $rs->fetch() : null;
+    if ($resultado != null) {
+        $cuenta = $resultado['cuenta'] ?? '';
+        $nombre = $resultado['nombre'] ?? '';
+        $debito = $resultado['debito'] ?? 0;
+        $credito = $resultado['credito'] ?? 0;
+    } else {
         $sq2 = "SELECT debito, credito FROM `ctb_libaux` WHERE `id_ctb_libaux` =$id;";
         $rs = $pdo->query($sq2);
-        $resultado = $rs->fetch();
+        $resultado = $rs ? $rs->fetch() : null;
         $cuenta = '';
         $nombre = '';
-        $debito = $resultado['debito'];
-        $credito = $resultado['credito'];
+        $debito = $resultado['debito'] ?? 0;
+        $credito = $resultado['credito'] ?? 0;
     }
-    $response[] = array("value" => 'ok', "cuenta" => $cuenta, "nombre" => $nombre, "debito" => $debito, "credito" => $credito);
+    $response = array(array("value" => 'ok', "cuenta" => $cuenta, "nombre" => $nombre, "debito" => $debito, "credito" => $credito));
     echo json_encode($response);
 } catch (PDOException $e) {
 }

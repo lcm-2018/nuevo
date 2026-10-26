@@ -205,7 +205,7 @@ class DocumentRepository
 
             $stmt = $this->conexion->prepare($sql);
             $stmt->execute([':id' => $idDoc]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $result = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
 
             // Por defecto retornar código genérico si no existe
             return $result['id_unspsc'] ?? $config['codigo_unsp'];

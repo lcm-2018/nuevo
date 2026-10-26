@@ -80,8 +80,8 @@ try {
                     Logs::guardaLog("INSERT INTO tb_homologacion(id_regimen,id_cobertura,id_modalidad,id_cta_presupuesto,id_cta_debito,id_cta_credito,estado,id_usr_crea) VALUES($id_regimen,$id_cobertura,$id_modalidad,$id_cta_pre,$id_cta_deb,$id_cta_cre,$estado,$id_usr_ope)");
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }

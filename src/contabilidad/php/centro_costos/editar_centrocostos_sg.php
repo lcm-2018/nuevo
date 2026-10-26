@@ -47,8 +47,8 @@ try {
                         Logs::guardaLog("INSERT INTO tb_centrocostos_subgr_cta(id_cencos,fecha_vigencia,estado,id_usr_crea) VALUES($id_cencos,$fec_vig,$estado,$id_usr_crea)");
                         $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                         $rs = $cmd->query($sql_i);
-                        $obj = $rs->fetch();
-                        $res['id'] = $obj['id'];
+                        $obj = $rs ? $rs->fetch() : null;
+                        $res['id'] = $obj['id'] ?? null;
                     } else {
                         $res['mensaje'] = $cmd->errorInfo()[2];
                     }

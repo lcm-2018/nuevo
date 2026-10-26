@@ -10,7 +10,7 @@ $fecha_inicial = $_POST['fec_inicial'];
 $fecha_corte = $_POST['fec_final'];
 // contar los caracteres de $cuenta_ini
 $cmd = \Config\Clases\Conexion::getConexion();
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $tercero = $_post['tercero'];
 $fecha = $_post['fecha'];
 // Sumo valores de copagos de facturas activas sin anulación

@@ -21,7 +21,7 @@ try {
         INNER JOIN seg_usuarios_sistema AS usr ON (usr.id_usuario=tb_centrocostos.id_responsable) 
         $where ORDER BY tb_centrocostos.id_centro DESC";
     $res = $cmd->query($sql);
-    $objs = $res->fetchAll();
+    $objs = $res ? $res->fetchAll() : [];
     $res->closeCursor();
     unset($res);
 } catch (PDOException $e) {
@@ -80,14 +80,14 @@ try {
                         WHERE tb_centrocostos_cta.estado=1 AND tb_centrocostos_cta.fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND tb_centrocostos_cta.id_cencos=" . $obj['id_centro'] . "
                         ORDER BY tb_centrocostos_cta.fecha_vigencia DESC LIMIT 1";
                 $rs = $cmd->query($sql);
-                $obj_cta = $rs->fetch();
+                $obj_cta = $rs ? $rs->fetch() : null;
                 $cuenta = isset($obj_cta['cuenta']) ? $obj_cta['cuenta'] : '';
 
                 $sql = "SELECT id_cecsubgrp AS id FROM tb_centrocostos_subgr_cta
                         WHERE estado=1 AND fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND id_cencos=" . $obj['id_centro'] . " 
                         ORDER BY fecha_vigencia DESC LIMIT 1";
                 $rs = $cmd->query($sql);
-                $obj_cta = $rs->fetch();
+                $obj_cta = $rs ? $rs->fetch() : null;
                 $id = isset($obj_cta['id']) ? $obj_cta['id'] : -1;
 
                 $sql = "SELECT SG.nom_subgrupo,C.cuenta
@@ -98,7 +98,7 @@ try {
                                 WHERE CSG.id_cecsubgrp=" . $id . ") AS C ON (C.id_subgrupo=SG.id_subgrupo)
                         WHERE SG.id_grupo IN (1,2) ORDER BY SG.id_subgrupo";
                 $rs = $cmd->query($sql);
-                $objs_ctas = $rs->fetchAll();
+                $objs_ctas = $rs ? $rs->fetchAll() : [];
                 $rs->closeCursor();
                 unset($rs);
 
@@ -126,7 +126,7 @@ try {
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="4" style="text-align:left">
-                    No. de Registros: <?php echo count($objs); ?>
+                    No. de Registros: <?php echo is_array($objs) ? count($objs) : 0; ?>
                 </td>
             </tr>
         </tfoot>

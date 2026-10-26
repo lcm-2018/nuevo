@@ -10,12 +10,13 @@ include '../../../../vendor/SimpleXLSX/simpleXLSX.php';
 $file_tmp = $_FILES['file']['tmp_name'];
 $id_user = $_SESSION['id_user'];
 $estado = 1;
+$registros = 0;
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT COUNT(*) AS `cantiad` FROM `ctb_libaux`";
     $rs = $cmd->query($sql);
-    $registros = $rs->fetch();
-    $registros = $registros['cantiad'];
+    $registros = $rs ? $rs->fetch() : null;
+    $registros = $registros['cantiad'] ?? 0;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

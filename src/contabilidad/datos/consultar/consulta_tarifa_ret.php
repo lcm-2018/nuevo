@@ -17,8 +17,8 @@ try {
             FROM `ctb_retencion_rango` 
             WHERE `id_retencion` = $id_ret AND `id_vigencia` = $id_vigencia";
     $rs = $cmd->query($sql);
-    $tarifa = $rs->fetch();
-    $tf = !empty($tarifa) ? $tarifa['tarifa'] : 0;
+    $tarifa = $rs ? $rs->fetch() : null;
+    $tf = !empty($tarifa) ? ($tarifa['tarifa'] ?? 0) : 0;
     $valor = $base * $tf;
     $response = [
         'status' => 'ok',

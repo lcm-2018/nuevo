@@ -20,7 +20,7 @@ try {
             WHERE pto_presupuestos.id_tipo=1 AND tb_vigencias.anio='" . $vigencia . "' AND CONCAT(pto_cargue.cod_pptal,pto_cargue.nom_rubro) LIKE '%$term%'
             ORDER BY pto_cargue.cod_pptal";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -28,6 +28,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
+$data = [];
 foreach ($objs as $obj) {
     $data[] = [
         "id" => $obj['id_cta'],

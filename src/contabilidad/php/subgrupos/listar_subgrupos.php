@@ -33,14 +33,14 @@ try {
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM far_subgrupos WHERE id_subgrupo<>0";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM far_subgrupos $where";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT far_subgrupos.id_subgrupo,far_subgrupos.cod_subgrupo,far_subgrupos.nom_subgrupo,far_grupos.nom_grupo,
@@ -52,7 +52,7 @@ try {
             INNER JOIN far_grupos ON (far_grupos.id_grupo=far_subgrupos.id_grupo)
             $where ORDER BY $col $dir $limit";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
 } catch (PDOException $e) {
@@ -82,7 +82,7 @@ if (!empty($objs)) {
                 WHERE SBG.estado=1 AND SBG.fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND SBG.id_subgrupo=$id
                 ORDER BY SBG.fecha_vigencia DESC LIMIT 1";
         $rs = $cmd->query($sql);
-        $objs_cta = $rs->fetch();
+        $objs_cta = $rs ? $rs->fetch() : null;
         $cuenta_cs = isset($objs_cta['cuenta']) ? $objs_cta['cuenta'] : '';
 
         $sql = "SELECT CACT.cuenta AS cuenta_af,
@@ -94,7 +94,7 @@ if (!empty($objs)) {
                 WHERE SBG.estado=1 AND SBG.fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND SBG.id_subgrupo=$id
                 ORDER BY SBG.fecha_vigencia DESC LIMIT 1";
         $rs = $cmd->query($sql);
-        $objs_cta = $rs->fetch();
+        $objs_cta = $rs ? $rs->fetch() : null;
         $cuenta_af = isset($objs_cta['cuenta_af']) ? $objs_cta['cuenta_af'] : '';
         $cuenta_dep = isset($objs_cta['cuenta_dep']) ? $objs_cta['cuenta_dep'] : '';
         $cuenta_gas = isset($objs_cta['cuenta_gas']) ? $objs_cta['cuenta_gas'] : '';

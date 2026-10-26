@@ -18,7 +18,7 @@ try {
             WHERE estado=1 AND CONCAT(cuenta,nombre) LIKE '%$term%'
             ORDER BY cuenta";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -26,6 +26,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
+$data = [];
 foreach ($objs as $obj) {
     $data[] = [
         "id" => $obj['id_cta'],

@@ -35,9 +35,10 @@ try {
             if ($oper == 'add') {
                 $sql = "SELECT id_grupo FROM far_subgrupos WHERE id_subgrupo=" . $id_subgrupo;
                 $rs = $cmd->query($sql);
-                $obj_subgrp = $rs->fetch();
+                $obj_subgrp = $rs ? $rs->fetch() : null;
+                $id_grupo = $obj_subgrp['id_grupo'] ?? 0;
 
-                if ($obj_subgrp['id_grupo'] == 3 || $obj_subgrp['id_grupo'] == 4 || $obj_subgrp['id_grupo'] == 5) {
+                if ($id_grupo == 3 || $id_grupo == 4 || $id_grupo == 5) {
                     $id = $_POST['id_subgrupocta_af'];
                     $id_cta_act = $_POST['id_txt_cta_con_act'] ? $_POST['id_txt_cta_con_act'] : 'NULL';
                     $id_cta_dep = $_POST['id_txt_cta_con_dep'] ? $_POST['id_txt_cta_con_dep'] : 'NULL';
@@ -55,8 +56,8 @@ try {
                             Logs::guardaLog("INSERT INTO far_subgrupos_cta_af(id_subgrupo,id_cuenta,id_cuenta_dep,id_cuenta_gas,fecha_vigencia,estado,id_usr_crea) VALUES($id_subgrupo,$id_cta_act,$id_cta_dep,$id_cta_gas,$fec_vig,$estado,$id_usr_crea)");
                             $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                             $rs = $cmd->query($sql_i);
-                            $obj = $rs->fetch();
-                            $res['id'] = $obj['id'];
+                            $obj = $rs ? $rs->fetch() : null;
+                            $res['id'] = $obj['id'] ?? null;
                         } else {
                             $res['mensaje'] = $cmd->errorInfo()[2];
                         }

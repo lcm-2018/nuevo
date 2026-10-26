@@ -91,10 +91,10 @@ try {
     $sql = "SELECT `nombre`, `cod` FROM `ctb_fuente` WHERE `id_doc_fuente` = $id_ctb_doc";
     $rs = $cmd->query($sql);
     if ($rs) {
-        $docInfo = $rs->fetch(PDO::FETCH_ASSOC);
-        if ($docInfo && !empty($docInfo['nombre'])) {
+        $docInfo = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+        if (!empty($docInfo['nombre'])) {
             $nombreDoc = $docInfo['nombre'];
-            $codDoc = $docInfo['cod'];
+            $codDoc = $docInfo['cod'] ?? '';
         }
     }
 } catch (PDOException $e) {

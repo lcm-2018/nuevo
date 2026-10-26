@@ -78,15 +78,15 @@ try {
         $rs->bindValue(':cod_fin', $cod_cuenta_fin . '999999999999', \PDO::PARAM_STR);
     }
     $rs->execute();
-    $obj_cuentas = $rs->fetchAll();
+    $obj_cuentas = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
 
     $sql = 'SELECT razon_social_ips,nit_ips FROM tb_datos_ips LIMIT 1';
     $rs = $cmd->query($sql);
-    $obj_ent = $rs->fetch();
-    $razhd = $obj_ent['razon_social_ips'];
-    $nithd = $obj_ent['nit_ips'];
+    $obj_ent = $rs ? $rs->fetch() : null;
+    $razhd = $obj_ent['razon_social_ips'] ?? '';
+    $nithd = $obj_ent['nit_ips'] ?? '';
     $cmd = null;
 
 ?>
@@ -214,11 +214,11 @@ try {
                 $rs->bindValue(':fec_ini', $fec_ini, \PDO::PARAM_STR);
                 $rs->bindValue(':cuenta', $obj_c['cuenta'] . ($cod_cuenta_ini === $cod_cuenta_fin ? "%" : ""), \PDO::PARAM_STR);
                 $rs->execute();
-                $saldos_sede = $rs->fetch();
+                $saldos_sede = $rs ? $rs->fetch() : null;
                 $rs->closeCursor();
 
                 // Acumular saldos iniciales de todas las sedes
-                if (!empty($saldos_sede) && (int)$saldos_sede['filas'] > 0) {
+                if (!empty($saldos_sede) && (int)($saldos_sede['filas'] ?? 0) > 0) {
                     $saldos_iniciales['debito'] += (float)$saldos_sede['debito'];
                     $saldos_iniciales['credito'] += (float)$saldos_sede['credito'];
                     $saldos_iniciales['filas'] += (int)$saldos_sede['filas'];

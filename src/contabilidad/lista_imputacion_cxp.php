@@ -146,8 +146,8 @@ try {
                 `ctb_factura`
             WHERE (`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
-    $valor = $rs->fetch();
-    $val_sugerido = !empty($valor) ? $valor['valor_pago'] : 0;
+    $valor = $rs ? $rs->fetch() : null;
+    $val_sugerido = !empty($valor) ? ($valor['valor_pago'] ?? 0) : 0;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -163,9 +163,11 @@ try {
                 `pto_cop_detalle`
             WHERE (`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
-    $detalles = $rs->fetchAll();
-    $rs->closeCursor();
-    unset($rs);
+    $detalles = $rs ? $rs->fetchAll() : [];
+    if ($rs) {
+        $rs->closeCursor();
+        unset($rs);
+    }
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -182,7 +184,7 @@ try {
                 <input type="hidden" name="id_doc" value="<?php echo $id_doc ?>">
                 <?php
                 $band = true;
-                $contar = count($listado);
+                $contar = is_array($listado) ? count($listado) : 0;
                 foreach ($listado as $l) {
                     $max = round($l['valor_crp'] - $l['valor_cop'], 2);
                     $key = array_search($l['id_pto_crp_det'], array_column($detalles, 'id_pto_crp_det'));

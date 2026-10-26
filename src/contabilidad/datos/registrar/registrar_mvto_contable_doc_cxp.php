@@ -43,10 +43,10 @@ if ($id_cta_factura == 0) {
                 $sqlResol = "SELECT `consecutivo`, `prefijo` FROM `nom_resoluciones` 
                             WHERE `id_resol` = (SELECT MAX(`id_resol`) FROM `nom_resoluciones` WHERE `tipo` = 2)";
                 $rsResol = $cmd->query($sqlResol);
-                $prefijo = $rsResol->fetch();
+                $prefijo = $rsResol ? $rsResol->fetch() : null;
                 if (!empty($prefijo)) {
-                    $siguienteResol = $prefijo['consecutivo'];
-                    $pref = $prefijo['prefijo'];
+                    $siguienteResol = $prefijo['consecutivo'] ?? 0;
+                    $pref = $prefijo['prefijo'] ?? '';
                 }
             }
 
@@ -63,7 +63,7 @@ if ($id_cta_factura == 0) {
                 $stmtMax->bindParam(1, $pref, PDO::PARAM_STR);
                 $stmtMax->bindParam(2, $id_tipo_doc, PDO::PARAM_INT);
                 $stmtMax->execute();
-                $datosMax = $stmtMax->fetch();
+                $datosMax = $stmtMax ? $stmtMax->fetch() : null;
 
                 // Calcular el nuevo consecutivo
                 $maxActual = !empty($datosMax['max_num']) ? intval($datosMax['max_num']) : 0;
@@ -89,10 +89,10 @@ if ($id_cta_factura == 0) {
                 $stmtVerif->bindParam(1, $id_tipo_doc, PDO::PARAM_INT);
                 $stmtVerif->bindParam(2, $num_doc_final, PDO::PARAM_STR);
                 $stmtVerif->execute();
-                $existe = $stmtVerif->fetch();
+                $existe = $stmtVerif ? $stmtVerif->fetch() : ['existe' => 0];
             }
 
-            if ($existe['existe'] > 0) {
+            if (($existe['existe'] ?? 0) > 0) {
                 // El consecutivo ya existe, hacer rollback y reintentar
                 $cmd->rollBack();
                 continue;
@@ -172,8 +172,8 @@ if ($id_cta_factura == 0) {
         $stmtGetDoc = $cmd->prepare($sqlGetDoc);
         $stmtGetDoc->bindParam(1, $id_cta_factura, PDO::PARAM_INT);
         $stmtGetDoc->execute();
-        $datosExistente = $stmtGetDoc->fetch();
-        $id_ctb_doc_existente = $datosExistente['id_ctb_doc'];
+        $datosExistente = $stmtGetDoc ? $stmtGetDoc->fetch() : null;
+        $id_ctb_doc_existente = $datosExistente['id_ctb_doc'] ?? 0;
 
         // Para tipo documento 3 (doc equivalente), NO permitir cambiar el num_doc
         // El consecutivo se asignó al crear y no debe modificarse
@@ -211,7 +211,7 @@ if ($id_cta_factura == 0) {
                     $sqlResol = "SELECT `prefijo` FROM `nom_resoluciones` 
                                 WHERE `id_resol` = (SELECT MAX(`id_resol`) FROM `nom_resoluciones` WHERE `tipo` = 2)";
                     $rsResol = $cmd->query($sqlResol);
-                    $prefijo = $rsResol->fetch();
+                    $prefijo = $rsResol ? $rsResol->fetch() : null;
                     $pref = !empty($prefijo['prefijo']) ? $prefijo['prefijo'] : '';
 
                     // Extraer el número del num_doc (quitar el prefijo si existe)
@@ -225,9 +225,9 @@ if ($id_cta_factura == 0) {
                     $stmtVerifSoporte = $cmd->prepare($sqlVerifSoporte);
                     $stmtVerifSoporte->bindParam(1, $id_ctb_doc_existente, PDO::PARAM_INT);
                     $stmtVerifSoporte->execute();
-                    $existeSoporte = $stmtVerifSoporte->fetch();
+                    $existeSoporte = $stmtVerifSoporte ? $stmtVerifSoporte->fetch() : null;
 
-                    if ($existeSoporte['existe'] > 0) {
+                    if (!empty($existeSoporte['existe']) && $existeSoporte['existe'] > 0) {
                         // Actualizar registro existente con tipo = 0
                         $sqlSoporte = "UPDATE `seg_soporte_fno` SET `referencia` = ? WHERE `id_factura_no` = ? AND `tipo` = 0";
                         $stmtSoporte = $cmd->prepare($sqlSoporte);

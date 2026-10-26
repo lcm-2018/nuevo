@@ -31,15 +31,15 @@ try {
 	        WHERE estado=1 AND fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND id_cencos=" . $_POST['id_cencos'] . " 
             ORDER BY fecha_vigencia DESC LIMIT 1";
     $rs = $cmd->query($sql);
-    $cuenta = $rs->fetch();
+    $cuenta = $rs ? $rs->fetch() : null;
     $id_vig = isset($cuenta['id']) ? $cuenta['id'] : 0;
 
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM tb_centrocostos_subgr_cta WHERE id_cencos=" . $_POST['id_cencos'];
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT id_cecsubgrp,fecha_vigencia,   
@@ -48,7 +48,7 @@ try {
             WHERE id_cencos=" . $_POST['id_cencos'] . " ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

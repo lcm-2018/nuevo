@@ -9,7 +9,7 @@ if (!isset($_SESSION['user'])) {
 }
 // Realiza la suma del valor total asignado a un CDP
 include '../../../../config/autoloader.php';
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $tipo = $_post['id'];
 $response['status'] = "error";
 $cmd = \Config\Clases\Conexion::getConexion();
@@ -21,10 +21,10 @@ try {
         $sql = "SELECT `consecutivo`, `prefijo` FROM `nom_resoluciones` 
                 WHERE `id_resol` = (SELECT MAX(`id_resol`) FROM `nom_resoluciones` WHERE `tipo` = 2)";
         $rs = $cmd->query($sql);
-        $prefijo = $rs->fetch();
+        $prefijo = $rs ? $rs->fetch() : null;
         if (!empty($prefijo)) {
-            $siguiente = $prefijo['consecutivo'];
-            $pref = $prefijo['prefijo'];
+            $siguiente = $prefijo['consecutivo'] ?? 0;
+            $pref = $prefijo['prefijo'] ?? '';
         }
     }
 
@@ -35,7 +35,7 @@ try {
     $stmt->bindParam(1, $pref, PDO::PARAM_STR);
     $stmt->bindParam(2, $tipo, PDO::PARAM_INT);
     $stmt->execute();
-    $datos = $stmt->fetch();
+    $datos = $stmt ? $stmt->fetch() : null;
 
     $consecutivo = !empty($datos['max_num']) ? intval($datos['max_num']) + 1 : 1;
     if ($tipo == '3' && $siguiente > 0) {

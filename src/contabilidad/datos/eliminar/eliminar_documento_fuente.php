@@ -2,7 +2,7 @@
 
 use Config\Clases\Logs;
 
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 include '../../../../config/autoloader.php';
 $id = $_post['id'];
 $pdo = \Config\Clases\Conexion::getConexion();

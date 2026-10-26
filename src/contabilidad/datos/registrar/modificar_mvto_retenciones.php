@@ -68,7 +68,7 @@ if ($tipo_rete != '3') {
                     $base = $base[1];
                     $sql = "SELECT `id_rango` FROM `ctb_retencion_rango` WHERE `id_retencion` = $id_rete LIMIT 1";
                     $rs = $cmd->query($sql);
-                    $rango = $rs->fetch();
+                    $rango = $rs ? $rs->fetch() : null;
                     $id_rango = !empty($rango['id_rango']) ? $rango['id_rango'] : 0;
                     $query->execute();
                 }

@@ -20,9 +20,9 @@ try {
                 ON (`nom_valxvigencia`.`id_concepto` = `nom_conceptosxvigencia`.`id_concp`)
             WHERE `anio` = '$vigencia' AND `id_concepto` = '4'";
     $rs = $cmd->query($sql);
-    $concec = $rs->fetch();
-    $iNonce = intval($concec['valor']);
-    $idiNonce = $concec['id_valxvig'];
+    $concec = $rs ? $rs->fetch() : null;
+    $iNonce = intval($concec['valor'] ?? 0);
+    $idiNonce = $concec['id_valxvig'] ?? 0;
     $sql = "UPDATE `nom_valxvigencia` SET `valor` = '$iNonce'+1 WHERE `id_valxvig` = '$idiNonce'";
     $rs = $cmd->query($sql);
     Logs::guardaLog("UPDATE `nom_valxvigencia` SET `valor` = " . ($iNonce+1) . " WHERE `id_valxvig` = $idiNonce");
@@ -169,8 +169,8 @@ try {
                 `tb_resoluciones`
             WHERE `id_resol` = (SELECT MAX(`id_resol`) FROM `tb_resoluciones` WHERE `id_empresa` = '$id_empresa' AND `tipo` = 2)";
     $rs = $cmd->query($sql);
-    $resolucion = $rs->fetch();
-    if ($resolucion['id_resol'] == '') {
+    $resolucion = $rs ? $rs->fetch() : null;
+    if (empty($resolucion['id_resol'])) {
         $response['error'] = 'No se ha registrado una resolución de facturación';
         $response['procesados'] = '0<br>';
         echo json_encode($response);
@@ -310,8 +310,8 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $restoken = curl_exec($ch);
-$rst = json_decode($restoken);
-$tokenApi = $rst->jret->stoken;
+$rst = json_decode($restoken ?: '{}');
+$tokenApi = $rst->jret->stoken ?? '';
 $cantidad = 1;
 // inicio documento
 $jtaxes = [];
@@ -502,12 +502,12 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 $response = curl_exec($ch);
-$resnom = json_decode($response, true);
+$resnom = json_decode($response ?: '{}', true);
 $file = 'loglastsend.txt';
 file_put_contents($file, $response);
 chmod($file, 0777);
 $procesado = $incorrectos = 0;
-if ($resnom['rerror'] == 0) {
+if (is_array($resnom) && isset($resnom['rerror']) && $resnom['rerror'] == 0) {
     $shash = $resnom['jret']['scufe'];
     $sreference = $resnom['jret']['sdocumentreference'];
     $iduser = $_SESSION['id_user'];

@@ -18,12 +18,13 @@ $peReg = $permisos->PermisosUsuario($opciones, 5504, 2) || $id_rol == 1 ? 1 : 0;
 $host = Plantilla::getHost();
 
 // Verificar si hay registros en ctb_libaux
+$registros = 0;
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT COUNT(*) AS `cantiad` FROM `ctb_libaux`";
     $rs = $cmd->query($sql);
-    $registros = $rs->fetch();
-    $registros = $registros['cantiad'];
+    $registros = $rs ? $rs->fetch() : null;
+    $registros = $registros['cantiad'] ?? 0;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

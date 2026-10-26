@@ -86,9 +86,9 @@ try {
 
     $sql = 'SELECT razon_social_ips,nit_ips FROM tb_datos_ips LIMIT 1';
     $rs = $cmd->query($sql);
-    $obj_ent = $rs->fetch();
-    $razhd = $obj_ent['razon_social_ips'];
-    $nithd = $obj_ent['nit_ips'];
+    $obj_ent = $rs ? $rs->fetch() : null;
+    $razhd = $obj_ent['razon_social_ips'] ?? '';
+    $nithd = $obj_ent['nit_ips'] ?? '';
     $cmd = null;
 
     $reg = 0;

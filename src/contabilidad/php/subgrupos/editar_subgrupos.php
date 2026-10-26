@@ -50,8 +50,8 @@ try {
                     Logs::guardaLog("INSERT INTO far_subgrupos(cod_subgrupo,nom_subgrupo,id_grupo,af_menor_cuantia,es_clinico,lote_xdef,estado,id_usr_crea) VALUES($cod_subgrupo,'$nom_subgrupo',$id_grupo,$af_menor_cuantia,$es_clinico,$lote_xdef,$estado,$id_usr_ope)");
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }

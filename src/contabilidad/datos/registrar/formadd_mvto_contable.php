@@ -24,9 +24,9 @@ try {
                     ON (`ctb_doc`.`id_tipo_doc` = `ctb_fuente`.`id_doc_fuente`)
             WHERE (`ctb_doc`.`id_tipo_doc` = $id_ctb_doc AND `ctb_doc`.`id_vigencia` = $id_vigencia)";
     $rs = $cmd->query($sql);
-    $consecutivo = $rs->fetch();
-    $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
-    $fuente = !empty($consecutivo) ? $consecutivo['nombre'] : '---';
+    $consecutivo = $rs ? $rs->fetch() : null;
+    $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
+    $fuente = !empty($consecutivo) ? ($consecutivo['nombre'] ?? '---') : '---';
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -41,7 +41,7 @@ try {
                     ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
             WHERE (`id_ctb_doc` = $id_documento)";
     $rs = $cmd->query($sql);
-    $datos = $rs->fetch();
+    $datos = $rs ? $rs->fetch() : null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -50,6 +50,7 @@ $fecha = date("Y-m-d");
 $fecha_min = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-01-01'));
 $fecha_max = date("Y-m-d", strtotime($_SESSION['vigencia'] . '-12-31'));
 if (empty($datos)) {
+    $datos = [];
     $datos['id_ctb_doc'] = 0;
     $datos['id_manu'] = $id_manu;
     $datos['id_tercero'] = 0;

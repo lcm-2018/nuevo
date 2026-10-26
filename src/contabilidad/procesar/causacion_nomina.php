@@ -87,7 +87,7 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
 {
     if ($esPtoCaracter) {
         $ccostos = array_filter(array_map('trim', explode(',', (string) ($detalleEmpleado['id_ccosto'] ?? ''))));
-        if (count($ccostos) !== 1) {
+        if (!is_array($ccostos) || count($ccostos) !== 1) {
             throw new Exception(
                 'El empleado con documento ' . $detalleEmpleado['no_documento'] .
                 ' tiene un centro de costo no válido para la causación: ' . ($detalleEmpleado['id_ccosto'] ?? 'sin definir')
@@ -208,8 +208,8 @@ try {
                     ON (`ctb_retencion_rango`.`id_retencion` = `ctb_retenciones`.`id_retencion`)
             WHERE (`tb_centrocostos`.`es_pasivo` = 1 AND `nom_causacion`.`id_tipo` = 30 AND `ctb_retencion_rango`.`id_vigencia` = $id_vigencia)";
     $rs = $cmd->query($sql);
-    $rango = $rs->fetch(PDO::FETCH_ASSOC);
-    $rango = !empty($rango) ? $rango['id_rango'] : exit('No se encontró el rango de retención  en la fuente para la causación de nómina');
+    $rango = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
+    $rango = !empty($rango['id_rango']) ? $rango['id_rango'] : exit('No se encontró el rango de retención  en la fuente para la causación de nómina');
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -293,8 +293,8 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT MAX(`id_manu`) AS `id_manu` FROM `ctb_doc` WHERE `id_vigencia` = $id_vigencia AND `id_tipo_doc` = $cnom";
     $rs = $cmd->query($sql);
-    $consecutivo = $rs->fetch();
-    $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
+    $consecutivo = $rs ? $rs->fetch() : null;
+    $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
@@ -304,8 +304,8 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_tercero_api` FROM `tb_terceros` WHERE `nit_tercero` = " . $_SESSION['nit_emp'];
     $rs = $cmd->query($sql);
-    $tercero = $rs->fetch();
-    $id_ter_api = !empty($tercero) ? $tercero['id_tercero_api'] : NULL;
+    $tercero = $rs ? $rs->fetch() : null;
+    $id_ter_api = !empty($tercero) ? ($tercero['id_tercero_api'] ?? NULL) : NULL;
     $id_ter_doc = $id_ter_api;
 
     $empleadosDoc = [];
@@ -320,13 +320,13 @@ try {
         if ($claveEmpleadoDoc !== 'doc:') {
             $empleadosDoc[$claveEmpleadoDoc] = true;
             $id_ter_api_e = $terceros[$dd['no_documento']] ?? NULL;
-            if (count($empleadosDoc) === 1 && !empty($id_ter_api_e)) {
+            if (is_array($empleadosDoc) && count($empleadosDoc) === 1 && !empty($id_ter_api_e)) {
                 $idTerceroEmpleadoDoc = (int) $id_ter_api_e;
             }
         }
     }
 
-    if (count($empleadosDoc) === 1 && $idTerceroEmpleadoDoc > 0) {
+    if (is_array($empleadosDoc) && count($empleadosDoc) === 1 && $idTerceroEmpleadoDoc > 0) {
         $id_ter_doc = $idTerceroEmpleadoDoc;
     }
 
@@ -547,7 +547,7 @@ try {
 
         $ccosto = strval($ccosto); // Asegurar que sea string
         $ccostos_array = strpos($ccosto, ',') !== false ? explode(',', $ccosto) : [$ccosto];
-        $num_ccostos = count($ccostos_array);
+        $num_ccostos = is_array($ccostos_array) ? count($ccostos_array) : 0;
 
         foreach ($ccostos_array as $ccosto_individual) {
             $ccosto_individual = trim($ccosto_individual);

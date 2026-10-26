@@ -128,19 +128,22 @@ foreach ($sedes as $sede) {
 
         // Optimización: en lugar de guardar todos los registros de la sede en memoria,
         // los vamos escribiendo en el CSV línea a línea a medida que la BD los devuelve.
-        while ($registro = $res->fetch(PDO::FETCH_ASSOC)) {
-            $valor_formato = number_format($registro['valor'], 2, '.', '');
-            fputcsv($output, [
-                mb_convert_encoding($sede['nom_sede'], 'UTF-8', 'auto'),
-                $registro['cod'],
-                mb_convert_encoding($registro['nombre'], 'UTF-8', 'auto'),
-                $registro['id_manu'],
-                $valor_formato
-            ], ',');
+        if ($res) {
+            while ($registro = $res->fetch(PDO::FETCH_ASSOC)) {
+                $valor = (float)($registro['valor'] ?? 0);
+                $valor_formato = number_format($valor, 2, '.', '');
+                fputcsv($output, [
+                    mb_convert_encoding($sede['nom_sede'], 'UTF-8', 'auto'),
+                    $registro['cod'] ?? '',
+                    mb_convert_encoding($registro['nombre'] ?? '', 'UTF-8', 'auto'),
+                    $registro['id_manu'] ?? '',
+                    $valor_formato
+                ], ',');
 
-            $total += $registro['valor'];
+                $total += $valor;
+            }
+            $res->closeCursor();
         }
-        $res->closeCursor();
 
         // Liberar el buffer al finalizar cada sede para que la descarga sea progresiva
         ob_flush();

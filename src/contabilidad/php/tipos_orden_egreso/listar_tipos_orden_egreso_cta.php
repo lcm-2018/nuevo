@@ -37,23 +37,23 @@ try {
             ORDER BY fecha_vigencia DESC LIMIT 1";
 
     $rs = $cmd->query($sql);
-    $cuenta = $rs->fetch();
+    $cuenta = $rs ? $rs->fetch() : null;
     $id_vig = isset($cuenta['id']) ? $cuenta['id'] : 0;
 
     //Consulta el total de registros de la tabla
     $sql = "SELECT COUNT(*) AS total FROM far_orden_egreso_tipo_cta 
             WHERE id_tipo_egreso=" . $_POST['id_tipo_egreso'];
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
 
     //Consulta el total de registros aplicando el filtro
     $sql = "SELECT COUNT(*) AS total FROM far_orden_egreso_tipo_cta 
             INNER JOIN ctb_pgcp ON (ctb_pgcp.id_pgcp=far_orden_egreso_tipo_cta.id_cuenta)
             WHERE far_orden_egreso_tipo_cta.id_tipo_egreso=" . $_POST['id_tipo_egreso'] . $where;
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
 
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT far_orden_egreso_tipo_cta.id_tipo_egreso_cta,far_orden_egreso_tipo_cta.fecha_vigencia,   
@@ -64,7 +64,7 @@ try {
             WHERE far_orden_egreso_tipo_cta.id_tipo_egreso=" . $_POST['id_tipo_egreso'] . $where . " ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;

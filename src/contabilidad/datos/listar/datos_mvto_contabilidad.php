@@ -109,23 +109,23 @@ try {
             GROUP BY `ctb_doc`.`id_ctb_doc`
             ORDER BY $col $dir $limit";
     $rs = $cmd->query($sql);
-    $listappto = $rs->fetchAll();
+    $listappto = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     
     // 2. Conteo con filtros aplicados (recordsFiltered)
     $sql = "SELECT COUNT(DISTINCT `ctb_doc`.`id_ctb_doc`) AS `total` $fromJoins";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecordsFilter = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
     $rs->closeCursor();
     unset($rs);
     
     // 3. Conteo total sin filtros adicionales (recordsTotal) - consulta simplificada
     $sql = "SELECT COUNT(*) AS `total` FROM `ctb_doc` $whereBase";
     $rs = $cmd->query($sql);
-    $total = $rs->fetch();
-    $totalRecords = $total['total'];
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
     $rs->closeCursor();
     unset($rs);
     

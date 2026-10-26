@@ -2,12 +2,12 @@
 // Busca consecutivos del tipo de documento recibido para sugerir un numero 
 include '../../../../config/autoloader.php';
 $cmd = \Config\Clases\Conexion::getConexion();
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 // Buscamos si hay registros posteriores a la fecha recibida
 $sql = "SELECT max(id_manu) as id_manu from ctb_doc WHERE CAST(fecha AS DATE) <= '$_post[fecha]' AND tipo_doc='$_post[documento]' ";
 $res = $cmd->query($sql);
-$row = $res->fetch();
-$id_manu = $row['id_manu'];
+$row = $res ? $res->fetch() : null;
+$id_manu = (int)($row['id_manu'] ?? 0);
 // Buscar espacios libre hacia adelante
 $i = 1;
 do {

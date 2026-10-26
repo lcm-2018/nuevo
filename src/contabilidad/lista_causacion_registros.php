@@ -25,9 +25,9 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT `id_pto` FROM `pto_presupuestos` WHERE (`id_tipo` = 2 AND `id_vigencia` = $id_vigencia)";
     $rs = $cmd->query($sql);
-    $listappto = $rs->fetch();
-    if (empty($listappto['id_pto'])) {
-        $listappto['id_pto'] = 0;
+    $listappto = $rs ? $rs->fetch() : null;
+    if (empty($listappto) || empty($listappto['id_pto'])) {
+        $listappto = ['id_pto' => 0];
     }
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

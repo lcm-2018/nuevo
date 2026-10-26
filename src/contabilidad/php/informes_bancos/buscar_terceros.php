@@ -17,7 +17,7 @@ try {
             FROM
                 `tb_terceros`";
     $rs = $cmd->query($sql);
-    $terceros = $rs->fetchAll();
+    $terceros = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -26,7 +26,7 @@ try {
 }
 
 $data = [];
-$buscar = mb_strtoupper($_POST['term']);
+$buscar = mb_strtoupper($_POST['term'] ?? '');
 if ($buscar == '%%') {
     foreach ($terceros as $s) {
         $nom_tercero = mb_strtoupper($s['nom_tercero']) . ' -> ' . $s['nit_tercero'];

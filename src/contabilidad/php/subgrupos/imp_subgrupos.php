@@ -23,7 +23,7 @@ try {
             INNER JOIN far_grupos ON (far_grupos.id_grupo=far_subgrupos.id_grupo)
             $where ORDER BY far_subgrupos.id_subgrupo DESC";
     $res = $cmd->query($sql);
-    $objs = $res->fetchAll();
+    $objs = $res ? $res->fetchAll() : [];
     $res->closeCursor();
     unset($res);
 } catch (PDOException $e) {
@@ -84,7 +84,7 @@ try {
                         WHERE SBG.estado=1 AND SBG.fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND SBG.id_subgrupo=" . $obj['id_subgrupo'] . "
                         ORDER BY SBG.fecha_vigencia DESC LIMIT 1";
                 $rs = $cmd->query($sql);
-                $obj_cta = $rs->fetch();
+                $obj_cta = $rs ? $rs->fetch() : null;
                 $cuenta_cs = isset($obj_cta['cuenta']) ? $obj_cta['cuenta'] : '';
 
                 $sql = "SELECT CONCAT_WS(' - ',CACT.cuenta,CACT.nombre) AS cuenta_af,
@@ -97,7 +97,7 @@ try {
                         WHERE SBG.estado=1 AND SBG.fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND SBG.id_subgrupo=" . $obj['id_subgrupo'] . "
                         ORDER BY SBG.fecha_vigencia DESC LIMIT 1";
                 $rs = $cmd->query($sql);
-                $obj_cta = $rs->fetch();
+                $obj_cta = $rs ? $rs->fetch() : null;
                 $cuenta_af = isset($obj_cta['cuenta_af']) ? $obj_cta['cuenta_af'] : '';
                 $cuenta_dep = isset($obj_cta['cuenta_dep']) ? $obj_cta['cuenta_dep'] : '';
                 $cuenta_gas = isset($obj_cta['cuenta_gas']) ? $obj_cta['cuenta_gas'] : '';
@@ -138,7 +138,7 @@ try {
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="5" style="text-align:left">
-                    No. de Registros: <?php echo count($objs); ?>
+                    No. de Registros: <?php echo is_array($objs) ? count($objs) : 0; ?>
                 </td>
             </tr>
         </tfoot>

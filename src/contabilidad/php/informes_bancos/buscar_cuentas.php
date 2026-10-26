@@ -15,7 +15,7 @@ try {
             FROM ctb_pgcp 
             WHERE ctb_pgcp.estado = 1";
     $rs = $cmd->query($sql);
-    $obj_cuentas = $rs->fetchAll();
+    $obj_cuentas = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -24,7 +24,7 @@ try {
 }
 
 $data = [];
-$buscar = mb_strtoupper($_POST['term']);
+$buscar = mb_strtoupper($_POST['term'] ?? '');
 if ($buscar == '%%') {
     foreach ($obj_cuentas as $obj) {
         $cuenta = mb_strtoupper($obj['cuenta']) . ' -> ' . $obj['nombre'];

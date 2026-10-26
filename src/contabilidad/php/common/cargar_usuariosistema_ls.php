@@ -15,7 +15,7 @@ try {
             WHERE CONCAT(nombre1,nombre2,apellido1,apellido2) LIKE '%$term%'
             ORDER BY nombre1,nombre2,apellido1,apellido2";
     $rs = $cmd->query($sql);
-    $objs = $rs->fetchAll();
+    $objs = $rs ? $rs->fetchAll() : [];
     $rs->closeCursor();
     unset($rs);
     $cmd = null;
@@ -23,6 +23,7 @@ try {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
 }
 
+$data = [];
 foreach ($objs as $obj) {
     $data[] = [
         "id" => $obj['id_usuario'],

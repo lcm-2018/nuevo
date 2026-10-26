@@ -159,7 +159,7 @@ class TaxxaService
         $this->lastResponse = $response;
 
         // Intentar decodificar la respuesta JSON
-        $decoded = json_decode($response);
+        $decoded = is_string($response) && $response !== '' ? json_decode($response) : null;
 
         // Si el código HTTP no es 200, intentar extraer mensaje de error del JSON
         if ($httpCode !== 200) {
@@ -182,7 +182,7 @@ class TaxxaService
                 } elseif (isset($decoded->sdebug1)) {
                     // Intentar decodificar sdebug1 si está en base64
                     $debug1 = base64_decode($decoded->sdebug1);
-                    $debugData = json_decode($debug1);
+                    $debugData = is_string($debug1) && $debug1 !== '' ? json_decode($debug1) : null;
 
                     if ($debugData !== null && isset($debugData->ErrorMessage)) {
                         $errorMessage = $this->formatErrorMessage($debugData->ErrorMessage);
@@ -233,7 +233,7 @@ class TaxxaService
             if (empty($errorMessage) && isset($response->sdebug1)) {
                 // Intentar decodificar sdebug1 (puede estar en base64)
                 $debug1 = base64_decode($response->sdebug1);
-                $debugData = json_decode($debug1);
+                $debugData = is_string($debug1) && $debug1 !== '' ? json_decode($debug1) : null;
 
                 if ($debugData !== null) {
                     // Buscar ErrorMessage en el debug decodificado
@@ -311,13 +311,13 @@ class TaxxaService
             }
 
             // Caso 2: Array simple de mensajes
-            if (count($message) > 0) {
+            if (is_array($message) && count($message) > 0) {
                 // Filtrar valores nulos y vacíos
                 $filtered = array_filter($message, function ($item) {
                     return $item !== null && $item !== '';
                 });
 
-                if (count($filtered) > 0) {
+                if (is_array($filtered) && count($filtered) > 0) {
                     // Si son strings, unirlos
                     $strings = array_map(function ($item) {
                         if (is_string($item)) {

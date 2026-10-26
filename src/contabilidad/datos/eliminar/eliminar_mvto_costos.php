@@ -2,7 +2,7 @@
 
 use Config\Clases\Logs;
 
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $id = $_post['id'];
 $id_doc = $_post['id_doc'];
 include '../../../../config/autoloader.php';

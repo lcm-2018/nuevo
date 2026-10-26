@@ -24,12 +24,12 @@ if ($id_pgcp  > 0) {
     try {
         $sql = "SELECT `id_pgcp`,`cuenta`,`nombre`,`tipo_dato`,`estado` FROM `ctb_pgcp` WHERE `id_pgcp` = $id_pgcp";
         $rs = $cmd->query($sql);
-        $cuentas = $rs->fetch();
-        $cuenta = $cuentas['cuenta'];
-        $nombre = $cuentas['nombre'];
-        $tipo_dato = $cuentas['tipo_dato'];
-        $nivel = Nivel($cuentas['cuenta']);
-        $estado = $cuentas['estado'];
+        $cuentas = $rs ? $rs->fetch() : null;
+        $cuenta = $cuentas['cuenta'] ?? '';
+        $nombre = $cuentas['nombre'] ?? '';
+        $tipo_dato = $cuentas['tipo_dato'] ?? '';
+        $nivel = !empty($cuentas['cuenta']) ? Nivel($cuentas['cuenta']) : '';
+        $estado = $cuentas['estado'] ?? '';
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }

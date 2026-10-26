@@ -49,12 +49,14 @@ if (!empty($listappto)) {
         // consultar la suma de debito y credito en la tabla ctb_libaux para el documento
         $sql = "SELECT sum(debito) as debito, sum(credito) as credito FROM ctb_libaux WHERE id_ctb_doc=$id_ctb GROUP BY id_ctb_doc";
         $rs3 = $cmd->query($sql);
-        $suma = $rs3->fetch();
-        $dif = $suma['debito'] - $suma['credito'];
+        $suma = $rs3 ? $rs3->fetch() : null;
+        $debito = (float)($suma['debito'] ?? 0);
+        $credito = (float)($suma['credito'] ?? 0);
+        $dif = $debito - $credito;
         if ($dif != 0) {
             $valor_total = 'Error';
         } else {
-            $valor_total = number_format($suma['credito'], 2, ',', '.');
+            $valor_total = number_format($credito, 2, ',', '.');
         }
         // Consulto el numero de registro presupuestal asociado al documento
         $sql = "SELECT
@@ -67,8 +69,8 @@ if (!empty($listappto)) {
         WHERE (`pto_documento_detalles`.`id_ctb_doc` =$id_ctb )
         GROUP BY `pto_documento_detalles`.`id_ctb_doc`;";
         $rs4 = $cmd->query($sql);
-        $docment = $rs4->fetch();
-        $id_manu_rp = $docment['id_manu'];
+        $docment = $rs4 ? $rs4->fetch() : null;
+        $id_manu_rp = $docment['id_manu'] ?? '';
 
         $fecha = date('Y-m-d', strtotime($lp['fecha']));
         // Sumar el valor del crp de la tabla id_pto_mtvo asociado al CDP

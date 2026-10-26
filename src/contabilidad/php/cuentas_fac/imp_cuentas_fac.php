@@ -57,7 +57,7 @@ try {
             LEFT JOIN ctb_pgcp AS c_baja ON (c_baja.id_pgcp=tb_homologacion.id_cta_baja)
             $where ORDER BY tb_homologacion.id_homo DESC";
     $res = $cmd->query($sql);
-    $objs = $res->fetchAll();
+    $objs = $res ? $res->fetchAll() : [];
     $res->closeCursor();
     unset($res);
 } catch (PDOException $e) {
@@ -192,7 +192,7 @@ try {
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="7" style="text-align:left">
-                    No. de Registros: <?php echo count($objs); ?>
+                    No. de Registros: <?php echo is_array($objs) ? count($objs) : 0; ?>
                 </td>
             </tr>
         </tfoot>

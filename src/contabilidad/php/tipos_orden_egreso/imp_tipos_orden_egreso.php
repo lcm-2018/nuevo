@@ -27,7 +27,7 @@ try {
             FROM far_orden_egreso_tipo
             $where ORDER BY id_tipo_egreso DESC";
     $res = $cmd->query($sql);
-    $objs = $res->fetchAll();
+    $objs = $res ? $res->fetchAll() : [];
     $res->closeCursor();
     unset($res);
 } catch (PDOException $e) {
@@ -95,7 +95,7 @@ try {
                         WHERE TOEGR.estado=1 AND TOEGR.fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND TOEGR.id_tipo_egreso=" . $obj['id_tipo_egreso'] . "
                         ORDER BY TOEGR.fecha_vigencia DESC LIMIT 1";
                 $rs = $cmd->query($sql);
-                $obj_cta = $rs->fetch();
+                $obj_cta = $rs ? $rs->fetch() : null;
                 $cuenta_c = isset($obj_cta['cuenta']) ? $obj_cta['cuenta'] : '';
 
                 $tabla .=
@@ -117,7 +117,7 @@ try {
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
                 <td colspan="10" style="text-align:left">
-                    No. de Registros: <?php echo count($objs); ?>
+                    No. de Registros: <?php echo is_array($objs) ? count($objs) : 0; ?>
                 </td>
             </tr>
         </tfoot>

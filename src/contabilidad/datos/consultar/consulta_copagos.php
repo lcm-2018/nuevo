@@ -2,7 +2,7 @@
 
 include '../../../../config/autoloader.php';
 $cmd = \Config\Clases\Conexion::getConexion();
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $concepto = $_post['concep'];
 $tercero = $_post['tercero'];
 $fecha = $_post['fecha'];

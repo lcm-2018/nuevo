@@ -64,12 +64,12 @@ if ($id_detalle > 0) {
                         ON (`tb_sedes`.`id_municipio` = `tb_municipios`.`id_municipio`)
                 WHERE (`ctb_causa_costos`.`id` = $id_detalle)";
         $rs = $cmd->query($sql);
-        $data = $rs->fetch();
-        $id_municipio = $data['id_municipio'];
-        $id_sede = $data['id_sede'];
-        $id_cc = $data['id_area_cc'];
-        $municipio = $data['nom_municipio'];
-        $value_cc = $data['valor'];
+        $data = $rs ? $rs->fetch() : null;
+        $id_municipio = $data['id_municipio'] ?? 0;
+        $id_sede = $data['id_sede'] ?? 0;
+        $id_cc = $data['id_area_cc'] ?? 0;
+        $municipio = $data['nom_municipio'] ?? '';
+        $value_cc = $data['valor'] ?? 0;
         $cmd = null;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
@@ -113,8 +113,8 @@ try {
     $cmd = \Config\Clases\Conexion::getConexion();
     $sql = "SELECT SUM(`valor_pago`) AS `valor_pago` FROM `ctb_factura` WHERE (`id_ctb_doc` = $id_doc)";
     $rs = $cmd->query($sql);
-    $valor_factura = $rs->fetch();
-    $valor_max = !empty($valor_factura) ? $valor_factura['valor_pago'] : 0;
+    $valor_factura = $rs ? $rs->fetch() : null;
+    $valor_max = !empty($valor_factura) ? ($valor_factura['valor_pago'] ?? 0) : 0;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();

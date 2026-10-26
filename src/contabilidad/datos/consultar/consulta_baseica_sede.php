@@ -1,7 +1,7 @@
 <?php
 // Realiza la suma del valor total asignado a un CDP
 include '../../../../config/autoloader.php';
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input') ?: '{}', true);
 $valores = explode('|', $_post['valores']);
 $base = $valores[0];
 function pesos($valor)

@@ -208,10 +208,12 @@ try {
     $cc = 0;
     $query = "SELECT `id_area_cc` FROM `ctb_causa_costos` WHERE `id_ctb_doc` = $id_doc";
     $rs = $cmd->query($query);
-    $fff = $rs->fetchAll();
-    $rs->closeCursor();
-    unset($rs);
-    if (count($fff) > 0) {
+    $fff = $rs ? $rs->fetchAll() : [];
+    if ($rs) {
+        $rs->closeCursor();
+        unset($rs);
+    }
+    if (is_array($fff) && count($fff) > 0) {
         $response['msg'] = 'Ya se ha registrado el centro de costo para este documento';
     } else {
         $sql = "INSERT INTO `ctb_causa_costos`

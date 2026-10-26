@@ -37,8 +37,8 @@ $fecha_cierre = fechaCierre($vigencia, 55, $cmd);
 try {
     $sql = "SELECT `id_doc_fuente` FROM `ctb_fuente` WHERE `cod` = '$tipo_dato'";
     $rs = $cmd->query($sql);
-    $fuente = $rs->fetch();
-    $tipo_dato = $fuente['id_doc_fuente'];
+    $fuente = $rs ? $rs->fetch() : null;
+    $tipo_dato = $fuente['id_doc_fuente'] ?? 0;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
@@ -68,7 +68,10 @@ if ($id_doc == 0) {
                         ON (`pto_rad`.`id_tercero_api` = `tb_terceros`.`id_tercero_api`)
                 WHERE (`pto_rad`.`id_pto_rad` = $id_rad) LIMIT 1";
         $rs = $cmd->query($sql);
-        $datosDoc = $rs->fetch();
+        $datosDoc = $rs ? $rs->fetch() : null;
+        if (empty($datosDoc)) {
+            $datosDoc = ['fecha' => date('Y-m-d'), 'detalle' => '', 'nom_tercero' => '', 'nit_tercero' => '', 'id_ref_ctb' => 0];
+        }
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
@@ -79,8 +82,8 @@ if ($id_doc == 0) {
                     `ctb_doc`
                 WHERE (`id_vigencia` = $id_vigencia AND `id_tipo_doc` = $tipo_dato)";
         $rs = $cmd->query($sql);
-        $consecutivo = $rs->fetch();
-        $id_manu = !empty($consecutivo) ? $consecutivo['id_manu'] + 1 : 1;
+        $consecutivo = $rs ? $rs->fetch() : null;
+        $id_manu = !empty($consecutivo) ? ($consecutivo['id_manu'] + 1) : 1;
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }

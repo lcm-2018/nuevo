@@ -3,7 +3,7 @@
 include '../../../../config/autoloader.php';
 use Config\Clases\Logs;
 $data = file_get_contents("php://input");
-$data = json_decode($data, true);
+$data = json_decode($data ?: '{}', true);
 // Realizo conexion con la base de datos
 $response['value'] = 'error';
 $id = $data['id'];

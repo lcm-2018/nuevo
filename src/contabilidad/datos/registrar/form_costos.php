@@ -26,12 +26,25 @@ try {
                 LEFT JOIN `ctb_pgcp` AS `tc_c` ON (`ccc`.`id_cta_credito` = `tc_c`.`id_pgcp`)
             WHERE (`ctb_pgcp`.`id_pgcp` = $id)";
     $rs = $cmd->query($sql);
-    $cuenta = $rs->fetch(PDO::FETCH_ASSOC);
+    $cuenta = $rs ? $rs->fetch(PDO::FETCH_ASSOC) : null;
     $cmd = null;
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
 }
-$opcion = $cuenta['id_cta'] > 0 ? $cuenta['id_cta'] : 0;
+if (empty($cuenta)) {
+    $cuenta = [
+        'id_cta' => 0,
+        'id_pgcp' => 0,
+        'cuenta' => '',
+        'cta_debito' => '',
+        'id_debito' => 0,
+        'tp_debito' => '',
+        'cta_credito' => '',
+        'id_credito' => 0,
+        'tp_credito' => '',
+    ];
+}
+$opcion = !empty($cuenta['id_cta']) && $cuenta['id_cta'] > 0 ? $cuenta['id_cta'] : 0;
 ?>
 <div class="px-0">
     <div class="shadow">

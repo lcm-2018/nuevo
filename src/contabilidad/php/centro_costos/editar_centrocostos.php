@@ -45,8 +45,8 @@ try {
                     Logs::guardaLog("INSERT INTO tb_centrocostos(nom_centro,es_clinico,id_responsable,id_usr_crea) VALUES('$nom_centro',$es_clinico,$id_respon,$id_usr_crea)");
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
-                    $obj = $rs->fetch();
-                    $res['id'] = $obj['id'];
+                    $obj = $rs ? $rs->fetch() : null;
+                    $res['id'] = $obj['id'] ?? null;
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];
                 }

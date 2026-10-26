@@ -12,14 +12,17 @@ $cmd = \Config\Clases\Conexion::getConexion();
 $id = isset($_POST['id']) ? $_POST['id'] : -1;
 $sql = "SELECT * FROM far_orden_egreso_tipo WHERE id_tipo_egreso=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
-$obj = $rs->fetch();
+$obj = $rs ? $rs->fetch() : null;
 
 if (empty($obj)) {
-    $n = $rs->columnCount();
+    $obj = [];
+    $n = $rs ? $rs->columnCount() : 0;
     for ($i = 0; $i < $n; $i++):
         $col = $rs->getColumnMeta($i);
-        $name = $col['name'];
-        $obj[$name] = NULL;
+        $name = $col['name'] ?? null;
+        if ($name) {
+            $obj[$name] = NULL;
+        }
     endfor;
     //Inicializa variable por defecto
     $obj['es_int_ext'] = 0;
