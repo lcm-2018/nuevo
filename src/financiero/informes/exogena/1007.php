@@ -132,7 +132,7 @@ try {
 
     // Iterar línea por línea sin cargar todo en memoria
     $id_terceros = [];
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    while ($stmt && ($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
         $id_terceros[] = $row['id_tercero'];
     }
     $id_terceros = array_unique($id_terceros);
@@ -150,7 +150,7 @@ try {
     $result = curl_exec($ch);
     curl_close($ch);
 
-    $terceros = json_decode($result, true);
+    $terceros = json_decode($result ?: '[]', true);
     $terceros = is_array($terceros) ? $terceros : [];
 
     $terceros_api_idx = [];
@@ -160,7 +160,7 @@ try {
 
     $stmt->execute();
 
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    while ($stmt && ($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
 
         $ingresos     = (float) $row['ingresos'];
         $devoluciones = (float) $row['devoluciones'];
@@ -207,7 +207,7 @@ try {
         liberarSalida();
     }
 } catch (PDOException $e) {
-    echo '<tr><td colspan="' . count($columnas) . '">';
+    echo '<tr><td colspan="' . (is_array($columnas) ? count($columnas) : 0) . '">';
     echo htmlspecialchars('Error en la consulta: ' . $e->getMessage(), ENT_QUOTES, 'UTF-8');
     echo '</td></tr>';
 }

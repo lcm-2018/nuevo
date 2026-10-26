@@ -363,7 +363,7 @@ try {
 
     // de lso resultados de la consulta se debe obtener el id de api  en forma de arrray
     $id_terceros = [];
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    while ($stmt && ($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
         $id_terceros[] = $row['id_tercero_api'];
     }
     $payload = json_encode($id_terceros);
@@ -379,7 +379,7 @@ try {
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     $result = curl_exec($ch);
     curl_close($ch);
-    $terceros = json_decode($result, true);
+    $terceros = json_decode($result ?: '[]', true);
     $terceros = is_array($terceros) ? $terceros : [];
 
     $terceros_api_idx = [];
@@ -391,7 +391,7 @@ try {
     $stmt->execute();
 
     // 2. Iterar línea por línea sin cargar todo en memoria
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    while ($stmt && ($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
 
         $datos_api = $terceros_api_idx[$row['id_tercero_api']] ?? null;
 
@@ -469,7 +469,7 @@ try {
         liberarSalida();
     }
 } catch (PDOException $e) {
-    echo '<tr><td colspan="' . count($columnas) . '">';
+    echo '<tr><td colspan="' . (is_array($columnas) ? count($columnas) : 0) . '">';
     echo htmlspecialchars('Error en la consulta: ' . $e->getMessage(), ENT_QUOTES, 'UTF-8');
     echo '</td></tr>';
 }

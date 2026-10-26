@@ -6,19 +6,21 @@ if (!isset($_SESSION['user'])) {
 }
 include '../../../config/autoloader.php';
 include_once '../../financiero/consultas.php';
-$_post = json_decode(file_get_contents('php://input'), true);
+$_post = json_decode(file_get_contents('php://input'), true) ?? [];
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT id,fecha FROM tb_fin_fecha WHERE vigencia = '$_post[vigencia]' AND id_usuario='$_post[usuario]' ";
+    $vigencia = $_post['vigencia'] ?? '';
+    $usuario = $_post['usuario'] ?? '';
+    $sql = "SELECT id,fecha FROM tb_fin_fecha WHERE vigencia = '$vigencia' AND id_usuario='$usuario' ";
     $rs = $cmd->query($sql);
-    $row = $rs->fetch();
+    $row = $rs ? $rs->fetch() : null;
     if (empty($row)) {
         $fecha = date("Y-m-d");
         $id = 0;
         $respuesta = 0;
     } else {
-        $fecha = date('Y-m-d', strtotime($row['fecha']));
-        $id = $row['id'];
+        $fecha = date('Y-m-d', strtotime($row['fecha'] ?? 'now'));
+        $id = $row['id'] ?? 0;
         $respuesta = 1;
     }
     // cerrar conexion con base de datos
@@ -43,8 +45,8 @@ $cmd = null;
                     <div class="form-group col-md-12">
                         <label for="passAnt" class="small">Fecha actual</label>
                         <input type="date" class="form-control form-control-sm" id="fecha" name="fecha" required value="<?php echo $fecha; ?>" min="<?php echo $fecha_cierre; ?>" max="<?php echo $fecha_max; ?>">
-                        <input type="hidden" id="vigencia" name="vigencia" value="<?php echo $_post['vigencia']; ?>">
-                        <input type="hidden" id="usuario" name="usuario" value="<?php echo $_post['usuario']; ?>">
+                        <input type="hidden" id="vigencia" name="vigencia" value="<?php echo $_post['vigencia'] ?? ''; ?>">
+                        <input type="hidden" id="usuario" name="usuario" value="<?php echo $_post['usuario'] ?? ''; ?>">
                         <input type="hidden" id="id" name="id" value="<?php echo $id ?>">
                     </div>
                 </div>
