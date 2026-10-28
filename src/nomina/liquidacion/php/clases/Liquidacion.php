@@ -113,7 +113,7 @@ class Liquidacion
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
-                    WHERE  '$fec_fin' >= `ctt`.`fec_inicio` AND '$fec_inicio' <= `ctt`.`fec_fin`
+                    WHERE  '$fec_fin' >= `ctt`.`fec_inicio` AND '$fec_inicio' <= `ctt`.`fec_fin` AND `e`.`estado` = 1
                     ORDER BY `e`.`no_documento`, `nombre`) AS `taux`
                     LEFT JOIN
                         (SELECT 
@@ -201,7 +201,7 @@ class Liquidacion
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
-                    WHERE  '$fec_fin' >= `ctt`.`fec_inicio` AND '$fec_inicio' <= `ctt`.`fec_fin`
+                    WHERE  '$fec_fin' >= `ctt`.`fec_inicio` AND '$fec_inicio' <= `ctt`.`fec_fin` AND `e`.`estado` = 1
                     ORDER BY `e`.`no_documento`, `nombre`) AS `taux`
                     LEFT JOIN
                         (SELECT 
@@ -277,7 +277,7 @@ class Liquidacion
                             GROUP BY `id_empleado`)
                         ) AS `ctt`
                         INNER JOIN `nom_empleado` `e` ON (`ctt`.`id_empleado` = `e`.`id_empleado`)
-                    WHERE  '$fec_fin' >= `ctt`.`fec_inicio` AND '$fec_inicio' <= `ctt`.`fec_fin`
+                    WHERE  '$fec_fin' >= `ctt`.`fec_inicio` AND '$fec_inicio' <= `ctt`.`fec_fin` AND `e`.`estado` = 1
                     ORDER BY `e`.`no_documento`, `nombre`) AS `taux`
                     LEFT JOIN
                         (SELECT 

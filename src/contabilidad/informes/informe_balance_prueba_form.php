@@ -50,12 +50,16 @@ unset($rs);
                     <div class="row mb-2 mb-1">
                         <div class="col-3"></div>
                         <div class="col-md-2"><span class="small">Fecha de inicial:</span></div>
-                        <div class="col-md-4"><input type="date" name="fecha_ini" id="fecha_ini" class="form-control form-control-sm bg-input" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_min; ?>"></div>
+                        <div class="col-md-4"><input type="date" name="fecha_ini" id="fecha_ini"
+                                class="form-control form-control-sm bg-input" min="<?php echo $fecha_min; ?>"
+                                max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_min; ?>"></div>
                     </div>
                     <div class="row mb-2 mb-1">
                         <div class="col-3"></div>
                         <div class="col-md-2 small">Fecha de corte:</div>
-                        <div class="col-md-4"><input type="date" name="fecha_fin" id="fecha_fin" class="form-control form-control-sm bg-input" min="<?php echo $fecha_min; ?>" max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_actual; ?>"></div>
+                        <div class="col-md-4"><input type="date" name="fecha_fin" id="fecha_fin"
+                                class="form-control form-control-sm bg-input" min="<?php echo $fecha_min; ?>"
+                                max="<?php echo $fecha_max; ?>" value="<?php echo $fecha_actual; ?>"></div>
                     </div>
                     <div class="row mb-2 mb-1">
                         <div class="col-3"></div>
@@ -65,11 +69,15 @@ unset($rs);
                     <div class="row mb-2">
                         <div class="col-12">
                             <div class="text-center pt-3">
-                                <button class="btn btn-primary" onclick="generarInformeCtb(this)" value="12"><span></span>Libro auxiliar</button>
-                                <a type="" id="btnExcelEntrada" class="btn btn-outline-success" value="01" title="Exprotar a Excel">
+                                <button class="btn btn-primary" onclick="generarInformeCtb(this)"
+                                    value="12"><span></span>Consultar</button>
+                                <a type="" id="btnExcelEntrada" class="btn btn-outline-success" value="01"
+                                    title="Exprotar a Excel">
                                     <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
                                 </a>
-                                <a type="button" class="btn btn-danger" title="Imprimir" onclick="imprSelecTes('areaImprimir','<?php echo 0; ?>');"><span class="fas fa-print fa-lg" aria-hidden="true"></span></a>
+                                <a type="button" class="btn btn-danger" title="Imprimir"
+                                    onclick="imprSelecTes('areaImprimir','<?php echo 0; ?>');"><span
+                                        class="fas fa-print fa-lg" aria-hidden="true"></span></a>
                             </div>
                         </div>
                     </div>

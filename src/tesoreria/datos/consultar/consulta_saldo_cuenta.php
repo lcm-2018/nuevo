@@ -11,7 +11,9 @@ try {
                 `tes_cuentas`
                 INNER JOIN `ctb_libaux` 
                     ON (`tes_cuentas`.`id_cuenta` = `ctb_libaux`.`id_cuenta`)
-            WHERE (`tes_cuentas`.`id_tes_cuenta` = {$id_cta})";
+                INNER JOIN `ctb_doc`
+                    ON (`ctb_libaux`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)     
+            WHERE (`tes_cuentas`.`id_tes_cuenta` = {$id_cta} AND `ctb_doc`.`estado` = 2)";
     $rs = $cmd->query($sql);
     $valores = $rs ? $rs->fetch() : null;
     $saldo = !empty($valores) ? ($valores['saldo'] ?? 0) : 0;
