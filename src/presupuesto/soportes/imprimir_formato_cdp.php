@@ -1,13 +1,17 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
 header("Content-type: text/html; charset=utf-8");
-$vigencia = $_SESSION['vigencia'];
-$id_vigencia = $_SESSION['id_vigencia'];
-$dto = $_POST['id'];
+$vigencia = $_SESSION['vigencia'] ?? '';
+$id_vigencia = $_SESSION['id_vigencia'] ?? 0;
+$dto = intval($_POST['id'] ?? $_GET['id'] ?? 0);
+if ($dto <= 0) {
+    echo '<div class="alert alert-warning m-3 p-3">No se especificó un identificador de CDP válido.</div>';
+    exit();
+}
 function pesos($valor)
 {
     return '$' . number_format($valor, 2);
@@ -41,9 +45,17 @@ try {
                     ON (`pto_cdp`.`id_user_act` = `seg_usuarios_sistema_1`.`id_usuario`)
             WHERE (`pto_cdp`.`id_pto_cdp` = $dto)";
     $res = $cmd->query($sql);
-    $cdp = $res->fetch();
+    $cdp = $res ? $res->fetch() : null;
+    if ($res) {
+        $res->closeCursor();
+        unset($res);
+    }
 } catch (PDOException $e) {
     echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+}
+if (empty($cdp)) {
+    echo '<div class="alert alert-warning m-3 p-3">No se encontró el registro de CDP especificado (ID: ' . $dto . ').</div>';
+    exit();
 }
 try {
     $sql = "SELECT

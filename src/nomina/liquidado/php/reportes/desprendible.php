@@ -350,7 +350,7 @@ foreach ($empleados as $empleado) {
 $firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['fecha'], 'DSNN');
 
 $Imprimir = new Imprimir($documento, "letter");
-$Imprimir->addEncabezado($documento, $otro);
+$Imprimir->addEncabezado($documento, $otro, 'DSNN', 51);
 $Imprimir->addContenido($html);
 $Imprimir->addFirmas($firmas);
 $pdf = isset($_POST['pdf']) ? filter_var($_POST['pdf'], FILTER_VALIDATE_BOOLEAN) : false;

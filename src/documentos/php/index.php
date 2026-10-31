@@ -89,6 +89,7 @@ $content = preg_replace_callback('/VIÑETA/', function () use (&$numeral) {
 }, $content);
 
 $plantilla = new Plantilla($content, 2);
+$plantilla->addScriptFile("https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js");
 $plantilla->addScriptFile("{$host}/src/documentos/js/funciones.js?v=" . date("YmdHis"));
 $plantilla->addScriptFile("{$host}/src/documentos/js/detalles.js?v=" . date("YmdHis"));
 $modal = $plantilla->getModal('modalForms', 'tamModalForms', 'bodyModal');

@@ -169,7 +169,7 @@ $firmas = (new CReportes())->getFormFirmas(
 );
 
 $Imprimir = new Imprimir($documento, "letter");
-$Imprimir->addEncabezado($documento, $otro);
+$Imprimir->addEncabezado($documento, $otro, 'CNOM', 51);
 $Imprimir->addContenido($html);
 $Imprimir->addFirmas($firmas);
 $pdf = isset($_POST['pdf']) ? filter_var($_POST['pdf'], FILTER_VALIDATE_BOOLEAN) : false;

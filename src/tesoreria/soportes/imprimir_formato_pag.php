@@ -463,16 +463,7 @@ foreach ($documentos_tes as $documento) {
     <div class="px-2 " style="width:90% !important;margin: 0 auto;">
 
         </br>
-        <table class="table-bordered bg-light" style="width:100% !important;">
-            <tr>
-                <td class='text-center' style="width:18%"><label class="small"><img src="../../assets/images/logo.png"
-                            width="100"></label></td>
-                <td style="text-align:center">
-                    <strong><?php echo $ips['nombre']; ?> </strong>
-                    <div>NIT <?php echo $ips['nit'] . '-' . $ips['dig_ver']; ?></div>
-                </td>
-            </tr>
-        </table>
+        <?= $html; ?>
 
         </br>
 
@@ -856,22 +847,14 @@ foreach ($documentos_tes as $documento) {
         $cadena = implode(',', $cadena);
         $cad_rubros = implode(',', $cad_rubros);
         $firmas = $reportes->getFormFirmas($elabora, $id_modulo, $fecha, 'REVA', $tercero_nombre);
+        $html_reva = $reportes->getEncabezado($empresa, 'REVA', $id_modulo);
         ?>
         <div class="px-2 " style="width:90% !important;margin: 0 auto;">
             <table style="width: 100%;" class="page_break_avoid">
                 <thead>
                     <tr>
                         <td>
-                            <table class="table-bordered bg-light" style="width:100% !important;">
-                                <tr>
-                                    <td class='text-center' style="width:25%"><label class="small"><img
-                                                src="../../assets/images/logo.png" width="150"></label></td>
-                                    <td style="text-align:center">
-                                        <strong><?php echo $ips['nombre']; ?> </strong>
-                                        <div>NIT <?php echo $ips['nit'] . '-' . $ips['dig_ver']; ?></div>
-                                    </td>
-                                </tr>
-                            </table>
+                            <?= $html_reva; ?>
                         </td>
                     </tr>
                 </thead>

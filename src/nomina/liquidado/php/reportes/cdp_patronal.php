@@ -19,6 +19,8 @@ if (!isset($_SESSION['user'])) {
 include_once '../../../../../config/autoloader.php';
 $id_nomina = isset($_POST['id']) ? intval($_POST['id']) : exit('Acceso Denegado');
 $documento = "Solicitud de CDP Patronal";
+$id_modulo = 51;
+$doc_fte = 'CDP';
 $nomina = Nomina::getRegistro($id_nomina);
 $mes = mb_strtoupper(Valores::NombreMes($nomina['mes']));
 
@@ -125,7 +127,7 @@ $html =
 $firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['fecha'], 'CDP');
 
 $Imprimir = new Imprimir($documento, "letter");
-$Imprimir->addEncabezado($documento);
+$Imprimir->addEncabezado($documento, '', 'CDP', 51);
 $Imprimir->addContenido($html);
 $Imprimir->addFirmas($firmas);
 $pdf = isset($_POST['pdf']) ? filter_var($_POST['pdf'], FILTER_VALIDATE_BOOLEAN) : false;

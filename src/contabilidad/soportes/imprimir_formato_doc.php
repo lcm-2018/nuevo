@@ -356,15 +356,7 @@ try {
         <div class="px-2 " style="width:90% !important;margin: 0 auto;">
 
             </br>
-            <table class="table-bordered bg-light" style="width:100% !important;">
-                <tr>
-                    <td class='text-center' style="width:18%"><label class="small"><img src="../../assets/images/logo.png" width="100"></label></td>
-                    <td style="text-align:center">
-                        <strong><?php echo $empresa['nombre']; ?> </strong>
-                        <div>NIT <?php echo $empresa['nit'] . '-' . $empresa['dig_ver']; ?></div>
-                    </td>
-                </tr>
-            </table>
+            <?= $html; ?>
 
             </br>
 

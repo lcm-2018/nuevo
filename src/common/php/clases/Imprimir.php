@@ -4,6 +4,7 @@ namespace Src\Common\Php\Clases;
 
 use Config\Clases\Plantilla;
 use Src\Usuarios\Login\Php\Clases\Usuario;
+use Src\Common\Php\Clases\Reportes;
 
 class Imprimir
 {
@@ -121,25 +122,41 @@ class Imprimir
         ";
     }
 
-    public function addEncabezado($documento = "", $otro = "")
+    public function addEncabezado($documento = "", $otro = "", $doc = null, $modulo = null)
     {
-        $logoPath = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST']  . $this->host . '/assets/images/logo.png';
-        $documento = mb_strtoupper($documento);
-        $fila = $otro !== '' ? '<div style="text-transform: uppercase; padding-bottom: 14px;">' . $otro . '</div>' : '';
-        $this->encabezado =
-            <<<HTML
-            <div class='header-container'>
-                <div class='logo'>
-                    <img src='{$logoPath}' alt='Logo'>
+        if (empty($doc)) {
+            $doc = $GLOBALS['doc_fte'] ?? ($GLOBALS['cod_doc'] ?? null);
+            if (empty($doc)) {
+                if (stripos($documento, 'CDP') !== false) {
+                    $doc = 'CDP';
+                } elseif (stripos($documento, 'Desprendible') !== false) {
+                    $doc = 'DSNN';
+                } else {
+                    $doc = 'CNOM';
+                }
+            }
+        }
+        if (empty($modulo)) {
+            $modulo = $GLOBALS['id_modulo'] ?? 51;
+        }
+
+        $reportes = new Reportes();
+        $encabezadoHtml = $reportes->getEncabezado($this->empresa, $doc, $modulo);
+
+        $titulos = '';
+        if ($documento !== '' || $otro !== '') {
+            $documentoUpper = mb_strtoupper($documento);
+            $filaOtro = $otro !== '' ? "<div style='font-size: 11px; text-transform: uppercase; margin-bottom: 4px;'>{$otro}</div>" : '';
+            $filaDoc = $documento !== '' ? "<div style='font-weight: bold; font-size: 13px; text-transform: uppercase;'>{$documentoUpper}</div>" : '';
+            $titulos = "
+                <div style='text-align: center; margin-top: 6px; margin-bottom: 12px;'>
+                    {$filaOtro}
+                    {$filaDoc}
                 </div>
-                <div class='title'>
-                    <h1><strong>{$this->empresa['nombre']}</strong></h1>
-                    <div>NIT {$this->empresa['nit']}-{$this->empresa['dv']}</div>
-                    <br>{$fila}
-                    <div style='text-transform: uppercase; padding-bottom: 14px;'>{$documento}</div>
-                </div>
-            </div>
-            HTML;
+            ";
+        }
+
+        $this->encabezado = $encabezadoHtml . $titulos;
     }
 
     public function addContenido($html)
@@ -159,7 +176,9 @@ class Imprimir
         if (!$pdf) {
             $script = "<script>window.print();</script>";
         }
-        $faviconPath = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST']  . $this->host . '/assets/images/favicon.png';
+        $hostName = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https://' : 'http://';
+        $faviconPath = $protocol . $hostName . $this->host . '/assets/images/favicon.png';
         $html =
             <<<HTML
                 <!DOCTYPE html>

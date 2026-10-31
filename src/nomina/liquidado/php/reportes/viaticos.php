@@ -190,7 +190,7 @@ $firmas = (new CReportes())->getFormFirmas([
 
 // Generar PDF
 $Imprimir = new Imprimir($documento, "letter");
-$Imprimir->addEncabezado($documento);
+$Imprimir->addEncabezado($documento, '', 'CNOM', 51);
 $Imprimir->addContenido($html);
 $Imprimir->addFirmas($firmas); // Agregar firmas al final
 

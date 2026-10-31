@@ -602,7 +602,7 @@ $firmas = (new CReportes())->getFormFirmas(
 // Usar Landscape si hay muchas columnas
 $orientacion = $numColumnas > 6 ? "L" : "P";
 $Imprimir = new Imprimir($documento, "letter", $orientacion);
-$Imprimir->addEncabezado($documento, $otro);
+$Imprimir->addEncabezado($documento, $otro, 'CNOM', 51);
 $Imprimir->addContenido($html);
 $Imprimir->addFirmas($firmas);
 $pdf = isset($_POST['pdf']) ? filter_var($_POST['pdf'], FILTER_VALIDATE_BOOLEAN) : false;

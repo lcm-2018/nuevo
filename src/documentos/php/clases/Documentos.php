@@ -172,7 +172,7 @@ class Documentos
     public function getRegistro($id)
     {
         $sql = "SELECT
-                    `id_modulo`,`id_doc_fte`,`version_doc`,DATE_FORMAT(`fecha_doc`, '%Y-%m-%d') AS `fecha_doc`,`estado`,`control_doc`,`acumula`,`costos`,`line_table`,`line_firma`,`ver_head`
+                    `id_modulo`,`id_doc_fte`,`version_doc`,DATE_FORMAT(`fecha_doc`, '%Y-%m-%d') AS `fecha_doc`,`estado`,`control_doc`,`acumula`,`costos`,`line_table`,`line_firma`,`ver_head`,`config_head`
                 FROM `fin_maestro_doc`
                 WHERE  `id_maestro`  = ?";
         $stmt = $this->conexion->prepare($sql);
@@ -194,7 +194,8 @@ class Documentos
                 'costos'       => 0,
                 'line_table'   => 1,
                 'line_firma'   => 1,
-                'ver_head'     => 1
+                'ver_head'     => 1,
+                'config_head'  => ''
             ];
         }
         return $registro;
@@ -214,73 +215,189 @@ class Documentos
         $dctoFunte = Combos::getDocumentoFuente($datos['id_doc_fte'], 0, 0);
         $ctrol1 = $datos['control_doc'] == 1 ? ' selected' : '';
         $ctrol0 = $datos['control_doc'] == 0 ? ' selected' : '';
+
+        // Contenido HTML del encabezado
+        $customHtml = $datos['config_head'] ?? '';
+
+        // Obtener datos de la empresa para la vista previa
+        $userObj = new \Src\Usuarios\Login\Php\Clases\Usuario();
+        $empresa = $userObj->getEmpresa();
+        $empresaNombre = htmlspecialchars($empresa['nombre'] ?? '');
+        $empresaNit = htmlspecialchars(($empresa['nit'] ?? '') . (!empty($empresa['dig_ver']) ? '-' . $empresa['dig_ver'] : ''));
+
         $html =
             <<<HTML
                 <div class="shadow text-center rounded">
                     <div class="rounded-top py-2" style="background-color: #16a085 !important;">
                         <h5 style="color: white;" class="mb-0">GESTIÓN DOCUMENTAL</h5>
                     </div>
-                    <div class="p-3">
+                    <div class="p-3 text-start">
                         <form id="formDctoFte">
                             <input type="hidden" id="id" name="id" value="{$id}">
-                            <div class="row mb-2">
-                                <div class="col-md-6">
-                                    <label for="slcModulo" class="small text-muted">Módulo</label>
-                                    <select id="slcModulo" name="slcModulo" class="form-select form-select-sm bg-input">
-                                        {$modulos}
-                                    </select>
+                            <input type="hidden" id="empresa_nombre_preview" value="{$empresaNombre}">
+                            <input type="hidden" id="empresa_nit_preview" value="{$empresaNit}">
+
+                            <ul class="nav nav-pills mb-3 justify-content-center" id="tabDocConfig" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active btn-sm py-1 px-3 me-2" id="tab-general-btn" data-bs-toggle="pill" data-bs-target="#tab-general" type="button" role="tab">
+                                        <i class="fas fa-file-alt me-1"></i> Datos del Documento
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link btn-sm py-1 px-3" id="tab-encabezado-btn" data-bs-toggle="pill" data-bs-target="#tab-encabezado" type="button" role="tab">
+                                        <i class="fas fa-palette me-1"></i> Diseñador de Encabezado
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="tabDocConfigContent">
+                                <!-- TAB 1: DATOS GENERALES -->
+                                <div class="tab-pane fade show active" id="tab-general" role="tabpanel">
+                                    <div class="row mb-2">
+                                        <div class="col-md-6">
+                                            <label for="slcModulo" class="small text-muted fw-bold">Módulo</label>
+                                            <select id="slcModulo" name="slcModulo" class="form-select form-select-sm bg-input">
+                                                {$modulos}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="slcDocFte" class="small text-muted fw-bold">Documento Fuente</label>
+                                            <select id="slcDocFte" name="slcDocFte" class="form-select form-select-sm bg-input">
+                                                {$dctoFunte}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-4">
+                                            <label for="txtVersion" class="small text-muted fw-bold">Versión</label>
+                                            <input type="text" class="form-control form-control-sm bg-input text-end" id="txtVersion" name="txtVersion" value="{$datos['version_doc']}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="slcControl" class="small text-muted fw-bold">Control de Firmas</label>
+                                            <select id="slcControl" name="slcControl" class="form-select form-select-sm bg-input">
+                                                <option value="1" {$ctrol1}>SI</option>
+                                                <option value="0" {$ctrol0}>NO</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="datFecha" class="small text-muted fw-bold">Fecha Documento</label>
+                                            <input type="date" class="form-control form-control-sm bg-input" id="datFecha" name="datFecha" value="{$datos['fecha_doc']}">
+                                        </div>
+                                    </div>
+                                    <div class="row hide d-none mb-2">
+                                        <div class="col-md-6 mb-2">
+                                            <label for="acum" class="small text-muted">Acumula por Rubros</label>
+                                            <input type="number" title="Acumula por Rubros" name="acum" id="acum" class="form-control form-control-sm bg-input" value="{$datos['acumula']}">
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label for="costos" class="small text-muted">Visualiza costos</label>
+                                            <input type="number" title="Visualiza costos" id="costos" name="costos" class="form-control form-control-sm bg-input" value="{$datos['costos']}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="lineTable" class="small text-muted">Línea tabla firmas</label>
+                                            <input type="number" title="Línea tabla firmas" id="lineTable" name="lineTable" class="form-control form-control-sm bg-input" value="{$datos['line_table']}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="lineFirma" class="small text-muted">Línea firma</label>
+                                            <input type="number" title="Línea firma" id="lineFirma" name="lineFirma" class="form-control form-control-sm bg-input" value="{$datos['line_firma']}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="verHead" class="small text-muted">Ver encabezado</label>
+                                            <input type="number" title="Ver encabezado" id="verHead" name="verHead" class="form-control form-control-sm bg-input" value="{$datos['ver_head']}">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label for="slcDocFte" class="small text-muted">Documento Fuente</label>
-                                    <select id="slcDocFte" name="slcDocFte" class="form-select form-select-sm bg-input">
-                                        {$dctoFunte}
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="row mb-2">
-                                <div class="col-md-4">
-                                    <label for="txtVersion" class="small text-muted">Version</label>
-                                    <input type="text" class="form-control form-control-sm bg-input text-end" id="txtVersion" name="txtVersion" value="{$datos['version_doc']}">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="slcControl" class="small text-muted">Control</label>
-                                    <select id="slcControl" name="slcControl" class="form-select form-select-sm bg-input">
-                                        <option value="1" {$ctrol1}>SI</option>
-                                        <option value="0" {$ctrol0}>NO</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="datFecha" class="small text-muted">Fecha Documento</label>
-                                    <input type="date" class="form-control form-control-sm bg-input" id="datFecha" name="datFecha" value="{$datos['fecha_doc']}">
-                                </div>
-                            </div>
-                            <div class="row hide d-none mb-2">
-                                <div class="col-md-6 mb-2">
-                                    <label for="acum" class="small text-muted">Acumula por Rubros</label>
-                                    <input type="number" title="Acumula por Rubros" name="acum" id="acum" class="form-control form-control-sm bg-input" value="{$datos['acumula']}">
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <label for="costos" class="small text-muted">Visualiza costos</label>
-                                    <input type="number" title="Visualiza costos" id="costos" name="costos" class="form-control form-control-sm bg-input" value="{$datos['costos']}">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="lineTable" class="small text-muted">Línea tabla firmas</label>
-                                    <input type="number" title="Línea tabla firmas" id="lineTable" name="lineTable" class="form-control form-control-sm bg-input" value="{$datos['line_table']}">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="lineFirma" class="small text-muted">Línea firma</label>
-                                    <input type="number" title="Línea firma" id="lineFirma" name="lineFirma" class="form-control form-control-sm bg-input" value="{$datos['line_firma']}">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="verHead" class="small text-muted">Ver encabezado</label>
-                                    <input type="number" title="Ver encabezado" id="verHead" name="verHead" class="form-control form-control-sm bg-input" value="{$datos['ver_head']}">
+
+                                <!-- TAB 2: EDITOR HTML CON VISTA PREVIA EN VIVO -->
+                                <div class="tab-pane fade" id="tab-encabezado" role="tabpanel">
+                                    <!-- BARRA SUPERIOR DE PLANTILLAS RÁPIDAS -->
+                                    <div class="card mb-3 border-0 bg-light shadow-sm">
+                                        <div class="card-body p-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                                <span class="small fw-bold text-dark"><i class="fas fa-layer-group text-primary me-1"></i> Cargar Plantilla Base:</span>
+                                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="aplicarPlantillaRapida('clasica')">
+                                                    <i class="fas fa-columns me-1"></i> Clásico (Logo Izq)
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success" onclick="aplicarPlantillaRapida('calidad')">
+                                                    <i class="fas fa-table me-1"></i> Calidad / MECI (3 Col)
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="aplicarPlantillaRapida('centrado')">
+                                                    <i class="fas fa-align-center me-1"></i> Centrado
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-dark" onclick="aplicarPlantillaRapida('doble_logo')">
+                                                    <i class="fas fa-images me-1"></i> Doble Logo
+                                                </button>
+                                            </div>
+                                            <div>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="aplicarPlantillaRapida('limpiar')">
+                                                    <i class="fas fa-eraser me-1"></i> Limpiar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- CUADRÍCULA DE TRABAJO (EDITOR HTML + VISTA PREVIA) -->
+                                    <div class="row g-3">
+                                        <!-- COLUMNA IZQUIERDA: EDITOR HTML LIBRE -->
+                                        <div class="col-lg-6">
+                                            <div class="card shadow-sm border h-100">
+                                                <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                                                    <span class="fw-bold small text-primary"><i class="fas fa-code me-1"></i> Editor HTML del Encabezado</span>
+                                                    <span class="small text-muted"><i class="fas fa-pencil-alt me-1"></i> Edición Libre</span>
+                                                </div>
+                                                <div class="card-body p-3 d-flex flex-column">
+                                                    <!-- Botones para insertar variables dinámicas -->
+                                                    <div class="mb-2">
+                                                        <span class="small text-muted d-block mb-1"><b>Insertar variables</b> (clic para añadir en el cursor):</span>
+                                                        <div class="d-flex flex-wrap gap-1">
+                                                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" title="Inserta el logo institucional" onclick="insertarTagHtml('{LOGO}')">{LOGO}</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" title="Inserta el nombre de la empresa" onclick="insertarTagHtml('{NOMBRE_EMPRESA}')">{NOMBRE_EMPRESA}</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" title="Inserta el NIT con dígito de verificación" onclick="insertarTagHtml('{NIT}')">{NIT}</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" title="Inserta la versión del documento" onclick="insertarTagHtml('{VERSION_DOC}')">{VERSION_DOC}</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" title="Inserta la fecha del documento" onclick="insertarTagHtml('{FECHA_DOC}')">{FECHA_DOC}</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" title="Inserta el código del documento (ej: CDP)" onclick="insertarTagHtml('{CODIGO}')">{CODIGO}</button>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Textarea de Código HTML -->
+                                                    <div class="flex-grow-1">
+                                                        <textarea id="head_custom_html" name="head_custom_html" class="form-control font-monospace" style="height: 380px; font-size: 12px; line-height: 1.4;" placeholder="Escribe o pega aquí el código HTML del encabezado..." oninput="actualizarPreview()">{$customHtml}</textarea>
+                                                    </div>
+                                                    <div class="mt-2 text-muted small">
+                                                        <i class="fas fa-info-circle text-primary me-1"></i> Puedes escribir cualquier estructura HTML libre (tablas, divisores, textos, estilos en línea).
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- COLUMNA DERECHA: VISTA PREVIA EN VIVO -->
+                                        <div class="col-lg-6">
+                                            <div class="card shadow-sm border h-100">
+                                                <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                                                    <span class="fw-bold small text-success"><i class="fas fa-eye me-1"></i> Vista Previa en Vivo</span>
+                                                    <span class="badge bg-light text-dark border"><i class="fas fa-print me-1"></i> Papel de Impresión</span>
+                                                </div>
+                                                <div class="card-body p-3 bg-secondary bg-opacity-10 d-flex flex-column justify-content-between">
+                                                    <!-- Hoja simulada -->
+                                                    <div class="bg-white border rounded shadow-sm p-3 w-100 flex-grow-1" style="min-height: 250px;">
+                                                        <div id="previewEncabezadoContenedor">
+                                                            <!-- Renderizado dinámico en tiempo real -->
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-2 text-muted small">
+                                                        <i class="fas fa-check-circle text-success me-1"></i> Se actualiza en tiempo real reemplazando automáticamente las variables con los datos de tu empresa.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </form>
                     </div>
                     <div class="text-center pb-3">
-                        <button type="button" class="btn btn-primary btn-sm" id="btnGuardaDctoFte">Guardar</button>
-                        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
+                        <button type="button" class="btn btn-primary btn-sm" id="btnGuardaDctoFte"><i class="fas fa-save me-1"></i> Guardar</button>
+                        <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</a>
                     </div>
                 </div>
             HTML;
@@ -322,9 +439,11 @@ class Documentos
     public function addRegistro($array)
     {
         try {
+            $customHtml = $array['head_custom_html'] ?? '';
+
             $sql = "INSERT INTO `fin_maestro_doc`
-                        (`id_modulo`,`id_doc_fte`,`version_doc`,`fecha_doc`,`control_doc`,`acumula`,`costos`,`line_table`,`line_firma`,`ver_head`,`id_user_reg`,`fecha_reg`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        (`id_modulo`,`id_doc_fte`,`version_doc`,`fecha_doc`,`control_doc`,`acumula`,`costos`,`line_table`,`line_firma`,`ver_head`,`config_head`,`id_user_reg`,`fecha_reg`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1,  $array['slcModulo'],  PDO::PARAM_INT);
             $stmt->bindValue(2,  $array['slcDocFte'],  PDO::PARAM_INT);
@@ -336,8 +455,9 @@ class Documentos
             $stmt->bindValue(8,  $array['lineTable'],  PDO::PARAM_INT);
             $stmt->bindValue(9,  $array['lineFirma'],  PDO::PARAM_INT);
             $stmt->bindValue(10, $array['verHead'],    PDO::PARAM_INT);
-            $stmt->bindValue(11, Sesion::IdUser(),     PDO::PARAM_INT);
-            $stmt->bindValue(12, Sesion::Hoy(),        PDO::PARAM_STR);
+            $stmt->bindValue(11, $customHtml,          PDO::PARAM_STR);
+            $stmt->bindValue(12, Sesion::IdUser(),     PDO::PARAM_INT);
+            $stmt->bindValue(13, Sesion::Hoy(),        PDO::PARAM_STR);
             $stmt->execute();
             $id = $this->conexion->lastInsertId();
             if ($id > 0) {
@@ -391,8 +511,10 @@ class Documentos
     public function editRegistro($array)
     {
         try {
+            $customHtml = $array['head_custom_html'] ?? '';
+
             $sql = "UPDATE `fin_maestro_doc` 
-                        SET `id_modulo` = ?, `id_doc_fte` = ?, `version_doc` = ?, `fecha_doc` = ?, `control_doc` = ?, `acumula` = ?, `costos` = ?, `line_table` = ?, `line_firma` = ?, `ver_head` = ?
+                        SET `id_modulo` = ?, `id_doc_fte` = ?, `version_doc` = ?, `fecha_doc` = ?, `control_doc` = ?, `acumula` = ?, `costos` = ?, `line_table` = ?, `line_firma` = ?, `ver_head` = ?, `config_head` = ?
                     WHERE `id_maestro` = ?";
             $stmt = $this->conexion->prepare($sql);
             $stmt->bindValue(1,  $array['slcModulo'],  PDO::PARAM_INT);
@@ -405,9 +527,10 @@ class Documentos
             $stmt->bindValue(8,  $array['lineTable'],  PDO::PARAM_INT);
             $stmt->bindValue(9,  $array['lineFirma'],  PDO::PARAM_INT);
             $stmt->bindValue(10, $array['verHead'],    PDO::PARAM_INT);
-            $stmt->bindValue(11, $array['id'],         PDO::PARAM_INT);
+            $stmt->bindValue(11, $customHtml,          PDO::PARAM_STR);
+            $stmt->bindValue(12, $array['id'],         PDO::PARAM_INT);
 
-            if ($stmt->execute() && $stmt->rowCount() > 0) {
+            if ($stmt->execute()) {
                 Logs::guardaLog("UPDATE `fin_maestro_doc` SET `id_modulo` = {$array['slcModulo']}, `id_doc_fte` = {$array['slcDocFte']}, `version_doc` = '{$array['txtVersion']}', `fecha_doc` = '{$array['datFecha']}', `control_doc` = {$array['slcControl']}, `acumula` = {$array['acum']}, `costos` = {$array['costos']}, `line_table` = {$array['lineTable']}, `line_firma` = {$array['lineFirma']}, `ver_head` = {$array['verHead']} WHERE `id_maestro` = {$array['id']}");
                 $consulta = "UPDATE `fin_maestro_doc` 
                                 SET `id_user_act` = ?, `fecha_act` = ?

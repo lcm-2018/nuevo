@@ -475,7 +475,7 @@ foreach ($empleados as $empleado) {
 
 // ── Renderizar ────────────────────────────────────────────────────────────────
 $Imprimir = new Imprimir($titulo_doc, "letter");
-$Imprimir->addEncabezado($titulo_doc);
+$Imprimir->addEncabezado($titulo_doc, '', 'CNOM', 51);
 $Imprimir->addContenido($html);
 // Sin addFirmas() global: las firmas ya están dentro del contenido de cada empleado
 

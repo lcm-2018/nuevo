@@ -4,8 +4,12 @@ if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
     exit();
 }
-$id_vigencia = $_SESSION['id_vigencia'];
-$id_crp = $_POST['id'];
+$id_vigencia = $_SESSION['id_vigencia'] ?? 0;
+$id_crp = intval($_POST['id'] ?? $_GET['id'] ?? 0);
+if ($id_crp <= 0) {
+    echo '<div class="alert alert-warning m-3 p-3">No se especificó un identificador de CRP válido.</div>';
+    exit();
+}
 function pesos($valor)
 {
     return '$' . number_format($valor, 2);

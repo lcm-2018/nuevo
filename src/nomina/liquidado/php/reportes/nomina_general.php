@@ -19,6 +19,8 @@ if (!isset($_SESSION['user'])) {
 include_once '../../../../../config/autoloader.php';
 $id_nomina = isset($_POST['id']) ? intval($_POST['id']) : exit('Acceso Denegado');
 $documento = "REPORTE DE LIQUIDACIÓN DE EMPLEADOS";
+$id_modulo = 51;
+$doc_fte = 'CNOM';
 $nomina = Nomina::getRegistro($id_nomina);
 $decimales = isset(Valores::getOwnerConfig()['decimales']) ? intval(Valores::getOwnerConfig()['decimales']) : 0;
 $mes = mb_strtoupper(Valores::NombreMes($nomina['mes']));
@@ -283,7 +285,7 @@ $html = <<<HTML
 $firmas = (new CReportes())->getFormFirmas(['nom_tercero' => $nomina['elabora'], 'cargo' => $nomina['cargo']], 51, $nomina['fecha'], 'CNOM');
 
 $Imprimir = new Imprimir($documento, "legal", "L");
-$Imprimir->addEncabezado($documento);
+$Imprimir->addEncabezado($documento, '', 'CNOM', 51);
 $Imprimir->addContenido($html);
 $Imprimir->addFirmas($firmas);
 $pdf = isset($_POST['pdf']) ? filter_var($_POST['pdf'], FILTER_VALIDATE_BOOLEAN) : false;
