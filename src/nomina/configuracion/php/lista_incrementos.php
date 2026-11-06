@@ -48,6 +48,8 @@ if (!empty($obj)) {
             'id' =>         $id,
             'porcentaje' => $o['porcentaje'],
             'fecha' =>      $o['fecha'],
+            'fec_inicio' => $o['fec_inicio'] ?? '',
+            'fec_final' =>  $o['fec_final'] ?? '',
             'estado' =>     '<div class="text-center">' . $estado . '</div>',
             'acciones' =>   '<div class="text-center">' . $actualizar . $eliminar . '</div>',
         ];

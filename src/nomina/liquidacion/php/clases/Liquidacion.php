@@ -572,11 +572,15 @@ class Liquidacion
         $sql = "SELECT
                     `n`.`id_nomina`,
                     `n`.`mes`,
+                    `n`.`vigencia`,
                     `ls`.`id_contrato`,
                     `ls`.`metodo_pago`,
                     IFNULL(`d`.`dias_liq`, 0) AS `dias_laborados`,
                     IFNULL(`d`.`val_liq_dias`, 0) AS `val_laborado`,
                     IFNULL(`d`.`horas_ext`, 0) AS `horas_ext`,
+                    IFNULL(`d`.`val_liq_auxt`, 0) AS `val_aux_trans`,
+                    IFNULL(`d`.`aux_alim`, 0) AS `val_aux_alim`,
+                    IFNULL(`bsp`.`val_bsp`, 0) AS `val_bsp_pagada`,
                     IFNULL(`ss`.`aporte_salud_emp`, 0) AS `aporte_salud_emp`,
                     IFNULL(`ss`.`aporte_pension_emp`, 0) AS `aporte_pension_emp`,
                     IFNULL(`ss`.`aporte_solidaridad_pensional`, 0) AS `aporte_solidaridad_pensional`,
@@ -600,6 +604,8 @@ class Liquidacion
                     ON (`ls`.`id_nomina` = `n`.`id_nomina` AND `ls`.`estado` = 1)
                 LEFT JOIN `nom_liq_dlab_auxt` `d`
                     ON (`d`.`id_nomina` = `n`.`id_nomina` AND `d`.`id_empleado` = `ls`.`id_empleado` AND `d`.`estado` = 1)
+                LEFT JOIN `nom_liq_bsp` `bsp`
+                    ON (`bsp`.`id_nomina` = `n`.`id_nomina` AND `bsp`.`id_empleado` = `ls`.`id_empleado` AND `bsp`.`estado` = 1)
                 LEFT JOIN `nom_liq_segsocial_empdo` `ss`
                     ON (`ss`.`id_nomina` = `n`.`id_nomina` AND `ss`.`id_empleado` = `ls`.`id_empleado` AND `ss`.`estado` = 1)
                 LEFT JOIN `nom_liq_parafiscales` `pf`
@@ -635,8 +641,19 @@ class Liquidacion
         $pensionEmpleado = $saludEmpleado;
         $solidaridad = 0;
 
-        if ($ibc >= $smmlv * 4 && $ibc < $smmlv * 16) {
+        // Escala completa progresiva de Fondo de Solidaridad Pensional (Ley 100/93 y Ley 797/03)
+        if ($ibc >= ($smmlv * 4) && $ibc < ($smmlv * 16)) {
             $solidaridad = Valores::Redondear($ibc * 0.01, 100);
+        } else if ($ibc >= ($smmlv * 16) && $ibc < ($smmlv * 17)) {
+            $solidaridad = Valores::Redondear($ibc * 0.012, 100);
+        } else if ($ibc >= ($smmlv * 17) && $ibc < ($smmlv * 18)) {
+            $solidaridad = Valores::Redondear($ibc * 0.014, 100);
+        } else if ($ibc >= ($smmlv * 18) && $ibc < ($smmlv * 19)) {
+            $solidaridad = Valores::Redondear($ibc * 0.016, 100);
+        } else if ($ibc >= ($smmlv * 19) && $ibc <= ($smmlv * 20)) {
+            $solidaridad = Valores::Redondear($ibc * 0.018, 100);
+        } else if ($ibc > ($smmlv * 20)) {
+            $solidaridad = Valores::Redondear($ibc * 0.02, 100);
         }
 
         if ($tipo == 12) {
@@ -714,6 +731,76 @@ class Liquidacion
         return $id > 0 ? 'si' : 'No se insertó la retención en la fuente.';
     }
 
+    private function getIdTipoDescuentoReintegro()
+    {
+        try {
+            $sql = "SELECT `id_tipo` FROM `nom_tipo_descuentos` 
+                    WHERE `descripcion` LIKE '%REINTEGRO%' 
+                       OR `descripcion` LIKE '%RETROACTIVO%' 
+                       OR `descripcion` LIKE '%AJUSTE%' 
+                    ORDER BY `id_tipo` ASC LIMIT 1";
+            $stmt = $this->conexion->query($sql);
+            $row = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+            if (!empty($row['id_tipo'])) {
+                return intval($row['id_tipo']);
+            }
+            $sqlFallback = "SELECT `id_tipo` FROM `nom_tipo_descuentos` WHERE `id_tipo` = 3 LIMIT 1";
+            $stmt2 = $this->conexion->query($sqlFallback);
+            $row2 = $stmt2 ? $stmt2->fetch(PDO::FETCH_ASSOC) : null;
+            return !empty($row2['id_tipo']) ? intval($row2['id_tipo']) : 3;
+        } catch (PDOException $e) {
+            return 3;
+        }
+    }
+
+    private function registrarDescuentoReintegro($id_empleado, $id_nomina, $concepto, $valor, $fecInicio)
+    {
+        if ($valor <= 0) {
+            return ['status' => true, 'id_dcto' => 0];
+        }
+        $idTipoDcto = $this->getIdTipoDescuentoReintegro();
+        $hoy = Sesion::Hoy();
+        $idUser = Sesion::IdUser();
+
+        $sqlDcto = "INSERT INTO `nom_otros_descuentos`
+                        (`id_empleado`, `id_tipo_dcto`, `fecha`, `fecha_fin`, `concepto`, `valor`, `estado`, `id_user_reg`, `fec_reg`)
+                    VALUES (?, ?, ?, NULL, ?, ?, 1, ?, ?)";
+        $stmtDcto = $this->conexion->prepare($sqlDcto);
+        $stmtDcto->bindValue(1, $id_empleado, PDO::PARAM_INT);
+        $stmtDcto->bindValue(2, $idTipoDcto, PDO::PARAM_INT);
+        $stmtDcto->bindValue(3, $fecInicio, PDO::PARAM_STR);
+        $stmtDcto->bindValue(4, $concepto, PDO::PARAM_STR);
+        $stmtDcto->bindValue(5, $valor, PDO::PARAM_STR);
+        $stmtDcto->bindValue(6, $idUser, PDO::PARAM_INT);
+        $stmtDcto->bindValue(7, $hoy, PDO::PARAM_STR);
+        $stmtDcto->execute();
+        $idDcto = $this->conexion->lastInsertId();
+
+        if ($idDcto <= 0) {
+            return ['status' => false, 'msg' => 'No se pudo registrar en nom_otros_descuentos'];
+        }
+        Logs::guardaLog("INSERT INTO `nom_otros_descuentos` (`id_empleado`,`id_tipo_dcto`,`fecha`,`fecha_fin`,`concepto`,`valor`,`estado`,`id_user_reg`,`fec_reg`) VALUES ($id_empleado, $idTipoDcto, '$fecInicio', NULL, '$concepto', $valor, 1, $idUser, '$hoy')");
+
+        $sqlLiq = "INSERT INTO `nom_liq_descuento`
+                       (`id_dcto`, `valor`, `id_nomina`, `id_user_reg`, `fec_reg`)
+                   VALUES (?, ?, ?, ?, ?)";
+        $stmtLiq = $this->conexion->prepare($sqlLiq);
+        $stmtLiq->bindValue(1, $idDcto, PDO::PARAM_INT);
+        $stmtLiq->bindValue(2, $valor, PDO::PARAM_STR);
+        $stmtLiq->bindValue(3, $id_nomina, PDO::PARAM_INT);
+        $stmtLiq->bindValue(4, $idUser, PDO::PARAM_INT);
+        $stmtLiq->bindValue(5, $hoy, PDO::PARAM_STR);
+        $stmtLiq->execute();
+        $idLiq = $this->conexion->lastInsertId();
+
+        if ($idLiq <= 0) {
+            return ['status' => false, 'msg' => 'No se pudo registrar en nom_liq_descuento'];
+        }
+        Logs::guardaLog("INSERT INTO `nom_liq_descuento` (`id_dcto`,`valor`,`id_nomina`,`id_user_reg`,`fec_reg`) VALUES ($idDcto, $valor, $id_nomina, $idUser, '$hoy')");
+
+        return ['status' => true, 'id_dcto' => $idDcto];
+    }
+
     public function addRegistroRetroactivo($array)
     {
         $ids = $array['chk_liquidacion'] ?? [];
@@ -753,8 +840,14 @@ class Liquidacion
 
         $parametros = array_column(Nomina::getParamLiq(), 'valor', 'id_concepto');
         if (empty($parametros[1]) || empty($parametros[6])) {
-            return 'No se han configurado los parÃ¡metros de liquidación.';
+            return 'No se han configurado los parámetros de liquidación.';
         }
+
+        $smmlv = floatval($parametros[1] ?? 0);
+        $uvt = floatval($parametros[6] ?? 0);
+        $baseBspLimite = floatval($parametros[7] ?? 0);
+        $grepParam = floatval($parametros[8] ?? 0);
+        $baseAlimLimite = floatval($parametros[9] ?? 0);
 
         $empleados = array_column((new Empleados())->getEmpleados(), null, 'id_empleado');
         $terceros_ss = (new Empleados())->getRegistro();
@@ -790,6 +883,12 @@ class Liquidacion
                 if (!$this->conexion->inTransaction()) {
                     $this->conexion->beginTransaction();
                 }
+
+                $grepEmpleado = (isset($empleados[$id_empleado]['representacion']) && intval($empleados[$id_empleado]['representacion']) === 1) ? $grepParam : 0;
+                $reintegroAuxTrans = 0;
+                $reintegroAuxAlim = 0;
+                $reintegroBsp = 0;
+                $mayorValorBsp = 0;
 
                 $totales = [
                     'dias' => 0,
@@ -831,12 +930,66 @@ class Liquidacion
 
                     $ssNueva = $this->calcularSeguridadSocialRetro(
                         $ibcNuevo,
-                        floatval($parametros[1]),
+                        $smmlv,
                         intval($empleados[$id_empleado]['tipo_empleado']),
                         intval($empleados[$id_empleado]['subtipo_empleado']),
                         intval($row['dias_laborados']),
                         floatval($porcentajeArl)
                     );
+
+                    // 1. Auxilio de transporte: Pérdida de derecho si el nuevo salario supera 2 SMMLV
+                    $auxTransPagado = floatval($row['val_aux_trans'] ?? 0);
+                    if ($salarioNuevo > ($smmlv * 2) && $auxTransPagado > 0) {
+                        $reintegroAuxTrans += $auxTransPagado;
+                    }
+
+                    // 2. Auxilio de alimentación: Pérdida de derecho si nuevo salario supera base_alim
+                    $auxAlimPagado = floatval($row['val_aux_alim'] ?? 0);
+                    if ($baseAlimLimite > 0 && $salarioNuevo > $baseAlimLimite && $auxAlimPagado > 0) {
+                        $reintegroAuxAlim += $auxAlimPagado;
+                    }
+
+                    // 3. Bonificación por Servicios Prestados (BSP: cruce de 53% a 38% o reajuste proporcional)
+                    $bspPagada = floatval($row['val_bsp_pagada'] ?? 0);
+                    if ($bspPagada > 0) {
+                        $baseBspAnt = $oldSalary + $grepEmpleado;
+                        $baseBspNueva = $salarioNuevo + $grepEmpleado;
+
+                        if ($baseBspLimite > 0 && $baseBspAnt <= $baseBspLimite && $baseBspNueva > $baseBspLimite) {
+                            // Pasa de tarifa 53% a 38%
+                            $bspNueva = Valores::Redondear($baseBspNueva * 0.38);
+                            $diffBsp = $bspNueva - $bspPagada;
+                            if ($diffBsp < 0) {
+                                $reintegroBsp += abs($diffBsp);
+                            } else {
+                                $mayorValorBsp += $diffBsp;
+                            }
+                        } else {
+                            // Mantiene tarifa
+                            $diffBsp = Valores::Redondear($bspPagada * ($factorFila - 1));
+                            if ($diffBsp > 0) {
+                                $mayorValorBsp += $diffBsp;
+                            }
+                        }
+                    }
+
+                    // 4. Retención en la fuente (Art. 383 y 388 E.T.)
+                    $baseRetAnterior = floatval($row['base_ret'] ?? 0);
+                    $valRetAnterior = floatval($row['val_ret'] ?? 0);
+
+                    if ($baseRetAnterior > 0) {
+                        $baseRetNueva = Valores::Redondear($baseRetAnterior * $factorFila);
+                    } else {
+                        // Si antes no retenía y no tenía base registrada, estimar base depurada del mes
+                        $ingresoMesNuevo = (floatval($row['val_laborado']) + $diffLaborado) + (floatval($row['horas_ext']) + $diffHoras);
+                        $incrMesNuevo = $ssNueva['aporte_salud_emp'] + $ssNueva['aporte_pension_emp'] + $ssNueva['aporte_solidaridad_pensional'];
+                        $baseDepurada = max(0, $ingresoMesNuevo - $incrMesNuevo) * 0.75;
+                        $baseRetNueva = Valores::Redondear($baseDepurada);
+                    }
+
+                    $retNueva = $this->calcularRetencionBase($baseRetNueva, $uvt);
+                    $diffRet = max(0, $retNueva - $valRetAnterior);
+                    $diffBaseRet = max(0, $baseRetNueva - $baseRetAnterior);
 
                     $totales['dias'] += intval($row['dias_laborados']);
                     $totales['laborado'] += $diffLaborado;
@@ -857,18 +1010,64 @@ class Liquidacion
                     $totales['prest_prima_vac'] += Valores::Redondear(floatval($row['val_prima_vac']) * ($factorFila - 1));
                     $totales['prest_prima_nav'] += Valores::Redondear(floatval($row['val_prima_nav']) * ($factorFila - 1));
                     $totales['prest_bon_recrea'] += Valores::Redondear(floatval($row['val_bonifica_recrea']) * ($factorFila - 1));
+                    $totales['ret_base'] += $diffBaseRet;
+                    $totales['retencion'] += $diffRet;
 
-                    $baseRetNueva = Valores::Redondear(floatval($row['base_ret']) * $factorFila);
-                    $retNueva = $this->calcularRetencionBase($baseRetNueva, floatval($parametros[6]));
-                    $totales['ret_base'] += $baseRetNueva - floatval($row['base_ret']);
-                    $totales['retencion'] += $retNueva - floatval($row['val_ret']);
+                    $diffSalud = $ssNueva['aporte_salud_emp'] - floatval($row['aporte_salud_emp']);
+                    $diffPension = $ssNueva['aporte_pension_emp'] - floatval($row['aporte_pension_emp']);
+                    $diffSolidaridad = $ssNueva['aporte_solidaridad_pensional'] - floatval($row['aporte_solidaridad_pensional']);
 
-                    $totales['neto'] += $diffLaborado + $diffHoras
-                        - (($ssNueva['aporte_salud_emp'] - floatval($row['aporte_salud_emp']))
-                            + ($ssNueva['aporte_pension_emp'] - floatval($row['aporte_pension_emp']))
-                            + ($ssNueva['aporte_solidaridad_pensional'] - floatval($row['aporte_solidaridad_pensional']))
-                            + ($retNueva - floatval($row['val_ret'])));
+                    $totales['neto'] += ($diffLaborado + $diffHoras)
+                        - ($diffSalud + $diffPension + $diffSolidaridad + $diffRet);
                 }
+
+                // Procesar reintegros por pérdida de beneficios en nom_otros_descuentos y nom_liq_descuento
+                $totalDescuentosReintegro = 0;
+
+                if ($reintegroAuxTrans > 0) {
+                    $conceptoTrans = 'REINTEGRO AUXILIO TRANSPORTE - LIQ. RETROACTIVO ' . $retro['fec_inicio'] . ' A ' . $retro['fec_final'];
+                    $resDctoTrans = $this->registrarDescuentoReintegro($id_empleado, $id_nomina, $conceptoTrans, $reintegroAuxTrans, $retro['fec_inicio']);
+                    if (!$resDctoTrans['status']) {
+                        throw new Exception('Descuento auxilio de transporte: ' . $resDctoTrans['msg']);
+                    }
+                    $totalDescuentosReintegro += $reintegroAuxTrans;
+                }
+
+                if ($reintegroAuxAlim > 0) {
+                    $conceptoAlim = 'REINTEGRO AUXILIO ALIMENTACION - LIQ. RETROACTIVO ' . $retro['fec_inicio'] . ' A ' . $retro['fec_final'];
+                    $resDctoAlim = $this->registrarDescuentoReintegro($id_empleado, $id_nomina, $conceptoAlim, $reintegroAuxAlim, $retro['fec_inicio']);
+                    if (!$resDctoAlim['status']) {
+                        throw new Exception('Descuento auxilio de alimentación: ' . $resDctoAlim['msg']);
+                    }
+                    $totalDescuentosReintegro += $reintegroAuxAlim;
+                }
+
+                if ($reintegroBsp > 0) {
+                    $conceptoBsp = 'REINTEGRO EXCESO BSP (53% A 38%) - LIQ. RETROACTIVO ' . $retro['fec_inicio'] . ' A ' . $retro['fec_final'];
+                    $resDctoBsp = $this->registrarDescuentoReintegro($id_empleado, $id_nomina, $conceptoBsp, $reintegroBsp, $retro['fec_inicio']);
+                    if (!$resDctoBsp['status']) {
+                        throw new Exception('Descuento BSP: ' . $resDctoBsp['msg']);
+                    }
+                    $totalDescuentosReintegro += $reintegroBsp;
+                }
+
+                if ($mayorValorBsp > 0) {
+                    $dataBsp = [
+                        'id_empleado' => $id_empleado,
+                        'valor' => $mayorValorBsp,
+                        'corte' => $retro['fec_final'],
+                        'tipo' => 'RA',
+                        'id_nomina' => $id_nomina,
+                    ];
+                    $resBsp = (new Bsp($this->conexion))->addRegistro($dataBsp);
+                    if ($resBsp != 'si') {
+                        throw new Exception('Mayor valor BSP: ' . $resBsp);
+                    }
+                    $totales['neto'] += $mayorValorBsp;
+                }
+
+                // Deducir reintegros del valor neto a liquidar
+                $totales['neto'] -= $totalDescuentosReintegro;
 
                 $resLab = $this->LiquidaLaborado([
                     'id_empleado' => $id_empleado,

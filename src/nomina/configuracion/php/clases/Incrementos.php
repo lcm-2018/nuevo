@@ -37,7 +37,7 @@ class Incrementos
         $where = '';
         if ($val_busca != '') {
             $val_busca = trim($val_busca);
-            $where = "AND (`nom_incremento_salario`.`porcentaje` LIKE '%$val_busca%' OR `nom_incremento_salario`.`fecha` LIKE '%$val_busca%')";
+            $where = "AND (`nis`.`porcentaje` LIKE '%$val_busca%' OR `nis`.`fecha` LIKE '%$val_busca%' OR `nr`.`fec_inicio` LIKE '%$val_busca%' OR `nr`.`fec_final` LIKE '%$val_busca%')";
         }
 
         $limit = "";
@@ -46,9 +46,16 @@ class Incrementos
         }
 
         $sql = "SELECT
-                    `id_inc`,`porcentaje`,`vigencia`,`fecha`,`estado`
-                FROM `nom_incremento_salario`
-                WHERE (`vigencia` = '$vigencia' $where)
+                    `nis`.`id_inc`,
+                    `nis`.`porcentaje`,
+                    `nis`.`fecha`,
+                    `nr`.`fec_inicio`,
+                    `nr`.`fec_final`,
+                    `nis`.`estado`,
+                    `nis`.`id_inc` AS `acciones`
+                FROM `nom_incremento_salario` `nis`
+                LEFT JOIN `nom_retroactivos` `nr` ON `nr`.`id_incremento` = `nis`.`id_inc`
+                WHERE (`nis`.`vigencia` = '$vigencia' $where)
                 ORDER BY $col $dir $limit";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
@@ -70,13 +77,14 @@ class Incrementos
         $where = '';
         if ($val_busca != '') {
             $val_busca = trim($val_busca);
-            $where = "AND (`nom_incremento_salario`.`porcentaje` LIKE '%$val_busca%' OR `nom_incremento_salario`.`fecha` LIKE '%$val_busca%')";
+            $where = "AND (`nis`.`porcentaje` LIKE '%$val_busca%' OR `nis`.`fecha` LIKE '%$val_busca%' OR `nr`.`fec_inicio` LIKE '%$val_busca%' OR `nr`.`fec_final` LIKE '%$val_busca%')";
         }
 
         $sql = "SELECT
                    COUNT(*) AS `total`
-                FROM `nom_incremento_salario`
-                WHERE (`vigencia` = '$vigencia' $where)";
+                FROM `nom_incremento_salario` `nis`
+                LEFT JOIN `nom_retroactivos` `nr` ON `nr`.`id_incremento` = `nis`.`id_inc`
+                WHERE (`nis`.`vigencia` = '$vigencia' $where)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $data = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
@@ -119,11 +127,25 @@ class Incrementos
                                 <div class="row mb-2">
                                     <div class="col-md-6">
                                         <label for="numPorcIncSal" class="small">PORCENTAJE</label>
-                                        <input type="number" id="numPorcIncSal" name="numPorcIncSal" class="form-control form-control-sm bg-input text-end" value="{$fila['porcentaje']}">
+                                        <input type="number" id="numPorcIncSal" name="numPorcIncSal" class="form-control form-control-sm bg-input text-end" value="{$fila['porcentaje']}" step="any">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="datFechaInSal" class="small">FECHA</label>
                                         <input type="date" id="datFechaInSal" name="datFechaInSal" class="form-control form-control-sm bg-input text-end" value="{$fila['fecha']}">
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-md-4">
+                                        <label for="datFecInicio" class="small">FECHA INICIAL</label>
+                                        <input type="date" id="datFecInicio" name="datFecInicio" class="form-control form-control-sm bg-input text-end" value="{$fila['fec_inicio']}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="datFecFinal" class="small">FECHA FINAL</label>
+                                        <input type="date" id="datFecFinal" name="datFecFinal" class="form-control form-control-sm bg-input text-end" value="{$fila['fec_final']}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="numMeses" class="small">CANTIDAD MESES</label>
+                                        <input type="number" id="numMeses" name="numMeses" class="form-control form-control-sm bg-input text-end" value="{$fila['meses']}" min="1" step="1">
                                     </div>
                                 </div>
                             </form>
@@ -140,7 +162,12 @@ class Incrementos
 
     public function getRegistro($id)
     {
-        $sql = "SELECT `id_inc`,`porcentaje`,`vigencia`,`fecha`,`estado` FROM `nom_incremento_salario` WHERE `id_inc` = ?";
+        $sql = "SELECT 
+                    `nis`.`id_inc`, `nis`.`porcentaje`, `nis`.`vigencia`, `nis`.`fecha`, `nis`.`estado`,
+                    `nr`.`fec_inicio`, `nr`.`fec_final`, `nr`.`meses`
+                FROM `nom_incremento_salario` `nis`
+                LEFT JOIN `nom_retroactivos` `nr` ON `nr`.`id_incremento` = `nis`.`id_inc`
+                WHERE `nis`.`id_inc` = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindParam(1, $id, PDO::PARAM_INT);
         $stmt->execute();
@@ -155,13 +182,28 @@ class Incrementos
                     'vigencia' => Sesion::Vigencia(),
                     'fecha' => Sesion::_Hoy(),
                     'estado' => 1,
+                    'fec_inicio' => '',
+                    'fec_final' => '',
+                    'meses' => 0,
                 ];
+        } else {
+            $data['fec_inicio'] = $data['fec_inicio'] ?? '';
+            $data['fec_final'] = $data['fec_final'] ?? '';
+            $data['meses'] = $data['meses'] ?? 0;
         }
         return $data;
     }
     public function delIncSalarial($id)
     {
         try {
+            $sqlRetro = "DELETE FROM `nom_retroactivos` WHERE `id_incremento` = ?";
+            $stmtRetro = $this->conexion->prepare($sqlRetro);
+            $stmtRetro->bindParam(1, $id, PDO::PARAM_INT);
+            $stmtRetro->execute();
+            $stmtRetro->closeCursor();
+            unset($stmtRetro);
+            Logs::guardaLog("DELETE FROM `nom_retroactivos` WHERE `id_incremento` = $id");
+
             $sql = "DELETE FROM `nom_incremento_salario` WHERE `id_inc` = ?";
             $consulta = "DELETE FROM `nom_incremento_salario` WHERE `id_inc` = $id";
             $stmt = $this->conexion->prepare($sql);
@@ -195,8 +237,40 @@ class Incrementos
             if ($id > 0) {
                 $vigencia = Sesion::Vigencia();
                 $hoy = Sesion::_Hoy();
+                $ahora = Sesion::Hoy();
                 $idUser = Sesion::IdUser();
                 Logs::guardaLog("INSERT INTO `nom_incremento_salario` (`porcentaje`,`vigencia`,`fecha`,`estado`,`fec_reg`,`id_user_reg`) VALUES ({$array['numPorcIncSal']}, '$vigencia', '{$array['datFechaInSal']}', 1, '$hoy', $idUser)");
+
+                $meses = isset($array['numMeses']) && $array['numMeses'] !== '' ? intval($array['numMeses']) : 0;
+                if ($meses <= 0 && !empty($array['datFecInicio']) && !empty($array['datFecFinal'])) {
+                    $fini = new \DateTime($array['datFecInicio']);
+                    $ffin = new \DateTime($array['datFecFinal']);
+                    $ffin->modify('+1 day');
+                    $diff = $fini->diff($ffin);
+                    $meses = ($diff->y * 12) + $diff->m;
+                    if ($meses <= 0) {
+                        $meses = 1;
+                    }
+                }
+
+                $sqlRetro = "INSERT INTO `nom_retroactivos`
+                                (`fec_inicio`, `fec_final`, `meses`, `id_incremento`, `observaciones`, `estado`, `vigencia`, `id_user_reg`, `fec_reg`)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                $stmtRetro = $this->conexion->prepare($sqlRetro);
+                $stmtRetro->bindValue(1, $array['datFecInicio'], PDO::PARAM_STR);
+                $stmtRetro->bindValue(2, $array['datFecFinal'], PDO::PARAM_STR);
+                $stmtRetro->bindValue(3, $meses, PDO::PARAM_INT);
+                $stmtRetro->bindValue(4, $id, PDO::PARAM_INT);
+                $stmtRetro->bindValue(5, '', PDO::PARAM_STR);
+                $stmtRetro->bindValue(6, 1, PDO::PARAM_INT);
+                $stmtRetro->bindValue(7, $vigencia, PDO::PARAM_STR);
+                $stmtRetro->bindValue(8, $idUser, PDO::PARAM_INT);
+                $stmtRetro->bindValue(9, $ahora, PDO::PARAM_STR);
+                $stmtRetro->execute();
+                $stmtRetro->closeCursor();
+                unset($stmtRetro);
+                Logs::guardaLog("INSERT INTO `nom_retroactivos` (`fec_inicio`, `fec_final`, `meses`, `id_incremento`, `observaciones`, `estado`, `vigencia`, `id_user_reg`, `fec_reg`) VALUES ('{$array['datFecInicio']}', '{$array['datFecFinal']}', $meses, $id, '', 1, '$vigencia', $idUser, '$ahora')");
+
                 $empledos = new Empleados();
                 $lista = $empledos->getEmpleados();
                 foreach ($lista as $e) {
@@ -240,21 +314,73 @@ class Incrementos
             if (!($stmt->execute())) {
                 return 'Errado: ' . $stmt->errorInfo()[2];
             } else {
+                $idUser = Sesion::IdUser();
+                $hoy = Sesion::Hoy();
                 if ($stmt->rowCount() > 0) {
                     Logs::guardaLog("UPDATE `nom_incremento_salario` SET `porcentaje` = {$array['numPorcIncSal']}, `fecha` = '{$array['datFechaInSal']}' WHERE `id_inc` = {$array['id']}");
                     $consulta = "UPDATE `nom_incremento_salario` SET `id_user_act` =  ? , `fec_act` = ? WHERE `id_inc` = ?";
                     $stmt2 = $this->conexion->prepare($consulta);
-                    $idUser = Sesion::IdUser();
-                    $hoy = Sesion::Hoy();
                     $stmt2->bindValue(1, $idUser, PDO::PARAM_INT);
                     $stmt2->bindValue(2, $hoy, PDO::PARAM_STR);
                     $stmt2->bindValue(3, $array['id'], PDO::PARAM_INT);
                     $stmt2->execute();
                     Logs::guardaLog("UPDATE `nom_incremento_salario` SET `id_user_act` =  $idUser , `fec_act` = '$hoy' WHERE `id_inc` = {$array['id']}");
-                    return 'si';
-                } else {
-                    return 'No se realizó ningún cambio.';
                 }
+
+                if (isset($array['datFecInicio']) && isset($array['datFecFinal'])) {
+                    $meses = isset($array['numMeses']) && $array['numMeses'] !== '' ? intval($array['numMeses']) : 0;
+                    if ($meses <= 0 && !empty($array['datFecInicio']) && !empty($array['datFecFinal'])) {
+                        $fini = new \DateTime($array['datFecInicio']);
+                        $ffin = new \DateTime($array['datFecFinal']);
+                        $ffin->modify('+1 day');
+                        $diff = $fini->diff($ffin);
+                        $meses = ($diff->y * 12) + $diff->m;
+                        if ($meses <= 0) {
+                            $meses = 1;
+                        }
+                    }
+
+                    $sqlCheck = "SELECT `id_retroactivo` FROM `nom_retroactivos` WHERE `id_incremento` = ?";
+                    $stmtCheck = $this->conexion->prepare($sqlCheck);
+                    $stmtCheck->bindValue(1, $array['id'], PDO::PARAM_INT);
+                    $stmtCheck->execute();
+                    $retroExiste = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+                    $stmtCheck->closeCursor();
+
+                    if (!empty($retroExiste)) {
+                        $sqlUpRetro = "UPDATE `nom_retroactivos`
+                                       SET `fec_inicio` = ?, `fec_final` = ?, `meses` = ?, `id_user_act` = ?, `fec_act` = ?
+                                       WHERE `id_incremento` = ?";
+                        $stmtUpRetro = $this->conexion->prepare($sqlUpRetro);
+                        $stmtUpRetro->bindValue(1, $array['datFecInicio'], PDO::PARAM_STR);
+                        $stmtUpRetro->bindValue(2, $array['datFecFinal'], PDO::PARAM_STR);
+                        $stmtUpRetro->bindValue(3, $meses, PDO::PARAM_INT);
+                        $stmtUpRetro->bindValue(4, $idUser, PDO::PARAM_INT);
+                        $stmtUpRetro->bindValue(5, $hoy, PDO::PARAM_STR);
+                        $stmtUpRetro->bindValue(6, $array['id'], PDO::PARAM_INT);
+                        $stmtUpRetro->execute();
+                        Logs::guardaLog("UPDATE `nom_retroactivos` SET `fec_inicio` = '{$array['datFecInicio']}', `fec_final` = '{$array['datFecFinal']}', `meses` = $meses, `id_user_act` = $idUser, `fec_act` = '$hoy' WHERE `id_incremento` = {$array['id']}");
+                    } else {
+                        $vigencia = Sesion::Vigencia();
+                        $hoyReg = Sesion::Hoy();
+                        $sqlInsRetro = "INSERT INTO `nom_retroactivos`
+                                            (`fec_inicio`, `fec_final`, `meses`, `id_incremento`, `observaciones`, `estado`, `vigencia`, `id_user_reg`, `fec_reg`)
+                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        $stmtInsRetro = $this->conexion->prepare($sqlInsRetro);
+                        $stmtInsRetro->bindValue(1, $array['datFecInicio'], PDO::PARAM_STR);
+                        $stmtInsRetro->bindValue(2, $array['datFecFinal'], PDO::PARAM_STR);
+                        $stmtInsRetro->bindValue(3, $meses, PDO::PARAM_INT);
+                        $stmtInsRetro->bindValue(4, $array['id'], PDO::PARAM_INT);
+                        $stmtInsRetro->bindValue(5, '', PDO::PARAM_STR);
+                        $stmtInsRetro->bindValue(6, 1, PDO::PARAM_INT);
+                        $stmtInsRetro->bindValue(7, $vigencia, PDO::PARAM_STR);
+                        $stmtInsRetro->bindValue(8, $idUser, PDO::PARAM_INT);
+                        $stmtInsRetro->bindValue(9, $hoyReg, PDO::PARAM_STR);
+                        $stmtInsRetro->execute();
+                        Logs::guardaLog("INSERT INTO `nom_retroactivos` (`fec_inicio`, `fec_final`, `meses`, `id_incremento`, `observaciones`, `estado`, `vigencia`, `id_user_reg`, `fec_reg`) VALUES ('{$array['datFecInicio']}', '{$array['datFecFinal']}', $meses, {$array['id']}, '', 1, '$vigencia', $idUser, '$hoyReg')");
+                    }
+                }
+                return 'si';
             }
         } catch (PDOException $e) {
             return 'Error SQL: ' . $e->getMessage();

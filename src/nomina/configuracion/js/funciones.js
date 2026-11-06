@@ -96,6 +96,8 @@ const tableIncSalario = crearDataTable(
         { data: 'id' },
         { data: 'porcentaje' },
         { data: 'fecha' },
+        { data: 'fec_inicio' },
+        { data: 'fec_final' },
         { data: 'estado' },
         { data: 'acciones' },
     ],
@@ -106,13 +108,16 @@ const tableIncSalario = crearDataTable(
             titleAttr: 'Agregar Incremento Salarial',
             action: function (e, dt, node, config) {
                 mostrarOverlay();
-                VerFormulario('../php/controladores/incrementos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', '');
+                VerFormulario('../php/controladores/incrementos.php', 'form', 0, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
             }
         }
     ],
     {
         pageLength: 10,
         order: [[0, 'desc']],
+        columnDefs: [
+            { orderable: false, targets: [6] }
+        ]
     }
 );
 const mostrarCcostoRubro = Number(opCaracterJS) === 1 && Number(opPtoJS) === 1;
@@ -237,7 +242,7 @@ if (document.querySelector('#tableIncSalario')) {
         if (btnActualizar) {
             mostrarOverlay();
             const id = btnActualizar.dataset.id;
-            VerFormulario('../php/controladores/incrementos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms');
+            VerFormulario('../php/controladores/incrementos.php', 'form', id, 'modalForms', 'bodyModal', 'tamModalForms', 'modal-lg');
         }
 
         if (btnEliminar) {
@@ -369,6 +374,14 @@ document.getElementById('modalForms').addEventListener('click', function (event)
                 MuestraError('numPorcIncSal', 'El porcentaje debe ser mayor a 0 y menor o igual a 100');
             } else if (ValueInput('datFechaInSal') === '') {
                 MuestraError('datFechaInSal', 'La fecha no puede estar vacía');
+            } else if (ValueInput('datFecInicio') === '') {
+                MuestraError('datFecInicio', 'La fecha inicial no puede estar vacía');
+            } else if (ValueInput('datFecFinal') === '') {
+                MuestraError('datFecFinal', 'La fecha final no puede estar vacía');
+            } else if (ValueInput('datFecFinal') < ValueInput('datFecInicio')) {
+                MuestraError('datFecFinal', 'La fecha final no puede ser menor a la fecha inicial');
+            } else if (Number(ValueInput('numMeses')) <= 0 || !Number.isInteger(Number(ValueInput('numMeses')))) {
+                MuestraError('numMeses', 'La cantidad de meses debe ser un número entero mayor a 0');
             } else {
                 mostrarOverlay();
                 var data = Serializa('formGestIncSalarial');
@@ -464,3 +477,35 @@ document.getElementById('btnsTerceros').addEventListener('click', function (even
         tableTerceroNom.ajax.reload(null, false);
     }
 });
+
+const calcularMesesRetro = () => {
+    const fecInicio = ValueInput('datFecInicio');
+    const fecFinal = ValueInput('datFecFinal');
+    const inputMeses = document.getElementById('numMeses');
+    if (!inputMeses || !fecInicio || !fecFinal) return;
+
+    const [y1, m1, d1] = fecInicio.split('-').map(Number);
+    const [y2, m2, d2] = fecFinal.split('-').map(Number);
+
+    if (new Date(fecFinal) < new Date(fecInicio)) {
+        inputMeses.value = 0;
+        return;
+    }
+
+    let meses = (y2 - y1) * 12 + (m2 - m1);
+    const ultimoDiaM2 = new Date(y2, m2, 0).getDate();
+    if (d2 >= d1 || d2 >= ultimoDiaM2 - 2) {
+        meses += 1;
+    }
+    inputMeses.value = Math.max(1, meses);
+};
+
+if (document.getElementById('modalForms')) {
+    const eventoFechaRetro = (event) => {
+        if (event.target.id === 'datFecInicio' || event.target.id === 'datFecFinal') {
+            calcularMesesRetro();
+        }
+    };
+    document.getElementById('modalForms').addEventListener('change', eventoFechaRetro);
+    document.getElementById('modalForms').addEventListener('input', eventoFechaRetro);
+}

@@ -29,7 +29,9 @@ if (Sesion::Caracter() == 2) {
                                 <tr>
                                     <th class="bg-sofia">ID</th>
                                     <th class="bg-sofia">PORCENTAJE</th>
-                                    <th class="bg-sofia">INICIA</th>
+                                    <th class="bg-sofia">FECHA</th>
+                                    <th class="bg-sofia">FECHA INICIAL</th>
+                                    <th class="bg-sofia">FECHA FINAL</th>
                                     <th class="bg-sofia">ESTADO</th>
                                     <th class="bg-sofia">ACCIONES</th>
                                 </tr>
@@ -44,7 +46,7 @@ if (Sesion::Caracter() == 2) {
 $presupuesto = '';
 if (Sesion::Pto() == 1) {
     $esPtoCaracter = (Sesion::Caracter() == 1 && Sesion::Pto() == 1);
-    $thCcosto     = $esPtoCaracter ? '<th rowspan="2" class="bg-sofia">CENTRO DE COSTO</th>' : '';
+    $thCcosto = $esPtoCaracter ? '<th rowspan="2" class="bg-sofia">CENTRO DE COSTO</th>' : '';
     $presupuesto =
         <<<HTML
         <div class="accordion-item">
