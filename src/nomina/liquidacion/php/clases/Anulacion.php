@@ -176,6 +176,10 @@ class Anulacion
             $queries[] = "UPDATE `nom_valores_liquidacion` SET `estado` = 0 WHERE {$condEmpleado} `id_nomina` = :id_nomina";
         }
 
+        if ($nomina['tipo'] == 'RA') {
+            $queries[] = "DELETE FROM `nom_retroctivo_detalles` WHERE {$condEmpleado} `id_nomina` = :id_nomina";
+        }
+
         try {
             // Verificar si ya había una transacción activa ANTES de empezar
             $transaccionExterna = $this->conexion->inTransaction();

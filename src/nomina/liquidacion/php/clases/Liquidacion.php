@@ -414,7 +414,7 @@ class Liquidacion
                             SUM(IFNULL(`inc`.`dias`, 0)) AS `inc`,
                             SUM(IFNULL(`licl`.`dias`, 0) + IFNULL(`licm`.`dias`, 0) + IFNULL(`licn`.`dias`, 0)) AS `lic`,
                             SUM(IFNULL(`vac`.`dias`, 0)) AS `vac`,
-                            COUNT(DISTINCT `n`.`id_nomina`) AS `meses`,
+                            COUNT(DISTINCT `n`.`mes`) AS `meses`,
                             CONCAT('{$retro['fec_inicio']}', ' a ', '{$retro['fec_final']}') AS `rango`
                         FROM `nom_nominas` `n`
                         INNER JOIN `nom_liq_salario` `ls`
@@ -480,7 +480,7 @@ class Liquidacion
                             GROUP BY `lv`.`id_nomina`, `nv`.`id_empleado`
                         ) `vac`
                             ON (`vac`.`id_nomina` = `n`.`id_nomina` AND `vac`.`id_empleado` = `ls`.`id_empleado`)
-                        WHERE `n`.`tipo` = 'N'
+                        WHERE `n`.`tipo` <> 'RA'
                             AND `n`.`estado` = 5
                             AND STR_TO_DATE(CONCAT(`n`.`vigencia`, '-', `n`.`mes`, '-01'), '%Y-%m-%d') BETWEEN '{$retro['fec_inicio']}' AND '{$retro['fec_final']}'
                             AND `sal`.`salario_basico` <> {$smmlv}
@@ -573,13 +573,17 @@ class Liquidacion
                     `n`.`id_nomina`,
                     `n`.`mes`,
                     `n`.`vigencia`,
+                    `n`.`tipo` AS `tipo_nomina`,
                     `ls`.`id_contrato`,
                     `ls`.`metodo_pago`,
+                    IFNULL(`ls`.`sal_base`, 0) AS `sal_base_ant`,
+                    IFNULL(`ls`.`val_liq`, 0) AS `val_neto_pagado`,
                     IFNULL(`d`.`dias_liq`, 0) AS `dias_laborados`,
                     IFNULL(`d`.`val_liq_dias`, 0) AS `val_laborado`,
                     IFNULL(`d`.`horas_ext`, 0) AS `horas_ext`,
                     IFNULL(`d`.`val_liq_auxt`, 0) AS `val_aux_trans`,
                     IFNULL(`d`.`aux_alim`, 0) AS `val_aux_alim`,
+                    IFNULL(`d`.`g_representa`, 0) AS `g_representa`,
                     IFNULL(`bsp`.`val_bsp`, 0) AS `val_bsp_pagada`,
                     IFNULL(`ss`.`aporte_salud_emp`, 0) AS `aporte_salud_emp`,
                     IFNULL(`ss`.`aporte_pension_emp`, 0) AS `aporte_pension_emp`,
@@ -598,7 +602,19 @@ class Liquidacion
                     IFNULL(`ps`.`val_prima_nav`, 0) AS `val_prima_nav`,
                     IFNULL(`ps`.`val_bonifica_recrea`, 0) AS `val_bonifica_recrea`,
                     IFNULL(`rf`.`base`, 0) AS `base_ret`,
-                    IFNULL(`rf`.`val_ret`, 0) AS `val_ret`
+                    IFNULL(`rf`.`val_ret`, 0) AS `val_ret`,
+                    IFNULL(`vac`.`val_liq`, 0) AS `val_vac_pagada`,
+                    IFNULL(`vac`.`val_prima_vac`, 0) AS `val_prima_vac_pagada`,
+                    IFNULL(`vac`.`val_bon_recrea`, 0) AS `val_bon_recrea_pagada`,
+                    IFNULL(`pri_serv`.`val_liq_ps`, 0) AS `val_prima_servicio_pagada`,
+                    IFNULL(`pri_nav`.`val_liq_pv`, 0) AS `val_prima_navidad_pagada`,
+                    IFNULL(`ces_dir`.`val_cesantias`, 0) AS `val_cesantias_pagada`,
+                    IFNULL(`ces_dir`.`val_icesantias`, 0) AS `val_icesantias_pagada`,
+                    IFNULL(`inc_dir`.`val_incap`, 0) AS `val_incap_pagada`,
+                    IFNULL(`lic_mp`.`val_licmp`, 0) AS `val_licmp_pagada`,
+                    IFNULL(`lic_luto`.`val_licluto`, 0) AS `val_licluto_pagada`,
+                    IFNULL(`indem_dir`.`val_indemniza`, 0) AS `val_indemniza_pagada`,
+                    IFNULL(`odev_dir`.`val_odev`, 0) AS `val_odev_pagada`
                 FROM `nom_nominas` `n`
                 INNER JOIN `nom_liq_salario` `ls`
                     ON (`ls`.`id_nomina` = `n`.`id_nomina` AND `ls`.`estado` = 1)
@@ -614,7 +630,67 @@ class Liquidacion
                     ON (`ps`.`id_nomina` = `n`.`id_nomina` AND `ps`.`id_empleado` = `ls`.`id_empleado` AND `ps`.`estado` = 1)
                 LEFT JOIN `nom_retencion_fte` `rf`
                     ON (`rf`.`id_nomina` = `n`.`id_nomina` AND `rf`.`id_empleado` = `ls`.`id_empleado`)
-                WHERE `n`.`tipo` = 'N'
+                LEFT JOIN (
+                    SELECT `nlv`.`id_nomina`, `nv`.`id_empleado`, SUM(`nlv`.`val_liq`) AS `val_liq`, SUM(`nlv`.`val_prima_vac`) AS `val_prima_vac`, SUM(`nlv`.`val_bon_recrea`) AS `val_bon_recrea`
+                    FROM `nom_liq_vac` `nlv`
+                    INNER JOIN `nom_vacaciones` `nv` ON (`nlv`.`id_vac` = `nv`.`id_vac`)
+                    WHERE `nlv`.`estado` = 1
+                    GROUP BY `nlv`.`id_nomina`, `nv`.`id_empleado`
+                ) `vac` ON (`vac`.`id_nomina` = `n`.`id_nomina` AND `vac`.`id_empleado` = `ls`.`id_empleado`)
+                LEFT JOIN (
+                    SELECT `id_nomina`, `id_empleado`, SUM(`val_liq_ps`) AS `val_liq_ps`
+                    FROM `nom_liq_prima`
+                    WHERE `estado` = 1
+                    GROUP BY `id_nomina`, `id_empleado`
+                ) `pri_serv` ON (`pri_serv`.`id_nomina` = `n`.`id_nomina` AND `pri_serv`.`id_empleado` = `ls`.`id_empleado`)
+                LEFT JOIN (
+                    SELECT `id_nomina`, `id_empleado`, SUM(`val_liq_pv`) AS `val_liq_pv`
+                    FROM `nom_liq_prima_nav`
+                    WHERE `estado` = 1
+                    GROUP BY `id_nomina`, `id_empleado`
+                ) `pri_nav` ON (`pri_nav`.`id_nomina` = `n`.`id_nomina` AND `pri_nav`.`id_empleado` = `ls`.`id_empleado`)
+                LEFT JOIN (
+                    SELECT `id_nomina`, `id_empleado`, SUM(`val_cesantias`) AS `val_cesantias`, SUM(`val_icesantias`) AS `val_icesantias`
+                    FROM `nom_liq_cesantias`
+                    WHERE `estado` = 1
+                    GROUP BY `id_nomina`, `id_empleado`
+                ) `ces_dir` ON (`ces_dir`.`id_nomina` = `n`.`id_nomina` AND `ces_dir`.`id_empleado` = `ls`.`id_empleado`)
+                LEFT JOIN (
+                    SELECT `nli`.`id_nomina`, `ni`.`id_empleado`, SUM(`nli`.`pago_empresa`) AS `val_incap`
+                    FROM `nom_liq_incap` `nli`
+                    INNER JOIN `nom_incapacidad` `ni` ON (`nli`.`id_incapacidad` = `ni`.`id_incapacidad`)
+                    WHERE `nli`.`estado` = 1
+                    GROUP BY `nli`.`id_nomina`, `ni`.`id_empleado`
+                ) `inc_dir` ON (`inc_dir`.`id_nomina` = `n`.`id_nomina` AND `inc_dir`.`id_empleado` = `ls`.`id_empleado`)
+                LEFT JOIN (
+                    SELECT `nlmp`.`id_nomina`, `lmp`.`id_empleado`, SUM(`nlmp`.`val_liq`) AS `val_licmp`
+                    FROM `nom_liq_licmp` `nlmp`
+                    INNER JOIN `nom_licenciasmp` `lmp` ON (`nlmp`.`id_licmp` = `lmp`.`id_licmp`)
+                    WHERE `nlmp`.`estado` = 1
+                    GROUP BY `nlmp`.`id_nomina`, `lmp`.`id_empleado`
+                ) `lic_mp` ON (`lic_mp`.`id_nomina` = `n`.`id_nomina` AND `lic_mp`.`id_empleado` = `ls`.`id_empleado`)
+                LEFT JOIN (
+                    SELECT `nll`.`id_nomina`, `ll`.`id_empleado`, SUM(`nll`.`val_liq`) AS `val_licluto`
+                    FROM `nom_liq_licluto` `nll`
+                    INNER JOIN `nom_licencia_luto` `ll` ON (`nll`.`id_licluto` = `ll`.`id_licluto`)
+                    WHERE `nll`.`estado` = 1
+                    GROUP BY `nll`.`id_nomina`, `ll`.`id_empleado`
+                ) `lic_luto` ON (`lic_luto`.`id_nomina` = `n`.`id_nomina` AND `lic_luto`.`id_empleado` = `ls`.`id_empleado`)
+                LEFT JOIN (
+                    SELECT `nliv`.`id_nomina`, `niv`.`id_empleado`, SUM(`nliv`.`val_liq`) AS `val_indemniza`
+                    FROM `nom_liq_indemniza_vac` `nliv`
+                    INNER JOIN `nom_indemniza_vac` `niv` ON (`nliv`.`id_indemnizacion` = `niv`.`id_indemniza`)
+                    WHERE `nliv`.`estado` = 1
+                    GROUP BY `nliv`.`id_nomina`, `niv`.`id_empleado`
+                ) `indem_dir` ON (`indem_dir`.`id_nomina` = `n`.`id_nomina` AND `indem_dir`.`id_empleado` = `ls`.`id_empleado`)
+                LEFT JOIN (
+                    SELECT `nld`.`id_nomina`, `nod`.`id_empleado`, SUM(`nld`.`valor`) AS `val_odev`
+                    FROM `nom_liq_devengado` `nld`
+                    INNER JOIN `nom_otros_devengados` `nod` ON (`nld`.`id_devengado` = `nod`.`id_devengado`)
+                    WHERE `nld`.`estado` = 1
+                    GROUP BY `nld`.`id_nomina`, `nod`.`id_empleado`
+                ) `odev_dir` ON (`odev_dir`.`id_nomina` = `n`.`id_nomina` AND `odev_dir`.`id_empleado` = `ls`.`id_empleado`)
+                WHERE `n`.`tipo` <> 'RA'
                     AND `n`.`estado` = 5
                     AND `ls`.`id_empleado` = ?
                     AND STR_TO_DATE(CONCAT(`n`.`vigencia`, '-', `n`.`mes`, '-01'), '%Y-%m-%d') BETWEEN ? AND ?
@@ -884,6 +960,17 @@ class Liquidacion
                     $this->conexion->beginTransaction();
                 }
 
+                $sqlDelRetroDet = "DELETE FROM `nom_retroctivo_detalles` WHERE `id_nomina` = ? AND `id_empleado` = ?";
+                $stmtDelRetroDet = $this->conexion->prepare($sqlDelRetroDet);
+                $stmtDelRetroDet->execute([$id_nomina, $id_empleado]);
+
+                $sqlInsRetroDet = "INSERT INTO `nom_retroctivo_detalles`
+                    (`id_nomina`, `id_empleado`, `anio`, `mes`, `id_concepto`, `valor_inicial`, `valor_con_incremento`, `id_user_reg`, `fec_reg`)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                $stmtInsRetroDet = $this->conexion->prepare($sqlInsRetroDet);
+                $idUserLog = Sesion::IdUser();
+                $hoyLog = Sesion::Hoy();
+
                 $grepEmpleado = (isset($empleados[$id_empleado]['representacion']) && intval($empleados[$id_empleado]['representacion']) === 1) ? $grepParam : 0;
                 $reintegroAuxTrans = 0;
                 $reintegroAuxAlim = 0;
@@ -916,13 +1003,187 @@ class Liquidacion
                 ];
 
                 foreach ($mensual as $row) {
+                    $salBaseAnt = floatval($row['sal_base_ant'] ?? 0);
                     $oldSalary = floatval($row['dias_laborados']) > 0
                         ? Valores::Redondear((floatval($row['val_laborado']) * 30) / max(1, floatval($row['dias_laborados'])))
-                        : Valores::Redondear($salarioNuevo / (1 + $factor));
+                        : ($salBaseAnt > 0 ? $salBaseAnt : Valores::Redondear($salarioNuevo / (1 + $factor)));
                     $factorFila = $oldSalary > 0 ? ($salarioNuevo / $oldSalary) : (1 + $factor);
-                    $diffLaborado = Valores::Redondear(floatval($row['val_laborado']) * ($factorFila - 1));
-                    $diffHoras = Valores::Redondear(floatval($row['horas_ext']) * ($factorFila - 1));
 
+                    $registraDetalle = function ($idConcepto, $valIni, $valInc) use ($stmtInsRetroDet, $id_nomina, $id_empleado, $row, $idUserLog, $hoyLog) {
+                        $valIni = Valores::Redondear(floatval($valIni), 2);
+                        $valInc = Valores::Redondear(floatval($valInc), 2);
+                        if (abs($valIni) > 0.001 || abs($valInc) > 0.001) {
+                            $stmtInsRetroDet->execute([
+                                $id_nomina,
+                                $id_empleado,
+                                $row['vigencia'],
+                                str_pad($row['mes'], 2, '0', STR_PAD_LEFT),
+                                $idConcepto,
+                                $valIni,
+                                $valInc,
+                                $idUserLog,
+                                $hoyLog,
+                            ]);
+                        }
+                    };
+
+                    // 1. Sueldo básico (id_concepto 1)
+                    $valLabIni = floatval($row['val_laborado']);
+                    $diffLaborado = Valores::Redondear($valLabIni * ($factorFila - 1));
+                    $valLabInc = $valLabIni + $diffLaborado;
+                    $registraDetalle(1, $valLabIni, $valLabInc);
+
+                    // 4. Horas extras (id_concepto 4)
+                    $valHorasIni = floatval($row['horas_ext']);
+                    $diffHoras = Valores::Redondear($valHorasIni * ($factorFila - 1));
+                    $valHorasInc = $valHorasIni + $diffHoras;
+                    $registraDetalle(4, $valHorasIni, $valHorasInc);
+
+                    // 2. Auxilio de transporte (id_concepto 2)
+                    $auxTransPagado = floatval($row['val_aux_trans'] ?? 0);
+                    $reintegroAuxTransMes = 0;
+                    $auxTransNuevo = $auxTransPagado;
+                    if ($auxTransPagado > 0) {
+                        if ($salarioNuevo > ($smmlv * 2)) {
+                            $auxTransNuevo = 0.00;
+                            $reintegroAuxTransMes = $auxTransPagado;
+                            $reintegroAuxTrans += $reintegroAuxTransMes;
+                        }
+                        $registraDetalle(2, $auxTransPagado, $auxTransNuevo);
+                    }
+
+                    // 3. Auxilio de alimentación (id_concepto 3)
+                    $auxAlimPagado = floatval($row['val_aux_alim'] ?? 0);
+                    $reintegroAuxAlimMes = 0;
+                    $auxAlimNuevo = $auxAlimPagado;
+                    if ($auxAlimPagado > 0) {
+                        if ($baseAlimLimite > 0 && $salarioNuevo > $baseAlimLimite) {
+                            $auxAlimNuevo = 0.00;
+                            $reintegroAuxAlimMes = $auxAlimPagado;
+                            $reintegroAuxAlim += $reintegroAuxAlimMes;
+                        }
+                        $registraDetalle(3, $auxAlimPagado, $auxAlimNuevo);
+                    }
+
+                    // 5. BSP (id_concepto 5)
+                    $bspPagada = floatval($row['val_bsp_pagada'] ?? 0);
+                    $reintegroBspMes = 0;
+                    $mayorValorBspMes = 0;
+                    $bspNueva = $bspPagada;
+                    if ($bspPagada > 0) {
+                        $baseBspAnt = $oldSalary + $grepEmpleado;
+                        $baseBspNueva = $salarioNuevo + $grepEmpleado;
+
+                        if ($baseBspLimite > 0 && $baseBspAnt <= $baseBspLimite && $baseBspNueva > $baseBspLimite) {
+                            $bspNueva = Valores::Redondear($baseBspNueva * 0.38);
+                            $diffBsp = $bspNueva - $bspPagada;
+                            if ($diffBsp < 0) {
+                                $reintegroBspMes = abs($diffBsp);
+                                $reintegroBsp += $reintegroBspMes;
+                            } else {
+                                $mayorValorBspMes = $diffBsp;
+                                $mayorValorBsp += $mayorValorBspMes;
+                            }
+                        } else {
+                            $diffBsp = Valores::Redondear($bspPagada * ($factorFila - 1));
+                            $bspNueva = $bspPagada + $diffBsp;
+                            if ($diffBsp > 0) {
+                                $mayorValorBspMes = $diffBsp;
+                                $mayorValorBsp += $mayorValorBspMes;
+                            }
+                        }
+                        $registraDetalle(5, $bspPagada, $bspNueva);
+                    }
+
+                    // 11. Gastos de representación (id_concepto 11)
+                    $valGrepIni = floatval($row['g_representa'] ?? 0);
+                    $diffGrep = 0;
+                    if ($valGrepIni > 0) {
+                        $diffGrep = Valores::Redondear($valGrepIni * ($factorFila - 1));
+                        $registraDetalle(11, $valGrepIni, $valGrepIni + $diffGrep);
+                    }
+
+                    // 6, 7, 8. Vacaciones pagadas directas (id_concepto 6, 7, 8)
+                    $valVacPag = floatval($row['val_vac_pagada'] ?? 0);
+                    $diffVacPag = 0;
+                    if ($valVacPag > 0) {
+                        $diffVacPag = Valores::Redondear($valVacPag * ($factorFila - 1));
+                        $registraDetalle(6, $valVacPag, $valVacPag + $diffVacPag);
+                    }
+                    $valPriVacPag = floatval($row['val_prima_vac_pagada'] ?? 0);
+                    $diffPriVacPag = 0;
+                    if ($valPriVacPag > 0) {
+                        $diffPriVacPag = Valores::Redondear($valPriVacPag * ($factorFila - 1));
+                        $registraDetalle(7, $valPriVacPag, $valPriVacPag + $diffPriVacPag);
+                    }
+                    $valBonRecPag = floatval($row['val_bon_recrea_pagada'] ?? 0);
+                    $diffBonRecPag = 0;
+                    if ($valBonRecPag > 0) {
+                        $diffBonRecPag = Valores::Redondear($valBonRecPag * ($factorFila - 1));
+                        $registraDetalle(8, $valBonRecPag, $valBonRecPag + $diffBonRecPag);
+                    }
+
+                    // 9. Incapacidad pagada directa (id_concepto 9)
+                    $valIncapPag = floatval($row['val_incap_pagada'] ?? 0);
+                    $diffIncap = 0;
+                    if ($valIncapPag > 0) {
+                        $diffIncap = Valores::Redondear($valIncapPag * ($factorFila - 1));
+                        $registraDetalle(9, $valIncapPag, $valIncapPag + $diffIncap);
+                    }
+
+                    // 10. Licencias remuneradas directas (id_concepto 10)
+                    $valLicPag = floatval($row['val_licmp_pagada'] ?? 0) + floatval($row['val_licluto_pagada'] ?? 0);
+                    $diffLic = 0;
+                    if ($valLicPag > 0) {
+                        $diffLic = Valores::Redondear($valLicPag * ($factorFila - 1));
+                        $registraDetalle(10, $valLicPag, $valLicPag + $diffLic);
+                    }
+
+                    // 12. Indemnización vacaciones directa (id_concepto 12)
+                    $valIndemPag = floatval($row['val_indemniza_pagada'] ?? 0);
+                    $diffIndem = 0;
+                    if ($valIndemPag > 0) {
+                        $diffIndem = Valores::Redondear($valIndemPag * ($factorFila - 1));
+                        $registraDetalle(12, $valIndemPag, $valIndemPag + $diffIndem);
+                    }
+
+                    // 22, 23. Cesantías directas (id_concepto 22, 23)
+                    $valCesPag = floatval($row['val_cesantias_pagada'] ?? 0);
+                    $diffCesPag = 0;
+                    if ($valCesPag > 0) {
+                        $diffCesPag = Valores::Redondear($valCesPag * ($factorFila - 1));
+                        $registraDetalle(22, $valCesPag, $valCesPag + $diffCesPag);
+                    }
+                    $valIcesPag = floatval($row['val_icesantias_pagada'] ?? 0);
+                    $diffIcesPag = 0;
+                    if ($valIcesPag > 0) {
+                        $diffIcesPag = Valores::Redondear($valIcesPag * ($factorFila - 1));
+                        $registraDetalle(23, $valIcesPag, $valIcesPag + $diffIcesPag);
+                    }
+
+                    // 24, 25. Primas directas (id_concepto 24, 25)
+                    $valPriServPag = floatval($row['val_prima_servicio_pagada'] ?? 0);
+                    $diffPriServPag = 0;
+                    if ($valPriServPag > 0) {
+                        $diffPriServPag = Valores::Redondear($valPriServPag * ($factorFila - 1));
+                        $registraDetalle(24, $valPriServPag, $valPriServPag + $diffPriServPag);
+                    }
+                    $valPriNavPag = floatval($row['val_prima_navidad_pagada'] ?? 0);
+                    $diffPriNavPag = 0;
+                    if ($valPriNavPag > 0) {
+                        $diffPriNavPag = Valores::Redondear($valPriNavPag * ($factorFila - 1));
+                        $registraDetalle(25, $valPriNavPag, $valPriNavPag + $diffPriNavPag);
+                    }
+
+                    // 29. Otros devengados directos (id_concepto 29)
+                    $valOdevPag = floatval($row['val_odev_pagada'] ?? 0);
+                    $diffOdev = 0;
+                    if ($valOdevPag > 0) {
+                        $diffOdev = Valores::Redondear($valOdevPag * ($factorFila - 1));
+                        $registraDetalle(29, $valOdevPag, $valOdevPag + $diffOdev);
+                    }
+
+                    // Seguridad Social (13, 14, 15, 21, 26, 27)
                     $aporteBase = max(floatval($row['aporte_salud_emp']), floatval($row['aporte_pension_emp']));
                     $ibcAnterior = $aporteBase > 0 ? Valores::Redondear($aporteBase / 0.04, 1) : (floatval($row['val_laborado']) + floatval($row['horas_ext']));
                     $ibcNuevo = $ibcAnterior * $factorFila;
@@ -937,43 +1198,21 @@ class Liquidacion
                         floatval($porcentajeArl)
                     );
 
-                    // 1. Auxilio de transporte: Pérdida de derecho si el nuevo salario supera 2 SMMLV
-                    $auxTransPagado = floatval($row['val_aux_trans'] ?? 0);
-                    if ($salarioNuevo > ($smmlv * 2) && $auxTransPagado > 0) {
-                        $reintegroAuxTrans += $auxTransPagado;
+                    $registraDetalle(13, $row['aporte_salud_emp'], $ssNueva['aporte_salud_emp']);
+                    $registraDetalle(14, $row['aporte_pension_emp'], $ssNueva['aporte_pension_emp']);
+                    $registraDetalle(15, $row['aporte_solidaridad_pensional'], $ssNueva['aporte_solidaridad_pensional']);
+                    $registraDetalle(21, $row['aporte_rieslab'], $ssNueva['aporte_rieslab']);
+                    $registraDetalle(26, $row['aporte_salud_empresa'], $ssNueva['aporte_salud_empresa']);
+                    $registraDetalle(27, $row['aporte_pension_empresa'], $ssNueva['aporte_pension_empresa']);
+
+                    // 28. Parafiscales (id_concepto 28)
+                    $parafAnt = floatval($row['val_sena']) + floatval($row['val_icbf']) + floatval($row['val_comfam']);
+                    if ($parafAnt > 0) {
+                        $parafNue = Valores::Redondear($parafAnt * $factorFila, 100);
+                        $registraDetalle(28, $parafAnt, $parafNue);
                     }
 
-                    // 2. Auxilio de alimentación: Pérdida de derecho si nuevo salario supera base_alim
-                    $auxAlimPagado = floatval($row['val_aux_alim'] ?? 0);
-                    if ($baseAlimLimite > 0 && $salarioNuevo > $baseAlimLimite && $auxAlimPagado > 0) {
-                        $reintegroAuxAlim += $auxAlimPagado;
-                    }
-
-                    // 3. Bonificación por Servicios Prestados (BSP: cruce de 53% a 38% o reajuste proporcional)
-                    $bspPagada = floatval($row['val_bsp_pagada'] ?? 0);
-                    if ($bspPagada > 0) {
-                        $baseBspAnt = $oldSalary + $grepEmpleado;
-                        $baseBspNueva = $salarioNuevo + $grepEmpleado;
-
-                        if ($baseBspLimite > 0 && $baseBspAnt <= $baseBspLimite && $baseBspNueva > $baseBspLimite) {
-                            // Pasa de tarifa 53% a 38%
-                            $bspNueva = Valores::Redondear($baseBspNueva * 0.38);
-                            $diffBsp = $bspNueva - $bspPagada;
-                            if ($diffBsp < 0) {
-                                $reintegroBsp += abs($diffBsp);
-                            } else {
-                                $mayorValorBsp += $diffBsp;
-                            }
-                        } else {
-                            // Mantiene tarifa
-                            $diffBsp = Valores::Redondear($bspPagada * ($factorFila - 1));
-                            if ($diffBsp > 0) {
-                                $mayorValorBsp += $diffBsp;
-                            }
-                        }
-                    }
-
-                    // 4. Retención en la fuente (Art. 383 y 388 E.T.)
+                    // 19. Retención en la fuente (id_concepto 19)
                     $baseRetAnterior = floatval($row['base_ret'] ?? 0);
                     $valRetAnterior = floatval($row['val_ret'] ?? 0);
 
@@ -990,13 +1229,33 @@ class Liquidacion
                     $retNueva = $this->calcularRetencionBase($baseRetNueva, $uvt);
                     $diffRet = max(0, $retNueva - $valRetAnterior);
                     $diffBaseRet = max(0, $baseRetNueva - $baseRetAnterior);
+                    $registraDetalle(19, $valRetAnterior, $retNueva);
 
+                    // 30. Reintegros / otros descuentos (id_concepto 30)
+                    $reintegroMes = $reintegroAuxTransMes + $reintegroAuxAlimMes + $reintegroBspMes;
+                    if ($reintegroMes > 0) {
+                        $registraDetalle(30, 0.00, $reintegroMes);
+                    }
+
+                    // 20. Neto del mes (id_concepto 20)
+                    $diffSalud = $ssNueva['aporte_salud_emp'] - floatval($row['aporte_salud_emp']);
+                    $diffPension = $ssNueva['aporte_pension_emp'] - floatval($row['aporte_pension_emp']);
+                    $diffSolidaridad = $ssNueva['aporte_solidaridad_pensional'] - floatval($row['aporte_solidaridad_pensional']);
+
+                    $devengadoAdicMes = $diffLaborado + $diffHoras + $mayorValorBspMes + $diffVacPag + $diffPriVacPag + $diffBonRecPag + $diffPriServPag + $diffPriNavPag + $diffCesPag + $diffIcesPag + $diffIncap + $diffLic + $diffGrep + $diffIndem + $diffOdev;
+                    $deduccionAdicMes = $diffSalud + $diffPension + $diffSolidaridad + $diffRet + $reintegroMes;
+                    $diffNetoMes = $devengadoAdicMes - $deduccionAdicMes;
+                    $netoAnt = floatval($row['val_neto_pagado']);
+                    $netoNue = $netoAnt + $diffNetoMes;
+                    $registraDetalle(20, $netoAnt, $netoNue);
+
+                    // Acumulaciones globales para nom_liq_*
                     $totales['dias'] += intval($row['dias_laborados']);
-                    $totales['laborado'] += $diffLaborado;
+                    $totales['laborado'] += $diffLaborado + $diffVacPag + $diffIncap + $diffLic + $diffGrep + $diffIndem + $diffOdev;
                     $totales['horas_ext'] += $diffHoras;
-                    $totales['salud_emp'] += $ssNueva['aporte_salud_emp'] - floatval($row['aporte_salud_emp']);
-                    $totales['pension_emp'] += $ssNueva['aporte_pension_emp'] - floatval($row['aporte_pension_emp']);
-                    $totales['solidaridad'] += $ssNueva['aporte_solidaridad_pensional'] - floatval($row['aporte_solidaridad_pensional']);
+                    $totales['salud_emp'] += $diffSalud;
+                    $totales['pension_emp'] += $diffPension;
+                    $totales['solidaridad'] += $diffSolidaridad;
                     $totales['salud_empresa'] += $ssNueva['aporte_salud_empresa'] - floatval($row['aporte_salud_empresa']);
                     $totales['pension_empresa'] += $ssNueva['aporte_pension_empresa'] - floatval($row['aporte_pension_empresa']);
                     $totales['riesgos'] += $ssNueva['aporte_rieslab'] - floatval($row['aporte_rieslab']);
@@ -1004,20 +1263,16 @@ class Liquidacion
                     $totales['icbf'] += Valores::Redondear(floatval($row['val_icbf']) * ($factorFila - 1), 100);
                     $totales['comfam'] += Valores::Redondear(floatval($row['val_comfam']) * ($factorFila - 1), 100);
                     $totales['prest_vac'] += Valores::Redondear(floatval($row['val_vacacion']) * ($factorFila - 1));
-                    $totales['prest_ces'] += Valores::Redondear(floatval($row['val_cesantia']) * ($factorFila - 1));
-                    $totales['prest_ices'] += Valores::Redondear(floatval($row['val_interes_cesantia']) * ($factorFila - 1));
-                    $totales['prest_prima'] += Valores::Redondear(floatval($row['val_prima']) * ($factorFila - 1));
-                    $totales['prest_prima_vac'] += Valores::Redondear(floatval($row['val_prima_vac']) * ($factorFila - 1));
-                    $totales['prest_prima_nav'] += Valores::Redondear(floatval($row['val_prima_nav']) * ($factorFila - 1));
-                    $totales['prest_bon_recrea'] += Valores::Redondear(floatval($row['val_bonifica_recrea']) * ($factorFila - 1));
+                    $totales['prest_ces'] += Valores::Redondear(floatval($row['val_cesantia']) * ($factorFila - 1)) + $diffCesPag;
+                    $totales['prest_ices'] += Valores::Redondear(floatval($row['val_interes_cesantia']) * ($factorFila - 1)) + $diffIcesPag;
+                    $totales['prest_prima'] += Valores::Redondear(floatval($row['val_prima']) * ($factorFila - 1)) + $diffPriServPag;
+                    $totales['prest_prima_vac'] += Valores::Redondear(floatval($row['val_prima_vac']) * ($factorFila - 1)) + $diffPriVacPag;
+                    $totales['prest_prima_nav'] += Valores::Redondear(floatval($row['val_prima_nav']) * ($factorFila - 1)) + $diffPriNavPag;
+                    $totales['prest_bon_recrea'] += Valores::Redondear(floatval($row['val_bonifica_recrea']) * ($factorFila - 1)) + $diffBonRecPag;
                     $totales['ret_base'] += $diffBaseRet;
                     $totales['retencion'] += $diffRet;
 
-                    $diffSalud = $ssNueva['aporte_salud_emp'] - floatval($row['aporte_salud_emp']);
-                    $diffPension = $ssNueva['aporte_pension_emp'] - floatval($row['aporte_pension_emp']);
-                    $diffSolidaridad = $ssNueva['aporte_solidaridad_pensional'] - floatval($row['aporte_solidaridad_pensional']);
-
-                    $totales['neto'] += ($diffLaborado + $diffHoras)
+                    $totales['neto'] += ($diffLaborado + $diffHoras + $diffVacPag + $diffPriVacPag + $diffBonRecPag + $diffPriServPag + $diffPriNavPag + $diffCesPag + $diffIcesPag + $diffIncap + $diffLic + $diffGrep + $diffIndem + $diffOdev)
                         - ($diffSalud + $diffPension + $diffSolidaridad + $diffRet);
                 }
 
@@ -1056,7 +1311,7 @@ class Liquidacion
                         'id_empleado' => $id_empleado,
                         'valor' => $mayorValorBsp,
                         'corte' => $retro['fec_final'],
-                        'tipo' => 'RA',
+                        'tipo' => 'S',
                         'id_nomina' => $id_nomina,
                     ];
                     $resBsp = (new Bsp($this->conexion))->addRegistro($dataBsp);

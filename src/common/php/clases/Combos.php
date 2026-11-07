@@ -211,6 +211,7 @@ class Combos
                     `id_concepto`, `concepto`
                 FROM
                     `nom_conceptos_liquidacion`
+                WHERE `filtro` = 1
                 ORDER BY `concepto` ASC";
         return (new self())->setConsulta($sql, $id);
     }
