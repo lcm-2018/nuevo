@@ -960,9 +960,30 @@ class Liquidacion
                     $this->conexion->beginTransaction();
                 }
 
-                $sqlDelRetroDet = "DELETE FROM `nom_retroctivo_detalles` WHERE `id_nomina` = ? AND `id_empleado` = ?";
-                $stmtDelRetroDet = $this->conexion->prepare($sqlDelRetroDet);
-                $stmtDelRetroDet->execute([$id_nomina, $id_empleado]);
+                // Limpiar registros previos de este empleado en esta nómina para evitar duplicidades
+                $tablasLimpieza = [
+                    'nom_retroctivo_detalles',
+                    'nom_liq_salario',
+                    'nom_liq_dlab_auxt',
+                    'nom_liq_segsocial_empdo',
+                    'nom_liq_parafiscales',
+                    'nom_liq_prestaciones_sociales',
+                    'nom_retencion_fte',
+                    'nom_valores_liquidacion',
+                ];
+                foreach ($tablasLimpieza as $tbl) {
+                    $stmtClean = $this->conexion->prepare("DELETE FROM `{$tbl}` WHERE `id_nomina` = ? AND `id_empleado` = ?");
+                    $stmtClean->execute([$id_nomina, $id_empleado]);
+                }
+                $stmtCleanBsp = $this->conexion->prepare("DELETE FROM `nom_liq_bsp` WHERE `id_nomina` = ? AND `id_empleado` = ? AND `tipo` = 'S'");
+                $stmtCleanBsp->execute([$id_nomina, $id_empleado]);
+
+                $sqlDelDcto = "DELETE `od`, `ld` 
+                               FROM `nom_liq_descuento` `ld` 
+                               INNER JOIN `nom_otros_descuentos` `od` ON (`ld`.`id_dcto` = `od`.`id_dcto`) 
+                               WHERE `ld`.`id_nomina` = ? AND `od`.`id_empleado` = ? AND `od`.`concepto` LIKE '%RETROACTIVO%'";
+                $stmtCleanDcto = $this->conexion->prepare($sqlDelDcto);
+                $stmtCleanDcto->execute([$id_nomina, $id_empleado]);
 
                 $sqlInsRetroDet = "INSERT INTO `nom_retroctivo_detalles`
                     (`id_nomina`, `id_empleado`, `anio`, `mes`, `id_concepto`, `valor_inicial`, `valor_con_incremento`, `id_user_reg`, `fec_reg`)
@@ -1399,6 +1420,29 @@ class Liquidacion
                 if (!$resSal['insert']) {
                     throw new Exception('Salario neto: ' . $resSal['msg']);
                 }
+
+                // Registrar valores de liquidación para el retroactivo
+                $vlAnt = (new Valores_Liquidacion($this->conexion))->getUltimoRegistro($id_empleado);
+                $paramValLiq = [
+                    'id_empleado' => $id_empleado,
+                    'smmlv' => $smmlv,
+                    'aux_trans' => $salarioNuevo <= ($smmlv * 2) ? floatval($parametros[2] ?? 0) : 0,
+                    'aux_alim' => ($baseAlimLimite > 0 && $salarioNuevo <= $baseAlimLimite) ? floatval($parametros[3] ?? 0) : 0,
+                    'uvt' => $uvt,
+                    'base_bsp' => $baseBspLimite,
+                    'base_alim' => $baseAlimLimite,
+                    'min_vital' => floatval($parametros[10] ?? 0),
+                    'salario' => $salarioNuevo,
+                    'tiene_grep' => $grepEmpleado > 0 ? 1 : 0,
+                    'grep' => $grepEmpleado,
+                    'prom_horas' => floatval($vlAnt['prom_horas'] ?? 0),
+                    'bsp_ant' => floatval($vlAnt['bsp_ant'] ?? 0),
+                    'pri_ser_ant' => floatval($vlAnt['pri_ser_ant'] ?? 0),
+                    'pri_vac_ant' => floatval($vlAnt['pri_vac_ant'] ?? 0),
+                    'pri_nav_ant' => floatval($vlAnt['pri_nav_ant'] ?? 0),
+                    'id_nomina' => $id_nomina,
+                ];
+                (new Valores_Liquidacion($this->conexion))->addRegistro($paramValLiq);
 
                 $this->conexion->commit();
                 $inserts++;

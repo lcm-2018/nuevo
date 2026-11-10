@@ -40,9 +40,10 @@ class Usuario
     public function getEmpresa()
     {
         $sql = "SELECT
-                    `nit_ips` AS `nit` , `dv`, `razon_social_ips` AS `nombre` , `caracter` , `tiene_pto`, `exonera_aportes`, `redondeo_nomina` AS `redondeo`, `dv` AS `dig_ver`
+                    `nit_ips` AS `nit` , `dv`, `razon_social_ips` AS `nombre` , `caracter` , `tiene_pto`, `exonera_aportes`, `redondeo_nomina` AS `redondeo`, `dv` AS `dig_ver`, `tb_municipios`.`nom_municipio` AS `municipio` 
                 FROM
-                    `tb_datos_ips`";
+                    `tb_datos_ips`
+                INNER JOIN `tb_municipios` ON (`tb_datos_ips`.`idmcpio` = `tb_municipios`.`id_municipio`)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
 

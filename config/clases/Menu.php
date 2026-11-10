@@ -65,6 +65,37 @@ class Menu
     }
 
     /**
+     * HELPER: Renderiza una opción desplegable <li> con subopciones anidadas
+     */
+    private function renderSubMenu(string $collapseId, string $icon, string $label, string $colorClass, array $items): string
+    {
+        $items = implode('', array_filter($items));
+        if ($items === '') {
+            return '';
+        }
+        $icono = $this->icono($icon);
+
+        return <<<HTML
+        <li>
+            <a href="#{$collapseId}" class="nav-link {$colorClass} d-flex align-items-center px-1 py-2 sombra" data-bs-toggle="collapse" aria-expanded="false">
+                {$icono}{$label}
+                <i class="fas fa-chevron-right fa-xs ms-auto collapse-icon text-muted"></i>
+            </a>
+            <div class="collapse" id="{$collapseId}">
+                <ul class="btn-toggle-nav list-unstyled fw-normal ps-3">
+                    {$items}
+                </ul>
+            </div>
+        </li>
+        HTML;
+    }
+
+    private function icono(string $icon): string
+    {
+        return $icon === '' ? '' : "<i class=\"{$icon} me-2 fa-fw\"></i> ";
+    }
+
+    /**
      * MODULO NOMINA (51)
      */
     private function getMenuNomina(): string
@@ -241,28 +272,51 @@ class Menu
      */
     private function getMenuContratacion(): string
     {
-        // 1. Verificación global del módulo
         if (!($this->modulos[53] > 0 || $this->id_rol == 1)) {
             return '';
         }
 
-        // 2. Verificación de permisos para el contenedor principal
         if (
             !($this->permisos->PermisosUsuario($this->opciones, 5301, 0) ||
                 $this->permisos->PermisosUsuario($this->opciones, 5302, 0) ||
                 $this->permisos->PermisosUsuario($this->opciones, 5303, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5305, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5306, 0) ||
+                $this->permisos->PermisosUsuario($this->opciones, 5307, 0) ||
                 $this->permisos->PermisosUsuario($this->opciones, 5399, 0) ||
                 $this->id_rol == 1)
         ) {
             return '';
         }
 
-        // --- OPCIONES USANDO EL HELPER ---
-        $cont_configuracion = $this->renderSubOption(5301, 'fas fa-cogs', 'Configuración', 'contratacion/gestion/lista_tipos.php', 'text-primary');
+        $cont_configuracion_antigua = $this->renderSubOption(5301, 'fas fa-cogs', 'Configuración', 'contratacion/gestion/lista_tipos.php', 'text-primary');
+
+        $cont_configuracion_nueva = $this->renderSubMenu('configuracion-nueva-collapse', 'fas fa-cogs', 'Configuración *', 'text-secondary', [
+            $this->renderSubOption(5301, 'fas fa-map-marked-alt', 'Zonas', 'contratacion/configuracion/zonas/index.php', 'text-secondary'),
+            $this->renderSubOption(5301, 'fas fa-sitemap', 'Esquemas', 'contratacion/configuracion/esquemas/index.php', 'text-secondary'),
+            $this->renderSubOption(5301, 'fas fa-balance-scale', 'Modalidades de Contratación Pública', 'contratacion/configuracion/modalidades/index.php', 'text-secondary'),
+            $this->renderSubOption(5301, 'fas fa-user-tie', 'Perfiles contractuales', 'contratacion/configuracion/perfiles/index.php', 'text-secondary'),
+            $this->renderSubMenu('paquete-documental-collapse', 'fas fa-folder-open', 'Paquete Documental', 'text-secondary', [
+                $this->renderSubOption(5301, 'fas fa-layer-group', 'Fases', 'contratacion/configuracion/fases/index.php', 'text-secondary'),
+                $this->renderSubOption(5301, 'fas fa-file-alt', 'Documentos', 'contratacion/configuracion/documentos/index.php', 'text-secondary'),
+                $this->renderSubOption(5301, 'fas fa-tags', 'Categorías de variables', 'contratacion/configuracion/categorias/index.php', 'text-secondary'),
+                $this->renderSubOption(5301, 'fas fa-code', 'Variables de plantilla', 'contratacion/configuracion/variables/index.php', 'text-secondary'),
+            ]),
+            $this->renderSubMenu('novedades-cierre-collapse', 'fas fa-exchange-alt', 'Novedades y cierre', 'text-secondary', [
+                $this->renderSubOption(5301, 'fas fa-exchange-alt', 'Tipos de novedad', 'contratacion/configuracion/tiposnovedad/index.php', 'text-secondary'),
+                $this->renderSubOption(5301, 'fas fa-flag-checkered', 'Tipos de cierre', 'contratacion/configuracion/tiposcierre/index.php', 'text-secondary'),
+            ]),
+        ]);
+        $cont_precontratacion = $this->renderSubMenu('precontratacion-collapse', 'far fa-folder-open', 'Precontratación *', 'text-secondary', [
+            $this->renderSubOption(5302, 'fas fa-folder-open', 'Expedientes', 'contratacion/precontratacion/expedientes/index.php', 'text-secondary'),
+        ]);
+        $cont_contratacion = $this->renderSubOption(5305, 'far fa-file-alt', 'Contratación *', 'contratacion/contratacion/bandeja/index.php', 'text-secondary');
+        $cont_ejecucion = $this->renderSubOption(5306, 'far fa-play-circle', 'Ejecución *', 'contratacion/ejecucion/bandeja/index.php', 'text-secondary');
+        $cont_postcontratacion = $this->renderSubOption(5307, 'fas fa-clipboard-check', 'Postcontratación *', 'contratacion/postcontratacion', 'text-secondary');
+
         $cont_compras = $this->renderSubOption(5302, 'fas fa-shopping-bag', 'Compras', 'contratacion/adquisiciones/lista_adquisiciones.php', 'text-success');
         $cont_no_obligados = $this->renderSubOption(5303, 'fas fa-ticket-alt', 'No obligados', 'contratacion/no_obligados/listar_facturas.php', 'text-info');
 
-        // --- OPCIÓN ESPECIAL JAVASCRIPT ---
         $cont_personalizados = '';
         if ($this->permisos->PermisosUsuario($this->opciones, 5399, 0) || $this->id_rol == 1) {
             $cont_personalizados = <<<HTML
@@ -274,7 +328,6 @@ class Menu
         HTML;
         }
 
-        // 3. Retorno de la estructura HTML
         return
             <<<HTML
                 <li>
@@ -289,7 +342,12 @@ class Menu
                     </a>
                     <div class="collapse shadow rounded-3" id="contratacion-collapse">
                         <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 pt-2 small ps-4 pe-3">
-                            {$cont_configuracion}
+                            {$cont_configuracion_antigua}
+                            {$cont_configuracion_nueva}
+                            {$cont_precontratacion}
+                            {$cont_contratacion}
+                            {$cont_ejecucion}
+                            {$cont_postcontratacion}
                             {$cont_compras}
                             {$cont_no_obligados}
                             {$cont_personalizados}

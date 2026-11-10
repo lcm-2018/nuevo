@@ -70,6 +70,54 @@ foreach ($stmt_vl->fetchAll(PDO::FETCH_ASSOC) as $row) {
 $stmt_vl->closeCursor();
 unset($stmt_vl);
 
+// Si algún empleado de la nómina no tiene registro directo en nom_valores_liquidacion
+// (por ejemplo nóminas retroactivas históricas o ajustes), se consulta el último registro disponible.
+$ids_sin_factores = [];
+foreach ($empleados as $emp) {
+    $idEmpCheck = (int) ($emp['id_empleado'] ?? 0);
+    if ($idEmpCheck > 0 && !isset($factores_por_empleado[$idEmpCheck])) {
+        $ids_sin_factores[] = $idEmpCheck;
+    }
+}
+
+if (!empty($ids_sin_factores)) {
+    $inFaltantes = implode(',', $ids_sin_factores);
+    $sql_vl_last = "SELECT
+                        `nvl`.`id_empleado`,
+                        `nvl`.`salario`,
+                        `nvl`.`aux_trans`,
+                        `nvl`.`aux_alim`,
+                        `nvl`.`bsp_ant`,
+                        `nvl`.`pri_ser_ant`,
+                        `nvl`.`pri_vac_ant`,
+                        `nvl`.`pri_nav_ant`,
+                        `nvl`.`grep`,
+                        `nvl`.`tiene_grep`,
+                        `nvl`.`prom_horas`,
+                        `nvl`.`smmlv`,
+                        `nvl`.`base_bsp`,
+                        `nvl`.`base_alim`,
+                        `nvl`.`uvt`
+                    FROM `nom_valores_liquidacion` `nvl`
+                    INNER JOIN (
+                        SELECT `id_empleado`, MAX(`id_valor`) AS `max_id`
+                        FROM `nom_valores_liquidacion`
+                        WHERE `estado` = 1 AND `id_empleado` IN ($inFaltantes)
+                        GROUP BY `id_empleado`
+                    ) `ult` ON `nvl`.`id_valor` = `ult`.`max_id`";
+    $stmt_vl_last = $pdo->query($sql_vl_last);
+    if ($stmt_vl_last) {
+        foreach ($stmt_vl_last->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $idEmp = (int) $row['id_empleado'];
+            if (!isset($factores_por_empleado[$idEmp])) {
+                $factores_por_empleado[$idEmp] = $row;
+            }
+        }
+        $stmt_vl_last->closeCursor();
+        unset($stmt_vl_last);
+    }
+}
+
 // ── Fechas de vacaciones (fec_inicio / fec_fin desde nom_vacaciones) ─────────
 $sql_vac = "SELECT
                 `e`.`no_documento`,
@@ -318,8 +366,13 @@ function generarLiquidacion(
     $vl = $factores_por_empleado[$id_empleado] ?? [];
 
     $fs_salario = (float) ($vl['salario'] ?? 0);
-    $fs_aux_trans = (float) ($vl['aux_trans'] ?? 0);
-    $fs_aux_alim = (float) ($vl['aux_alim'] ?? 0);
+    if (!empty($d['sal_base']) && (float) $d['sal_base'] > 0) {
+        $fs_salario = (float) $d['sal_base'];
+    }
+    $fs_smmlv = (float) ($vl['smmlv'] ?? 0);
+    $fs_base_alim = (float) ($vl['base_alim'] ?? 0);
+    $fs_aux_trans = ($fs_smmlv > 0 && $fs_salario > ($fs_smmlv * 2)) ? 0.0 : (float) ($vl['aux_trans'] ?? 0);
+    $fs_aux_alim = ($fs_base_alim > 0 && $fs_salario > $fs_base_alim) ? 0.0 : (float) ($vl['aux_alim'] ?? 0);
     $fs_bsp_ant = (float) ($vl['bsp_ant'] ?? 0);   // última bonif. servicios
     $fs_pri_ser_ant = (float) ($vl['pri_ser_ant'] ?? 0);   // última prima servicios
     $fs_pri_vac_ant = (float) ($vl['pri_vac_ant'] ?? 0);   // última prima vacaciones

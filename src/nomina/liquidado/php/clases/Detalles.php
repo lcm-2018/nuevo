@@ -63,11 +63,11 @@ class Detalles
 
         $sql = "WITH 
                     `bsp` AS 
-                        (SELECT `id_empleado`,`val_bsp`, `fec_corte` AS `corte_bsp` FROM `nom_liq_bsp` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`, SUM(`val_bsp`) AS `val_bsp`, MAX(`fec_corte`) AS `corte_bsp` FROM `nom_liq_bsp` WHERE `id_nomina` = :id_nomina AND `estado` = 1 GROUP BY `id_empleado`),
                     `ces` AS
-                        (SELECT `id_empleado`,`val_cesantias`,`val_icesantias`, `corte` AS `corte_ces`, `cant_dias` AS `dias_ces` FROM `nom_liq_cesantias` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`, SUM(`val_cesantias`) AS `val_cesantias`, SUM(`val_icesantias`) AS `val_icesantias`, MAX(`corte`) AS `corte_ces`, SUM(`cant_dias`) AS `dias_ces` FROM `nom_liq_cesantias` WHERE `id_nomina` = :id_nomina AND `estado` = 1 GROUP BY `id_empleado`),
                     `com` AS
-                        (SELECT `id_empleado`,`val_compensa` FROM `nom_liq_compesatorio` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`, SUM(`val_compensa`) AS `val_compensa` FROM `nom_liq_compesatorio` WHERE `id_nomina` = :id_nomina AND `estado` = 1 GROUP BY `id_empleado`),
                     `odev` AS
                         (SELECT
                             `nod`.`id_empleado`, SUM(`nld`.`valor`) AS `valor`
@@ -87,7 +87,7 @@ class Detalles
                         WHERE (`nom_liq_descuento`.`estado` = 1 AND `nom_liq_descuento`.`id_nomina` = :id_nomina)
                         GROUP BY `nom_otros_descuentos`.`id_empleado`),
                     `liq` AS 
-                        (SELECT `id_empleado`,`dias_liq`,`val_liq_dias`,`val_liq_auxt`,`aux_alim`,`g_representa`,`horas_ext` FROM `nom_liq_dlab_auxt` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`, SUM(`dias_liq`) AS `dias_liq`, SUM(`val_liq_dias`) AS `val_liq_dias`, SUM(`val_liq_auxt`) AS `val_liq_auxt`, SUM(`aux_alim`) AS `aux_alim`, SUM(`g_representa`) AS `g_representa`, SUM(`horas_ext`) AS `horas_ext` FROM `nom_liq_dlab_auxt` WHERE `id_nomina` = :id_nomina AND `estado` = 1 GROUP BY `id_empleado`),
                     `emb` AS 
                         (SELECT
                             `nom_embargos`.`id_empleado`, SUM(`nom_liq_embargo`.`val_mes_embargo`) AS `valor`
@@ -125,7 +125,7 @@ class Detalles
                         WHERE (`nom_liq_viaticos`.`id_nomina` = :id_nomina AND `nom_liq_viaticos`.`estado` = 1)
                         GROUP BY `nom_viaticos`.`id_empleado`),
                     `rfte` AS
-                        (SELECT `id_empleado`,`val_ret`, `base` AS `base_ret` FROM `nom_retencion_fte` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`, SUM(`val_ret`) AS `val_ret`, SUM(`base`) AS `base_ret` FROM `nom_retencion_fte` WHERE `id_nomina` = :id_nomina AND `estado` = 1 GROUP BY `id_empleado`),
                     `luto` AS 
                         (SELECT
                             `nom_licencia_luto`.`id_empleado`, SUM(`nom_liq_licluto`.`val_liq`) AS `valor`, SUM(`nom_liq_licluto`.`dias_licluto`) AS `dias`
@@ -156,21 +156,21 @@ class Detalles
                         WHERE (`nom_liq_licnr`.`estado` = 1 AND `nom_liq_licnr`.`id_nomina` = :id_nomina)
                         GROUP BY `nom_licenciasnr`.`id_empleado`),
                     `pris` AS 
-                        (SELECT `id_empleado`,`val_liq_ps`, `cant_dias` AS `dias_ps`, `corte` AS `corte_ps` FROM `nom_liq_prima` WHERE `estado` = 1 AND `id_nomina` = :id_nomina),
+                        (SELECT `id_empleado`, SUM(`val_liq_ps`) AS `val_liq_ps`, SUM(`cant_dias`) AS `dias_ps`, MAX(`corte`) AS `corte_ps` FROM `nom_liq_prima` WHERE `estado` = 1 AND `id_nomina` = :id_nomina GROUP BY `id_empleado`),
                     `prin` AS
-                        (SELECT `id_empleado`,`val_liq_pv`, `cant_dias` AS `dias_pn`, `corte` AS `corte_pn` FROM `nom_liq_prima_nav` WHERE `estado` = 1 AND `id_nomina` = :id_nomina),
+                        (SELECT `id_empleado`, SUM(`val_liq_pv`) AS `val_liq_pv`, SUM(`cant_dias`) AS `dias_pn`, MAX(`corte`) AS `corte_pn` FROM `nom_liq_prima_nav` WHERE `estado` = 1 AND `id_nomina` = :id_nomina GROUP BY `id_empleado`),
                     `segs` AS
                         (SELECT 
                             `nlsse`.`id_empleado`,
-                            `tbt`.`nom_tercero` AS `nom_eps`,
-                            `nlsse`.`aporte_salud_emp`,
-                            `tbt2`.`nom_tercero` AS `nom_afp`,
-                            `nlsse`.`aporte_pension_emp`, 
-                            `nlsse`.`aporte_solidaridad_pensional`, 
-                            `nlsse`.`aporte_salud_empresa`, 
-                            `nlsse`.`aporte_pension_empresa`, 
-                            `tbt3`.`nom_tercero` AS `nom_arl`,
-                            `nlsse`.`aporte_rieslab` 
+                            MAX(`tbt`.`nom_tercero`) AS `nom_eps`,
+                            SUM(`nlsse`.`aporte_salud_emp`) AS `aporte_salud_emp`,
+                            MAX(`tbt2`.`nom_tercero`) AS `nom_afp`,
+                            SUM(`nlsse`.`aporte_pension_emp`) AS `aporte_pension_emp`, 
+                            SUM(`nlsse`.`aporte_solidaridad_pensional`) AS `aporte_solidaridad_pensional`, 
+                            SUM(`nlsse`.`aporte_salud_empresa`) AS `aporte_salud_empresa`, 
+                            SUM(`nlsse`.`aporte_pension_empresa`) AS `aporte_pension_empresa`, 
+                            MAX(`tbt3`.`nom_tercero`) AS `nom_arl`,
+                            SUM(`nlsse`.`aporte_rieslab`) AS `aporte_rieslab` 
                         FROM `nom_liq_segsocial_empdo`  as `nlsse`
                             INNER JOIN `nom_terceros` as `eps`
                                 ON (`nlsse`.`id_eps` = `eps`.`id_tn`)
@@ -184,7 +184,8 @@ class Detalles
                                 ON (`afp`.`id_tercero_api` = `tbt2`.`id_tercero_api`)
                             LEFT JOIN `tb_terceros` as `tbt3`
                                 ON (`arl`.`id_tercero_api` = `tbt3`.`id_tercero_api`)
-                        WHERE `nlsse`.`id_nomina` = :id_nomina AND `nlsse`.`estado` = 1),
+                        WHERE `nlsse`.`id_nomina` = :id_nomina AND `nlsse`.`estado` = 1
+                        GROUP BY `nlsse`.`id_empleado`),
                     `sind` AS 
                         (SELECT
                             `nom_cuota_sindical`.`id_empleado`, SUM(`nom_liq_sindicato_aportes`.`val_aporte`) AS `val_aporte`
@@ -210,33 +211,35 @@ class Detalles
                         WHERE (`nom_liq_vac`.`estado` = 1 AND `nom_liq_vac`.`id_nomina` = :id_nomina)
                         GROUP BY `nom_vacaciones`.`id_empleado`),
                     `sal` AS 
-                        (SELECT `id_empleado`,`sal_base`,`id_contrato`,`val_liq`, `metodo_pago` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`, MAX(`sal_base`) AS `sal_base`, MAX(`id_contrato`) AS `id_contrato`, SUM(`val_liq`) AS `val_liq`, MAX(`metodo_pago`) AS `metodo_pago` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1 GROUP BY `id_empleado`),
                     `cargo` AS 
                         (SELECT
                             `nom_liq_salario`.`id_empleado`
-                            , `nom_cargo_empleado`.`descripcion_carg`
-                            , `nom_cargo_empleado`.`tipo_cargo`
+                            , MAX(`nom_cargo_empleado`.`descripcion_carg`) AS `descripcion_carg`
+                            , MAX(`nom_cargo_empleado`.`tipo_cargo`) AS `tipo_cargo`
                         FROM
                             `nom_liq_salario`
                             INNER JOIN `nom_contratos_empleados` 
                                 ON (`nom_liq_salario`.`id_contrato` = `nom_contratos_empleados`.`id_contrato_emp`)
                             LEFT JOIN `nom_cargo_empleado` 
                                 ON (`nom_contratos_empleados`.`id_cargo` = `nom_cargo_empleado`.`id_cargo`)
-                        WHERE (`nom_liq_salario`.`id_nomina` = :id_nomina AND `nom_liq_salario`.`estado` = 1)),
+                        WHERE (`nom_liq_salario`.`id_nomina` = :id_nomina AND `nom_liq_salario`.`estado` = 1)
+                        GROUP BY `nom_liq_salario`.`id_empleado`),
                     `paraf` AS 
-                        (SELECT `id_empleado`,`val_sena`,`val_icbf`,`val_comfam` FROM `nom_liq_parafiscales` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`, SUM(`val_sena`) AS `val_sena`, SUM(`val_icbf`) AS `val_icbf`, SUM(`val_comfam`) AS `val_comfam` FROM `nom_liq_parafiscales` WHERE `id_nomina` = :id_nomina AND `estado` = 1 GROUP BY `id_empleado`),
                     `nom` AS
                         (SELECT `id_nomina`, `mes`, `tipo`, `estado` FROM `nom_nominas` WHERE `id_nomina` IN ($ids_in) LIMIT 1),
                     `indem` AS
                         (SELECT
                             `nom_indemniza_vac`.`id_empleado`
-                            , `nom_liq_indemniza_vac`.`val_liq` AS `val_indemniza`
+                            , SUM(`nom_liq_indemniza_vac`.`val_liq`) AS `val_indemniza`
                         FROM
                             `nom_liq_indemniza_vac`
                             INNER JOIN `nom_indemniza_vac` 
                                 ON (`nom_liq_indemniza_vac`.`id_indemnizacion` = `nom_indemniza_vac`.`id_indemniza`)
                         WHERE (`nom_liq_indemniza_vac`.`estado` = 1
-                            AND `nom_liq_indemniza_vac`.`id_nomina` = :id_nomina)),
+                            AND `nom_liq_indemniza_vac`.`id_nomina` = :id_nomina)
+                        GROUP BY `nom_indemniza_vac`.`id_empleado`),
                     `ccosto` AS
                         (SELECT `id_empleado`, GROUP_CONCAT(`id_ccosto` SEPARATOR ',') AS `id_ccosto` FROM `nom_ccosto_empleado` GROUP BY `id_empleado`)
                 SELECT 
@@ -430,18 +433,19 @@ class Detalles
 
         $sql = "WITH
                     `sal` AS 
-                        (SELECT `id_empleado`,`sal_base`,`id_contrato`,`val_liq` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`, MAX(`sal_base`) AS `sal_base`, MAX(`id_contrato`) AS `id_contrato`, SUM(`val_liq`) AS `val_liq` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1 GROUP BY `id_empleado`),
                     `cargo` AS 
                         (SELECT
                             `nom_liq_salario`.`id_empleado`
-                            , `nom_cargo_empleado`.`descripcion_carg`
+                            , MAX(`nom_cargo_empleado`.`descripcion_carg`) AS `descripcion_carg`
                         FROM
                             `nom_liq_salario`
                             INNER JOIN `nom_contratos_empleados` 
                             ON (`nom_liq_salario`.`id_contrato` = `nom_contratos_empleados`.`id_contrato_emp`)
                             LEFT JOIN `nom_cargo_empleado` 
                             ON (`nom_contratos_empleados`.`id_cargo` = `nom_cargo_empleado`.`id_cargo`)
-                        WHERE (`nom_liq_salario`.`id_nomina` = :id_nomina AND `nom_liq_salario`.`estado` = 1))
+                        WHERE (`nom_liq_salario`.`id_nomina` = :id_nomina AND `nom_liq_salario`.`estado` = 1)
+                        GROUP BY `nom_liq_salario`.`id_empleado`)
                     SELECT 
                         COUNT(*) AS `total`
                     FROM `nom_empleado` `e`
@@ -467,18 +471,19 @@ class Detalles
 
         $sql = "WITH
                     `sal` AS 
-                        (SELECT `id_empleado`,`sal_base`,`id_contrato`,`val_liq` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1),
+                        (SELECT `id_empleado`, MAX(`sal_base`) AS `sal_base`, MAX(`id_contrato`) AS `id_contrato`, SUM(`val_liq`) AS `val_liq` FROM `nom_liq_salario` WHERE `id_nomina` = :id_nomina AND `estado` = 1 GROUP BY `id_empleado`),
                     `cargo` AS 
                         (SELECT
                             `nom_liq_salario`.`id_empleado`
-                            , `nom_cargo_empleado`.`descripcion_carg`
+                            , MAX(`nom_cargo_empleado`.`descripcion_carg`) AS `descripcion_carg`
                         FROM
                             `nom_liq_salario`
                             INNER JOIN `nom_contratos_empleados` 
                             ON (`nom_liq_salario`.`id_contrato` = `nom_contratos_empleados`.`id_contrato_emp`)
                             LEFT JOIN `nom_cargo_empleado` 
                             ON (`nom_contratos_empleados`.`id_cargo` = `nom_cargo_empleado`.`id_cargo`)
-                        WHERE (`nom_liq_salario`.`id_nomina` = :id_nomina AND `nom_liq_salario`.`estado` = 1))
+                        WHERE (`nom_liq_salario`.`id_nomina` = :id_nomina AND `nom_liq_salario`.`estado` = 1)
+                        GROUP BY `nom_liq_salario`.`id_empleado`)
                     SELECT 
                         COUNT(*) AS `total`
                     FROM `nom_empleado` `e`
