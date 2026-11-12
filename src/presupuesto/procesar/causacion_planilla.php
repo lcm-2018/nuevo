@@ -21,8 +21,20 @@ $fec_doc = $data[2];
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
+    $has_dpto_caja = false;
+    try {
+        $rsCol = $cmd->query("SHOW COLUMNS FROM `nom_parafiscales` LIKE 'dpto_caja'");
+        $has_dpto_caja = ($rsCol && $rsCol->fetch() !== false);
+        if ($rsCol) {
+            $rsCol->closeCursor();
+        }
+    } catch (Exception $e) {
+        $has_dpto_caja = false;
+    }
+
+    $col_dpto = $has_dpto_caja ? ', `dpto_caja`' : '';
     $sql = "SELECT
-                `id_parafiscal`,`id_tercero_api`,`tipo`
+                `id_parafiscal`,`id_tercero_api`,`tipo`{$col_dpto}
             FROM `nom_parafiscales`
             ORDER BY `id_parafiscal` DESC";
     $rs = $cmd->query($sql);
@@ -39,8 +51,16 @@ $kpf = array_search('SENA', array_column($parafiscales, 'tipo'));
 $id_api_sena = $kpf !== false ? $parafiscales[$kpf]['id_tercero_api'] : exit('No se ha configurado el parafiscal SENA');
 $kpf = array_search('ICBF', array_column($parafiscales, 'tipo'));
 $id_api_icbf = $kpf !== false ? $parafiscales[$kpf]['id_tercero_api'] : exit('No se ha configurado el parafiscal ICBF');
-$kpf = array_search('CAJA', array_column($parafiscales, 'tipo'));
-$id_api_comfam = $kpf !== false ? $parafiscales[$kpf]['id_tercero_api'] : exit('No se ha configurado el parafiscal CAJA DE COMPENSACION');
+
+// Filtrar cajas de compensación configuradas
+$cajas_config = array_values(array_filter($parafiscales, function ($p) {
+    return $p['tipo'] === 'CAJA';
+}));
+
+if (empty($cajas_config)) {
+    exit('No se ha configurado el parafiscal CAJA DE COMPENSACION');
+}
+$num_cajas = $has_dpto_caja ? count($cajas_config) : 1;
 
 // Validar saldo en rubros
 try {
@@ -202,6 +222,64 @@ try {
     exit();
 }
 
+// Resolver detalle de aportes a Caja de Compensación (Monocaja vs Multicaja)
+$cajas_detalle = ['admin' => [], 'oper' => []];
+
+if ($num_cajas === 1) {
+    // Condición 3: Si solo hay una caja, se toma la disponible sin importar el departamento
+    $id_caja_unica = $cajas_config[0]['id_tercero_api'];
+    if (($admin['caja'] ?? 0) > 0) {
+        $cajas_detalle['admin'][$id_caja_unica] = $admin['caja'];
+    }
+    if (($oper['caja'] ?? 0) > 0) {
+        $cajas_detalle['oper'][$id_caja_unica] = $oper['caja'];
+    }
+} else {
+    // Condición 4: Si hay más de una caja, relacionar empleado -> sede -> municipio -> departamento -> dpto_caja
+    try {
+        $cmd = \Config\Clases\Conexion::getConexion();
+        $sql = "SELECT
+                    IF(`nca`.`tipo_cargo` = 1, 'admin', 'oper') AS `cargo`,
+                    `np`.`id_tercero_api`,
+                    `m`.`id_departamento`,
+                    SUM(`nlp`.`val_comfam`) AS `valor`
+                FROM `nom_liq_parafiscales` AS `nlp`
+                INNER JOIN (
+                    SELECT `id_empleado`, MAX(`id_contrato`) AS `id_contrato`
+                    FROM `nom_liq_salario`
+                    WHERE `id_nomina` = ? AND `estado` = 1
+                    GROUP BY `id_empleado`
+                ) AS `sal` ON `sal`.`id_empleado` = `nlp`.`id_empleado`
+                INNER JOIN `nom_contratos_empleados` AS `nce` ON `nce`.`id_contrato_emp` = `sal`.`id_contrato`
+                INNER JOIN `nom_cargo_empleado` AS `nca` ON `nca`.`id_cargo` = `nce`.`id_cargo`
+                INNER JOIN `nom_empleado` AS `ne` ON `ne`.`id_empleado` = `nlp`.`id_empleado`
+                LEFT JOIN `tb_sedes` AS `s` ON `s`.`id_sede` = `ne`.`sede_emp`
+                LEFT JOIN `tb_municipios` AS `m` ON `m`.`id_municipio` = `s`.`id_municipio`
+                LEFT JOIN `nom_parafiscales` AS `np` ON (`np`.`tipo` = 'CAJA' AND `np`.`dpto_caja` = `m`.`id_departamento`)
+                WHERE `nlp`.`id_nomina` = ? 
+                    AND `nlp`.`estado` = 1 
+                    AND `nlp`.`val_comfam` > 0
+                GROUP BY `nca`.`tipo_cargo`, `np`.`id_tercero_api`, `m`.`id_departamento`";
+        $stmt = $cmd->prepare($sql);
+        $stmt->execute([$id_nomina, $id_nomina]);
+        $cajas_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        $cmd = null;
+
+        foreach ($cajas_rows as $cr) {
+            if (empty($cr['id_tercero_api'])) {
+                $dptoId = !empty($cr['id_departamento']) ? $cr['id_departamento'] : 'sin sede/municipio asignado';
+                exit("Existen empleados con aporte a caja de compensación cuyo departamento (ID: {$dptoId}) no tiene una Caja de Compensación configurada en parafiscales.");
+            }
+            $cajas_detalle[$cr['cargo']][$cr['id_tercero_api']] = ($cajas_detalle[$cr['cargo']][$cr['id_tercero_api']] ?? 0) + $cr['valor'];
+        }
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+        exit();
+    }
+}
+
 $meses = array(
     '00' => '',
     '01' => 'Enero',
@@ -240,7 +318,6 @@ $map = [
 ];
 
 $terceros_map = [
-    'caja' => $id_api_comfam,
     'icbf' => $id_api_icbf,
     'sena' => $id_api_sena
 ];
@@ -339,11 +416,11 @@ try {
         // Procesar administrativo
         if ($valAdmin > 0) {
             $rubro = $rb['r_admin'];
+            $valores_detalle = [];
 
-            // Determinar terceros según el tipo
-            if (in_array($key, ['eps', 'arl', 'afp'])) {
-                // Para seguridad social, puede haber múltiples terceros
-                $valores_detalle = [];
+            if ($key === 'caja') {
+                $valores_detalle = $cajas_detalle['admin'] ?? [];
+            } elseif (in_array($key, ['eps', 'arl', 'afp'])) {
                 foreach ($datos as $row) {
                     if ($row['cargo'] == 'admin' && $row['tipo'] == $key && $row['valor'] > 0) {
                         $id_tercero_seg = $idsTercero[$key][$row['id']] ?? null;
@@ -352,38 +429,27 @@ try {
                         }
                     }
                 }
-
-                foreach ($valores_detalle as $id_tercero => $valor) {
-                    if ($valor > 0) {
-                        $query->execute();
-                        $id_detalle_cdp = $cmd->lastInsertId();
-                        if ($id_detalle_cdp > 0) {
-                            Logs::guardaLog("INSERT INTO `pto_cdp_detalle` (`id_pto_cdp`, `id_rubro`, `valor`, `valor_liberado`) VALUES ($id_cdp, $rubro, $valor, $liberado)");
-                            $sqly->execute();
-                            if (!($cmd->lastInsertId() > 0)) {
-                                throw new Exception($sqly->errorInfo()[2]);
-                            }
-                            Logs::guardaLog("INSERT INTO `pto_crp_detalle` (`id_pto_crp`, `id_pto_cdp_det`, `id_tercero_api`, `valor`, `valor_liberado`) VALUES ($id_crp, $id_detalle_cdp, $id_tercero, $valor, $liberado)");
-                        } else {
-                            throw new Exception($query->errorInfo()[2]);
-                        }
-                    }
-                }
             } else {
-                // Para parafiscales (caja, icbf, sena) usar el tercero configurado
-                $valor = $valAdmin;
-                $id_tercero = $terceros_map[$key];
-                $query->execute();
-                $id_detalle_cdp = $cmd->lastInsertId();
-                if ($id_detalle_cdp > 0) {
-                    Logs::guardaLog("INSERT INTO `pto_cdp_detalle` (`id_pto_cdp`, `id_rubro`, `valor`, `valor_liberado`) VALUES ($id_cdp, $rubro, $valor, $liberado)");
-                    $sqly->execute();
-                    if (!($cmd->lastInsertId() > 0)) {
-                        throw new Exception($sqly->errorInfo()[2]);
+                $id_tercero_fijo = $terceros_map[$key] ?? null;
+                if ($id_tercero_fijo) {
+                    $valores_detalle[$id_tercero_fijo] = $valAdmin;
+                }
+            }
+
+            foreach ($valores_detalle as $id_tercero => $valor) {
+                if ($valor > 0) {
+                    $query->execute();
+                    $id_detalle_cdp = $cmd->lastInsertId();
+                    if ($id_detalle_cdp > 0) {
+                        Logs::guardaLog("INSERT INTO `pto_cdp_detalle` (`id_pto_cdp`, `id_rubro`, `valor`, `valor_liberado`) VALUES ($id_cdp, $rubro, $valor, $liberado)");
+                        $sqly->execute();
+                        if (!($cmd->lastInsertId() > 0)) {
+                            throw new Exception($sqly->errorInfo()[2]);
+                        }
+                        Logs::guardaLog("INSERT INTO `pto_crp_detalle` (`id_pto_crp`, `id_pto_cdp_det`, `id_tercero_api`, `valor`, `valor_liberado`) VALUES ($id_crp, $id_detalle_cdp, $id_tercero, $valor, $liberado)");
+                    } else {
+                        throw new Exception($query->errorInfo()[2]);
                     }
-                    Logs::guardaLog("INSERT INTO `pto_crp_detalle` (`id_pto_crp`, `id_pto_cdp_det`, `id_tercero_api`, `valor`, `valor_liberado`) VALUES ($id_crp, $id_detalle_cdp, $id_tercero, $valor, $liberado)");
-                } else {
-                    throw new Exception($query->errorInfo()[2]);
                 }
             }
         }
@@ -391,11 +457,11 @@ try {
         // Procesar operativo
         if ($valOper > 0) {
             $rubro = $rb['r_operativo'];
+            $valores_detalle = [];
 
-            // Determinar terceros según el tipo
-            if (in_array($key, ['eps', 'arl', 'afp'])) {
-                // Para seguridad social, puede haber múltiples terceros
-                $valores_detalle = [];
+            if ($key === 'caja') {
+                $valores_detalle = $cajas_detalle['oper'] ?? [];
+            } elseif (in_array($key, ['eps', 'arl', 'afp'])) {
                 foreach ($datos as $row) {
                     if ($row['cargo'] == 'oper' && $row['tipo'] == $key && $row['valor'] > 0) {
                         $id_tercero_seg = $idsTercero[$key][$row['id']] ?? null;
@@ -404,38 +470,27 @@ try {
                         }
                     }
                 }
-
-                foreach ($valores_detalle as $id_tercero => $valor) {
-                    if ($valor > 0) {
-                        $query->execute();
-                        $id_detalle_cdp = $cmd->lastInsertId();
-                        if ($id_detalle_cdp > 0) {
-                            Logs::guardaLog("INSERT INTO `pto_cdp_detalle` (`id_pto_cdp`, `id_rubro`, `valor`, `valor_liberado`) VALUES ($id_cdp, $rubro, $valor, $liberado)");
-                            $sqly->execute();
-                            if (!($cmd->lastInsertId() > 0)) {
-                                throw new Exception($sqly->errorInfo()[2]);
-                            }
-                            Logs::guardaLog("INSERT INTO `pto_crp_detalle` (`id_pto_crp`, `id_pto_cdp_det`, `id_tercero_api`, `valor`, `valor_liberado`) VALUES ($id_crp, $id_detalle_cdp, $id_tercero, $valor, $liberado)");
-                        } else {
-                            throw new Exception($query->errorInfo()[2]);
-                        }
-                    }
-                }
             } else {
-                // Para parafiscales (caja, icbf, sena) usar el tercero configurado
-                $valor = $valOper;
-                $id_tercero = $terceros_map[$key];
-                $query->execute();
-                $id_detalle_cdp = $cmd->lastInsertId();
-                if ($id_detalle_cdp > 0) {
-                    Logs::guardaLog("INSERT INTO `pto_cdp_detalle` (`id_pto_cdp`, `id_rubro`, `valor`, `valor_liberado`) VALUES ($id_cdp, $rubro, $valor, $liberado)");
-                    $sqly->execute();
-                    if (!($cmd->lastInsertId() > 0)) {
-                        throw new Exception($sqly->errorInfo()[2]);
+                $id_tercero_paraf = $terceros_map[$key] ?? null;
+                if ($id_tercero_paraf) {
+                    $valores_detalle[$id_tercero_paraf] = $valOper;
+                }
+            }
+
+            foreach ($valores_detalle as $id_tercero => $valor) {
+                if ($valor > 0) {
+                    $query->execute();
+                    $id_detalle_cdp = $cmd->lastInsertId();
+                    if ($id_detalle_cdp > 0) {
+                        Logs::guardaLog("INSERT INTO `pto_cdp_detalle` (`id_pto_cdp`, `id_rubro`, `valor`, `valor_liberado`) VALUES ($id_cdp, $rubro, $valor, $liberado)");
+                        $sqly->execute();
+                        if (!($cmd->lastInsertId() > 0)) {
+                            throw new Exception($sqly->errorInfo()[2]);
+                        }
+                        Logs::guardaLog("INSERT INTO `pto_crp_detalle` (`id_pto_crp`, `id_pto_cdp_det`, `id_tercero_api`, `valor`, `valor_liberado`) VALUES ($id_crp, $id_detalle_cdp, $id_tercero, $valor, $liberado)");
+                    } else {
+                        throw new Exception($query->errorInfo()[2]);
                     }
-                    Logs::guardaLog("INSERT INTO `pto_crp_detalle` (`id_pto_crp`, `id_pto_cdp_det`, `id_tercero_api`, `valor`, `valor_liberado`) VALUES ($id_crp, $id_detalle_cdp, $id_tercero, $valor, $liberado)");
-                } else {
-                    throw new Exception($query->errorInfo()[2]);
                 }
             }
         }

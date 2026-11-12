@@ -22,11 +22,23 @@ $fecha = $data[3];
 // Obtener configuración de parafiscales
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT `id_parafiscal`, `id_tercero_api`, `tipo`
+    $has_dpto_caja = false;
+    try {
+        $rsCol = $cmd->query("SHOW COLUMNS FROM `nom_parafiscales` LIKE 'dpto_caja'");
+        $has_dpto_caja = ($rsCol && $rsCol->fetch() !== false);
+        if ($rsCol) {
+            $rsCol->closeCursor();
+        }
+    } catch (Exception $e) {
+        $has_dpto_caja = false;
+    }
+
+    $col_dpto = $has_dpto_caja ? ', `dpto_caja`' : '';
+    $sql = "SELECT `id_parafiscal`, `id_tercero_api`, `tipo`{$col_dpto}
             FROM `nom_parafiscales`
             ORDER BY `id_parafiscal` DESC";
     $rs = $cmd->query($sql);
-    $parafiscales = $rs->fetchAll();
+    $parafiscales = $rs->fetchAll(PDO::FETCH_ASSOC);
     $rs->closeCursor();
     unset($rs);
 
@@ -40,8 +52,16 @@ $kpf = array_search('SENA', array_column($parafiscales, 'tipo'));
 $id_api_sena = $kpf !== false ? $parafiscales[$kpf]['id_tercero_api'] : exit('No se ha configurado el parafiscal SENA');
 $kpf = array_search('ICBF', array_column($parafiscales, 'tipo'));
 $id_api_icbf = $kpf !== false ? $parafiscales[$kpf]['id_tercero_api'] : exit('No se ha configurado el parafiscal ICBF');
-$kpf = array_search('CAJA', array_column($parafiscales, 'tipo'));
-$id_api_comfam = $kpf !== false ? $parafiscales[$kpf]['id_tercero_api'] : exit('No se ha configurado el parafiscal CAJA DE COMPENSACION');
+
+// Filtrar cajas de compensación configuradas
+$cajas_config = array_values(array_filter($parafiscales, function ($p) {
+    return $p['tipo'] === 'CAJA';
+}));
+
+if (empty($cajas_config)) {
+    exit('No se ha configurado el parafiscal CAJA DE COMPENSACION');
+}
+$num_cajas = $has_dpto_caja ? count($cajas_config) : 1;
 
 // Usar las clases para obtener datos
 $Detalles = new Detalles();
@@ -218,6 +238,94 @@ try {
     exit();
 }
 
+// Resolver detalle de aportes a Caja de Compensación (Monocaja vs Multicaja)
+$cajas_admin = [];
+$cajas_oper = [];
+$cajas_ccosto = [];
+$cajas_total = [];
+
+if ($num_cajas === 1) {
+    // Condición 3: Si solo hay una caja, se toma la disponible sin importar el departamento
+    $id_caja_unica = $cajas_config[0]['id_tercero_api'];
+    if (($admin['caja'] ?? 0) > 0) {
+        $cajas_admin[$id_caja_unica] = $admin['caja'];
+    }
+    if (($oper['caja'] ?? 0) > 0) {
+        $cajas_oper[$id_caja_unica] = $oper['caja'];
+    }
+    foreach ($totales as $cc => $t) {
+        if (!empty($t['caja'])) {
+            $cajas_ccosto[$cc][$id_caja_unica] = $t['caja'];
+        }
+    }
+    $cajas_total[$id_caja_unica] = ($admin['caja'] ?? 0) + ($oper['caja'] ?? 0);
+} else {
+    // Condición 4: Si hay más de una caja, relacionar empleado -> sede -> municipio -> departamento -> dpto_caja
+    try {
+        $cmd = \Config\Clases\Conexion::getConexion();
+        $sql = "SELECT
+                    IF(`nca`.`tipo_cargo` = 1, 'admin', 'oper') AS `cargo`,
+                    IFNULL(`cce`.`id_ccosto`, 21) AS `id_ccosto`,
+                    `np`.`id_tercero_api`,
+                    `m`.`id_departamento`,
+                    SUM(`nlp`.`val_comfam` / IFNULL(`cce`.`cant_ccosto`, 1)) AS `valor`
+                FROM `nom_liq_parafiscales` AS `nlp`
+                INNER JOIN (
+                    SELECT `id_empleado`, MAX(`id_contrato`) AS `id_contrato`
+                    FROM `nom_liq_salario`
+                    WHERE `id_nomina` = ? AND `estado` = 1
+                    GROUP BY `id_empleado`
+                ) AS `sal` ON `sal`.`id_empleado` = `nlp`.`id_empleado`
+                INNER JOIN `nom_contratos_empleados` AS `nce` ON `nce`.`id_contrato_emp` = `sal`.`id_contrato`
+                INNER JOIN `nom_cargo_empleado` AS `nca` ON `nca`.`id_cargo` = `nce`.`id_cargo`
+                INNER JOIN `nom_empleado` AS `ne` ON `ne`.`id_empleado` = `nlp`.`id_empleado`
+                LEFT JOIN (
+                    SELECT t1.id_empleado, t1.id_ccosto, t2.cant_ccosto
+                    FROM `nom_ccosto_empleado` t1
+                    INNER JOIN (
+                        SELECT id_empleado, COUNT(id_ccosto) AS cant_ccosto
+                        FROM `nom_ccosto_empleado`
+                        GROUP BY id_empleado
+                    ) t2 ON t1.id_empleado = t2.id_empleado
+                ) AS `cce` ON `cce`.`id_empleado` = `nlp`.`id_empleado`
+                LEFT JOIN `tb_sedes` AS `s` ON `s`.`id_sede` = `ne`.`sede_emp`
+                LEFT JOIN `tb_municipios` AS `m` ON `m`.`id_municipio` = `s`.`id_municipio`
+                LEFT JOIN `nom_parafiscales` AS `np` ON (`np`.`tipo` = 'CAJA' AND `np`.`dpto_caja` = `m`.`id_departamento`)
+                WHERE `nlp`.`id_nomina` = ? 
+                    AND `nlp`.`estado` = 1 
+                    AND `nlp`.`val_comfam` > 0
+                GROUP BY `nca`.`tipo_cargo`, IFNULL(`cce`.`id_ccosto`, 21), `np`.`id_tercero_api`, `m`.`id_departamento`";
+        $stmt = $cmd->prepare($sql);
+        $stmt->execute([$id_nomina, $id_nomina]);
+        $cajas_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+        $cmd = null;
+
+        foreach ($cajas_rows as $cr) {
+            if (empty($cr['id_tercero_api'])) {
+                $dptoId = !empty($cr['id_departamento']) ? $cr['id_departamento'] : 'sin sede/municipio asignado';
+                exit("Existen empleados con aporte a caja de compensación cuyo departamento (ID: {$dptoId}) no tiene una Caja de Compensación configurada en parafiscales.");
+            }
+            $id_ter_caja = $cr['id_tercero_api'];
+            $val_caja = floatval($cr['valor']);
+
+            if ($cr['cargo'] === 'admin') {
+                $cajas_admin[$id_ter_caja] = ($cajas_admin[$id_ter_caja] ?? 0) + $val_caja;
+            } else {
+                $cajas_oper[$id_ter_caja] = ($cajas_oper[$id_ter_caja] ?? 0) + $val_caja;
+            }
+
+            $cc = $cr['id_ccosto'];
+            $cajas_ccosto[$cc][$id_ter_caja] = ($cajas_ccosto[$cc][$id_ter_caja] ?? 0) + $val_caja;
+            $cajas_total[$id_ter_caja] = ($cajas_total[$id_ter_caja] ?? 0) + $val_caja;
+        }
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+        exit();
+    }
+}
+
 // Mapa entre id_tipo → clave usada en admin/oper
 $map = [
     11 => 'caja',
@@ -229,7 +337,6 @@ $map = [
 ];
 
 $terceros_map = [
-    'caja' => $id_api_comfam,
     'icbf' => $id_api_icbf,
     'sena' => $id_api_sena
 ];
@@ -362,7 +469,21 @@ try {
                 $rubro = $rb['r_admin'];
 
                 // Determinar terceros según el tipo
-                if (in_array($key, ['eps', 'arl', 'afp'])) {
+                if ($key === 'caja') {
+                    if (!empty($cajas_admin)) {
+                        foreach ($cajas_admin as $id_tercero_caja => $valor_caja) {
+                            $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero_caja);
+                            if ($id_det && $valor_caja > 0) {
+                                $valor = $valor_caja;
+                                $id_tercero = $id_tercero_caja;
+                                $query->execute();
+                                if (!($cmd->lastInsertId() > 0)) {
+                                    throw new Exception($query->errorInfo()[2]);
+                                }
+                            }
+                        }
+                    }
+                } elseif (in_array($key, ['eps', 'arl', 'afp'])) {
                     // Para seguridad social, puede haber múltiples terceros
                     if (!empty($admin[$key])) {
                         foreach ($admin[$key] as $id_entidad => $valor_seg) {
@@ -381,7 +502,7 @@ try {
                         }
                     }
                 } else {
-                    // Para parafiscales (caja, icbf, sena) usar el tercero configurado
+                    // Para parafiscales (icbf, sena) usar el tercero configurado
                     $valor = $valAdmin;
                     $id_tercero = $terceros_map[$key];
                     $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
@@ -399,7 +520,21 @@ try {
                 $rubro = $rb['r_operativo'];
 
                 // Determinar terceros según el tipo
-                if (in_array($key, ['eps', 'arl', 'afp'])) {
+                if ($key === 'caja') {
+                    if (!empty($cajas_oper)) {
+                        foreach ($cajas_oper as $id_tercero_caja => $valor_caja) {
+                            $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero_caja);
+                            if ($id_det && $valor_caja > 0) {
+                                $valor = $valor_caja;
+                                $id_tercero = $id_tercero_caja;
+                                $query->execute();
+                                if (!($cmd->lastInsertId() > 0)) {
+                                    throw new Exception($query->errorInfo()[2]);
+                                }
+                            }
+                        }
+                    }
+                } elseif (in_array($key, ['eps', 'arl', 'afp'])) {
                     // Para seguridad social, puede haber múltiples terceros
                     if (!empty($oper[$key])) {
                         foreach ($oper[$key] as $id_entidad => $valor_seg) {
@@ -418,7 +553,7 @@ try {
                         }
                     }
                 } else {
-                    // Para parafiscales (caja, icbf, sena) usar el tercero configurado
+                    // Para parafiscales (icbf, sena) usar el tercero configurado
                     $valor = $valOper;
                     $id_tercero = $terceros_map[$key];
                     $id_det = IdDetalle($ids_detalle, $rubro, $id_tercero);
@@ -462,7 +597,22 @@ try {
             $cuenta = $ca['cuenta'];
             $valor = 0;
 
-            if (in_array($key, ['eps', 'arl', 'afp'])) {
+            if ($key === 'caja') {
+                if (!empty($cajas_ccosto[$cc])) {
+                    foreach ($cajas_ccosto[$cc] as $id_tercero_caja => $valor_caja) {
+                        if ($valor_caja > 0 && $id_tercero_caja) {
+                            $valor = $valor_caja;
+                            $val_pas = isset($vPasivos['caja'][$id_tercero_caja]) ? $vPasivos['caja'][$id_tercero_caja] : 0;
+                            $vPasivos['caja'][$id_tercero_caja] = $valor + $val_pas;
+                            $id_tercero = $id_tercero_caja;
+                            $query->execute();
+                            if (!($cmd->lastInsertId() > 0)) {
+                                throw new Exception($query->errorInfo()[2]);
+                            }
+                        }
+                    }
+                }
+            } elseif (in_array($key, ['eps', 'arl', 'afp'])) {
                 // Para seguridad social, puede haber múltiples terceros
                 if (!empty($t[$key])) {
                     foreach ($t[$key] as $id_entidad => $valor_seg) {
@@ -479,7 +629,7 @@ try {
                     }
                 }
             } else {
-                // Para parafiscales
+                // Para parafiscales fijos (sena, icbf)
                 $valor = isset($t[$key]) && $t[$key] > 0 ? $t[$key] : 0;
                 if ($valor > 0) {
                     $val_pas = isset($vPasivos[$key]) ? $vPasivos[$key] : 0;
@@ -509,7 +659,20 @@ try {
         $cuenta = $cp['cuenta'];
         $credito = 0;
 
-        if (in_array($key, ['eps', 'arl', 'afp'])) {
+        if ($key === 'caja') {
+            if (!empty($vPasivos['caja'])) {
+                foreach ($vPasivos['caja'] as $id_tercero_caja => $value) {
+                    $id_tercero = $id_tercero_caja;
+                    $credito = $value;
+                    if ($credito > 0 && $id_tercero) {
+                        $query->execute();
+                        if (!($cmd->lastInsertId() > 0)) {
+                            throw new Exception($query->errorInfo()[2]);
+                        }
+                    }
+                }
+            }
+        } elseif (in_array($key, ['eps', 'arl', 'afp'])) {
             // Para seguridad social
             if (!empty($vPasivos[$key])) {
                 foreach ($vPasivos[$key] as $id_entidad => $value) {
@@ -524,7 +687,7 @@ try {
                 }
             }
         } else {
-            // Para parafiscales
+            // Para parafiscales (icbf, sena)
             $credito = isset($vPasivos[$key]) && $vPasivos[$key] > 0 ? $vPasivos[$key] : 0;
             $id_tercero = $terceros_map[$key];
             if ($credito > 0) {
