@@ -275,8 +275,16 @@ class Incrementos
                 $lista = $empledos->getEmpleados();
                 foreach ($lista as $e) {
                     $contrato = $empledos->getContratoActivo($e['id_empleado']);
+                    if ($contrato <= 0) {
+                        // Fallback para empleados liquidados o retirados en la vigencia
+                        $stmtCtt = $this->conexion->prepare("SELECT MAX(`id_contrato_emp`) AS `id` FROM `nom_contratos_empleados` WHERE `id_empleado` = ?");
+                        $stmtCtt->execute([$e['id_empleado']]);
+                        $rowCtt = $stmtCtt->fetch(PDO::FETCH_ASSOC);
+                        $stmtCtt->closeCursor();
+                        $contrato = intval($rowCtt['id'] ?? 0);
+                    }
                     $salario = $empledos->getSalario($contrato);
-                    if ($salario == 0 || $salario === Parametros::Smmlv() || $e['estado'] == 0) {
+                    if ($salario == 0 || $salario === Parametros::Smmlv()) {
                         $new_salario = 0;
                         continue;
                     } else {

@@ -410,7 +410,7 @@ class Liquidacion
                             `e`.`no_documento`,
                             CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
                             MAX(`ls`.`id_contrato`) AS `id_contrato`,
-                            SUM(IFNULL(`d`.`dias_liq`, 0)) AS `laborado`,
+                            SUM(IFNULL(`d`.`dias_liq`, 0) + IFNULL(`comp`.`dias`, 0)) AS `laborado`,
                             SUM(IFNULL(`inc`.`dias`, 0)) AS `inc`,
                             SUM(IFNULL(`licl`.`dias`, 0) + IFNULL(`licm`.`dias`, 0) + IFNULL(`licn`.`dias`, 0)) AS `lic`,
                             SUM(IFNULL(`vac`.`dias`, 0)) AS `vac`,
@@ -421,7 +421,7 @@ class Liquidacion
                             ON (`ls`.`id_nomina` = `n`.`id_nomina` AND `ls`.`estado` = 1)
                         INNER JOIN `nom_empleado` `e`
                             ON (`e`.`id_empleado` = `ls`.`id_empleado`)
-                        INNER JOIN (
+                        LEFT JOIN (
                             SELECT `sb1`.`id_empleado`, `sb1`.`salario_basico`
                             FROM `nom_salarios_basico` `sb1`
                             INNER JOIN (
@@ -433,8 +433,25 @@ class Liquidacion
                             ) `sb2` ON (`sb1`.`id_salario` = `sb2`.`id_salario`)
                         ) `sal`
                             ON (`sal`.`id_empleado` = `ls`.`id_empleado`)
+                        LEFT JOIN (
+                            SELECT `sb3`.`id_empleado`, `sb3`.`salario_basico`
+                            FROM `nom_salarios_basico` `sb3`
+                            INNER JOIN (
+                                SELECT MAX(`id_salario`) AS `id_salario`
+                                FROM `nom_salarios_basico`
+                                GROUP BY `id_empleado`
+                            ) `sb4` ON (`sb3`.`id_salario` = `sb4`.`id_salario`)
+                        ) `sal_prev`
+                            ON (`sal_prev`.`id_empleado` = `ls`.`id_empleado`)
                         LEFT JOIN `nom_liq_dlab_auxt` `d`
                             ON (`d`.`id_nomina` = `n`.`id_nomina` AND `d`.`id_empleado` = `ls`.`id_empleado` AND `d`.`estado` = 1)
+                        LEFT JOIN (
+                            SELECT `id_nomina`, `id_empleado`, SUM(`dias`) AS `dias`
+                            FROM `nom_liq_compesatorio`
+                            WHERE `estado` = 1
+                            GROUP BY `id_nomina`, `id_empleado`
+                        ) `comp`
+                            ON (`comp`.`id_nomina` = `n`.`id_nomina` AND `comp`.`id_empleado` = `ls`.`id_empleado`)
                         LEFT JOIN (
                             SELECT `li`.`id_nomina`, `i`.`id_empleado`, SUM(`li`.`dias_liq`) AS `dias`
                             FROM `nom_liq_incap` `li`
@@ -482,8 +499,12 @@ class Liquidacion
                             ON (`vac`.`id_nomina` = `n`.`id_nomina` AND `vac`.`id_empleado` = `ls`.`id_empleado`)
                         WHERE `n`.`tipo` <> 'RA'
                             AND `n`.`estado` = 5
-                            AND `n`.`fecha` BETWEEN '{$retro['fec_inicio']}' AND '{$retro['fec_final']}'
-                            AND `sal`.`salario_basico` <> {$smmlv}
+                            AND (
+                                `n`.`fecha` BETWEEN '{$retro['fec_inicio']}' AND '{$retro['fec_final']}'
+                                OR (`n`.`tipo` = 'PS' AND `n`.`vigencia` = '{$retro['vigencia']}' AND `n`.`fecha` <= DATE_ADD('{$retro['fec_final']}', INTERVAL 1 MONTH))
+                            )
+                            AND COALESCE(`sal`.`salario_basico`, `sal_prev`.`salario_basico`, `ls`.`sal_base`, 0) <> {$smmlv}
+                            AND COALESCE(`sal`.`salario_basico`, `sal_prev`.`salario_basico`, `ls`.`sal_base`, 0) > 0
                         GROUP BY `e`.`id_empleado`, `e`.`no_documento`, `nombre`
                     ) `base`
                     WHERE 1 = 1 {$where}";
@@ -546,6 +567,7 @@ class Liquidacion
 
     private function getSalarioRetroactivoEmpleado($id_empleado, $retro)
     {
+        // 1. Intentar obtener el salario directo registrado con el id_incremento
         $sql = "SELECT `sb1`.`salario_basico`
                 FROM `nom_salarios_basico` `sb1`
                 INNER JOIN (
@@ -564,7 +586,74 @@ class Liquidacion
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         unset($stmt);
-        return floatval($row['salario_basico'] ?? 0);
+        $salario = floatval($row['salario_basico'] ?? 0);
+        if ($salario > 0) {
+            return $salario;
+        }
+
+        // 2. Fallback para empleados liquidados con Prestaciones Sociales o retirados (sin id_inc):
+        // Buscar el último salario básico registrado para el empleado
+        $sqlUltSal = "SELECT `salario_basico`, `id_contrato`
+                      FROM `nom_salarios_basico`
+                      WHERE `id_empleado` = ?
+                      ORDER BY `id_salario` DESC
+                      LIMIT 1";
+        $stmtUlt = $this->conexion->prepare($sqlUltSal);
+        $stmtUlt->bindValue(1, $id_empleado, PDO::PARAM_INT);
+        $stmtUlt->execute();
+        $rowUlt = $stmtUlt->fetch(PDO::FETCH_ASSOC);
+        $stmtUlt->closeCursor();
+        unset($stmtUlt);
+
+        $salBaseAnt = floatval($rowUlt['salario_basico'] ?? 0);
+        $idContrato = intval($rowUlt['id_contrato'] ?? 0);
+
+        // Si no está en nom_salarios_basico, buscarlo en la última liquidación de salario
+        if ($salBaseAnt <= 0) {
+            $sqlLiq = "SELECT `sal_base`, `id_contrato`
+                       FROM `nom_liq_salario`
+                       WHERE `id_empleado` = ? AND `estado` = 1 AND `sal_base` > 0
+                       ORDER BY `id_sal_liq` DESC
+                       LIMIT 1";
+            $stmtLiq = $this->conexion->prepare($sqlLiq);
+            $stmtLiq->bindValue(1, $id_empleado, PDO::PARAM_INT);
+            $stmtLiq->execute();
+            $rowLiq = $stmtLiq->fetch(PDO::FETCH_ASSOC);
+            $stmtLiq->closeCursor();
+            unset($stmtLiq);
+            $salBaseAnt = floatval($rowLiq['sal_base'] ?? 0);
+            if ($idContrato <= 0) {
+                $idContrato = intval($rowLiq['id_contrato'] ?? 0);
+            }
+        }
+
+        if ($salBaseAnt > 0) {
+            $porcentaje = floatval($retro['porcentaje'] ?? 0);
+            $salarioNuevo = Valores::Redondear($salBaseAnt * (1 + ($porcentaje / 100)));
+            if ($salarioNuevo > 0 && !empty($retro['id_incremento'])) {
+                try {
+                    $sqlInsSal = "INSERT INTO `nom_salarios_basico`
+                                  (`id_empleado`, `id_contrato`, `vigencia`, `salario_basico`, `id_inc`, `fec_reg`)
+                                  VALUES (?, ?, ?, ?, ?, ?)";
+                    $stmtInsSal = $this->conexion->prepare($sqlInsSal);
+                    $stmtInsSal->execute([
+                        $id_empleado,
+                        $idContrato,
+                        $retro['vigencia'],
+                        $salarioNuevo,
+                        $retro['id_incremento'],
+                        Sesion::Hoy()
+                    ]);
+                    $stmtInsSal->closeCursor();
+                    unset($stmtInsSal);
+                } catch (\Exception $e) {
+                    // Si ya existe o falla por constraint, no interrumpir
+                }
+            }
+            return $salarioNuevo;
+        }
+
+        return 0;
     }
 
     private function getRetroMensualData($id_empleado, $retro)
@@ -580,6 +669,8 @@ class Liquidacion
                     IFNULL(`ls`.`val_liq`, 0) AS `val_neto_pagado`,
                     IFNULL(`d`.`dias_liq`, 0) AS `dias_laborados`,
                     IFNULL(`d`.`val_liq_dias`, 0) AS `val_laborado`,
+                    IFNULL(`comp`.`val_compensa`, 0) AS `val_compensa_pagada`,
+                    IFNULL(`comp`.`dias`, 0) AS `dias_compensa_pagada`,
                     IFNULL(`d`.`horas_ext`, 0) AS `horas_ext`,
                     IFNULL(`d`.`val_liq_auxt`, 0) AS `val_aux_trans`,
                     IFNULL(`d`.`aux_alim`, 0) AS `val_aux_alim`,
@@ -639,6 +730,14 @@ class Liquidacion
                     ON (`ls`.`id_nomina` = `n`.`id_nomina` AND `ls`.`estado` = 1)
                 LEFT JOIN `nom_liq_dlab_auxt` `d`
                     ON (`d`.`id_nomina` = `n`.`id_nomina` AND `d`.`id_empleado` = `ls`.`id_empleado` AND `d`.`estado` = 1)
+                LEFT JOIN (
+                    SELECT `id_nomina`, `id_empleado`,
+                           SUM(`val_compensa`) AS `val_compensa`,
+                           SUM(`dias`) AS `dias`
+                    FROM `nom_liq_compesatorio`
+                    WHERE `estado` = 1
+                    GROUP BY `id_nomina`, `id_empleado`
+                ) `comp` ON (`comp`.`id_nomina` = `n`.`id_nomina` AND `comp`.`id_empleado` = `ls`.`id_empleado`)
                 LEFT JOIN `nom_liq_bsp` `bsp`
                     ON (`bsp`.`id_nomina` = `n`.`id_nomina` AND `bsp`.`id_empleado` = `ls`.`id_empleado` AND `bsp`.`estado` = 1)
                 LEFT JOIN `nom_liq_segsocial_empdo` `ss`
@@ -743,12 +842,17 @@ class Liquidacion
                 WHERE `n`.`tipo` <> 'RA'
                     AND `n`.`estado` = 5
                     AND `ls`.`id_empleado` = ?
-                    AND `n`.`fecha` BETWEEN ? AND ?
+                    AND (
+                        `n`.`fecha` BETWEEN ? AND ?
+                        OR (`n`.`tipo` = 'PS' AND `n`.`vigencia` = ? AND `n`.`fecha` <= DATE_ADD(?, INTERVAL 1 MONTH))
+                    )
                 ORDER BY `n`.`fecha`, `n`.`id_nomina`";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(1, $id_empleado, PDO::PARAM_INT);
         $stmt->bindValue(2, $retro['fec_inicio'], PDO::PARAM_STR);
         $stmt->bindValue(3, $retro['fec_final'], PDO::PARAM_STR);
+        $stmt->bindValue(4, $retro['vigencia'], PDO::PARAM_STR);
+        $stmt->bindValue(5, $retro['fec_final'], PDO::PARAM_STR);
         $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
@@ -1087,6 +1191,7 @@ class Liquidacion
                     'nom_liq_prima',
                     'nom_liq_prima_nav',
                     'nom_liq_cesantias',
+                    'nom_liq_compesatorio',
                 ];
                 foreach ($tablasLimpieza as $tbl) {
                     $stmtClean = $this->conexion->prepare("DELETE FROM `{$tbl}` WHERE `id_nomina` = ? AND `id_empleado` = ?");
@@ -1108,12 +1213,17 @@ class Liquidacion
                     $stmtCleanJoin->execute([$id_nomina, $id_empleado]);
                 }
 
-                $sqlDelDcto = "DELETE `od`, `ld` 
-                               FROM `nom_liq_descuento` `ld` 
-                               INNER JOIN `nom_otros_descuentos` `od` ON (`ld`.`id_dcto` = `od`.`id_dcto`) 
-                               WHERE `ld`.`id_nomina` = ? AND `od`.`id_empleado` = ? AND `od`.`concepto` LIKE '%RETROACTIVO%'";
-                $stmtCleanDcto = $this->conexion->prepare($sqlDelDcto);
-                $stmtCleanDcto->execute([$id_nomina, $id_empleado]);
+                $sqlDelLiqDcto = "DELETE `ld` FROM `nom_liq_descuento` `ld` 
+                                  INNER JOIN `nom_otros_descuentos` `od` ON (`ld`.`id_dcto` = `od`.`id_dcto`) 
+                                  WHERE `ld`.`id_nomina` = ? AND `od`.`id_empleado` = ? AND `od`.`concepto` LIKE '%RETROACTIVO%'";
+                $stmtCleanLiqDcto = $this->conexion->prepare($sqlDelLiqDcto);
+                $stmtCleanLiqDcto->execute([$id_nomina, $id_empleado]);
+
+                $sqlDelOtroDcto = "DELETE FROM `nom_otros_descuentos` 
+                                   WHERE `id_empleado` = ? AND `concepto` LIKE '%RETROACTIVO%' 
+                                   AND `id_dcto` NOT IN (SELECT `id_dcto` FROM `nom_liq_descuento`)";
+                $stmtCleanOtroDcto = $this->conexion->prepare($sqlDelOtroDcto);
+                $stmtCleanOtroDcto->execute([$id_empleado]);
 
                 $sqlInsRetroDet = "INSERT INTO `nom_retroctivo_detalles`
                     (`id_nomina`, `id_empleado`, `anio`, `mes`, `id_concepto`, `valor_inicial`, `valor_con_incremento`, `bandera`, `id_user_reg`, `fec_reg`)
@@ -1210,6 +1320,17 @@ class Liquidacion
                     $diffLaborado = Valores::Redondear($valLabIni * ($factorFila - 1));
                     $valLabInc = $valLabIni + $diffLaborado;
                     $registraDetalle(1, $valLabIni, $valLabInc);
+
+                    // Compensatorios (liquidados en nóminas tipo PS)
+                    $valCompPag = floatval($row['val_compensa_pagada'] ?? 0);
+                    $diffComp = 0;
+                    if ($valCompPag > 0) {
+                        $diffComp = Valores::Redondear($valCompPag * ($factorFila - 1));
+                        $valCompInc = $valCompPag + $diffComp;
+                        $registraDetalle(1, $valCompPag, $valCompInc);
+                        $totales['laborado'] += $diffComp;
+                        $totales['dias'] += intval($row['dias_compensa_pagada'] ?? 0);
+                    }
 
                     // 4. Horas extras (id_concepto 4)
                     $valHorasIni = floatval($row['horas_ext']);
@@ -1496,7 +1617,7 @@ class Liquidacion
                         $baseRetNueva = Valores::Redondear($baseRetAnterior * $factorFila);
                     } else if ($valBaseLab > 0 && $diasFila > 0) {
                         // Si antes no retenía y no tenía base registrada, estimar base depurada del mes
-                        $ingresoMesNuevo = (floatval($row['val_laborado']) + $diffLaborado) + (floatval($row['horas_ext']) + $diffHoras);
+                        $ingresoMesNuevo = (floatval($row['val_laborado']) + $diffLaborado) + ($valCompPag + $diffComp) + (floatval($row['horas_ext']) + $diffHoras);
                         $incrMesNuevo = $ssNueva['aporte_salud_emp'] + $ssNueva['aporte_pension_emp'] + $ssNueva['aporte_solidaridad_pensional'];
                         $baseDepurada = max(0, $ingresoMesNuevo - $incrMesNuevo) * 0.75;
                         $baseRetNueva = Valores::Redondear($baseDepurada);
@@ -1520,7 +1641,7 @@ class Liquidacion
                     $diffPension = max(0, $ssNueva['aporte_pension_emp'] - floatval($row['aporte_pension_emp']));
                     $diffSolidaridad = max(0, $ssNueva['aporte_solidaridad_pensional'] - floatval($row['aporte_solidaridad_pensional']));
 
-                    $devengadoAdicMes = $diffLaborado + $diffHoras + $mayorValorBspMes + $diffVacPag + $diffPriVacPag + $diffBonRecPag + $diffPriServPag + $diffPriNavPag + $diffCesPag + $diffIcesPag + $diffIncap + $diffLic + $diffGrep + $diffIndem + $diffOdev;
+                    $devengadoAdicMes = $diffLaborado + $diffComp + $diffHoras + $mayorValorBspMes + $diffVacPag + $diffPriVacPag + $diffBonRecPag + $diffPriServPag + $diffPriNavPag + $diffCesPag + $diffIcesPag + $diffIncap + $diffLic + $diffGrep + $diffIndem + $diffOdev;
                     $deduccionAdicMes = $diffSalud + $diffPension + $diffSolidaridad + $diffRet + $reintegroMes;
                     $diffNetoMes = $devengadoAdicMes - $deduccionAdicMes;
                     $netoAnt = floatval($row['val_neto_pagado']);
