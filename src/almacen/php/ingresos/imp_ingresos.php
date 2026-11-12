@@ -58,7 +58,7 @@ try {
 ?>
 <div class="text-end py-3">
     <a type="button" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" value="01" title="Exprotar a Excel">
-        <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
+        <span class="fas fa-file-excel" aria-hidden="true"></span>
     </a>
     <a type="button" class="btn btn-primary btn-sm" id="btnImprimir">Imprimir</a>
     <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
@@ -124,7 +124,7 @@ try {
                         <td style="text-align:left">' . $obj['detalle'] . '</td>   
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_tipo_ingreso']) . '</td>   
                         <td style="text-align:left">' . $obj['num_ingreso_tipo'] . '</td>   
-                        <td style="text-align:left">' . mb_strtoupper($obj['nom_tercero']) . '</td>                                                   
+                        <td style="text-align:left">' . mb_strtoupper($obj['nom_tercero'] ?? '') . '</td> 
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_sede']) . '</td>   
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_bodega']) . '</td>   
                         <td style="text-align:right">' . formato_valor($obj['val_total']) . '</td>   

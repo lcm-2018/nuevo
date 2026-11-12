@@ -41,7 +41,7 @@ $id_pedido = isset($_POST['id_pedido']) && $_POST['id_pedido'] ? $_POST['id_pedi
                     </div>
                     <div class="col-md-1">
                         <a type="button" id="btn_buscar_articulo_ped_fil" class="btn btn-outline-success btn-sm" title="Filtrar">
-                            <span class="fas fa-search fa-lg" aria-hidden="true"></span>
+                            <span class="fas fa-search" aria-hidden="true"></span>
                         </a>
                     </div>
                 </div>

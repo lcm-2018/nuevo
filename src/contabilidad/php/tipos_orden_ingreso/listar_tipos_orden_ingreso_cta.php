@@ -1,0 +1,104 @@
+<?php
+session_start();
+if (!isset($_SESSION['user'])) {
+    echo '<script>window.location.replace("../../../index.php");</script>';
+    exit();
+}
+include '../../../../config/autoloader.php';
+$id_rol = $_SESSION['rol'];
+$id_user = $_SESSION['id_user'];
+
+use Src\Common\Php\Clases\Permisos;
+
+$permisos = new Permisos();
+$opciones = $permisos->PermisoOpciones($id_user);
+include '../common/funciones_generales.php';
+
+$start = isset($_POST['start']) ? intval($_POST['start']) : 0;
+$length = isset($_POST['length']) ? intval($_POST['length']) : 10;
+$limit = "";
+if ($length != -1) {
+    $limit = "LIMIT $start, $length";
+}
+$col = $_POST['order'][0]['column'] + 1;
+$dir = $_POST['order'][0]['dir'];
+
+$where = "";
+if (isset($_POST['search']['value']) && $_POST['search']['value']) {
+    $where .= " AND CONCAT(ctb_pgcp.cuenta,ctb_pgcp.nombre) LIKE '%" . $_POST['search']['value'] . "%'";
+}
+
+try {
+    $cmd = \Config\Clases\Conexion::getConexion();
+
+    //Consulta la Cuenta Vigente
+    $sql = "SELECT id_tipo_ingreso_cta AS id FROM far_orden_ingreso_tipo_cta
+            WHERE estado=1 AND fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND id_tipo_ingreso=" . $_POST['id_tipo_ingreso'] . " 
+            ORDER BY fecha_vigencia DESC LIMIT 1";
+
+    $rs = $cmd->query($sql);
+    $cuenta = $rs ? $rs->fetch() : null;
+    $id_vig = isset($cuenta['id']) ? $cuenta['id'] : 0;
+
+    //Consulta el total de registros de la tabla
+    $sql = "SELECT COUNT(*) AS total FROM far_orden_ingreso_tipo_cta 
+            WHERE id_tipo_ingreso=" . $_POST['id_tipo_ingreso'];
+    $rs = $cmd->query($sql);
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecords = $total['total'] ?? 0;
+
+    //Consulta el total de registros aplicando el filtro
+    $sql = "SELECT COUNT(*) AS total FROM far_orden_ingreso_tipo_cta 
+            INNER JOIN ctb_pgcp ON (ctb_pgcp.id_pgcp=far_orden_ingreso_tipo_cta.id_cuenta)
+            WHERE far_orden_ingreso_tipo_cta.id_tipo_ingreso=" . $_POST['id_tipo_ingreso'] . $where;
+    $rs = $cmd->query($sql);
+    $total = $rs ? $rs->fetch() : null;
+    $totalRecordsFilter = $total['total'] ?? 0;
+
+    //Consulta los datos para listarlos en la tabla
+    $sql = "SELECT far_orden_ingreso_tipo_cta.id_tipo_ingreso_cta,far_orden_ingreso_tipo_cta.fecha_vigencia,   
+                CONCAT_WS(' - ',ctb_pgcp.cuenta,ctb_pgcp.nombre) AS cuenta,             
+                IF(far_orden_ingreso_tipo_cta.estado=1,'ACTIVO','INACTIVO') AS estado
+            FROM far_orden_ingreso_tipo_cta
+            INNER JOIN ctb_pgcp ON (ctb_pgcp.id_pgcp=far_orden_ingreso_tipo_cta.id_cuenta)
+            WHERE far_orden_ingreso_tipo_cta.id_tipo_ingreso=" . $_POST['id_tipo_ingreso'] . $where . " ORDER BY $col $dir $limit";
+
+    $rs = $cmd->query($sql);
+    $objs = $rs ? $rs->fetchAll() : [];
+    $rs->closeCursor();
+    unset($rs);
+    $cmd = null;
+} catch (PDOException $e) {
+    echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+}
+
+$data = [];
+if (!empty($objs)) {
+    foreach ($objs as $obj) {
+        $editar = NULL;
+        $eliminar = NULL;
+        $id = $obj['id_tipo_ingreso_cta'];
+        //Permite crear botones en la cuadricula si tiene permisos de 3-Editar,4-Eliminar
+        if ($permisos->PermisosUsuario($opciones, 5512, 3) || $id_rol == 1) {
+            $editar = '<a value="' . $id . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow btn_editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
+        }
+        if ($permisos->PermisosUsuario($opciones, 5512, 4) || $id_rol == 1) {
+            $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
+        }
+        $data[] = [
+            "id_tipo_ingreso_cta" => $id,
+            "cuenta" => $obj['cuenta'],
+            "fecha_vigencia" => $obj['fecha_vigencia'],
+            "vigente" => ($id == $id_vig ? 'X' : ''),
+            "estado" => $obj['estado'],
+            "botones" => '<div class="text-center centro-vertical">' . $editar . $eliminar . '</div>'
+        ];
+    }
+}
+$datos = [
+    "data" => $data,
+    "recordsTotal" => $totalRecords,
+    "recordsFiltered" => $totalRecordsFilter
+];
+
+echo json_encode($datos);

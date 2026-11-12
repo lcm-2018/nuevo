@@ -155,7 +155,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     </div>
                 </div>
 
-                <div class="row" id="divConPedido" <?php echo $obj['con_pedido'] == 1 ? '' : 'style="display: none;"' ?>>
+                <div class="row border p-2 my-2 mx-0" id="divConPedido" <?php echo $obj['con_pedido'] == 1 ? '' : 'style="display: none;"' ?>>
                     <div class="col-md-1">
                         <label for="txt_id_pedido" class="small">Id. Pedido</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_id_pedido" name="txt_id_pedido" class="small" value="<?php echo $obj['id_pedido'] ?>" readonly="readonly">
@@ -181,7 +181,7 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                         </div>
                     </div>
                 </div>
-                <div class="row" id="divDevFianza" <?php echo $obj['dev_fianza'] == 1 ? '' : 'style="display: none;"' ?>>
+                <div class="row border p-2 my-2 mx-0" id="divDevFianza" <?php echo $obj['dev_fianza'] == 1 ? '' : 'style="display: none;"' ?>>
                     <div class="col-md-1">
                         <label for="txt_id_ingreso" class="small">Id. Ingreso</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_id_ingreso" name="txt_id_ingreso" class="small" value="<?php echo $obj['id_ingreso'] ?>" readonly="readonly">

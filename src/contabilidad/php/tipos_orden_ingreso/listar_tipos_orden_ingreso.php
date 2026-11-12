@@ -45,6 +45,7 @@ try {
     //Consulta los datos para listarlos en la tabla
     $sql = "SELECT id_tipo_ingreso,nom_tipo_ingreso,
                 IF(es_int_ext=1,'Interno','Externo') AS es_int_ext,
+                IF(es_compra=1,'SI','') AS es_compra,
                 IF(orden_compra=1,'SI','') AS orden_compra,
                 IF(fianza=1,'SI','') AS fianza,
                 IF(farmacia=1,'SI','') AS farmacia,
@@ -77,10 +78,21 @@ if (!empty($objs)) {
             $eliminar =  '<a value="' . $id . '" class="btn btn-outline-danger btn-xs rounded-circle me-1 shadow btn_eliminar" title="Eliminar"><span class="fas fa-trash-alt "></span></a>';
         }
 
+        $sql = "SELECT CONCAT_WS(' - ',ctb_pgcp.cuenta,ctb_pgcp.nombre) AS cuenta
+                FROM far_orden_ingreso_tipo_cta AS TOIGR
+                INNER JOIN ctb_pgcp ON (ctb_pgcp.id_pgcp=TOIGR.id_cuenta)            
+                WHERE TOIGR.estado=1 AND TOIGR.fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND TOIGR.id_tipo_ingreso=$id
+                ORDER BY TOIGR.fecha_vigencia DESC LIMIT 1";
+        $rs = $cmd->query($sql);
+        $objs_cta = $rs ? $rs->fetch() : null;
+        $cuenta_c = isset($objs_cta['cuenta']) ? $objs_cta['cuenta'] : '';
+        
         $data[] = [
             "id_tipo_ingreso" => $id,
             "nom_tipo_ingreso" => mb_strtoupper($obj['nom_tipo_ingreso']),
+            "cuenta_c" => $cuenta_c,
             "es_int_ext" => $obj['es_int_ext'],
+            "es_compra" => $obj['es_compra'],
             "orden_compra" => $obj['orden_compra'],
             "fianza" => $obj['fianza'],
             "almacen" => $obj['almacen'],

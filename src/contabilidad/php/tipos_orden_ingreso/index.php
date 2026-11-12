@@ -49,7 +49,9 @@ $content = <<<HTML
                     <tr>
                         <th rowspan="2" class="bg-sofia">Id</th>
                         <th rowspan="2" class="bg-sofia">Nombre</th>
-                        <th rowspan="2" class="bg-sofia">Int/Ext</th>
+                        <th rowspan="2" class="bg-sofia">Cuenta Contable Vigente</th>
+                        <th rowspan="2" class="bg-sofia">Interno/Externo</th>
+                        <th rowspan="2" class="bg-sofia">Es Compra</th>
                         <th rowspan="2" class="bg-sofia">Con Orden Compra</th>
                         <th rowspan="2" class="bg-sofia">Es Fianza</th>
                         <th colspan="3" class="bg-sofia">Módulos</th>
@@ -70,6 +72,7 @@ HTML;
 $plantilla = new Plantilla($content, 2);
 $plantilla->addCssFile("{$host}/assets/css/jquery-ui.css?v=" . date("YmdHis"));
 $plantilla->addScriptFile("{$host}/assets/js/jquery-ui.js?v=" . date("YmdHis"));
+$plantilla->addScriptFile("{$host}/src/contabilidad/js/informes_bancos/common.js?v=" . date("YmdHis"));
 $plantilla->addScriptFile("{$host}/src/contabilidad/js/tipos_orden_ingreso/tipos_orden_ingreso.js?v=" . date("YmdHis"));
 $modal = $plantilla->getModal('divModalForms', 'divTamModalForms', 'divForms');
 $plantilla->addModal($modal);

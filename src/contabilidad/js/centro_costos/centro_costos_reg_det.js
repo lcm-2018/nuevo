@@ -12,6 +12,7 @@
                 dataType: 'json',
                 data: function (data) {
                     data.id_cec_sg = $('#id_cec_sg').val();
+                    data.tipo = $('#tipo').val();
                 }
             },
             columns: [

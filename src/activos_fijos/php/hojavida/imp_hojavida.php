@@ -67,7 +67,7 @@ try {
 ?>
 <div class="text-end py-3">
     <a type="button" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" value="01" title="Exprotar a Excel">
-        <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
+        <span class="fas fa-file-excel" aria-hidden="true"></span>
     </a>
     <a type="button" class="btn btn-primary btn-sm" id="btnImprimir">Imprimir</a>
     <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
@@ -124,7 +124,7 @@ try {
             <td colspan="4" style="text-align:center">Nombre del Activo Fijo</td>
         </tr>
         <tr>
-            <td colspan="4"><?php echo $obj_e['des_activo']; ?></td>
+            <td colspan="4"><?php echo $obj_e['des_activo'] ?? ''; ?></td>
         </tr>
         <?php if ($tipo == 'todo'): ?>
             <tr style="background-color:#CED3D3; border:#A9A9A9 1px solid">

@@ -307,13 +307,25 @@
     });
     
     /* ---------------------------------------------------
-    CUENTAS CONTABLES POR SUBGRUPO ENCABEZADO
+    CUENTAS CONTABLES POR SUBGRUPO CONSUMO Y DEPRECIACIÓN ENCABEZADO
     -----------------------------------------------------*/
 
-    //Editar un registro 
-    $('#divForms').on('click', '#tb_cuentas_sg .btn_editar', function () {
+    //Editar un registro - consumo
+    $('#divForms').on('click', '#tb_cuentas_sg_cn .btn_editar', function () {
         let id = $(this).attr('value');
-        $.post("frm_reg_centrocostos_sg.php", { id: id }, function (he) {
+        $.post("frm_reg_centrocostos_sg.php", { id: id, tipo: 1 }, function (he) {
+            $('#divTamModalReg').removeClass('modal-xl');
+            $('#divTamModalReg').removeClass('modal-sm');
+            $('#divTamModalReg').addClass('modal-lg');
+            $('#divModalReg').modal('show');
+            $("#divFormsReg").html(he);
+        });
+    });
+
+    //Editar un registro - depreciación
+    $('#divForms').on('click', '#tb_cuentas_sg_dp .btn_editar', function () {
+        let id = $(this).attr('value');
+        $.post("frm_reg_centrocostos_sg.php", { id: id, tipo: 2 }, function (he) {
             $('#divTamModalReg').removeClass('modal-xl');
             $('#divTamModalReg').removeClass('modal-sm');
             $('#divTamModalReg').addClass('modal-lg');
@@ -341,8 +353,13 @@
                 data: data + "&id_cencos=" + $('#id_centrocosto').val() + "&oper=add"
             }).done(function (r) {
                 if (r.mensaje == 'ok') {
-                    let pag = ($('#id_cec_sg').val() == -1) ? 0 : $('#tb_cuentas_sg').DataTable().page.info().page;
-                    reloadtable('tb_cuentas_sg', pag);
+                    if ($('#tipo').val() == 1) {
+                        let pag = ($('#id_cec_sg').val() == -1) ? 0 : $('#tb_cuentas_sg_cn').DataTable().page.info().page;
+                        reloadtable('tb_cuentas_sg_cn', pag);
+                    } else if ($('#tipo').val() == 2) {
+                        let pag = ($('#id_cec_sg').val() == -1) ? 0 : $('#tb_cuentas_sg_dp').DataTable().page.info().page;
+                        reloadtable('tb_cuentas_sg_dp', pag);
+                    }                    
                     $('#id_cec_sg').val(r.id);
                     mje("Proceso realizado con éxito");
                 } else {
@@ -356,8 +373,8 @@
         }
     });
 
-    //Borrar un registro Subgrupo    
-    $('#divForms').on('click', '#tb_cuentas_sg .btn_eliminar', function () {
+    //Borrar un registro consumo y depreciación Subgrupo
+    $('#divForms').on('click', '#tb_cuentas_sg_cn .btn_eliminar', function () {
         let id = $(this).attr('value');
         Swal.fire({
             title: "¿Está seguro de eliminar el registro?",
@@ -378,7 +395,42 @@
                     data: { id: id, id_cencos: $('#id_centrocosto').val(), oper: 'del' }
                 }).done(function (r) {
                     if (r.mensaje == 'ok') {
-                        $('#tb_cuentas_sg').DataTable().ajax.reload(null, false);
+                        $('#tb_cuentas_sg_cn').DataTable().ajax.reload(null, false);
+                        mje("Proceso realizado con éxito");
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).fail(function () {
+                    mjeError('Ocurrió un error');
+                }).always(function () {
+                    ocultarOverlay();
+                });
+            }
+        });
+    });
+
+    $('#divForms').on('click', '#tb_cuentas_sg_dp .btn_eliminar', function () {
+        let id = $(this).attr('value');
+        Swal.fire({
+            title: "¿Está seguro de eliminar el registro?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, eliminar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_centrocostos_sg.php',
+                    dataType: 'json',
+                    data: { id: id, id_cencos: $('#id_centrocosto').val(), oper: 'del' }
+                }).done(function (r) {
+                    if (r.mensaje == 'ok') {
+                        $('#tb_cuentas_sg_dp').DataTable().ajax.reload(null, false);
                         mje("Proceso realizado con éxito");
                     } else {
                         mjeError(r.mensaje);

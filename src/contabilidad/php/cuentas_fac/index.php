@@ -56,7 +56,7 @@ $content = <<<HTML
                         <th rowspan="2" class="bg-sofia">Régimen</th>
                         <th rowspan="2" class="bg-sofia">Cobertura</th>
                         <th rowspan="2" class="bg-sofia">Modalidad</th>
-                        <th rowspan="2" class="bg-sofia">Fecha Inicio Vigencia</th>
+                        <th rowspan="2" class="bg-sofia">Fecha Inicio<br>Vigencia</th>
                         <th colspan="16" class="bg-sofia">Cuentas Contables</th>
                         <th rowspan="2" class="bg-sofia">Estado</th>
                         <th rowspan="2" class="bg-sofia">Acciones</th>

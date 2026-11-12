@@ -46,7 +46,7 @@ $es_clinico = isset($_POST['es_clinico']) ? $_POST['es_clinico'] : 0;
                     </div>
                     <div class="col-md-1">
                         <a type="button" id="btn_buscar_articulo_fil" class="btn btn-outline-success btn-sm" title="Filtrar">
-                            <span class="fas fa-search fa-lg" aria-hidden="true"></span>
+                            <span class="fas fa-search" aria-hidden="true"></span>
                         </a>
                     </div>
                 </div>

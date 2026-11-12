@@ -10,7 +10,7 @@ $usuario = $_SESSION['id_user'];
 $term = isset($_POST['term']) ? $_POST['term'] : exit('Acción no permitida');
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
-    $sql = "SELECT id_tercero,IF(id_tercero=0,'NINGUNO',nom_tercero) AS nom_tercero 
+    $sql = "SELECT id_tercero,IF(id_tercero=0,'NINGUNO',nom_tercero) AS nom_tercero,rol_tercero
             FROM tb_terceros
             WHERE (id_tercero_api IN (SELECT id_tercero_api FROM tb_rel_tercero) OR es_clinico=1) AND
                 nom_tercero LIKE '%$term%'
@@ -29,6 +29,7 @@ foreach ($objs as $obj) {
     $data[] = [
         "id" => $obj['id_tercero'],
         "label" => $obj['nom_tercero'],
+        "rol_tercero" => $obj['rol_tercero'],
     ];
 }
 
@@ -36,6 +37,7 @@ if (empty($data)) {
     $data[] = [
         "id" => '',
         "label" => 'No hay coincidencias...',
+        "rol_tercero" => '',
     ];
 }
 echo json_encode($data);

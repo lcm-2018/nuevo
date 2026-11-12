@@ -113,7 +113,7 @@ if (!empty($objs)) {
             "val_total" => formato_valor($obj['val_total']),
             "estado" => $obj['estado'],
             "nom_estado" => $obj['nom_estado'] . '<br>' . $obj['fec_estado'],
-            "ingresos" => $obj['ingresos'],
+            "ingresos" => $obj['ingresos'] ?? '',
             "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];
     }

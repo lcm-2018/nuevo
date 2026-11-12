@@ -103,7 +103,7 @@ function add_fecha($fecha, $tipo, $valor)
 //FUNCION PARA DAR FORMATO A LOS VALORES NUMERICOS
 function formato_valor($valor)
 {
-    return '$' . number_format($valor, 2, ",", ".");
+    return '$' . number_format($valor ?? '0', 2, ",", ".");
 }
 
 //FUNCION PARA DAR FORMATO A LOS VALORES CON DECIMALES

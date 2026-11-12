@@ -23,11 +23,17 @@ if ($length != -1) {
 $col = $_POST['order'][0]['column'] + 1;
 $dir = $_POST['order'][0]['dir'];
 
+$tipo = isset($_POST['tipo']) ? $_POST['tipo'] : 1;
+$where = "SG.id_grupo IN (1,2)";
+if ($tipo == 2) {
+    $where = "SG.id_grupo IN (3,4,5)";
+}
+
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
     //Consulta el total de registros de la tabla
-    $sql = "SELECT COUNT(*) AS total FROM far_subgrupos WHERE id_grupo IN (1,2)";
+    $sql = "SELECT COUNT(*) AS total FROM far_subgrupos AS SG WHERE $where";
     $rs = $cmd->query($sql);
     $total = $rs ? $rs->fetch() : null;
     $totalRecords = $total['total'] ?? 0;
@@ -40,7 +46,7 @@ try {
                     FROM tb_centrocostos_subgr_cta_detalle AS CSG
                     INNER JOIN ctb_pgcp AS CTA ON (CTA.id_pgcp=CSG.id_cuenta)
                     WHERE CSG.id_cecsubgrp=" . $_POST['id_cec_sg'] . ") AS C ON (C.id_subgrupo=SG.id_subgrupo)
-            WHERE SG.id_grupo IN (1,2)
+            WHERE $where
             ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);

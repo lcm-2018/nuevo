@@ -87,7 +87,7 @@ try {
 ?>
 <div class="text-end py-3">
     <a type="button" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" value="01" title="Exprotar a Excel">
-        <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
+        <span class="fas fa-file-excel" aria-hidden="true"></span>
     </a>
     <a type="button" class="btn btn-primary btn-sm" id="btnImprimir">Imprimir</a>
     <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
@@ -145,8 +145,8 @@ try {
                     $id_tercero = $obj2['id_tercero'];
 
                     $tabla .= '<tr><th style="text-align:left">' . str_repeat('&nbsp', 10) . $obj2['codigo_ne'] . ' ' . $obj2['nit_tercero'] . '</th>
-                                <th style="text-align:left">' . mb_strtoupper($obj2['nom_tercero']) . '</th>
-                                <th style="text-align:left">' . mb_strtoupper($obj2['dir_tercero']) . '</th>
+                                <th style="text-align:left">' . mb_strtoupper($obj2['nom_tercero'] ?? '') . '</th>
+                                <th style="text-align:left">' . mb_strtoupper($obj2['dir_tercero'] ?? '') . '</th>
                                 <th style="text-align:left">' . mb_strtoupper($obj2['nom_municipio']) . ' - ' . mb_strtoupper($obj2['nom_departamento']) .  '</th>
                                 <th style="text-align:right">' . formato_valor($obj2['val_total_tr']) . '</th></tr>';
 

@@ -73,13 +73,14 @@ if (empty($obj)) {
                 <nav>
                     <div class="nav nav-tabs small small" id="nav-tab" role="tablist">
                         <button class="nav-link active small" id="nav_lista_cta_cc-tab" data-bs-toggle="tab" data-bs-target="#nav_lista_cta_cc" type="button" role="tab" aria-controls="nav_lista_cta_cc" aria-selected="true">CUENTA CONTABLE - FACTURACION</button>
-                        <button class="nav-link small" id="nav_lista_cta_sg-tab" data-bs-toggle="tab" data-bs-target="#nav_lista_cta_sg" type="button" role="tab" aria-controls="nav_lista_cta_sg" aria-selected="false">CUENTA CONTABLE - GASTOS POR SUBGRUPO</button>
+                        <button class="nav-link small" id="nav_lista_cta_sg_cn-tab" data-bs-toggle="tab" data-bs-target="#nav_lista_cta_sg_cn" type="button" role="tab" aria-controls="nav_lista_cta_sg_cn" aria-selected="false">CUENTA CONTABLE - GASTOS DE CONSUMO</button>
+                        <button class="nav-link small" id="nav_lista_cta_sg_dp-tab" data-bs-toggle="tab" data-bs-target="#nav_lista_cta_sg_dp" type="button" role="tab" aria-controls="nav_lista_cta_sg_dp" aria-selected="false">CUENTA CONTABLE - DEPRECIACION</button>
                     </div>
                 </nav>
 
                 <div class="tab-content pt-2" id="nav-tabContent">
 
-                    <!--Cuentas del Centro de Costo-->
+                    <!--Cuentas Facturación-->
                     <div class="tab-pane fade show active" id="nav_lista_cta_cc" role="tabpanel" aria-labelledby="nav_lista_cta_cc-tab">
                         <table id="tb_cuentas" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle" style="width:100%; font-size:80%">
                             <thead>
@@ -96,9 +97,9 @@ if (empty($obj)) {
                         </table>
                     </div>
 
-                    <!--Cuentas por Subgrupo-->
-                    <div class="tab-pane fade" id="nav_lista_cta_sg" role="tabpanel" aria-labelledby="nav_lista_cta_sg-tab">
-                        <table id="tb_cuentas_sg" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle" style="width:100%; font-size:80%">
+                    <!--Cuentas de Consumo-->
+                    <div class="tab-pane fade" id="nav_lista_cta_sg_cn" role="tabpanel" aria-labelledby="nav_lista_cta_sg_cn-tab">
+                        <table id="tb_cuentas_sg_cn" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle" style="width:100%; font-size:80%">
                             <thead>
                                 <tr class="text-center">
                                     <th class="bg-sofia">Id</th>
@@ -111,6 +112,23 @@ if (empty($obj)) {
                             <tbody class="text-start"></tbody>
                         </table>
                     </div>
+
+                    <!--Cuentas depreciación-->
+                    <div class="tab-pane fade" id="nav_lista_cta_sg_dp" role="tabpanel" aria-labelledby="nav_lista_cta_sg_dp-tab">
+                        <table id="tb_cuentas_sg_dp" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle" style="width:100%; font-size:80%">
+                            <thead>
+                                <tr class="text-center">
+                                    <th class="bg-sofia">Id</th>
+                                    <th class="bg-sofia">Fecha Inicio de Vigencia</th>
+                                    <th class="bg-sofia">Cuenta Vigente</th>
+                                    <th class="bg-sofia">Estado</th>
+                                    <th class="bg-sofia">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-start"></tbody>
+                        </table>
+                    </div>
+
                 </div>
             </div>
         </div>

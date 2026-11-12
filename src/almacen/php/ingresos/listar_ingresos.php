@@ -122,7 +122,7 @@ if (!empty($objs)) {
             "detalle" => $obj['detalle'],
             "nom_tipo_ingreso" => mb_strtoupper($obj['nom_tipo_ingreso']),
             "num_ingreso_tipo" => $obj['num_ingreso_tipo'],
-            "nom_tercero" => mb_strtoupper($obj['nom_tercero']),
+            "nom_tercero" => mb_strtoupper($obj['nom_tercero'] ?? ''),
             "nom_sede" => mb_strtoupper($obj['nom_sede']),
             "nom_bodega" => mb_strtoupper($obj['nom_bodega']),
             "val_total" => formato_valor($obj['val_total']),

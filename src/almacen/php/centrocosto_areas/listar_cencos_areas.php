@@ -101,7 +101,7 @@ if (!empty($objs)) {
             "nom_centrocosto" => mb_strtoupper($obj['nom_centrocosto']),
             "nom_sede" => mb_strtoupper($obj['nom_sede']),
             "usr_responsable" => mb_strtoupper($obj['usr_responsable']),
-            "nom_bodega" => mb_strtoupper($obj['nom_bodega']),
+            "nom_bodega" => mb_strtoupper($obj['nom_bodega'] ?? ''),
             "estado" => $obj['estado'],
             "botones" => '<div class="text-center">' . $editar . $eliminar . '</div>',
         ];

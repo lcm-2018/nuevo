@@ -21,6 +21,8 @@
                         $('#divTamModalForms').addClass('modal-xxl');
                         $('#divModalForms').modal('show');
                         $("#divForms").html(he);
+                        // Inicializar estado de los controles
+                        inicializarControlesIngreso();
                     });
                 }
             }] : [],
@@ -101,12 +103,47 @@
         }
     });
 
-    /* ---------------------------------------------------
-    INGRESO EN BASE A UN PEDIDO
-    -----------------------------------------------------*/
-    // Activar campos para Orden de Compra y seleccionar el pedido de orden de compra
+    // Función para inicializar el estado de los controles
+    function inicializarControlesIngreso() {
+        const esCompra = $('#sl_tip_ing').find('option:selected').attr('data-es_comp') == 1;
+        const tipoComprobante = $('#sl_tip_comprobante').val() ? $('#sl_tip_comprobante').val() : 0;
+        const esOrdenCompra = $('#sl_tip_ing').find('option:selected').attr('data-ordcom') == 1;
+        
+        $('#sl_tip_comprobante').prop('disabled', !esCompra);
+        $('#divCufe').hide();
+        $('#divRemision').hide();
+        $('#divAddRemision').hide();
+
+        if (tipoComprobante == 1) {
+            $('#divRemision').show();
+            $('#divAddRemision').show();
+        }else if(tipoComprobante == 2){
+            $('#divCufe').show();
+            $('#divRemision').show();
+            $('#divAddRemision').show();
+        }else if(tipoComprobante == 3){
+            $('#divCufe').show();
+        }
+
+        if (esOrdenCompra) {
+            $('#divPedido').show();
+        } else {
+            $('#divPedido').hide();
+        }
+    }
+
+    // Activar campos en base al tipo de ingreso
     $('#divForms').on("change", "#sl_tip_ing", function () {
-        if ($(this).find('option:selected').attr('data-ordcom') == 1) {
+        const esCompra = $('#sl_tip_ing').find('option:selected').attr('data-es_comp') == 1;
+        const esOrdenCompra = $('#sl_tip_ing').find('option:selected').attr('data-ordcom') == 1;
+
+        $('#sl_tip_comprobante').prop('disabled', !esCompra);
+        $('#sl_tip_comprobante').val(0);
+        $('#divCufe').hide();
+        $('#divRemision').hide();
+        $('#divAddRemision').hide();
+
+        if (esOrdenCompra) {
             $('#divPedido').show();
         } else {
             $('#divPedido').hide();
@@ -125,6 +162,28 @@
         }
     });
 
+    // Activar campos en base al tipo de ingreso
+    $('#divForms').on("change", "#sl_tip_comprobante", function () {
+        const tipoComprobante = $('#sl_tip_comprobante').val() ? $('#sl_tip_comprobante').val() : 0;        
+        $('#divCufe').hide();
+        $('#divRemision').hide();
+        $('#divAddRemision').hide();
+
+        if (tipoComprobante == 1) {
+            $('#divRemision').show();
+            $('#divAddRemision').show();
+        }else if(tipoComprobante == 2){
+            $('#divCufe').show();
+            $('#divRemision').show();
+            $('#divAddRemision').show();
+        }else if(tipoComprobante == 3){
+            $('#divCufe').show();
+        }
+    });
+
+    /* ---------------------------------------------------
+    INGRESO EN BASE A UN PEDIDO
+    -----------------------------------------------------*/
     $('#divForms').on("dblclick", "#txt_des_pedido", function () {
         if ($('#divPedido').is(':visible')) {
             let id_sede = $('#id_txt_sede').val(),
@@ -205,6 +264,8 @@
             minLength: 2,
             select: function (event, ui) {
                 $('#id_txt_tercero').val(ui.item.id);
+                $('#sl_tip_transaccion').load('../common/cargar_terceros_rol.php', { rol_tercero: ui.item.rol_tercero, titulo: ''}, function () { });
+                $('#sl_num_remision').load('../common/cargar_combos.php', { cmd: 'remisiones_internas', titulo: '', id_tercero: ui.item.id, todas: 0, id: 0 }, function () { });
             }
         });
     });
@@ -217,6 +278,7 @@
             $('#divTamModalForms').addClass('modal-xxl');
             $('#divModalForms').modal('show');
             $("#divForms").html(he);
+            inicializarControlesIngreso();
         });
     });
 

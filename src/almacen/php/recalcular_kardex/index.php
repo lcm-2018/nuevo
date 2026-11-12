@@ -126,7 +126,7 @@ $content = <<<HTML
             <div class="col-md-1">
                 <div class="row mb-2">
                     <button type="button" id="btn_buscar_filtro" class="btn btn-outline-success btn-sm" title="Filtrar">
-                        <span class="fas fa-search fa-lg" aria-hidden="true"></span>
+                        <span class="fas fa-search" aria-hidden="true"></span>
                     </button>
                 </div>
                 <div class="row mb-2">&nbsp;</div>

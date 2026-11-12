@@ -67,6 +67,10 @@
                 { class: 'text-wrap', targets: [2, 3] },
                 { visible: false, targets: 20 },
                 { orderable: false, targets: 22 },
+                {
+                    width: '5%',
+                    targets: [0, 1, 2, 4]
+                }
             ],
             rowCallback: function (row, data, index) {
                 if (data.vigente == 'X') {

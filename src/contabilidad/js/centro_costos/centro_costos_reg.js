@@ -1,5 +1,6 @@
 (function ($) {
     $(document).ready(function () {
+        // Cuentas Facturación
         $('#tb_cuentas').DataTable({
             dom: setdom,
             buttons: $('#peReg').val() == 1 ? [{
@@ -59,14 +60,15 @@
         $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
         $('#tb_cuentas').wrap('<div class="overflow"/>');
 
-        $('#tb_cuentas_sg').DataTable({
+        //Cuentas de Consumo
+        $('#tb_cuentas_sg_cn').DataTable({
             dom: setdom,
             buttons: $('#peReg').val() == 1 ? [{
                 text: '<span class="fa-solid fa-plus "></span>',
                 className: 'btn btn-success btn-sm shadow',
                 action: function (e, dt, node, config) {
                     mostrarOverlay();
-                    $.post("frm_reg_centrocostos_sg.php", { id_cencos: $('#id_centrocosto').val() }, function (he) {
+                    $.post("frm_reg_centrocostos_sg.php", { id_cencos: $('#id_centrocosto').val(), tipo: 1 }, function (he) {
                         $('#divTamModalReg').removeClass('modal-xl');
                         $('#divTamModalReg').removeClass('modal-sm');
                         $('#divTamModalReg').addClass('modal-lg');
@@ -87,6 +89,7 @@
                 dataType: 'json',
                 data: function (data) {
                     data.id_cencos = $('#id_centrocosto').val();
+                    data.tipo = 1;
                 }
             },
             columns: [
@@ -112,7 +115,64 @@
                 [10, 25, 50, 'TODO'],
             ],
         });
-        $('#tb_cuentas_sg').wrap('<div class="overflow"/>');
+        $('#tb_cuentas_sg_cn').wrap('<div class="overflow"/>');
+
+        //Cuentas de Depreciación
+        $('#tb_cuentas_sg_dp').DataTable({
+            dom: setdom,
+            buttons: $('#peReg').val() == 1 ? [{
+                text: '<span class="fa-solid fa-plus "></span>',
+                className: 'btn btn-success btn-sm shadow',
+                action: function (e, dt, node, config) {
+                    mostrarOverlay();
+                    $.post("frm_reg_centrocostos_sg.php", { id_cencos: $('#id_centrocosto').val(), tipo: 2 }, function (he) {
+                        $('#divTamModalReg').removeClass('modal-xl');
+                        $('#divTamModalReg').removeClass('modal-sm');
+                        $('#divTamModalReg').addClass('modal-lg');
+                        $('#divModalReg').modal('show');
+                        $("#divFormsReg").html(he);
+                        ocultarOverlay();
+                    });
+                }
+            }] : [],
+            language: dataTable_es,
+            processing: true,
+            serverSide: true,
+            searching: false,
+            autoWidth: false,
+            ajax: {
+                url: 'listar_centrocostos_sg.php',
+                type: 'POST',
+                dataType: 'json',
+                data: function (data) {
+                    data.id_cencos = $('#id_centrocosto').val();
+                    data.tipo = 2;
+                }
+            },
+            columns: [
+                { 'data': 'id_cecsubgrp' }, //Index=0
+                { 'data': 'fecha_vigencia' },
+                { 'data': 'vigente' },
+                { 'data': 'estado' },
+                { 'data': 'botones' }
+            ],
+            columnDefs: [
+                { orderable: false, targets: 4 }
+            ],
+            rowCallback: function (row, data) {
+                if (data.vigente == 'X') {
+                    $($(row).find("td")[2]).css("background-color", "#ffc107");
+                }
+            },
+            order: [
+                [0, "desc"]
+            ],
+            lengthMenu: [
+                [10, 25, 50, -1],
+                [10, 25, 50, 'TODO'],
+            ],
+        });
+        $('#tb_cuentas_sg_dp').wrap('<div class="overflow"/>');
 
     });
 

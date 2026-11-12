@@ -128,7 +128,7 @@ if (!empty($objs)) {
         }
         $data[] = [
             "id_traslado" => $id,
-            "num_traslado" => $obj['num_traslado'],
+            "num_traslado" => $obj['num_traslado'] ?? '',
             "fec_traslado" => $obj['fec_traslado'],
             "hor_traslado" => $obj['hor_traslado'],
             "detalle" => $obj['detalle'],
@@ -141,7 +141,7 @@ if (!empty($objs)) {
             "nom_estado" => $obj['nom_estado'] . '<br>' . $obj['fec_estado'],
             "estado2" => $obj['estado2'],
             "nom_estado2" => $obj['nom_estado2'],
-            "num_pedido" => $obj['num_pedido'],
+            "num_pedido" => $obj['num_pedido'] ?? '',
             "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];
     }

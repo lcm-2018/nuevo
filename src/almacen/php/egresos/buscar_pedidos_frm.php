@@ -36,7 +36,7 @@ $cmd = \Config\Clases\Conexion::getConexion();
                     </div>
                     <div class="col-md-2">
                         <button type="button" id="btn_buscar_ped_fil" class="btn btn-outline-success btn-sm" title="Filtrar">
-                            <span class="fas fa-search fa-lg" aria-hidden="true"></span>
+                            <span class="fas fa-search" aria-hidden="true"></span>
                         </button>
                     </div>
                 </div>

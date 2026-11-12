@@ -57,7 +57,7 @@ try {
 ?>
 <div class="text-end py-3">
     <a type="button" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" value="01" title="Exprotar a Excel">
-        <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
+        <span class="fas fa-file-excel" aria-hidden="true"></span>
     </a>
     <a type="button" class="btn btn-primary btn-sm" id="btnImprimir">Imprimir</a>
     <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
@@ -83,7 +83,7 @@ try {
 
     <table style="width:100%; font-size:70%">
         <tr style="text-align:center">
-            <th>ORDEN DE INGRESO</th>
+            <th>ORDEN DE INGRESO - CONSUMO</th>
         </tr>
     </table>
 
@@ -118,7 +118,7 @@ try {
             <td><?php echo $obj_e['nom_tipo_ingreso'] . ' (' . $obj_e['num_ingreso_tipo'] . ')'; ?></td>
             <td><?php echo $obj_e['num_factura']; ?></td>
             <td><?php echo $obj_e['fec_factura']; ?></td>
-            <td><?php echo $obj_e['nom_tercero']; ?></td>
+            <td><?php echo $obj_e['nom_tercero'] ?? ''; ?></td>
         </tr>
         <tr style="background-color:#CED3D3; border:#A9A9A9 1px solid">
             <td colspan="6">Detalle</td>

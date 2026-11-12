@@ -58,7 +58,7 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
                     </div>
                     <div class="col-md-1">
                         <button type="button" id="btn_buscar_lot_fil" class="btn btn-outline-success btn-sm" title="Filtrar">
-                            <span class="fas fa-search fa-lg" aria-hidden="true"></span>
+                            <span class="fas fa-search" aria-hidden="true"></span>
                         </button>
                     </div>
                 </div>  
@@ -159,7 +159,8 @@ $nom_bodega = isset($obj['nombre']) ? $obj['nombre'] : '';
                         'data': 'fec_vencimiento'
                     },
                 ],
-                columnDefs: [{
+                columnDefs: [
+                    {
                         class: 'text-wrap',
                         targets: [3, 5]
                     },

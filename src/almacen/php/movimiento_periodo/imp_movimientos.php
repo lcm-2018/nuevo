@@ -142,7 +142,7 @@ try {
 ?>
 <div class="text-end py-3">
     <a type="button" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" value="01" title="Exprotar a Excel">
-        <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
+        <span class="fas fa-file-excel" aria-hidden="true"></span>
     </a>
     <a type="button" class="btn btn-primary btn-sm" id="btnImprimir">Imprimir</a>
     <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
@@ -206,13 +206,13 @@ try {
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_medicamento']) . '</td>   
                         <td style="text-align:left">' . mb_strtoupper($obj['nom_subgrupo']) . '</td>   
                         <td>' . $obj['existencia_ini'] . '</td>   
-                        <td>' . formato_valor($obj['valores_ini']) . '</td>   
+                        <td>' . formato_valor($obj['valores_ini'] ?? '0') . '</td>   
                         <td>' . $obj['cantidad_ent'] . '</td>   
-                        <td>' . formato_valor($obj['valores_ent']) . '</td>   
+                        <td>' . formato_valor($obj['valores_ent'] ?? '0') . '</td>   
                         <td>' . $obj['cantidad_sal'] . '</td>   
-                        <td>' . formato_valor($obj['valores_sal']) . '</td>   
+                        <td>' . formato_valor($obj['valores_sal'] ?? '0') . '</td>   
                         <td>' . $obj['existencia_fin'] . '</td>   
-                        <td>' . formato_valor($obj['valores_fin']) . '</td></tr>';
+                        <td>' . formato_valor($obj['valores_fin'] ?? '0') . '</td></tr>';
             }
             echo $tabla;
             ?>

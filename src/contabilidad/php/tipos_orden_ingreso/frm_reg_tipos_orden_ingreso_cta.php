@@ -1,0 +1,69 @@
+<?php
+session_start();
+if (!isset($_SESSION['user'])) {
+    echo '<script>window.location.replace("../../../index.php");</script>';
+    exit();
+}
+include '../../../../config/autoloader.php';
+include '../common/cargar_combos.php';
+
+$cmd = \Config\Clases\Conexion::getConexion();
+
+$id = isset($_POST['id']) ? $_POST['id'] : -1;
+$sql = "SELECT far_orden_ingreso_tipo_cta.*,
+            CONCAT_WS(' - ',ctb_pgcp.cuenta,ctb_pgcp.nombre) AS cuenta
+        FROM far_orden_ingreso_tipo_cta
+        INNER JOIN ctb_pgcp ON (ctb_pgcp.id_pgcp=far_orden_ingreso_tipo_cta.id_cuenta)
+        WHERE far_orden_ingreso_tipo_cta.id_tipo_ingreso_cta=" . $id . " LIMIT 1";
+$rs = $cmd->query($sql);
+$obj = $rs ? $rs->fetch() : null;
+
+if (empty($obj)) {
+    $obj = [];
+    $n = $rs ? $rs->columnCount() : 0;
+    for ($i = 0; $i < $n; $i++) :
+        $col = $rs->getColumnMeta($i);
+        $name = $col['name'] ?? null;
+        if ($name) {
+            $obj[$name] = NULL;
+        }
+    endfor;
+    //Inicializa variable por defecto
+    $obj['estado'] = 1;
+}
+?>
+
+<div class="px-0">
+    <div class="shadow">
+        <div class="card-header py-2 mb-2 text-center" style="background-color: #16a085 !important;">
+            <h7 style="color: white;">REGISTRAR CUENTA CONTABLE DE TIPO DE ORDEN DE INGRESO</h7>
+        </div>
+        <div class="p-3">
+            <!--Formulario de registro de Cuenta-->
+            <form id="frm_reg_tipos_orden_ingreso_cta">
+                <input type="hidden" id="id_tipo_ingreso_cta" name="id_tipo_ingreso_cta" value="<?php echo $id ?>">
+                <div class=" row">
+                    <div class="col-md-12">
+                        <label for="txt_cta_con" class="small">Cuenta Contable</label>
+                        <input type="text" class="form-control form-control-sm bg-input cuenta" id="txt_cta_con" data-campoid="id_txt_cta_con" value="<?php echo $obj['cuenta'] ?>">
+                        <input type="hidden" id="id_txt_cta_con" name="id_txt_cta_con" value="<?php echo $obj['id_cuenta'] ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="txt_fec_vig" class="small">Fecha Inicio de Vigencia</label>
+                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fec_vig" name="txt_fec_vig" value="<?php echo $obj['fecha_vigencia'] ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="sl_estado_cta" class="small">Estado</label>
+                        <select class="form-select form-select-sm bg-input" id="sl_estado_cta" name="sl_estado_cta">
+                            <?php estados_registros('', $obj['estado']) ?>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="text-center pt-3">
+        <button type="button" class="btn btn-primary btn-sm" id="btn_guardar_cta">Guardar</button>
+        <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
+    </div>
+</div>

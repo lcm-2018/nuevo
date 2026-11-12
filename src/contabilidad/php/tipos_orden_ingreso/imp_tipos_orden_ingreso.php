@@ -18,6 +18,7 @@ if (isset($_POST['nombre']) && $_POST['nombre']) {
 try {
     $sql = "SELECT id_tipo_ingreso,nom_tipo_ingreso,
                 IF(es_int_ext=1,'Interno','Externo') AS es_int_ext,
+                IF(es_compra=1,'SI','') AS es_compra,
                 IF(orden_compra=1,'SI','') AS orden_compra,
                 IF(fianza=1,'SI','') AS fianza,
                 IF(farmacia=1,'SI','') AS farmacia,
@@ -70,7 +71,9 @@ try {
             <tr style="background-color:#CED3D3; color:#000000; text-align:center">
                 <th rowspan="2">Id</th>
                 <th rowspan="2">Nombre</th>
-                <th rowspan="2">Int/Ext</th>
+                <th rowspan="2">Cuenta Contable</th>
+                <th rowspan="2">Interno/Externo</th>
+                <th rowspan="2">Es Compra</th>
                 <th rowspan="2">Con Orden Compra</th>
                 <th rowspan="2">Es Fianza</th>
                 <th colspan="3">Modulos</th>
@@ -85,11 +88,23 @@ try {
             <?php
             $tabla = '';
             foreach ($objs as $obj) {
+
+                $sql = "SELECT ctb_pgcp.cuenta
+                        FROM far_orden_ingreso_tipo_cta AS TOIGR
+                        INNER JOIN ctb_pgcp ON (ctb_pgcp.id_pgcp=TOIGR.id_cuenta)            
+                        WHERE TOIGR.estado=1 AND TOIGR.fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND TOIGR.id_tipo_ingreso=" . $obj['id_tipo_ingreso'] . "
+                        ORDER BY TOIGR.fecha_vigencia DESC LIMIT 1";
+                $rs = $cmd->query($sql);
+                $obj_cta = $rs ? $rs->fetch() : null;
+                $cuenta_c = isset($obj_cta['cuenta']) ? $obj_cta['cuenta'] : '';
+
                 $tabla .=
                     '<tr class="resaltar" style="text-align:left"> 
                         <td>' . $obj['id_tipo_ingreso'] . '</td>
                         <td>' . $obj['nom_tipo_ingreso'] . '</td>
+                        <td>' . $cuenta_c . '</td>
                         <td>' . $obj['es_int_ext'] . '</td>
+                        <td>' . $obj['es_compra'] . '</td>
                         <td>' . $obj['orden_compra'] . '</td>
                         <td>' . $obj['fianza'] . '</td>
                         <td>' . $obj['almacen'] . '</td>
@@ -101,7 +116,7 @@ try {
         </tbody>
         <tfoot style="font-size:60%">
             <tr style="background-color:#CED3D3; color:#000000">
-                <td colspan="8" style="text-align:left">
+                <td colspan="10" style="text-align:left">
                     No. de Registros: <?php echo is_array($objs) ? count($objs) : 0; ?>
                 </td>
             </tr>

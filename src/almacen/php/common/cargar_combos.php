@@ -247,8 +247,10 @@ function tipo_egreso($cmd, $titulo = '', $todos = 0, $id = 0)
         $rs->closeCursor();
         unset($rs);
         foreach ($objs as $obj) {
-            $dtad = 'data-intext="' . $obj['es_int_ext'] . '"' . 'data-conpedido="' . $obj['con_pedido'] . '"';
-            $dtad .= 'data-fianza="' . $obj['fianza'] . '"' . 'data-devfianza="' . $obj['dev_fianza'] . '"';
+            $dtad = 'data-intext="' . $obj['es_int_ext'] . '"';
+            $dtad .= 'data-conpedido="' . $obj['con_pedido'] . '"';
+            $dtad .= 'data-fianza="' . $obj['fianza'] . '"';
+            $dtad .= 'data-devfianza="' . $obj['dev_fianza'] . '"';
             if ($obj['id_tipo_egreso']  == $id) {
                 echo '<option value="' . $obj['id_tipo_egreso'] . '"' . $dtad . ' selected="selected">' . $obj['nom_tipo_egreso'] . '</option>';
             } else {
@@ -292,7 +294,7 @@ function tipo_ingreso($cmd, $titulo = '', $id = 0)
 {
     try {
         echo '<option value="">' . $titulo . '</option>';
-        $sql = "SELECT id_tipo_ingreso,nom_tipo_ingreso,es_int_ext,orden_compra,fianza,dev_fianza 
+        $sql = "SELECT id_tipo_ingreso,nom_tipo_ingreso,es_int_ext,es_compra,orden_compra,fianza,dev_fianza 
                 FROM far_orden_ingreso_tipo
                 WHERE almacen = 1 OR farmacia = 1 OR id_tipo_ingreso = $id";
         $rs = $cmd->query($sql);
@@ -300,8 +302,11 @@ function tipo_ingreso($cmd, $titulo = '', $id = 0)
         $rs->closeCursor();
         unset($rs);
         foreach ($objs as $obj) {
-            $dtad = 'data-intext="' . $obj['es_int_ext'] . '"' . 'data-ordcom="' . $obj['orden_compra'] . '"';
-            $dtad .= 'data-fianza="' . $obj['fianza'] . '"' . 'data-devfianza="' . $obj['dev_fianza'] . '"';
+            $dtad = 'data-intext="' . $obj['es_int_ext'] . '"';
+            $dtad .= ' data-es_comp="' . $obj['es_compra'] . '"';
+            $dtad .= ' data-ordcom="' . $obj['orden_compra'] . '"';
+            $dtad .= ' data-fianza="' . $obj['fianza'] . '"';
+            $dtad .= ' data-devfianza="' . $obj['dev_fianza'] . '"';
             if ($obj['id_tipo_ingreso']  == $id) {
                 echo '<option value="' . $obj['id_tipo_ingreso'] . '"' . $dtad . ' selected="selected">' . $obj['nom_tipo_ingreso'] . '</option>';
             } else {
@@ -323,6 +328,74 @@ function estados_movimientos($titulo = '', $estado = -1)
     echo '<option value="2"' . $selected . '>CERRADO</option>';
     $selected = ($estado == 0) ? 'selected="selected"' : '';
     echo '<option value="0"' . $selected . '>ANULADO</option>';
+}
+
+function tipo_comprobante($titulo = '', $tipo = -1)
+{
+    echo '<option value="0">' . $titulo . '</option>';
+    $selected = ($tipo == 3) ? 'selected="selected"' : '';
+    echo '<option value="3"' . $selected . '>Fac. Electrónica</option>';
+    $selected = ($tipo == 1) ? 'selected="selected"' : '';
+    echo '<option value="1"' . $selected . '>Remisión SIN Fac. Electrónica</option>';
+    $selected = ($tipo == 2) ? 'selected="selected"' : '';
+    echo '<option value="2"' . $selected . '>Remisión CON Fac. Electrónica</option>';
+}
+
+function tipo_trasnsaccion($cmd, $titulo = '', $rol = 0, $id = 0)
+{
+    try {
+        echo '<option value="">' . $titulo . '</option>';        
+        if ($rol == 1 || $rol == 2) {
+            $sql = "SELECT id_tipo_transac,CONCAT_WS('-', cod_tipo_transac,desc_tipo_transac) AS tipo_transac
+                    FROM far_tipo_transac
+                    WHERE estado = 1 AND rol_tercero = $rol
+                    ORDER BY cod_tipo_transac ASC";   
+            $rs = $cmd->query($sql);
+            $objs = $rs->fetchAll();
+            $rs->closeCursor();
+            unset($rs);
+            foreach ($objs as $obj) {
+                if ($obj['id_tipo_transac']  == $id) {
+                    echo '<option value="' . $obj['id_tipo_transac'] . '" selected="selected">' . $obj['tipo_transac'] . '</option>';
+                } else {
+                    echo '<option value="' . $obj['id_tipo_transac'] . '">' . $obj['tipo_transac'] . '</option>';
+                }
+            }
+            $cmd = null;     
+        }       
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    }
+}
+
+function remisiones_internas($cmd, $titulo = '', $id_tercero = 0, $todas= 0, $id = 0)
+{
+    try {
+        echo '<option value="">' . $titulo . '</option>';    
+        $estado = $todas == 0 ? " AND estado= 1" : "";
+        if ($id_tercero > 0) {
+            $sql = "SELECT id_rem_int, estado, 
+                        CONCAT(num_remision,'-',desc_remision,' (', CASE estado WHEN 1 THEN 'Activa' WHEN 2 THEN 'Cerrada' END, ')') AS remision
+                    FROM far_remision_interna
+                    WHERE id_tercero = $id_tercero $estado
+                    ORDER BY estado, id_rem_int";
+            $rs = $cmd->query($sql);
+            $objs = $rs->fetchAll();
+            $rs->closeCursor();
+            unset($rs);
+            foreach ($objs as $obj) {
+                $dtad = 'data-estado="' . $obj['estado'] . '"';
+                if ($obj['id_rem_int']  == $id) {
+                    echo '<option value="' . $obj['id_rem_int'] . '" ' . $dtad . ' selected="selected">' . $obj['remision'] . '</option>';
+                } else {
+                    echo '<option value="' . $obj['id_rem_int'] . '" ' . $dtad . '>' . $obj['remision'] . '</option>';
+                }
+            }
+            $cmd = null;     
+        }       
+    } catch (PDOException $e) {
+        echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getMessage();
+    }
 }
 
 // PEDIDOS DE ALMACEN
@@ -446,10 +519,11 @@ function subgrupo_articulo($cmd, $titulo = '', $id = 0)
         $rs->closeCursor();
         unset($rs);
         foreach ($objs as $obj) {
+            $dtad = 'data-cod_subgrupo="' . $obj['cod_subgrupo'] . '"';
             if ($obj['id_subgrupo']  == $id) {
-                echo '<option value="' . $obj['id_subgrupo'] . '" data-cod_subgrupo="' . $obj['cod_subgrupo'] . '" selected="selected">' . $obj['nom_subgrupo'] . '</option>';
+                echo '<option value="' . $obj['id_subgrupo'] . '" ' . $dtad . ' selected="selected">' . $obj['nom_subgrupo'] . '</option>';
             } else {
-                echo '<option value="' . $obj['id_subgrupo'] . '" data-cod_subgrupo="' . $obj['cod_subgrupo'] . '">' . $obj['nom_subgrupo'] . '</option>';
+                echo '<option value="' . $obj['id_subgrupo'] . '" ' . $dtad . '>' . $obj['nom_subgrupo'] . '</option>';
             }
         }
         $cmd = null;

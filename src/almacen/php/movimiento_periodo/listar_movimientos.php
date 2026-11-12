@@ -165,13 +165,13 @@ if (!empty($objs)) {
             "nom_medicamento" => mb_strtoupper($obj['nom_medicamento']),
             "nom_subgrupo" => mb_strtoupper($obj['nom_subgrupo']),
             "existencia_ini" => $obj['existencia_ini'],
-            "valores_ini" => formato_valor($obj['valores_ini']),
+            "valores_ini" => formato_valor($obj['valores_ini'] ?? '0'),
             "cantidad_ent" => $obj['cantidad_ent'],
-            "valores_ent" => formato_valor($obj['valores_ent']),
+            "valores_ent" => formato_valor($obj['valores_ent'] ?? '0'),
             "cantidad_sal" => $obj['cantidad_sal'],
-            "valores_sal" => formato_valor($obj['valores_sal']),
+            "valores_sal" => formato_valor($obj['valores_sal'] ?? '0'),
             "existencia_fin" => $obj['existencia_fin'],
-            "valores_fin" => formato_valor($obj['valores_fin']),
+            "valores_fin" => formato_valor($obj['valores_fin'] ?? '0'),
         ];
     }
 }

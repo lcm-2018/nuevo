@@ -62,7 +62,7 @@ if (empty($obj) || !is_array($obj)) {
                     </div>
                     <div class="col-md-1">
                         <button type="button" id="btn_buscar_fil_kar" class="btn btn-outline-success btn-sm" title="Buscar">
-                            <span class="fas fa-search fa-lg" aria-hidden="true"></span>
+                            <span class="fas fa-search" aria-hidden="true"></span>
                         </button>
                     </div>
                 </div>

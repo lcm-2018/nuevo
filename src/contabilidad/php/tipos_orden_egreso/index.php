@@ -55,7 +55,7 @@ $content = <<<HTML
                         <th rowspan="2" class="bg-sofia">Id</th>
                         <th rowspan="2" class="bg-sofia">Nombre</th>
                         <th rowspan="2" class="bg-sofia">Cuenta Contable Gasto Vigente</th>
-                        <th rowspan="2" class="bg-sofia">Int/Ext</th>
+                        <th rowspan="2" class="bg-sofia">Interno/Externo</th>
                         <th rowspan="2" class="bg-sofia">Con Pedido</th>
                         <th rowspan="2" class="bg-sofia">Es Dev. Fianza</th>
                         <th rowspan="2" class="bg-sofia">Es Consumo</th>

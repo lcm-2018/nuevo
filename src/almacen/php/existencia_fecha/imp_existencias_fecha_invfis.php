@@ -185,7 +185,7 @@ try {
 
 <div class="text-end py-3">
     <a type="button" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" title="Exportar a Excel">
-        <span class="fas fa-file-excel fa-lg"></span>
+        <span class="fas fa-file-excel"></span>
     </a>
     <a type="button" class="btn btn-primary btn-sm" id="btnImprimir">Imprimir</a>
     <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</a>

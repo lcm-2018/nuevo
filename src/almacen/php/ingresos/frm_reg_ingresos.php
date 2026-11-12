@@ -12,20 +12,22 @@ $cmd = \Config\Clases\Conexion::getConexion();
 
 $id = isset($_POST['id']) ? $_POST['id'] : -1;
 $sql = "SELECT II.fec_ingreso,II.hor_ingreso,II.num_ingreso,II.id_sede,II.id_bodega,
-            II.id_tipo_ingreso,II.num_ingreso_tipo,
-            II.num_factura,II.fec_factura,
-            TE.id_tercero,TE.nom_tercero,
+            II.id_tipo_ingreso,II.tipo_comprobante,II.num_ingreso_tipo,            
+            II.cufe,II.num_factura,II.fec_factura,
+            TE.id_tercero,TE.nom_tercero,TE.rol_tercero,
+            II.id_tipo_transac, 
             II.estado,II.detalle,II.val_total,II.val_aprpeso,
             (II.val_total+II.val_aprpeso) AS val_total_apr,
             II.id_pedido,
             BO.nombre AS nom_bodega,
             CASE II.estado WHEN 1 THEN 'PENDIENTE' WHEN 2 THEN 'CERRADO' WHEN 0 THEN 'ANULADO' END AS nom_estado,
             CONCAT(PP.num_pedido,' - ',PP.detalle,'(',PP.fec_pedido,')') AS des_pedido,
-            IITP.orden_compra
+            IITP.orden_compra,II.id_rem_int
         FROM far_orden_ingreso AS II
         INNER JOIN far_bodegas AS BO ON (BO.id_bodega=II.id_bodega)
         INNER JOIN far_orden_ingreso_tipo AS IITP ON (IITP.id_tipo_ingreso=II.id_tipo_ingreso)
         INNER JOIN tb_terceros AS TE ON (TE.id_tercero=II.id_provedor)
+        LEFT JOIN far_tipo_transac AS TT ON (TT.id_tipo_transac=II.id_tipo_transac)
         LEFT JOIN far_alm_pedido AS PP ON (PP.id_pedido=II.id_pedido)
         WHERE id_ingreso=" . $id . " LIMIT 1";
 $rs = $cmd->query($sql);
@@ -108,32 +110,65 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                             <?php tipo_ingreso($cmd, '', $obj['id_tipo_ingreso']) ?>
                         </select>
                         <input type="hidden" id="id_tip_ing" name="id_tip_ing" value="<?php echo $obj['id_tipo_ingreso'] ?>">
-                    </div>
+                    </div>                    
                     <div class="col-md-1">
                         <label for="txt_num_ing_tipo" class="small">No. Tipo Ing.</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_num_ing_tipo" name="txt_num_ing_tipo" class="small" value="<?php echo $obj['num_ingreso_tipo'] ?>" readonly="readonly">
                     </div>
                     <div class="col-md-2">
-                        <label for="txt_num_fac" class="small">No. Fact./Acta/Rem.</label>
-                        <input type="text" class="form-control form-control-sm bg-input" id="txt_num_fac" name="txt_num_fac" class="small" value="<?php echo $obj['num_factura'] ?>">
-                    </div>
-                    <div class="col-md-2">
-                        <label for="txt_fec_fac" class="small">Fecha Fact./Acta/Rem.</label>
-                        <input type="date" class="form-control form-control-sm bg-input" id="txt_fec_fac" name="txt_fec_fac" class="small" value="<?php echo $obj['fec_factura'] ?>">
-                    </div>
+                        <label for="sl_tip_comprobante" class="small" required>Tipo Comprobante</label>
+                        <select class="form-select form-select-sm bg-input" id="sl_tip_comprobante" name="sl_tip_comprobante" disabled>
+                            <?php tipo_comprobante('', $obj['tipo_comprobante']) ?>
+                        </select>
+                    </div>                     
                     <div class="col-md-5">
                         <label for="txt_tercero" class="small">Tercero</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_tercero" value="<?php echo $obj['nom_tercero'] ?>">
-                        <input type="hidden" id="id_txt_tercero" name="id_txt_tercero" value="<?php echo $obj['id_tercero'] ?>">
+                        <input type="text" id="id_txt_tercero" name="id_txt_tercero" value="<?php echo $obj['id_tercero'] ?>">
                     </div>
-
+                    <div class="col-md-2">
+                        <label for="sl_tip_transaccion" class="small" required>Tipo Transacción</label>
+                        <select class="form-select form-select-sm bg-input" id="sl_tip_transaccion" name="sl_tip_transaccion">
+                            <?php tipo_trasnsaccion($cmd, '', $obj['rol_tercero'], $obj['id_tipo_transac']) ?>
+                        </select>
+                    </div>
+                </div>   
+                <div class="row border p-2 my-2 mx-0">
+                    <div class="col-md-6" id="divCufe">
+                        <label for="txt_cufe" class="small">Código CUFE</label>
+                        <input type="text" class="form-control form-control-sm bg-input" id="txt_cufe" name="txt_cufe" class="small" maxlength="96" value="<?php echo $obj['cufe'] ?>">
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="txt_num_fac" class="small">No. Fact./Acta/Rem.</label>
+                                <input type="text" class="form-control form-control-sm bg-input" id="txt_num_fac" name="txt_num_fac" class="small" value="<?php echo $obj['num_factura'] ?>">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="txt_fec_fac" class="small">Fecha Fact./Acta/Rem.</label>
+                                <input type="date" class="form-control form-control-sm bg-input" id="txt_fec_fac" name="txt_fec_fac" class="small" value="<?php echo $obj['fec_factura'] ?>">
+                            </div> 
+                            <div class="col-md-4" id="divRemision">
+                                <label for="sl_num_remision" class="small" required>No. Remisión Interna</label>
+                                <select class="form-select form-select-sm bg-input" id="sl_num_remision" name="sl_num_remision">
+                                    <?php remisiones_internas($cmd, '', $obj['id_tercero'], 0, $obj['id_rem_int']) ?>
+                                </select>
+                            </div>
+                            <div class="col-md-1" id="divAddRemision">
+                                <label class="small">&emsp;</label>
+                                <a type="button" id="btn_add_remision" class="btn btn-outline-primary btn-sm" title="Adicionar Remisión Interna">
+                                    <span class="fas fa-plus-square" aria-hidden="true"></span>
+                                </a>
+                            </div>
+                        </div>  
+                    </div>        
                 </div>
-                <div class="row" id="divPedido" <?php echo $obj['orden_compra'] == 1 ? '' : 'style="display: none;"' ?>>
+                <div class="row border p-2 my-2 mx-0" id="divPedido">
                     <div class="col-md-1">
                         <label for="txt_id_pedido" class="small">Id. Pedido</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_id_pedido" name="txt_id_pedido" class="small" value="<?php echo $obj['id_pedido'] ?>" readonly="readonly">
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6">                        
                         <div class="row mb-2">
                             <div class="col-md-10">
                                 <label for="txt_des_pedido" class="small">No. Pedido de Almacén - Orden de Coampra</label>

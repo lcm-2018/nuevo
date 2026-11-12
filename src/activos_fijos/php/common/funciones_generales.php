@@ -17,7 +17,7 @@ function fecha_hora_servidor()
 //FUNCION PARA DAR FORMATO A LOS VALORES NUMERICOS
 function formato_valor($valor)
 {
-    return '$' . number_format($valor, 2, ",", ".");
+    return '$' . number_format($valor ?? '0', 2, ",", ".");
 }
 
 //FUNCION QUE RETORNAR LOS DATOS DE UN ARTICULO

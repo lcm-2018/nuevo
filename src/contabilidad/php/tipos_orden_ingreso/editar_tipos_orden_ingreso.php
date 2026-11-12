@@ -34,6 +34,7 @@ try {
             $id = $_POST['id_tipo_ingreso'];
             $nom_tipo_ingreso = $_POST['txt_nom_tipoingreso'];
             $es_int_ext = $_POST['sl_esintext'];
+            $es_compra = $_POST['sl_escompra'];
             $orden_compra = $_POST['sl_ordencompra'];
             $fianza = $_POST['sl_fianza'];
             $farmacia = $_POST['sl_farmacia'];
@@ -41,13 +42,13 @@ try {
             $activofijo = $_POST['sl_activofijo'];
 
             if ($id == -1) {
-                $sql = "INSERT INTO far_orden_ingreso_tipo(nom_tipo_ingreso,es_int_ext,orden_compra,fianza,farmacia,almacen,activofijo,id_usr_crea) 
-                        VALUES('$nom_tipo_ingreso',$es_int_ext,$orden_compra,$fianza,$farmacia,$almacen,$activofijo,$id_usr_ope)";
+                $sql = "INSERT INTO far_orden_ingreso_tipo(nom_tipo_ingreso,es_int_ext,es_compra,orden_compra,fianza,farmacia,almacen,activofijo,id_usr_crea) 
+                        VALUES('$nom_tipo_ingreso',$es_int_ext,$es_compra,$orden_compra,$fianza,$farmacia,$almacen,$activofijo,$id_usr_ope)";
                 $rs = $cmd->query($sql);
 
                 if ($rs) {
                     $res['mensaje'] = 'ok';
-                    Logs::guardaLog("INSERT INTO far_orden_ingreso_tipo(nom_tipo_ingreso,es_int_ext,orden_compra,fianza,farmacia,almacen,activofijo,id_usr_crea) VALUES('$nom_tipo_ingreso',$es_int_ext,$orden_compra,$fianza,$farmacia,$almacen,$activofijo,$id_usr_ope)");
+                    Logs::guardaLog("INSERT INTO far_orden_ingreso_tipo(nom_tipo_ingreso,es_int_ext,es_compra,orden_compra,fianza,farmacia,almacen,activofijo,id_usr_crea) VALUES('$nom_tipo_ingreso',$es_int_ext,$es_compra,$orden_compra,$fianza,$farmacia,$almacen,$activofijo,$id_usr_ope)");
                     $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                     $rs = $cmd->query($sql_i);
                     $obj = $rs ? $rs->fetch() : null;
@@ -58,14 +59,14 @@ try {
             } else {
 
                 $sql = "UPDATE far_orden_ingreso_tipo 
-                        SET nom_tipo_ingreso='$nom_tipo_ingreso',es_int_ext=$es_int_ext,orden_compra=$orden_compra,
+                        SET nom_tipo_ingreso='$nom_tipo_ingreso',es_int_ext=$es_int_ext,es_compra=$es_compra,orden_compra=$orden_compra,
                             fianza=$fianza,farmacia=$farmacia,almacen=$almacen,activofijo=$activofijo 
                         WHERE id_tipo_ingreso=" . $id;
                 $rs = $cmd->query($sql);
 
                 if ($rs) {
                     $res['mensaje'] = 'ok';
-                    Logs::guardaLog("UPDATE far_orden_ingreso_tipo SET nom_tipo_ingreso='$nom_tipo_ingreso',es_int_ext=$es_int_ext,orden_compra=$orden_compra,fianza=$fianza,farmacia=$farmacia,almacen=$almacen,activofijo=$activofijo WHERE id_tipo_ingreso=$id");
+                    Logs::guardaLog("UPDATE far_orden_ingreso_tipo SET nom_tipo_ingreso='$nom_tipo_ingreso',es_int_ext=$es_int_ext,es_compra=$es_compra,orden_compra=$orden_compra,fianza=$fianza,farmacia=$farmacia,almacen=$almacen,activofijo=$activofijo WHERE id_tipo_ingreso=$id");
                     $res['id'] = $id;
                 } else {
                     $res['mensaje'] = $cmd->errorInfo()[2];

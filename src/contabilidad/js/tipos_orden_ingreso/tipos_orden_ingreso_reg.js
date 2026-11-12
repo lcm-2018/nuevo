@@ -1,0 +1,62 @@
+(function ($) {
+    $(document).ready(function () {
+        $('#tb_cuentas_c').DataTable({
+            dom: setdom,
+            buttons: [{
+                text: '<span class="fa-solid fa-plus "></span>',
+                className: 'btn btn-success btn-sm shadow',
+                action: function (e, dt, node, config) {
+                    $.post("frm_reg_tipos_orden_ingreso_cta.php", { id_tipo_ingreso: $('#id_tipo_ingreso').val() }, function (he) {
+                        $('#divTamModalReg').removeClass('modal-xl');
+                        $('#divTamModalReg').removeClass('modal-sm');
+                        $('#divTamModalReg').addClass('modal-lg');
+                        $('#divModalReg').modal('show');
+                        $("#divFormsReg").html(he);
+                    });
+                }
+            }],
+            language: dataTable_es,
+            processing: true,
+            serverSide: true,
+            autoWidth: false,
+            ajax: {
+                url: 'listar_tipos_orden_ingreso_cta.php',
+                type: 'POST',
+                dataType: 'json',
+                data: function (data) {
+                    data.id_tipo_ingreso = $('#id_tipo_ingreso').val();
+                }
+            },
+            columns: [
+                { 'data': 'id_tipo_ingreso_cta' }, //Index=0
+                { 'data': 'cuenta' },
+                { 'data': 'fecha_vigencia' },
+                { 'data': 'vigente' },
+                { 'data': 'estado' },
+                { 'data': 'botones' }
+            ],
+            columnDefs: [
+                { class: 'text-wrap', targets: 1 },
+                { orderable: false, targets: 5 }
+            ],
+            rowCallback: function (row, data) {
+                var vigente = $($(row).find("td")[3]).text();
+                if (vigente == 'X') {
+                    $($(row).find("td")[3]).css("background-color", "#ffc107");
+                }
+            },
+            order: [
+                [0, "desc"]
+            ],
+            lengthMenu: [
+                [10, 25, 50, -1],
+                [10, 25, 50, 'TODO'],
+            ],
+        });
+
+        $('.bttn-plus-dt span').html('<span class="icon-dt fas fa-plus-circle "></span>');
+        $('#tb_cuentas_c').wrap('<div class="overflow"/>');
+
+    });
+
+})(jQuery);

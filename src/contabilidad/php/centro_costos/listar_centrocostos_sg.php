@@ -23,19 +23,23 @@ if ($length != -1) {
 $col = $_POST['order'][0]['column'] + 1;
 $dir = $_POST['order'][0]['dir'];
 
+$id_cencos = $_POST['id_cencos'];
+$tipo = $_POST['tipo'];
+
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
 
     //Consulta la Cuanta Vigente
     $sql = "SELECT id_cecsubgrp AS id FROM tb_centrocostos_subgr_cta
-	        WHERE estado=1 AND fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND id_cencos=" . $_POST['id_cencos'] . " 
+	        WHERE estado=1 AND fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND 
+            id_cencos=" . $id_cencos . " AND tipo=" . $tipo . " 
             ORDER BY fecha_vigencia DESC LIMIT 1";
     $rs = $cmd->query($sql);
     $cuenta = $rs ? $rs->fetch() : null;
     $id_vig = isset($cuenta['id']) ? $cuenta['id'] : 0;
 
     //Consulta el total de registros de la tabla
-    $sql = "SELECT COUNT(*) AS total FROM tb_centrocostos_subgr_cta WHERE id_cencos=" . $_POST['id_cencos'];
+    $sql = "SELECT COUNT(*) AS total FROM tb_centrocostos_subgr_cta WHERE id_cencos=" . $id_cencos . " AND tipo=" . $tipo;
     $rs = $cmd->query($sql);
     $total = $rs ? $rs->fetch() : null;
     $totalRecords = $total['total'] ?? 0;
@@ -45,7 +49,7 @@ try {
     $sql = "SELECT id_cecsubgrp,fecha_vigencia,   
                 IF(estado=1,'ACTIVO','INACTIVO') AS estado
             FROM tb_centrocostos_subgr_cta
-            WHERE id_cencos=" . $_POST['id_cencos'] . " ORDER BY $col $dir $limit";
+            WHERE id_cencos=" . $id_cencos . " AND tipo=" . $tipo . " ORDER BY $col $dir $limit";
 
     $rs = $cmd->query($sql);
     $objs = $rs ? $rs->fetchAll() : [];

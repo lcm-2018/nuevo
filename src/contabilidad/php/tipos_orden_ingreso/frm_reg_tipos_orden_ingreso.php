@@ -26,6 +26,7 @@ if (empty($obj)) {
     endfor;
     //Inicializa variable por defecto
     $obj['es_int_ext'] = 0;
+    $obj['es_compra'] = 0;
     $obj['orden_compra'] = 0;
     $obj['fianza'] = 0;
     $obj['farmacia'] = 1;
@@ -54,11 +55,17 @@ if (empty($obj)) {
                         </select>
                     </div>
                     <div class="col-md-2">
+                        <label for="sl_escompra" class="small">Es Compra</label>
+                        <select class="form-select form-select-sm bg-input" id="sl_escompra" name="sl_escompra">
+                            <?php estados_sino('', $obj['es_compra']) ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label for="sl_ordencompra" class="small">Con Orden Compra</label>
                         <select class="form-select form-select-sm bg-input" id="sl_ordencompra" name="sl_ordencompra">
                             <?php estados_sino('', $obj['orden_compra']) ?>
                         </select>
-                    </div>
+                    </div>                    
                     <div class="col-md-2">
                         <label for="sl_fianza" class="small">Es Fianza</label>
                         <select class="form-select form-select-sm bg-input" id="sl_fianza" name="sl_fianza">
@@ -85,6 +92,21 @@ if (empty($obj)) {
                     </div>
                 </div>
             </form>
+            <div class="py-2">
+                <table id="tb_cuentas_c" class="table table-striped table-bordered table-sm nowrap table-hover shadow align-middle" style="width:100%; font-size:80%">
+                    <thead class="text-center">
+                        <tr>
+                            <th class="bg-sofia">Id</th>
+                            <th class="bg-sofia">Cuenta Contable</th>
+                            <th class="bg-sofia">Fecha Inicio de Vigencia</th>
+                            <th class="bg-sofia">Cuenta Vigente</th>
+                            <th class="bg-sofia">Estado</th>
+                            <th class="bg-sofia">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-start centro-vertical"></tbody>
+                </table>
+            </div>
         </div>
     </div>
     <div class="text-center pt-3">
@@ -92,3 +114,5 @@ if (empty($obj)) {
         <a type="button" class="btn btn-secondary  btn-sm" data-bs-dismiss="modal">Cancelar</a>
     </div>
 </div>
+
+<script type="text/javascript" src="../../js/tipos_orden_ingreso/tipos_orden_ingreso_reg.js?v=<?php echo date('YmdHis') ?>"></script>

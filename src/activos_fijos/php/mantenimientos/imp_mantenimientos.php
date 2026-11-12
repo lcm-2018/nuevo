@@ -51,7 +51,7 @@ try {
 ?>
 <div class="text-end py-3">
     <a type="button" id="btnExcelEntrada" class="btn btn-outline-success btn-sm" value="01" title="Exprotar a Excel">
-        <span class="fas fa-file-excel fa-lg" aria-hidden="true"></span>
+        <span class="fas fa-file-excel" aria-hidden="true"></span>
     </a>
     <a type="button" class="btn btn-primary btn-sm" id="btnImprimir">Imprimir</a>
     <a type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"> Cerrar</a>
@@ -111,9 +111,9 @@ try {
                         <td>' . $obj['tipo_mantenimiento'] . '</td>   
                         <td style="text-align:left">' . $obj['observaciones'] . '</td>   
                         <td>' . $obj['nom_responsable'] . '</td>   
-                        <td>' . $obj['nom_tercero'] . '</td>   
-                        <td>' . $obj['fec_ini_mantenimiento'] . '</td>   
-                        <td>' . $obj['fec_ini_mantenimiento'] . '</td>   
+                        <td>' . ($obj['nom_tercero'] ?? '') . '</td>   
+                        <td>' . ($obj['fec_ini_mantenimiento'] ?? '') . '</td>   
+                        <td>' . ($obj['fec_fin_mantenimiento'] ?? '') . '</td>   
                         <td>' . $obj['nom_estado'] . '</td></tr>';
             }
             echo $tabla;

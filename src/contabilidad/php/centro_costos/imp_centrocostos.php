@@ -65,7 +65,7 @@ try {
             <tr style="background-color:#CED3D3; color:#000000; text-align:center">
                 <th>Id</th>
                 <th>Nombre</th>
-                <th>Cuenta Contable Facturación</th>
+                <th>Cuenta Contable - Facturación</th>
                 <th>Responsable</th>
             </tr>
         </thead>
@@ -73,7 +73,7 @@ try {
             <?php
             $tabla = '';
             foreach ($objs as $obj) {
-
+                // Cuenta contable - facturacion
                 $sql = "SELECT CONCAT_WS(' - ',ctb_pgcp.cuenta,ctb_pgcp.nombre) AS cuenta
                         FROM tb_centrocostos_cta    
                         INNER JOIN ctb_pgcp ON (ctb_pgcp.id_pgcp=tb_centrocostos_cta.id_cuenta)            
@@ -83,8 +83,9 @@ try {
                 $obj_cta = $rs ? $rs->fetch() : null;
                 $cuenta = isset($obj_cta['cuenta']) ? $obj_cta['cuenta'] : '';
 
+                // Cuenta contable - gastos de consumo    
                 $sql = "SELECT id_cecsubgrp AS id FROM tb_centrocostos_subgr_cta
-                        WHERE estado=1 AND fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND id_cencos=" . $obj['id_centro'] . " 
+                        WHERE estado=1 AND tipo=1 AND fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND id_cencos=" . $obj['id_centro'] . " 
                         ORDER BY fecha_vigencia DESC LIMIT 1";
                 $rs = $cmd->query($sql);
                 $obj_cta = $rs ? $rs->fetch() : null;
@@ -98,7 +99,26 @@ try {
                                 WHERE CSG.id_cecsubgrp=" . $id . ") AS C ON (C.id_subgrupo=SG.id_subgrupo)
                         WHERE SG.id_grupo IN (1,2) ORDER BY SG.id_subgrupo";
                 $rs = $cmd->query($sql);
-                $objs_ctas = $rs ? $rs->fetchAll() : [];
+                $objs_ctas_cn = $rs ? $rs->fetchAll() : [];
+
+                // Cuenta contable - depreciación
+                $sql = "SELECT id_cecsubgrp AS id FROM tb_centrocostos_subgr_cta
+                        WHERE estado=1 AND tipo=2 AND fecha_vigencia<=DATE_FORMAT(NOW(), '%Y-%m-%d') AND id_cencos=" . $obj['id_centro'] . " 
+                        ORDER BY fecha_vigencia DESC LIMIT 1";
+                $rs = $cmd->query($sql);
+                $obj_cta = $rs ? $rs->fetch() : null;
+                $id = isset($obj_cta['id']) ? $obj_cta['id'] : -1;
+
+                $sql = "SELECT SG.nom_subgrupo,C.cuenta
+                        FROM far_subgrupos AS SG
+                        LEFT JOIN (SELECT CSG.*,CONCAT_WS(' - ',CTA.cuenta,CTA.nombre) AS cuenta
+                                FROM tb_centrocostos_subgr_cta_detalle AS CSG
+                                INNER JOIN ctb_pgcp AS CTA ON (CTA.id_pgcp=CSG.id_cuenta)
+                                WHERE CSG.id_cecsubgrp=" . $id . ") AS C ON (C.id_subgrupo=SG.id_subgrupo)
+                        WHERE SG.id_grupo IN (3,4,5) ORDER BY SG.id_subgrupo";
+                $rs = $cmd->query($sql);
+                $objs_ctas_dp = $rs ? $rs->fetchAll() : [];
+
                 $rs->closeCursor();
                 unset($rs);
 
@@ -109,13 +129,32 @@ try {
                         <td>' . $cuenta . '</td>
                         <td>' . $obj['usr_respon'] . '</td>
                      <tr class="resaltar" style="text-align:left"> 
+                        <th colspan="4">' . str_repeat('&nbsp', 10) . 'Cuentas Contables - Consumo</th></tr>
+                     <tr class="resaltar" style="text-align:left"> 
                         <td colspan="4">
                             <table>';
-                foreach ($objs_ctas as $cta) {
+                
+                foreach ($objs_ctas_cn as $cta) {
                     $tabla .=
                         '<tr> 
-                                        <td>' . $cta['nom_subgrupo'] . ':</td>                    
-                                        <td>' . $cta['cuenta'] . '</td></tr>';
+                            <td>' . str_repeat('&nbsp', 20) . $cta['nom_subgrupo'] . ':</td>                    
+                            <td>' . $cta['cuenta'] . '</td></tr>';
+                }                
+                $tabla .=
+                        '</table></td></tr>';
+                
+                $tabla .=
+                        '<tr class="resaltar" style="text-align:left"> 
+                        <th colspan="4">' . str_repeat('&nbsp', 10) . 'Cuentas Contables - Depreciación</th></tr>
+                        <tr class="resaltar" style="text-align:left"> 
+                            <td colspan="4">
+                                <table>';
+
+                foreach ($objs_ctas_dp as $cta) {
+                    $tabla .=
+                        '<tr> 
+                            <td>' . str_repeat('&nbsp', 20) . $cta['nom_subgrupo'] . ':</td>                    
+                            <td>' . $cta['cuenta'] . '</td></tr>';
                 }
                 $tabla .=
                     '</table></td></tr>';

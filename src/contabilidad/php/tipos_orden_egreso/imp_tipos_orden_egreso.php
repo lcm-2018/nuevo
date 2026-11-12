@@ -72,7 +72,7 @@ try {
                 <th rowspan="2">Id</th>
                 <th rowspan="2">Nombre</th>
                 <th rowspan="2">Cuenta Contable Gasto</th>
-                <th rowspan="2">Int/Ext</th>
+                <th rowspan="2">Interno/Externo</th>
                 <th rowspan="2">Con Pedido</th>
                 <th rowspan="2">Es Dev. Fianza</th>
                 <th rowspan="2">Es Consumo</th>

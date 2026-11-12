@@ -159,13 +159,13 @@ if (!empty($objs)) {
             "nom_sede" => mb_strtoupper($obj['nom_sede']),
             "nom_bodega" => mb_strtoupper($obj['nom_bodega']),
             "nom_centro" => mb_strtoupper($obj['nom_centro']),
-            "nom_sede_des" => mb_strtoupper($obj['nom_sede_des']),
-            "nom_area" => mb_strtoupper($obj['nom_area']),
-            "nom_tercero" => mb_strtoupper($obj['nom_tercero']),
+            "nom_sede_des" => mb_strtoupper($obj['nom_sede_des'] ?? ''),
+            "nom_area" => mb_strtoupper($obj['nom_area'] ?? ''),
+            "nom_tercero" => mb_strtoupper($obj['nom_tercero'] ?? ''),
             "val_total" => formato_valor($obj['val_total']),
             "estado" => $obj['estado'],
             "nom_estado" => $obj['nom_estado'] . '<br>' . $obj['fec_estado'],
-            "num_pedido" => $obj['num_pedido'],
+            "num_pedido" => $obj['num_pedido'] ?? '',
             "botones" => '<div class="text-center">' . $editar . $eliminar . $imprimir . '</div>',
         ];
     }

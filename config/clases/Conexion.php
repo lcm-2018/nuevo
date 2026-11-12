@@ -22,8 +22,8 @@ class Conexion
         Env::cargar();
 
         $this->bd_driver = Env::get('DB_DRIVER', 'mysql');
-        $this->bd_servidor = Env::get('DB_HOST', 'localhost:3308');
-        $this->bd_base = Env::get('DB_NAME', 'ipiales');
+        $this->bd_servidor = Env::get('DB_HOST', 'localhost');
+        $this->bd_base = Env::get('DB_NAME', 'bd_redsalud');
         $this->bd_usuario = Env::get('DB_USER', 'root');
         $this->bd_clave = Env::get('DB_PASS', '12345');
         $this->charset = "charset=" . Env::get('DB_CHARSET', 'utf8');

@@ -10,6 +10,8 @@ include '../common/cargar_combos.php';
 $cmd = \Config\Clases\Conexion::getConexion();
 
 $id = isset($_POST['id']) ? $_POST['id'] : -1;
+$tipo = isset($_POST['tipo']) ? $_POST['tipo'] : -1;
+
 $sql = "SELECT tb_centrocostos_subgr_cta.*
         FROM tb_centrocostos_subgr_cta
         WHERE id_cecsubgrp=" . $id . " LIMIT 1";
@@ -41,6 +43,7 @@ if (empty($obj)) {
             <!--Formulario de registro de Cuenta-->
             <form id="frm_reg_centrocostos_sg">
                 <input type="hidden" id="id_cec_sg" name="id_cec_sg" value="<?php echo $id ?>">
+                <input type="hidden" id="tipo" name="tipo" value="<?php echo $tipo ?>">
                 <div class=" row">
                     <div class="col-md-3">
                         <label for="txt_fec_vig" class="small">Fecha Inicio de Vigencia</label>

@@ -36,15 +36,16 @@ try {
                 $id = $_POST['id_cec_sg'];
                 $fec_vig = $_POST['txt_fec_vig'] ? "'" . $_POST['txt_fec_vig'] . "'" : 'NULL';
                 $estado = $_POST['sl_estado_cta'];
+                $tipo = isset($_POST['tipo']) ? $_POST['tipo'] : 1;
 
                 if ($id == -1) {
-                    $sql = "INSERT INTO tb_centrocostos_subgr_cta(id_cencos,fecha_vigencia,estado,id_usr_crea,fec_creacion)  
-                            VALUES($id_cencos,$fec_vig,$estado,$id_usr_crea,'$fecha_crea')";
+                    $sql = "INSERT INTO tb_centrocostos_subgr_cta(id_cencos,fecha_vigencia,tipo,estado,id_usr_crea,fec_creacion)  
+                            VALUES($id_cencos,$fec_vig,$tipo,$estado,$id_usr_crea,'$fecha_crea')";
                     $rs = $cmd->query($sql);
 
                     if ($rs) {
                         $res['mensaje'] = 'ok';
-                        Logs::guardaLog("INSERT INTO tb_centrocostos_subgr_cta(id_cencos,fecha_vigencia,estado,id_usr_crea) VALUES($id_cencos,$fec_vig,$estado,$id_usr_crea)");
+                        Logs::guardaLog("INSERT INTO tb_centrocostos_subgr_cta(id_cencos,fecha_vigencia,tipo,estado,id_usr_crea) VALUES($id_cencos,$fec_vig,$tipo,$estado,$id_usr_crea)");
                         $sql_i = 'SELECT LAST_INSERT_ID() AS id';
                         $rs = $cmd->query($sql_i);
                         $obj = $rs ? $rs->fetch() : null;
