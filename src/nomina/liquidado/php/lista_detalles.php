@@ -71,7 +71,7 @@ if (!empty($obj)) {
             + $o['val_sena'] + $o['val_icbf'] + $o['val_comfam'];
 
 
-        $neto = $devengado - $deducciones;
+        $neto = max(0, $devengado - $deducciones);
 
         if ($permisos->PermisosUsuario($opciones, 5101, 1) || $id_rol == 1) {
             $detalles = '<button type="button" class="btn btn-outline-warning btn-xs rounded-circle shadow me-1 detalles" title="Ver Detalles"><i class="fa fa-eye"></i></button>';

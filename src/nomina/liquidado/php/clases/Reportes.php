@@ -8,6 +8,7 @@ use Config\Clases\Sesion;
 use PDO;
 use PDOException;
 use Src\Common\Php\Clases\Combos;
+use Src\Nomina\Liquidacion\Php\Clases\Nomina;
 
 /**
  * Clase para gestionar de nomina de los empleados Liquidado.
@@ -118,6 +119,25 @@ class Reportes
         $reemplazar = '<option value="90" >CONSOLIDADO</option>' . $buscar;
         $conceptos = str_replace($buscar, $reemplazar, $conceptos);
         $sedes = Combos::getSedes(0);
+
+        $nomina = Nomina::getRegistro($id_nomina);
+        $esRetroactivo = isset($nomina['tipo']) && strtoupper(trim($nomina['tipo'])) === 'RA';
+
+        $filaRetroactivo = '';
+        if ($esRetroactivo) {
+            $filaRetroactivo = <<<HTML
+                                    <tr>
+                                        <td>7</td>
+                                        <td class="text-start">DESCUENTOS PENDIENTES</td>
+                                        <td></td>
+                                        <td class="text-center">
+                                            <button data-id="7" class="btn btn-outline-success btn-xs rounded-circle shadow me-1 reportes" title="Excel" text="E"><span class="fas fa-file-excel fa-sm"></span></button>
+                                            <button data-id="7" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 reportes" title="Imprimir" text="P"><span class="fas fa-print fa-sm"></span></button>
+                                        </td>
+                                    </tr>
+            HTML;
+        }
+
         $html =
             <<<HTML
                 <div>
@@ -198,6 +218,7 @@ class Reportes
                                             <button data-id="6" class="btn btn-outline-info btn-xs rounded-circle shadow me-1 reportes" title="Imprimir" text="P"><span class="fas fa-print fa-sm"></span></button>
                                         </td>
                                     </tr>
+                                    {$filaRetroactivo}
                                 </tbody>
                             </table>   
                         </div>

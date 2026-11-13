@@ -11,6 +11,7 @@ use PDOException;
 use Src\Common\Php\Clases\Valores;
 use Src\Nomina\Empleados\Php\Clases\Bsp;
 use Src\Nomina\Empleados\Php\Clases\Cesantias;
+use Src\Nomina\Empleados\Php\Clases\Compesatorios;
 use Src\Nomina\Empleados\Php\Clases\Embargos;
 use Src\Nomina\Empleados\Php\Clases\Empleados;
 use Src\Nomina\Empleados\Php\Clases\Incapacidades;
@@ -1241,6 +1242,8 @@ class Liquidacion
                 $totales = [
                     'dias' => 0,
                     'laborado' => 0,
+                    'compensa' => 0,
+                    'dias_compensa' => 0,
                     'horas_ext' => 0,
                     'grep' => 0,
                     'vac' => 0,
@@ -1328,8 +1331,8 @@ class Liquidacion
                         $diffComp = Valores::Redondear($valCompPag * ($factorFila - 1));
                         $valCompInc = $valCompPag + $diffComp;
                         $registraDetalle(1, $valCompPag, $valCompInc);
-                        $totales['laborado'] += $diffComp;
-                        $totales['dias'] += intval($row['dias_compensa_pagada'] ?? 0);
+                        $totales['compensa'] += $diffComp;
+                        $totales['dias_compensa'] += intval($row['dias_compensa_pagada'] ?? 0);
                     }
 
                     // 4. Horas extras (id_concepto 4)
@@ -1645,7 +1648,7 @@ class Liquidacion
                     $deduccionAdicMes = $diffSalud + $diffPension + $diffSolidaridad + $diffRet + $reintegroMes;
                     $diffNetoMes = $devengadoAdicMes - $deduccionAdicMes;
                     $netoAnt = floatval($row['val_neto_pagado']);
-                    $netoNue = $netoAnt + $diffNetoMes;
+                    $netoNue = max(0, $netoAnt + $diffNetoMes);
                     $registraDetalle(20, $netoAnt, $netoNue);
 
                     // Acumulaciones globales para nom_liq_*
@@ -1686,14 +1689,53 @@ class Liquidacion
                     }
                 }
 
-                // Procesar reintegros por pérdida de beneficios en nom_otros_descuentos y nom_liq_descuento
-                // Solo se descuenta hasta que el neto sea 0. El excedente no descontado se registra en nom_retroctivo_detalles con bandera = 1
+                // Control de retención en la fuente y reintegros para no generar netos negativos
+                // Solo se descuenta hasta que el neto sea 0. Los excedentes no descontados se registran en nom_retroctivo_detalles con bandera = 1
                 $totalDevengadoLiq = $totales['laborado'] + $totales['grep'] + $totales['horas_ext'] + $mayorValorBsp
+                    + $totales['compensa']
                     + $totales['vac'] + $totales['prima_vac'] + $totales['bon_recrea']
                     + $totales['prima_serv'] + $totales['prima_nav']
                     + $totales['cesantias'] + $totales['icesantias']
                     + $totales['incap'] + $totales['lic'] + $totales['indem'] + $totales['odev'];
-                $totalDeduccionesLey = $totales['salud_emp'] + $totales['pension_emp'] + $totales['solidaridad'] + $totales['retencion'];
+
+                $anioRetro = date('Y', strtotime($retro['fec_final']));
+                $mesRetro = date('m', strtotime($retro['fec_final']));
+
+                // Deducciones de seguridad social obligatorias del empleado (salud, pensión, fondo de solidaridad)
+                $totalDeduccionesSS = $totales['salud_emp'] + $totales['pension_emp'] + $totales['solidaridad'];
+
+                // Control de retención en la fuente (id_concepto 19):
+                // Para evitar generar netos negativos, solo se descuenta retención hasta donde alcance el saldo
+                // disponible tras seguridad social. El excedente no descontado se deja como pendiente en nom_retroctivo_detalles con bandera = 1.
+                $saldoDisponibleRetencion = max(0, $totalDevengadoLiq - $totalDeduccionesSS);
+                $valTotalRetencion = floatval($totales['retencion']);
+                $valRetADescontar = min($valTotalRetencion, $saldoDisponibleRetencion);
+                $valRetPendiente = $valTotalRetencion - $valRetADescontar;
+
+                if ($valRetPendiente > 0) {
+                    $stmtInsRetroDet->execute([
+                        $id_nomina,
+                        $id_empleado,
+                        $anioRetro,
+                        $mesRetro,
+                        19, // id_concepto 19 = RETENCIÓN EN LA FUENTE
+                        $valTotalRetencion,
+                        $valRetPendiente,
+                        1, // bandera 1 = retención pendiente
+                        $idUserLog,
+                        $hoyLog,
+                    ]);
+                }
+
+                // Ajustar base y valor de retención a lo que efectivamente se descuenta en esta nómina
+                if ($valTotalRetencion > 0 && $valRetADescontar > 0) {
+                    $totales['ret_base'] = Valores::Redondear($totales['ret_base'] * ($valRetADescontar / $valTotalRetencion));
+                } else {
+                    $totales['ret_base'] = 0;
+                }
+                $totales['retencion'] = $valRetADescontar;
+
+                $totalDeduccionesLey = $totalDeduccionesSS + $totales['retencion'];
                 $saldoDisponibleDcto = max(0, $totalDevengadoLiq - $totalDeduccionesLey);
                 $totalDescuentosAplicados = 0;
 
@@ -1719,9 +1761,6 @@ class Liquidacion
                         'valor' => $reintegroBsp,
                     ];
                 }
-
-                $anioRetro = date('Y', strtotime($retro['fec_final']));
-                $mesRetro = date('m', strtotime($retro['fec_final']));
 
                 foreach ($reintegros as $r) {
                     $valTotalReintegro = floatval($r['valor']);
@@ -1774,6 +1813,18 @@ class Liquidacion
                 ]);
                 if (!$resLab['insert']) {
                     throw new Exception('Laborado: ' . $resLab['msg']);
+                }
+
+                if ($totales['compensa'] > 0) {
+                    $resComp = (new Compesatorios($this->conexion))->addRegistro([
+                        'id_empleado' => $id_empleado,
+                        'val_compensa' => $totales['compensa'],
+                        'dias' => $totales['dias_compensa'],
+                        'id_nomina' => $id_nomina,
+                    ]);
+                    if ($resComp != 'si') {
+                        throw new Exception('Compensatorio: ' . $resComp);
+                    }
                 }
 
                 // Inserción de devengados de prestaciones y novedades para que aparezcan en Detalles

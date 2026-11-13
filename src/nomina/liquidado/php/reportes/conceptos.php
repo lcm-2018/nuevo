@@ -80,6 +80,13 @@ if ($esOtrosDevengados) {
 
         case 4: // HORAS EXTRA
             $datosOriginales = $detallesObj->getDatosReporteHorasExtras($id_nomina);
+            if (empty($datosOriginales)) {
+                // Fallback para nóminas retroactivas o nóminas donde las horas extras están en nom_liq_dlab_auxt
+                $datos = $detallesObj->getDatosReporteGeneral($id_nomina, 'horas_ext', 'nom_liq_dlab_auxt');
+                $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'VALOR'];
+                $columnaExtra = 'general';
+                break;
+            }
             $empleados = [];
             $tiposHora = [];
 
@@ -243,6 +250,18 @@ if ($esOtrosDevengados) {
             $columnaExtra = 'int_cesantias';
             break;
 
+        case 24: // PRIMA DE SERVICIOS
+            $datos = $detallesObj->getDatosReporteGeneral($id_nomina, 'val_liq_ps', 'nom_liq_prima', "AND `t`.`estado` = 1");
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'VALOR'];
+            $columnaExtra = 'general';
+            break;
+
+        case 25: // PRIMA DE NAVIDAD
+            $datos = $detallesObj->getDatosReporteGeneral($id_nomina, 'val_liq_pv', 'nom_liq_prima_nav', "AND `t`.`estado` = 1");
+            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'VALOR'];
+            $columnaExtra = 'general';
+            break;
+
         default:
             // Conceptos no mapeados - usar estructura básica
             $datos = [];
@@ -261,6 +280,8 @@ function getColumnaPorConcepto($id)
         5 => 'val_bsp',            // BSP (nom_liq_bsp)
         11 => 'g_representa',      // GASTOS DE REPRESENTACIÓN
         15 => 'aporte_solidaridad_pensional', // SOLIDARIDAD PENSIONAL
+        24 => 'val_liq_ps',        // PRIMA DE SERVICIOS
+        25 => 'val_liq_pv',        // PRIMA DE NAVIDAD
     ];
     return $mapeo[$id] ?? 'valor';
 }
@@ -274,6 +295,8 @@ function getTablaPorConcepto($id)
         5 => 'nom_liq_bsp',         // BSP
         11 => 'nom_liq_dlab_auxt',  // GASTOS DE REPRESENTACIÓN
         15 => 'nom_liq_segsocial_empdo', // SOLIDARIDAD PENSIONAL
+        24 => 'nom_liq_prima',      // PRIMA DE SERVICIOS
+        25 => 'nom_liq_prima_nav',  // PRIMA DE NAVIDAD
     ];
     return $mapeo[$id] ?? 'nom_liq_dlab_auxt';
 }

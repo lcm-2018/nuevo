@@ -260,6 +260,7 @@ HTML;
         $detalle_sindicatos = [];
         $detalle_otros_dctos = [];
         $detalle_viaticos = [];
+        $detalle_otros_dev = [];
 
         if ($detalles !== null && $id_nomina !== null) {
             $detalle_horas = $detalles->getDetalleHorasExtras($d['id_empleado'], $id_nomina);
@@ -268,16 +269,21 @@ HTML;
             $detalle_sindicatos = $detalles->getDetalleSindicatos($d['id_empleado'], $id_nomina);
             $detalle_otros_dctos = $detalles->getDetalleOtrosDescuentos($d['id_empleado'], $id_nomina);
             $detalle_viaticos = $detalles->getDetalleViaticos($d['id_empleado'], $id_nomina);
+            $detalle_otros_dev = $detalles->getDetalleOtrosDevengados($d['id_empleado'], $id_nomina);
         }
 
         $valor_licencias = ($d['valor_luto'] ?? 0) + ($d['valor_mp'] ?? 0);
 
+        $lbl_incap = (($d['dias_incapacidad'] ?? 0) > 0) ? 'Incapacidades (' . $d['dias_incapacidad'] . ' días)' : 'Incapacidades';
+        $lbl_lic = (($d['dias_licencias'] ?? 0) > 0) ? 'Licencias (' . $d['dias_licencias'] . ' días)' : 'Licencias';
+        $lbl_vac = (($d['dias_vacaciones'] ?? 0) > 0) ? 'Vacaciones (' . $d['dias_vacaciones'] . ' días)' : 'Vacaciones';
+
         $devengados = [
             'Salario Laborado' => $d['valor_laborado'] ?? 0,
             'Compensatorio' => $d['val_compensa'] ?? 0,
-            'Incapacidades (' . ($d['dias_incapacidad'] ?? 0) . ' días)' => $d['valor_incap'] ?? 0,
-            'Licencias (' . ($d['dias_licencias'] ?? 0) . ' días)' => $valor_licencias,
-            'Vacaciones (' . ($d['dias_vacaciones'] ?? 0) . ' días)' => $d['valor_vacacion'] ?? 0,
+            $lbl_incap => $d['valor_incap'] ?? 0,
+            $lbl_lic => $valor_licencias,
+            $lbl_vac => $d['valor_vacacion'] ?? 0,
             'Prima de Vacaciones' => $d['val_prima_vac'] ?? 0,
             'Bonificación Recreación' => $d['val_bon_recrea'] ?? 0,
             'Auxilio de Transporte' => $d['aux_tran'] ?? 0,
@@ -291,19 +297,22 @@ HTML;
             'Indemnización' => $d['val_indemniza'] ?? 0,
         ];
 
-        // Agregar horas extras con su detalle si existe
-        if (!empty($detalle_horas)) {
-            $total_horas = array_sum(array_column($detalle_horas, 'valor'));
+        // Agregar horas extras con su detalle si existe, o valor directo
+        $total_horas = !empty($detalle_horas) ? array_sum(array_column($detalle_horas, 'valor')) : floatval($d['horas_ext'] ?? 0);
+        if ($total_horas > 0) {
             $devengados['Horas Extras'] = $total_horas;
-        } else {
-            $devengados['Horas Extras'] = $d['horas_ext'] ?? 0;
         }
 
-        if (!empty($detalle_viaticos)) {
-            $total_viaticos = array_sum(array_column($detalle_viaticos, 'valor'));
+        // Agregar viáticos con su detalle si existe, o valor directo
+        $total_viaticos = !empty($detalle_viaticos) ? array_sum(array_column($detalle_viaticos, 'valor')) : floatval($d['valor_viatico'] ?? 0);
+        if ($total_viaticos > 0) {
             $devengados['Viáticos'] = $total_viaticos;
-        } else {
-            $devengados['Viáticos'] = $d['valor_viatico'] ?? 0;
+        }
+
+        // Agregar otros devengados con su detalle si existe, o valor directo
+        $total_otros_dev = !empty($detalle_otros_dev) ? array_sum(array_column($detalle_otros_dev, 'valor')) : floatval($d['valor_otros'] ?? 0);
+        if ($total_otros_dev > 0) {
+            $devengados['Otros Devengados'] = $total_otros_dev;
         }
 
         $deducciones = [
@@ -313,33 +322,25 @@ HTML;
             'Retención en la Fuente' => $d['val_retencion'] ?? 0,
         ];
 
-        // Agregar conceptos discriminados solo si tienen valor
-        if (!empty($detalle_libranzas)) {
-            $total_libranzas = array_sum(array_column($detalle_libranzas, 'valor'));
+        // Agregar conceptos discriminados con fallback a valores acumulados
+        $total_libranzas = !empty($detalle_libranzas) ? array_sum(array_column($detalle_libranzas, 'valor')) : floatval($d['valor_libranza'] ?? 0);
+        if ($total_libranzas > 0) {
             $deducciones['Libranzas'] = $total_libranzas;
-        } else {
-            $deducciones['Libranzas'] = $d['valor_libranza'] ?? 0;
         }
 
-        if (!empty($detalle_embargos)) {
-            $total_embargos = array_sum(array_column($detalle_embargos, 'valor'));
+        $total_embargos = !empty($detalle_embargos) ? array_sum(array_column($detalle_embargos, 'valor')) : floatval($d['valor_embargo'] ?? 0);
+        if ($total_embargos > 0) {
             $deducciones['Embargos'] = $total_embargos;
-        } else {
-            $deducciones['Embargos'] = $d['valor_embargo'] ?? 0;
         }
 
-        if (!empty($detalle_sindicatos)) {
-            $total_sindicatos = array_sum(array_column($detalle_sindicatos, 'valor'));
+        $total_sindicatos = !empty($detalle_sindicatos) ? array_sum(array_column($detalle_sindicatos, 'valor')) : floatval($d['valor_sind'] ?? 0);
+        if ($total_sindicatos > 0) {
             $deducciones['Sindicato'] = $total_sindicatos;
-        } else {
-            $deducciones['Sindicato'] = $d['valor_sind'] ?? 0;
         }
 
-        if (!empty($detalle_otros_dctos)) {
-            $total_otros = array_sum(array_column($detalle_otros_dctos, 'valor'));
+        $total_otros = !empty($detalle_otros_dctos) ? array_sum(array_column($detalle_otros_dctos, 'valor')) : floatval($d['valor_dcto'] ?? 0);
+        if ($total_otros > 0) {
             $deducciones['Otros Descuentos'] = $total_otros;
-        } else {
-            $deducciones['Otros Descuentos'] = $d['valor_dcto'] ?? 0;
         }
 
         // Filtrar solo los que tienen valor > 0
@@ -352,7 +353,7 @@ HTML;
 
         $total_devengado = array_sum($devengados);
         $total_deducciones = array_sum($deducciones);
-        $neto_pagar = $total_devengado - $total_deducciones;
+        $neto_pagar = max(0, $total_devengado - $total_deducciones);
 
         $sal_base_fmt = number_format($d['sal_base'] ?? 0, 0, ',', '.');
         $total_devengado_fmt = number_format($total_devengado, 0, ',', '.');
@@ -377,6 +378,14 @@ HTML;
                 foreach ($detalle_viaticos as $viatico) {
                     $valor_v_fmt = number_format($viatico['valor'], 0, ',', '.');
                     $filas_devengados .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 20px; color: #666;'>• Res: {$viatico['resolucion']} - Dest: {$viatico['destino']}</td><td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_v_fmt}</td></tr>";
+                }
+            }
+
+            // Si es Otros Devengados y tiene detalle, mostrar el desglose
+            if ($concepto === 'Otros Devengados' && !empty($detalle_otros_dev)) {
+                foreach ($detalle_otros_dev as $otroDev) {
+                    $valor_od_fmt = number_format($otroDev['valor'], 0, ',', '.');
+                    $filas_devengados .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 20px; color: #666;'>• {$otroDev['tipo']}: {$otroDev['concepto']}</td><td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_od_fmt}</td></tr>";
                 }
             }
         }

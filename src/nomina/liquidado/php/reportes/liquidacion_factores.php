@@ -329,6 +329,14 @@ function generarLiquidacion(
     if ($val_indemniza > 0)
         $conceptos_liq[] = ['INDEMNIZACIÓN POR VACACIONES', '', $val_indemniza, false];
 
+    $val_viatico = (float) ($d['valor_viatico'] ?? 0);
+    if ($val_viatico > 0)
+        $conceptos_liq[] = ['VIÁTICOS', '', $val_viatico, false];
+
+    $val_otros = (float) ($d['valor_otros'] ?? 0);
+    if ($val_otros > 0)
+        $conceptos_liq[] = ['OTROS DEVENGADOS', '', $val_otros, false];
+
     // Subrayar el último elemento
     if (!empty($conceptos_liq)) {
         $conceptos_liq[count($conceptos_liq) - 1][3] = true;

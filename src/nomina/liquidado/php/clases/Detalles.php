@@ -2625,4 +2625,70 @@ DEDUCCIONES;
         unset($stmt);
         return !empty($datos) ? $datos : [];
     }
+
+    /**
+     * Obtiene los descuentos y retenciones pendientes para una nómina retroactiva (tipo 'RA')
+     * 
+     * @param int $id_nomina ID de la nómina
+     * @return array Datos detallados por empleado y concepto
+     */
+    public function getDatosDescuentosPendientesRetroactivo($id_nomina)
+    {
+        $sql = "SELECT 
+                    `r`.`id_empleado`,
+                    `e`.`no_documento` AS `documento`,
+                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                    IFNULL(`s`.`nom_sede`, 'SIN SEDE') AS `sede`,
+                    COALESCE(`cargo`.`descripcion_carg`, `cg_alt`.`descripcion_carg`, 'SIN CARGO') AS `cargo`,
+                    `r`.`id_concepto`,
+                    IFNULL(MAX(`cl`.`concepto`), '') AS `nom_concepto_base`,
+                    SUM(`r`.`valor_inicial`) AS `valor_total`,
+                    SUM(`r`.`valor_con_incremento`) AS `valor_pendiente`,
+                    SUM(`r`.`valor_inicial` - `r`.`valor_con_incremento`) AS `valor_descontado`
+                FROM `nom_retroctivo_detalles` AS `r`
+                    INNER JOIN `nom_empleado` AS `e` ON (`r`.`id_empleado` = `e`.`id_empleado`)
+                    LEFT JOIN `tb_sedes` AS `s` ON (`e`.`sede_emp` = `s`.`id_sede`)
+                    LEFT JOIN (
+                        SELECT `s2`.`id_empleado`, MAX(`cg`.`descripcion_carg`) AS `descripcion_carg`
+                        FROM `nom_liq_salario` AS `s2`
+                        INNER JOIN `nom_contratos_empleados` AS `ce` ON (`s2`.`id_contrato` = `ce`.`id_contrato_emp`)
+                        LEFT JOIN `nom_cargo_empleado` AS `cg` ON (`ce`.`id_cargo` = `cg`.`id_cargo`)
+                        WHERE `s2`.`id_nomina` = :id_nomina AND `s2`.`estado` = 1
+                        GROUP BY `s2`.`id_empleado`
+                    ) AS `cargo` ON (`e`.`id_empleado` = `cargo`.`id_empleado`)
+                    LEFT JOIN `nom_contratos_empleados` AS `ce_alt` ON (`ce_alt`.`id_contrato_emp` = (
+                        SELECT MAX(`ce2`.`id_contrato_emp`) FROM `nom_contratos_empleados` `ce2` WHERE `ce2`.`id_empleado` = `e`.`id_empleado`
+                    ))
+                    LEFT JOIN `nom_cargo_empleado` AS `cg_alt` ON (`ce_alt`.`id_cargo` = `cg_alt`.`id_cargo`)
+                    LEFT JOIN `nom_conceptos_liquidacion` AS `cl` ON (`r`.`id_concepto` = `cl`.`id_concepto`)
+                WHERE `r`.`id_nomina` = :id_nomina 
+                    AND `r`.`bandera` = 1
+                    AND `r`.`valor_con_incremento` > 0
+                GROUP BY 
+                    `r`.`id_empleado`, 
+                    `e`.`no_documento`, 
+                    `e`.`nombre1`, 
+                    `e`.`nombre2`, 
+                    `e`.`apellido1`, 
+                    `e`.`apellido2`, 
+                    `s`.`nom_sede`, 
+                    `cargo`.`descripcion_carg`, 
+                    `cg_alt`.`descripcion_carg`,
+                    `r`.`id_concepto`
+                ORDER BY 
+                    `s`.`nom_sede` ASC, 
+                    `e`.`apellido1` ASC, 
+                    `e`.`apellido2` ASC, 
+                    `e`.`nombre1` ASC, 
+                    `r`.`id_concepto` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
 }

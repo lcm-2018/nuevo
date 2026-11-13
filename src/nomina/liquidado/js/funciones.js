@@ -251,6 +251,9 @@ document.querySelector('#modalForms').addEventListener('click', function (event)
                 archivo = 'liquidacion_factores';
                 params = { id: id_nomina };
                 break;
+            case '7':
+                archivo = 'descuentos_pendientes';
+                break;
             case '5':
                 if (text === 'P') {
                     // Muestra los desprendibles en el navegador y abre la impresión

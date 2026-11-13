@@ -133,7 +133,7 @@ foreach ($datos as &$d) {
         ($d['val_retencion'] ?? 0) + ($d['valor_dcto'] ?? 0);
 
     // Calcular neto
-    $d['neto'] = $d['devengado'] - $d['deducciones'];
+    $d['neto'] = max(0, $d['devengado'] - $d['deducciones']);
 
     // Acumular totales
     foreach ($totales as $key => &$total) {

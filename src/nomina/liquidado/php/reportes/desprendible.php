@@ -73,13 +73,17 @@ function generarDesprendible($d)
     // Calcular valores adicionales
     $valor_licencias = ($d['valor_luto'] ?? 0) + ($d['valor_mp'] ?? 0);
 
+    $lbl_incap = (($d['dias_incapacidad'] ?? 0) > 0) ? 'Incapacidades (' . $d['dias_incapacidad'] . ' días)' : 'Incapacidades';
+    $lbl_lic = (($d['dias_licencias'] ?? 0) > 0) ? 'Licencias (' . $d['dias_licencias'] . ' días)' : 'Licencias';
+    $lbl_vac = (($d['dias_vacaciones'] ?? 0) > 0) ? 'Vacaciones (' . $d['dias_vacaciones'] . ' días)' : 'Vacaciones';
+
     // Definir conceptos de devengados
     $devengados = [
         'Salario Laborado' => $d['valor_laborado'] ?? 0,
         'Compensatorio' => $d['val_compensa'] ?? 0,
-        'Incapacidades (' . ($d['dias_incapacidad'] ?? 0) . ' días)' => $d['valor_incap'] ?? 0,
-        'Licencias (' . ($d['dias_licencias'] ?? 0) . ' días)' => $valor_licencias,
-        'Vacaciones (' . ($d['dias_vacaciones'] ?? 0) . ' días)' => $d['valor_vacacion'] ?? 0,
+        $lbl_incap => $d['valor_incap'] ?? 0,
+        $lbl_lic => $valor_licencias,
+        $lbl_vac => $d['valor_vacacion'] ?? 0,
         'Prima de Vacaciones' => $d['val_prima_vac'] ?? 0,
         'Bonificación Recreación' => $d['val_bon_recrea'] ?? 0,
         'Auxilio de Transporte' => $d['aux_tran'] ?? 0,
@@ -93,19 +97,21 @@ function generarDesprendible($d)
         'Indemnización' => $d['val_indemniza'] ?? 0,
     ];
 
-    // Agregar horas extras con su detalle si existe
-    if (!empty($detalle_horas)) {
-        $total_horas = array_sum(array_column($detalle_horas, 'valor'));
+    // Horas extras: usar detalle discriminado si existe, o el valor acumulado de la nómina
+    $total_horas = !empty($detalle_horas) ? array_sum(array_column($detalle_horas, 'valor')) : floatval($d['horas_ext'] ?? 0);
+    if ($total_horas > 0) {
         $devengados['Horas Extras'] = $total_horas;
     }
 
-    if (!empty($detalle_viaticos)) {
-        $total_viaticos = array_sum(array_column($detalle_viaticos, 'valor'));
+    // Viáticos: usar detalle discriminado si existe, o el valor acumulado de la nómina
+    $total_viaticos = !empty($detalle_viaticos) ? array_sum(array_column($detalle_viaticos, 'valor')) : floatval($d['valor_viatico'] ?? 0);
+    if ($total_viaticos > 0) {
         $devengados['Viáticos'] = $total_viaticos;
     }
 
-    if (!empty($detalle_otros_dev)) {
-        $total_otros_dev = array_sum(array_column($detalle_otros_dev, 'valor'));
+    // Otros devengados: usar detalle discriminado si existe, o el valor acumulado de la nómina
+    $total_otros_dev = !empty($detalle_otros_dev) ? array_sum(array_column($detalle_otros_dev, 'valor')) : floatval($d['valor_otros'] ?? 0);
+    if ($total_otros_dev > 0) {
         $devengados['Otros Devengados'] = $total_otros_dev;
     }
 
@@ -117,24 +123,24 @@ function generarDesprendible($d)
         'Retención en la Fuente' => $d['val_retencion'] ?? 0,
     ];
 
-    // Agregar conceptos discriminados solo si tienen valor
-    if (!empty($detalle_libranzas)) {
-        $total_libranzas = array_sum(array_column($detalle_libranzas, 'valor'));
+    // Deducciones discriminadas con fallback a valores acumulados de la nómina
+    $total_libranzas = !empty($detalle_libranzas) ? array_sum(array_column($detalle_libranzas, 'valor')) : floatval($d['valor_libranza'] ?? 0);
+    if ($total_libranzas > 0) {
         $deducciones['Libranzas'] = $total_libranzas;
     }
 
-    if (!empty($detalle_embargos)) {
-        $total_embargos = array_sum(array_column($detalle_embargos, 'valor'));
+    $total_embargos = !empty($detalle_embargos) ? array_sum(array_column($detalle_embargos, 'valor')) : floatval($d['valor_embargo'] ?? 0);
+    if ($total_embargos > 0) {
         $deducciones['Embargos'] = $total_embargos;
     }
 
-    if (!empty($detalle_sindicatos)) {
-        $total_sindicatos = array_sum(array_column($detalle_sindicatos, 'valor'));
+    $total_sindicatos = !empty($detalle_sindicatos) ? array_sum(array_column($detalle_sindicatos, 'valor')) : floatval($d['valor_sind'] ?? 0);
+    if ($total_sindicatos > 0) {
         $deducciones['Sindicato'] = $total_sindicatos;
     }
 
-    if (!empty($detalle_otros_dctos)) {
-        $total_otros = array_sum(array_column($detalle_otros_dctos, 'valor'));
+    $total_otros = !empty($detalle_otros_dctos) ? array_sum(array_column($detalle_otros_dctos, 'valor')) : floatval($d['valor_dcto'] ?? 0);
+    if ($total_otros > 0) {
         $deducciones['Otros Descuentos'] = $total_otros;
     }
 
@@ -149,7 +155,7 @@ function generarDesprendible($d)
     // Calcular totales
     $total_devengado = array_sum($devengados);
     $total_deducciones = array_sum($deducciones);
-    $neto_pagar = $total_devengado - $total_deducciones;
+    $neto_pagar = max(0, $total_devengado - $total_deducciones);
 
     // Formatear valores para el HTML
     $sal_base_fmt = number_format($d['sal_base'] ?? 0, 0, ',', '.');
