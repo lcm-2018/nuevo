@@ -262,6 +262,10 @@ HTML;
         $detalle_viaticos = [];
         $detalle_otros_dev = [];
 
+        $esRetroactivo = (($d['codigo_nomina'] ?? '') === 'RA');
+        $itemsPendientes = [];
+        $retencion_pendiente = 0;
+
         if ($detalles !== null && $id_nomina !== null) {
             $detalle_horas = $detalles->getDetalleHorasExtras($d['id_empleado'], $id_nomina);
             $detalle_libranzas = $detalles->getDetalleLibranzas($d['id_empleado'], $id_nomina);
@@ -270,6 +274,18 @@ HTML;
             $detalle_otros_dctos = $detalles->getDetalleOtrosDescuentos($d['id_empleado'], $id_nomina);
             $detalle_viaticos = $detalles->getDetalleViaticos($d['id_empleado'], $id_nomina);
             $detalle_otros_dev = $detalles->getDetalleOtrosDevengados($d['id_empleado'], $id_nomina);
+
+            $itemsPendientes = $detalles->getDescuentosPendientesEmpleado($d['id_empleado'], $id_nomina);
+            $retencion_pendiente = 0;
+            $pendientesPorConcepto = [];
+            $pendientesMostrados = [];
+            foreach ($itemsPendientes as $ip) {
+                $idC = intval($ip['id_concepto']);
+                $pendientesPorConcepto[$idC] = $ip;
+                if ($idC === 19) {
+                    $retencion_pendiente += floatval($ip['valor_pendiente']);
+                }
+            }
         }
 
         $valor_licencias = ($d['valor_luto'] ?? 0) + ($d['valor_mp'] ?? 0);
@@ -419,6 +435,13 @@ HTML;
                 }
             }
 
+            // Discriminar retención pendiente si aplica
+            if ($concepto === 'Retención en la Fuente' && $retencion_pendiente > 0) {
+                $pendientesMostrados[19] = true;
+                $ret_pend_fmt = number_format($retencion_pendiente, 0, ',', '.');
+                $filas_deducciones .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 20px; color: #856404; font-weight: bold;'>• Saldo pendiente por retener:</td><td style='text-align: right; padding: 2px 8px; color: #721c24; font-weight: bold;'>$ {$ret_pend_fmt}</td></tr>";
+            }
+
             // Discriminar otros descuentos
             if ($concepto === 'Otros Descuentos' && !empty($detalle_otros_dctos)) {
                 foreach ($detalle_otros_dctos as $otro) {
@@ -428,8 +451,109 @@ HTML;
                         $descripcion .= ': ' . $otro['concepto'];
                     }
                     $filas_deducciones .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 20px; color: #666;'>• {$descripcion}</td><td style='text-align: right; padding: 2px 8px; color: #666;'>{$valor_otro_fmt}</td></tr>";
+
+                    // Verificar si este descuento tiene saldo pendiente asociado en retroactivo
+                    $concUpper = mb_strtoupper($otro['concepto'] ?? '');
+                    $saldo_pend_otro = 0;
+                    if (isset($pendientesPorConcepto[3]) && strpos($concUpper, 'ALIMENTAC') !== false) {
+                        $saldo_pend_otro = floatval($pendientesPorConcepto[3]['valor_pendiente']);
+                        $pendientesMostrados[3] = true;
+                    } elseif (isset($pendientesPorConcepto[2]) && strpos($concUpper, 'TRANS') !== false) {
+                        $saldo_pend_otro = floatval($pendientesPorConcepto[2]['valor_pendiente']);
+                        $pendientesMostrados[2] = true;
+                    } elseif (isset($pendientesPorConcepto[5]) && strpos($concUpper, 'BSP') !== false) {
+                        $saldo_pend_otro = floatval($pendientesPorConcepto[5]['valor_pendiente']);
+                        $pendientesMostrados[5] = true;
+                    }
+
+                    if ($saldo_pend_otro > 0) {
+                        $saldo_pend_fmt = number_format($saldo_pend_otro, 0, ',', '.');
+                        $filas_deducciones .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 25px; color: #856404; font-weight: bold;'>• Saldo pendiente por descontar:</td><td style='text-align: right; padding: 2px 8px; color: #721c24; font-weight: bold;'>$ {$saldo_pend_fmt}</td></tr>";
+                    }
                 }
             }
+        }
+
+        // Si tiene otros reintegros pendientes pero valor descontado fue 0
+        foreach ($itemsPendientes as $ip) {
+            $idC = intval($ip['id_concepto']);
+            if ($idC !== 19 && empty($pendientesMostrados[$idC]) && floatval($ip['valor_pendiente']) > 0) {
+                $nom_concepto_pend = \Src\Nomina\Liquidado\Php\Clases\Detalles::getNombreConceptoPendiente($idC, $ip['nom_concepto_base']);
+                $saldo_pend_fmt = number_format($ip['valor_pendiente'], 0, ',', '.');
+                if (!isset($deducciones['Otros Descuentos'])) {
+                    $filas_deducciones .= "<tr><td style='padding: 4px 8px;'>Otros Descuentos</td><td style='text-align: right; padding: 4px 8px;'>0</td></tr>";
+                    $deducciones['Otros Descuentos'] = 0;
+                }
+                $filas_deducciones .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 20px; color: #666;'>• {$nom_concepto_pend}</td><td style='text-align: right; padding: 2px 8px; color: #666;'>0</td></tr>";
+                $filas_deducciones .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 25px; color: #856404; font-weight: bold;'>• Saldo pendiente por descontar:</td><td style='text-align: right; padding: 2px 8px; color: #721c24; font-weight: bold;'>$ {$saldo_pend_fmt}</td></tr>";
+            }
+        }
+
+        // Si tiene retención en la fuente pendiente pero valor descontado fue 0
+        if ($retencion_pendiente > 0 && empty($pendientesMostrados[19])) {
+            $ret_pend_fmt = number_format($retencion_pendiente, 0, ',', '.');
+            $filas_deducciones .= "<tr><td style='padding: 4px 8px;'>Retención en la Fuente</td><td style='text-align: right; padding: 4px 8px;'>$ 0</td></tr>";
+            $filas_deducciones .= "<tr style='font-size: 9px;'><td style='padding: 2px 8px 2px 20px; color: #856404; font-weight: bold;'>• Saldo pendiente por retener:</td><td style='text-align: right; padding: 2px 8px; color: #721c24; font-weight: bold;'>$ {$ret_pend_fmt}</td></tr>";
+        }
+
+        $tabla_pendientes = '';
+        if (!empty($itemsPendientes)) {
+            $filas_tabla_pendientes = '';
+            $tot_ini = 0;
+            $tot_desc = 0;
+            $tot_pend = 0;
+            foreach ($itemsPendientes as $item) {
+                $nom_concepto_pend = \Src\Nomina\Liquidado\Php\Clases\Detalles::getNombreConceptoPendiente($item['id_concepto'], $item['nom_concepto_base']);
+                $v_ini = floatval($item['valor_total']);
+                $v_pend = floatval($item['valor_pendiente']);
+                $v_desc = floatval($item['valor_descontado'] ?? ($v_ini - $v_pend));
+                $tot_ini += $v_ini;
+                $tot_desc += $v_desc;
+                $tot_pend += $v_pend;
+                $v_ini_fmt = number_format($v_ini, 0, ',', '.');
+                $v_desc_fmt = number_format($v_desc, 0, ',', '.');
+                $v_pend_fmt = number_format($v_pend, 0, ',', '.');
+
+                $filas_tabla_pendientes .= "<tr>
+                    <td style='padding: 4px 8px;'>{$nom_concepto_pend}</td>
+                    <td style='text-align: right; padding: 4px 8px;'>$ {$v_ini_fmt}</td>
+                    <td style='text-align: right; padding: 4px 8px;'>$ {$v_desc_fmt}</td>
+                    <td style='text-align: right; padding: 4px 8px; font-weight: bold; color: #721c24;'>$ {$v_pend_fmt}</td>
+                </tr>";
+            }
+            $tot_ini_fmt = number_format($tot_ini, 0, ',', '.');
+            $tot_desc_fmt = number_format($tot_desc, 0, ',', '.');
+            $tot_pend_fmt = number_format($tot_pend, 0, ',', '.');
+
+            $tabla_pendientes = <<<PENDIENTES_HTML
+<table class="data-table" style="margin-top: 15px;">
+    <thead>
+        <tr style="background-color: #fff3cd;">
+            <th colspan="4" style="text-align: center; color: #856404;">
+                DESCUENTOS Y RETENCIONES PENDIENTES POR APLICAR (RETROACTIVO)
+            </th>
+        </tr>
+        <tr style="background-color: #fcf8e3; font-size: 9px; font-weight: bold;">
+            <th style="padding: 4px 8px; width: 40%;">CONCEPTO</th>
+            <th style="padding: 4px 8px; text-align: right; width: 20%;">VALOR TOTAL</th>
+            <th style="padding: 4px 8px; text-align: right; width: 20%;">VALOR DESCONTADO</th>
+            <th style="padding: 4px 8px; text-align: right; width: 20%; color: #856404;">VALOR PENDIENTE</th>
+        </tr>
+    </thead>
+    <tbody>
+        {$filas_tabla_pendientes}
+        <tr style="background-color: #fff3cd; font-weight: bold; font-size: 10px;">
+            <td style="padding: 5px 8px;">TOTAL PENDIENTE POR DESCONTAR</td>
+            <td style="text-align: right; padding: 5px 8px;">$ {$tot_ini_fmt}</td>
+            <td style="text-align: right; padding: 5px 8px;">$ {$tot_desc_fmt}</td>
+            <td style="text-align: right; padding: 5px 8px; color: #721c24;">$ {$tot_pend_fmt}</td>
+        </tr>
+    </tbody>
+</table>
+<p style="font-size: 8px; color: #666; margin-top: 3px; margin-bottom: 5px; text-align: justify;">
+    * Los valores relacionados corresponden a conceptos de descuento o retención que no pudieron ser aplicados en su totalidad en esta liquidación de retroactivo debido a que superaban el total devengado, garantizando que el neto a pagar no resultara negativo.
+</p>
+PENDIENTES_HTML;
         }
 
         return <<<HTML
@@ -495,6 +619,8 @@ HTML;
         <td style="padding: 10px; font-size: 13px; font-weight: bold; text-align: right; width: 30%;">$ {$neto_pagar_fmt}</td>
     </tr>
 </table>
+
+{$tabla_pendientes}
 
 <p style="font-size: 9px; text-align: center; margin-top: 15px; color: #666;">
     Este desprendible es un documento informativo. Para cualquier aclaración, dirigirse al área de Recursos Humanos.

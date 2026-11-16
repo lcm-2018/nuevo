@@ -458,7 +458,7 @@ class Liquidacion
                             FROM `nom_liq_incap` `li`
                             INNER JOIN `nom_incapacidad` `i`
                                 ON (`i`.`id_incapacidad` = `li`.`id_incapacidad`)
-                            WHERE `li`.`estado` = 1
+                            WHERE `li`.`estado` = 1 AND `li`.`pago_empresa` > 0
                             GROUP BY `li`.`id_nomina`, `i`.`id_empleado`
                         ) `inc`
                             ON (`inc`.`id_nomina` = `n`.`id_nomina` AND `inc`.`id_empleado` = `ls`.`id_empleado`)
@@ -798,7 +798,7 @@ class Liquidacion
                            SUM(`nli`.`pago_empresa`) AS `val_incap`
                     FROM `nom_liq_incap` `nli`
                     INNER JOIN `nom_incapacidad` `ni` ON (`nli`.`id_incapacidad` = `ni`.`id_incapacidad`)
-                    WHERE `nli`.`estado` = 1
+                    WHERE `nli`.`estado` = 1 AND `nli`.`pago_empresa` > 0
                     GROUP BY `nli`.`id_nomina`, `ni`.`id_empleado`
                 ) `inc_dir` ON (`inc_dir`.`id_nomina` = `n`.`id_nomina` AND `inc_dir`.`id_empleado` = `ls`.`id_empleado`)
                 LEFT JOIN (
@@ -1445,7 +1445,9 @@ class Liquidacion
                         $itemsVac[$idVac]['val_bon_recrea'] += $diffBonRecPag;
                     }
 
-                    // 9. Incapacidad pagada directa (id_concepto 9)
+                    // 9. Incapacidad pagada directa por la empresa (id_concepto 9)
+                    // Solo se reconoce incremento sobre el pago asumido por la empresa (pago_empresa),
+                    // ya que EPS y ARL no reconocen incrementos salariales.
                     $valIncapPag = floatval($row['val_incap_pagada'] ?? 0);
                     $diffIncap = 0;
                     if ($valIncapPag > 0) {
@@ -1455,11 +1457,15 @@ class Liquidacion
                         $idIncap = intval($row['id_incap_pagada'] ?? 0);
                         if ($idIncap > 0 && $diffIncap > 0) {
                             $itemsIncap[$idIncap] = ($itemsIncap[$idIncap] ?? 0) + $diffIncap;
-                            $itemsIncapDias[$idIncap] = intval($row['dias_incap_pagada'] ?? 0);
+                            $salBaseMes = floatval($row['sal_base_ant'] ?? 0);
+                            $valDiaMes = $salBaseMes > 0 ? ($salBaseMes / 30) : 0;
+                            $diasEmpresa = ($valDiaMes > 0) ? min(intval($row['dias_incap_pagada'] ?? 0), max(1, (int)round($valIncapPag / $valDiaMes))) : intval($row['dias_incap_pagada'] ?? 0);
+                            $itemsIncapDias[$idIncap] = $diasEmpresa;
                         }
                     }
 
                     // 10. Licencias remuneradas directas (id_concepto 10)
+                    // 10.1 Licencia por luto: se calcula con incremento normal
                     $valLicLuto = floatval($row['val_licluto_pagada'] ?? 0);
                     $diffLicLuto = 0;
                     if ($valLicLuto > 0) {
@@ -1471,19 +1477,14 @@ class Liquidacion
                         }
                     }
 
+                    // 10.2 Licencia materna o paterna:
+                    // Le corresponde a la EPS y esta no reconoce incrementos salariales,
+                    // por lo cual en retroactivo el valor de incremento es siempre CERO.
                     $valLicMp = floatval($row['val_licmp_pagada'] ?? 0);
-                    $diffLicMp = 0;
-                    if ($valLicMp > 0) {
-                        $diffLicMp = Valores::Redondear($valLicMp * ($factorFila - 1));
-                        $idLicMp = intval($row['id_licmp_pagada'] ?? 0);
-                        if ($idLicMp > 0 && $diffLicMp > 0) {
-                            $itemsLicMp[$idLicMp] = ($itemsLicMp[$idLicMp] ?? 0) + $diffLicMp;
-                            $itemsLicMpDias[$idLicMp] = intval($row['dias_licmp_pagada'] ?? 0);
-                        }
-                    }
+                    $diffLicMp = 0; // Siempre cero en retroactivo
 
                     $valLicPag = $valLicLuto + $valLicMp;
-                    $diffLic = $diffLicLuto + $diffLicMp;
+                    $diffLic = $diffLicLuto; // Solo luto genera incremento a pagar
                     if ($valLicPag > 0) {
                         $registraDetalle(10, $valLicPag, $valLicPag + $diffLic);
                         $totales['lic'] += $diffLic;

@@ -890,6 +890,62 @@ PARAFISCALES;
                 }
             }
 
+            $htmlPendientesRetro = '';
+            if ($codigo === 'RA') {
+                $pendientesRetro = $this->getDescuentosPendientesEmpleado($id_empleado, $id_nomina);
+                if (!empty($pendientesRetro)) {
+                    $filasPend = '';
+                    $totIni = 0;
+                    $totDesc = 0;
+                    $totPend = 0;
+                    foreach ($pendientesRetro as $p) {
+                        $nomConc = self::getNombreConceptoPendiente($p['id_concepto'], $p['nom_concepto_base']);
+                        $totIni += floatval($p['valor_total']);
+                        $totDesc += floatval($p['valor_descontado']);
+                        $totPend += floatval($p['valor_pendiente']);
+                        $vTotFmt = number_format($p['valor_total'], 0, ',', '.');
+                        $vDescFmt = number_format($p['valor_descontado'], 0, ',', '.');
+                        $vPendFmt = number_format($p['valor_pendiente'], 0, ',', '.');
+                        $filasPend .= "<tr>
+                            <td class='text-start ps-2'>{$nomConc}</td>
+                            <td class='text-end pe-2'>$ {$vTotFmt}</td>
+                            <td class='text-end pe-2'>$ {$vDescFmt}</td>
+                            <td class='text-end pe-2 text-danger fw-bold'>$ {$vPendFmt}</td>
+                        </tr>";
+                    }
+                    $totIniFmt = number_format($totIni, 0, ',', '.');
+                    $totDescFmt = number_format($totDesc, 0, ',', '.');
+                    $totPendFmt = number_format($totPend, 0, ',', '.');
+                    $htmlPendientesRetro = <<<PENDIENTES_RETRO
+                        <div class="alert alert-warning p-2 mt-3 mb-0" role="alert">
+                            <div class="fw-bold mb-2 text-dark text-start"><i class="fas fa-exclamation-triangle text-warning me-1"></i> Descuentos y Retenciones Pendientes por Aplicar (Retroactivo)</div>
+                            <table class="table table-sm table-bordered bg-white mb-1 shadow-sm">
+                                <thead class="table-light">
+                                    <tr class="text-center font-monospace" style="font-size: 0.8rem;">
+                                        <th class="text-start">CONCEPTO</th>
+                                        <th class="text-end">TOTAL A DESCONTAR</th>
+                                        <th class="text-end">DESCONTADO</th>
+                                        <th class="text-end text-danger">VALOR PENDIENTE</th>
+                                    </tr>
+                                </thead>
+                                <tbody style="font-size: 0.85rem;">
+                                    {$filasPend}
+                                </tbody>
+                                <tfoot class="table-light fw-bold" style="font-size: 0.85rem;">
+                                    <tr>
+                                        <td class="text-start">TOTAL PENDIENTE</td>
+                                        <td class="text-end">$ {$totIniFmt}</td>
+                                        <td class="text-end">$ {$totDescFmt}</td>
+                                        <td class="text-end text-danger">$ {$totPendFmt}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            <div class="text-start"><small class="text-muted fst-italic">* Estos valores corresponden a descuentos o retenciones que no pudieron ser aplicados en su totalidad en esta nómina para evitar un neto a pagar negativo.</small></div>
+                        </div>
+PENDIENTES_RETRO;
+                }
+            }
+
             $htmlDeducciones = <<<DEDUCCIONES
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
@@ -924,6 +980,7 @@ PARAFISCALES;
                                                     </tbody>
                                                 </table>
                                             </form>
+                                            {$htmlPendientesRetro}
                                             <div class="mt-3 text-center">
                                                 {$boton4}
                                             </div>
@@ -1391,22 +1448,58 @@ DEDUCCIONES;
      */
     public function getDatosReporteRetencion($id_nomina)
     {
-        $sql = "SELECT 
-                    `e`.`no_documento` AS `documento`,
-                    CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
-                    IFNULL(`l`.`dias_liq`, 0) AS `dias`,
-                    `r`.`base` AS `base_retencion`,
-                    `r`.`val_ret` AS `valor`
-                FROM 
-                    `nom_retencion_fte` AS `r`
-                    INNER JOIN `nom_empleado` AS `e` 
-                        ON (`r`.`id_empleado` = `e`.`id_empleado`)
-                    LEFT JOIN `nom_liq_dlab_auxt` AS `l` 
-                        ON (`e`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
-                WHERE 
-                    `r`.`id_nomina` = :id_nomina AND `r`.`estado` = 1 AND `r`.`val_ret` > 0
-                ORDER BY 
-                    `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+        // Verificar si es nómina de retroactivo
+        $sqlNom = "SELECT `tipo` FROM `nom_nominas` WHERE `id_nomina` = :id_nomina";
+        $stmtNom = $this->conexion->prepare($sqlNom);
+        $stmtNom->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmtNom->execute();
+        $tipoNom = $stmtNom->fetchColumn();
+        $stmtNom->closeCursor();
+
+        $esRA = (strtoupper(trim($tipoNom ?? '')) === 'RA');
+
+        if ($esRA) {
+            $sql = "SELECT 
+                        `e`.`no_documento` AS `documento`,
+                        CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                        IFNULL(`l`.`dias_liq`, 0) AS `dias`,
+                        IFNULL(`r`.`base`, 0) AS `base_retencion`,
+                        IFNULL(`r`.`val_ret`, 0) AS `valor`,
+                        IFNULL(`r`.`val_ret`, 0) AS `valor_descontado`,
+                        IFNULL(`rd`.`valor_con_incremento`, 0) AS `valor_pendiente`
+                    FROM `nom_empleado` AS `e`
+                        LEFT JOIN `nom_retencion_fte` AS `r` 
+                            ON (`e`.`id_empleado` = `r`.`id_empleado` AND `r`.`id_nomina` = :id_nomina AND `r`.`estado` = 1)
+                        LEFT JOIN (
+                            SELECT `id_empleado`, SUM(`valor_con_incremento`) AS `valor_con_incremento`
+                            FROM `nom_retroctivo_detalles`
+                            WHERE `id_nomina` = :id_nomina AND `id_concepto` = 19 AND `bandera` = 1
+                            GROUP BY `id_empleado`
+                        ) AS `rd` ON (`e`.`id_empleado` = `rd`.`id_empleado`)
+                        LEFT JOIN `nom_liq_dlab_auxt` AS `l` 
+                            ON (`e`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
+                    WHERE 
+                        (IFNULL(`r`.`val_ret`, 0) > 0 OR IFNULL(`rd`.`valor_con_incremento`, 0) > 0)
+                    ORDER BY 
+                        `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+        } else {
+            $sql = "SELECT 
+                        `e`.`no_documento` AS `documento`,
+                        CONCAT_WS(' ', `e`.`nombre1`, `e`.`nombre2`, `e`.`apellido1`, `e`.`apellido2`) AS `nombre`,
+                        IFNULL(`l`.`dias_liq`, 0) AS `dias`,
+                        `r`.`base` AS `base_retencion`,
+                        `r`.`val_ret` AS `valor`
+                    FROM 
+                        `nom_retencion_fte` AS `r`
+                        INNER JOIN `nom_empleado` AS `e` 
+                            ON (`r`.`id_empleado` = `e`.`id_empleado`)
+                        LEFT JOIN `nom_liq_dlab_auxt` AS `l` 
+                            ON (`e`.`id_empleado` = `l`.`id_empleado` AND `l`.`id_nomina` = :id_nomina AND `l`.`estado` = 1)
+                    WHERE 
+                        `r`.`id_nomina` = :id_nomina AND `r`.`estado` = 1 AND `r`.`val_ret` > 0
+                    ORDER BY 
+                        `e`.`apellido1` ASC, `e`.`apellido2` ASC, `e`.`nombre1` ASC";
+        }
 
         $stmt = $this->conexion->prepare($sql);
         $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
@@ -2690,5 +2783,110 @@ DEDUCCIONES;
         unset($stmt);
 
         return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Retorna el nombre formateado para un concepto pendiente de retroactivo
+     *
+     * @param int $id_concepto
+     * @param string $nom_concepto_base
+     * @return string
+     */
+    public static function getNombreConceptoPendiente($id_concepto, $nom_concepto_base = '')
+    {
+        switch (intval($id_concepto)) {
+            case 19:
+                return 'Retención en la Fuente (Pendiente)';
+            case 2:
+                return 'Reintegro Auxilio de Transporte (Pendiente)';
+            case 3:
+                return 'Reintegro Auxilio de Alimentación (Pendiente)';
+            case 5:
+                return 'Reintegro Exceso BSP (Pendiente)';
+            default:
+                if (!empty($nom_concepto_base)) {
+                    return mb_convert_case(trim($nom_concepto_base), MB_CASE_TITLE, 'UTF-8') . ' (Pendiente)';
+                }
+                return 'Descuento Pendiente (C-' . $id_concepto . ')';
+        }
+    }
+
+    /**
+     * Obtiene los descuentos pendientes de un empleado específico en una nómina retroactiva
+     *
+     * @param int $id_empleado
+     * @param int $id_nomina
+     * @return array
+     */
+    public function getDescuentosPendientesEmpleado($id_empleado, $id_nomina)
+    {
+        $sql = "SELECT 
+                    `r`.`id_concepto`,
+                    IFNULL(MAX(`cl`.`concepto`), '') AS `nom_concepto_base`,
+                    SUM(`r`.`valor_inicial`) AS `valor_total`,
+                    SUM(`r`.`valor_con_incremento`) AS `valor_pendiente`,
+                    SUM(`r`.`valor_inicial` - `r`.`valor_con_incremento`) AS `valor_descontado`
+                FROM `nom_retroctivo_detalles` AS `r`
+                    LEFT JOIN `nom_conceptos_liquidacion` AS `cl` ON (`r`.`id_concepto` = `cl`.`id_concepto`)
+                WHERE `r`.`id_nomina` = :id_nomina 
+                    AND `r`.`id_empleado` = :id_empleado
+                    AND `r`.`bandera` = 1
+                    AND `r`.`valor_con_incremento` > 0
+                GROUP BY `r`.`id_concepto`
+                ORDER BY `r`.`id_concepto` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->bindValue(':id_empleado', $id_empleado, PDO::PARAM_INT);
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        return !empty($datos) ? $datos : [];
+    }
+
+    /**
+     * Obtiene los descuentos pendientes agrupados por id_empleado para una nómina retroactiva
+     *
+     * @param int $id_nomina
+     * @return array [ id_empleado => [ [id_concepto, nom_concepto_base, valor_total, valor_pendiente, valor_descontado], ... ] ]
+     */
+    public function getDescuentosPendientesAgrupadosPorNomina($id_nomina)
+    {
+        $sql = "SELECT 
+                    `r`.`id_empleado`,
+                    `r`.`id_concepto`,
+                    IFNULL(MAX(`cl`.`concepto`), '') AS `nom_concepto_base`,
+                    SUM(`r`.`valor_inicial`) AS `valor_total`,
+                    SUM(`r`.`valor_con_incremento`) AS `valor_pendiente`,
+                    SUM(`r`.`valor_inicial` - `r`.`valor_con_incremento`) AS `valor_descontado`
+                FROM `nom_retroctivo_detalles` AS `r`
+                    LEFT JOIN `nom_conceptos_liquidacion` AS `cl` ON (`r`.`id_concepto` = `cl`.`id_concepto`)
+                WHERE `r`.`id_nomina` = :id_nomina 
+                    AND `r`.`bandera` = 1
+                    AND `r`.`valor_con_incremento` > 0
+                GROUP BY `r`.`id_empleado`, `r`.`id_concepto`
+                ORDER BY `r`.`id_empleado` ASC, `r`.`id_concepto` ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':id_nomina', $id_nomina, PDO::PARAM_INT);
+        $stmt->execute();
+        $filas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        unset($stmt);
+
+        $agrupados = [];
+        if (!empty($filas)) {
+            foreach ($filas as $f) {
+                $idEmp = (int) $f['id_empleado'];
+                if (!isset($agrupados[$idEmp])) {
+                    $agrupados[$idEmp] = [];
+                }
+                $agrupados[$idEmp][] = $f;
+            }
+        }
+
+        return $agrupados;
     }
 }

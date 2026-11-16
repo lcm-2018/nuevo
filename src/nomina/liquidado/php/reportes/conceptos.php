@@ -34,6 +34,7 @@ if (empty($nomina) || $nomina['id_nomina'] == 0) {
 $mes = mb_strtoupper(Valores::NombreMes($nomina['mes']));
 $usuario = new Usuario();
 $empresa = $usuario->getEmpresa();
+$esRA = (isset($nomina['tipo']) && strtoupper(trim($nomina['tipo'])) === 'RA');
 
 // Obtener nombre del concepto
 if ($id_concepto == 90) {
@@ -216,7 +217,11 @@ if ($esOtrosDevengados) {
 
         case 19: // RETENCIÓN EN LA FUENTE
             $datos = $detallesObj->getDatosReporteRetencion($id_nomina);
-            $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'BASE RETENCIÓN', 'VALOR'];
+            if ($esRA) {
+                $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'BASE RETENCIÓN', 'VALOR DESCONTADO', 'VALOR PENDIENTE'];
+            } else {
+                $columnas = ['DOCUMENTO', 'NOMBRE', 'DIAS', 'BASE RETENCIÓN', 'VALOR'];
+            }
             $columnaExtra = 'retencion';
             break;
 
@@ -307,6 +312,7 @@ if (empty($datos)) {
 
 // Calcular total
 $total = 0;
+$totalPendiente = 0;
 $totalDevengado = 0;
 $totalDeducido = 0;
 $totalPatronal = 0;
@@ -321,6 +327,7 @@ foreach ($datos as $d) {
         }
     } else {
         $total += floatval($d['valor'] ?? 0);
+        $totalPendiente += floatval($d['valor_pendiente'] ?? 0);
     }
 }
 
@@ -403,6 +410,10 @@ function getCeldaValor($d, $campo, $columnaExtra)
             return $d['nit_fondo'] ?? 'N/A';
         case 'INT. CESANTÍAS':
             return $d['valor_intereses'] ?? 0;
+        case 'VALOR DESCONTADO':
+            return $d['valor_descontado'] ?? $d['valor'] ?? 0;
+        case 'VALOR PENDIENTE':
+            return $d['valor_pendiente'] ?? 0;
         default:
             return isset($d[$campo]) ? $d[$campo] : '';
     }
@@ -411,7 +422,7 @@ function getCeldaValor($d, $campo, $columnaExtra)
 // Función para formatear valor según el tipo de campo
 function formatearCelda($valor, $campo)
 {
-    $camposNumericos = ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'INT. CESANTÍAS', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL'];
+    $camposNumericos = ['VALOR', 'VALOR DESCONTADO', 'VALOR PENDIENTE', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'INT. CESANTÍAS', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL'];
     $camposCentrados = ['DIAS LIQUIDADO', 'DIAS', 'DIAS INACTIVOS', 'DIAS HABILES', 'DIAS BR', 'CANTIDAD', 'COD_BANCO', 'TIPO'];
 
     if (in_array($campo, $camposNumericos) || strpos($campo, ' VALOR') !== false) {
@@ -451,6 +462,12 @@ if ($tipo == 'E') {
         echo "<td style='text-align: right; padding: 5px;'>$ " . number_format($totalDeducido, 0, ',', '.') . "</td>";
         echo "<td style='text-align: right; padding: 5px;'>$ " . number_format($totalPatronal, 0, ',', '.') . "</td>";
         echo "</tr>";
+    } elseif ($columnaExtra === 'retencion' && $esRA) {
+        echo "<tr style='background-color: #d0d0d0; font-weight: bold;'>";
+        echo "<td colspan='" . ($numColumnas - 2) . "' style='text-align: left; padding: 5px;'>TOTALES RETENCIÓN</td>";
+        echo "<td style='text-align: right; padding: 5px;'>$ " . number_format($total, 0, ',', '.') . "</td>";
+        echo "<td style='text-align: right; padding: 5px; color: #721c24;'>$ " . number_format($totalPendiente, 0, ',', '.') . "</td>";
+        echo "</tr>";
     } else {
         echo "<tr style='background-color: #d0d0d0; font-weight: bold;'>";
         echo "<td colspan='" . ($numColumnas - 1) . "' style='text-align: left; padding: 5px;'>TOTAL POR CONCEPTO</td>";
@@ -484,7 +501,7 @@ if ($tipo == 'E') {
     } else {
         echo "<tr style='background-color: #e0e0e0; font-weight: bold;'>";
         foreach ($columnas as $col) {
-            $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL']) ? 'right' : 'left';
+            $align = in_array($col, ['VALOR', 'VALOR DESCONTADO', 'VALOR PENDIENTE', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL']) ? 'right' : 'left';
             if (strpos($col, ' VALOR') !== false)
                 $align = 'right';
             if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO']) || strpos($col, ' CANT.') !== false)
@@ -506,7 +523,7 @@ if ($tipo == 'E') {
         foreach ($columnas as $col) {
             $valor = getCeldaValor($d, $col, $columnaExtra);
             $valorFormateado = formatearCelda($valor, $col);
-            $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL']) ? 'right' : 'left';
+            $align = in_array($col, ['VALOR', 'VALOR DESCONTADO', 'VALOR PENDIENTE', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL']) ? 'right' : 'left';
             if (strpos($col, ' VALOR') !== false)
                 $align = 'right';
             if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO']) || strpos($col, ' CANT.') !== false) {
@@ -539,6 +556,13 @@ if ($columnaExtra === 'consolidado') {
     $html .= "<th style='text-align: right; padding: 8px; font-size: 11px; font-weight: bold;'>$ " . number_format($totalDevengado, 0, ',', '.') . "</th>";
     $html .= "<th style='text-align: right; padding: 8px; font-size: 11px; font-weight: bold;'>$ " . number_format($totalDeducido, 0, ',', '.') . "</th>";
     $html .= "<th style='text-align: right; padding: 8px; font-size: 11px; font-weight: bold;'>$ " . number_format($totalPatronal, 0, ',', '.') . "</th>";
+    $html .= "</tr>";
+    $html .= "</table>";
+} elseif ($columnaExtra === 'retencion' && $esRA) {
+    $html .= "<table style='width: 100%; border-collapse: collapse; margin-bottom: 10px;' border='1'>";
+    $html .= "<tr style='background-color: #d0d0d0;'>";
+    $html .= "<th style='text-align: left; padding: 8px; font-size: 11px; font-weight: bold;'>TOTALES RETENCIÓN</th>";
+    $html .= "<th style='text-align: right; padding: 8px; font-size: 11px; font-weight: bold;'>DESCONTADO: $ " . number_format($total, 0, ',', '.') . " &nbsp;|&nbsp; PENDIENTE: $ " . number_format($totalPendiente, 0, ',', '.') . "</th>";
     $html .= "</tr>";
     $html .= "</table>";
 } else {
@@ -579,7 +603,7 @@ if ($columnaExtra === 'horas_extras_horizontal') {
 } else {
     $html .= "<tr style='background-color: #e0e0e0;'>";
     foreach ($columnas as $col) {
-        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL']) ? 'right' : 'left';
+        $align = in_array($col, ['VALOR', 'VALOR DESCONTADO', 'VALOR PENDIENTE', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL']) ? 'right' : 'left';
         if (strpos($col, ' VALOR') !== false)
             $align = 'right';
         if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO']) || strpos($col, ' CANT.') !== false) {
@@ -599,7 +623,7 @@ foreach ($datos as $d) {
     foreach ($columnas as $col) {
         $valor = getCeldaValor($d, $col, $columnaExtra);
         $valorFormateado = formatearCelda($valor, $col);
-        $align = in_array($col, ['VALOR', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL']) ? 'right' : 'left';
+        $align = in_array($col, ['VALOR', 'VALOR DESCONTADO', 'VALOR PENDIENTE', 'BASE RETENCIÓN', 'PRIMA VAC.', 'BON. RECREACIÓN', 'DEVENGADO', 'DEDUCIDO', 'PATRONAL', 'TOTAL VALOR', 'PAGO EMPRESA', 'PAGO EPS', 'PAGO ARL']) ? 'right' : 'left';
         if (strpos($col, ' VALOR') !== false)
             $align = 'right';
         if (in_array($col, ['DIAS LIQUIDADO', 'DIAS', 'CANTIDAD', 'COD_BANCO', 'TIPO']) || strpos($col, ' CANT.') !== false) {
