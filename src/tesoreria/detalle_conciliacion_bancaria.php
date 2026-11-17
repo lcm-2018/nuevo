@@ -295,9 +295,10 @@ $content .= <<<HTML
 	                            </th>
 	                            <th class="bg-sofia">
 	                                <select class="form-select form-select-sm filtro-det-conc" data-columna="6">
-	                                    <option value="seleccionar">Seleccionar</option>
+	                                    <option value="seleccionar">Todos</option>
 	                                    <option value="Pendiente">Pendiente</option>
 	                                    <option value="Conciliado">Conciliado</option>
+	                                    <option value="Marcado">Marcado</option>
 	                                </select>
 	                            </th>
 	                            <th class="bg-sofia"></th>

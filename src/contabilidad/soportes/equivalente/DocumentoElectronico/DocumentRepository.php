@@ -216,6 +216,44 @@ class DocumentRepository
     }
 
     /**
+     * Obtiene las retenciones causadas para un documento contable
+     * @param int $idDoc ID del documento contable (ctb_doc)
+     * @return array Lista de retenciones
+     */
+    public function getRetencionesDocumento(int $idDoc): array
+    {
+        try {
+            $sql = "SELECT
+                        `ctb_causa_retencion`.`id_causa_retencion`,
+                        `ctb_causa_retencion`.`id_ctb_doc`,
+                        `ctb_retencion_tipo`.`id_retencion_tipo`,
+                        `ctb_retencion_tipo`.`tipo`,
+                        `ctb_retenciones`.`id_retencion`,
+                        `ctb_retenciones`.`nombre_retencion`,
+                        `ctb_causa_retencion`.`valor_base`,
+                        `ctb_causa_retencion`.`tarifa`,
+                        `ctb_causa_retencion`.`valor_retencion`
+                    FROM
+                        `ctb_causa_retencion`
+                        LEFT JOIN `ctb_retencion_rango` 
+                            ON (`ctb_causa_retencion`.`id_rango` = `ctb_retencion_rango`.`id_rango`)
+                        LEFT JOIN `ctb_retenciones` 
+                            ON (`ctb_retencion_rango`.`id_retencion` = `ctb_retenciones`.`id_retencion`)
+                        LEFT JOIN `ctb_retencion_tipo` 
+                            ON (`ctb_retenciones`.`id_retencion_tipo` = `ctb_retencion_tipo`.`id_retencion_tipo`)
+                    WHERE `ctb_causa_retencion`.`id_ctb_doc` = :id";
+
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->execute([':id' => $idDoc]);
+            $retenciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $retenciones ?: [];
+        } catch (\PDOException $e) {
+            return [];
+        }
+    }
+
+    /**
      * Obtiene la resolución de facturación activa
      * @param int $idEmpresa ID de la empresa
      * @param int $tipo Tipo de documento (1=venta, 2=soporte)

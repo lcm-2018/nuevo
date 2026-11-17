@@ -174,7 +174,7 @@ HTML;
 }
 
 // Validar permisos de registro
-$peRegValue = ($peReg && !($tipo_doc == '5' || $tipo_doc == '3')) || ($_SESSION['caracter'] == '1' && ($tipo_doc == '3' || $tipo_doc == '18')) ? 1 : 0;
+$peRegValue = $peReg && ($_SESSION['caracter'] == '1' || !($tipo_doc == '5' || $tipo_doc == '3')) ? 1 : 0;
 $disabledExcel = ($tipo_doc > 0) ? '' : 'disabled';
 
 $content = <<<HTML

@@ -453,8 +453,8 @@ var tabla;
 			var columna = parseInt($(this).data('columna'), 10);
 			var valor = $(this).val();
 			if (columna === 6) {
-				var filtroEstado = '^(Pendiente|Conciliado)$';
-				if (valor === 'Pendiente' || valor === 'Conciliado') {
+				var filtroEstado = '';
+				if (valor === 'Pendiente' || valor === 'Conciliado' || valor === 'Marcado') {
 					filtroEstado = '^' + $.fn.dataTable.util.escapeRegex(valor) + '$';
 				}
 				tbDetConciliacion.column(columna).search(filtroEstado, true, false).draw();
@@ -3525,6 +3525,9 @@ function GuardaSaldoExtracto() {
 }
 
 function GuardaDetalleConciliacion(check) {
+	if ($(check).is(':disabled')) {
+		return false;
+	}
 	var id_conciliacion = $('#id_conciliacion').val();
 	var id_libaux = check.getAttribute('text');
 	var mes = $('#cod_mes').val();

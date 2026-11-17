@@ -59,13 +59,23 @@ if (isset($_POST['tercero']) && $_POST['tercero']) {
     $andwhere .= " AND tb_terceros.nom_tercero LIKE '%" . $_POST['tercero'] . "%'";
 }
 if (isset($_POST['causacion']) && $_POST['causacion']) {
-    $andwhere .= " AND EXISTS (SELECT 1 FROM `pto_pag_detalle`
-                        INNER JOIN `pto_cop_detalle` 
-                            ON `pto_pag_detalle`.`id_pto_cop_det` = `pto_cop_detalle`.`id_pto_cop_det`
-                        INNER JOIN `ctb_doc` AS `doc_causacion`
-                            ON (`pto_cop_detalle`.`id_ctb_doc` = `doc_causacion`.`id_ctb_doc`)
-                        WHERE `pto_pag_detalle`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`
-                        AND `doc_causacion`.`id_manu` LIKE '%" . $_POST['causacion'] . "%')";
+    $andwhere .= " AND (
+                        EXISTS (SELECT 1 FROM `pto_pag_detalle`
+                            INNER JOIN `pto_cop_detalle` 
+                                ON `pto_pag_detalle`.`id_pto_cop_det` = `pto_cop_detalle`.`id_pto_cop_det`
+                            INNER JOIN `ctb_doc` AS `doc_causacion`
+                                ON (`pto_cop_detalle`.`id_ctb_doc` = `doc_causacion`.`id_ctb_doc`)
+                            WHERE `pto_pag_detalle`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`
+                            AND `doc_causacion`.`id_manu` LIKE '%" . $_POST['causacion'] . "%')
+                        OR EXISTS (SELECT 1 FROM `tes_rel_pag_cop`
+                            INNER JOIN `ctb_doc` AS `doc_causacion`
+                                ON (`tes_rel_pag_cop`.`id_doc_cop` = `doc_causacion`.`id_ctb_doc`)
+                            WHERE `tes_rel_pag_cop`.`id_doc_pag` = `ctb_doc`.`id_ctb_doc`
+                            AND `doc_causacion`.`id_manu` LIKE '%" . $_POST['causacion'] . "%')
+                        OR EXISTS (SELECT 1 FROM `ctb_doc` AS `doc_causacion`
+                            WHERE `doc_causacion`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc_tipo3`
+                            AND `doc_causacion`.`id_manu` LIKE '%" . $_POST['causacion'] . "%')
+                    )";
 }
 if (isset($_POST['valor']) && $_POST['valor'] !== '') {
     // Para filtrar por valor (sumatoria de credito), validamos que la diferencia entre debito y credito sea 0 en la vista,
@@ -133,15 +143,25 @@ try {
                     ON (`ctb_doc`.`id_tercero` = `tb_terceros`.`id_tercero_api`)
                 LEFT JOIN 
                     (SELECT
-                        `pto_pag_detalle`.`id_ctb_doc` AS `pag`
-                        , GROUP_CONCAT(DISTINCT `ctb_doc`.`id_manu` ORDER BY `ctb_doc`.`id_manu` SEPARATOR ', ') AS `id_manu`
+                        `rel`.`pag`
+                        , GROUP_CONCAT(DISTINCT `doc_cau`.`id_manu` ORDER BY `doc_cau`.`id_manu` SEPARATOR ', ') AS `id_manu`
                     FROM
-                        `pto_pag_detalle`
-                        INNER JOIN `pto_cop_detalle` 
-                            ON `pto_pag_detalle`.`id_pto_cop_det` = `pto_cop_detalle`.`id_pto_cop_det`
-                        INNER JOIN `ctb_doc` 
-                            ON (`pto_cop_detalle`.`id_ctb_doc` = `ctb_doc`.`id_ctb_doc`)
-                    GROUP BY `pto_pag_detalle`.`id_ctb_doc`) AS `causaciones`
+                        (SELECT `pto_pag_detalle`.`id_ctb_doc` AS `pag`, `pto_cop_detalle`.`id_ctb_doc` AS `id_cop`
+                         FROM `pto_pag_detalle`
+                         INNER JOIN `pto_cop_detalle` 
+                             ON `pto_pag_detalle`.`id_pto_cop_det` = `pto_cop_detalle`.`id_pto_cop_det`
+                         UNION
+                         SELECT `id_doc_pag` AS `pag`, `id_doc_cop` AS `id_cop`
+                         FROM `tes_rel_pag_cop`
+                         WHERE `id_doc_cop` IS NOT NULL AND `id_doc_cop` > 0
+                         UNION
+                         SELECT `id_ctb_doc` AS `pag`, `id_ctb_doc_tipo3` AS `id_cop`
+                         FROM `ctb_doc`
+                         WHERE `id_tipo_doc` = $id_ctb_doc AND `id_ctb_doc_tipo3` IS NOT NULL AND `id_ctb_doc_tipo3` > 0
+                        ) AS `rel`
+                        INNER JOIN `ctb_doc` AS `doc_cau` 
+                            ON (`rel`.`id_cop` = `doc_cau`.`id_ctb_doc`)
+                    GROUP BY `rel`.`pag`) AS `causaciones`
                     ON (`ctb_doc`.`id_ctb_doc` = `causaciones`.`pag`)
             WHERE (`ctb_doc`.`id_tipo_doc` = $id_ctb_doc AND `ctb_doc`.`id_vigencia` = $id_vigencia $where) $andwhere  
             ORDER BY $col $dir, `ctb_doc`.`fecha` DESC, `ctb_doc`.`id_manu` DESC $limit";
