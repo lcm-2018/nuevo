@@ -42,12 +42,16 @@ try {
             $fec_ing = $_POST['txt_fec_ing'];
             $hor_ing = $_POST['txt_hor_ing'];
             $id_tiping = $_POST['id_tip_ing'];
-            $id_pedido = $_POST['txt_id_pedido'];
+            $tipo_comprobante = $_POST['sl_tip_comprobante'] ?? 0;
+            $id_pedido = trim($_POST['txt_id_pedido'] ?? '') ?: 'NULL';   
             $num_fac = $_POST['txt_num_fac'];
             $fec_fac = $_POST['txt_fec_fac'];
+            $cufe = $_POST['txt_cufe'];
+            $id_rem_int = trim($_POST['sl_num_remision'] ?? '') ?: 'NULL';
             $id_tercero = $_POST['id_txt_tercero'];
+            $id_tipo_transac = trim($_POST['sl_tip_transaccion'] ?? '') ?: 'NULL';            
             $detalle = $_POST['txt_det_ing'];
-            $val_aprpeso = $_POST['txt_val_aprpeso'];
+            $val_aprpeso = $_POST['txt_val_aprpeso'] ?? 0;
 
             $sql = "SELECT orden_compra FROM far_orden_ingreso_tipo WHERE id_tipo_ingreso=" . $id_tiping;
             $rs = $cmd->query($sql);
@@ -56,8 +60,10 @@ try {
 
             if ($id == -1) {
                 $sql = "INSERT INTO far_orden_ingreso(fec_ingreso,hor_ingreso,num_factura,fec_factura,id_tipo_ingreso,
+                        tipo_comprobante,cufe,id_rem_int,id_tipo_transac,
                         id_provedor,id_centrocosto,detalle,val_total,val_aprpeso,id_sede,id_sedetraslado,id_bodega,id_pedido,id_usr_crea,fec_creacion,creado_far,estado)
                     VALUES('$fec_ing','$hor_ing','$num_fac','$fec_fac',$id_tiping,
+                        $tipo_comprobante,'$cufe',$id_rem_int,$id_tipo_transac,
                         $id_tercero,0,'$detalle',0,0,$id_sede,$id_sede,$id_bodega,$id_pedido,$id_usr_ope,'$fecha_ope',0,1)";
                 $rs = $cmd->query($sql);
 
@@ -80,7 +86,9 @@ try {
 
                 if (isset($obj_ingreso['estado']) && $obj_ingreso['estado'] == 1) {
                     $sql = "UPDATE far_orden_ingreso 
-                            SET num_factura='$num_fac',fec_factura='$fec_fac',id_tipo_ingreso=$id_tiping,id_provedor=$id_tercero,detalle='$detalle',id_pedido=$id_pedido,val_aprpeso=$val_aprpeso
+                            SET num_factura='$num_fac',fec_factura='$fec_fac',id_tipo_ingreso=$id_tiping,
+                                tipo_comprobante=$tipo_comprobante,cufe='$cufe',id_rem_int=$id_rem_int,id_tipo_transac=$id_tipo_transac,
+                                id_provedor=$id_tercero,detalle='$detalle',id_pedido=$id_pedido,val_aprpeso=$val_aprpeso
                             WHERE id_ingreso=" . $id;
                     $rs = $cmd->query($sql);
 
@@ -125,10 +133,13 @@ try {
         if ($oper == 'close') {
             $id = $_POST['id'];
 
-            $sql = "SELECT estado,fec_ingreso,detalle,id_tipo_ingreso FROM far_orden_ingreso WHERE id_ingreso=" . $id;
+            $sql = "SELECT estado,fec_ingreso,detalle,id_tipo_ingreso,tipo_comprobante,id_rem_int FROM far_orden_ingreso WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
             $obj_ingreso = $rs ? $rs->fetch() : null;
             $estado = isset($obj_ingreso['estado']) ? $obj_ingreso['estado'] : -1;
+            $estado = isset($obj_ingreso['estado']) ? $obj_ingreso['estado'] : -1;
+            $tip_comprobante = isset($obj_ingreso['tipo_comprobante']) ? $obj_ingreso['tipo_comprobante'] : 0;
+            $id_rem_int = $tip_comprobante == 2 && isset($obj_ingreso['id_rem_int']) ? $obj_ingreso['id_rem_int'] : 0;
 
             $sql = "SELECT COUNT(*) AS total FROM far_orden_ingreso_detalle WHERE id_ingreso=" . $id;
             $rs = $cmd->query($sql);
@@ -231,9 +242,12 @@ try {
                     $sql = 'UPDATE tb_datos_ips SET num_ingresoactual=num_ingresoactual+1';
                     $rs2 = $cmd->query($sql);
                     $sql = 'UPDATE far_orden_ingreso_tipo SET consecutivo=consecutivo+1 WHERE id_tipo_ingreso=' . $obj_ingreso['id_tipo_ingreso'];
-                    $rs2 = $cmd->query($sql);
+                    $rs3 = $cmd->query($sql);
 
-                    if ($rs1 == false || $rs2 == false || error_get_last()) {
+                    $sql = "UPDATE far_remision_interna SET estado=2 WHERE id_rem_int=" . $id_rem_int;
+                    $rs4 = $cmd->query($sql);
+
+                    if ($rs1 == false || $rs2 == false || $rs3 == false || $rs4 == false || error_get_last()) {
                         $error = 1;
                     }
                 }

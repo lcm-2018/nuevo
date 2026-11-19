@@ -45,6 +45,7 @@ if (empty($obj)) {
     endfor;
     //Inicializa variable por defecto
     $obj['id_tipo_ingreso'] = 0;
+    $obj['tipo_comprobante'] = 0;
     $obj['id_tercero'] = 0;
     $obj['nom_tercero'] = 'NINGUNO';
     $obj['estado'] = 1;
@@ -117,14 +118,14 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                     </div>
                     <div class="col-md-2">
                         <label for="sl_tip_comprobante" class="small" required>Tipo Comprobante</label>
-                        <select class="form-select form-select-sm bg-input" id="sl_tip_comprobante" name="sl_tip_comprobante" disabled>
+                        <select class="form-select form-select-sm bg-input" id="sl_tip_comprobante" name="sl_tip_comprobante">
                             <?php tipo_comprobante('', $obj['tipo_comprobante']) ?>
                         </select>
                     </div>                     
                     <div class="col-md-5">
                         <label for="txt_tercero" class="small">Tercero</label>
                         <input type="text" class="form-control form-control-sm bg-input" id="txt_tercero" value="<?php echo $obj['nom_tercero'] ?>">
-                        <input type="text" id="id_txt_tercero" name="id_txt_tercero" value="<?php echo $obj['id_tercero'] ?>">
+                        <input type="hidden" id="id_txt_tercero" name="id_txt_tercero" value="<?php echo $obj['id_tercero'] ?>">
                     </div>
                     <div class="col-md-2">
                         <label for="sl_tip_transaccion" class="small" required>Tipo Transacción</label>
@@ -145,13 +146,13 @@ $imprimir = $id != -1 ? '' : 'disabled="disabled"';
                                 <input type="text" class="form-control form-control-sm bg-input" id="txt_num_fac" name="txt_num_fac" class="small" value="<?php echo $obj['num_factura'] ?>">
                             </div>
                             <div class="col-md-3">
-                                <label for="txt_fec_fac" class="small">Fecha Fact./Acta/Rem.</label>
+                                <label for="txt_fec_fac" class="small">Fec. Fact./Acta/Rem.</label>
                                 <input type="date" class="form-control form-control-sm bg-input" id="txt_fec_fac" name="txt_fec_fac" class="small" value="<?php echo $obj['fec_factura'] ?>">
                             </div> 
-                            <div class="col-md-4" id="divRemision">
+                            <div class="col-md-5" id="divRemision">
                                 <label for="sl_num_remision" class="small" required>No. Remisión Interna</label>
                                 <select class="form-select form-select-sm bg-input" id="sl_num_remision" name="sl_num_remision">
-                                    <?php remisiones_internas($cmd, '', $obj['id_tercero'], 0, $obj['id_rem_int']) ?>
+                                    <?php remisiones_internas($cmd, '', $obj['id_tercero'], $obj['id_rem_int']) ?>
                                 </select>
                             </div>
                             <div class="col-md-1" id="divAddRemision">

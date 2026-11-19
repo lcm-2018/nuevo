@@ -47,6 +47,7 @@ if (empty($obj)) {
     $obj['nom_articulo'] = $articulo;
     $obj['id_lote'] = $id_lote;
     $obj['cantidad'] = (int)$cantidad;
+    $obj['valor_sin_iva'] = 0;
 }
 
 ?>

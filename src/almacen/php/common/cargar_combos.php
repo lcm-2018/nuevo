@@ -348,7 +348,7 @@ function tipo_trasnsaccion($cmd, $titulo = '', $rol = 0, $id = 0)
         if ($rol == 1 || $rol == 2) {
             $sql = "SELECT id_tipo_transac,CONCAT_WS('-', cod_tipo_transac,desc_tipo_transac) AS tipo_transac
                     FROM far_tipo_transac
-                    WHERE estado = 1 AND rol_tercero = $rol
+                    WHERE rol_tercero = $rol AND estado = 1
                     ORDER BY cod_tipo_transac ASC";   
             $rs = $cmd->query($sql);
             $objs = $rs->fetchAll();
@@ -368,16 +368,15 @@ function tipo_trasnsaccion($cmd, $titulo = '', $rol = 0, $id = 0)
     }
 }
 
-function remisiones_internas($cmd, $titulo = '', $id_tercero = 0, $todas= 0, $id = 0)
+function remisiones_internas($cmd, $titulo = '', $id_tercero = 0, $id = 0)
 {
     try {
         echo '<option value="">' . $titulo . '</option>';    
-        $estado = $todas == 0 ? " AND estado= 1" : "";
         if ($id_tercero > 0) {
             $sql = "SELECT id_rem_int, estado, 
                         CONCAT(num_remision,'-',desc_remision,' (', CASE estado WHEN 1 THEN 'Activa' WHEN 2 THEN 'Cerrada' END, ')') AS remision
                     FROM far_remision_interna
-                    WHERE id_tercero = $id_tercero $estado
+                    WHERE (id_tercero = $id_tercero AND estado= 1) OR id_rem_int = $id
                     ORDER BY estado, id_rem_int";
             $rs = $cmd->query($sql);
             $objs = $rs->fetchAll();
@@ -581,6 +580,15 @@ function estados_registros($titulo = '', $estado = -1)
     echo '<option value="0"' . $selected . '>INACTIVO</option>';
 }
 
+function estados_remision($titulo = '', $estado = -1)
+{
+    echo '<option value="0">' . $titulo . '</option>';
+    $selected = ($estado == 1) ? 'selected="selected"' : '';
+    echo '<option value="1"' . $selected . '>Activa</option>';
+    $selected = ($estado == 2) ? 'selected="selected"' : '';
+    echo '<option value="2"' . $selected . '>Cerrada</option>';
+}
+
 function estados_sino($titulo = '', $estado = -1)
 {
     echo '<option value="">' . $titulo . '</option>';
@@ -596,7 +604,7 @@ function tipo_insumo($titulo = '', $estado = -1)
     $selected = ($estado == 1) ? 'selected="selected"' : '';
     echo '<option value="1"' . $selected . '>Insumo Asistenciales</option>';
     $selected = ($estado == 0) ? 'selected="selected"' : '';
-    echo '<option value="0"' . $selected . '>Insumo Administrativos</option>';
+    echo '<option value="0"' . $selected . '>Insumo de Consumo</option>';
 }
 
 function modulo_origen($titulo = '', $estado = -1)

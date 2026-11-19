@@ -109,7 +109,12 @@
         const tipoComprobante = $('#sl_tip_comprobante').val() ? $('#sl_tip_comprobante').val() : 0;
         const esOrdenCompra = $('#sl_tip_ing').find('option:selected').attr('data-ordcom') == 1;
         
-        $('#sl_tip_comprobante').prop('disabled', !esCompra);
+        if (esCompra) {
+            $('#sl_tip_comprobante option:not([value="0"])').prop('disabled', false);
+        } else {
+            $('#sl_tip_comprobante option:not([value="0"])').prop('disabled', true);
+        }
+
         $('#divCufe').hide();
         $('#divRemision').hide();
         $('#divAddRemision').hide();
@@ -137,7 +142,12 @@
         const esCompra = $('#sl_tip_ing').find('option:selected').attr('data-es_comp') == 1;
         const esOrdenCompra = $('#sl_tip_ing').find('option:selected').attr('data-ordcom') == 1;
 
-        $('#sl_tip_comprobante').prop('disabled', !esCompra);
+        if (esCompra) {
+            $('#sl_tip_comprobante option:not([value="0"])').prop('disabled', false);
+        } else {
+            $('#sl_tip_comprobante option:not([value="0"])').prop('disabled', true);
+        }
+
         $('#sl_tip_comprobante').val(0);
         $('#divCufe').hide();
         $('#divRemision').hide();
@@ -153,8 +163,7 @@
                 id_bodega = $('#id_txt_nom_bod').val();
 
             $.post("buscar_pedidos_frm.php", { id_sede: id_sede, id_bodega: id_bodega }, function (he) {
-                $('#divTamModalBus').removeClass('modal-sm');
-                $('#divTamModalBus').removeClass('modal-xl');
+                $('#divTamModalBus').removeClass('modal-sm modal-xl modal-xxl');
                 $('#divTamModalBus').addClass('modal-lg');
                 $('#divModalBus').modal('show');
                 $("#divFormsBus").html(he);
@@ -189,9 +198,8 @@
             let id_sede = $('#id_txt_sede').val(),
                 id_bodega = $('#id_txt_nom_bod').val();
 
-            $.post("buscar_pedidos_frm.php", { id_sede: id_sede, id_bodega: id_bodega }, function (he) {
-                $('#divTamModalBus').removeClass('modal-sm');
-                $('#divTamModalBus').removeClass('modal-xl');
+            $.post("buscar_pedidos_frm.php", { id_sede: id_sede, id_bodega: id_bodega }, function (he) {         
+                $('#divTamModalBus').removeClass('modal-sm modal-xl modal-xxl');
                 $('#divTamModalBus').addClass('modal-lg');
                 $('#divModalBus').modal('show');
                 $("#divFormsBus").html(he);
@@ -218,8 +226,7 @@
     $('#divModalBus').on('click', '#tb_pedidos_ing .btn_imprimir', function () {
         let id = $(this).attr('value');
         $.post("imp_pedido.php", { id: id }, function (he) {
-            $('#divTamModalImp').removeClass('modal-sm');
-            $('#divTamModalImp').removeClass('modal-lg');
+            $('#divTamModalImp').removeClass('modal-sm modal-lg modal-xxl');
             $('#divTamModalImp').addClass('modal-xl');
             $('#divModalImp').modal('show');
             $("#divImp").html(he);
@@ -231,8 +238,7 @@
         let id = $('#txt_id_pedido').val();
         if (id) {
             $.post("imp_pedido.php", { id: id }, function (he) {
-                $('#divTamModalImp').removeClass('modal-sm');
-                $('#divTamModalImp').removeClass('modal-lg');
+                $('#divTamModalImp').removeClass('modal-sm modal-lg modal-xxl');
                 $('#divTamModalImp').addClass('modal-xl');
                 $('#divModalImp').modal('show');
                 $("#divImp").html(he);
@@ -265,7 +271,7 @@
             select: function (event, ui) {
                 $('#id_txt_tercero').val(ui.item.id);
                 $('#sl_tip_transaccion').load('../common/cargar_terceros_rol.php', { rol_tercero: ui.item.rol_tercero, titulo: ''}, function () { });
-                $('#sl_num_remision').load('../common/cargar_combos.php', { cmd: 'remisiones_internas', titulo: '', id_tercero: ui.item.id, todas: 0, id: 0 }, function () { });
+                $('#sl_num_remision').load('../common/cargar_terceros_remint.php', { id_tercero: ui.item.id, titulo: ''}, function () { });
             }
         });
     });
@@ -297,24 +303,45 @@
 
     //Guardar registro Orden Ingreso
     $('#divForms').on("click", "#btn_guardar", function () {
-        $('.is-invalid').removeClass('is-invalid');
+        $('.is-invalid').removeClass('is-invalid');        
+        const esCompra = $('#sl_tip_ing').find('option:selected').attr('data-es_comp') == 1;
+        const esExterno = $('#sl_tip_ing').find('option:selected').attr('data-intext') == 2;
+        const esOrdenCompra = $('#sl_tip_ing').find('option:selected').attr('data-ordcom') == 1;
+        const tipoCompro = $('#sl_tip_comprobante').val();
 
         var error = verifica_vacio_2($('#id_txt_nom_bod'), $('#txt_nom_bod'));
         error += verifica_vacio($('#txt_num_fac'));
         error += verifica_vacio($('#txt_fec_fac'));
         error += verifica_vacio($('#sl_tip_ing'));
-
-        if ($('#sl_tip_ing').find('option:selected').attr('data-intext') == 2) {
-            error += verifica_valmin_2($('#id_txt_tercero'), $('#txt_tercero'), 1);
+      
+        if (esCompra) {            
+            error += verifica_valmin($('#sl_tip_comprobante'),1);
         }
-        if ($('#sl_tip_ing').find('option:selected').attr('data-ordcom') == 1) {
+        if (esExterno) {
+            error += verifica_valmin_2($('#id_txt_tercero'), $('#txt_tercero'), 1);
+            error += verifica_vacio($('#sl_tip_transaccion'));
+        }
+        if (esOrdenCompra) {            
             error += verifica_vacio($('#txt_des_pedido'));
+        }
+
+        valCufe = 1;
+        if(tipoCompro == 1){
+            error += verifica_vacio($('#sl_num_remision'));
+        } else if(tipoCompro == 2){
+            error += verifica_vacio($('#txt_cufe'));
+            error += verifica_vacio($('#sl_num_remision'));    
+        } else if(tipoCompro == 3){
+            error += verifica_vacio($('#txt_cufe'));
+            valCufe = $('#txt_cufe').val().trim().length == 96 ? 1 : 0;
         }
 
         error += verifica_vacio($('#txt_det_ing'));
 
         if (error >= 1) {
             mjeError('Los datos resaltados son obligatorios');
+        } else if (valCufe == 0){
+            mjeError('El CUFE debe tener 96 caracteres');
         } else {
             var data = $('#frm_reg_orden_ingreso').serialize() + '&' + $('#frm_reg_orden_ingreso_total').serialize();
             $.ajax({
@@ -474,6 +501,7 @@
         $.post("frm_reg_ingresos_detalles.php", {
             id_articulo: data.id_med, articulo: data.nom_medicamento, id_lote: data.id_lote, id_bodega: id_bodega
         }, function (he) {
+            $('#divTamModalReg').removeClass('modal-sm modal-xl modal-xxl');
             $('#divTamModalReg').addClass('modal-lg');
             $('#divModalReg').modal('show');
             $("#divFormsReg").html(he);
@@ -487,6 +515,7 @@
         $.post("frm_reg_ingresos_detalles.php", {
             id_articulo: data.id_med, articulo: data.nom_medicamento, cantidad: data.cantidad_pen, id_bodega: id_bodega
         }, function (he) {
+            $('#divTamModalReg').removeClass('modal-sm modal-xl modal-xxl');
             $('#divTamModalReg').addClass('modal-lg');
             $('#divModalReg').modal('show');
             $("#divFormsReg").html(he);
@@ -504,7 +533,7 @@
             $('#txt_pre_lot').val(lote.attr('data-nom_presentacion'));
             $('#id_txt_pre_lot').val(lote.attr('data-id_presentacion'));
             $('#txt_can_lot').val(lote.attr('data-cantidad_umpl'));
-            if ($('#sl_tip_ing').find('option:selected').attr('data-fianza') == 1) {
+            if ($('#sl_tip_ing').find('option:selected').attr('data-es_comp') != 1) {
                $('#txt_val_uni').val(lote.attr('data-val_promedio'));
             }
         }
@@ -514,6 +543,7 @@
         let id_bodega = $('#id_txt_nom_bod').val();
         let id = $(this).attr('value');
         $.post("frm_reg_ingresos_detalles.php", { id: id, id_bodega: id_bodega }, function (he) {
+            $('#divTamModalReg').removeClass('modal-sm modal-xl modal-xxl');
             $('#divTamModalReg').addClass('modal-lg');
             $('#divModalReg').modal('show');
             $("#divFormsReg").html(he);
@@ -541,7 +571,7 @@
         });
     });
 
-    $('#divModalReg').on('input', '#txt_val_uni, #sl_por_iva', function () {
+    $('#divModalReg').on('input', '#txt_can_ing, #txt_val_uni, #sl_por_iva', function () {
         var valor = $('#txt_val_uni').val() ? $('#txt_val_uni').val() : 0,
             iva = $('#sl_por_iva').val() ? $('#sl_por_iva').val() : 0;
         $('#txt_val_cos').val(parseFloat(valor) + parseFloat(valor) * parseFloat(iva) / 100);
@@ -656,8 +686,7 @@
     -----------------------------------------------------*/
     $('#divFormsReg').on("click", "#btn_nuevo_lote", function () {
         $.post("../articulos/frm_reg_articulos_lotes.php", { id_articulo: $('#id_txt_nom_art').val() }, function (he) {
-            $('#divTamModalAux').removeClass('modal-xl');
-            $('#divTamModalAux').removeClass('modal-sm');
+            $('#divTamModalAux').removeClass('modal-sm modal-xl modal-xxl');
             $('#divTamModalAux').addClass('modal-lg');
             $('#divModalAux').modal('show');
             $("#divFormsAux").html(he);
@@ -764,13 +793,12 @@
         }
     });
 
-    //Imprimir un registro 
+    //Imprimir un registro de Orden de Ingreso
     $('#divForms').on("click", "#btn_imprimir", function () {
         $.post("imp_ingreso.php", {
             id: $('#id_ingreso').val()
         }, function (he) {
-            $('#divTamModalImp').removeClass('modal-sm');
-            $('#divTamModalImp').removeClass('modal-lg');
+            $('#divTamModalImp').removeClass('modal-sm modal-lg modal-xxl');
             $('#divTamModalImp').addClass('modal-xl');
             $('#divModalImp').modal('show');
             $("#divImp").html(he);
@@ -782,8 +810,7 @@
         $.post("imp_recepcion_tec.php", {
             id: $('#id_ingreso').val()
         }, function (he) {
-            $('#divTamModalImp').removeClass('modal-sm');
-            $('#divTamModalImp').removeClass('modal-lg');
+             $('#divTamModalImp').removeClass('modal-sm modal-lg modal-xxl');
             $('#divTamModalImp').addClass('modal-xl');
             $('#divModalImp').modal('show');
             $("#divImp").html(he);
@@ -796,8 +823,7 @@
         $.post("imp_ingreso.php", {
             id: id
         }, function (he) {
-            $('#divTamModalImp').removeClass('modal-sm');
-            $('#divTamModalImp').removeClass('modal-lg');
+             $('#divTamModalImp').removeClass('modal-sm modal-lg modal-xxl');
             $('#divTamModalImp').addClass('modal-xl');
             $('#divModalImp').modal('show');
             $("#divImp").html(he);
@@ -863,6 +889,116 @@
                     if (r.mensaje == 'ok') {                        
                         $('#tb_ingresos').DataTable().ajax.reload(null, false);
                         mje("Proceso realizado correctamente","Nueva Orden de Ingreso creada: " + r.id,0);
+                    } else {
+                        mjeError(r.mensaje);
+                    }
+                }).always(function () {
+                    ocultarOverlay();
+                }).fail(function () {
+                    alert('Ocurrió un error');
+                });
+            }
+        });
+    });
+
+    /* ---------------------------------------------------
+    REMISIONES INTERNAS DE ORDENES DE INGRESO
+    -----------------------------------------------------*/
+    $('#divForms').on("click", "#btn_add_remision", function () {
+        let id_tercero = $('#id_txt_tercero').val();
+        $.post("frm_remisiones.php", { id_tercero: id_tercero }, function (he) {
+             $('#divTamModalReg').removeClass('modal-sm modal-xl modal-xxl');
+            $('#divTamModalReg').addClass('modal-lg');
+            $('#divModalReg').modal('show');
+            $("#divFormsReg").html(he);
+        });
+    });
+
+    // Filtro de remisiones internas por estado
+    $('#divFormsReg').on('change', '#sl_estado_rem', function() {
+        $('#tb_ingresos_rem').DataTable().ajax.reload();
+    });
+
+    $('#divFormsReg').on('click', '#tb_ingresos_rem .btn_editar', function () {
+        let id = $(this).attr('value');
+        let id_tercero = $('#id_txt_tercero').val();
+        $.post("frm_reg_remisiones.php", { id: id }, function (he) {
+            $('#divTamModalAux').removeClass('modal-lg modal-xl modal-xxl');
+            $('#divTamModalAux').addClass('modal-sm');
+            $('#divModalAux').modal('show');
+            $("#divFormsAux").html(he);
+        });
+    });
+
+    //Guardar registro Remision
+    $('#divFormsAux').on("click", "#btn_guardar_remision", function () {
+        $('.is-invalid').removeClass('is-invalid');
+        
+        var error = verifica_vacio($('#txt_num_remision'));
+        error += verifica_vacio($('#txt_desc_remision'));
+
+        if (error >= 1) {
+            mjeError('Los datos resaltados son obligatorioss');
+        } else {
+            var data = $('#frm_reg_remisiones').serialize();
+            $.ajax({
+                url: 'editar_remisiones.php',
+                type: 'POST',
+                dataType: 'json',
+                data: data + "&id_tercero=" + $('#id_tercero_rem').val() + "&oper=add"
+            }).done(function (r) {
+                if (r.mensaje == 'ok') {
+                    $('#tb_ingresos_rem').DataTable().ajax.reload(null, false); 
+                    $('#divModalAux').modal('hide');
+
+                    var selectedIndex = $('#sl_num_remision')[0].selectedIndex;
+                    $('#sl_num_remision').load('../common/cargar_terceros_remint.php', { id_tercero: $('#id_tercero_rem').val(), titulo: ''}, function () {
+                        $('#sl_num_remision')[0].selectedIndex = selectedIndex;
+                    });
+
+                    mje("Proceso realizado correctamente");
+                } else {
+                    mjeError(r.mensaje);
+                }
+            }).always(function () {
+                ocultarOverlay();
+            }).fail(function () {
+                alert('Ocurrió un error');
+            });
+        }
+    });
+
+    //Borrarr un registro Remision
+    $('#divFormsReg').on('click', '#tb_ingresos_rem .btn_eliminar', function () {
+        let id = $(this).attr('value');
+        Swal.fire({
+            title: "¿Está seguro de eliminar el registro?",
+            text: "No podrá revertir esta acción",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, eliminar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                mostrarOverlay();
+                $.ajax({
+                    type: 'POST',
+                    url: 'editar_remisiones.php',
+                    dataType: 'json',
+                    data: { id: id, id_tercero: $('#id_tercero_rem').val(), oper: 'del' }
+                }).done(function (r) {
+
+                    if (r.mensaje == 'ok') {
+                        $('#tb_ingresos_rem').DataTable().ajax.reload(null, false);
+                        
+                        var selectedIndex = $('#sl_num_remision')[0].selectedIndex;
+                        $('#sl_num_remision').load('../common/cargar_terceros_remint.php', { id_tercero: $('#id_tercero_rem').val(), titulo: ''}, function () {
+                            $('#sl_num_remision')[0].selectedIndex = selectedIndex;
+                        });
+
+                        mje("Proceso realizado correctamente");
                     } else {
                         mjeError(r.mensaje);
                     }
