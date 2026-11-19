@@ -75,6 +75,7 @@ $tcc = 0;
 if (!empty($lista)) {
     $cmd = null;
     foreach ($lista as $lp) {
+        $title_chk = '';
         if ($lp['conciliado'] > 0 && $lp['marca'] <= $fecha) {
             $chk = 'checked';
             $estado = 'Conciliado';
@@ -83,17 +84,19 @@ if (!empty($lista)) {
             $estado = 'Pendiente';
         }
         if ($lp['conciliado'] > 0 && $lp['marca'] > $fecha) {
-            $chk = 'disabled';
-            $estado = 'Marcado';
+            $chk = 'checked disabled';
+            $mes_marca = !empty($lp['marca']) ? date('m/Y', strtotime($lp['marca'])) : '';
+            $title_chk = 'title="Marcado en otro mes' . ($mes_marca ? ' (' . $mes_marca . ')' : '') . '"';
+            $estado = '<span title="Marcado en otro mes' . ($mes_marca ? ' (' . $mes_marca . ')' : '') . '">Marcado</span>';
         }
 
         $tot_deb += $lp['debito'];
         $tot_cre += $lp['credito'];
-        if ($lp['conciliado'] > 0) {
+        if ($lp['conciliado'] > 0 && $lp['marca'] <= $fecha) {
             $tdc += $lp['debito'];
             $tcc += $lp['credito'];
         }
-        $check = '<input ' . $chk . ' type="checkbox" name="check[]" onclick="GuardaDetalleConciliacion(this)" text="' . $lp['id_ctb_libaux'] . '">';
+        $check = '<input ' . $chk . ' ' . $title_chk . ' type="checkbox" name="check[]" onclick="GuardaDetalleConciliacion(this)" text="' . $lp['id_ctb_libaux'] . '">';
         $nombre = $lp['nom_tercero'] . ' -> ' . $lp['nit_tercero'];
         $data[] = [
 

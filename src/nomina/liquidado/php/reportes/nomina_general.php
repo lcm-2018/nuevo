@@ -26,7 +26,11 @@ $decimales = isset(Valores::getOwnerConfig()['decimales']) ? intval(Valores::get
 $mes = mb_strtoupper(Valores::NombreMes($nomina['mes']));
 
 $conexion = Conexion::getConexion();
-$datos = (new Detalles())->getRegistrosDT(1, -1, ['id_nomina' => $id_nomina], 1, 'ASC');
+$detallesObj = new Detalles();
+$datos = $detallesObj->getRegistrosDT(1, -1, ['id_nomina' => $id_nomina], 1, 'ASC');
+
+$esRetroactivo = (isset($nomina['tipo']) && strtoupper(trim($nomina['tipo'])) === 'RA');
+$pendientesAgrupados = $esRetroactivo ? $detallesObj->getDescuentosPendientesAgrupadosPorNomina($id_nomina) : [];
 
 $datos = is_array($datos) ? $datos : [];
 
@@ -105,6 +109,10 @@ $columnas = [
     ['key' => 'neto', 'label' => 'NETO', 'group' => null, 'type' => 'number', 'align' => 'right', 'fixed' => true, 'bold' => true],
 ];
 
+if ($esRetroactivo) {
+    $columnas[] = ['key' => 'val_pendiente', 'label' => 'DESC. PEND.', 'group' => null, 'type' => 'number', 'align' => 'right'];
+}
+
 // Inicializar totales
 $totales = [];
 foreach ($columnas as $col) {
@@ -133,7 +141,13 @@ foreach ($datos as &$d) {
         ($d['val_retencion'] ?? 0) + ($d['valor_dcto'] ?? 0);
 
     // Calcular neto
-    $d['neto'] = $d['devengado'] - $d['deducciones'];
+    $d['neto'] = max(0, $d['devengado'] - $d['deducciones']);
+
+    // Calcular descuentos pendientes en retroactivo
+    if ($esRetroactivo) {
+        $itemsPend = $pendientesAgrupados[$d['id_empleado']] ?? [];
+        $d['val_pendiente'] = !empty($itemsPend) ? array_sum(array_column($itemsPend, 'valor_pendiente')) : 0;
+    }
 
     // Acumular totales
     foreach ($totales as $key => &$total) {

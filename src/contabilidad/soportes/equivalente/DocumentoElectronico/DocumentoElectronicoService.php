@@ -5,6 +5,7 @@ namespace App\DocumentoElectronico;
 use PDO;
 use Exception;
 use Src\Common\Php\Clases\Valores;
+use Config\Clases\Sesion;
 
 /**
  * Servicio principal para envío de documentos electrónicos
@@ -51,6 +52,12 @@ class DocumentoElectronicoService
             $unspsc = $this->repository->getUNSPSC($idDocumento);
             $resolucion = $this->repository->getResolucion(1, 2);
 
+            // Validar retenciones solo si la empresa es de carácter privado (1)
+            $retenciones = [];
+            if (intval(Sesion::Caracter()) === 1) {
+                $retenciones = $this->repository->getRetencionesDocumento($idDocumento);
+            }
+
             // 2. Validar resolución
             $this->repository->validarResolucion($resolucion);
 
@@ -89,7 +96,7 @@ class DocumentoElectronicoService
             }
 
             // 6. Construir documento
-            $documentData = $this->buildDocumentoSoporte($documento, $empresa, $resolucion, $secuencia, $unspsc);
+            $documentData = $this->buildDocumentoSoporte($documento, $empresa, $resolucion, $secuencia, $unspsc, $retenciones);
 
             // 7. Enviar a Taxxa
             $response = $this->taxxaService->sendDocument(
@@ -248,9 +255,17 @@ class DocumentoElectronicoService
      * @param array $resolucion Datos de la resolución
      * @param int $secuencia Secuencia actual
      * @param string $unspsc Código UNSPSC
+     * @param array $retenciones Retenciones causadas (si aplica)
      * @return array Documento listo para enviar
      */
-    private function buildDocumentoSoporte(array $documento, array $empresa, array $resolucion, int $secuencia, string $unspsc): array
+    private function buildDocumentoSoporte(
+        array $documento,
+        array $empresa,
+        array $resolucion,
+        int $secuencia,
+        string $unspsc,
+        array $retenciones = []
+    ): array
     {
         // Preparar datos del tercero (vendedor en doc soporte)
         $tercero = [
@@ -305,6 +320,28 @@ class DocumentoElectronicoService
                 'p_dcto' => 0,
                 'val_dcto' => 0,
             ]);
+
+        // Agregar retenciones si existen (empresa privada)
+        if (!empty($retenciones)) {
+            foreach ($retenciones as $ret) {
+                $valor = floatval($ret['valor_retencion'] ?? 0);
+                $tarifa = floatval($ret['tarifa'] ?? 0);
+                $base = floatval($ret['valor_base'] ?? 0);
+
+                if ($valor > 0 && $tarifa > 0) {
+                    $porcentaje = ($tarifa < 1) ? ($tarifa * 100) : $tarifa;
+
+                    // id_retencion_tipo 1 = Retención en la fuente (ReteRenta)
+                    if (intval($ret['id_retencion_tipo']) === 1) {
+                        $this->builder->addTax('jreterenta', $porcentaje, $valor, $base);
+                    }
+                    // id_retencion_tipo 2 = Retención de IVA (ReteIVA)
+                    else if (intval($ret['id_retencion_tipo']) === 2) {
+                        $this->builder->addTax('jreteiva', $porcentaje, $valor, $base);
+                    }
+                }
+            }
+        }
 
         return $this->builder->build();
     }
