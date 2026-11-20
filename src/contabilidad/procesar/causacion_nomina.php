@@ -479,6 +479,7 @@ try {
         $restar = 0;
         $rest = 0;
         $liberado = 0;
+        $dcto_aplicado = false;
 
         foreach ($tipo_field_map as $tipo => $fields) {
             $valor = calcularValorRubroNomina($dd, $fields);
@@ -655,6 +656,13 @@ try {
         $cPasivo = array_filter($cuentas_causacion, function ($cuentas_causacion) {
             return $cuentas_causacion["es_pasivo"] == 1;
         });
+        usort($cPasivo, function ($a, $b) {
+            if ($a['id_tipo'] == 1)
+                return -1;
+            if ($b['id_tipo'] == 1)
+                return 1;
+            return $a['id_tipo'] <=> $b['id_tipo'];
+        });
         if (($tipo_nomina == 'CE' || $tipo_nomina == 'IC')) {
             if ($con_ces == 0) {
                 $cPasivo = array_values($cPasivo);
@@ -721,10 +729,22 @@ try {
                         }
                         break;
                     case 3:
-                        $credito = $dd['g_representa'];
+                        $credito = $dd['g_representa'] - $restar;
+                        if ($credito < 0) {
+                            $restar = $credito * -1;
+                            $credito = 0;
+                        } else {
+                            $restar = 0;
+                        }
                         break;
                     case 4:
-                        $credito = $dd['val_bon_recrea'];
+                        $credito = $dd['val_bon_recrea'] - $restar;
+                        if ($credito < 0) {
+                            $restar = $credito * -1;
+                            $credito = 0;
+                        } else {
+                            $restar = 0;
+                        }
                         break;
                     case 5:
                         $credito = $dd['val_bsp'] - $restar;
@@ -775,13 +795,25 @@ try {
                         }
                         break;
                     case 18:
-                        $credito = $dd['val_cesantias'];
+                        $credito = $dd['val_cesantias'] - $restar;
+                        if ($credito < 0) {
+                            $restar = $credito * -1;
+                            $credito = 0;
+                        } else {
+                            $restar = 0;
+                        }
                         break;
                     case 19:
-                        $credito = $dd['val_icesantias'];
+                        $credito = $dd['val_icesantias'] - $restar;
+                        if ($credito < 0) {
+                            $restar = $credito * -1;
+                            $credito = 0;
+                        } else {
+                            $restar = 0;
+                        }
                         break;
                     case 20:
-                        $credito = $dd['val_prima_vac'];
+                        $credito = $dd['val_prima_vac'] - $restar;
                         if ($credito < 0) {
                             $restar = $credito * -1;
                             $credito = 0;
@@ -790,13 +822,31 @@ try {
                         }
                         break;
                     case 21:
-                        $credito = $dd['valor_pv'];
+                        $credito = $dd['valor_pv'] - $restar;
+                        if ($credito < 0) {
+                            $restar = $credito * -1;
+                            $credito = 0;
+                        } else {
+                            $restar = 0;
+                        }
                         break;
                     case 22:
-                        $credito = $dd['valor_ps'];
+                        $credito = $dd['valor_ps'] - $restar;
+                        if ($credito < 0) {
+                            $restar = $credito * -1;
+                            $credito = 0;
+                        } else {
+                            $restar = 0;
+                        }
                         break;
                     case 23:
-                        $credito = $dd['valor_viatico'];
+                        $credito = $dd['valor_viatico'] - $restar;
+                        if ($credito < 0) {
+                            $restar = $credito * -1;
+                            $credito = 0;
+                        } else {
+                            $restar = 0;
+                        }
                         break;
                     case 24:
                         $credito = $dd['valor_salud'];
@@ -828,7 +878,7 @@ try {
                         }
                         break;
                     case 33:
-                        if (!empty($dcto)) {
+                        if (!empty($dcto) && !$dcto_aplicado) {
                             foreach ($dcto as $dc) {
                                 $credito = $dc['valor'];
                                 $cuenta = $dc['id_cuenta'];
@@ -838,6 +888,7 @@ try {
                                     }
                                 }
                             }
+                            $dcto_aplicado = true;
                         }
                         $credito = 0;
                         break;
@@ -847,7 +898,13 @@ try {
                             if (!empty($otrosDevengadosEmpleado)) {
                                 foreach ($otrosDevengadosEmpleado as $otroDevengado) {
                                     if ($otroDevengado['id_tipo_devengado'] == $id_devengado_rel) {
-                                        $credito = $otroDevengado['valor'];
+                                        $credito = $otroDevengado['valor'] - $restar;
+                                        if ($credito < 0) {
+                                            $restar = $credito * -1;
+                                            $credito = 0;
+                                        } else {
+                                            $restar = 0;
+                                        }
                                         $cuenta = $cp['cuenta'];
                                         if ($credito > 0 && !($cuenta > 0)) {
                                             throw new Exception(

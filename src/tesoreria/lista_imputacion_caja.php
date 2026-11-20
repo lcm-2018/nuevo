@@ -33,6 +33,8 @@ try {
                     (SELECT 
                         `id_caja_rubros`, SUM(`valor`) AS `valor`
                     FROM `tes_caja_mvto`
+                    INNER JOIN ctb_doc ON (tes_caja_mvto.id_ctb_doc = ctb_doc.id_ctb_doc)
+                    WHERE (`ctb_doc`.`estado` = 2)     
                     GROUP BY `id_caja_rubros`) AS `gastado`
                     ON (`tes_caja_rubros`.`id_caja_rubros` = `gastado`.`id_caja_rubros`)
             WHERE (`tes_caja_rubros`.`id_caja_const` = $id_doc)";
@@ -57,34 +59,43 @@ try {
                 foreach ($listado as $l) {
                     $max = $l['valor'] - $l['valor_pag'];
                     $value = $max > 0 ? $max : 0;
-                ?>
+                    ?>
                     <div class="row mb-2">
                         <div class="col-md-3">
                             <?php if ($band) { ?>
                                 <span class="small">Código presupuestal</span>
                             <?php } ?>
-                            <div class="form-control form-control-sm bg-input text-start bg-light"><?php echo $l['cod_pptal'] ?></div>
+                            <div class="form-control form-control-sm bg-input text-start bg-light">
+                                <?php echo $l['cod_pptal'] ?>
+                            </div>
                         </div>
                         <div class="col-md-5">
                             <?php if ($band) { ?>
                                 <span class="small">Rubro</span>
                             <?php } ?>
-                            <div class="form-control form-control-sm bg-input text-start bg-light"><?php echo $l['nom_rubro'] ?></div>
+                            <div class="form-control form-control-sm bg-input text-start bg-light">
+                                <?php echo $l['nom_rubro'] ?>
+                            </div>
                         </div>
                         <div class="col-md-2">
                             <?php if ($band) { ?>
                                 <span for="valor" class="small">Valor RP</span>
                             <?php } ?>
-                            <div class="form-control form-control-sm bg-input text-start bg-light"><?php echo number_format($max, 2) ?></div>
+                            <div class="form-control form-control-sm bg-input text-start bg-light">
+                                <?php echo number_format($max, 2) ?>
+                            </div>
                         </div>
                         <div class="col-md-2">
                             <?php if ($band) { ?>
                                 <span for="valor" class="small">Valor CxP</span>
                             <?php } ?>
-                            <input type="text" name="valor[<?php echo $l['id_caja_rubros'] ?>]" id="valor" onkeyup="NumberMiles(this)" class="form-control form-control-sm bg-input text-end ValImputacion" min="0" max="<?php echo $max ?>" value="<?php echo number_format($value, 2) ?>">
+                            <input type="text" name="valor[<?php echo $l['id_caja_rubros'] ?>]" id="valor"
+                                onkeyup="NumberMiles(this)"
+                                class="form-control form-control-sm bg-input text-end ValImputacion" min="0"
+                                max="<?php echo $max ?>" value="<?php echo number_format($value, 2) ?>">
                         </div>
                     </div>
-                <?php
+                    <?php
                     $band = false;
                 }
                 ?>
