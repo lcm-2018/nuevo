@@ -131,6 +131,7 @@ try {
                 , `ctb_doc`.`doc_soporte`
                 , `causaciones`.`id_manu` AS `causacion`
                 , `ctb_referencia`.`nombre` AS `referencia`  
+                , `ctb_referencia`.`id_ctb_referencia` AS `id_referencia`
             FROM
                 `ctb_doc`
                 LEFT JOIN `ctb_referencia`
@@ -278,13 +279,30 @@ if (!empty($listappto)) {
     } catch (PDOException $e) {
         echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
     }
+    $pagos_existentes = [];
+    if ($id_ctb_doc == 6) {
+        try {
+            $sql = "SELECT `id_transaccion` FROM `fac_otros_pagos` WHERE `id_transaccion` IN ($id_cta)
+                    UNION
+                    SELECT `id_transaccion` FROM `fac_pagos_erp` WHERE `id_transaccion` IN ($id_cta)";
+            $rs = $cmd->query($sql);
+            $pagos_existentes = $rs ? $rs->fetchAll(PDO::FETCH_COLUMN) : [];
+            if ($rs) {
+                $rs->closeCursor();
+                unset($rs);
+            }
+        } catch (PDOException $e) {
+            echo $e->getCode() == 2002 ? 'Sin Conexión a Mysql (Error: 2002)' : 'Error: ' . $e->getCode();
+        }
+    }
     foreach ($listappto as $lp) {
         $valor_total = 0;
         $id_ctb = $lp['id_ctb_doc'];
         $estado = $lp['estado'];
-        $editar = $borrar = $imprimir = $detalles = $enviar = $dato = $cerrar = $anular = $doc_soporte = null;
+        $editar = $borrar = $imprimir = $detalles = $enviar = $dato = $cerrar = $anular = $doc_soporte = $btn_uptercero = null;
         $tercero = $lp['nom_tercero'];
         $ccnit = $lp['nit_tercero'];
+        $band = !in_array($id_ctb, $pagos_existentes);
         if ($lp['tipo'] == 'N') {
             $enviar = '<button id ="enviar_' . $id_ctb . '" value="' . $lp['id_nomina'] . '" onclick="EnviarNomina(this)" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow"  title="Procesar nómina (Soporte Electrónico)"><span class="fas fa-paper-plane"></span></button>';
         }
@@ -336,6 +354,11 @@ if (!empty($listappto)) {
             $imprimir = '<a value="' . $id_ctb . '" onclick="imprimirFormatoTes(' . $lp['id_ctb_doc'] . ')" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow " title="Detalles"><span class="fas fa-print"></span></a>';
         }
 
+        // Botón adicional según condiciones (id_doc == 6, referencia == 14, estado == 2 cerrado, y bandera verdadera)
+        if ($id_rol == 1 && $id_ctb_doc == 6 && ($lp['id_referencia'] ?? null) == 14 && $estado == 2 && $band) {
+            $btn_uptercero = '<button value="' . $id_ctb . '" onclick="btnUpTercero(this)" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow" title="Modificar tercero de documento cerrrado"><i class="fas fa-pen-square"></i></button>';
+        }
+
         if ($estado >= 2) {
             $editar = null;
             $borrar = null;
@@ -348,6 +371,7 @@ if (!empty($listappto)) {
             $cerrar = null;
             $anular = null;
             $detalles = null;
+            $btn_uptercero = null;
             $dato = '<span class="badge rounded-pill bg-secondary">Anulado</span>';
         }
         $data[] = [
@@ -358,7 +382,7 @@ if (!empty($listappto)) {
             'tercero' => $tercero,
             'ref' => $lp['referencia'],
             'valor' => '<div class="text-end">' . $valor_total . '</div>',
-            'botones' => '<div class="text-center" style="position:relative">' . $editar . $detalles . $borrar . $imprimir . $enviar . $dato . $cerrar . $doc_soporte . $anular . '</div>',
+            'botones' => '<div class="text-center" style="position:relative">' . $editar . $detalles . $borrar . $imprimir . $enviar . $dato . $cerrar . $doc_soporte . $anular . $btn_uptercero . '</div>',
         ];
     }
 } else {

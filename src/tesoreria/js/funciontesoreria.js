@@ -3789,3 +3789,56 @@ const VerSoporteElectronicoTes = (id) => {
 			console.log("Error:");
 		});
 };
+
+const btnUpTercero = (boton) => {
+	let id_ctb_doc = boton.value;
+	mostrarOverlay();
+	$.post("form_edita_tercero_doc.php", { id_ctb_doc: id_ctb_doc }, function (he) {
+		$("#divTamModalForms").removeClass("modal-sm modal-xl").addClass("modal-lg");
+		$("#divModalForms").modal("show");
+		$("#divForms").html(he);
+	}).always(() => {
+		ocultarOverlay();
+	});
+};
+
+const guardarUpTerceroDoc = () => {
+	$('.is-invalid').removeClass('is-invalid');
+	if ($('#id_tercero').val() == '' || $('#id_tercero').val() == '0' || $('#terceromov').val().trim() == '') {
+		$('#terceromov').addClass('is-invalid');
+		$('#terceromov').focus();
+		mjeError('Debe seleccionar un tercero válido');
+		return false;
+	}
+	if ($('#motivo_edita').val().trim() == '') {
+		$('#motivo_edita').addClass('is-invalid');
+		$('#motivo_edita').focus();
+		mjeError('El motivo de la modificación es obligatorio');
+		return false;
+	}
+
+	var datos = $('#formEditaTerceroDoc').serialize();
+	mostrarOverlay();
+	$.ajax({
+		type: 'POST',
+		url: 'datos/registrar/modifica_tercero_doc.php',
+		data: datos,
+		dataType: 'json',
+		success: function (r) {
+			if (r.status == 'ok') {
+				$('#divModalForms').modal('hide');
+				mje('Tercero actualizado correctamente');
+				if ($('#tableMvtoTesoreriaPagos').length) {
+					$('#tableMvtoTesoreriaPagos').DataTable().ajax.reload(null, false);
+				}
+			} else {
+				mjeError('Error: ' + r.msg);
+			}
+		},
+		error: function (xhr, status, error) {
+			mjeError('Error en la solicitud: ' + error);
+		}
+	}).always(() => {
+		ocultarOverlay();
+	});
+};

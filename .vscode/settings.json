@@ -24,5 +24,6 @@
             "uiTheme": "vs",
             "path": "./.vscode/theme-idea.json"
         }
-    ]
+    ],
+    "antigravity.enableInlineDiff": true
 }
