@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 if (!isset($_SESSION['user'])) {
     header("Location: ../../../index.php");
@@ -43,9 +43,13 @@ if (!empty($listappto)) {
     foreach ($listappto as $lp) {
         $id_pto = $lp['id_pto_presupuestos'];
         $detalles = null;
+        $recaudo = null;
         if ($permisos->PermisosUsuario($opciones, 5401, 3) || $id_rol == 1) {
             $editar = '<a value="' . $id_pto . '" class="btn btn-outline-primary btn-xs rounded-circle me-1 shadow editar" title="Editar"><span class="fas fa-pencil-alt "></span></a>';
             $ejecucion = '<a value="' . $id_pto . '" tipo-id="' . $lp['id_tipo'] . '" class="btn btn-outline-success btn-xs rounded-circle me-1 shadow ejecucion" title="Ejecucion"><span class="fas fa-tasks "></span></a>';
+            if ((int)$lp['id_tipo'] === 1) {
+                $recaudo = '<a value="' . $id_pto . '" tipo-id="' . $lp['id_tipo'] . '" class="btn btn-outline-info btn-xs rounded-circle me-1 shadow recaudo" title="Recaudos (REC)"><span class="fas fa-hand-holding-usd"></span></a>';
+            }
             //$detalles = '<a value="' . $id_pto . '" class="btn btn-outline-warning btn-xs rounded-circle me-1 shadow detalles" title="Detalles"><span class="fas fa-eye "></span></a>';
             $acciones =
                 <<<HTML
@@ -76,7 +80,7 @@ if (!empty($listappto)) {
             'nombre' => $lp['nombre'],
             'tipo' => mb_strtoupper($lp['tipo']),
             'vigencia' => $lp['vigencia'],
-            'botones' => '<div class="text-center">' . $editar . $borrar . $ejecucion . $detalles . $acciones . '</div>',
+            'botones' => '<div class="text-center">' . $editar . $borrar . $ejecucion . $recaudo . $detalles . $acciones . '</div>',
 
         ];
     }

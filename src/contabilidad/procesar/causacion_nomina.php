@@ -882,6 +882,12 @@ try {
                             foreach ($dcto as $dc) {
                                 $credito = $dc['valor'];
                                 $cuenta = $dc['id_cuenta'];
+                                if ($credito > 0 && empty($cuenta)) {
+                                    throw new Exception(
+                                        'No existe cuenta contable configurada para el descuento del empleado ' .
+                                        ($dd['no_documento'] ?? 'sin documento')
+                                    );
+                                }
                                 if ($credito > 0 && $cuenta != '') {
                                     if (!($sql1->execute())) {
                                         throw new Exception($sql1->errorInfo()[2] ? $sql1->errorInfo()[2] : 'Error en inserción');

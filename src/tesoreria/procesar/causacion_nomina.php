@@ -123,6 +123,21 @@ function resolverRubroNomina($detalleEmpleado, $tipo, $rubrosPorTipo, $rubrosPor
     return $rubro;
 }
 
+/**
+ * Descuenta el excedente negativo acumulado ($restar) sobre el monto actual sin bajarlo de cero.
+ */
+function aplicarDescuentoAcumuladoNomina($monto, &$restar)
+{
+    $valor = $monto - $restar;
+    if ($valor < 0) {
+        $restar = abs($valor);
+        return 0;
+    }
+
+    $restar = 0;
+    return $valor;
+}
+
 $vigencia = $_SESSION['vigencia'];
 $id_vigencia = $_SESSION['id_vigencia'];
 
@@ -159,6 +174,16 @@ try {
             WHERE (`tb_centrocostos`.`es_pasivo` = 1)";
     $rs = $cmd->query($sql);
     $cPasivo = $rs->fetchAll();
+    // Garantiza que el tipo 1 (salario/neto) se procese primero para calcular $restar antes de los demás conceptos.
+    usort($cPasivo, function ($a, $b) {
+        if ($a['id_tipo'] == 1) {
+            return -1;
+        }
+        if ($b['id_tipo'] == 1) {
+            return 1;
+        }
+        return $a['id_tipo'] <=> $b['id_tipo'];
+    });
 
     // Cargar cuenta de banco para pago de nómina
     $sql = "SELECT `id_cuenta` AS `cta_contable` FROM `tes_cuentas` WHERE (`est_nomina` = 1)";
@@ -557,77 +582,49 @@ try {
                         $sgs = $d['valor_salud'] + $d['valor_pension'] + $d['val_psolidaria'];
                         $deducciones = $sgs + $d['valor_sind'] + $d['valor_libranza'] + $d['valor_embargo'] + $d['val_retencion'] + $d['valor_dcto'];
                         $devengos = $d['valor_laborado'] + $d['horas_ext'] + $d['aux_tran'] + $d['aux_alim'] + $d['val_compensa'];
-                        $valor = $devengos - $deducciones;
-                        if ($valor < 0) {
-                            $restar = abs($valor);
-                            $valor = 0;
-                        }
+                        $valor = aplicarDescuentoAcumuladoNomina($devengos - $deducciones, $restar);
                         break;
                     case 3:
-                        $valor = $d['g_representa'];
+                        $valor = aplicarDescuentoAcumuladoNomina($d['g_representa'], $restar);
                         break;
                     case 4:
-                        $valor = $d['val_bon_recrea'];
+                        $valor = aplicarDescuentoAcumuladoNomina($d['val_bon_recrea'], $restar);
                         break;
                     case 5:
-                        $valor = $d['val_bsp'];
+                        $valor = aplicarDescuentoAcumuladoNomina($d['val_bsp'], $restar);
                         break;
                     case 8:
-                        $valor = ($d['valor_incap'] - $d['pago_empresa']) - $restar;
-                        if ($valor < 0) {
-                            $restar = abs($valor);
-                            $valor = 0;
-                        } else {
-                            $restar = 0;
-                        }
+                        $valor = aplicarDescuentoAcumuladoNomina($d['valor_incap'] - $d['pago_empresa'], $restar);
                         break;
                     case 9:
-                        $valor = $d['val_indemniza'];
+                        $valor = aplicarDescuentoAcumuladoNomina($d['val_indemniza'], $restar);
                         break;
                     case 10:
-                        $valor = $d['valor_luto'] + $d['valor_mp'];
+                        $valor = aplicarDescuentoAcumuladoNomina($d['valor_luto'] + $d['valor_mp'], $restar);
                         break;
                     case 17:
-                        $valor = $d['valor_vacacion'] - $restar;
-                        if ($valor < 0) {
-                            $restar = abs($valor);
-                            $valor = 0;
-                        } else {
-                            $restar = 0;
-                        }
+                        $valor = aplicarDescuentoAcumuladoNomina($d['valor_vacacion'], $restar);
                         break;
                     case 18:
-                        $valor = $d['val_cesantias'];
+                        $valor = aplicarDescuentoAcumuladoNomina($d['val_cesantias'], $restar);
                         break;
                     case 19:
-                        $valor = $d['val_icesantias'];
+                        $valor = aplicarDescuentoAcumuladoNomina($d['val_icesantias'], $restar);
                         break;
                     case 20:
-                        $valor = $d['val_prima_vac'];
-                        if ($valor < 0) {
-                            $restar = abs($valor);
-                            $valor = 0;
-                        } else {
-                            $restar = 0;
-                        }
+                        $valor = aplicarDescuentoAcumuladoNomina($d['val_prima_vac'], $restar);
                         break;
                     case 21:
-                        $valor = $d['valor_pv'];
+                        $valor = aplicarDescuentoAcumuladoNomina($d['valor_pv'], $restar);
                         break;
                     case 22:
-                        $valor = $d['valor_ps'];
+                        $valor = aplicarDescuentoAcumuladoNomina($d['valor_ps'], $restar);
                         break;
                     case 23:
-                        $valor = $d['valor_viatico'];
+                        $valor = aplicarDescuentoAcumuladoNomina($d['valor_viatico'], $restar);
                         break;
                     case 32:
-                        $valor = $d['pago_empresa'] - $restar;
-                        if ($valor < 0) {
-                            $restar = abs($valor);
-                            $valor = 0;
-                        } else {
-                            $restar = 0;
-                        }
+                        $valor = aplicarDescuentoAcumuladoNomina($d['pago_empresa'], $restar);
                         break;
                     case 33: // Otros descuentos
                         // Esta lógica se maneja por separado si es necesario
@@ -638,7 +635,7 @@ try {
                             if (!empty($otrosDevengadosEmpleado)) {
                                 foreach ($otrosDevengadosEmpleado as $otroDevengado) {
                                     if ($otroDevengado['id_tipo_devengado'] == $id_devengado_rel) {
-                                        $valor += $otroDevengado['valor'];
+                                        $valor += aplicarDescuentoAcumuladoNomina($otroDevengado['valor'], $restar);
                                     }
                                 }
                             }

@@ -65,6 +65,20 @@ function getNombreConceptoDescuento($id_concepto, $nom_concepto_base = '')
     }
 }
 
+/**
+ * Retorna una celda HTML numérica compatible con Excel independientemente de la configuración regional.
+ */
+function renderCeldaNumericaExcel($valor, $decimales, $extraStyle = '', $esMoneda = false)
+{
+    $valorPlano = number_format(floatval($valor), $decimales, '.', '');
+    $formatoExcel = $decimales > 0 ? '#,##0.' . str_repeat('0', $decimales) : '#,##0';
+    if ($esMoneda) {
+        $formatoExcel = '$ ' . $formatoExcel;
+    }
+    $style = "text-align: right; mso-number-format:'{$formatoExcel}';" . ($extraStyle !== '' ? ' ' . $extraStyle : '');
+    return "<td x:num=\"{$valorPlano}\" style=\"{$style}\">{$valorPlano}</td>";
+}
+
 // ─────────────────────────────────────────────────────────────
 // CASO 1: EXCEL (E)
 // ─────────────────────────────────────────────────────────────
@@ -123,18 +137,18 @@ if ($tipo === 'E') {
         echo "<td>" . htmlspecialchars($d['sede']) . "</td>";
         echo "<td>" . htmlspecialchars($d['cargo']) . "</td>";
         echo "<td>" . htmlspecialchars($conceptoNombre) . "</td>";
-        echo "<td style='text-align: right;'>" . number_format($valTotal, $decimales, ',', '.') . "</td>";
-        echo "<td style='text-align: right;'>" . number_format($valDescontado, $decimales, ',', '.') . "</td>";
-        echo "<td style='text-align: right; font-weight: bold; color: #c0392b;'>" . number_format($valPendiente, $decimales, ',', '.') . "</td>";
+        echo renderCeldaNumericaExcel($valTotal, $decimales);
+        echo renderCeldaNumericaExcel($valDescontado, $decimales);
+        echo renderCeldaNumericaExcel($valPendiente, $decimales, 'font-weight: bold; color: #c0392b;');
         echo "</tr>";
     }
 
     // Fila de totales
     echo "<tr style='background-color: #e8f8f5; font-weight: bold;'>";
     echo "<td colspan='6' style='text-align: right; padding: 6px;'>TOTAL GENERAL:</td>";
-    echo "<td style='text-align: right; padding: 6px;'>$ " . number_format($gran_total_esperado, $decimales, ',', '.') . "</td>";
-    echo "<td style='text-align: right; padding: 6px;'>$ " . number_format($gran_total_descontado, $decimales, ',', '.') . "</td>";
-    echo "<td style='text-align: right; padding: 6px; color: #c0392b;'>$ " . number_format($gran_total_pendiente, $decimales, ',', '.') . "</td>";
+    echo renderCeldaNumericaExcel($gran_total_esperado, $decimales, 'padding: 6px;', true);
+    echo renderCeldaNumericaExcel($gran_total_descontado, $decimales, 'padding: 6px;', true);
+    echo renderCeldaNumericaExcel($gran_total_pendiente, $decimales, 'padding: 6px; color: #c0392b;', true);
     echo "</tr>";
 
     echo "</table>";
