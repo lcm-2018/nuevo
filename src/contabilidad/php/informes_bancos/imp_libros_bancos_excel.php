@@ -17,8 +17,8 @@ $id_cuenta_ini = isset($_POST['id_cuenta_ini']) ? (int) $_POST['id_cuenta_ini'] 
 $id_cuenta_fin = isset($_POST['id_cuenta_fin']) ? (int) $_POST['id_cuenta_fin'] : 0;
 $fec_ini = isset($_POST['fec_ini']) && strlen($_POST['fec_ini']) > 0 ? $_POST['fec_ini'] : '2020-01-01';
 $fec_fin = isset($_POST['fec_fin']) && strlen($_POST['fec_fin']) > 0 ? $_POST['fec_fin'] : '2050-12-31';
-$id_tipo_doc = isset($_POST['id_tipo_doc']) ? $_POST['id_tipo_doc'] : 0;
-$id_tercero = isset($_POST['id_tercero']) ? $_POST['id_tercero'] : 0;
+$id_tipo_doc = isset($_POST['id_tipo_doc']) ? (int) $_POST['id_tipo_doc'] : 0;
+$id_tercero = isset($_POST['id_tercero']) ? (int) $_POST['id_tercero'] : 0;
 
 $and_where = '';
 if ($id_tercero > 0) {
@@ -35,6 +35,42 @@ $sede_principal = $datos_sedes['sede_principal'];
 
 // Optimo para cualquier hospital: Obtiene el nombre de la base de datos a la que se conectó la Clase Conexion
 $bd_principal = $cmd->query("SELECT DATABASE()")->fetchColumn();
+
+/**
+ * Limpia saltos de línea y caracteres de control para evitar filas partidas en Excel,
+ * y escribe la fila en CSV compatible con PHP 8.4+.
+ */
+function escribirFilaCsv($output, array $campos): void
+{
+    foreach ($campos as &$valor) {
+        if (is_string($valor)) {
+            $valor = trim(str_replace(["\r\n", "\r", "\n", "\t", "\v", "\f", "\0"], ' ', $valor));
+        }
+    }
+    unset($valor);
+    if (PHP_VERSION_ID >= 70400) {
+        fputcsv($output, $campos, ',', '"', '');
+    } else {
+        fputcsv($output, $campos, ',', '"');
+    }
+}
+
+/**
+ * Resuelve la cuenta de detalle destino (coincidencia exacta o por prefijo).
+ */
+function resolverCuentaDestino(string $cuenta, array $cuentasIdx, array $prefijosDesc): ?string
+{
+    if (isset($cuentasIdx[$cuenta])) {
+        return $cuenta;
+    }
+    foreach ($prefijosDesc as $prefijo) {
+        $prefijo = (string) $prefijo;
+        if ($prefijo === '' || strncmp($cuenta, $prefijo, strlen($prefijo)) === 0) {
+            return $prefijo;
+        }
+    }
+    return null;
+}
 
 try {
     $cmd = \Config\Clases\Conexion::getConexion();
@@ -101,37 +137,107 @@ try {
     header("Pragma: no-cache");
     header("Expires: 0");
 
-    // Abrir salida directa
+    // Abrir salida directa y escribir BOM UTF-8 para que Excel interprete tildes y ñ correctamente
     $output = fopen("php://output", "w");
+    fwrite($output, "\xEF\xBB\xBF");
 
     // Escribir encabezados generales del reporte SIEMPRE (para evitar que descargue un archivo vacío si no hay datos)
-    fputcsv($output, ["ENTIDAD", $razhd]);
-    fputcsv($output, ["NIT", $nithd]);
-    fputcsv($output, ["REPORTE", "LIBROS AUXILIARES"]);
-    fputcsv($output, ["FECHA INICIAL", $fec_ini]);
-    fputcsv($output, ["FECHA FINAL", $fec_fin]);
+    escribirFilaCsv($output, ["ENTIDAD", $razhd]);
+    escribirFilaCsv($output, ["NIT", $nithd]);
+    escribirFilaCsv($output, ["REPORTE", "LIBROS AUXILIARES"]);
+    escribirFilaCsv($output, ["FECHA INICIAL", $fec_ini]);
+    escribirFilaCsv($output, ["FECHA FINAL", $fec_fin]);
 
-    $cmd = \Config\Clases\Conexion::getConexion();
-    foreach ($obj_cuentas as $obj_c) {
-        // Array para consolidar movimientos de todas las sedes
-        $obj_informe = [];
-        $saldos_iniciales = ['debito' => 0, 'credito' => 0, 'filas' => 0];
+    $movimientosPorCuenta = [];
+    $saldosPorCuenta = [];
 
-        // Iterar sobre todas las sedes activas
+    if (!empty($obj_cuentas)) {
+        $cuentasIdx = [];
+        foreach ($obj_cuentas as $obj_c) {
+            $cuentasIdx[(string) $obj_c['cuenta']] = true;
+        }
+        $prefijosDesc = array_keys($cuentasIdx);
+        usort($prefijosDesc, function ($a, $b) {
+            return strlen((string) $b) <=> strlen((string) $a);
+        });
+
+        $where_rango_sede = '';
+        $params_rango_sede = [];
+        if ($cod_cuenta_ini !== '' && $cod_cuenta_fin !== '') {
+            $where_rango_sede = " AND (ctb_pgcp.cuenta >= :cuenta_desde AND (ctb_pgcp.cuenta <= :cuenta_hasta OR ctb_pgcp.cuenta LIKE :cuenta_hasta_like))";
+            $params_rango_sede[':cuenta_desde'] = $cuenta_desde;
+            $params_rango_sede[':cuenta_hasta'] = $cuenta_hasta;
+            $params_rango_sede[':cuenta_hasta_like'] = $cuenta_hasta . '%';
+        }
+
+        $sqlMovimientos = "SELECT
+                    DATE_FORMAT(ctb_doc.fecha, '%Y-%m-%d') AS fecha,
+                    ctb_pgcp.cuenta,
+                    ctb_libaux.id_tercero_api,
+                    IFNULL(ctb_libaux.debito, 0) AS debito,
+                    IFNULL(ctb_libaux.credito, 0) AS credito,
+                    ctb_doc.id_tipo_doc,
+                    ctb_fuente.cod AS cod_tipo_doc,
+                    ctb_fuente.nombre AS nom_tipo_doc,
+                    ctb_doc.id_manu,
+                    CONCAT(
+                        IFNULL(
+                            CASE ctb_doc.tipo_movimiento
+                                WHEN 1 THEN CONCAT(ff.prefijo, IFNULL(ff.num_efactura, ff.num_factura))
+                                WHEN 2 THEN CONCAT(fo.prefijo, IFNULL(fo.num_efactura, fo.num_factura))
+                                WHEN 3 THEN CONCAT(fv.prefijo, IFNULL(fv.num_efactura, fv.num_factura))
+                                WHEN 4 THEN CONCAT(fc.prefijo, fc.num_factura)
+                                ELSE NULL
+                            END,
+                            ''
+                        ),
+                        ' - ',
+                        ctb_doc.detalle
+                    ) AS detalle,
+                    tes_forma_pago.forma_pago,
+                    tb_terceros.nom_tercero,
+                    tb_terceros.nit_tercero
+                FROM ctb_libaux
+                INNER JOIN ctb_doc ON (ctb_libaux.id_ctb_doc = ctb_doc.id_ctb_doc)
+                INNER JOIN ctb_pgcp ON (ctb_libaux.id_cuenta = ctb_pgcp.id_pgcp)
+                INNER JOIN ctb_fuente ON (ctb_doc.id_tipo_doc = ctb_fuente.id_doc_fuente)
+                LEFT JOIN tes_detalle_pago ON (tes_detalle_pago.id_ctb_doc = ctb_doc.id_ctb_doc)
+                LEFT JOIN tes_forma_pago ON (tes_detalle_pago.id_forma_pago = tes_forma_pago.id_forma_pago)
+                LEFT JOIN tb_terceros ON (tb_terceros.id_tercero_api = ctb_libaux.id_tercero_api)
+                LEFT JOIN fac_facturacion ff ON (ctb_doc.tipo_movimiento = 1 AND ctb_doc.id_manu = ff.id_factura)
+                LEFT JOIN fac_otros fo       ON (ctb_doc.tipo_movimiento = 2 AND ctb_doc.id_manu = fo.id_factura)
+                LEFT JOIN far_ventas fv      ON (ctb_doc.tipo_movimiento = 3 AND ctb_doc.id_manu = fv.id_venta)
+                LEFT JOIN fac_cartera fc     ON (ctb_doc.tipo_movimiento = 4 AND ctb_doc.id_manu = fc.id_facturac)
+                WHERE ctb_doc.fecha BETWEEN :fec_ini AND :fec_fin
+                  AND ctb_doc.estado = 2
+                  $where_rango_sede
+                  $and_where";
+
+        $sqlSaldos = "SELECT
+                    COUNT(*) AS filas,
+                    ctb_pgcp.cuenta,
+                    SUM(IFNULL(ctb_libaux.debito, 0)) AS debito,
+                    SUM(IFNULL(ctb_libaux.credito, 0)) AS credito
+                FROM ctb_libaux
+                INNER JOIN ctb_doc ON (ctb_libaux.id_ctb_doc = ctb_doc.id_ctb_doc)
+                INNER JOIN ctb_pgcp ON (ctb_libaux.id_cuenta = ctb_pgcp.id_pgcp)
+                WHERE ctb_doc.fecha < :fec_ini
+                  AND ctb_doc.estado = 2
+                  $where_rango_sede
+                GROUP BY ctb_pgcp.cuenta";
+
+        $cmd = \Config\Clases\Conexion::getConexion();
+        // Consultar UNA sola vez por sede en lugar de N cuentas × M sedes
         foreach ($sedes as $sede) {
-            // Usar conexión actual para la sede principal
             if ($sede['es_principal'] == 1) {
                 $cmd_sede = $cmd;
                 if (!empty($bd_principal)) {
                     $cmd_sede->exec("USE `{$bd_principal}`");
                 }
             } else {
-                // Si la sede no tiene bd o es la misma que la principal, la omitimos.
-                // Sus datos ya vendrán en la consulta de la bd principal porque comparten la misma base de datos.
                 if (empty($sede['bd_sede']) || $sede['bd_sede'] == $bd_principal) {
                     continue;
                 }
-
                 $cmd_sede = conectarSede($sede['bd_sede']);
                 if ($cmd_sede === null) {
                     error_log("No se pudo conectar a la sede {$sede['nom_sede']} para el libro de bancos Excel");
@@ -140,118 +246,63 @@ try {
             }
 
             try {
-                //-----libros auxiliares de bancos -----------------------
-                $sql = "SELECT
-                            DATE_FORMAT(ctb_doc.fecha, '%Y-%m-%d') AS fecha,
-                            ctb_pgcp.cuenta,
-                            ctb_libaux.id_tercero_api,
-                            IFNULL(ctb_libaux.debito,0) AS debito,
-                            IFNULL(ctb_libaux.credito,0) AS credito,
-                            ctb_doc.id_tipo_doc,
-                            ctb_fuente.cod AS cod_tipo_doc,
-                            ctb_fuente.nombre AS nom_tipo_doc,
-                            ctb_doc.id_manu,
-                            CONCAT(IFNULL(facturas.num_factura,''),' - ',ctb_doc.detalle) AS detalle,
-                            tes_forma_pago.forma_pago,
-                            tb_terceros.nom_tercero,
-                            tb_terceros.nit_tercero
-                        FROM 
-                            ctb_libaux 
-                        INNER JOIN ctb_doc ON (ctb_libaux.id_ctb_doc = ctb_doc.id_ctb_doc)
-                        INNER JOIN ctb_pgcp ON (ctb_libaux.id_cuenta = ctb_pgcp.id_pgcp)
-                        INNER JOIN ctb_fuente ON (ctb_doc.id_tipo_doc = ctb_fuente.id_doc_fuente)
-                        LEFT JOIN tes_detalle_pago ON (tes_detalle_pago.id_ctb_doc = ctb_doc.id_ctb_doc)
-                        LEFT JOIN tes_forma_pago ON (tes_detalle_pago.id_forma_pago = tes_forma_pago.id_forma_pago)
-                        LEFT JOIN tb_terceros ON (tb_terceros.id_tercero_api = ctb_libaux.id_tercero_api)
-                        LEFT JOIN
-                            (SELECT 
-                                doc.id_ctb_doc,
-                                doc.id_manu,
-                                doc.tipo_movimiento AS tipo,
-                                CASE doc.tipo_movimiento
-                                    WHEN 1 THEN CONCAT(ff.prefijo, IFNULL(ff.num_efactura, ff.num_factura))
-                                    WHEN 2 THEN CONCAT(fo.prefijo, IFNULL(fo.num_efactura, fo.num_factura))
-                                    WHEN 3 THEN CONCAT(fv.prefijo, IFNULL(fv.num_efactura, fv.num_factura))
-                                    WHEN 4 THEN CONCAT(fc.prefijo, fc.num_factura)
-                                END AS num_factura
-                            FROM ctb_doc doc
-                            LEFT JOIN fac_facturacion ff ON doc.tipo_movimiento = 1 AND doc.id_manu = ff.id_factura
-                            LEFT JOIN fac_otros fo       ON doc.tipo_movimiento = 2 AND doc.id_manu = fo.id_factura
-                            LEFT JOIN far_ventas fv      ON doc.tipo_movimiento = 3 AND doc.id_manu = fv.id_venta
-                            LEFT JOIN fac_cartera fc     ON doc.tipo_movimiento = 4 AND doc.id_manu = fc.id_facturac
-                            WHERE (doc.tipo_movimiento = 1 AND ff.id_factura IS NOT NULL)
-                                OR (doc.tipo_movimiento = 2 AND fo.id_factura IS NOT NULL)
-                                OR (doc.tipo_movimiento = 3 AND fv.id_venta IS NOT NULL)
-                                OR (doc.tipo_movimiento = 4 AND fc.id_facturac IS NOT NULL)) AS facturas
-                                ON (facturas.id_manu = ctb_doc.id_manu AND facturas.tipo = ctb_doc.tipo_movimiento AND facturas.id_ctb_doc = ctb_doc.id_ctb_doc)
-                        WHERE ctb_doc.fecha BETWEEN :fec_ini AND :fec_fin AND ctb_doc.estado = 2 
-                            AND ctb_pgcp.cuenta LIKE :cuenta
-                            $and_where
-                        ORDER BY DATE_FORMAT(ctb_doc.fecha, '%Y-%m-%d') ASC, ctb_libaux.debito DESC, ctb_libaux.credito DESC";
-                $rs = $cmd_sede->prepare($sql);
+                $rs = $cmd_sede->prepare($sqlMovimientos);
                 $rs->bindValue(':fec_ini', $fec_ini, PDO::PARAM_STR);
                 $rs->bindValue(':fec_fin', $fec_fin, PDO::PARAM_STR);
-                $rs->bindValue(':cuenta', $obj_c['cuenta'] . '%', PDO::PARAM_STR);
-                if ($id_tercero > 0) {
-                    // No need to bind, it's injected directly in the string
-                }
-                if ($id_tipo_doc > 0) {
-                    // No need to bind, it's injected directly in the string
+                foreach ($params_rango_sede as $param => $value) {
+                    $rs->bindValue($param, $value, PDO::PARAM_STR);
                 }
                 $rs->execute();
-                $movimientos_sede = $rs->fetchAll();
-                $rs->closeCursor();
-
-                // Agregar nombre de sede a cada movimiento
-                foreach ($movimientos_sede as &$mov) {
-                    $mov['nom_sede'] = $sede['nom_sede'];
-                }
-                unset($mov);
-
-                // Agregar movimientos de esta sede al array consolidado
-                $obj_informe = array_merge($obj_informe, $movimientos_sede);
-
-                //-----consulta para debito y credito para saldo inicial-----------------------
-                $sql = "SELECT
-                            COUNT(*) AS filas
-                            ,ctb_libaux.id_cuenta
-                            ,ctb_pgcp.cuenta
-                            ,ctb_pgcp.nombre
-                            , SUM(IFNULL(ctb_libaux.debito,0)) AS debito 
-                            , SUM(IFNULL(ctb_libaux.credito,0)) AS credito 
-                        FROM
-                            ctb_libaux
-                            INNER JOIN ctb_doc ON (ctb_libaux.id_ctb_doc = ctb_doc.id_ctb_doc)
-                            INNER JOIN ctb_pgcp ON (ctb_libaux.id_cuenta = ctb_pgcp.id_pgcp)
-                        WHERE ctb_doc.fecha < :fec_ini  
-                        AND ctb_pgcp.cuenta LIKE :cuenta 
-                        AND ctb_doc.estado = 2 limit 1";
-                $rs = $cmd_sede->prepare($sql);
-                $rs->bindValue(':fec_ini', $fec_ini, PDO::PARAM_STR);
-                $rs->bindValue(':cuenta', $obj_c['cuenta'] . '%', PDO::PARAM_STR);
-                $rs->execute();
-                $saldos_sede = $rs->fetchAll();
-                $rs->closeCursor();
-
-                // Acumular saldos iniciales de todas las sedes
-                if (!empty($saldos_sede) && $saldos_sede[0]['filas'] > 0) {
-                    $saldos_iniciales['debito'] += $saldos_sede[0]['debito'];
-                    $saldos_iniciales['credito'] += $saldos_sede[0]['credito'];
-                    $saldos_iniciales['filas'] += $saldos_sede[0]['filas'];
-                    // Guardar cuenta para referencia
-                    if (!isset($saldos_iniciales['cuenta'])) {
-                        $saldos_iniciales['cuenta'] = $saldos_sede[0]['cuenta'];
+                while ($mov = $rs->fetch(PDO::FETCH_ASSOC)) {
+                    $destino = resolverCuentaDestino((string) $mov['cuenta'], $cuentasIdx, $prefijosDesc);
+                    if ($destino !== null) {
+                        $mov['nom_sede'] = $sede['nom_sede'];
+                        $movimientosPorCuenta[$destino][] = $mov;
                     }
                 }
+                $rs->closeCursor();
+                unset($rs);
+
+                $rsSaldos = $cmd_sede->prepare($sqlSaldos);
+                $rsSaldos->bindValue(':fec_ini', $fec_ini, PDO::PARAM_STR);
+                foreach ($params_rango_sede as $param => $value) {
+                    $rsSaldos->bindValue($param, $value, PDO::PARAM_STR);
+                }
+                $rsSaldos->execute();
+                while ($sal = $rsSaldos->fetch(PDO::FETCH_ASSOC)) {
+                    $destino = resolverCuentaDestino((string) $sal['cuenta'], $cuentasIdx, $prefijosDesc);
+                    if ($destino !== null && $sal['filas'] > 0) {
+                        if (!isset($saldosPorCuenta[$destino])) {
+                            $saldosPorCuenta[$destino] = [
+                                'debito' => 0,
+                                'credito' => 0,
+                                'filas' => 0,
+                                'cuenta' => $sal['cuenta'],
+                            ];
+                        }
+                        $saldosPorCuenta[$destino]['debito'] += $sal['debito'];
+                        $saldosPorCuenta[$destino]['credito'] += $sal['credito'];
+                        $saldosPorCuenta[$destino]['filas'] += $sal['filas'];
+                    }
+                }
+                $rsSaldos->closeCursor();
+                unset($rsSaldos);
             } catch (PDOException $e) {
                 error_log("Error consultando movimientos bancarios Excel en sede {$sede['nom_sede']}: " . $e->getMessage());
             }
 
-            // Cerrar la conexión si no es la principal
             if ($sede['es_principal'] != 1) {
                 $cmd_sede = null;
             }
         }
+        $cmd = null;
+    }
+
+    foreach ($obj_cuentas as $obj_c) {
+        $cuentaCod = (string) $obj_c['cuenta'];
+        $obj_informe = $movimientosPorCuenta[$cuentaCod] ?? [];
+        $saldos_iniciales = $saldosPorCuenta[$cuentaCod] ?? ['debito' => 0, 'credito' => 0, 'filas' => 0];
+        unset($movimientosPorCuenta[$cuentaCod], $saldosPorCuenta[$cuentaCod]);
 
         // Ordenar movimientos consolidados por fecha
         usort($obj_informe, function ($a, $b) {
@@ -293,13 +344,13 @@ try {
 
         // (Los encabezados generales fueron movidos fuera de este ciclo)
         $reg++;
-        fputcsv($output, ["CUENTA", strval($obj_c['cuenta'] . ' - ' . $obj_c['nombre'])]);
-        fputcsv($output, []);
+        escribirFilaCsv($output, ["CUENTA", strval($obj_c['cuenta'] . ' - ' . $obj_c['nombre'])]);
+        escribirFilaCsv($output, []);
         $headers = ["Sede", "Fecha", "Tipo Documento", "Documento", "Referencia", "Tercero", "CC/nit", "Detalle", "Debito", "Credito", "Saldo"];
-        fputcsv($output, $headers);
+        escribirFilaCsv($output, $headers);
 
         $saldo_cuenta = $saldo_inicial;
-        fputcsv($output, ["", "", "", "", "", "", "", "Saldo inicial:", "", "", number_format($saldo_cuenta, 2, ".", ",")]);
+        escribirFilaCsv($output, ["", "", "", "", "", "", "", "Saldo inicial:", "", "", number_format($saldo_cuenta, 2, ".", "")]);
 
         foreach ($obj_informe as $obj) {
             $primer_caracter = substr($obj['cuenta'], 0, 1);
@@ -311,25 +362,25 @@ try {
             }
 
             $row = [
-                $obj['nom_sede'],
-                $obj['fecha'],
-                $obj['cod_tipo_doc'],
-                $obj['id_manu'],
-                mb_strtoupper($obj['forma_pago']),
-                mb_strtoupper($obj['nom_tercero']),
-                $obj['nit_tercero'],
-                mb_strtoupper($obj['detalle']),
-                number_format($obj['debito'], 2, ".", ","),
-                number_format($obj['credito'], 2, ".", ","),
-                number_format($saldo_cuenta, 2, ".", ",")
+                $obj['nom_sede'] ?? '',
+                $obj['fecha'] ?? '',
+                $obj['cod_tipo_doc'] ?? '',
+                $obj['id_manu'] ?? '',
+                mb_strtoupper($obj['forma_pago'] ?? ''),
+                mb_strtoupper($obj['nom_tercero'] ?? ''),
+                $obj['nit_tercero'] ?? '',
+                mb_strtoupper($obj['detalle'] ?? ''),
+                number_format($obj['debito'], 2, ".", ""),
+                number_format($obj['credito'], 2, ".", ""),
+                number_format($saldo_cuenta, 2, ".", "")
             ];
-            fputcsv($output, $row);
+            escribirFilaCsv($output, $row);
 
             $total_deb += $obj['debito'];
             $total_cre += $obj['credito'];
         }
 
-        fputcsv($output, [
+        escribirFilaCsv($output, [
             "",
             "",
             "",
@@ -338,11 +389,11 @@ try {
             "",
             "",
             "Totales",
-            number_format($total_deb, 2, ".", ","),
-            number_format($total_cre, 2, ".", ","),
-            number_format($saldo_cuenta, 2, ".", ",")
+            number_format($total_deb, 2, ".", ""),
+            number_format($total_cre, 2, ".", ""),
+            number_format($saldo_cuenta, 2, ".", "")
         ]);
-        fputcsv($output, []);
+        escribirFilaCsv($output, []);
     }
 
     fclose($output);
