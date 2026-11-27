@@ -290,12 +290,14 @@ HTML;
 
         $valor_licencias = ($d['valor_luto'] ?? 0) + ($d['valor_mp'] ?? 0);
 
+        $lbl_lab = (($d['dias_lab'] ?? 0) > 0) ? 'Salario Laborado (' . $d['dias_lab'] . ' días)' : 'Salario Laborado';
         $lbl_incap = (($d['dias_incapacidad'] ?? 0) > 0) ? 'Incapacidades (' . $d['dias_incapacidad'] . ' días)' : 'Incapacidades';
         $lbl_lic = (($d['dias_licencias'] ?? 0) > 0) ? 'Licencias (' . $d['dias_licencias'] . ' días)' : 'Licencias';
         $lbl_vac = (($d['dias_vacaciones'] ?? 0) > 0) ? 'Vacaciones (' . $d['dias_vacaciones'] . ' días)' : 'Vacaciones';
+        $lbl_indem = (($d['dias_indemniza'] ?? 0) > 0) ? 'Indemnización por Vacaciones (' . $d['dias_indemniza'] . ' días)' : 'Indemnización por Vacaciones';
 
         $devengados = [
-            'Salario Laborado' => $d['valor_laborado'] ?? 0,
+            $lbl_lab => $d['valor_laborado'] ?? 0,
             'Compensatorio' => $d['val_compensa'] ?? 0,
             $lbl_incap => $d['valor_incap'] ?? 0,
             $lbl_lic => $valor_licencias,
@@ -310,7 +312,7 @@ HTML;
             'Prima de Navidad' => $d['valor_pv'] ?? 0,
             'Cesantías' => $d['val_cesantias'] ?? 0,
             'Intereses Cesantías' => $d['val_icesantias'] ?? 0,
-            'Indemnización' => $d['val_indemniza'] ?? 0,
+            $lbl_indem => $d['val_indemniza'] ?? 0,
         ];
 
         // Agregar horas extras con su detalle si existe, o valor directo

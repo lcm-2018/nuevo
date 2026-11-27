@@ -46,7 +46,7 @@ class Plantilla
         $users = $id_rol == 1 ? '<li><a class="dropdown-item sombra" href="' . $host . '/src/usuarios/general/php/index.php">Gestión de Usuarios</a></li>
             <li><a class="dropdown-item sombra" href="' . $host . '/src/usuarios/general/php/roles.php">Roles de Usuarios</a></li>
             <li><hr class="dropdown-divider"></li>' : '';
-        $docs = $id_rol == 1 ||  (new Permisos)->PermisosUsuario($opciones, 6001, 0) ? '<li><a class="dropdown-item sombra" href="' . $host . '/src/documentos/php/index.php">Gestión Documental</a></li>' : '';
+        $docs = $id_rol == 1 || (new Permisos)->PermisosUsuario($opciones, 6001, 0) ? '<li><a class="dropdown-item sombra" href="' . $host . '/src/documentos/php/index.php">Gestión Documental</a></li>' : '';
         $opciones_user =
             <<<HTML
             <li><a class="dropdown-item sombra" href="javascript:void(0)" id="perfilUsuario">Perfil de Usuario</a></li>
@@ -59,6 +59,8 @@ class Plantilla
             <li><a class="dropdown-item sombra" href="javascript:void(0)" id="fechaSesion">Fecha de Sesión</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item sombra" href="{$host}/index.php">Cerrar Sesión</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item sombra" href="{$host}/src/apoyo.php">Servicio de apoyo</a></li>
 HTML;
         if ($id_rol == 1) {
             $btnVigencia = '<a class="dropdown-item sombra" href="javascript:void(0)" id="btnVigencia">Vigencia</a>';

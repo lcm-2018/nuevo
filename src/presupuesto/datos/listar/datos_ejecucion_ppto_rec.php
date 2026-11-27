@@ -102,7 +102,9 @@ try {
     // Consultar valores de pto_rec_detalle únicamente para los registros de la página actual
     $valoresRec = [];
     if (!empty($listappto)) {
-        $ids = array_map(static fn($r) => intval($r['id_pto_rec']), $listappto);
+        $ids = array_map(static function ($r) {
+            return intval($r['id_pto_rec']);
+        }, $listappto);
         $placeholders = implode(',', $ids);
         $sqlVal = "SELECT
                         `id_pto_rac` AS `id_pto_rec`

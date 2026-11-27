@@ -233,6 +233,7 @@ class Detalles
                         (SELECT
                             `nom_indemniza_vac`.`id_empleado`
                             , SUM(`nom_liq_indemniza_vac`.`val_liq`) AS `val_indemniza`
+                            , SUM(`nom_liq_indemniza_vac`.`dias_liq`) AS `dias_indemniza`
                         FROM
                             `nom_liq_indemniza_vac`
                             INNER JOIN `nom_indemniza_vac` 
@@ -261,6 +262,7 @@ class Detalles
                     , IFNULL(`ces`.`dias_ces`,0) AS `dias_ces`
                     , IFNULL(`com`.`val_compensa`,0) AS `val_compensa`
                     , IFNULL(`indem`.`val_indemniza`,0) AS `val_indemniza`
+                    , IFNULL(CAST(`indem`.`dias_indemniza` AS UNSIGNED),0) AS `dias_indemniza`
                     , IFNULL(`dcto`.`valor`,0) AS `valor_dcto`
                     , IFNULL(CAST(`inc`.`dias` AS UNSIGNED),0) AS `dias_incapacidad`
                     , CAST(IFNULL(`lmp`.`dias_liqs`,0) + IFNULL(`luto`.`dias`,0) + IFNULL(`lcnr`.`dias`,0) AS UNSIGNED) AS `dias_licencias`

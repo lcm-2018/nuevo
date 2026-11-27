@@ -53,13 +53,21 @@ if (!empty($obj)) {
         if ($o['vac'] > 30) {
             $o['vac'] = 30;
         }
+        if ($o['ivac'] > 30) {
+            $o['ivac'] = 30;
+        }
         if ($o['dias_mes'] > 30) {
             $o['dias_mes'] = 30;
         }
+        if ($o['dias_nov'] > 30) {
+            $o['dias_nov'] = 30;
+        }
 
-        $laborado = $o['dias_mes'] - $o['inc'] - $o['lic'] - $o['vac'] + $o['ivac'];
+        // Descuenta novedades del calendario sin duplicar fechas superpuestas (vac + ivac)
+        $laborado = $o['dias_mes'] - $o['dias_nov'];
         $laborado = max(0, min(30, $laborado)); // Convención 30 días: nunca negativo ni mayor a 30
-        $input = '<input type="number" style="height: auto !important;" class="no-focus text-end border-0 rounded p-0 w-100" name="lab[' . $id . ']" value="' . $laborado . '" min="0" max="' . $laborado . '" step="1">';
+        $maxLaborado = max($laborado, min(30, intval($o['dias_mes'])));
+        $input = '<input type="number" style="height: auto !important;" class="no-focus text-end border-0 rounded p-0 w-100" name="lab[' . $id . ']" value="' . $laborado . '" min="0" max="' . $maxLaborado . '" step="1">';
         $metodo = '<select style="height:auto !important; max-width: 110px;" class="no-focus border-0 rounded p-0 w-100" name="metodo[' . $id . ']">' . $mp . '</select>';
         $datos[] = [
             'check'        => '<div class="text-center"><input type="checkbox" name="chk_liquidacion[]" value="' . $id . '" checked><input type="hidden" name="id_contrato[' . $id . ']" value="' . $id_contrato . '"></div>',

@@ -326,8 +326,9 @@ function generarLiquidacion(
     $conceptos_liq[] = ['COMPENSATORIOS', '0', $val_compensa, false];
 
     $val_indemniza = (float) ($d['val_indemniza'] ?? 0);
+    $dias_indemniza = (float) ($d['dias_indemniza'] ?? 0);
     if ($val_indemniza > 0)
-        $conceptos_liq[] = ['INDEMNIZACIÓN POR VACACIONES', '', $val_indemniza, false];
+        $conceptos_liq[] = ['INDEMNIZACIÓN POR VACACIONES', $dias_indemniza > 0 ? $dias_indemniza : '', $val_indemniza, false];
 
     $val_viatico = (float) ($d['valor_viatico'] ?? 0);
     if ($val_viatico > 0)

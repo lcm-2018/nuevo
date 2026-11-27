@@ -107,13 +107,13 @@ if (!empty($sede_principal['bd_sede'])) {
     conectarSede($sede_principal['bd_sede']);
 }
 
-// PHP 8+: operador spaceship (<=>) encadenado con null-coalescing y orden numérico en id_manu
-usort($causaciones, static fn(array $a, array $b): int =>
-    (($a['nom_sede'] ?? '') <=> ($b['nom_sede'] ?? ''))
-    ?: (($a['fecha'] ?? '') <=> ($b['fecha'] ?? ''))
-    ?: ((int)($a['id_manu'] ?? 0) <=> (int)($b['id_manu'] ?? 0))
-    ?: (($a['id_manu'] ?? '') <=> ($b['id_manu'] ?? ''))
-);
+// Operador spaceship (<=>) encadenado con null-coalescing y orden numérico en id_manu
+usort($causaciones, static function (array $a, array $b): int {
+    return (($a['nom_sede'] ?? '') <=> ($b['nom_sede'] ?? ''))
+        ?: (($a['fecha'] ?? '') <=> ($b['fecha'] ?? ''))
+        ?: ((int)($a['id_manu'] ?? 0) <=> (int)($b['id_manu'] ?? 0))
+        ?: (($a['id_manu'] ?? '') <=> ($b['id_manu'] ?? ''));
+});
 
 $nom_informe = "RELACION DE RECONOCIMIENTOS";
 include_once '../../financiero/encabezado_empresa.php';

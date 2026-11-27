@@ -88,6 +88,7 @@ class Liquidacion
                     , IFNULL(`tt`.`lic`,0) AS `lic`
                     , IFNULL(`tt`.`vac`,0) AS `vac`
                     , IFNULL(`tt`.`ivac`,0) AS `ivac`
+                    , IFNULL(`tt`.`dias_nov`,0) AS `dias_nov`
                     , `tt`.`ids_vac`
                     , IF(DATE_FORMAT(LEAST('$fec_fin', `taux`.`fec_fin`), '%Y-%m-%d') = DATE_FORMAT(LAST_DAY(LEAST('$fec_fin', `taux`.`fec_fin`)), '%Y-%m-%d'), 30, LEAST(30, DAY(LEAST('$fec_fin', `taux`.`fec_fin`))))
                         - IF(DATE_FORMAT(GREATEST('$fec_inicio', `taux`.`fec_inicio`), '%d') = '01', 1, LEAST(30, DAY(GREATEST('$fec_inicio', `taux`.`fec_inicio`)))) + 1 AS `dias_mes`
@@ -123,6 +124,7 @@ class Liquidacion
                             , SUM(CASE WHEN `id_tipo` = 2 THEN 1 ELSE 0 END) AS `vac`
                             , SUM(CASE WHEN `id_tipo` IN (3, 4, 5) THEN 1 ELSE 0 END) AS `lic`
                             , SUM(CASE WHEN `id_tipo` = 6 THEN 1 ELSE 0 END) AS `ivac`
+                            , COUNT(DISTINCT `fecha`) AS `dias_nov`
                             , GROUP_CONCAT(DISTINCT CASE WHEN `id_tipo` = 2 THEN `id_novedad` END) AS `ids_vac`
                         FROM 
                             `nom_calendar_novedad`
